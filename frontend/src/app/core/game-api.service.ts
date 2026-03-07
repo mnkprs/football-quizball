@@ -60,10 +60,6 @@ export interface HintResult {
   points_if_correct: number;
 }
 
-export interface Double2xResult {
-  points_if_correct: number;
-}
-
 @Injectable({ providedIn: 'root' })
 export class GameApiService {
   private http = inject(HttpClient);
@@ -81,23 +77,17 @@ export class GameApiService {
     return this.http.get<Question>(`${this.base}/api/games/${gameId}/questions/${questionId}`);
   }
 
-  submitAnswer(gameId: string, questionId: string, answer: string, playerIndex: 0 | 1): Observable<AnswerResult> {
+  submitAnswer(gameId: string, questionId: string, answer: string, playerIndex: 0 | 1, useDouble?: boolean): Observable<AnswerResult> {
     return this.http.post<AnswerResult>(`${this.base}/api/games/${gameId}/answer`, {
       questionId,
       answer,
       playerIndex,
+      ...(useDouble ? { useDouble: true } : {}),
     });
   }
 
   useLifeline(gameId: string, questionId: string, playerIndex: 0 | 1): Observable<HintResult> {
     return this.http.post<HintResult>(`${this.base}/api/games/${gameId}/fifty`, {
-      questionId,
-      playerIndex,
-    });
-  }
-
-  use2x(gameId: string, questionId: string, playerIndex: 0 | 1): Observable<Double2xResult> {
-    return this.http.post<Double2xResult>(`${this.base}/api/games/${gameId}/double`, {
       questionId,
       playerIndex,
     });

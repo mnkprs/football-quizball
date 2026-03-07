@@ -27,14 +27,10 @@ export class SubmitAnswerDto {
   questionId: string;
   answer: string;
   playerIndex: 0 | 1;
+  useDouble?: boolean;
 }
 
 export class UseLifelineDto {
-  questionId: string;
-  playerIndex: 0 | 1;
-}
-
-export class Use2xDto {
   questionId: string;
   playerIndex: 0 | 1;
 }
@@ -47,10 +43,6 @@ export interface AnswerResult {
   player_scores: [number, number];
   lifeline_used: boolean;
   double_used: boolean;
-}
-
-export interface Double2xResult {
-  points_if_correct: number;
 }
 
 export interface HintResult {

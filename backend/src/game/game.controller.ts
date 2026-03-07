@@ -8,7 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { GameService } from './game.service';
-import { CreateGameDto, SubmitAnswerDto, UseLifelineDto, Use2xDto } from './game.types';
+import { CreateGameDto, SubmitAnswerDto, UseLifelineDto } from './game.types';
 
 @Controller('api/games')
 export class GameController {
@@ -46,12 +46,6 @@ export class GameController {
   @HttpCode(HttpStatus.OK)
   useLifeline(@Param('id') id: string, @Body() dto: UseLifelineDto) {
     return this.gameService.useLifeline(id, dto);
-  }
-
-  @Post(':id/double')
-  @HttpCode(HttpStatus.OK)
-  use2x(@Param('id') id: string, @Body() dto: Use2xDto) {
-    return this.gameService.use2x(id, dto);
   }
 
   @Post(':id/override')

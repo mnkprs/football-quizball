@@ -53,21 +53,10 @@ import { GameStore } from '../../core/game.store';
             }
           }
 
-          <!-- 2x Multiplier -->
-          @if (show2x()) {
-            <div class="mt-4">
-              @if (store.doubleActive()) {
-                <div class="p-4 bg-green-400/10 border border-green-400/50 rounded-xl text-center">
-                  <div class="text-green-400 text-sm font-bold">2x ACTIVE — {{ store.doublePointsIfCorrect() }} pts if correct!</div>
-                </div>
-              } @else {
-                <button
-                  (click)="use2x()"
-                  class="w-full py-3 rounded-xl border border-green-400/50 text-green-400 font-bold hover:bg-green-400/10 transition text-sm"
-                >
-                  2x Use Double Points (one-time)
-                </button>
-              }
+          <!-- 2x Armed indicator -->
+          @if (store.doubleArmed()) {
+            <div class="mt-4 p-3 bg-green-400/10 border border-green-400/50 rounded-xl text-center">
+              <div class="text-green-400 text-sm font-bold">2x ARMED — double points if correct!</div>
             </div>
           }
 
@@ -150,8 +139,6 @@ import { GameStore } from '../../core/game.store';
               [src]="question()?.image_url!"
               alt="Club badge"
               class="w-40 h-40 object-contain mx-auto"
-              [class.blur-sm]="!store.activeHint()"
-              [class.blur-none]="store.activeHint()"
             />
           }
         </div>

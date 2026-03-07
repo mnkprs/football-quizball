@@ -30,10 +30,16 @@ const CATEGORY_STYLE: Record<string, { rowCls: string; circleCls: string; icon: 
         <div [class]="'flex-1 rounded-2xl p-3 text-center border-2 transition-all ' + scoreCardClass(0)">
           <div class="text-xs font-bold opacity-70 mb-1">🔵 {{ players()[0]?.name }}</div>
           <div class="text-3xl font-black text-white">{{ players()[0]?.score ?? 0 }}</div>
-          <div class="text-xs opacity-50 mt-1 flex justify-center gap-2">
-            <span>{{ players()[0]?.lifelineUsed ? '50/50 ✗' : '50/50 ✓' }}</span>
-            <span>{{ players()[0]?.doubleUsed ? '2x ✗' : '2x ✓' }}</span>
-          </div>
+          <div class="text-xs opacity-50 mt-1">{{ players()[0]?.lifelineUsed ? '50/50 ✗' : '50/50 ✓' }}</div>
+          @if (isActivePlayer(0) && !players()[0]?.doubleUsed) {
+            @if (store.doubleArmed()) {
+              <div class="mt-2 text-xs font-bold text-green-400">2x ARMED</div>
+            } @else {
+              <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-green-500/60 text-green-400 text-xs font-bold hover:bg-green-400/10 transition">USE 2x</button>
+            }
+          } @else {
+            <div class="text-xs opacity-50 mt-1">{{ players()[0]?.doubleUsed ? '2x ✗' : '' }}</div>
+          }
         </div>
 
         <div class="text-center px-2">
@@ -45,10 +51,16 @@ const CATEGORY_STYLE: Record<string, { rowCls: string; circleCls: string; icon: 
         <div [class]="'flex-1 rounded-2xl p-3 text-center border-2 transition-all ' + scoreCardClass(1)">
           <div class="text-xs font-bold opacity-70 mb-1">🔴 {{ players()[1]?.name }}</div>
           <div class="text-3xl font-black text-white">{{ players()[1]?.score ?? 0 }}</div>
-          <div class="text-xs opacity-50 mt-1 flex justify-center gap-2">
-            <span>{{ players()[1]?.lifelineUsed ? '50/50 ✗' : '50/50 ✓' }}</span>
-            <span>{{ players()[1]?.doubleUsed ? '2x ✗' : '2x ✓' }}</span>
-          </div>
+          <div class="text-xs opacity-50 mt-1">{{ players()[1]?.lifelineUsed ? '50/50 ✗' : '50/50 ✓' }}</div>
+          @if (isActivePlayer(1) && !players()[1]?.doubleUsed) {
+            @if (store.doubleArmed()) {
+              <div class="mt-2 text-xs font-bold text-green-400">2x ARMED</div>
+            } @else {
+              <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-green-500/60 text-green-400 text-xs font-bold hover:bg-green-400/10 transition">USE 2x</button>
+            }
+          } @else {
+            <div class="text-xs opacity-50 mt-1">{{ players()[1]?.doubleUsed ? '2x ✗' : '' }}</div>
+          }
         </div>
       </div>
 
@@ -108,6 +120,14 @@ export class BoardComponent {
       cells: board.board[i] ?? [],
     }));
   });
+
+  isActivePlayer(idx: number): boolean {
+    return this.store.boardState()?.currentPlayerIndex === idx;
+  }
+
+  armDouble(): void {
+    this.store.armDouble();
+  }
 
   scoreCardClass(idx: number): string {
     const isActive = this.store.boardState()?.currentPlayerIndex === idx;

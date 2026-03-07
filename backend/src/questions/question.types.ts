@@ -30,7 +30,6 @@ export interface BoardCell {
   answered: boolean;
   answered_by?: string;
   points_awarded?: number;
-  double_active?: boolean;
 }
 
 export const DIFFICULTY_POINTS: Record<Difficulty, number> = {

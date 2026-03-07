@@ -10,10 +10,8 @@ import {
   CreateGameDto,
   SubmitAnswerDto,
   UseLifelineDto,
-  Use2xDto,
   AnswerResult,
   HintResult,
-  Double2xResult,
 } from './game.types';
 
 const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'LOGO_QUIZ', 'HIGHER_OR_LOWER', 'GUESS_SCORE'] as const;
@@ -129,20 +127,26 @@ export class GameService {
 
     const player = session.players[dto.playerIndex];
     const lifelineUsed = player.lifelineUsed && cell.points !== question.points;
-    const doubleActive = !!cell.double_active;
+
+    if (dto.useDouble && player.doubleUsed) {
+      throw new BadRequestException('2x multiplier already used this game');
+    }
+    const doubleApplied = !!dto.useDouble && !player.doubleUsed;
 
     const correct = this.answerValidator.validate(question, dto.answer);
     const basePoints = correct ? cell.points : 0;
-    const points_awarded = correct && doubleActive ? basePoints * 2 : basePoints;
+    const points_awarded = correct && doubleApplied ? basePoints * 2 : basePoints;
 
     if (correct) {
       session.players[dto.playerIndex].score += points_awarded;
+    }
+    if (doubleApplied) {
+      session.players[dto.playerIndex].doubleUsed = true;
     }
 
     cell.answered = true;
     cell.answered_by = player.name;
     cell.points_awarded = points_awarded;
-    cell.double_active = false;
 
     // Switch turns
     session.currentPlayerIndex = dto.playerIndex === 0 ? 1 : 0;
@@ -161,32 +165,8 @@ export class GameService {
       points_awarded,
       player_scores: [session.players[0].score, session.players[1].score],
       lifeline_used: lifelineUsed,
-      double_used: doubleActive,
+      double_used: doubleApplied,
     };
-  }
-
-  use2x(gameId: string, dto: Use2xDto): Double2xResult {
-    const session = this.getGame(gameId);
-
-    const player = session.players[dto.playerIndex];
-    if (player.doubleUsed) {
-      throw new BadRequestException('2x multiplier already used this game');
-    }
-
-    const question = session.questions.find((q) => q.id === dto.questionId);
-    if (!question) throw new NotFoundException('Question not found');
-
-    const cell = session.board.flat().find((c) => c.question_id === dto.questionId);
-    if (!cell) throw new NotFoundException('Board cell not found');
-    if (cell.answered) throw new BadRequestException('Question already answered');
-
-    session.players[dto.playerIndex].doubleUsed = true;
-    cell.double_active = true;
-
-    session.updatedAt = new Date();
-    this.cacheService.set(`game:${session.id}`, session, 86400);
-
-    return { points_if_correct: cell.points * 2 };
   }
 
   useLifeline(gameId: string, dto: UseLifelineDto): HintResult {
