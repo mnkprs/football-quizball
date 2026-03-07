@@ -189,5 +189,13 @@ export const GameStore = signalStore(
         patchState(store, { loading: false, phase: 'setup' });
       }
     },
-  }))
+  })),
+  withHooks({
+    onInit(store) {
+      const savedGameId = localStorage.getItem(STORAGE_KEY);
+      if (savedGameId) {
+        store.restoreGame(savedGameId);
+      }
+    },
+  })
 );
