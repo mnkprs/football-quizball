@@ -1,0 +1,14 @@
+{
+  "name": "football-quizball",
+  "version": "1.0.0",
+  "scripts": {
+    "backend": "cd backend && npm run start:dev",
+    "frontend": "cd frontend && ng serve --port 4200",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && ng build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

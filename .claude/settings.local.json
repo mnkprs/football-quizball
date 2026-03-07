@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/instashop/Projects/football-quizball-backend/**)",
+      "Read(//Users/instashop/Projects/football-quizball-frontend/**)",
+      "Bash(gh auth:*)",
+      "Bash(mv:*)",
+      "Bash(/Users/instashop/Projects/football-quizball/.gitignore:*)",
+      "Bash(git:*)"
+    ]
+  }
+}
