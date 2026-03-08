@@ -106,6 +106,41 @@ export class QuestionPoolService implements OnModuleInit {
     return board;
   }
 
+  /**
+   * One-time bulk seed: fill every slot to the given target.
+   * Use for initial population (e.g. target=100). Skips slots already at or above target.
+   */
+  async seedPool(target: number): Promise<{ slot: string; added: number }[]> {
+    if (this.isRefilling) {
+      this.logger.warn('[seedPool] Refill already in progress, skipping');
+      return [];
+    }
+    this.isRefilling = true;
+    const results: { slot: string; added: number }[] = [];
+
+    try {
+      const counts = await this.getPoolCounts();
+      const uniqueSlots = this.getUniqueSlots();
+
+      for (const { category, difficulty } of uniqueSlots) {
+        const key = `${category}/${difficulty}`;
+        const current = counts[key] ?? 0;
+        const needed = Math.max(0, target - current);
+        if (needed <= 0) {
+          this.logger.log(`[seedPool] ${key}: already at ${current}/${target}, skipping`);
+          results.push({ slot: key, added: 0 });
+          continue;
+        }
+        this.logger.log(`[seedPool] ${key}: ${current}/${target} — generating ${needed}`);
+        await this.fillSlot(category, difficulty, needed);
+        results.push({ slot: key, added: needed });
+      }
+      return results;
+    } finally {
+      this.isRefilling = false;
+    }
+  }
+
   /** Refill the pool for any slot below target. No-op if already running. */
   async refillIfNeeded(): Promise<void> {
     if (this.isRefilling) return;

@@ -5,6 +5,7 @@ import { LlmModule } from './llm/llm.module';
 import { FootballApiModule } from './football-api/football-api.module';
 import { QuestionsModule } from './questions/questions.module';
 import { GameModule } from './game/game.module';
+import { AdminModule } from './admin/admin.module';
 import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
@@ -16,6 +17,7 @@ import { SupabaseModule } from './supabase/supabase.module';
     FootballApiModule,
     QuestionsModule,
     GameModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
