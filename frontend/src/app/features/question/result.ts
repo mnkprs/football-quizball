@@ -26,6 +26,15 @@ import { GameStore } from '../../core/game.store';
         <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700">
           <div class="text-slate-400 text-sm mb-2">Correct Answer</div>
           <div class="text-white font-bold text-xl">{{ result()?.correct_answer }}</div>
+          @if (result()?.original_image_url) {
+            <div class="mt-4 flex justify-center">
+              <img
+                [src]="result()!.original_image_url"
+                [alt]="result()!.correct_answer"
+                class="w-32 h-32 object-contain rounded-xl bg-white p-2"
+              />
+            </div>
+          }
           @if (result()?.explanation) {
             <p class="text-slate-400 text-sm mt-3 leading-relaxed">{{ result()?.explanation }}</p>
           }

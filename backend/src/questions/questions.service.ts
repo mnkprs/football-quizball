@@ -5,6 +5,7 @@ import { PlayerIdGenerator } from './generators/player-id.generator';
 import { LogoQuizGenerator } from './generators/logo-quiz.generator';
 import { HigherOrLowerGenerator } from './generators/higher-or-lower.generator';
 import { GuessScoreGenerator } from './generators/guess-score.generator';
+import { Top5Generator } from './generators/top5.generator';
 
 const CATEGORIES: QuestionCategory[] = [
   'HISTORY',
@@ -12,6 +13,7 @@ const CATEGORIES: QuestionCategory[] = [
   'LOGO_QUIZ',
   'HIGHER_OR_LOWER',
   'GUESS_SCORE',
+  'TOP_5',
 ];
 
 const DIFFICULTIES: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
@@ -26,15 +28,21 @@ export class QuestionsService {
     private logoQuizGenerator: LogoQuizGenerator,
     private higherOrLowerGenerator: HigherOrLowerGenerator,
     private guessScoreGenerator: GuessScoreGenerator,
+    private top5Generator: Top5Generator,
   ) {}
 
   async generateBoard(): Promise<GeneratedQuestion[]> {
     const tasks: Promise<GeneratedQuestion>[] = [];
 
     for (const category of CATEGORIES) {
-      for (const difficulty of DIFFICULTIES) {
-        const points = DIFFICULTY_POINTS[difficulty];
-        tasks.push(this.generateWithRetry(category, difficulty, points));
+      if (category === 'TOP_5') {
+        // Only 2 TOP_5 questions, both worth 3 points, from different seed pools
+        tasks.push(this.generateWithRetry('TOP_5', 'MEDIUM', 3));
+        tasks.push(this.generateWithRetry('TOP_5', 'HARD', 3));
+      } else {
+        for (const difficulty of DIFFICULTIES) {
+          tasks.push(this.generateWithRetry(category, difficulty, DIFFICULTY_POINTS[difficulty]));
+        }
       }
     }
 
@@ -49,7 +57,7 @@ export class QuestionsService {
       }
     }
 
-    this.logger.log(`Generated ${questions.length}/15 questions`);
+    this.logger.log(`Generated ${questions.length}/17 questions`);
     return questions;
   }
 
@@ -91,6 +99,8 @@ export class QuestionsService {
         return this.higherOrLowerGenerator.generate(difficulty, points);
       case 'GUESS_SCORE':
         return this.guessScoreGenerator.generate(difficulty, points);
+      case 'TOP_5':
+        return Promise.resolve(this.top5Generator.generate(difficulty, points));
     }
   }
 

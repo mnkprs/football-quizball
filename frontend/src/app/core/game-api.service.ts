@@ -53,11 +53,34 @@ export interface AnswerResult {
   player_scores: [number, number];
   lifeline_used: boolean;
   double_used: boolean;
+  original_image_url?: string;
 }
 
 export interface HintResult {
   hint: string;
   points_if_correct: number;
+}
+
+export interface Top5Entry {
+  name: string;
+  stat: string;
+}
+
+export interface Top5GuessResult {
+  matched: boolean;
+  position: number | null;
+  fullName: string;
+  stat: string;
+  wrongCount: number;
+  filledCount: number;
+  filledSlots: Array<Top5Entry | null>;
+  wrongGuesses: Top5Entry[];
+  complete: boolean;
+  won: boolean;
+  points_awarded?: number;
+  player_scores?: [number, number];
+  correct_answer?: string;
+  explanation?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -97,6 +120,22 @@ export class GameApiService {
     return this.http.post<AnswerResult>(`${this.base}/api/games/${gameId}/override`, {
       questionId,
       isCorrect,
+      playerIndex,
+    });
+  }
+
+  submitTop5Guess(gameId: string, questionId: string, answer: string, playerIndex: 0 | 1, useDouble?: boolean): Observable<Top5GuessResult> {
+    return this.http.post<Top5GuessResult>(`${this.base}/api/games/${gameId}/top5/guess`, {
+      questionId,
+      answer,
+      playerIndex,
+      ...(useDouble ? { useDouble: true } : {}),
+    });
+  }
+
+  stopTop5Early(gameId: string, questionId: string, playerIndex: 0 | 1): Observable<Top5GuessResult> {
+    return this.http.post<Top5GuessResult>(`${this.base}/api/games/${gameId}/top5/stop`, {
+      questionId,
       playerIndex,
     });
   }

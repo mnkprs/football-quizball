@@ -3,7 +3,8 @@ export type QuestionCategory =
   | 'PLAYER_ID'
   | 'LOGO_QUIZ'
   | 'HIGHER_OR_LOWER'
-  | 'GUESS_SCORE';
+  | 'GUESS_SCORE'
+  | 'TOP_5';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -30,6 +31,7 @@ export interface BoardCell {
   answered: boolean;
   answered_by?: string;
   points_awarded?: number;
+  lifeline_applied?: boolean;
 }
 
 export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
@@ -44,4 +46,17 @@ export const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   LOGO_QUIZ: 'Logo Quiz',
   HIGHER_OR_LOWER: 'Higher or Lower',
   GUESS_SCORE: 'Guess the Score',
+  TOP_5: 'Top 5',
 };
+
+export interface Top5Entry {
+  name: string;
+  stat: string;
+}
+
+export interface Top5Progress {
+  filledSlots: Array<Top5Entry | null>; // index = position (0-4)
+  wrongGuesses: Top5Entry[];            // entries that were guessed but NOT in top 5
+  complete: boolean;
+  won: boolean;
+}

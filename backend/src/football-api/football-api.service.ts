@@ -23,15 +23,28 @@ export class FootballApiService {
     const cached = this.cacheService.get<T>(cacheKey);
     if (cached) return cached;
 
-    try {
-      const url = `${this.sportsDbBase}/${endpoint}`;
-      const response = await axios.get<T>(url, { params, timeout: 10000 });
-      this.cacheService.set(cacheKey, response.data, 7200);
-      return response.data;
-    } catch (err) {
-      this.logger.error(`TheSportsDB error: ${(err as Error).message}`);
-      throw err;
+    let lastError: Error | null = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const url = `${this.sportsDbBase}/${endpoint}`;
+        const response = await axios.get<T>(url, { params, timeout: 10000 });
+        this.cacheService.set(cacheKey, response.data, 7200);
+        return response.data;
+      } catch (err: any) {
+        lastError = err as Error;
+        if (err?.response?.status === 429 && attempt < 3) {
+          const delay = 1000 * attempt;
+          this.logger.warn(`TheSportsDB rate limited (429), retrying in ${delay}ms...`);
+          await new Promise((r) => setTimeout(r, delay));
+        } else {
+          this.logger.error(`TheSportsDB error: ${(err as Error).message}`);
+          throw err;
+        }
+      }
     }
+
+    this.logger.error(`TheSportsDB error: ${lastError!.message}`);
+    throw lastError;
   }
 
   private async apiFootballGet<T>(endpoint: string, params?: Record<string, string | number>): Promise<T> {
@@ -138,6 +151,33 @@ export class FootballApiService {
       return response.status === 200;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Fetches the thumbnail image URL for a football club from Wikipedia's REST API.
+   * Wikipedia page titles are stable and this is the most reliable public source for badge images.
+   * Returns null if the club page has no thumbnail or the request fails.
+   */
+  async getWikipediaBadge(wikiTitle: string): Promise<string | null> {
+    const cacheKey = `wiki:badge:${wikiTitle}`;
+    const cached = this.cacheService.get<string | null>(cacheKey);
+    if (cached !== undefined) return cached;
+
+    try {
+      const encoded = encodeURIComponent(wikiTitle.replace(/ /g, '_'));
+      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`;
+      const response = await axios.get<{ thumbnail?: { source: string } }>(url, {
+        timeout: 8000,
+        headers: { 'User-Agent': 'FootballQuizBall/1.0 (educational quiz app; contact@quizball.app)' },
+      });
+      const src = response.data?.thumbnail?.source ?? null;
+      this.cacheService.set(cacheKey, src, 86400); // cache 24h
+      return src;
+    } catch (err) {
+      this.logger.warn(`Wikipedia badge lookup failed for "${wikiTitle}": ${(err as Error).message}`);
+      this.cacheService.set(cacheKey, null, 3600);
+      return null;
     }
   }
 }

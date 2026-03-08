@@ -1,4 +1,4 @@
-import { GeneratedQuestion, BoardCell } from '../questions/question.types';
+import { GeneratedQuestion, BoardCell, Top5Progress } from '../questions/question.types';
 
 export interface Player {
   name: string;
@@ -16,6 +16,7 @@ export interface GameSession {
   status: 'ACTIVE' | 'FINISHED';
   createdAt: Date;
   updatedAt: Date;
+  top5Progress: Record<string, Top5Progress>; // keyed by questionId
 }
 
 export class CreateGameDto {
@@ -35,6 +36,31 @@ export class UseLifelineDto {
   playerIndex: 0 | 1;
 }
 
+export class Top5GuessDto {
+  questionId: string;
+  answer: string;
+  playerIndex: 0 | 1;
+  useDouble?: boolean;
+}
+
+export interface Top5GuessResult {
+  matched: boolean;
+  position: number | null;  // 1-indexed; null if not in top 5
+  fullName: string;
+  stat: string;
+  wrongCount: number;
+  filledCount: number;
+  filledSlots: Array<{ name: string; stat: string } | null>;
+  wrongGuesses: Array<{ name: string; stat: string }>;
+  complete: boolean;
+  won: boolean;
+  // Present only when complete:
+  points_awarded?: number;
+  player_scores?: [number, number];
+  correct_answer?: string;
+  explanation?: string;
+}
+
 export interface AnswerResult {
   correct: boolean;
   correct_answer: string;
@@ -43,6 +69,7 @@ export interface AnswerResult {
   player_scores: [number, number];
   lifeline_used: boolean;
   double_used: boolean;
+  original_image_url?: string; // Logo Quiz: the real unobfuscated badge
 }
 
 export interface HintResult {

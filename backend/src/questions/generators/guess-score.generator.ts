@@ -20,7 +20,7 @@ const SEED_BANK: MatchSeed[] = [
   { home_team: 'Manchester United', away_team: 'Arsenal', home_score: 8, away_score: 2, competition: 'Premier League', date: '28 August 2011', significance: 'One of Arsenal\'s worst defeats' },
   { home_team: 'Liverpool', away_team: 'Barcelona', home_score: 4, away_score: 0, competition: 'UEFA Champions League Semi-Final', date: '7 May 2019', significance: 'Anfield miracle (aggregate 4-3)' },
   { home_team: 'England', away_team: 'West Germany', home_score: 4, away_score: 2, competition: 'World Cup Final', date: '30 July 1966', significance: 'England\'s only World Cup win' },
-  { home_team: 'Arsenal', away_team: 'Manchester United', home_score: 0, away_score: 8, competition: 'Premier League', date: '28 August 2011', significance: 'Record PL away win' },
+  { home_team: 'Italy', away_team: 'West Germany', home_score: 4, away_score: 3, competition: 'FIFA World Cup Semi-Final', date: '17 June 1970', significance: 'The Game of the Century' },
   { home_team: 'Real Madrid', away_team: 'Juventus', home_score: 4, away_score: 1, competition: 'UEFA Champions League Final', date: '3 June 2017', significance: 'UCL Final 2017' },
   { home_team: 'Manchester City', away_team: 'QPR', home_score: 3, away_score: 2, competition: 'Premier League', date: '13 May 2012', significance: 'Aguerooooo' },
   { home_team: 'Barcelona', away_team: 'PSG', home_score: 6, away_score: 1, competition: 'UEFA Champions League', date: '8 March 2017', significance: 'La Remontada' },
@@ -69,7 +69,7 @@ Return ONLY valid JSON:
 
     const result = await this.llmService.generateStructuredJson<MatchSeed>(systemPrompt, userPrompt);
 
-    if (!result.home_team || !result.away_team || result.home_score === undefined) {
+    if (!result.home_team || !result.away_team || result.home_score === undefined || result.away_score === undefined) {
       throw new Error('Invalid match data from LLM');
     }
 

@@ -6,6 +6,7 @@ import { PlayerIdGenerator } from './generators/player-id.generator';
 import { LogoQuizGenerator } from './generators/logo-quiz.generator';
 import { HigherOrLowerGenerator } from './generators/higher-or-lower.generator';
 import { GuessScoreGenerator } from './generators/guess-score.generator';
+import { Top5Generator } from './generators/top5.generator';
 import { LlmModule } from '../llm/llm.module';
 import { FootballApiModule } from '../football-api/football-api.module';
 
@@ -19,6 +20,7 @@ import { FootballApiModule } from '../football-api/football-api.module';
     LogoQuizGenerator,
     HigherOrLowerGenerator,
     GuessScoreGenerator,
+    Top5Generator,
   ],
   exports: [QuestionsService, AnswerValidator],
 })

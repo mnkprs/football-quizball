@@ -9,6 +9,7 @@ export class GeminiImageService {
   private readonly logger = new Logger(GeminiImageService.name);
   private client: GoogleGenAI | null = null;
   private readonly model = 'gemini-2.0-flash-exp-image-generation';
+  private readonly fetchHeaders = { 'User-Agent': 'FootballQuizBall/1.0 (educational quiz app; contact@quizball.app)' };
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -22,16 +23,18 @@ export class GeminiImageService {
   /**
    * Fetches the image at imageUrl, sends it to Gemini to visually obfuscate it,
    * and returns a base64 data URL of the modified image.
-   * Falls back to the original URL if Gemini is unavailable or fails.
+   * Returns null if the source URL is unreachable or any transform fails.
    */
-  async transformLogoImage(imageUrl: string): Promise<string> {
+  async transformLogoImage(imageUrl: string): Promise<string | null> {
     if (!this.client) return this.localTransform(imageUrl);
+
 
     try {
       // Fetch original image as buffer
       const response = await axios.get<ArrayBuffer>(imageUrl, {
         responseType: 'arraybuffer',
         timeout: 8000,
+        headers: this.fetchHeaders,
       });
 
       const contentType = (response.headers['content-type'] as string) || 'image/png';
@@ -45,7 +48,16 @@ export class GeminiImageService {
             role: 'user',
             parts: [
               {
-                text: `You are given a football club badge image. Transform it to make it visually harder to identify at a glance while keeping it still guessable with careful thought. Apply effects such as: heavy pixelation/mosaic, color channel shifts, kaleidoscope warping, partial masking with geometric shapes, or extreme saturation/hue rotation. Do NOT add text or labels. Return only the transformed image.`,
+                text: `You are given a football club badge/crest image. Your job is to produce a modified version that makes it HARD to identify instantly, while keeping it guessable with careful thought.
+
+MANDATORY steps — apply ALL of these:
+1. ERASE all text, letters, words, and numbers from the badge (team name, city name, founding year, abbreviations — everything). Replace erased areas with the surrounding colour/pattern so the badge still looks complete.
+2. Apply heavy pixelation or mosaic effect across the entire image (block size ~10-15% of image width).
+3. Shift the hue significantly (rotate by 90-150 degrees) so colours are unfamiliar.
+4. Add moderate blur (enough to soften fine details but not destroy all shapes).
+5. Optionally add a subtle geometric overlay (diagonal stripes or circular mask) at low opacity.
+
+Do NOT add any new text. Do NOT add watermarks. Return ONLY the modified image, nothing else.`,
               },
               {
                 inlineData: {
@@ -78,14 +90,15 @@ export class GeminiImageService {
   }
 
   /**
-   * Local fallback: pixelate + hue-shift + blur the logo using sharp,
-   * making it harder to recognise without needing any external API.
+   * Local fallback: pixelate + hue-shift + blur the logo using sharp.
+   * Returns null if the source URL is unreachable.
    */
-  private async localTransform(imageUrl: string): Promise<string> {
+  private async localTransform(imageUrl: string): Promise<string | null> {
     try {
       const response = await axios.get<ArrayBuffer>(imageUrl, {
         responseType: 'arraybuffer',
         timeout: 8000,
+        headers: this.fetchHeaders,
       });
 
       const inputBuffer = Buffer.from(response.data);
@@ -107,7 +120,7 @@ export class GeminiImageService {
       return `data:image/png;base64,${transformed.toString('base64')}`;
     } catch (err) {
       this.logger.warn(`Local image transform failed: ${(err as Error).message}`);
-      return imageUrl;
+      return null;
     }
   }
 }

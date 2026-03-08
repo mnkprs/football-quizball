@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as Levenshtein from 'fast-levenshtein';
-import { GeneratedQuestion } from '../question.types';
+import { GeneratedQuestion, Top5Entry } from '../question.types';
 
 @Injectable()
 export class AnswerValidator {
@@ -77,5 +77,41 @@ export class AnswerValidator {
     if (correct === 'higher') return ['higher', 'high', 'h', 'more', 'up'].includes(norm);
     if (correct === 'lower') return ['lower', 'low', 'l', 'less', 'down'].includes(norm);
     return false;
+  }
+
+  /**
+   * Try to match a submitted string against a list of Top5 entries.
+   * Returns the 0-based index of the match, or -1 if no match.
+   */
+  matchTop5Entry(entries: Top5Entry[], submitted: string): number {
+    const normalSubmitted = this.normalize(submitted);
+    if (!normalSubmitted) return -1;
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const normalFull = this.normalize(entry.name);
+      const parts = normalFull.split(' ');
+      const lastName = parts[parts.length - 1];
+      const firstName = parts[0];
+
+      // Exact full name match
+      if (normalFull === normalSubmitted) return i;
+
+      // Last name only (must be > 3 chars to avoid false positives)
+      if (lastName === normalSubmitted && lastName.length > 3) return i;
+
+      // First name only (mono-name players like "Pelé", "Ronaldo")
+      if (firstName === normalSubmitted && firstName.length > 3 && parts.length === 1) return i;
+
+      // Fuzzy on full name
+      const dist = Levenshtein.get(normalFull, normalSubmitted);
+      if (dist <= Math.max(2, Math.floor(normalFull.length / 5))) return i;
+
+      // Fuzzy on last name
+      const lastDist = Levenshtein.get(lastName, normalSubmitted);
+      if (lastDist <= 1 && lastName.length > 4) return i;
+    }
+
+    return -1;
   }
 }

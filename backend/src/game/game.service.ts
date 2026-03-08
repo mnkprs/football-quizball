@@ -10,12 +10,20 @@ import {
   CreateGameDto,
   SubmitAnswerDto,
   UseLifelineDto,
+  Top5GuessDto,
+  Top5GuessResult,
   AnswerResult,
   HintResult,
 } from './game.types';
+import { Top5Entry, Top5Progress } from '../questions/question.types';
 
-const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'LOGO_QUIZ', 'HIGHER_OR_LOWER', 'GUESS_SCORE'] as const;
+const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'LOGO_QUIZ', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5'] as const;
 const DIFFICULTIES_ORDER = ['EASY', 'MEDIUM', 'HARD'] as const;
+// TOP_5 uses only 2 slots, both worth 3 points, drawing from different seed pools
+const TOP5_SLOTS: Array<{ difficulty: 'MEDIUM' | 'HARD'; points: 3 }> = [
+  { difficulty: 'MEDIUM', points: 3 },
+  { difficulty: 'HARD', points: 3 },
+];
 
 @Injectable()
 export class GameService {
@@ -38,15 +46,25 @@ export class GameService {
       { name: dto.player2Name, score: 0, lifelineUsed: false, doubleUsed: false },
     ];
 
-    // Build 5x3 board grid (categories x difficulties)
-    const board = CATEGORIES_ORDER.map((category) =>
-      DIFFICULTIES_ORDER.map((difficulty) => {
+    // Build board grid. TOP_5 gets 2 slots (MEDIUM pool + HARD pool), both 3pts.
+    // All other categories follow the standard EASY/MEDIUM/HARD 3-cell layout.
+    const usedQuestionIds = new Set<string>();
+    const board = CATEGORIES_ORDER.map((category) => {
+      if (category === 'TOP_5') {
+        return TOP5_SLOTS.map(({ difficulty, points }) => {
+          const question = questions.find(
+            (q) => q.category === category && q.difficulty === difficulty && !usedQuestionIds.has(q.id),
+          );
+          if (!question) this.logger.warn(`Missing TOP_5 question for pool ${difficulty}`);
+          if (question) usedQuestionIds.add(question.id);
+          return { question_id: question?.id || '', category, difficulty, points, answered: false };
+        });
+      }
+      return DIFFICULTIES_ORDER.map((difficulty) => {
         const question = questions.find(
           (q) => q.category === category && q.difficulty === difficulty,
         );
-        if (!question) {
-          this.logger.warn(`Missing question for ${category}/${difficulty}`);
-        }
+        if (!question) this.logger.warn(`Missing question for ${category}/${difficulty}`);
         return {
           question_id: question?.id || '',
           category,
@@ -54,8 +72,8 @@ export class GameService {
           points: DIFFICULTY_POINTS[difficulty],
           answered: false,
         };
-      }),
-    );
+      });
+    });
 
     const session: GameSession = {
       id: gameId,
@@ -66,6 +84,7 @@ export class GameService {
       status: 'ACTIVE',
       createdAt: new Date(),
       updatedAt: new Date(),
+      top5Progress: {},
     };
 
     this.cacheService.set(`game:${gameId}`, session, 86400); // 24h TTL
@@ -126,7 +145,7 @@ export class GameService {
     if (cell.answered) throw new BadRequestException('Question already answered');
 
     const player = session.players[dto.playerIndex];
-    const lifelineUsed = player.lifelineUsed && cell.points !== question.points;
+    const lifelineUsed = !!cell.lifeline_applied;
 
     if (dto.useDouble && player.doubleUsed) {
       throw new BadRequestException('2x multiplier already used this game');
@@ -166,6 +185,9 @@ export class GameService {
       player_scores: [session.players[0].score, session.players[1].score],
       lifeline_used: lifelineUsed,
       double_used: doubleApplied,
+      ...(question.category === 'LOGO_QUIZ' && question.meta?.['original_image_url']
+        ? { original_image_url: question.meta['original_image_url'] as string }
+        : {}),
     };
   }
 
@@ -191,9 +213,12 @@ export class GameService {
     // Mark lifeline as used
     session.players[dto.playerIndex].lifelineUsed = true;
 
-    // Reduce points to 1 for this question
+    // Reduce points to 1 for this question and mark lifeline as applied
     const cell = session.board.flat().find((c) => c.question_id === dto.questionId);
-    if (cell) cell.points = 1;
+    if (cell) {
+      cell.points = 1;
+      cell.lifeline_applied = true;
+    }
 
     session.updatedAt = new Date();
     this.cacheService.set(`game:${session.id}`, session, 86400);
@@ -239,6 +264,189 @@ export class GameService {
       player_scores: [session.players[0].score, session.players[1].score],
       lifeline_used: false,
       double_used: false,
+    };
+  }
+
+  submitTop5Guess(gameId: string, dto: Top5GuessDto): Top5GuessResult {
+    const session = this.getGame(gameId);
+
+    if (session.status === 'FINISHED') {
+      throw new BadRequestException('Game is already finished');
+    }
+
+    const question = session.questions.find((q) => q.id === dto.questionId);
+    if (!question || question.category !== 'TOP_5') {
+      throw new NotFoundException('Top 5 question not found');
+    }
+
+    const cell = session.board.flat().find((c) => c.question_id === dto.questionId);
+    if (!cell) throw new NotFoundException('Board cell not found');
+    if (cell.answered) throw new BadRequestException('Question already answered');
+
+    const top5Entries = question.meta?.['top5'] as Top5Entry[];
+
+    // Get or initialise progress
+    if (!session.top5Progress[dto.questionId]) {
+      session.top5Progress[dto.questionId] = {
+        filledSlots: [null, null, null, null, null],
+        wrongGuesses: [],
+        complete: false,
+        won: false,
+      };
+    }
+    const progress = session.top5Progress[dto.questionId];
+
+    const matchedIndex = this.answerValidator.matchTop5Entry(top5Entries, dto.answer);
+
+    let matched = false;
+    let position: number | null = null;
+    let fullName = dto.answer;
+    let stat = '';
+
+    if (matchedIndex >= 0) {
+      const entry = top5Entries[matchedIndex];
+      // Already found?
+      if (progress.filledSlots[matchedIndex] !== null) {
+        // Treat as a no-op (already filled) — don't penalise
+        return {
+          matched: true,
+          position: matchedIndex + 1,
+          fullName: entry.name,
+          stat: entry.stat,
+          wrongCount: progress.wrongGuesses.length,
+          filledCount: progress.filledSlots.filter(Boolean).length,
+          filledSlots: progress.filledSlots,
+          wrongGuesses: progress.wrongGuesses,
+          complete: false,
+          won: false,
+        };
+      }
+      matched = true;
+      position = matchedIndex + 1;
+      fullName = entry.name;
+      stat = entry.stat;
+      progress.filledSlots[matchedIndex] = { name: entry.name, stat: entry.stat };
+    } else {
+      // Not in top 5 — record as wrong guess
+      const statForWrong = ''; // we don't know their real stat
+      progress.wrongGuesses.push({ name: dto.answer, stat: statForWrong });
+    }
+
+    const filledCount = progress.filledSlots.filter(Boolean).length;
+    const wrongCount = progress.wrongGuesses.length;
+    const allFilled = filledCount === 5;
+    const tooManyWrong = wrongCount >= 2;
+    const complete = allFilled || tooManyWrong;
+
+    if (complete) {
+      progress.complete = true;
+      progress.won = allFilled;
+
+      const player = session.players[dto.playerIndex];
+      const doubleApplied = !!dto.useDouble && !player.doubleUsed;
+      const basePoints = allFilled ? cell.points : 0;
+      const points_awarded = allFilled && doubleApplied ? basePoints * 2 : basePoints;
+
+      if (allFilled) {
+        session.players[dto.playerIndex].score += points_awarded;
+      }
+      if (doubleApplied && allFilled) {
+        session.players[dto.playerIndex].doubleUsed = true;
+      }
+
+      cell.answered = true;
+      cell.answered_by = player.name;
+      cell.points_awarded = points_awarded;
+
+      session.currentPlayerIndex = dto.playerIndex === 0 ? 1 : 0;
+
+      const allAnswered = session.board.flat().every((c) => c.answered);
+      if (allAnswered) session.status = 'FINISHED';
+
+      session.updatedAt = new Date();
+      this.cacheService.set(`game:${session.id}`, session, 86400);
+
+      return {
+        matched,
+        position,
+        fullName,
+        stat,
+        wrongCount,
+        filledCount,
+        filledSlots: progress.filledSlots,
+        wrongGuesses: progress.wrongGuesses,
+        complete: true,
+        won: allFilled,
+        points_awarded,
+        player_scores: [session.players[0].score, session.players[1].score],
+        correct_answer: question.correct_answer,
+        explanation: question.explanation,
+      };
+    }
+
+    session.updatedAt = new Date();
+    this.cacheService.set(`game:${session.id}`, session, 86400);
+
+    return {
+      matched,
+      position,
+      fullName,
+      stat,
+      wrongCount,
+      filledCount,
+      filledSlots: progress.filledSlots,
+      wrongGuesses: progress.wrongGuesses,
+      complete: false,
+      won: false,
+    };
+  }
+
+  stopTop5Early(gameId: string, dto: { questionId: string; playerIndex: 0 | 1 }): Top5GuessResult {
+    const session = this.getGame(gameId);
+    const question = session.questions.find((q) => q.id === dto.questionId && q.category === 'TOP_5');
+    if (!question) throw new NotFoundException('Top 5 question not found');
+
+    const cell = session.board.flat().find((c) => c.question_id === dto.questionId);
+    if (!cell) throw new NotFoundException('Board cell not found');
+    if (cell.answered) throw new BadRequestException('Question already answered');
+
+    const progress = session.top5Progress[dto.questionId];
+    const filledCount = progress?.filledSlots.filter(Boolean).length ?? 0;
+    if (filledCount < 4) throw new BadRequestException('Need at least 4 found to stop early');
+
+    const points_awarded = 1;
+    session.players[dto.playerIndex].score += points_awarded;
+    cell.answered = true;
+    cell.answered_by = session.players[dto.playerIndex].name;
+    cell.points_awarded = points_awarded;
+
+    if (progress) {
+      progress.complete = true;
+      progress.won = true;
+    }
+
+    session.currentPlayerIndex = dto.playerIndex === 0 ? 1 : 0;
+    const allAnswered = session.board.flat().every((c) => c.answered);
+    if (allAnswered) session.status = 'FINISHED';
+
+    session.updatedAt = new Date();
+    this.cacheService.set(`game:${session.id}`, session, 86400);
+
+    return {
+      matched: false,
+      position: null,
+      fullName: '',
+      stat: '',
+      wrongCount: progress?.wrongGuesses.length ?? 0,
+      filledCount,
+      filledSlots: progress?.filledSlots ?? [null, null, null, null, null],
+      wrongGuesses: progress?.wrongGuesses ?? [],
+      complete: true,
+      won: true,
+      points_awarded,
+      player_scores: [session.players[0].score, session.players[1].score],
+      correct_answer: question.correct_answer,
+      explanation: question.explanation,
     };
   }
 

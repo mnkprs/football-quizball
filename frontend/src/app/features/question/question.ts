@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameStore } from '../../core/game.store';
@@ -47,6 +47,9 @@ import { GameStore } from '../../core/game.store';
             }
             @case ('GUESS_SCORE') {
               <ng-container *ngTemplateOutlet="guessScoreTemplate"></ng-container>
+            }
+            @case ('TOP_5') {
+              <ng-container *ngTemplateOutlet="top5Template"></ng-container>
             }
             @default {
               <ng-container *ngTemplateOutlet="defaultTemplate"></ng-container>
@@ -238,6 +241,98 @@ import { GameStore } from '../../core/game.store';
         </div>
       </div>
     </ng-template>
+    <!-- Top 5 template -->
+    <ng-template #top5Template>
+      <div class="flex-1 flex flex-col">
+        <!-- Question -->
+        <div class="bg-slate-800 rounded-2xl p-5 mb-4 border border-slate-700">
+          <p class="text-white text-lg leading-relaxed">{{ question()?.question_text }}</p>
+        </div>
+
+        <!-- Lives indicator -->
+        @if (store.top5State(); as t5) {
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-400 text-sm">{{ t5.filledCount }}/5 found</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-slate-400 text-sm">Lives:</span>
+              @for (i of [0, 1]; track i) {
+                <span class="text-lg" [class.grayscale]="t5.wrongCount > i" [class.opacity-30]="t5.wrongCount > i">❤️</span>
+              }
+            </div>
+          </div>
+
+          <!-- Top 5 slots -->
+          <div class="space-y-2 mb-4">
+            @for (slot of t5.filledSlots; track $index) {
+              <div class="flex items-center gap-3 px-4 py-3 rounded-xl border"
+                   [class]="slot ? 'bg-green-900/30 border-green-700' : 'bg-slate-800 border-slate-700'">
+                <span class="text-amber-400 font-black text-lg w-6 shrink-0">{{ $index + 1 }}</span>
+                @if (slot) {
+                  <span class="text-white font-semibold">{{ slot.name }}</span>
+                  <span class="text-slate-400 text-sm ml-auto">({{ slot.stat }})</span>
+                } @else {
+                  <span class="text-slate-600 italic text-sm">???</span>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Wrong guesses -->
+          @if (t5.wrongGuesses.length > 0) {
+            <div class="mb-4">
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-2">Not in top 5</p>
+              <div class="space-y-1.5">
+                @for (wrong of t5.wrongGuesses; track $index) {
+                  <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-900/20 border border-red-800/50">
+                    <span class="text-red-400 text-sm font-medium">{{ wrong.name }}</span>
+                    <span class="text-red-600 text-xs ml-auto">✗ not in top 5</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Stop early for 1pt when 4/5 found -->
+          @if (!t5.complete && t5.filledCount === 4) {
+            <button
+              (click)="stopTop5Early()"
+              class="w-full mb-3 py-3 rounded-xl border border-amber-400/60 text-amber-400 font-bold hover:bg-amber-400/10 transition text-sm"
+            >
+              Stop now — take 1pt (missing 1 answer)
+            </button>
+          }
+
+          <!-- Input (only if not complete) -->
+          @if (!t5.complete) {
+            <div class="flex gap-3">
+              <input
+                [(ngModel)]="top5Answer"
+                (keydown.enter)="submitTop5Guess()"
+                placeholder="Type a player name..."
+                class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+              />
+              <button
+                (click)="submitTop5Guess()"
+                [disabled]="!top5Answer.trim()"
+                class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
+              >
+                Guess
+              </button>
+            </div>
+            @if (t5.wrongCount === 1) {
+              <p class="text-red-400 text-xs text-center mt-2">⚠️ 1 wrong guess — one more and the question is lost!</p>
+            }
+          } @else {
+            <div class="mt-2 p-3 rounded-xl text-center"
+                 [class]="t5.won ? 'bg-green-900/30 border border-green-700' : 'bg-red-900/30 border border-red-800'">
+              <p class="font-bold" [class]="t5.won ? 'text-green-400' : 'text-red-400'">
+                {{ t5.filledCount === 5 ? '🏆 All 5 found! Full points!' : t5.won ? '✅ Stopped at 4/5 — 1pt awarded' : '💀 Question lost — too many wrong guesses' }}
+              </p>
+            </div>
+          }
+        }
+      </div>
+    </ng-template>
   `,
 })
 export class QuestionComponent {
@@ -253,6 +348,7 @@ export class QuestionComponent {
       LOGO_QUIZ: 'Logo Quiz',
       HIGHER_OR_LOWER: 'Higher or Lower',
       GUESS_SCORE: 'Guess the Score',
+      TOP_5: 'Top 5',
     };
     return labels[this.question()?.category ?? ''] ?? '';
   });
@@ -305,5 +401,18 @@ export class QuestionComponent {
 
   async useLifeline(): Promise<void> {
     await this.store.useLifeline();
+  }
+
+  top5Answer = '';
+
+  async stopTop5Early(): Promise<void> {
+    await this.store.stopTop5Early();
+  }
+
+  async submitTop5Guess(): Promise<void> {
+    if (!this.top5Answer.trim()) return;
+    const guess = this.top5Answer.trim();
+    this.top5Answer = '';
+    await this.store.submitTop5Guess(guess);
   }
 }

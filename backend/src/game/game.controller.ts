@@ -8,7 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { GameService } from './game.service';
-import { CreateGameDto, SubmitAnswerDto, UseLifelineDto } from './game.types';
+import { CreateGameDto, SubmitAnswerDto, UseLifelineDto, Top5GuessDto } from './game.types';
 
 @Controller('api/games')
 export class GameController {
@@ -55,6 +55,18 @@ export class GameController {
     @Body() body: { questionId: string; isCorrect: boolean; playerIndex: 0 | 1 },
   ) {
     return this.gameService.overrideAnswer(id, body.questionId, body.isCorrect, body.playerIndex);
+  }
+
+  @Post(':id/top5/guess')
+  @HttpCode(HttpStatus.OK)
+  submitTop5Guess(@Param('id') id: string, @Body() dto: Top5GuessDto) {
+    return this.gameService.submitTop5Guess(id, dto);
+  }
+
+  @Post(':id/top5/stop')
+  @HttpCode(HttpStatus.OK)
+  stopTop5Early(@Param('id') id: string, @Body() body: { questionId: string; playerIndex: 0 | 1 }) {
+    return this.gameService.stopTop5Early(id, body);
   }
 
   @Post(':id/end')
