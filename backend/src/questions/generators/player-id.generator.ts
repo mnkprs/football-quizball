@@ -28,6 +28,7 @@ Return ONLY a valid JSON object with these exact fields:
   "career": [{"club": "Club Name", "from": "YYYY", "to": "YYYY or Present"}],
   "nationality": "Nationality",
   "position": "Position",
+  "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",
   "image_url": null,
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
   "event_year": 2018,
@@ -43,6 +44,7 @@ fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-nic
       career: CareerEntry[];
       nationality: string;
       position: string;
+      wrong_player_name: string;
       image_url: string | null;
       competition: string;
       event_year: number;
@@ -62,7 +64,7 @@ fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-nic
       points: 1,
       question_text: 'Identify the player from their career path:',
       correct_answer: result.player_name,
-      fifty_fifty_hint: `${result.nationality} ${result.position}`,
+      fifty_fifty_hint: result.wrong_player_name || null,
       fifty_fifty_applicable: true,
       explanation: `The player is ${result.player_name}. Career: ${careerText}`,
       image_url: result.image_url,

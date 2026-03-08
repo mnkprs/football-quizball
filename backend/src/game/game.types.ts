@@ -73,6 +73,6 @@ export interface AnswerResult {
 }
 
 export interface HintResult {
-  hint: string;
+  options: string[];
   points_if_correct: number;
 }

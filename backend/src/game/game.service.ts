@@ -204,7 +204,7 @@ export class GameService {
     }
 
     if (!question.fifty_fifty_hint) {
-      throw new BadRequestException('No hint available for this question');
+      throw new BadRequestException('No decoy answer available for this question');
     }
 
     // Mark lifeline as used
@@ -220,8 +220,12 @@ export class GameService {
     session.updatedAt = new Date();
     this.cacheService.set(`game:${session.id}`, session, 86400);
 
+    // Shuffle correct + decoy so UI order is random
+    const options = [question.correct_answer, question.fifty_fifty_hint];
+    if (Math.random() < 0.5) options.reverse();
+
     return {
-      hint: question.fifty_fifty_hint,
+      options,
       points_if_correct: 1,
     };
   }

@@ -51,7 +51,10 @@ fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only expert
     }
 
     const correct_answer = `${result.home_score}-${result.away_score}`;
-    const fifty_hint = `${result.home_team} scored ${result.home_score} goal${result.home_score !== 1 ? 's' : ''}`;
+    // Generate a plausible wrong score by shifting one score by ±1
+    const wrongHome = result.home_score + (Math.random() < 0.5 ? 1 : -1);
+    const wrongAway = wrongHome === result.home_score ? result.away_score + 1 : result.away_score;
+    const fifty_hint = `${Math.max(0, wrongHome)}-${Math.max(0, wrongAway)}`;
 
     const difficulty_factors: DifficultyFactors = {
       event_year: result.event_year ?? new Date().getFullYear(),

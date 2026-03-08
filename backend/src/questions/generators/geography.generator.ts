@@ -16,7 +16,7 @@ Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
-  "fifty_fifty_hint": "first letter of each word with blanks, e.g. 'B _ _ _ _ _'",
+  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Germany' write 'France'",
   "explanation": "brief explanation (1-2 sentences)",
   "event_year": 2010,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League",

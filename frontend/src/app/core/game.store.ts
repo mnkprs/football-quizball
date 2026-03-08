@@ -22,8 +22,7 @@ export interface GameState {
   currentQuestion: Question | null;
   currentQuestionId: string | null;
   lastResult: AnswerResult | null;
-  activeHint: string | null;
-  hintPointsIfCorrect: number | null;
+  fiftyFiftyOptions: string[] | null;
   doubleArmed: boolean;
   loading: boolean;
   error: string | null;
@@ -37,8 +36,7 @@ const initialState: GameState = {
   currentQuestion: null,
   currentQuestionId: null,
   lastResult: null,
-  activeHint: null,
-  hintPointsIfCorrect: null,
+  fiftyFiftyOptions: null,
   doubleArmed: false,
   loading: false,
   error: null,
@@ -84,7 +82,7 @@ export const GameStore = signalStore(
     async selectQuestion(questionId: string): Promise<void> {
       const gameId = store.gameId();
       if (!gameId) return;
-      patchState(store, { loading: true, currentQuestionId: questionId, activeHint: null, hintPointsIfCorrect: null, lastResult: null, top5State: null });
+      patchState(store, { loading: true, currentQuestionId: questionId, fiftyFiftyOptions: null, lastResult: null, top5State: null });
       try {
         const question = await firstValueFrom(api.getQuestion(gameId, questionId));
         const top5State = question.category === 'TOP_5'
@@ -221,11 +219,10 @@ export const GameStore = signalStore(
       if (!gameId || !questionId || !board) return;
 
       try {
-        const hint = await firstValueFrom(api.useLifeline(gameId, questionId, board.currentPlayerIndex));
+        const result = await firstValueFrom(api.useLifeline(gameId, questionId, board.currentPlayerIndex));
         const updatedBoard = await firstValueFrom(api.getGame(gameId));
         patchState(store, {
-          activeHint: hint.hint,
-          hintPointsIfCorrect: hint.points_if_correct,
+          fiftyFiftyOptions: result.options,
           boardState: updatedBoard,
         });
       } catch (err) {
@@ -255,7 +252,7 @@ export const GameStore = signalStore(
       if (board?.status === 'FINISHED') {
         patchState(store, { phase: 'finished', currentQuestion: null, currentQuestionId: null });
       } else {
-        patchState(store, { phase: 'board', currentQuestion: null, currentQuestionId: null, lastResult: null, activeHint: null });
+        patchState(store, { phase: 'board', currentQuestion: null, currentQuestionId: null, lastResult: null, fiftyFiftyOptions: null });
       }
     },
 

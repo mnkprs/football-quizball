@@ -66,17 +66,26 @@ import { GameStore } from '../../core/game.store';
           <!-- 50-50 Lifeline -->
           @if (showLifeline()) {
             <div class="mt-4">
-              @if (store.activeHint()) {
-                <div class="p-4 bg-amber-400/10 border border-amber-400/50 rounded-xl text-center">
-                  <div class="text-amber-400 text-sm font-bold mb-1">💡 50-50 Hint (1 pt if correct)</div>
-                  <div class="text-white font-medium">{{ store.activeHint() }}</div>
+              @if (store.fiftyFiftyOptions(); as opts) {
+                <div class="p-4 bg-amber-400/10 border border-amber-400/50 rounded-xl">
+                  <div class="text-amber-400 text-sm font-bold mb-3 text-center">🎯 50-50 — Pick one (1 pt if correct)</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    @for (opt of opts; track $index) {
+                      <button
+                        (click)="submitFiftyFifty(opt)"
+                        class="py-3 px-4 rounded-xl bg-slate-700 border border-slate-500 text-white font-semibold hover:bg-amber-400/20 hover:border-amber-400 active:scale-95 transition text-sm"
+                      >
+                        {{ opt }}
+                      </button>
+                    }
+                  </div>
                 </div>
               } @else {
                 <button
                   (click)="useLifeline()"
                   class="w-full py-3 rounded-xl border border-amber-400/50 text-amber-400 font-bold hover:bg-amber-400/10 transition text-sm"
                 >
-                  🎯 Use 50-50 Lifeline (reduces to 1 pt)
+                  🎯 Use 50-50 (reduces to 1 pt)
                 </button>
               }
             </div>
@@ -91,21 +100,23 @@ import { GameStore } from '../../core/game.store';
         <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 flex-1">
           <p class="text-white text-xl leading-relaxed">{{ question()?.question_text }}</p>
         </div>
-        <div class="flex gap-3">
-          <input
-            [(ngModel)]="answer"
-            (keydown.enter)="submit()"
-            placeholder="Type your answer..."
-            class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
-          />
-          <button
-            (click)="submit()"
-            [disabled]="!answer.trim()"
-            class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
-          >
-            Submit
-          </button>
-        </div>
+        @if (!store.fiftyFiftyOptions()) {
+          <div class="flex gap-3">
+            <input
+              [(ngModel)]="answer"
+              (keydown.enter)="submit()"
+              placeholder="Type your answer..."
+              class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+            />
+            <button
+              (click)="submit()"
+              [disabled]="!answer.trim()"
+              class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
+            >
+              Submit
+            </button>
+          </div>
+        }
       </div>
     </ng-template>
 
@@ -183,21 +194,23 @@ import { GameStore } from '../../core/game.store';
             </div>
           }
         </div>
-        <div class="flex gap-3">
-          <input
-            [(ngModel)]="answer"
-            (keydown.enter)="submit()"
-            placeholder="Player name..."
-            class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
-          />
-          <button
-            (click)="submit()"
-            [disabled]="!answer.trim()"
-            class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
-          >
-            Submit
-          </button>
-        </div>
+        @if (!store.fiftyFiftyOptions()) {
+          <div class="flex gap-3">
+            <input
+              [(ngModel)]="answer"
+              (keydown.enter)="submit()"
+              placeholder="Player name..."
+              class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+            />
+            <button
+              (click)="submit()"
+              [disabled]="!answer.trim()"
+              class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
+            >
+              Submit
+            </button>
+          </div>
+        }
       </div>
     </ng-template>
 
@@ -224,21 +237,23 @@ import { GameStore } from '../../core/game.store';
             <p class="text-white text-lg">{{ question()?.question_text }}</p>
           }
         </div>
-        <div class="flex gap-3">
-          <input
-            [(ngModel)]="answer"
-            (keydown.enter)="submit()"
-            placeholder="Score e.g. 2-1"
-            class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
-          />
-          <button
-            (click)="submit()"
-            [disabled]="!answer.trim()"
-            class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
-          >
-            Submit
-          </button>
-        </div>
+        @if (!store.fiftyFiftyOptions()) {
+          <div class="flex gap-3">
+            <input
+              [(ngModel)]="answer"
+              (keydown.enter)="submit()"
+              placeholder="Score e.g. 2-1"
+              class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+            />
+            <button
+              (click)="submit()"
+              [disabled]="!answer.trim()"
+              class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
+            >
+              Submit
+            </button>
+          </div>
+        }
       </div>
     </ng-template>
     <!-- Top 5 template -->
@@ -401,6 +416,10 @@ export class QuestionComponent {
 
   async useLifeline(): Promise<void> {
     await this.store.useLifeline();
+  }
+
+  async submitFiftyFifty(option: string): Promise<void> {
+    await this.store.submitAnswer(option);
   }
 
   top5Answer = '';
