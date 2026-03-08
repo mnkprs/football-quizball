@@ -16,6 +16,9 @@ export class FootballApiService {
   ) {
     this.apiFootballKey =
       this.configService.get<string>('API_FOOTBALL_KEY') || '';
+    if (!this.apiFootballKey) {
+      this.logger.warn('API_FOOTBALL_KEY not set — API-Football endpoints (top scorers, fixtures, standings) are disabled. Current generators are unaffected.');
+    }
   }
 
   private async sportsDbGet<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
