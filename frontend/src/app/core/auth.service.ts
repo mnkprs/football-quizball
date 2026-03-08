@@ -41,6 +41,17 @@ export class AuthService {
     if (error) throw error;
   }
 
+  async signInWithGoogle(): Promise<void> {
+    const { error } = await this.supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/solo`,
+        queryParams: { access_type: 'offline', prompt: 'select_account' },
+      },
+    });
+    if (error) throw error;
+  }
+
   async signOut(): Promise<void> {
     await this.supabase.auth.signOut();
   }
