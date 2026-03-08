@@ -8,6 +8,43 @@ export type QuestionCategory =
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
+export interface DifficultyFactors {
+  event_year: number;      // Calendar year of the event
+  competition: string;     // Maps to LEAGUE_FAMILIARITY_TIERS
+  fame_score: number | null; // LLM 1–10 rating; null → fallback to familiarity_score
+}
+
+export const LEAGUE_FAMILIARITY_TIERS: Record<string, number> = {
+  // Tier 1
+  'UEFA Champions League': 1,
+  'FIFA World Cup': 1,
+  'Premier League': 1,
+  'La Liga': 1,
+  'Bundesliga': 1,
+  'Serie A': 1,
+  'UEFA Europa League': 1,
+  // Tier 2
+  'Ligue 1': 2,
+  'Primeira Liga': 2,
+  'Eredivisie': 2,
+  'UEFA Conference League': 2,
+  'FA Cup': 2,
+  'Copa del Rey': 2,
+  // Tier 3
+  'Scottish Premiership': 3,
+  'Turkish Süper Lig': 3,
+  'Brasileirão': 3,
+  'MLS': 3,
+  'Belgian Pro League': 3,
+  // Tier 4
+  'Saudi Pro League': 4,
+  'Chinese Super League': 4,
+  'Egyptian Premier League': 4,
+  'Mexican Liga MX': 4,
+  // Tier 5
+  'Indian Super League': 5,
+};
+
 export interface GeneratedQuestion {
   id: string;
   category: QuestionCategory;
@@ -21,6 +58,8 @@ export interface GeneratedQuestion {
   image_url: string | null;
   // Category-specific extras
   meta?: Record<string, unknown>;
+  // Difficulty scoring factors — stripped before sending to client
+  difficulty_factors?: DifficultyFactors;
 }
 
 export interface BoardCell {

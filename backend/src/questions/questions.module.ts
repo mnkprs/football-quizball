@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { AnswerValidator } from './validators/answer.validator';
+import { DifficultyScorer } from './difficulty-scorer.service';
 import { HistoryGenerator } from './generators/history.generator';
 import { PlayerIdGenerator } from './generators/player-id.generator';
 import { LogoQuizGenerator } from './generators/logo-quiz.generator';
@@ -15,6 +16,7 @@ import { FootballApiModule } from '../football-api/football-api.module';
   providers: [
     QuestionsService,
     AnswerValidator,
+    DifficultyScorer,
     HistoryGenerator,
     PlayerIdGenerator,
     LogoQuizGenerator,

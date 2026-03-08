@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
-import { GeneratedQuestion, Difficulty } from '../question.types';
+import { GeneratedQuestion, DifficultyFactors } from '../question.types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface CareerEntry {
@@ -10,7 +10,16 @@ interface CareerEntry {
   to: string;
 }
 
-const SEED_BANK = [
+interface SeedEntry {
+  player_name: string;
+  career: CareerEntry[];
+  nationality: string;
+  position: string;
+  image_url: string | null;
+  difficulty_factors: DifficultyFactors;
+}
+
+const SEED_BANK: SeedEntry[] = [
   {
     player_name: 'Cristiano Ronaldo',
     career: [
@@ -24,6 +33,7 @@ const SEED_BANK = [
     nationality: 'Portuguese',
     position: 'Forward',
     image_url: 'https://www.thesportsdb.com/images/media/player/thumb/kezm671497991800.jpg',
+    difficulty_factors: { event_year: 2018, competition: 'La Liga', fame_score: 10 },
   },
   {
     player_name: 'Lionel Messi',
@@ -35,6 +45,7 @@ const SEED_BANK = [
     nationality: 'Argentine',
     position: 'Forward',
     image_url: 'https://www.thesportsdb.com/images/media/player/thumb/tqkj2j1524572952.jpg',
+    difficulty_factors: { event_year: 2021, competition: 'La Liga', fame_score: 10 },
   },
   {
     player_name: 'Thierry Henry',
@@ -49,6 +60,7 @@ const SEED_BANK = [
     nationality: 'French',
     position: 'Forward',
     image_url: null,
+    difficulty_factors: { event_year: 2007, competition: 'Premier League', fame_score: 8 },
   },
   {
     player_name: 'Ronaldinho',
@@ -63,6 +75,7 @@ const SEED_BANK = [
     nationality: 'Brazilian',
     position: 'Attacking Midfielder',
     image_url: null,
+    difficulty_factors: { event_year: 2008, competition: 'La Liga', fame_score: 9 },
   },
   {
     player_name: 'Zlatan Ibrahimović',
@@ -81,6 +94,7 @@ const SEED_BANK = [
     nationality: 'Swedish',
     position: 'Forward',
     image_url: null,
+    difficulty_factors: { event_year: 2016, competition: 'Ligue 1', fame_score: 8 },
   },
 ];
 
@@ -93,35 +107,33 @@ export class PlayerIdGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(difficulty: Difficulty, points: number): Promise<GeneratedQuestion> {
+  async generate(): Promise<GeneratedQuestion> {
     try {
-      return await this.generateFromLlm(difficulty, points);
+      return await this.generateFromLlm();
     } catch (err) {
       this.logger.warn(`Player ID LLM generation failed, using seed: ${(err as Error).message}`);
-      return this.getSeedQuestion(difficulty, points);
+      return this.getSeedQuestion();
     }
   }
 
-  private async generateFromLlm(difficulty: Difficulty, points: number): Promise<GeneratedQuestion> {
-    const difficultyContext = {
-      EASY: 'a very famous player like Messi, Ronaldo, Neymar, Mbappe',
-      MEDIUM: 'a well-known player who has played for 3+ major clubs',
-      HARD: 'a less obvious player with an interesting career path across multiple leagues',
-    }[difficulty];
-
+  private async generateFromLlm(): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
-The player should be ${difficultyContext}.
+Pick any interesting footballer — could be legendary, retired, or current.
 Return ONLY a valid JSON object with these exact fields:
 {
   "player_name": "Full Name",
   "career": [{"club": "Club Name", "from": "YYYY", "to": "YYYY or Present"}],
   "nationality": "Nationality",
   "position": "Position",
-  "image_url": null
+  "image_url": null,
+  "competition": "most notable league/competition where this player was famous e.g. Premier League",
+  "event_year": 2018,
+  "fame_score": 8
 }
-The career array should have at minimum 3 entries. Ensure the career data is factually accurate.`;
+The career array should have at minimum 3 entries. Ensure the career data is factually accurate.
+fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.`;
 
-    const userPrompt = `Generate a unique ${difficulty} level "guess the player" challenge with accurate career history. Return JSON only.`;
+    const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. The player can be from any era or league. Return JSON only.`;
 
     const result = await this.llmService.generateStructuredJson<{
       player_name: string;
@@ -129,6 +141,9 @@ The career array should have at minimum 3 entries. Ensure the career data is fac
       nationality: string;
       position: string;
       image_url: string | null;
+      competition: string;
+      event_year: number;
+      fame_score: number;
     }>(systemPrompt, userPrompt);
 
     if (!result.player_name || !result.career?.length) {
@@ -142,8 +157,8 @@ The career array should have at minimum 3 entries. Ensure the career data is fac
     return {
       id: uuidv4(),
       category: 'PLAYER_ID',
-      difficulty,
-      points,
+      difficulty: 'EASY',
+      points: 1,
       question_text: 'Identify the player from their career path:',
       correct_answer: result.player_name,
       fifty_fifty_hint: `${result.nationality} ${result.position}`,
@@ -151,25 +166,22 @@ The career array should have at minimum 3 entries. Ensure the career data is fac
       explanation: `The player is ${result.player_name}. Career: ${careerText}`,
       image_url: result.image_url,
       meta: { career: result.career, nationality: result.nationality, position: result.position },
+      difficulty_factors: {
+        event_year: result.event_year ?? new Date().getFullYear(),
+        competition: result.competition ?? 'Unknown',
+        fame_score: result.fame_score ?? null,
+      },
     };
   }
 
-  private getSeedQuestion(difficulty: Difficulty, points: number): GeneratedQuestion {
-    // Pick based on difficulty: easy = Messi/Ronaldo, medium = Henry/Ronaldinho, hard = Zlatan
-    const pools = {
-      EASY: [SEED_BANK[0], SEED_BANK[1]],
-      MEDIUM: [SEED_BANK[2], SEED_BANK[3]],
-      HARD: [SEED_BANK[4]],
-    };
-    const pool = pools[difficulty];
-    const seed = pool[Math.floor(Math.random() * pool.length)];
+  private getSeedQuestion(): GeneratedQuestion {
+    const seed = SEED_BANK[Math.floor(Math.random() * SEED_BANK.length)];
     const careerText = seed.career.map((c) => `${c.club} (${c.from}–${c.to})`).join(' → ');
-
     return {
       id: uuidv4(),
       category: 'PLAYER_ID',
-      difficulty,
-      points,
+      difficulty: 'EASY',
+      points: 1,
       question_text: 'Identify the player from their career path:',
       correct_answer: seed.player_name,
       fifty_fifty_hint: `${seed.nationality} ${seed.position}`,
@@ -177,6 +189,7 @@ The career array should have at minimum 3 entries. Ensure the career data is fac
       explanation: `The player is ${seed.player_name}. Career: ${careerText}`,
       image_url: seed.image_url,
       meta: { career: seed.career, nationality: seed.nationality, position: seed.position },
+      difficulty_factors: seed.difficulty_factors,
     };
   }
 }

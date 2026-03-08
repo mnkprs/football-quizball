@@ -19,11 +19,6 @@ import { Top5Entry, Top5Progress } from '../questions/question.types';
 
 const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'LOGO_QUIZ', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5'] as const;
 const DIFFICULTIES_ORDER = ['EASY', 'MEDIUM', 'HARD'] as const;
-// TOP_5 uses only 2 slots, both worth 3 points, drawing from different seed pools
-const TOP5_SLOTS: Array<{ difficulty: 'MEDIUM' | 'HARD'; points: 3 }> = [
-  { difficulty: 'MEDIUM', points: 3 },
-  { difficulty: 'HARD', points: 3 },
-];
 
 @Injectable()
 export class GameService {
@@ -46,25 +41,15 @@ export class GameService {
       { name: dto.player2Name, score: 0, lifelineUsed: false, doubleUsed: false },
     ];
 
-    // Build board grid. TOP_5 gets 2 slots (MEDIUM pool + HARD pool), both 3pts.
-    // All other categories follow the standard EASY/MEDIUM/HARD 3-cell layout.
+    // Build board grid: 6 categories × 3 difficulties = 18 cells
     const usedQuestionIds = new Set<string>();
-    const board = CATEGORIES_ORDER.map((category) => {
-      if (category === 'TOP_5') {
-        return TOP5_SLOTS.map(({ difficulty, points }) => {
-          const question = questions.find(
-            (q) => q.category === category && q.difficulty === difficulty && !usedQuestionIds.has(q.id),
-          );
-          if (!question) this.logger.warn(`Missing TOP_5 question for pool ${difficulty}`);
-          if (question) usedQuestionIds.add(question.id);
-          return { question_id: question?.id || '', category, difficulty, points, answered: false };
-        });
-      }
-      return DIFFICULTIES_ORDER.map((difficulty) => {
+    const board = CATEGORIES_ORDER.map((category) =>
+      DIFFICULTIES_ORDER.map((difficulty) => {
         const question = questions.find(
-          (q) => q.category === category && q.difficulty === difficulty,
+          (q) => q.category === category && q.difficulty === difficulty && !usedQuestionIds.has(q.id),
         );
         if (!question) this.logger.warn(`Missing question for ${category}/${difficulty}`);
+        if (question) usedQuestionIds.add(question.id);
         return {
           question_id: question?.id || '',
           category,
@@ -72,8 +57,8 @@ export class GameService {
           points: DIFFICULTY_POINTS[difficulty],
           answered: false,
         };
-      });
-    });
+      }),
+    );
 
     const session: GameSession = {
       id: gameId,
@@ -124,8 +109,8 @@ export class GameService {
     const question = session.questions.find((q) => q.id === questionId);
     if (!question) throw new NotFoundException(`Question ${questionId} not found`);
 
-    // Don't expose the correct answer to the client
-    const { correct_answer, fifty_fifty_hint, ...safeQuestion } = question;
+    // Don't expose the correct answer or scoring internals to the client
+    const { correct_answer, fifty_fifty_hint, difficulty_factors, ...safeQuestion } = question;
     return { ...safeQuestion, correct_answer: '', fifty_fifty_hint: null } as GeneratedQuestion;
   }
 
