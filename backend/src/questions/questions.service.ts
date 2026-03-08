@@ -116,6 +116,14 @@ export class QuestionsService {
     return board;
   }
 
+  /** Generate and score a single question for use by the pool service. */
+  async generateOne(category: QuestionCategory, difficulty: Difficulty): Promise<GeneratedQuestion> {
+    const question = await this.generateRawWithRetry(category);
+    const { difficulty: scoredDiff, points } = this.difficultyScorer.score(question.difficulty_factors!);
+    // Use the requested difficulty if the scored one doesn't match (pool stores by requested slot)
+    return { ...question, difficulty: scoredDiff ?? difficulty, points };
+  }
+
   private async generateRawWithRetry(
     category: QuestionCategory,
     maxRetries = 3,

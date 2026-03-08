@@ -3,6 +3,7 @@ import { clearLogFile } from '../logger.util';
 
 import { CacheService } from '../cache/cache.service';
 import { QuestionsService } from '../questions/questions.service';
+import { QuestionPoolService } from '../questions/question-pool.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
 import { GeneratedQuestion, DIFFICULTY_POINTS, CATEGORY_LABELS, Difficulty } from '../questions/question.types';
 import {
@@ -33,6 +34,7 @@ export class GameService {
   constructor(
     private cacheService: CacheService,
     private questionsService: QuestionsService,
+    private questionPoolService: QuestionPoolService,
     private answerValidator: AnswerValidator,
   ) {}
 
@@ -41,7 +43,12 @@ export class GameService {
     const gameId = crypto.randomUUID();
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
-    const questions = await this.questionsService.generateBoard();
+    const questions = await this.questionPoolService.drawBoard();
+
+    // Refill pool in background after drawing
+    this.questionPoolService.refillIfNeeded().catch((err) =>
+      this.logger.error(`[createGame] Pool refill failed: ${(err as Error).message}`),
+    );
 
     const players: [Player, Player] = [
       { name: dto.player1Name, score: 0, lifelineUsed: false, doubleUsed: false },

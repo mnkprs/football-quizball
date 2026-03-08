@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { QuestionsService } from './questions.service';
+import { QuestionPoolService } from './question-pool.service';
 import { AnswerValidator } from './validators/answer.validator';
 import { DifficultyScorer } from './difficulty-scorer.service';
 import { HistoryGenerator } from './generators/history.generator';
@@ -13,9 +15,10 @@ import { LlmModule } from '../llm/llm.module';
 import { FootballApiModule } from '../football-api/football-api.module';
 
 @Module({
-  imports: [LlmModule, FootballApiModule],
+  imports: [ScheduleModule.forRoot(), LlmModule, FootballApiModule],
   providers: [
     QuestionsService,
+    QuestionPoolService,
     AnswerValidator,
     DifficultyScorer,
     HistoryGenerator,
@@ -26,6 +29,6 @@ import { FootballApiModule } from '../football-api/football-api.module';
     GeographyGenerator,
     GossipGenerator,
   ],
-  exports: [QuestionsService, AnswerValidator],
+  exports: [QuestionsService, QuestionPoolService, AnswerValidator],
 })
 export class QuestionsModule {}

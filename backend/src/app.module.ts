@@ -5,10 +5,12 @@ import { LlmModule } from './llm/llm.module';
 import { FootballApiModule } from './football-api/football-api.module';
 import { QuestionsModule } from './questions/questions.module';
 import { GameModule } from './game/game.module';
+import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    SupabaseModule,
     CacheModule,
     LlmModule,
     FootballApiModule,
