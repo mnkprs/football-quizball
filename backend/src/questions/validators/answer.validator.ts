@@ -36,7 +36,20 @@ export class AnswerValidator {
     // Allow up to 2 character Levenshtein distance for short answers, more for longer
     const maxDistance = normalCorrect.length <= 6 ? 1 : normalCorrect.length <= 12 ? 2 : 3;
     const distance = Levenshtein.get(normalCorrect, normalSubmitted);
-    return distance <= maxDistance;
+    if (distance <= maxDistance) return true;
+
+    // Allow matching on first or last word (e.g. "inter" for "Inter Milan", "united" for "Manchester United")
+    const parts = normalCorrect.split(' ');
+    if (parts.length > 1) {
+      const firstName = parts[0];
+      const lastName = parts[parts.length - 1];
+      if (firstName === normalSubmitted && firstName.length > 3) return true;
+      if (lastName === normalSubmitted && lastName.length > 3) return true;
+      if (Levenshtein.get(firstName, normalSubmitted) <= 1 && firstName.length > 4) return true;
+      if (Levenshtein.get(lastName, normalSubmitted) <= 1 && lastName.length > 4) return true;
+    }
+
+    return false;
   }
 
   private validatePlayerName(correct: string, submitted: string): boolean {
@@ -100,8 +113,8 @@ export class AnswerValidator {
       // Last name only (must be > 3 chars to avoid false positives)
       if (lastName === normalSubmitted && lastName.length > 3) return i;
 
-      // First name only (mono-name players like "Pelé", "Ronaldo")
-      if (firstName === normalSubmitted && firstName.length > 3 && parts.length === 1) return i;
+      // First word only (mono-name like "Pelé", or team shorthand like "Inter" for "Inter Milan")
+      if (firstName === normalSubmitted && firstName.length > 3) return i;
 
       // Fuzzy on full name
       const dist = Levenshtein.get(normalFull, normalSubmitted);
@@ -110,6 +123,10 @@ export class AnswerValidator {
       // Fuzzy on last name
       const lastDist = Levenshtein.get(lastName, normalSubmitted);
       if (lastDist <= 1 && lastName.length > 4) return i;
+
+      // Fuzzy on first word (e.g. "Manchestr" for "Manchester United")
+      const firstDist = Levenshtein.get(firstName, normalSubmitted);
+      if (firstDist <= 1 && firstName.length > 4) return i;
     }
 
     return -1;
