@@ -65,4 +65,46 @@ export class LlmService {
 
     throw lastError || new Error('LLM generation failed after all retries');
   }
+
+  /**
+   * Translates display strings to Greek. Answers (correct_answer, fifty_fifty_hint) stay in English.
+   * Batches in chunks of 5 to avoid token limits.
+   */
+  async translateToGreek(strings: { question_text: string; explanation: string }[]): Promise<{ question_text: string; explanation: string }[]> {
+    if (!this.client || strings.length === 0) return strings;
+
+    const BATCH_SIZE = 5;
+    const results: { question_text: string; explanation: string }[] = [];
+
+    for (let i = 0; i < strings.length; i += BATCH_SIZE) {
+      const batch = strings.slice(i, i + BATCH_SIZE);
+
+      const systemPrompt = `You are a professional translator. Translate the following English strings to Greek (Ελληνικά).
+Return ONLY a valid JSON object with key "items": an array of objects. Each object must have "question_text" and "explanation" keys with the Greek translation.
+Preserve meaning, tone, and formatting. Do not translate proper nouns (player names, team names, etc.) unless they have a standard Greek form.`;
+
+      const items = batch.map((s, j) => `[${j}] question_text: "${s.question_text}" | explanation: "${s.explanation}"`).join('\n');
+      const userPrompt = `Translate each item to Greek. Return JSON: { "items": [ { "question_text": "...", "explanation": "..." }, ... ] }\n${items}`;
+
+      const result = await this.generateStructuredJson<{ items: Array<{ question_text: string; explanation: string }> }>(
+        systemPrompt,
+        userPrompt,
+      );
+
+      const itemsResult = result?.items;
+      if (!Array.isArray(itemsResult) || itemsResult.length !== batch.length) {
+        this.logger.warn(`[translateToGreek] Batch ${i / BATCH_SIZE + 1} invalid, using originals`);
+        results.push(...batch);
+      } else {
+        results.push(
+          ...itemsResult.map((r, j) => ({
+            question_text: typeof r?.question_text === 'string' ? r.question_text : batch[j].question_text,
+            explanation: typeof r?.explanation === 'string' ? r.explanation : batch[j].explanation,
+          })),
+        );
+      }
+    }
+
+    return results;
+  }
 }

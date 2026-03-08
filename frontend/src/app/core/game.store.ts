@@ -70,10 +70,12 @@ export const GameStore = signalStore(
           loading: false,
           phase: 'board',
         });
-      } catch (err) {
+      } catch (err: unknown) {
+        const body = err && typeof err === 'object' && 'error' in err ? (err as { error: { message?: string } }).error : null;
+        const msg = body?.message ?? 'Failed to start game. Please try again.';
         patchState(store, {
           loading: false,
-          error: 'Failed to start game. Please try again.',
+          error: msg,
           phase: 'setup',
         });
       }

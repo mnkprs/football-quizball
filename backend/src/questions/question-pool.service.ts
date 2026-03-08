@@ -57,6 +57,26 @@ export class QuestionPoolService implements OnModuleInit {
   }
 
   /**
+   * Draw all questions from the pool only. No live generation.
+   * Use for Greek: fetch from DB then translate. Throws if pool is insufficient.
+   */
+  async drawBoardFromPoolOnly(): Promise<GeneratedQuestion[]> {
+    const board: GeneratedQuestion[] = [];
+    for (const slot of DRAW_REQUIREMENTS) {
+      const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count);
+      if (drawn.length < slot.count) {
+        const missing = slot.count - drawn.length;
+        throw new Error(
+          `Pool insufficient for Greek: ${slot.category}/${slot.difficulty} has ${drawn.length}, need ${slot.count}. ` +
+            `Missing ${missing}. Seed the pool first (e.g. POST /api/admin/seed-pool?target=5).`,
+        );
+      }
+      board.push(...drawn);
+    }
+    return board;
+  }
+
+  /**
    * Draw all questions needed for one board from the pool.
    * For non-English languages, bypasses the pool and generates all questions live.
    * Falls back to live generation for any English slot not covered by the pool.

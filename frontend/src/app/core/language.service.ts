@@ -6,6 +6,8 @@ const TRANSLATIONS = {
   en: {
     // Setup
     subtitle: 'Football trivia for 2 players',
+    generatingQuestions: 'Generating Questions...',
+    generatingSubtitle: 'Fetching live football data & crafting your quiz',
     enterNames: 'Enter Player Names',
     player1Placeholder: 'Player 1 name...',
     player2Placeholder: 'Player 2 name...',
@@ -85,6 +87,8 @@ const TRANSLATIONS = {
   el: {
     // Setup
     subtitle: 'Ποδοσφαιρικό κουίζ για 2 παίκτες',
+    generatingQuestions: 'Δημιουργία Ερωτήσεων...',
+    generatingSubtitle: 'Φόρτωση δεδομένων & δημιουργία κουίζ',
     enterNames: 'Εισάγετε Ονόματα Παικτών',
     player1Placeholder: 'Όνομα Παίκτη 1...',
     player2Placeholder: 'Όνομα Παίκτη 2...',

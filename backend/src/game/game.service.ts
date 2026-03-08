@@ -2,10 +2,11 @@ import { Injectable, Logger, NotFoundException, BadRequestException } from '@nes
 import { clearLogFile } from '../logger.util';
 
 import { CacheService } from '../cache/cache.service';
+import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from '../questions/questions.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
-import { GeneratedQuestion, DIFFICULTY_POINTS, CATEGORY_LABELS, Difficulty } from '../questions/question.types';
+import { GeneratedQuestion, DIFFICULTY_POINTS, CATEGORY_LABELS, CATEGORY_LABELS_EL, Difficulty } from '../questions/question.types';
 import {
   GameSession,
   Player,
@@ -34,6 +35,7 @@ export class GameService {
 
   constructor(
     private cacheService: CacheService,
+    private llmService: LlmService,
     private questionsService: QuestionsService,
     private questionPoolService: QuestionPoolService,
     private answerValidator: AnswerValidator,
@@ -45,7 +47,19 @@ export class GameService {
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
     const language = dto.language ?? 'en';
-    const questions = await this.questionPoolService.drawBoard(language);
+    // For Greek: fetch from pool only (no live generation), then translate. Answers stay in English.
+    let questions: GeneratedQuestion[];
+    if (language === 'el') {
+      try {
+        questions = await this.drawAndTranslateForGreek();
+      } catch (err) {
+        throw new BadRequestException(
+          (err as Error).message ?? 'Pool insufficient for Greek. Seed the pool first (POST /api/admin/seed-pool?target=5).',
+        );
+      }
+    } else {
+      questions = await this.questionPoolService.drawBoard(language);
+    }
 
     // Refill pool in background after drawing (English pool only)
     if (language === 'en') {
@@ -96,6 +110,25 @@ export class GameService {
     return session;
   }
 
+  /** Draws English questions from pool only (no live generation), then translates to Greek. Answers stay in English. */
+  private async drawAndTranslateForGreek(): Promise<GeneratedQuestion[]> {
+    const questions = await this.questionPoolService.drawBoardFromPoolOnly();
+
+    const stringsToTranslate = questions.map((q) => ({
+      question_text: q.question_text,
+      explanation: q.explanation,
+    }));
+
+    const translated = await this.llmService.translateToGreek(stringsToTranslate);
+
+    return questions.map((q, i) => ({
+      ...q,
+      question_text: translated[i].question_text,
+      explanation: translated[i].explanation,
+      // correct_answer, fifty_fifty_hint, meta stay in English for validation
+    }));
+  }
+
   getGame(gameId: string): GameSession {
     const session = this.cacheService.get<GameSession>(`game:${gameId}`);
     if (!session) throw new NotFoundException(`Game ${gameId} not found`);
@@ -104,6 +137,7 @@ export class GameService {
 
   getBoardState(gameId: string) {
     const session = this.getGame(gameId);
+    const categoryLabels = session.language === 'el' ? CATEGORY_LABELS_EL : CATEGORY_LABELS;
     return {
       id: session.id,
       status: session.status,
@@ -113,14 +147,14 @@ export class GameService {
         row.map((cell) => ({
           question_id: cell.question_id,
           category: cell.category,
-          category_label: CATEGORY_LABELS[cell.category],
+          category_label: categoryLabels[cell.category],
           difficulty: cell.difficulty,
           points: cell.points,
           answered: cell.answered,
           answered_by: cell.answered_by,
         })),
       ),
-      categories: CATEGORIES_ORDER.map((c) => ({ key: c, label: CATEGORY_LABELS[c] })),
+      categories: CATEGORIES_ORDER.map((c) => ({ key: c, label: categoryLabels[c] })),
     };
   }
 

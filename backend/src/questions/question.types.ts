@@ -96,6 +96,16 @@ export const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   GOSSIP: 'Gossip',
 };
 
+export const CATEGORY_LABELS_EL: Record<QuestionCategory, string> = {
+  HISTORY: 'Ιστορία',
+  PLAYER_ID: 'Αναγνώριση Παίκτη',
+  HIGHER_OR_LOWER: 'Υψηλότερο ή Χαμηλότερο',
+  GUESS_SCORE: 'Μάντεψε το Σκορ',
+  TOP_5: 'Top 5',
+  GEOGRAPHY: 'Γεωγραφία',
+  GOSSIP: 'Gossip',
+};
+
 export interface Top5Entry {
   name: string;
   stat: string;
