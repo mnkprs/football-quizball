@@ -8,7 +8,7 @@ import sharp = require('sharp');
 export class GeminiImageService {
   private readonly logger = new Logger(GeminiImageService.name);
   private client: GoogleGenAI | null = null;
-  private readonly model = 'gemini-2.0-flash-exp-image-generation';
+  private readonly model = 'gemini-2.0-flash-preview-image-generation';
   private readonly fetchHeaders = { 'User-Agent': 'FootballQuizBall/1.0 (educational quiz app; contact@quizball.app)' };
 
   constructor(private configService: ConfigService) {
