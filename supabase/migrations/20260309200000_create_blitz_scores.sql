@@ -14,6 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_blitz_scores_user_score ON blitz_scores(user_id, 
 -- RLS: users can only read their own scores; service role inserts
 ALTER TABLE blitz_scores ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can read own blitz scores" ON blitz_scores;
 CREATE POLICY "Users can read own blitz scores"
   ON blitz_scores FOR SELECT
   USING (auth.uid() = user_id);

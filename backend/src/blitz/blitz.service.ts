@@ -8,9 +8,6 @@ const BLITZ_DURATION_MS = 60_000;
 const DRAW_COUNT = 50;   // enough for session + distractor pool
 const SESSION_SIZE = 20;
 
-// Categories that work well with 3-choice: text answers that make sense as distractors
-const ELIGIBLE_CATEGORIES = ['HISTORY', 'GEOGRAPHY', 'GOSSIP'];
-
 @Injectable()
 export class BlitzService {
   private readonly logger = new Logger(BlitzService.name);
@@ -150,15 +147,12 @@ export class BlitzService {
   }
 
   private async drawBlitzQuestions(): Promise<BlitzQuestion[]> {
-    const { data, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('id, category, difficulty, question')
-      .in('category', ELIGIBLE_CATEGORIES)
-      .in('difficulty', ['EASY', 'MEDIUM'])
-      .limit(DRAW_COUNT);
+    const { data, error } = await this.supabaseService.client.rpc('draw_blitz_questions', {
+      p_count: DRAW_COUNT,
+    });
 
     if (error) {
-      this.logger.error(`[blitz] Pool query error: ${error.message}`);
+      this.logger.error(`[blitz] Pool draw error: ${error.message}`);
       return [];
     }
 
@@ -168,12 +162,6 @@ export class BlitzService {
       difficulty: string;
       question: { question_text: string; correct_answer: string };
     }>;
-
-    // Fisher-Yates shuffle
-    for (let i = rows.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [rows[i], rows[j]] = [rows[j], rows[i]];
-    }
 
     const sessionRows = rows.slice(0, SESSION_SIZE);
     const distractorPool = rows.slice(SESSION_SIZE);
