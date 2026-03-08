@@ -1,9 +1,10 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { clearLogFile } from '../logger.util';
 import { v4 as uuidv4 } from 'uuid';
 import { CacheService } from '../cache/cache.service';
 import { QuestionsService } from '../questions/questions.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
-import { GeneratedQuestion, DIFFICULTY_POINTS, CATEGORY_LABELS } from '../questions/question.types';
+import { GeneratedQuestion, DIFFICULTY_POINTS, CATEGORY_LABELS, Difficulty } from '../questions/question.types';
 import {
   GameSession,
   Player,
@@ -17,8 +18,13 @@ import {
 } from './game.types';
 import { Top5Entry, Top5Progress } from '../questions/question.types';
 
-const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'LOGO_QUIZ', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5'] as const;
+const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'GOSSIP'] as const;
 const DIFFICULTIES_ORDER = ['EASY', 'MEDIUM', 'HARD'] as const;
+
+// Per-category difficulty slots (GOSSIP has 2 fixed MEDIUM slots)
+const CATEGORY_DIFFICULTY_SLOTS: Partial<Record<string, readonly Difficulty[]>> = {
+  GOSSIP: ['MEDIUM', 'MEDIUM'],
+};
 
 @Injectable()
 export class GameService {
@@ -31,6 +37,7 @@ export class GameService {
   ) {}
 
   async createGame(dto: CreateGameDto): Promise<GameSession> {
+    clearLogFile();
     const gameId = uuidv4();
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
@@ -41,10 +48,11 @@ export class GameService {
       { name: dto.player2Name, score: 0, lifelineUsed: false, doubleUsed: false },
     ];
 
-    // Build board grid: 6 categories × 3 difficulties = 18 cells
+    // Build board grid: varies by category (GOSSIP has 2 MEDIUM slots, others have 3)
     const usedQuestionIds = new Set<string>();
-    const board = CATEGORIES_ORDER.map((category) =>
-      DIFFICULTIES_ORDER.map((difficulty) => {
+    const board = CATEGORIES_ORDER.map((category) => {
+      const slots = CATEGORY_DIFFICULTY_SLOTS[category] ?? DIFFICULTIES_ORDER;
+      return slots.map((difficulty) => {
         const question = questions.find(
           (q) => q.category === category && q.difficulty === difficulty && !usedQuestionIds.has(q.id),
         );
@@ -54,11 +62,11 @@ export class GameService {
           question_id: question?.id || '',
           category,
           difficulty,
-          points: DIFFICULTY_POINTS[difficulty],
+          points: question?.points ?? DIFFICULTY_POINTS[difficulty],
           answered: false,
         };
-      }),
-    );
+      });
+    });
 
     const session: GameSession = {
       id: gameId,
@@ -170,9 +178,6 @@ export class GameService {
       player_scores: [session.players[0].score, session.players[1].score],
       lifeline_used: lifelineUsed,
       double_used: doubleApplied,
-      ...(question.category === 'LOGO_QUIZ' && question.meta?.['original_image_url']
-        ? { original_image_url: question.meta['original_image_url'] as string }
-        : {}),
     };
   }
 

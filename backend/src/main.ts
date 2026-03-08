@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { setupFileLogging } from './logger.util';
+
+setupFileLogging();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -13,6 +16,12 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
+  // Health check for Railway
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/api/health', (_req: unknown, res: { json: (o: object) => void }) =>
+    res.json({ status: 'ok' }),
+  );
+
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   console.log(`Football QuizBall backend running on port ${port}`);

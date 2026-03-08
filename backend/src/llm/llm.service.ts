@@ -1,22 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
+import { GoogleGenAI } from '@google/genai';
 
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
-  private readonly apiKey: string;
-  private readonly model: string;
-  private readonly baseUrl = 'https://openrouter.ai/api/v1';
+  private client: GoogleGenAI | null = null;
+  private readonly model = 'gemini-flash-latest';
 
   constructor(private configService: ConfigService) {
-    this.apiKey = this.configService.get<string>('OPENROUTER_API_KEY') || '';
-    this.model = this.configService.get<string>('LLM_MODEL') || 'google/gemini-flash-1.5';
-
-    if (!this.apiKey) {
-      this.logger.warn('OPENROUTER_API_KEY not set — LLM text generation disabled');
-    } else {
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    if (apiKey) {
+      this.client = new GoogleGenAI({ apiKey });
       this.logger.log(`LlmService ready — model: ${this.model}`);
+    } else {
+      this.logger.warn('GEMINI_API_KEY not set — LLM text generation disabled');
     }
   }
 
@@ -25,43 +23,40 @@ export class LlmService {
     userPrompt: string,
     maxRetries = 3,
   ): Promise<T> {
-    if (!this.apiKey) {
-      throw new Error('OpenRouter client not initialised — OPENROUTER_API_KEY missing');
+    if (!this.client) {
+      const err = new Error('Gemini client not initialised — GEMINI_API_KEY missing');
+      this.logger.error(`[generateStructuredJson] Cannot call LLM — API key not set\n  Caller stack:\n${err.stack}`);
+      throw err;
     }
 
+    const promptSnippet = systemPrompt.slice(0, 120).replace(/\n/g, ' ');
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await axios.post(
-          `${this.baseUrl}/chat/completions`,
-          {
-            model: this.model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.9,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${this.apiKey}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'https://quizball.app',
-              'X-Title': 'FootballQuizBall',
+        const result = await this.client.models.generateContent({
+          model: this.model,
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
             },
-            timeout: 30000,
-          },
-        );
+          ],
+        });
 
-        const text: string = response.data?.choices?.[0]?.message?.content ?? '';
+        const text = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('No JSON found in LLM response');
 
         return JSON.parse(jsonMatch[0]) as T;
       } catch (err) {
         lastError = err as Error;
-        this.logger.warn(`LLM attempt ${attempt} failed: ${lastError.message}`);
+        this.logger.error(
+          `[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed\n` +
+          `  Prompt: "${promptSnippet}..."\n` +
+          `  Error: ${lastError.message}\n` +
+          `  Stack: ${lastError.stack ?? 'n/a'}`,
+        );
         if (attempt < maxRetries) {
           await new Promise((r) => setTimeout(r, 1000 * attempt));
         }

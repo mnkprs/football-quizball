@@ -1,10 +1,11 @@
 export type QuestionCategory =
   | 'HISTORY'
   | 'PLAYER_ID'
-  | 'LOGO_QUIZ'
   | 'HIGHER_OR_LOWER'
   | 'GUESS_SCORE'
-  | 'TOP_5';
+  | 'TOP_5'
+  | 'GEOGRAPHY'
+  | 'GOSSIP';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -82,10 +83,11 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
 export const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   HISTORY: 'History',
   PLAYER_ID: 'Player ID',
-  LOGO_QUIZ: 'Logo Quiz',
   HIGHER_OR_LOWER: 'Higher or Lower',
   GUESS_SCORE: 'Guess the Score',
   TOP_5: 'Top 5',
+  GEOGRAPHY: 'Geography',
+  GOSSIP: 'Gossip',
 };
 
 export interface Top5Entry {
