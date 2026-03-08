@@ -9,10 +9,16 @@ export type QuestionCategory =
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
+// Type of value the player must recall — drives precision modifier
+export type AnswerType = 'name' | 'team' | 'number' | 'score' | 'year' | 'country';
+
 export interface DifficultyFactors {
-  event_year: number;      // Calendar year of the event
-  competition: string;     // Maps to LEAGUE_FAMILIARITY_TIERS
-  fame_score: number | null; // LLM 1–10 rating; null → fallback to familiarity_score
+  event_year: number;           // Calendar year of the event
+  competition: string;          // Maps to LEAGUE_FAMILIARITY_TIERS
+  fame_score: number | null;    // LLM 1–10 rating; null → fallback to familiarity_score
+  category: QuestionCategory;   // For category-intrinsic modifier
+  answer_type: AnswerType;      // For answer precision modifier
+  specificity_score: number;    // LLM 1–5: 1=general knowledge, 5=very specific fact
 }
 
 export const LEAGUE_FAMILIARITY_TIERS: Record<string, number> = {

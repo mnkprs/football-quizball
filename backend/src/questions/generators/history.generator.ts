@@ -19,24 +19,30 @@ Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
+  "answer_type": "name",
   "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Brazil' write 'Argentina'",
   "explanation": "brief explanation of why this is correct (1-2 sentences)",
   "event_year": 1966,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League, UEFA Champions League",
-  "fame_score": 8
+  "fame_score": 8,
+  "specificity_score": 3
 }
-fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.${langInstruction}`;
+fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.
+answer_type: one of "name", "team", "number", "score", "year", "country" — pick whichever matches the correct_answer.
+specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"), 3 = moderate (specific match/season detail), 5 = very specific (exact shirt number or obscure stat).${langInstruction}`;
 
     const userPrompt = `Generate a unique football history trivia question. It can be about any era, league, or competition. Make it specific and interesting. Return JSON only.`;
 
     const result = await this.llmService.generateStructuredJson<{
       question_text: string;
       correct_answer: string;
+      answer_type: string;
       fifty_fifty_hint: string;
       explanation: string;
       event_year: number;
       competition: string;
       fame_score: number;
+      specificity_score: number;
     }>(systemPrompt, userPrompt);
 
     if (!result.question_text || !result.correct_answer) {
@@ -58,6 +64,9 @@ fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-nich
         event_year: result.event_year ?? new Date().getFullYear(),
         competition: result.competition ?? 'Unknown',
         fame_score: result.fame_score ?? null,
+        category: 'HISTORY',
+        answer_type: (result.answer_type as any) ?? 'name',
+        specificity_score: result.specificity_score ?? 3,
       },
     };
   }

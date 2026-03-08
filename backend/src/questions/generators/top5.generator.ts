@@ -27,10 +27,12 @@ Return ONLY valid JSON:
   ],
   "competition": "Competition or league name",
   "event_year": 2024,
-  "fame_score": 7
+  "fame_score": 7,
+  "specificity_score": 3
 }
 The top5 array must have exactly 5 entries ordered from 1st to 5th place. All data must be factually accurate.
-fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.${langInstruction}`;
+fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.
+specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.${langInstruction}`;
 
     const userPrompt = `Generate a unique and interesting "Name the Top 5" football question. Make it varied — avoid repeating common rankings. Return JSON only.`;
 
@@ -40,6 +42,7 @@ fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obs
       competition: string;
       event_year: number;
       fame_score: number;
+      specificity_score?: number;
     }>(systemPrompt, userPrompt);
 
     if (!result.question_text || !result.top5 || result.top5.length !== 5) {
@@ -50,6 +53,9 @@ fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obs
       event_year: result.event_year ?? new Date().getFullYear(),
       competition: result.competition ?? 'Unknown',
       fame_score: result.fame_score ?? null,
+      category: 'TOP_5',
+      answer_type: 'name',
+      specificity_score: result.specificity_score ?? 3,
     };
 
     return {

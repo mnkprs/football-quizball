@@ -44,14 +44,16 @@ Return ONLY valid JSON:
   "significance": "brief note about the match",
   "event_year": 2019,
   "fame_score": 8,
+  "specificity_score": 4,
   "question_text": "Full question sentence shown to the player",
   "explanation": "Brief explanation of the correct answer"
 }
-fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.${langInstruction}`;
+fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.
+specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not top-of-mind, 5 = very obscure match detail.${langInstruction}`;
 
     const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. It can be from any era or league. Return JSON only.`;
 
-    const result = await this.llmService.generateStructuredJson<MatchData>(systemPrompt, userPrompt);
+    const result = await this.llmService.generateStructuredJson<MatchData & { specificity_score?: number }>(systemPrompt, userPrompt);
 
     if (!result.home_team || !result.away_team || result.home_score === undefined || result.away_score === undefined) {
       throw new Error('Invalid LLM response: missing team names or scores');
@@ -67,6 +69,9 @@ fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only expert
       event_year: result.event_year ?? new Date().getFullYear(),
       competition: result.competition ?? 'Unknown',
       fame_score: result.fame_score ?? null,
+      category: 'GUESS_SCORE',
+      answer_type: 'score',
+      specificity_score: result.specificity_score ?? 4,
     };
 
     const question_text = result.question_text

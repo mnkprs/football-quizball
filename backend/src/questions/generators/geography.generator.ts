@@ -23,9 +23,11 @@ Return ONLY a valid JSON object with these exact fields:
   "explanation": "brief explanation (1-2 sentences)",
   "event_year": 2010,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League",
-  "fame_score": 7
+  "fame_score": 7,
+  "specificity_score": 2
 }
-fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.${langInstruction}`;
+fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.
+specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).${langInstruction}`;
 
     const userPrompt = `Generate a unique football geography trivia question. It can be about any country, city, stadium, or tournament location. Make it interesting. Return JSON only.`;
 
@@ -37,6 +39,7 @@ fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.${la
       event_year: number;
       competition: string;
       fame_score: number;
+      specificity_score: number;
     }>(systemPrompt, userPrompt);
 
     if (!result.question_text || !result.correct_answer) {
@@ -58,6 +61,9 @@ fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.${la
         event_year: result.event_year ?? new Date().getFullYear(),
         competition: result.competition ?? 'Unknown',
         fame_score: result.fame_score ?? null,
+        category: 'GEOGRAPHY',
+        answer_type: 'country',
+        specificity_score: result.specificity_score ?? 2,
       },
     };
   }

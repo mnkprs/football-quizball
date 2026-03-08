@@ -36,11 +36,13 @@ Return ONLY a valid JSON object with these exact fields:
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
   "event_year": 2018,
   "fame_score": 8,
+  "specificity_score": 3,
   "question_text": "Question prompt shown to the player",
   "explanation": "Brief explanation naming the player and career summary"
 }
 The career array must have at least 3 entries. All career data must be factually accurate.
-fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.${langInstruction}`;
+fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.
+specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${langInstruction}`;
 
     const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. The player can be from any era or league. Return JSON only.`;
 
@@ -54,6 +56,7 @@ fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-nic
       competition: string;
       event_year: number;
       fame_score: number;
+      specificity_score?: number;
       question_text?: string;
       explanation?: string;
     }>(systemPrompt, userPrompt);
@@ -83,6 +86,9 @@ fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-nic
         event_year: result.event_year ?? new Date().getFullYear(),
         competition: result.competition ?? 'Unknown',
         fame_score: result.fame_score ?? null,
+        category: 'PLAYER_ID',
+        answer_type: 'name',
+        specificity_score: result.specificity_score ?? 3,
       },
     };
   }

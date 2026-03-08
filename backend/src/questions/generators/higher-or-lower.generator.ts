@@ -13,6 +13,7 @@ interface HolData {
   season: string;
   event_year: number;
   fame_score: number;
+  specificity_score?: number;
   question_text?: string;
   explanation?: string;
 }
@@ -44,10 +45,12 @@ Return ONLY valid JSON:
   "season": "YYYY-YY or YYYY",
   "event_year": 2024,
   "fame_score": 7,
+  "specificity_score": 3,
   "question_text": "Full question sentence shown to the player",
   "explanation": "Brief explanation of the correct answer"
 }
-fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.${langInstruction}`;
+fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.
+specificity_score is 1-5: 1 = widely known career total, 3 = season-specific stat, 5 = very obscure sub-statistic.${langInstruction}`;
 
     const userPrompt = `Generate a unique Higher or Lower football question with accurate statistics. It can be from any league or era. Return JSON only.`;
 
@@ -64,6 +67,9 @@ fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.${langI
       event_year: result.event_year ?? new Date().getFullYear(),
       competition: result.competition ?? 'Unknown',
       fame_score: result.fame_score ?? null,
+      category: 'HIGHER_OR_LOWER',
+      answer_type: 'number',
+      specificity_score: result.specificity_score ?? 3,
     };
 
     const question_text = result.question_text

@@ -24,9 +24,11 @@ Return ONLY a valid JSON object with these exact fields:
   "explanation": "brief explanation (1-2 sentences)",
   "event_year": 2018,
   "competition": "Premier League",
-  "fame_score": 6
+  "fame_score": 6,
+  "specificity_score": 2
 }
-fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.${langInstruction}`;
+fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.
+specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific incident detail, 5 = very niche off-pitch fact.${langInstruction}`;
 
     const userPrompt = `Generate a unique football gossip trivia question about a real off-pitch event, controversy, or celebrity moment. Keep it fun and factual. Return JSON only.`;
 
@@ -38,6 +40,7 @@ fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscur
       event_year: number;
       competition: string;
       fame_score: number;
+      specificity_score: number;
     }>(systemPrompt, userPrompt);
 
     if (!result.question_text || !result.correct_answer) {
@@ -59,6 +62,9 @@ fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscur
         event_year: result.event_year ?? new Date().getFullYear(),
         competition: result.competition ?? 'Premier League',
         fame_score: result.fame_score ?? 5,
+        category: 'GOSSIP',
+        answer_type: 'name',
+        specificity_score: result.specificity_score ?? 2,
       },
     };
   }
