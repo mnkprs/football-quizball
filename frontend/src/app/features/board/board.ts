@@ -8,6 +8,8 @@ const CATEGORY_STYLE: Record<string, { rowCls: string; circleCls: string; icon: 
   LOGO_QUIZ:       { rowCls: 'bg-gradient-to-r from-blue-700 to-blue-500',     circleCls: 'bg-blue-900 border-blue-700',   icon: '🛡️',  label: 'LOGO QUIZ' },
   HIGHER_OR_LOWER: { rowCls: 'bg-gradient-to-r from-red-700 to-red-500',       circleCls: 'bg-red-900 border-red-700',     icon: '📊',  label: 'HIGHER / LOWER' },
   GUESS_SCORE:     { rowCls: 'bg-gradient-to-r from-teal-700 to-teal-500',     circleCls: 'bg-teal-900 border-teal-700',   icon: '🎯',  label: 'GUESS THE SCORE' },
+  GEOGRAPHY:       { rowCls: 'bg-gradient-to-r from-green-700 to-green-500',   circleCls: 'bg-green-900 border-green-700', icon: '🌍',  label: 'GEOGRAPHY' },
+  GOSSIP:          { rowCls: 'bg-gradient-to-r from-pink-700 to-pink-500',     circleCls: 'bg-pink-900 border-pink-700',   icon: '💬',  label: 'GOSSIP' },
 };
 
 @Component({
