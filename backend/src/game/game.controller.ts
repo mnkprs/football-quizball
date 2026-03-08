@@ -71,8 +71,8 @@ export class GameController {
 
   @Post(':id/end')
   @HttpCode(HttpStatus.OK)
-  endGame(@Param('id') id: string) {
-    const session = this.gameService.endGame(id);
+  async endGame(@Param('id') id: string) {
+    const session = await this.gameService.endGame(id);
     return {
       game_id: session.id,
       status: session.status,

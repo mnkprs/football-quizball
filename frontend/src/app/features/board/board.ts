@@ -2,13 +2,19 @@ import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
 import { LanguageService } from '../../core/language.service';
+import { ThemeToggleComponent } from '../../shared/theme-toggle';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ThemeToggleComponent],
   template: `
     <div class="min-h-screen flex flex-col bg-background p-4">
+
+      <!-- Theme toggle -->
+      <div class="fixed top-4 right-4 z-10">
+        <app-theme-toggle />
+      </div>
 
       <!-- Header -->
       <div class="text-center mb-5">

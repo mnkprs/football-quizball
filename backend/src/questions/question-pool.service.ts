@@ -37,6 +37,11 @@ const POOL_TARGET: Partial<Record<string, number>> = {
 };
 const DEFAULT_TARGET = 5;
 
+export interface DrawBoardResult {
+  questions: GeneratedQuestion[];
+  poolQuestionIds: string[];
+}
+
 @Injectable()
 export class QuestionPoolService implements OnModuleInit {
   private readonly logger = new Logger(QuestionPoolService.name);
@@ -58,8 +63,9 @@ export class QuestionPoolService implements OnModuleInit {
    * Draw all questions from the pool only. No live generation.
    * Use for Greek: fetch from DB then translate. Throws if pool is insufficient.
    */
-  async drawBoardFromPoolOnly(): Promise<GeneratedQuestion[]> {
+  async drawBoardFromPoolOnly(): Promise<DrawBoardResult> {
     const board: GeneratedQuestion[] = [];
+    const poolIds: string[] = [];
     for (const slot of DRAW_REQUIREMENTS) {
       const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count);
       if (drawn.length < slot.count) {
@@ -69,9 +75,12 @@ export class QuestionPoolService implements OnModuleInit {
             `Missing ${missing}. Seed the pool first (e.g. POST /api/admin/seed-pool?target=5).`,
         );
       }
-      board.push(...drawn);
+      for (const q of drawn) {
+        board.push(q);
+        poolIds.push(q.id);
+      }
     }
-    return board;
+    return { questions: board, poolQuestionIds: poolIds };
   }
 
   /**
@@ -79,7 +88,7 @@ export class QuestionPoolService implements OnModuleInit {
    * For non-English languages, bypasses the pool and generates all questions live.
    * Falls back to live generation for any English slot not covered by the pool.
    */
-  async drawBoard(language: string = 'en'): Promise<GeneratedQuestion[]> {
+  async drawBoard(language: string = 'en'): Promise<DrawBoardResult> {
     // For non-English, generate all questions live (pool is English-only)
     if (language !== 'en') {
       const board: GeneratedQuestion[] = [];
@@ -95,17 +104,21 @@ export class QuestionPoolService implements OnModuleInit {
           }
         }),
       );
-      return board;
+      return { questions: board, poolQuestionIds: [] };
     }
 
     // English: use pool with fallback to live generation
     const board: GeneratedQuestion[] = [];
+    const poolIds: string[] = [];
     await Promise.all(
       DRAW_REQUIREMENTS.map(async (slot) => {
         const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count);
-        board.push(...drawn);
+        for (const q of drawn) {
+          board.push(q);
+          poolIds.push(q.id);
+        }
 
-        // Fill missing with live generation
+        // Fill missing with live generation (these are NOT from pool)
         const missing = slot.count - drawn.length;
         if (missing > 0) {
           this.logger.warn(`[drawBoard] Pool empty for ${slot.category}/${slot.difficulty} — generating ${missing} live`);
@@ -121,7 +134,27 @@ export class QuestionPoolService implements OnModuleInit {
       }),
     );
 
-    return board;
+    return { questions: board, poolQuestionIds: poolIds };
+  }
+
+  /**
+   * Returns unanswered questions to the pool so they can be used in future matches.
+   * Call when a game ends prematurely to prevent abuse (create → peek → end).
+   */
+  async returnUnansweredToPool(questionIds: string[]): Promise<number> {
+    if (questionIds.length === 0) return 0;
+    const { data, error } = await this.supabaseService.client.rpc('return_questions_to_pool', {
+      p_question_ids: questionIds,
+    });
+    if (error) {
+      this.logger.error(`[returnUnansweredToPool] RPC error: ${error.message}`);
+      return 0;
+    }
+    const count = (data as number) ?? 0;
+    if (count > 0) {
+      this.logger.log(`[returnUnansweredToPool] Returned ${count} unanswered questions to pool`);
+    }
+    return count;
   }
 
   /**

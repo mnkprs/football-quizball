@@ -18,6 +18,8 @@ export interface GameSession {
   updatedAt: Date;
   top5Progress: Record<string, Top5Progress>; // keyed by questionId
   language: string; // 'en' | 'el'
+  /** Question IDs drawn from pool; only these can be returned when game ends early */
+  poolQuestionIds?: string[];
 }
 
 export class CreateGameDto {

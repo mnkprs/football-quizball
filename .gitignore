@@ -10,3 +10,9 @@ dist/
 # IDEs
 .idea/
 .vscode/
+
+# Supabase
+supabase/.temp/
+
+# Local AI/Claude settings
+.claude/

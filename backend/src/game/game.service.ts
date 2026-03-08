@@ -47,18 +47,23 @@ export class GameService {
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
     const language = dto.language ?? 'en';
-    // For Greek: fetch from pool only (no live generation), then translate. Answers stay in English.
     let questions: GeneratedQuestion[];
+    let poolQuestionIds: string[] = [];
+    // For Greek: fetch from pool only (no live generation), then translate. Answers stay in English.
     if (language === 'el') {
       try {
-        questions = await this.drawAndTranslateForGreek();
+        const result = await this.drawAndTranslateForGreek();
+        questions = result.questions;
+        poolQuestionIds = result.poolQuestionIds;
       } catch (err) {
         throw new BadRequestException(
           (err as Error).message ?? 'Pool insufficient for Greek. Seed the pool first (POST /api/admin/seed-pool?target=5).',
         );
       }
     } else {
-      questions = await this.questionPoolService.drawBoard(language);
+      const result = await this.questionPoolService.drawBoard(language);
+      questions = result.questions;
+      poolQuestionIds = result.poolQuestionIds;
     }
 
     // Refill pool in background after drawing (English pool only)
@@ -104,6 +109,7 @@ export class GameService {
       updatedAt: new Date(),
       top5Progress: {},
       language,
+      poolQuestionIds,
     };
 
     this.cacheService.set(`game:${gameId}`, session, 86400); // 24h TTL
@@ -111,8 +117,8 @@ export class GameService {
   }
 
   /** Draws English questions from pool only (no live generation), then translates to Greek. Answers stay in English. */
-  private async drawAndTranslateForGreek(): Promise<GeneratedQuestion[]> {
-    const questions = await this.questionPoolService.drawBoardFromPoolOnly();
+  private async drawAndTranslateForGreek(): Promise<{ questions: GeneratedQuestion[]; poolQuestionIds: string[] }> {
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoardFromPoolOnly();
 
     const stringsToTranslate = questions.map((q) => ({
       question_text: q.question_text,
@@ -121,12 +127,13 @@ export class GameService {
 
     const translated = await this.llmService.translateToGreek(stringsToTranslate);
 
-    return questions.map((q, i) => ({
+    const translatedQuestions = questions.map((q, i) => ({
       ...q,
       question_text: translated[i].question_text,
       explanation: translated[i].explanation,
       // correct_answer, fifty_fifty_hint, meta stay in English for validation
     }));
+    return { questions: translatedQuestions, poolQuestionIds };
   }
 
   getGame(gameId: string): GameSession {
@@ -483,8 +490,24 @@ export class GameService {
     };
   }
 
-  endGame(gameId: string): GameSession {
+  async endGame(gameId: string): Promise<GameSession> {
     const session = this.getGame(gameId);
+
+    // Return unanswered pool questions so they can appear in future matches (prevents create→peek→end abuse)
+    const poolIds = session.poolQuestionIds ?? [];
+    if (poolIds.length > 0) {
+      const unansweredIds = session.board
+        .flat()
+        .filter((c) => !c.answered)
+        .map((c) => c.question_id)
+        .filter((id) => poolIds.includes(id));
+      if (unansweredIds.length > 0) {
+        await this.questionPoolService.returnUnansweredToPool(unansweredIds).catch((err) =>
+          this.logger.error(`[endGame] Failed to return questions to pool: ${(err as Error).message}`),
+        );
+      }
+    }
+
     session.status = 'FINISHED';
     session.updatedAt = new Date();
     this.cacheService.set(`game:${session.id}`, session, 86400);
