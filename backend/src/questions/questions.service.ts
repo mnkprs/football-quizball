@@ -23,6 +23,7 @@ const CATEGORIES: QuestionCategory[] = [
 // GOSSIP has 2 fixed MEDIUM slots; all others use EASY/MEDIUM/HARD.
 const CATEGORY_SLOTS: Partial<Record<QuestionCategory, Difficulty[]>> = {
   GOSSIP: ['MEDIUM', 'MEDIUM'],
+  TOP_5: ['HARD', 'HARD'],
 };
 const DEFAULT_DIFFICULTIES: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
 
