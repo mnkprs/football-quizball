@@ -2,6 +2,7 @@ export interface BlitzQuestion {
   poolRowId: string;
   question_text: string;
   correct_answer: string;
+  choices: string[];  // [correct, distractor1, distractor2] pre-shuffled
   category: string;
   difficulty: string;
 }
@@ -18,18 +19,21 @@ export interface BlitzSession {
   saved: boolean;
 }
 
+export interface BlitzQuestionRef {
+  question_id: string;
+  question_text: string;
+  choices: string[];
+  category: string;
+  difficulty: string;
+}
+
 export interface BlitzAnswerResult {
   correct: boolean;
   correct_answer: string;
   score: number;
   total_answered: number;
   time_up: boolean;
-  next_question: {
-    question_id: string;
-    question_text: string;
-    category: string;
-    difficulty: string;
-  } | null;
+  next_question: BlitzQuestionRef | null;
 }
 
 export interface BlitzLeaderboardEntry {

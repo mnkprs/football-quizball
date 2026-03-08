@@ -1,13 +1,15 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
-import { AnswerValidator } from '../questions/validators/answer.validator';
-import { BlitzSession, BlitzQuestion, BlitzAnswerResult } from './blitz.types';
+import { BlitzSession, BlitzQuestion, BlitzQuestionRef, BlitzAnswerResult } from './blitz.types';
 
 const SESSION_TTL = 3600; // 1h
 const BLITZ_DURATION_MS = 60_000;
-const DRAW_COUNT = 30;
+const DRAW_COUNT = 50;   // enough for session + distractor pool
 const SESSION_SIZE = 20;
+
+// Categories that work well with 3-choice: text answers that make sense as distractors
+const ELIGIBLE_CATEGORIES = ['HISTORY', 'GEOGRAPHY', 'GOSSIP'];
 
 @Injectable()
 export class BlitzService {
@@ -16,7 +18,6 @@ export class BlitzService {
   constructor(
     private cacheService: CacheService,
     private supabaseService: SupabaseService,
-    private answerValidator: AnswerValidator,
   ) {}
 
   private sessionKey(id: string) { return `blitz:${id}`; }
@@ -27,10 +28,20 @@ export class BlitzService {
     return session;
   }
 
+  private toRef(q: BlitzQuestion): BlitzQuestionRef {
+    return {
+      question_id: q.poolRowId,
+      question_text: q.question_text,
+      choices: q.choices,
+      category: q.category,
+      difficulty: q.difficulty,
+    };
+  }
+
   async startSession(userId: string): Promise<{
     session_id: string;
     time_limit: number;
-    first_question: { question_id: string; question_text: string; category: string; difficulty: string };
+    first_question: BlitzQuestionRef;
   }> {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('User profile not found');
@@ -54,16 +65,10 @@ export class BlitzService {
     };
     this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
-    const first = questions[0];
     return {
       session_id: sessionId,
       time_limit: 60,
-      first_question: {
-        question_id: first.poolRowId,
-        question_text: first.question_text,
-        category: first.category,
-        difficulty: first.difficulty,
-      },
+      first_question: this.toRef(questions[0]),
     };
   }
 
@@ -82,10 +87,8 @@ export class BlitzService {
     let correct = false;
 
     if (question && !timeUp) {
-      correct = this.answerValidator.validate(
-        { correct_answer: question.correct_answer, category: question.category } as any,
-        answer,
-      );
+      // Multiple choice: exact match (case-insensitive trim)
+      correct = answer.trim().toLowerCase() === question.correct_answer.trim().toLowerCase();
     }
 
     if (question) {
@@ -117,14 +120,7 @@ export class BlitzService {
       score: session.score,
       total_answered: session.totalAnswered,
       time_up: timeUp,
-      next_question: nextQ
-        ? {
-            question_id: nextQ.poolRowId,
-            question_text: nextQ.question_text,
-            category: nextQ.category,
-            difficulty: nextQ.difficulty,
-          }
-        : null,
+      next_question: nextQ ? this.toRef(nextQ) : null,
     };
   }
 
@@ -157,7 +153,7 @@ export class BlitzService {
     const { data, error } = await this.supabaseService.client
       .from('question_pool')
       .select('id, category, difficulty, question')
-      .neq('category', 'TOP_5')
+      .in('category', ELIGIBLE_CATEGORIES)
       .in('difficulty', ['EASY', 'MEDIUM'])
       .limit(DRAW_COUNT);
 
@@ -179,12 +175,65 @@ export class BlitzService {
       [rows[i], rows[j]] = [rows[j], rows[i]];
     }
 
-    return rows.slice(0, SESSION_SIZE).map((row) => ({
-      poolRowId: row.id,
-      question_text: row.question.question_text,
-      correct_answer: row.question.correct_answer,
-      category: row.category,
-      difficulty: row.difficulty,
-    }));
+    const sessionRows = rows.slice(0, SESSION_SIZE);
+    const distractorPool = rows.slice(SESSION_SIZE);
+
+    return sessionRows.map((row) => {
+      const correctAnswer = row.question.correct_answer;
+      const choices = this.pickChoices(correctAnswer, row.category, distractorPool);
+      return {
+        poolRowId: row.id,
+        question_text: row.question.question_text,
+        correct_answer: correctAnswer,
+        choices,
+        category: row.category,
+        difficulty: row.difficulty,
+      };
+    });
+  }
+
+  private pickChoices(
+    correct: string,
+    category: string,
+    pool: Array<{ category: string; question: { correct_answer: string } }>,
+  ): string[] {
+    // Prefer distractors from same category, then any category
+    const sameCat = pool.filter(
+      (r) => r.category === category && r.question.correct_answer.toLowerCase() !== correct.toLowerCase(),
+    );
+    const others = pool.filter(
+      (r) => r.category !== category && r.question.correct_answer.toLowerCase() !== correct.toLowerCase(),
+    );
+
+    const candidates = [...sameCat, ...others];
+    const distractors: string[] = [];
+    const seen = new Set<string>([correct.toLowerCase()]);
+
+    for (const c of candidates) {
+      if (distractors.length >= 2) break;
+      const ans = c.question.correct_answer;
+      if (!seen.has(ans.toLowerCase())) {
+        seen.add(ans.toLowerCase());
+        distractors.push(ans);
+      }
+    }
+
+    // Fallback: pad with generic football answers if pool was too small
+    const fallbacks = ['FC Barcelona', 'Real Madrid', 'Manchester United', 'Liverpool', 'Bayern Munich', 'Juventus'];
+    for (const f of fallbacks) {
+      if (distractors.length >= 2) break;
+      if (!seen.has(f.toLowerCase())) {
+        seen.add(f.toLowerCase());
+        distractors.push(f);
+      }
+    }
+
+    // Shuffle the 3 choices
+    const choices = [correct, ...distractors.slice(0, 2)];
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+    return choices;
   }
 }

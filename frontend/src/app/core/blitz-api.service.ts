@@ -13,6 +13,7 @@ export interface BlitzStartResponse {
 export interface BlitzQuestionRef {
   question_id: string;
   question_text: string;
+  choices: string[];
   category: string;
   difficulty: string;
 }
