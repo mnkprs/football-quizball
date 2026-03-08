@@ -9,6 +9,7 @@ import { AdminModule } from './admin/admin.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { SoloModule } from './solo/solo.module';
+import { BlitzModule } from './blitz/blitz.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SoloModule } from './solo/solo.module';
     AdminModule,
     AuthModule,
     SoloModule,
+    BlitzModule,
   ],
 })
 export class AppModule {}

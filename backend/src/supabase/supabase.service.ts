@@ -59,6 +59,26 @@ export class SupabaseService {
     return data ?? [];
   }
 
+  async insertBlitzScore(entry: {
+    user_id: string;
+    username: string;
+    score: number;
+    total_answered: number;
+  }): Promise<void> {
+    await this.client.from('blitz_scores').insert(entry);
+  }
+
+  async getBlitzLeaderboard(limit: number): Promise<Array<{
+    user_id: string;
+    username: string;
+    score: number;
+    total_answered: number;
+    created_at: string;
+  }>> {
+    const { data } = await this.client.rpc('get_blitz_leaderboard', { p_limit: limit });
+    return data ?? [];
+  }
+
   async incrementGamesPlayed(userId: string, questionsAnswered: number, correctAnswers: number): Promise<void> {
     // Use rpc for atomic increment, fallback to read-modify-write
     const { data: profile } = await this.client

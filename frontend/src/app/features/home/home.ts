@@ -52,6 +52,15 @@ import { ThemeToggleComponent } from '../../shared/theme-toggle';
               <span class="text-muted-foreground text-sm font-normal block mt-1">Login required</span>
             }
           </button>
+          <button
+            (click)="goBlitz()"
+            class="w-full py-5 rounded-2xl bg-card border border-border text-foreground font-black text-xl hover:bg-muted active:scale-95 transition pressable"
+          >
+            ⚡ Blitz Mode
+            @if (!auth.isLoggedIn()) {
+              <span class="text-muted-foreground text-sm font-normal block mt-1">Login required</span>
+            }
+          </button>
         </div>
 
         <!-- Leaderboard link -->
@@ -78,6 +87,14 @@ export class HomeComponent {
   goSolo(): void {
     if (this.auth.isLoggedIn()) {
       this.router.navigate(['/solo']);
+    } else {
+      this.router.navigate(['/login']);
+    }
+  }
+
+  goBlitz(): void {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/blitz']);
     } else {
       this.router.navigate(['/login']);
     }
