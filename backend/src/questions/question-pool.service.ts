@@ -211,22 +211,56 @@ export class QuestionPoolService implements OnModuleInit {
       ),
     );
 
-    const rows = results
+    const candidates = results
       .filter((r): r is PromiseFulfilledResult<GeneratedQuestion> => r.status === 'fulfilled')
-      .map((r) => ({
-        category,
-        difficulty,
-        question: r.value,
-      }));
+      .map((r) => r.value);
 
-    if (rows.length === 0) return;
+    if (candidates.length === 0) return;
+
+    // Fetch existing question keys for this category to prevent duplicates
+    const existingKeys = await this.getExistingQuestionKeys(category);
+
+    const rows = candidates
+      .filter((q) => {
+        const key = `${q.question_text}|||${q.correct_answer}`;
+        if (existingKeys.has(key)) {
+          this.logger.debug(`[fillSlot] Skipping duplicate: "${q.question_text.slice(0, 60)}..."`);
+          return false;
+        }
+        existingKeys.add(key); // prevent intra-batch duplicates too
+        return true;
+      })
+      .map((q) => ({ category, difficulty, question: q }));
+
+    if (rows.length === 0) {
+      this.logger.warn(`[fillSlot] All ${candidates.length} generated questions were duplicates for ${category}/${difficulty}`);
+      return;
+    }
 
     const { error } = await this.supabaseService.client.from('question_pool').insert(rows);
     if (error) {
       this.logger.error(`[fillSlot] Insert error for ${category}/${difficulty}: ${error.message}`);
     } else {
-      this.logger.log(`[fillSlot] Inserted ${rows.length} questions for ${category}/${difficulty}`);
+      this.logger.log(`[fillSlot] Inserted ${rows.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - rows.length} duplicates skipped)`);
     }
+  }
+
+  /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */
+  private async getExistingQuestionKeys(category: QuestionCategory): Promise<Set<string>> {
+    const { data, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('question->question_text, question->correct_answer')
+      .eq('category', category);
+
+    if (error) {
+      this.logger.error(`[getExistingQuestionKeys] Query error: ${error.message}`);
+      return new Set();
+    }
+
+    return new Set(
+      (data as Array<{ question_text: string; correct_answer: string }>)
+        .map((r) => `${r.question_text}|||${r.correct_answer}`),
+    );
   }
 
   private async getPoolCounts(): Promise<Record<string, number>> {
