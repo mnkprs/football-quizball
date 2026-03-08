@@ -12,19 +12,19 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
   standalone: true,
   imports: [FormsModule, RouterLink],
   template: `
-    <div class="min-h-screen bg-slate-900 flex flex-col p-4">
+    <div class="min-h-screen bg-background flex flex-col p-4">
       <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-6 pt-2">
-          <button (click)="goHome()" class="text-slate-400 hover:text-white transition text-sm">← Home</button>
+          <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">← Home</button>
           <div class="text-center">
-            <div class="text-amber-400 font-black text-2xl">{{ currentElo() }}</div>
-            <div class="text-slate-500 text-xs">ELO</div>
+            <div class="text-accent font-black text-2xl">{{ currentElo() }}</div>
+            <div class="text-muted-foreground text-xs">ELO</div>
           </div>
           <div class="text-right">
-            <div class="text-white font-semibold">{{ correctAnswers() }}/{{ questionsAnswered() }}</div>
-            <div class="text-slate-500 text-xs">Correct</div>
+            <div class="text-foreground font-semibold">{{ correctAnswers() }}/{{ questionsAnswered() }}</div>
+            <div class="text-muted-foreground text-xs">Correct</div>
           </div>
         </div>
 
@@ -32,18 +32,18 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
         @if (phase() === 'idle') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-6xl mb-6">🏆</div>
-            <h2 class="text-2xl font-black text-white mb-2">Solo Ranked</h2>
-            <p class="text-slate-400 text-center mb-2">Answer football questions to earn ELO and climb the leaderboard</p>
-            <p class="text-slate-500 text-sm text-center mb-8">Starting ELO: <span class="text-amber-400 font-bold">{{ startElo() }}</span></p>
+            <h2 class="text-2xl font-black text-foreground mb-2">Solo Ranked</h2>
+            <p class="text-muted-foreground text-center mb-2">Answer football questions to earn ELO and climb the leaderboard</p>
+            <p class="text-muted-foreground text-sm text-center mb-8">Starting ELO: <span class="text-accent font-bold">{{ startElo() }}</span></p>
             <button
               (click)="startSession()"
               [disabled]="loading()"
-              class="w-full max-w-xs py-4 rounded-2xl bg-amber-400 text-slate-900 font-black text-xl hover:bg-amber-300 active:scale-95 transition disabled:opacity-50"
+              class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-xl hover:bg-accent-light active:scale-95 transition disabled:opacity-50 pressable"
             >
               {{ loading() ? 'Starting...' : 'Start Playing' }}
             </button>
             @if (error()) {
-              <p class="text-red-400 text-sm mt-4">{{ error() }}</p>
+              <p class="text-loss text-sm mt-4">{{ error() }}</p>
             }
           </div>
         }
@@ -66,13 +66,13 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
               </span>
               <!-- Timer -->
               <div class="flex items-center gap-2">
-                <div class="text-sm font-bold" [class]="timeLeft() <= 10 ? 'text-red-400' : 'text-slate-300'">
+                <div class="text-sm font-bold" [class]="timeLeft() <= 10 ? 'text-loss' : 'text-foreground'">
                   {{ timeLeft() }}s
                 </div>
-                <div class="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div class="w-24 h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     class="h-full rounded-full transition-all duration-1000"
-                    [class]="timeLeft() <= 10 ? 'bg-red-500' : 'bg-amber-400'"
+                    [class]="timeLeft() <= 10 ? 'bg-loss' : 'bg-accent'"
                     [style.width]="timerPercent() + '%'"
                   ></div>
                 </div>
@@ -80,8 +80,8 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
             </div>
 
             <!-- Question -->
-            <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 min-h-[140px] flex items-center">
-              <p class="text-white text-xl leading-relaxed">{{ currentQuestion()?.question_text }}</p>
+            <div class="bg-card rounded-2xl p-6 mb-6 border border-border min-h-[140px] flex items-center">
+              <p class="text-foreground text-xl leading-relaxed">{{ currentQuestion()?.question_text }}</p>
             </div>
 
             <!-- Answer input -->
@@ -90,12 +90,12 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
                 [(ngModel)]="answer"
                 (keydown.enter)="submitAnswer()"
                 placeholder="Your answer..."
-                class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
               />
               <button
                 (click)="submitAnswer()"
                 [disabled]="!answer.trim() || submitting()"
-                class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
+                class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
               >
                 Submit
               </button>
@@ -108,40 +108,40 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
           <div class="flex flex-col flex-1">
             <!-- Result banner -->
             <div class="rounded-2xl p-6 mb-6 border text-center"
-                 [class]="lastResult()!.correct ? 'bg-green-900/30 border-green-700' : 'bg-red-900/30 border-red-700'">
+                 [class]="lastResult()!.correct ? 'bg-win/10 border-win/50' : 'bg-loss/10 border-loss/50'">
               <div class="text-4xl mb-2">{{ lastResult()!.correct ? '✅' : lastResult()!.timed_out ? '⏰' : '❌' }}</div>
-              <div class="text-xl font-black text-white mb-1">
+              <div class="text-xl font-black text-foreground mb-1">
                 {{ lastResult()!.correct ? 'Correct!' : lastResult()!.timed_out ? "Time's up!" : 'Wrong' }}
               </div>
               @if (!lastResult()!.correct) {
-                <div class="text-slate-300 text-sm">Answer: <span class="text-white font-semibold">{{ lastResult()!.correct_answer }}</span></div>
+                <div class="text-foreground text-sm">Answer: <span class="text-foreground font-semibold">{{ lastResult()!.correct_answer }}</span></div>
               }
-              <div class="text-slate-400 text-sm mt-2">{{ lastResult()!.explanation }}</div>
+              <div class="text-muted-foreground text-sm mt-2">{{ lastResult()!.explanation }}</div>
             </div>
 
             <!-- ELO change -->
-            <div class="bg-slate-800 rounded-2xl p-4 mb-6 border border-slate-700 flex items-center justify-between">
+            <div class="bg-card rounded-2xl p-4 mb-6 border border-border flex items-center justify-between">
               <div>
-                <div class="text-slate-400 text-sm">ELO Change</div>
-                <div class="font-black text-2xl" [class]="lastResult()!.elo_change >= 0 ? 'text-green-400' : 'text-red-400'">
+                <div class="text-muted-foreground text-sm">ELO Change</div>
+                <div class="font-black text-2xl" [class]="lastResult()!.elo_change >= 0 ? 'text-win' : 'text-loss'">
                   {{ lastResult()!.elo_change >= 0 ? '+' : '' }}{{ lastResult()!.elo_change }}
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-slate-400 text-sm">New ELO</div>
-                <div class="text-white font-black text-2xl">{{ lastResult()!.elo_after }}</div>
+                <div class="text-muted-foreground text-sm">New ELO</div>
+                <div class="text-foreground font-black text-2xl">{{ lastResult()!.elo_after }}</div>
               </div>
             </div>
 
             <!-- Stats -->
             <div class="grid grid-cols-2 gap-3 mb-6">
-              <div class="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
-                <div class="text-slate-400 text-xs">Questions</div>
-                <div class="text-white font-bold text-lg">{{ lastResult()!.questions_answered }}</div>
+              <div class="bg-card rounded-xl p-3 border border-border text-center">
+                <div class="text-muted-foreground text-xs">Questions</div>
+                <div class="text-foreground font-bold text-lg">{{ lastResult()!.questions_answered }}</div>
               </div>
-              <div class="bg-slate-800 rounded-xl p-3 border border-slate-700 text-center">
-                <div class="text-slate-400 text-xs">Accuracy</div>
-                <div class="text-white font-bold text-lg">{{ accuracy() }}%</div>
+              <div class="bg-card rounded-xl p-3 border border-border text-center">
+                <div class="text-muted-foreground text-xs">Accuracy</div>
+                <div class="text-foreground font-bold text-lg">{{ accuracy() }}%</div>
               </div>
             </div>
 
@@ -149,13 +149,13 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
               <button
                 (click)="nextQuestion()"
                 [disabled]="loading()"
-                class="flex-1 py-4 rounded-2xl bg-amber-400 text-slate-900 font-black text-lg hover:bg-amber-300 active:scale-95 transition disabled:opacity-50"
+                class="flex-1 py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light active:scale-95 transition disabled:opacity-50 pressable"
               >
                 {{ loading() ? '...' : 'Next Question' }}
               </button>
               <button
                 (click)="endSession()"
-                class="py-4 px-6 rounded-2xl border border-slate-600 text-slate-400 font-semibold hover:bg-slate-800 transition"
+                class="py-4 px-6 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable"
               >
                 End
               </button>
@@ -167,29 +167,29 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
         @if (phase() === 'finished') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-5xl mb-4">🏁</div>
-            <h2 class="text-2xl font-black text-white mb-6">Session Complete</h2>
+            <h2 class="text-2xl font-black text-foreground mb-6">Session Complete</h2>
             <div class="w-full max-w-xs space-y-3 mb-8">
-              <div class="flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700">
-                <span class="text-slate-400">Starting ELO</span>
-                <span class="text-white font-bold">{{ startElo() }}</span>
+              <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+                <span class="text-muted-foreground">Starting ELO</span>
+                <span class="text-foreground font-bold">{{ startElo() }}</span>
               </div>
-              <div class="flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700">
-                <span class="text-slate-400">Final ELO</span>
-                <span class="text-amber-400 font-black text-lg">{{ currentElo() }}</span>
+              <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+                <span class="text-muted-foreground">Final ELO</span>
+                <span class="text-accent font-black text-lg">{{ currentElo() }}</span>
               </div>
-              <div class="flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700">
-                <span class="text-slate-400">Questions</span>
-                <span class="text-white font-bold">{{ questionsAnswered() }}</span>
+              <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+                <span class="text-muted-foreground">Questions</span>
+                <span class="text-foreground font-bold">{{ questionsAnswered() }}</span>
               </div>
-              <div class="flex justify-between p-4 bg-slate-800 rounded-xl border border-slate-700">
-                <span class="text-slate-400">Accuracy</span>
-                <span class="text-white font-bold">{{ accuracy() }}%</span>
+              <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+                <span class="text-muted-foreground">Accuracy</span>
+                <span class="text-foreground font-bold">{{ accuracy() }}%</span>
               </div>
             </div>
-            <a routerLink="/leaderboard" class="w-full max-w-xs py-3 rounded-2xl bg-amber-400 text-slate-900 font-black text-center block hover:bg-amber-300 transition mb-3">
+            <a routerLink="/leaderboard" class="w-full max-w-xs py-3 rounded-2xl bg-accent text-accent-foreground font-black text-center block hover:bg-accent-light transition mb-3">
               View Leaderboard
             </a>
-            <button (click)="resetToIdle()" class="w-full max-w-xs py-3 rounded-2xl border border-slate-600 text-slate-400 font-semibold hover:bg-slate-800 transition">
+            <button (click)="resetToIdle()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
               Play Again
             </button>
           </div>
@@ -233,9 +233,9 @@ export class SoloComponent implements OnDestroy {
 
   difficultyBadgeClass = computed(() => {
     const diff = this.currentQuestion()?.difficulty;
-    if (diff === 'EASY') return 'bg-green-900/50 text-green-400 border border-green-700';
+    if (diff === 'EASY') return 'bg-win/10 text-win border border-win/50';
     if (diff === 'MEDIUM') return 'bg-yellow-900/50 text-yellow-400 border border-yellow-700';
-    return 'bg-red-900/50 text-red-400 border border-red-700';
+    return 'bg-loss/10 text-loss border border-loss/50';
   });
 
   async startSession(): Promise<void> {

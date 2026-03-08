@@ -1,3 +1,131 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* -------------------------------------------------- */
+/*  Static tokens (same across both themes)           */
+/* -------------------------------------------------- */
+:root {
+  --color-accent: #2E7D32;
+  --color-accent-foreground: #FFFFFF;
+  --color-accent-light: #43A047;
+  --color-ring: #2E7D32;
+  --color-destructive: #B3261E;
+  --color-win: #2E7D32;
+  --color-loss: #B3261E;
+  --color-draw: #F9A825;
+
+  /* Light theme (default) */
+  --color-background: #F7F8FA;
+  --color-foreground: #111111;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #111111;
+  --color-muted: #F0F0F0;
+  --color-muted-foreground: #6B7280;
+  --color-border: #E5E7EB;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-overlay: rgba(0,0,0,0.4);
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* -------------------------------------------------- */
+/*  Dark theme (.dark on <html>)                      */
+/* -------------------------------------------------- */
+.dark {
+  --color-background: #000000;
+  --color-foreground: #FAFAFA;
+  --color-card: #111111;
+  --color-card-foreground: #FAFAFA;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #A3A3A3;
+  --color-border: #2a2a2a;
+  --color-surface-elevated: #161616;
+  --color-surface-overlay: rgba(0,0,0,0.6);
+  --shadow-card: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* -------------------------------------------------- */
+/*  Base                                              */
+/* -------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* -------------------------------------------------- */
+/*  Utilities                                         */
+/* -------------------------------------------------- */
+@layer utilities {
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-card-accent {
+    box-shadow:
+      0 2px 8px color-mix(in srgb, var(--color-accent) 25%, transparent),
+      0 8px 24px color-mix(in srgb, var(--color-accent) 15%, transparent);
+  }
+  .pressable {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 0.15s ease, color 0.2s ease,
+      background-color 0.2s ease, border-color 0.2s ease,
+      opacity 0.2s ease, box-shadow 0.2s ease;
+  }
+  .pressable:active { transform: scale(0.97); }
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, #1B5E20, var(--color-accent));
+  }
+}
+
+button:not([disabled]) {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+button:not([disabled]):active { transform: scale(0.97); }
+a[href] { -webkit-tap-highlight-color: transparent; }
+
+/* -------------------------------------------------- */
+/*  Scrollbar                                         */
+/* -------------------------------------------------- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+/* -------------------------------------------------- */
+/*  Game animations                                   */
+/* -------------------------------------------------- */
+.animate-correct { animation: correctPulse 0.6s ease-in-out; }
+.animate-wrong   { animation: wrongShake 0.5s ease-in-out; }
+
+@keyframes correctPulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(46,125,50,0.2); }
+}
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
+@keyframes scoreFloat {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+.score-float { animation: scoreFloat 1.2s ease-out forwards; }
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spin-slow 3s linear infinite; }

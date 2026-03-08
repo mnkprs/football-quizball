@@ -8,20 +8,20 @@ import { LanguageService } from '../../core/language.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="min-h-screen flex items-center justify-center p-4 bg-background">
       <div class="max-w-lg w-full text-center">
         <!-- Trophy -->
         <div class="text-8xl mb-6">🏆</div>
-        <h1 class="text-4xl font-black text-white mb-2">{{ lang.t().finalResults }}</h1>
-        <p class="text-slate-400 mb-8">{{ lang.t().gameComplete }}</p>
+        <h1 class="text-4xl font-black text-foreground mb-2">{{ lang.t().finalResults }}</h1>
+        <p class="text-muted-foreground mb-8">{{ lang.t().gameComplete }}</p>
 
         <!-- Winner announcement -->
         @if (winner(); as w) {
-          <div class="bg-amber-400/10 border border-amber-400 rounded-2xl p-6 mb-8">
+          <div class="bg-accent/10 border border-accent rounded-2xl p-6 mb-8">
             @if (w === 'Draw') {
-              <div class="text-amber-400 font-bold text-2xl">{{ lang.t().itsDraw }}</div>
+              <div class="text-draw font-bold text-2xl">{{ lang.t().itsDraw }}</div>
             } @else {
-              <div class="text-amber-400 font-bold text-2xl">🎉 {{ w }} {{ lang.t().wins }}</div>
+              <div class="text-accent font-bold text-2xl">🎉 {{ w }} {{ lang.t().wins }}</div>
             }
           </div>
         }
@@ -31,10 +31,10 @@ import { LanguageService } from '../../core/language.service';
           @for (player of players(); track $index) {
             <div [class]="playerCardClass($index)" class="rounded-2xl p-6 border">
               <div class="text-3xl mb-2">{{ $index === 0 ? '🔵' : '🔴' }}</div>
-              <div class="font-bold text-white text-lg">{{ player.name }}</div>
-              <div class="text-5xl font-black text-white mt-3">{{ player.score }}</div>
-              <div class="text-slate-400 text-sm mt-1">{{ lang.t().points }}</div>
-              <div class="text-xs text-slate-500 mt-2">
+              <div class="font-bold text-foreground text-lg">{{ player.name }}</div>
+              <div class="text-5xl font-black text-foreground mt-3">{{ player.score }}</div>
+              <div class="text-muted-foreground text-sm mt-1">{{ lang.t().points }}</div>
+              <div class="text-xs text-muted-foreground mt-2">
                 {{ player.lifelineUsed ? lang.t().lifelineUsed : lang.t().lifelineNotUsed }}
               </div>
             </div>
@@ -43,14 +43,14 @@ import { LanguageService } from '../../core/language.service';
 
         <!-- Category breakdown -->
         @if (categoryBreakdown().length) {
-          <div class="bg-slate-800 rounded-2xl p-6 mb-8 border border-slate-700 text-left">
-            <h3 class="text-white font-bold mb-4">{{ lang.t().categoryBreakdown }}</h3>
+          <div class="bg-card rounded-2xl p-6 mb-8 border border-border text-left">
+            <h3 class="text-foreground font-bold mb-4">{{ lang.t().categoryBreakdown }}</h3>
             @for (row of categoryBreakdown(); track row.category) {
-              <div class="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
-                <span class="text-slate-300 text-sm">{{ row.category }}</span>
+              <div class="flex items-center justify-between py-2 border-b border-border last:border-0">
+                <span class="text-foreground text-sm">{{ row.category }}</span>
                 <div class="flex gap-4 text-sm">
-                  <span class="text-blue-400">{{ players()[0]?.name }}: {{ row.p1pts }}pt</span>
-                  <span class="text-red-400">{{ players()[1]?.name }}: {{ row.p2pts }}pt</span>
+                  <span class="text-accent">{{ players()[0]?.name }}: {{ row.p1pts }}pt</span>
+                  <span class="text-muted-foreground">{{ players()[1]?.name }}: {{ row.p2pts }}pt</span>
                 </div>
               </div>
             }
@@ -60,7 +60,7 @@ import { LanguageService } from '../../core/language.service';
         <!-- Play again -->
         <button
           (click)="playAgain()"
-          class="w-full py-4 rounded-xl bg-amber-400 text-slate-900 font-bold text-lg hover:bg-amber-300 active:scale-95 transition"
+          class="w-full py-4 rounded-xl bg-accent text-accent-foreground font-bold text-lg hover:bg-accent-light active:scale-95 transition pressable"
         >
           {{ lang.t().playAgain }}
         </button>
@@ -83,11 +83,11 @@ export class ResultsComponent {
 
   playerCardClass(idx: number): string {
     const ps = this.store.players();
-    if (!ps || ps.length < 2) return 'bg-slate-800 border-slate-700';
+    if (!ps || ps.length < 2) return 'bg-card border-border';
     const isWinner = ps[idx].score > ps[1 - idx].score;
     return isWinner
-      ? 'bg-amber-400/10 border-amber-400'
-      : 'bg-slate-800 border-slate-700';
+      ? 'bg-accent/10 border-accent'
+      : 'bg-card border-border';
   }
 
   categoryBreakdown = computed(() => {

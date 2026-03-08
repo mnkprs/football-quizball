@@ -9,23 +9,23 @@ import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
   standalone: true,
   imports: [RouterLink],
   template: `
-    <div class="min-h-screen bg-slate-900 p-4">
+    <div class="min-h-screen bg-background p-4">
       <div class="max-w-2xl mx-auto">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8 pt-2">
-          <a routerLink="/" class="text-slate-400 hover:text-white transition text-sm">← Home</a>
-          <h1 class="text-2xl font-black text-white">Leaderboard</h1>
-          <button (click)="load()" [disabled]="loading()" class="text-amber-400 hover:text-amber-300 transition text-sm">
+          <a routerLink="/" class="text-muted-foreground hover:text-foreground transition text-sm">← Home</a>
+          <h1 class="text-2xl font-black text-foreground">Leaderboard</h1>
+          <button (click)="load()" [disabled]="loading()" class="text-accent hover:text-accent-light transition text-sm">
             {{ loading() ? '...' : 'Refresh' }}
           </button>
         </div>
 
         @if (loading() && entries().length === 0) {
-          <div class="text-center text-slate-400 py-12">Loading...</div>
+          <div class="text-center text-muted-foreground py-12">Loading...</div>
         }
 
         @if (error()) {
-          <div class="text-center text-red-400 py-6">{{ error() }}</div>
+          <div class="text-center text-loss py-6">{{ error() }}</div>
         }
 
         <!-- Table -->
@@ -34,29 +34,29 @@ import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
             @for (entry of entries(); track entry.id; let i = $index) {
               <div
                 class="flex items-center gap-4 p-4 rounded-xl border transition"
-                [class]="isCurrentUser(entry.id) ? 'bg-amber-400/10 border-amber-400/50' : 'bg-slate-800 border-slate-700'"
+                [class]="isCurrentUser(entry.id) ? 'bg-accent/10 border-accent/50' : 'bg-card border-border shadow-card'"
               >
                 <!-- Rank -->
                 <div class="w-8 text-center font-black text-lg"
-                     [class]="i === 0 ? 'text-amber-400' : i === 1 ? 'text-slate-300' : i === 2 ? 'text-amber-700' : 'text-slate-500'">
+                     [class]="i === 0 ? 'text-accent' : i === 1 ? 'text-foreground' : i === 2 ? 'text-amber-700' : 'text-muted-foreground'">
                   {{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) }}
                 </div>
 
                 <!-- Username -->
                 <div class="flex-1 min-w-0">
-                  <div class="text-white font-semibold truncate">
+                  <div class="text-foreground font-semibold truncate">
                     {{ entry.username }}
-                    @if (isCurrentUser(entry.id)) { <span class="text-amber-400 text-xs ml-1">(you)</span> }
+                    @if (isCurrentUser(entry.id)) { <span class="text-accent text-xs ml-1">(you)</span> }
                   </div>
-                  <div class="text-slate-500 text-xs">
+                  <div class="text-muted-foreground text-xs">
                     {{ entry.questions_answered }} questions · {{ accuracy(entry) }}% accuracy
                   </div>
                 </div>
 
                 <!-- ELO -->
                 <div class="text-right">
-                  <div class="text-amber-400 font-black text-xl">{{ entry.elo }}</div>
-                  <div class="text-slate-500 text-xs">ELO</div>
+                  <div class="text-accent font-black text-xl">{{ entry.elo }}</div>
+                  <div class="text-muted-foreground text-xs">ELO</div>
                 </div>
               </div>
             }
@@ -64,7 +64,7 @@ import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
         }
 
         @if (!loading() && entries().length === 0 && !error()) {
-          <div class="text-center text-slate-400 py-12">No players yet. Be the first!</div>
+          <div class="text-center text-muted-foreground py-12">No players yet. Be the first!</div>
         }
       </div>
     </div>

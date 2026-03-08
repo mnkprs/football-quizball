@@ -8,7 +8,7 @@ import { LanguageService } from '../../core/language.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen flex flex-col bg-slate-900 p-4">
+    <div class="min-h-screen flex flex-col bg-background p-4">
 
       <!-- Header -->
       <div class="text-center mb-5">
@@ -26,9 +26,9 @@ import { LanguageService } from '../../core/language.service';
           <div class="text-xs opacity-50 mt-1">{{ players()[0]?.lifelineUsed ? '50/50 ✗' : '50/50 ✓' }}</div>
           @if (isActivePlayer(0) && !players()[0]?.doubleUsed) {
             @if (store.doubleArmed()) {
-              <div class="mt-2 text-xs font-bold text-green-400">{{ lang.t().armed2x }}</div>
+              <div class="mt-2 text-xs font-bold text-win">{{ lang.t().armed2x }}</div>
             } @else {
-              <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-green-500/60 text-green-400 text-xs font-bold hover:bg-green-400/10 transition">{{ lang.t().use2x }}</button>
+              <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-win/60 text-win text-xs font-bold hover:bg-win/10 transition pressable">{{ lang.t().use2x }}</button>
             }
           } @else {
             <div class="text-xs opacity-50 mt-1">{{ players()[0]?.doubleUsed ? '2x ✗' : '' }}</div>
@@ -36,9 +36,9 @@ import { LanguageService } from '../../core/language.service';
         </div>
 
         <div class="text-center px-2">
-          <div class="text-slate-400 text-xs mb-1">{{ lang.t().turn }}</div>
-          <div class="text-white font-bold text-sm bg-slate-700 rounded-xl px-3 py-1 whitespace-nowrap">{{ currentPlayer()?.name }}</div>
-          <button (click)="endGame()" class="mt-2 text-xs text-slate-600 hover:text-red-400 transition underline block mx-auto">{{ lang.t().end }}</button>
+          <div class="text-muted-foreground text-xs mb-1">{{ lang.t().turn }}</div>
+          <div class="text-foreground font-bold text-sm bg-card rounded-xl px-3 py-1 whitespace-nowrap">{{ currentPlayer()?.name }}</div>
+          <button (click)="endGame()" class="mt-2 text-xs text-muted-foreground hover:text-loss transition underline block mx-auto">{{ lang.t().end }}</button>
         </div>
 
         <div [class]="'flex-1 rounded-2xl p-3 text-center border-2 transition-all ' + scoreCardClass(1)">
@@ -47,9 +47,9 @@ import { LanguageService } from '../../core/language.service';
           <div class="text-xs opacity-50 mt-1">{{ players()[1]?.lifelineUsed ? '50/50 ✗' : '50/50 ✓' }}</div>
           @if (isActivePlayer(1) && !players()[1]?.doubleUsed) {
             @if (store.doubleArmed()) {
-              <div class="mt-2 text-xs font-bold text-green-400">{{ lang.t().armed2x }}</div>
+              <div class="mt-2 text-xs font-bold text-win">{{ lang.t().armed2x }}</div>
             } @else {
-              <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-green-500/60 text-green-400 text-xs font-bold hover:bg-green-400/10 transition">{{ lang.t().use2x }}</button>
+              <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-win/60 text-win text-xs font-bold hover:bg-win/10 transition pressable">{{ lang.t().use2x }}</button>
             }
           } @else {
             <div class="text-xs opacity-50 mt-1">{{ players()[1]?.doubleUsed ? '2x ✗' : '' }}</div>
@@ -82,7 +82,7 @@ import { LanguageService } from '../../core/language.service';
                     [class]="'w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center font-black transition-all shadow-md ' + circleClass(cell, row.key)"
                   >
                     @if (cell.answered) {
-                      <span class="text-red-400 text-2xl leading-none">✕</span>
+                      <span class="text-loss text-2xl leading-none">✕</span>
                     } @else {
                       <span class="text-white text-xs leading-none opacity-70">x</span>
                       <span class="text-white text-xl leading-none">{{ cell.points }}</span>
@@ -156,7 +156,7 @@ export class BoardComponent {
     const isActive = this.store.boardState()?.currentPlayerIndex === idx;
     return isActive
       ? 'bg-white/10 border-white/40 scale-105'
-      : 'bg-white/5 border-white/10';
+      : 'bg-card/50 border-border';
   }
 
   circleClass(cell: any, catKey: string): string {
