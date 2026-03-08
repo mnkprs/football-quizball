@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, ElementRef, ViewChild } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameStore } from '../../core/game.store';
+import { LanguageService } from '../../core/language.service';
 
 @Component({
   selector: 'app-question',
@@ -31,8 +32,15 @@ import { GameStore } from '../../core/game.store';
 
           <!-- Current player indicator -->
           <div class="text-center mb-4 text-slate-400 text-sm">
-            🎮 {{ store.currentPlayer()?.name }}'s turn
+            🎮 {{ store.currentPlayer()?.name }}{{ lang.t().yourTurn }}
           </div>
+
+          <!-- English answers hint (shown only in Greek mode) -->
+          @if (lang.t().answersInEnglish) {
+            <div class="text-center mb-3 text-xs text-amber-400/70">
+              {{ lang.t().answersInEnglish }}
+            </div>
+          }
 
           <!-- Question renderer by category -->
           @switch (question()?.category) {
@@ -59,11 +67,11 @@ import { GameStore } from '../../core/game.store';
           <!-- 2x Armed indicator -->
           @if (store.doubleArmed()) {
             <div class="mt-4 p-3 bg-green-400/10 border border-green-400/50 rounded-xl text-center">
-              <div class="text-green-400 text-sm font-bold">2x ARMED — double points if correct!</div>
+              <div class="text-green-400 text-sm font-bold">{{ lang.t().doubleArmed }}</div>
             </div>
           }
 
-          <!-- 50-50 Lifeline -->
+          <!-- 50-50 -->
           @if (showLifeline()) {
             <div class="mt-4">
               @if (store.fiftyFiftyOptions(); as opts) {
@@ -96,8 +104,8 @@ import { GameStore } from '../../core/game.store';
 
     <!-- Default text question template -->
     <ng-template #defaultTemplate>
-      <div class="flex-1 flex flex-col">
-        <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 flex-1">
+      <div class="flex flex-col">
+        <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 min-h-[140px]">
           <p class="text-white text-xl leading-relaxed">{{ question()?.question_text }}</p>
         </div>
         @if (!store.fiftyFiftyOptions()) {
@@ -105,7 +113,7 @@ import { GameStore } from '../../core/game.store';
             <input
               [(ngModel)]="answer"
               (keydown.enter)="submit()"
-              placeholder="Type your answer..."
+              [placeholder]="lang.t().typeAnswer"
               class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
             />
             <button
@@ -113,7 +121,7 @@ import { GameStore } from '../../core/game.store';
               [disabled]="!answer.trim()"
               class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
             >
-              Submit
+              {{ lang.t().submit }}
             </button>
           </div>
         }
@@ -122,8 +130,8 @@ import { GameStore } from '../../core/game.store';
 
     <!-- Higher or Lower template -->
     <ng-template #holTemplate>
-      <div class="flex-1 flex flex-col">
-        <div class="bg-slate-800 rounded-2xl p-8 mb-8 border border-slate-700 text-center flex-1 flex items-center justify-center">
+      <div class="flex flex-col">
+        <div class="bg-slate-800 rounded-2xl p-8 mb-8 border border-slate-700 text-center min-h-[140px] flex items-center justify-center">
           <p class="text-white text-xl leading-relaxed">{{ question()?.question_text }}</p>
         </div>
         <div class="grid grid-cols-2 gap-4">
@@ -131,13 +139,13 @@ import { GameStore } from '../../core/game.store';
             (click)="submitHol('higher')"
             class="py-6 rounded-2xl bg-green-600 hover:bg-green-500 text-white font-black text-2xl active:scale-95 transition"
           >
-            ▲ Higher
+            {{ lang.t().higher }}
           </button>
           <button
             (click)="submitHol('lower')"
             class="py-6 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-2xl active:scale-95 transition"
           >
-            ▼ Lower
+            {{ lang.t().lower }}
           </button>
         </div>
       </div>
@@ -145,7 +153,7 @@ import { GameStore } from '../../core/game.store';
 
     <!-- Logo Quiz template -->
     <ng-template #logoTemplate>
-      <div class="flex-1 flex flex-col">
+      <div class="flex flex-col">
         <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 text-center">
           <p class="text-slate-400 text-sm mb-4">{{ question()?.question_text }}</p>
           @if (question()?.image_url) {
@@ -160,7 +168,7 @@ import { GameStore } from '../../core/game.store';
           <input
             [(ngModel)]="answer"
             (keydown.enter)="submit()"
-            placeholder="Club name..."
+            [placeholder]="lang.t().clubName"
             class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
           />
           <button
@@ -168,7 +176,7 @@ import { GameStore } from '../../core/game.store';
             [disabled]="!answer.trim()"
             class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
           >
-            Submit
+            {{ lang.t().submit }}
           </button>
         </div>
       </div>
@@ -176,8 +184,8 @@ import { GameStore } from '../../core/game.store';
 
     <!-- Player ID template -->
     <ng-template #playerIdTemplate>
-      <div class="flex-1 flex flex-col">
-        <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 flex-1">
+      <div class="flex flex-col">
+        <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700">
           <p class="text-slate-400 text-sm mb-4">{{ question()?.question_text }}</p>
           @if (careerPath()) {
             <div class="space-y-2">
@@ -199,7 +207,7 @@ import { GameStore } from '../../core/game.store';
             <input
               [(ngModel)]="answer"
               (keydown.enter)="submit()"
-              placeholder="Player name..."
+              [placeholder]="lang.t().playerName"
               class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
             />
             <button
@@ -207,7 +215,7 @@ import { GameStore } from '../../core/game.store';
               [disabled]="!answer.trim()"
               class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
             >
-              Submit
+              {{ lang.t().submit }}
             </button>
           </div>
         }
@@ -216,20 +224,20 @@ import { GameStore } from '../../core/game.store';
 
     <!-- Guess Score template -->
     <ng-template #guessScoreTemplate>
-      <div class="flex-1 flex flex-col">
-        <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 flex-1">
+      <div class="flex flex-col">
+        <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700 min-h-[140px]">
           @if (matchMeta()) {
             <div class="text-center">
               <div class="text-slate-400 text-sm mb-4">{{ matchMeta()?.competition }} · {{ matchMeta()?.date }}</div>
               <div class="flex items-center justify-center gap-6">
                 <div class="text-center">
                   <div class="text-white font-bold text-lg">{{ matchMeta()?.home_team }}</div>
-                  <div class="text-xs text-slate-500 mt-1">Home</div>
+                  <div class="text-xs text-slate-500 mt-1">{{ lang.t().home }}</div>
                 </div>
                 <div class="text-4xl font-black text-slate-500">vs</div>
                 <div class="text-center">
                   <div class="text-white font-bold text-lg">{{ matchMeta()?.away_team }}</div>
-                  <div class="text-xs text-slate-500 mt-1">Away</div>
+                  <div class="text-xs text-slate-500 mt-1">{{ lang.t().away }}</div>
                 </div>
               </div>
             </div>
@@ -242,7 +250,7 @@ import { GameStore } from '../../core/game.store';
             <input
               [(ngModel)]="answer"
               (keydown.enter)="submit()"
-              placeholder="Score e.g. 2-1"
+              [placeholder]="lang.t().scorePlaceholder"
               class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
             />
             <button
@@ -250,15 +258,16 @@ import { GameStore } from '../../core/game.store';
               [disabled]="!answer.trim()"
               class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
             >
-              Submit
+              {{ lang.t().submit }}
             </button>
           </div>
         }
       </div>
     </ng-template>
+
     <!-- Top 5 template -->
     <ng-template #top5Template>
-      <div class="flex-1 flex flex-col">
+      <div class="flex flex-col">
         <!-- Question -->
         <div class="bg-slate-800 rounded-2xl p-5 mb-4 border border-slate-700">
           <p class="text-white text-lg leading-relaxed">{{ question()?.question_text }}</p>
@@ -267,9 +276,9 @@ import { GameStore } from '../../core/game.store';
         <!-- Lives indicator -->
         @if (store.top5State(); as t5) {
           <div class="flex items-center justify-between mb-3">
-            <span class="text-slate-400 text-sm">{{ t5.filledCount }}/5 found</span>
+            <span class="text-slate-400 text-sm">{{ t5.filledCount }}{{ lang.t().found }}</span>
             <div class="flex items-center gap-1.5">
-              <span class="text-slate-400 text-sm">Lives:</span>
+              <span class="text-slate-400 text-sm">{{ lang.t().lives }}</span>
               @for (i of [0, 1]; track i) {
                 <span class="text-lg" [class.grayscale]="t5.wrongCount > i" [class.opacity-30]="t5.wrongCount > i">❤️</span>
               }
@@ -295,12 +304,12 @@ import { GameStore } from '../../core/game.store';
           <!-- Wrong guesses -->
           @if (t5.wrongGuesses.length > 0) {
             <div class="mb-4">
-              <p class="text-slate-500 text-xs uppercase tracking-wider mb-2">Not in top 5</p>
+              <p class="text-slate-500 text-xs uppercase tracking-wider mb-2">{{ lang.t().notInTop5Label }}</p>
               <div class="space-y-1.5">
                 @for (wrong of t5.wrongGuesses; track $index) {
                   <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-900/20 border border-red-800/50">
                     <span class="text-red-400 text-sm font-medium">{{ wrong.name }}</span>
-                    <span class="text-red-600 text-xs ml-auto">✗ not in top 5</span>
+                    <span class="text-red-600 text-xs ml-auto">{{ lang.t().notInTop5 }}</span>
                   </div>
                 }
               </div>
@@ -313,7 +322,7 @@ import { GameStore } from '../../core/game.store';
               (click)="stopTop5Early()"
               class="w-full mb-3 py-3 rounded-xl border border-amber-400/60 text-amber-400 font-bold hover:bg-amber-400/10 transition text-sm"
             >
-              Stop now — take 1pt (missing 1 answer)
+              {{ lang.t().stopEarly }}
             </button>
           }
 
@@ -323,7 +332,7 @@ import { GameStore } from '../../core/game.store';
               <input
                 [(ngModel)]="top5Answer"
                 (keydown.enter)="submitTop5Guess()"
-                placeholder="Type a player name..."
+                [placeholder]="lang.t().typePlayer"
                 class="flex-1 px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
               />
               <button
@@ -331,17 +340,17 @@ import { GameStore } from '../../core/game.store';
                 [disabled]="!top5Answer.trim()"
                 class="px-6 py-3 rounded-xl bg-amber-400 text-slate-900 font-bold hover:bg-amber-300 active:scale-95 transition disabled:opacity-40"
               >
-                Guess
+                {{ lang.t().guess }}
               </button>
             </div>
             @if (t5.wrongCount === 1) {
-              <p class="text-red-400 text-xs text-center mt-2">⚠️ 1 wrong guess — one more and the question is lost!</p>
+              <p class="text-red-400 text-xs text-center mt-2">{{ lang.t().oneWrong }}</p>
             }
           } @else {
             <div class="mt-2 p-3 rounded-xl text-center"
                  [class]="t5.won ? 'bg-green-900/30 border border-green-700' : 'bg-red-900/30 border border-red-800'">
               <p class="font-bold" [class]="t5.won ? 'text-green-400' : 'text-red-400'">
-                {{ t5.filledCount === 5 ? '🏆 All 5 found! Full points!' : t5.won ? '✅ Stopped at 4/5 — 1pt awarded' : '💀 Question lost — too many wrong guesses' }}
+                {{ t5.filledCount === 5 ? lang.t().allFound : t5.won ? lang.t().stoppedEarly : lang.t().questionLost }}
               </p>
             </div>
           }
@@ -352,18 +361,22 @@ import { GameStore } from '../../core/game.store';
 })
 export class QuestionComponent {
   store = inject(GameStore);
+  lang = inject(LanguageService);
   answer = '';
 
   question = this.store.currentQuestion;
 
   categoryLabel = computed(() => {
+    const t = this.lang.t();
     const labels: Record<string, string> = {
-      HISTORY: 'History',
-      PLAYER_ID: 'Player ID',
-      LOGO_QUIZ: 'Logo Quiz',
-      HIGHER_OR_LOWER: 'Higher or Lower',
-      GUESS_SCORE: 'Guess the Score',
-      TOP_5: 'Top 5',
+      HISTORY: t.catHistoryQ,
+      PLAYER_ID: t.catPlayerIdQ,
+      LOGO_QUIZ: t.catLogoQuizQ,
+      HIGHER_OR_LOWER: t.catHigherLowerQ,
+      GUESS_SCORE: t.catGuessScoreQ,
+      TOP_5: t.catTop5Q,
+      GEOGRAPHY: t.catGeographyQ,
+      GOSSIP: t.catGossipQ,
     };
     return labels[this.question()?.category ?? ''] ?? '';
   });
@@ -376,14 +389,7 @@ export class QuestionComponent {
     return cell?.points ?? this.question()?.points ?? 0;
   });
 
-  showLifeline = computed(() => {
-    const q = this.question();
-    if (!q?.fifty_fifty_applicable) return false;
-    const board = this.store.boardState();
-    if (!board) return false;
-    const playerIdx = board.currentPlayerIndex;
-    return !board.players[playerIdx].lifelineUsed;
-  });
+  showLifeline = computed(() => !!this.question()?.fifty_fifty_applicable);
 
   careerPath = computed(() => {
     const meta = this.question()?.meta;

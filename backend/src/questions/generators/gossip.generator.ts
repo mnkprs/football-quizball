@@ -9,7 +9,10 @@ export class GossipGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
     const systemPrompt = `You are a football celebrity gossip expert. Generate a fun football gossip trivia question.
 Topics can include: famous transfer sagas, player controversies, WAG stories, celebrity footballer relationships, off-pitch incidents, feuds between players or managers, outrageous quotes, extravagant lifestyles.
 Keep it factual (real events) and entertaining.
@@ -23,7 +26,7 @@ Return ONLY a valid JSON object with these exact fields:
   "competition": "Premier League",
   "fame_score": 6
 }
-fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.`;
+fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.${langInstruction}`;
 
     const userPrompt = `Generate a unique football gossip trivia question about a real off-pitch event, controversy, or celebrity moment. Keep it fun and factual. Return JSON only.`;
 

@@ -25,6 +25,7 @@ const DIFFICULTIES_ORDER = ['EASY', 'MEDIUM', 'HARD'] as const;
 // Per-category difficulty slots (GOSSIP has 2 fixed MEDIUM slots)
 const CATEGORY_DIFFICULTY_SLOTS: Partial<Record<string, readonly Difficulty[]>> = {
   GOSSIP: ['MEDIUM', 'MEDIUM'],
+  TOP_5: ['HARD', 'HARD'],
 };
 
 @Injectable()
@@ -43,12 +44,15 @@ export class GameService {
     const gameId = crypto.randomUUID();
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
-    const questions = await this.questionPoolService.drawBoard();
+    const language = dto.language ?? 'en';
+    const questions = await this.questionPoolService.drawBoard(language);
 
-    // Refill pool in background after drawing
-    this.questionPoolService.refillIfNeeded().catch((err) =>
-      this.logger.error(`[createGame] Pool refill failed: ${(err as Error).message}`),
-    );
+    // Refill pool in background after drawing (English pool only)
+    if (language === 'en') {
+      this.questionPoolService.refillIfNeeded().catch((err) =>
+        this.logger.error(`[createGame] Pool refill failed: ${(err as Error).message}`),
+      );
+    }
 
     const players: [Player, Player] = [
       { name: dto.player1Name, score: 0, lifelineUsed: false, doubleUsed: false },
@@ -85,6 +89,7 @@ export class GameService {
       createdAt: new Date(),
       updatedAt: new Date(),
       top5Progress: {},
+      language,
     };
 
     this.cacheService.set(`game:${gameId}`, session, 86400); // 24h TTL
@@ -153,6 +158,7 @@ export class GameService {
     const doubleApplied = !!dto.useDouble && !player.doubleUsed;
 
     const correct = this.answerValidator.validate(question, dto.answer);
+    // If 50-50 was used on this question, cell.points is already reduced to 1
     const basePoints = correct ? cell.points : 0;
     const points_awarded = correct && doubleApplied ? basePoints * 2 : basePoints;
 
@@ -191,28 +197,20 @@ export class GameService {
   useLifeline(gameId: string, dto: UseLifelineDto): HintResult {
     const session = this.getGame(gameId);
 
-    const player = session.players[dto.playerIndex];
-    if (player.lifelineUsed) {
-      throw new BadRequestException('Lifeline already used this game');
-    }
-
     const question = session.questions.find((q) => q.id === dto.questionId);
     if (!question) throw new NotFoundException('Question not found');
 
     if (!question.fifty_fifty_applicable) {
-      throw new BadRequestException('50-50 lifeline not applicable for this question type');
+      throw new BadRequestException('50-50 not applicable for this question type');
     }
 
     if (!question.fifty_fifty_hint) {
       throw new BadRequestException('No decoy answer available for this question');
     }
 
-    // Mark lifeline as used
-    session.players[dto.playerIndex].lifelineUsed = true;
-
-    // Reduce points to 1 for this question and mark lifeline as applied
+    // Reduce points to 1 for this question and mark 50-50 as applied
     const cell = session.board.flat().find((c) => c.question_id === dto.questionId);
-    if (cell) {
+    if (cell && !cell.lifeline_applied) {
       cell.points = 1;
       cell.lifeline_applied = true;
     }

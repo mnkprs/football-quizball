@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 export interface CreateGameRequest {
   player1Name: string;
   player2Name: string;
+  language: string;
 }
 
 export interface CreateGameResponse {

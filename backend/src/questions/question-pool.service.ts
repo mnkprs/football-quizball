@@ -58,11 +58,30 @@ export class QuestionPoolService implements OnModuleInit {
 
   /**
    * Draw all questions needed for one board from the pool.
-   * Falls back to live generation for any slot not covered.
+   * For non-English languages, bypasses the pool and generates all questions live.
+   * Falls back to live generation for any English slot not covered by the pool.
    */
-  async drawBoard(): Promise<GeneratedQuestion[]> {
-    const board: GeneratedQuestion[] = [];
+  async drawBoard(language: string = 'en'): Promise<GeneratedQuestion[]> {
+    // For non-English, generate all questions live (pool is English-only)
+    if (language !== 'en') {
+      const board: GeneratedQuestion[] = [];
+      await Promise.all(
+        DRAW_REQUIREMENTS.map(async (slot) => {
+          for (let i = 0; i < slot.count; i++) {
+            try {
+              const q = await this.questionsService.generateOne(slot.category, slot.difficulty, language);
+              board.push(q);
+            } catch (err) {
+              this.logger.error(`[drawBoard] Live generation failed for ${slot.category}/${slot.difficulty}: ${(err as Error).message}`);
+            }
+          }
+        }),
+      );
+      return board;
+    }
 
+    // English: use pool with fallback to live generation
+    const board: GeneratedQuestion[] = [];
     await Promise.all(
       DRAW_REQUIREMENTS.map(async (slot) => {
         const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count);
@@ -74,7 +93,7 @@ export class QuestionPoolService implements OnModuleInit {
           this.logger.warn(`[drawBoard] Pool empty for ${slot.category}/${slot.difficulty} — generating ${missing} live`);
           for (let i = 0; i < missing; i++) {
             try {
-              const q = await this.questionsService.generateOne(slot.category, slot.difficulty);
+              const q = await this.questionsService.generateOne(slot.category, slot.difficulty, 'en');
               board.push(q);
             } catch (err) {
               this.logger.error(`[drawBoard] Live fallback failed for ${slot.category}/${slot.difficulty}: ${(err as Error).message}`);
@@ -153,7 +172,7 @@ export class QuestionPoolService implements OnModuleInit {
   ): Promise<void> {
     const results = await Promise.allSettled(
       Array.from({ length: count }, () =>
-        this.questionsService.generateOne(category, difficulty),
+        this.questionsService.generateOne(category, difficulty, 'en'),
       ),
     );
 

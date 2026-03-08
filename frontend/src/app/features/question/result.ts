@@ -1,6 +1,7 @@
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
+import { LanguageService } from '../../core/language.service';
 
 @Component({
   selector: 'app-result',
@@ -13,18 +14,18 @@ import { GameStore } from '../../core/game.store';
         <div [class]="resultCardClass()" class="rounded-2xl p-8 mb-6 text-center border transition-all">
           <div class="text-6xl mb-4">{{ resultEmoji() }}</div>
           <h2 class="text-3xl font-black text-white mb-2">
-            {{ result()?.correct ? 'Correct!' : 'Wrong!' }}
+            {{ result()?.correct ? lang.t().correct : lang.t().wrong }}
           </h2>
           @if (result()?.correct) {
             <p class="text-green-400 font-bold text-xl">+{{ result()?.points_awarded }} point{{ result()?.points_awarded !== 1 ? 's' : '' }}</p>
           } @else {
-            <p class="text-slate-400">No points awarded</p>
+            <p class="text-slate-400">{{ lang.t().noPoints }}</p>
           }
         </div>
 
         <!-- Correct answer reveal -->
         <div class="bg-slate-800 rounded-2xl p-6 mb-6 border border-slate-700">
-          <div class="text-slate-400 text-sm mb-2">Correct Answer</div>
+          <div class="text-slate-400 text-sm mb-2">{{ lang.t().correctAnswer }}</div>
           <div class="text-white font-bold text-xl">{{ result()?.correct_answer }}</div>
           @if (result()?.original_image_url) {
             <div class="mt-4 flex justify-center">
@@ -56,13 +57,13 @@ import { GameStore } from '../../core/game.store';
             (click)="override(true)"
             class="flex-1 py-2 rounded-xl border border-green-700 text-green-400 text-sm hover:bg-green-900/30 transition"
           >
-            ✓ Mark Correct
+            {{ lang.t().markCorrect }}
           </button>
           <button
             (click)="override(false)"
             class="flex-1 py-2 rounded-xl border border-red-700 text-red-400 text-sm hover:bg-red-900/30 transition"
           >
-            ✗ Mark Wrong
+            {{ lang.t().markWrong }}
           </button>
         </div>
 
@@ -79,6 +80,7 @@ import { GameStore } from '../../core/game.store';
 })
 export class ResultComponent {
   store = inject(GameStore);
+  lang = inject(LanguageService);
   result = this.store.lastResult;
   players = this.store.players;
 
@@ -99,8 +101,8 @@ export class ResultComponent {
 
   nextLabel = computed(() => {
     const board = this.store.boardState();
-    if (board?.status === 'FINISHED') return 'See Final Results →';
-    return 'Back to Board →';
+    if (board?.status === 'FINISHED') return this.lang.t().seeFinal;
+    return this.lang.t().backToBoard;
   });
 
   continue(): void {

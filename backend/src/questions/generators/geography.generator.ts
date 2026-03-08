@@ -9,7 +9,10 @@ export class GeographyGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
     const systemPrompt = `You are a football geography expert. Generate a football-related geography question.
 Topics can include: countries with famous clubs, cities and their football teams, stadium locations, nationalities of famous players, nations that have hosted tournaments, FIFA/UEFA confederation memberships.
 Return ONLY a valid JSON object with these exact fields:
@@ -22,7 +25,7 @@ Return ONLY a valid JSON object with these exact fields:
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League",
   "fame_score": 7
 }
-fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.`;
+fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.${langInstruction}`;
 
     const userPrompt = `Generate a unique football geography trivia question. It can be about any country, city, stadium, or tournament location. Make it interesting. Return JSON only.`;
 

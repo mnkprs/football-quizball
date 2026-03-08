@@ -17,11 +17,13 @@ export interface GameSession {
   createdAt: Date;
   updatedAt: Date;
   top5Progress: Record<string, Top5Progress>; // keyed by questionId
+  language: string; // 'en' | 'el'
 }
 
 export class CreateGameDto {
   player1Name: string;
   player2Name: string;
+  language?: string; // 'en' | 'el', defaults to 'en'
 }
 
 export class SubmitAnswerDto {

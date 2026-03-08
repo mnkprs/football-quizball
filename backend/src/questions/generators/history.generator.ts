@@ -9,7 +9,10 @@ export class HistoryGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
 Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.
 Return ONLY a valid JSON object with these exact fields:
@@ -22,7 +25,7 @@ Return ONLY a valid JSON object with these exact fields:
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League, UEFA Champions League",
   "fame_score": 8
 }
-fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.`;
+fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.${langInstruction}`;
 
     const userPrompt = `Generate a unique football history trivia question. It can be about any era, league, or competition. Make it specific and interesting. Return JSON only.`;
 

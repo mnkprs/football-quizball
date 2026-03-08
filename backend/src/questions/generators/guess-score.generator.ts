@@ -14,6 +14,8 @@ interface MatchData {
   significance: string;
   event_year: number;
   fame_score: number;
+  question_text?: string;
+  explanation?: string;
 }
 
 @Injectable()
@@ -25,7 +27,10 @@ export class GuessScoreGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
     const systemPrompt = `You are a football historian. Generate a "Guess the Score" question.
 Pick any real, historically accurate match — any era, any competition.
 Return ONLY valid JSON:
@@ -38,9 +43,11 @@ Return ONLY valid JSON:
   "date": "Day Month Year",
   "significance": "brief note about the match",
   "event_year": 2019,
-  "fame_score": 8
+  "fame_score": 8,
+  "question_text": "Full question sentence shown to the player",
+  "explanation": "Brief explanation of the correct answer"
 }
-fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.`;
+fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.${langInstruction}`;
 
     const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. It can be from any era or league. Return JSON only.`;
 
@@ -62,16 +69,21 @@ fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only expert
       fame_score: result.fame_score ?? null,
     };
 
+    const question_text = result.question_text
+      ?? `What was the final score in ${result.competition}?\n${result.home_team} vs ${result.away_team} — ${result.date}`;
+    const explanation = result.explanation
+      ?? `The final score was ${result.home_team} ${result.home_score}-${result.away_score} ${result.away_team}. ${result.significance || ''}`;
+
     return {
       id: crypto.randomUUID(),
       category: 'GUESS_SCORE',
       difficulty: 'EASY',
       points: 1,
-      question_text: `What was the final score in ${result.competition}?\n${result.home_team} vs ${result.away_team} — ${result.date}`,
+      question_text,
       correct_answer,
       fifty_fifty_hint: fifty_hint,
       fifty_fifty_applicable: true,
-      explanation: `The final score was ${result.home_team} ${result.home_score}-${result.away_score} ${result.away_team}. ${result.significance || ''}`,
+      explanation,
       image_url: null,
       meta: {
         home_team: result.home_team,

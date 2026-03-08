@@ -13,6 +13,8 @@ interface HolData {
   season: string;
   event_year: number;
   fame_score: number;
+  question_text?: string;
+  explanation?: string;
 }
 
 @Injectable()
@@ -24,7 +26,10 @@ export class HigherOrLowerGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
     const systemPrompt = `You are a football statistics expert. Create a "Higher or Lower" question.
 The question shows a player's stat with a WRONG value, and the player must guess if the real value is Higher or Lower.
 The "shown_value" should be plausibly wrong (within 20-30% of real value, either above or below).
@@ -38,9 +43,11 @@ Return ONLY valid JSON:
   "competition": "League/Cup name",
   "season": "YYYY-YY or YYYY",
   "event_year": 2024,
-  "fame_score": 7
+  "fame_score": 7,
+  "question_text": "Full question sentence shown to the player",
+  "explanation": "Brief explanation of the correct answer"
 }
-fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.`;
+fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.${langInstruction}`;
 
     const userPrompt = `Generate a unique Higher or Lower football question with accurate statistics. It can be from any league or era. Return JSON only.`;
 
@@ -59,16 +66,21 @@ fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.`;
       fame_score: result.fame_score ?? null,
     };
 
+    const question_text = result.question_text
+      ?? `${result.player} scored ${result.shown_value} ${result.stat_description} in ${result.season}. Is the real number higher or lower?`;
+    const explanation = result.explanation
+      ?? `The real number is ${correct_answer}. ${result.player} actually scored ${result.real_value} ${result.stat_description} in ${result.season}.`;
+
     return {
       id: crypto.randomUUID(),
       category: 'HIGHER_OR_LOWER',
       difficulty: 'EASY',
       points: 1,
-      question_text: `${result.player} scored ${result.shown_value} ${result.stat_description} in ${result.season}. Is the real number higher or lower?`,
+      question_text,
       correct_answer,
       fifty_fifty_hint: null,
       fifty_fifty_applicable: false,
-      explanation: `The real number is ${correct_answer}. ${result.player} actually scored ${result.real_value} ${result.stat_description} in ${result.season}.`,
+      explanation,
       image_url: null,
       meta: {
         player: result.player,

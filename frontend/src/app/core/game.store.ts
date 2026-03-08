@@ -58,10 +58,10 @@ export const GameStore = signalStore(
     isFinished: computed(() => store.boardState()?.status === 'FINISHED' || store.phase() === 'finished'),
   })),
   withMethods((store, api = inject(GameApiService)) => ({
-    async startGame(player1Name: string, player2Name: string): Promise<void> {
+    async startGame(player1Name: string, player2Name: string, language: string): Promise<void> {
       patchState(store, { loading: true, error: null, phase: 'loading' });
       try {
-        const response = await firstValueFrom(api.createGame({ player1Name, player2Name }));
+        const response = await firstValueFrom(api.createGame({ player1Name, player2Name, language }));
         const boardState = await firstValueFrom(api.getGame(response.game_id));
         localStorage.setItem(STORAGE_KEY, response.game_id);
         patchState(store, {

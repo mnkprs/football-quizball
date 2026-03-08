@@ -44,11 +44,11 @@ export class QuestionsService {
     private gossipGenerator: GossipGenerator,
   ) {}
 
-  async generateBoard(): Promise<GeneratedQuestion[]> {
+  async generateBoard(language: string = 'en'): Promise<GeneratedQuestion[]> {
     // Generate 5 candidates per category in parallel (25 total)
     const tasks: Promise<GeneratedQuestion>[] = CATEGORIES.flatMap((category) =>
       Array.from({ length: CANDIDATES_PER_CATEGORY }, () =>
-        this.generateRawWithRetry(category),
+        this.generateRawWithRetry(category, language),
       ),
     );
 
@@ -118,8 +118,8 @@ export class QuestionsService {
   }
 
   /** Generate and score a single question for use by the pool service. */
-  async generateOne(category: QuestionCategory, difficulty: Difficulty): Promise<GeneratedQuestion> {
-    const question = await this.generateRawWithRetry(category);
+  async generateOne(category: QuestionCategory, difficulty: Difficulty, language: string = 'en'): Promise<GeneratedQuestion> {
+    const question = await this.generateRawWithRetry(category, language);
     const { difficulty: scoredDiff, points } = this.difficultyScorer.score(question.difficulty_factors!);
     // Use the requested difficulty if the scored one doesn't match (pool stores by requested slot)
     return { ...question, difficulty: scoredDiff ?? difficulty, points };
@@ -127,13 +127,14 @@ export class QuestionsService {
 
   private async generateRawWithRetry(
     category: QuestionCategory,
+    language: string = 'en',
     maxRetries = 3,
   ): Promise<GeneratedQuestion> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const question = await this.generateRaw(category);
+        const question = await this.generateRaw(category, language);
         this.validateQuestion(question);
         return question;
       } catch (err) {
@@ -145,15 +146,15 @@ export class QuestionsService {
     throw lastError || new Error(`Failed to generate ${category}`);
   }
 
-  private async generateRaw(category: QuestionCategory): Promise<GeneratedQuestion> {
+  private async generateRaw(category: QuestionCategory, language: string = 'en'): Promise<GeneratedQuestion> {
     switch (category) {
-      case 'HISTORY':         return this.historyGenerator.generate();
-      case 'PLAYER_ID':       return this.playerIdGenerator.generate();
-      case 'HIGHER_OR_LOWER': return this.higherOrLowerGenerator.generate();
-      case 'GUESS_SCORE':     return this.guessScoreGenerator.generate();
-      case 'TOP_5':           return this.top5Generator.generate();
-      case 'GEOGRAPHY':       return this.geographyGenerator.generate();
-      case 'GOSSIP':          return this.gossipGenerator.generate();
+      case 'HISTORY':         return this.historyGenerator.generate(language);
+      case 'PLAYER_ID':       return this.playerIdGenerator.generate(language);
+      case 'HIGHER_OR_LOWER': return this.higherOrLowerGenerator.generate(language);
+      case 'GUESS_SCORE':     return this.guessScoreGenerator.generate(language);
+      case 'TOP_5':           return this.top5Generator.generate(language);
+      case 'GEOGRAPHY':       return this.geographyGenerator.generate(language);
+      case 'GOSSIP':          return this.gossipGenerator.generate(language);
     }
   }
 

@@ -1,6 +1,7 @@
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
+import { LanguageService } from '../../core/language.service';
 
 @Component({
   selector: 'app-results',
@@ -11,16 +12,16 @@ import { GameStore } from '../../core/game.store';
       <div class="max-w-lg w-full text-center">
         <!-- Trophy -->
         <div class="text-8xl mb-6">🏆</div>
-        <h1 class="text-4xl font-black text-white mb-2">Final Results</h1>
-        <p class="text-slate-400 mb-8">Football QuizBall Complete!</p>
+        <h1 class="text-4xl font-black text-white mb-2">{{ lang.t().finalResults }}</h1>
+        <p class="text-slate-400 mb-8">{{ lang.t().gameComplete }}</p>
 
         <!-- Winner announcement -->
         @if (winner(); as w) {
           <div class="bg-amber-400/10 border border-amber-400 rounded-2xl p-6 mb-8">
             @if (w === 'Draw') {
-              <div class="text-amber-400 font-bold text-2xl">🤝 It's a Draw!</div>
+              <div class="text-amber-400 font-bold text-2xl">{{ lang.t().itsDraw }}</div>
             } @else {
-              <div class="text-amber-400 font-bold text-2xl">🎉 {{ w }} wins!</div>
+              <div class="text-amber-400 font-bold text-2xl">🎉 {{ w }} {{ lang.t().wins }}</div>
             }
           </div>
         }
@@ -32,9 +33,9 @@ import { GameStore } from '../../core/game.store';
               <div class="text-3xl mb-2">{{ $index === 0 ? '🔵' : '🔴' }}</div>
               <div class="font-bold text-white text-lg">{{ player.name }}</div>
               <div class="text-5xl font-black text-white mt-3">{{ player.score }}</div>
-              <div class="text-slate-400 text-sm mt-1">points</div>
+              <div class="text-slate-400 text-sm mt-1">{{ lang.t().points }}</div>
               <div class="text-xs text-slate-500 mt-2">
-                Lifeline: {{ player.lifelineUsed ? 'Used' : 'Not used' }}
+                {{ player.lifelineUsed ? lang.t().lifelineUsed : lang.t().lifelineNotUsed }}
               </div>
             </div>
           }
@@ -43,7 +44,7 @@ import { GameStore } from '../../core/game.store';
         <!-- Category breakdown -->
         @if (categoryBreakdown().length) {
           <div class="bg-slate-800 rounded-2xl p-6 mb-8 border border-slate-700 text-left">
-            <h3 class="text-white font-bold mb-4">Category Breakdown</h3>
+            <h3 class="text-white font-bold mb-4">{{ lang.t().categoryBreakdown }}</h3>
             @for (row of categoryBreakdown(); track row.category) {
               <div class="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
                 <span class="text-slate-300 text-sm">{{ row.category }}</span>
@@ -61,7 +62,7 @@ import { GameStore } from '../../core/game.store';
           (click)="playAgain()"
           class="w-full py-4 rounded-xl bg-amber-400 text-slate-900 font-bold text-lg hover:bg-amber-300 active:scale-95 transition"
         >
-          Play Again ⚽
+          {{ lang.t().playAgain }}
         </button>
       </div>
     </div>
@@ -69,6 +70,7 @@ import { GameStore } from '../../core/game.store';
 })
 export class ResultsComponent {
   store = inject(GameStore);
+  lang = inject(LanguageService);
   players = this.store.players;
 
   winner = computed(() => {

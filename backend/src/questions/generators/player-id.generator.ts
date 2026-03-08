@@ -19,7 +19,10 @@ export class PlayerIdGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
 Pick any interesting footballer — legendary, retired, or current, from any era or league.
 Return ONLY a valid JSON object with these exact fields:
@@ -32,10 +35,12 @@ Return ONLY a valid JSON object with these exact fields:
   "image_url": null,
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
   "event_year": 2018,
-  "fame_score": 8
+  "fame_score": 8,
+  "question_text": "Question prompt shown to the player",
+  "explanation": "Brief explanation naming the player and career summary"
 }
 The career array must have at least 3 entries. All career data must be factually accurate.
-fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.`;
+fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.${langInstruction}`;
 
     const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. The player can be from any era or league. Return JSON only.`;
 
@@ -49,6 +54,8 @@ fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-nic
       competition: string;
       event_year: number;
       fame_score: number;
+      question_text?: string;
+      explanation?: string;
     }>(systemPrompt, userPrompt);
 
     if (!result.player_name || !result.career?.length) {
@@ -57,16 +64,19 @@ fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-nic
 
     const careerText = result.career.map((c) => `${c.club} (${c.from}–${c.to})`).join(' → ');
 
+    const question_text = result.question_text ?? 'Identify the player from their career path:';
+    const explanation = result.explanation ?? `The player is ${result.player_name}. Career: ${careerText}`;
+
     return {
       id: crypto.randomUUID(),
       category: 'PLAYER_ID',
       difficulty: 'EASY',
       points: 1,
-      question_text: 'Identify the player from their career path:',
+      question_text,
       correct_answer: result.player_name,
       fifty_fifty_hint: result.wrong_player_name || null,
       fifty_fifty_applicable: true,
-      explanation: `The player is ${result.player_name}. Career: ${careerText}`,
+      explanation,
       image_url: result.image_url,
       meta: { career: result.career, nationality: result.nationality, position: result.position },
       difficulty_factors: {

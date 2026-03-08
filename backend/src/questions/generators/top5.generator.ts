@@ -9,7 +9,10 @@ export class Top5Generator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
     const systemPrompt = `You are a football statistics expert. Generate a "Name the Top 5" football quiz question.
 Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.
 Return ONLY valid JSON:
@@ -27,7 +30,7 @@ Return ONLY valid JSON:
   "fame_score": 7
 }
 The top5 array must have exactly 5 entries ordered from 1st to 5th place. All data must be factually accurate.
-fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.`;
+fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.${langInstruction}`;
 
     const userPrompt = `Generate a unique and interesting "Name the Top 5" football question. Make it varied — avoid repeating common rankings. Return JSON only.`;
 
