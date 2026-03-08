@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { clearLogFile } from '../logger.util';
-import { v4 as uuidv4 } from 'uuid';
+
 import { CacheService } from '../cache/cache.service';
 import { QuestionsService } from '../questions/questions.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
@@ -38,7 +38,7 @@ export class GameService {
 
   async createGame(dto: CreateGameDto): Promise<GameSession> {
     clearLogFile();
-    const gameId = uuidv4();
+    const gameId = crypto.randomUUID();
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
     const questions = await this.questionsService.generateBoard();

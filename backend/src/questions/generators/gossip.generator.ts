@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { v4 as uuidv4 } from 'uuid';
+
 
 @Injectable()
 export class GossipGenerator {
@@ -42,7 +42,7 @@ fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscur
     }
 
     return {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       category: 'GOSSIP',
       difficulty: 'MEDIUM',
       points: 2,

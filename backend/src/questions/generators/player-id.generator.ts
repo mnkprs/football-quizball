@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion } from '../question.types';
-import { v4 as uuidv4 } from 'uuid';
+
 
 interface CareerEntry {
   club: string;
@@ -56,7 +56,7 @@ fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-nic
     const careerText = result.career.map((c) => `${c.club} (${c.from}–${c.to})`).join(' → ');
 
     return {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       category: 'PLAYER_ID',
       difficulty: 'EASY',
       points: 1,

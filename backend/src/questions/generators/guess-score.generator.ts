@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
-import { v4 as uuidv4 } from 'uuid';
+
 
 interface MatchData {
   home_team: string;
@@ -60,7 +60,7 @@ fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only expert
     };
 
     return {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       category: 'GUESS_SCORE',
       difficulty: 'EASY',
       points: 1,

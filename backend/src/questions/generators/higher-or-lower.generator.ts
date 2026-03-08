@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
-import { v4 as uuidv4 } from 'uuid';
+
 
 interface HolData {
   player: string;
@@ -60,7 +60,7 @@ fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.`;
     };
 
     return {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       category: 'HIGHER_OR_LOWER',
       difficulty: 'EASY',
       points: 1,

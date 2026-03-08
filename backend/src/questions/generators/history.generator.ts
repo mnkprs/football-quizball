@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { v4 as uuidv4 } from 'uuid';
+
 
 @Injectable()
 export class HistoryGenerator {
@@ -41,7 +41,7 @@ fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-nich
     }
 
     return {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       category: 'HISTORY',
       difficulty: 'EASY',
       points: 1,

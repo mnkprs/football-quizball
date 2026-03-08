@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion, Top5Entry, DifficultyFactors } from '../question.types';
-import { v4 as uuidv4 } from 'uuid';
+
 
 @Injectable()
 export class Top5Generator {
@@ -50,7 +50,7 @@ fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obs
     };
 
     return {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       category: 'TOP_5',
       difficulty: 'EASY',
       points: 1,
