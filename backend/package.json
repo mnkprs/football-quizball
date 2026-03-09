@@ -41,6 +41,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
     "fast-levenshtein": "^3.0.0",
+    "jsonrepair": "^3.13.2",
     "node-cache": "^5.1.2",
     "openai": "^6.27.0",
     "reflect-metadata": "^0.2.2",

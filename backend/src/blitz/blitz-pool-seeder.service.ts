@@ -47,7 +47,7 @@ export class BlitzPoolSeederService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    this.seedIfLow(200).catch((err) =>
+    this.seedIfLow(500).catch((err) =>
       this.logger.error(`Initial blitz seed check failed: ${err.message}`),
     );
   }

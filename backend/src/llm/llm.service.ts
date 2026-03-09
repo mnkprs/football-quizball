@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
+import { jsonrepair } from 'jsonrepair';
 
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private client: GoogleGenAI | null = null;
-  private readonly model = 'gemini-flash-latest';
+  private readonly model = 'gemini-2.5-flash';
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -57,7 +58,13 @@ export class LlmService {
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) throw new Error('No JSON found in LLM response');
 
-        return JSON.parse(jsonMatch[0]) as T;
+        const raw = jsonMatch[0];
+        try {
+          return JSON.parse(raw) as T;
+        } catch {
+          const repaired = jsonrepair(raw);
+          return JSON.parse(repaired) as T;
+        }
       } catch (err) {
         lastError = err as Error;
         this.logger.error(
