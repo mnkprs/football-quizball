@@ -180,6 +180,17 @@ export class BlitzService {
     });
   }
 
+  /** Deduplicate strings by normalized value (lowercase), keeping first occurrence. */
+  private dedupeStrings(arr: string[]): string[] {
+    const seen = new Set<string>();
+    return arr.filter((s) => {
+      const key = s.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   private shuffle<T>(arr: T[]): T[] {
     const out = [...arr];
     for (let i = out.length - 1; i > 0; i--) {
@@ -202,8 +213,14 @@ export class BlitzService {
     category: string,
     pool: Array<{ category: string; question: { correct_answer: string } }>,
   ): string[] {
-    const fromLlm = wrongChoices?.length === 2
-      ? wrongChoices.filter((s) => s.trim().toLowerCase() !== correct.trim().toLowerCase()).slice(0, 2)
+    const normCorrect = correct.trim().toLowerCase();
+    const fromLlm = wrongChoices?.length
+      ? this.dedupeStrings(
+          wrongChoices
+            .filter((s) => s.trim().toLowerCase() !== normCorrect)
+            .map((s) => s.trim())
+            .filter(Boolean),
+        ).slice(0, 2)
       : [];
     const distractors = fromLlm.length >= 2 ? fromLlm : this.pickChoicesFromPool(correct, category, pool);
     const choices = [correct, ...distractors.slice(0, 2)];
