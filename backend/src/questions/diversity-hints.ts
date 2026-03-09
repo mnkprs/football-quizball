@@ -94,7 +94,7 @@ const NOTABLE_PLAYERS = [
   'Abel Balbo', 'Claudio Caniggia', 'Marcelo Gallardo',
   'Eidur Gudjohnsen', 'Gylfi Sigurdsson',
   'Dimitar Berbatov', 'Martin Petrov',
-  'Robbie Keane', 'Damien Duff', 'Roy Keane',
+  'Robbie Keane', 'Damien Duff',
   'Peter Shilton', 'Gordon Banks', 'Pat Jennings',
   'George Best', 'Bobby Charlton', 'Bobby Moore',
   'Alfredo Di Stéfano', 'Ferenc Puskás', 'Raymond Kopa',
@@ -104,7 +104,7 @@ const NOTABLE_PLAYERS = [
 const NOTABLE_MANAGERS = [
   'Arrigo Sacchi', 'Fabio Capello', 'Marcello Lippi',
   'Ottmar Hitzfeld', 'Jupp Heynckes', 'Louis van Gaal', 'Dick Advocaat',
-  'Johan Cruyff', 'Rinus Michels', 'Ernst Happel',
+  'Rinus Michels', 'Ernst Happel',
   'Bobby Robson', 'Howard Kendall', 'Brian Clough', 'Don Revie',
   'Bill Shankly', 'Bob Paisley', 'Kenny Dalglish',
   'Helenio Herrera', 'Béla Guttmann', 'Viktor Maslov',
@@ -113,7 +113,7 @@ const NOTABLE_MANAGERS = [
   'Nevio Scala', 'Zdeněk Zeman',
   'Peter Reid', 'Dave Bassett', 'Graham Taylor',
   'Sven-Göran Eriksson', 'Graeme Souness', 'George Graham',
-  'Guus Hiddink', 'Frank Rijkaard', 'Frank de Boer',
+  'Guus Hiddink', 'Frank de Boer',
   'Luiz Felipe Scolari', 'Mano Menezes', 'Tite',
   'Didier Deschamps', 'Raymond Domenech', 'Jacques Santini',
 ] as const;
@@ -392,7 +392,7 @@ function pickConstraints(category: string, slotIndex?: number): string[] {
     if (Math.random() < 0.6) {
       const addYear = Math.random() < 0.5;
       if (addYear) {
-        constraints.push(`Focus on an event from ${pick(YEAR_RANGES, useIndex(2))}.`);
+        constraints.push(`Choose a specific year that is historically significant for this entity and focus on an event from that year.`);
       } else {
         constraints.push(`The context MUST relate to ${pick(COMPETITIONS, useIndex(2))}.`);
       }
