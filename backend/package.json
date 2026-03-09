@@ -9,6 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "seed-pool": "ts-node -r tsconfig-paths/register scripts/seed-pool.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

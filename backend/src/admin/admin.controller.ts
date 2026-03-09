@@ -13,11 +13,21 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async seedPool(@Query('target') target?: string) {
     const count = Math.min(500, Math.max(1, parseInt(target || '100', 10)));
-    const results = await this.questionPoolService.seedPool(count);
+    const results = await this.questionPoolService.seedPool(count, true);
     return {
       target: count,
       results,
       totalAdded: results.reduce((sum, r) => sum + r.added, 0),
     };
+  }
+
+  /**
+   * Remove invalid and duplicate questions from the pool.
+   * Example: POST /api/admin/cleanup-questions
+   */
+  @Post('cleanup-questions')
+  @HttpCode(HttpStatus.OK)
+  async cleanupQuestions() {
+    return this.questionPoolService.cleanupPool();
   }
 }

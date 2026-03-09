@@ -3,6 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { QuestionsService } from './questions.service';
 import { QuestionPoolService } from './question-pool.service';
 import { AnswerValidator } from './validators/answer.validator';
+import { QuestionValidator } from './validators/question.validator';
 import { DifficultyScorer } from './difficulty-scorer.service';
 import { HistoryGenerator } from './generators/history.generator';
 import { PlayerIdGenerator } from './generators/player-id.generator';
@@ -20,6 +21,7 @@ import { FootballApiModule } from '../football-api/football-api.module';
     QuestionsService,
     QuestionPoolService,
     AnswerValidator,
+    QuestionValidator,
     DifficultyScorer,
     HistoryGenerator,
     PlayerIdGenerator,
@@ -29,6 +31,6 @@ import { FootballApiModule } from '../football-api/football-api.module';
     GeographyGenerator,
     GossipGenerator,
   ],
-  exports: [QuestionsService, QuestionPoolService, AnswerValidator],
+  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator],
 })
 export class QuestionsModule {}

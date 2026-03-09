@@ -46,6 +46,7 @@ const TRANSLATIONS = {
     answersInEnglish: '',
     home: 'Home',
     away: 'Away',
+    backToHome: '← Back',
     // Category labels
     catHistory: 'HISTORY',
     catPlayerId: 'PLAYER ID',
@@ -129,6 +130,7 @@ const TRANSLATIONS = {
     answersInEnglish: '* Οι απαντήσεις πρέπει να είναι στα Αγγλικά',
     home: 'Γηπεδούχος',
     away: 'Φιλοξενούμενος',
+    backToHome: '← Πίσω',
     // Category labels (board)
     catHistory: 'ΙΣΤΟΡΙΑ',
     catPlayerId: 'ΠΑΙΚΤΗΣ',

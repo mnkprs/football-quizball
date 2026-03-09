@@ -1,0 +1,13 @@
+---
+description: Always run Supabase migrations after creating or modifying them
+globs: supabase/migrations/**/*.sql
+alwaysApply: false
+---
+
+# Supabase Migrations
+
+When you create or modify migrations in `supabase/migrations/`:
+
+1. **Run them yourself** — Execute `supabase db push` (or `supabase migration up`) after changes.
+2. Do not leave it to the user to run migrations manually.
+3. Request `network` permission if needed for the push command.

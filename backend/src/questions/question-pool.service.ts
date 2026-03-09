@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { QuestionsService } from './questions.service';
+import { QuestionValidator } from './validators/question.validator';
 import { GeneratedQuestion, QuestionCategory, Difficulty, DIFFICULTY_POINTS } from './question.types';
 
 interface SlotRequirement {
@@ -50,6 +51,7 @@ export class QuestionPoolService implements OnModuleInit {
   constructor(
     private supabaseService: SupabaseService,
     private questionsService: QuestionsService,
+    private questionValidator: QuestionValidator,
   ) {}
 
   async onModuleInit() {
@@ -138,6 +140,25 @@ export class QuestionPoolService implements OnModuleInit {
   }
 
   /**
+   * Remove invalid and duplicate questions from the pool.
+   * Call via POST /api/admin/cleanup-questions or run migration.
+   */
+  async cleanupPool(): Promise<{ deletedInvalid: number; deletedDuplicates: number }> {
+    const { data, error } = await this.supabaseService.client.rpc('cleanup_question_pool');
+    if (error) {
+      this.logger.error(`[cleanupPool] RPC error: ${error.message}`);
+      return { deletedInvalid: 0, deletedDuplicates: 0 };
+    }
+    const row = Array.isArray(data) && data[0] ? data[0] : data;
+    const deletedInvalid = Number((row as { deleted_invalid?: number })?.deleted_invalid ?? 0);
+    const deletedDuplicates = Number((row as { deleted_duplicates?: number })?.deleted_duplicates ?? 0);
+    if (deletedInvalid > 0 || deletedDuplicates > 0) {
+      this.logger.log(`[cleanupPool] Removed ${deletedInvalid} invalid, ${deletedDuplicates} duplicates`);
+    }
+    return { deletedInvalid, deletedDuplicates };
+  }
+
+  /**
    * Returns unanswered questions to the pool so they can be used in future matches.
    * Call when a game ends prematurely to prevent abuse (create → peek → end).
    */
@@ -160,9 +181,10 @@ export class QuestionPoolService implements OnModuleInit {
   /**
    * One-time bulk seed: fill every slot to the given target.
    * Use for initial population (e.g. target=100). Skips slots already at or above target.
+   * @param force When true, runs even if a background refill is in progress (e.g. from CLI script).
    */
-  async seedPool(target: number): Promise<{ slot: string; added: number }[]> {
-    if (this.isRefilling) {
+  async seedPool(target: number, force = false): Promise<{ slot: string; added: number }[]> {
+    if (!force && this.isRefilling) {
       this.logger.warn('[seedPool] Refill already in progress, skipping');
       return [];
     }
@@ -268,7 +290,15 @@ export class QuestionPoolService implements OnModuleInit {
 
     const candidates = results
       .filter((r): r is PromiseFulfilledResult<GeneratedQuestion> => r.status === 'fulfilled')
-      .map((r) => r.value);
+      .map((r) => r.value)
+      .filter((q) => {
+        const { valid, reason } = this.questionValidator.validate(q);
+        if (!valid) {
+          this.logger.debug(`[fillSlot] Rejected invalid question: ${reason}`);
+          return false;
+        }
+        return true;
+      });
 
     if (candidates.length === 0) return;
 
