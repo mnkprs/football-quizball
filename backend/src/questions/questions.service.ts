@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GeneratedQuestion, QuestionCategory, Difficulty, DIFFICULTY_POINTS } from './question.types';
+import { minorityScaleForDifficulty } from './diversity-hints';
 import { DifficultyScorer } from './difficulty-scorer.service';
 import { HistoryGenerator } from './generators/history.generator';
 import { PlayerIdGenerator } from './generators/player-id.generator';
@@ -122,9 +123,10 @@ export class QuestionsService {
     category: QuestionCategory,
     difficulty: Difficulty,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number },
+    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number },
   ): Promise<GeneratedQuestion> {
-    const question = await this.generateRawWithRetry(category, language, options);
+    const scale = options?.minorityScale ?? minorityScaleForDifficulty(difficulty);
+    const question = await this.generateRawWithRetry(category, language, { ...options, minorityScale: scale });
     const { difficulty: scoredDiff, points } = this.difficultyScorer.score(question.difficulty_factors!);
     // Use the requested difficulty if the scored one doesn't match (pool stores by requested slot)
     return { ...question, difficulty: scoredDiff ?? difficulty, points };
@@ -133,7 +135,7 @@ export class QuestionsService {
   private async generateRawWithRetry(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number },
+    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number },
     maxRetries = 3,
   ): Promise<GeneratedQuestion> {
     let lastError: Error | null = null;
@@ -155,7 +157,7 @@ export class QuestionsService {
   private async generateRaw(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number },
+    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number },
   ): Promise<GeneratedQuestion> {
     const genOpts =
       options?.avoidAnswers?.length || options?.slotIndex !== undefined

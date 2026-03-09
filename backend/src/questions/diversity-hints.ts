@@ -1,144 +1,17 @@
+import { Difficulty } from './question.types';
+
 /**
  * Explicit diversity constraints to inject into LLM prompts.
  * Techniques used:
- * 1. Atomic entity injection — force questions about specific clubs/players/stadiums
+ * 1. Minority scale injection — LLM picks entity at a given obscurity level (1–100)
  * 2. Question angle constraints — force unusual framing, not just topic
  * 3. Global anti-convergence blacklist — ban the LLM's most-cached pub quiz tropes
  * 4. Cross-dimension stacking — combine entity + angle + era/competition simultaneously
  * 5. Chain-of-thought brainstorm — ask model to surface facts before writing the question
  */
 
-// ─── Entity Lists ─────────────────────────────────────────────────────────────
 
-const NOTABLE_CLUBS = [
-  // South America
-  'Peñarol', 'Nacional (Uruguay)', 'Estudiantes de La Plata', 'Independiente',
-  'Racing Club (Argentina)', 'Vélez Sársfield', 'Lanús', 'Olimpia (Paraguay)',
-  'LDU Quito', 'Universitario de Deportes', 'Colo-Colo', 'Universidad de Chile',
-  'Palmeiras', 'Cruzeiro', 'Vasco da Gama', 'Santos FC', 'Grêmio', 'Botafogo',
-  'Boca Juniors', 'River Plate', 'Fluminense', 'Flamengo', 'Chivas Guadalajara', 'Cruz Azul',
-  // Africa
-  'Al Ahly', 'Zamalek', 'TP Mazembe', 'Wydad Casablanca', 'Raja Casablanca',
-  'Kaizer Chiefs', 'Orlando Pirates', 'ASEC Mimosas', 'Espérance de Tunis',
-  // Asia
-  'Persepolis', 'Al Hilal', 'Al Nassr', 'Urawa Red Diamonds', 'Jeonbuk Motors',
-  'Gamba Osaka', 'Kashima Antlers', 'Guangzhou Evergrande',
-  // Europe — big but underused
-  'Benfica', 'Sporting CP', 'Braga', 'Vitesse', 'PSV Eindhoven', 'Ajax',
-  'Feyenoord', 'Club Brugge', 'Anderlecht', 'Gent', 'Galatasaray', 'Fenerbahçe',
-  'Beşiktaş', 'Trabzonspor', 'Dinamo Kyiv', 'Shakhtar Donetsk',
-  'Sparta Prague', 'Slavia Prague', 'Legia Warsaw', 'Red Star Belgrade',
-  'Partizan Belgrade', 'Steaua Bucharest', 'Rapid Vienna', 'Sturm Graz',
-  'Young Boys', 'Basel', 'Servette', 'PAOK', 'Olympiacos', 'Panathinaikos',
-  'Rosenborg', 'Malmö FF', 'IFK Göteborg', 'FC Copenhagen',
-  'Dinamo Zagreb', 'Hajduk Split', 'Wisła Kraków', 'Brøndby IF',
-  // England — underused
-  'Nottingham Forest', 'Ipswich Town', 'Coventry City', 'Sheffield Wednesday',
-  'Burnley', 'Brentford', 'Luton Town', 'Derby County', 'Charlton Athletic',
-  'Wimbledon', 'Queens Park Rangers', 'Crystal Palace', 'Sheffield United',
-  'Leicester City', 'Blackburn Rovers', 'Bolton Wanderers', 'Stoke City',
-  // Germany
-  'Kaiserslautern', '1. FC Köln', 'Hamburger SV', 'Werder Bremen',
-  'Schalke 04', 'VfB Stuttgart', 'Hannover 96', 'Hertha BSC', 'Bayer Leverkusen',
-  // Spain
-  'Deportivo La Coruña', 'Celta Vigo', 'Real Betis', 'Villarreal',
-  'Real Sociedad', 'Athletic Bilbao', 'Rayo Vallecano', 'Mallorca', 'Espanyol',
-  // Italy
-  'Fiorentina', 'Sampdoria', 'Cagliari', 'Torino', 'Udinese',
-  'Hellas Verona', 'Atalanta', 'Parma', 'Bologna', 'Napoli',
-  // France
-  'Olympique Marseille', 'Olympique Lyonnais', 'AS Monaco', 'Girondins de Bordeaux',
-  'RC Lens', 'Stade de Reims', 'Auxerre', 'Montpellier', 'Nantes', 'Saint-Étienne',
-  // Scotland
-  'Celtic', 'Rangers', 'Aberdeen', 'Heart of Midlothian', 'Hibernian', 'Motherwell',
-  // Other
-  'Honvéd', 'Ferencváros', 'MTK Budapest', 'Dynamo Dresden', 'Lokomotiv Moscow',
-  'CSKA Moscow', 'Spartak Moscow', 'Zenit Saint Petersburg',
-] as const;
-
-const NOTABLE_PLAYERS = [
-  // Legends — not the top-5 most-asked-about
-  'Jay-Jay Okocha', 'Tomas Brolin', 'Hristo Stoichkov', 'Davor Šuker',
-  'Sándor Kocsis', 'Eusébio', 'Gerd Müller', 'Johan Cruyff',
-  'Michel Platini', 'Karl-Heinz Rummenigge', 'Marco van Basten',
-  'Ruud Gullit', 'Frank Rijkaard', 'Dennis Bergkamp', 'Patrick Kluivert',
-  'Lilian Thuram', 'Marcel Desailly', 'Didier Deschamps', 'Emmanuel Petit',
-  'Fabio Cannavaro', 'Alessandro Nesta', 'Paolo Maldini', 'Franco Baresi',
-  'Roberto Baggio', 'Alessandro Del Piero', 'Filippo Inzaghi', 'Gabriel Batistuta',
-  'Hernán Crespo', 'Juan Román Riquelme', 'Gabriel Heinze',
-  'Rivaldo', 'Ronaldo Nazário', 'Romário', 'Cafu', 'Roberto Carlos',
-  'Rui Costa', 'Luís Figo', 'Fernando Couto',
-  'Raúl', 'Fernando Hierro', 'Míchel Salgado', 'Luis Enrique',
-  'Clarence Seedorf', 'Edgar Davids', 'Philip Cocu', 'Arjen Robben',
-  'Dirk Kuyt', 'Robin van Persie', 'Rafael van der Vaart',
-  'Steve McManaman', 'David Platt', 'Gary Lineker', 'Peter Beardsley',
-  'Mark Hughes', 'Ian Rush', 'John Barnes', 'Les Ferdinand',
-  'Teddy Sheringham', 'Peter Schmeichel', 'Ole Gunnar Solskjær',
-  'Emile Heskey', 'Robbie Fowler', 'Nick Barmby',
-  'Roy Keane', 'Paul Scholes', 'Nicky Butt', 'David Beckham',
-  'Andriy Shevchenko', 'Oleh Blokhin',
-  'Dejan Savičević', 'Dragan Džajić', 'Predrag Mijatović',
-  'Luka Modrić', 'Ivan Rakitić', 'Darijo Srna',
-  'Zbigniew Boniek', 'Włodzimierz Lubański',
-  'Didier Drogba', 'Michael Essien', 'Yaya Touré', "Samuel Eto'o",
-  "El-Hadji Diouf", "Nwankwo Kanu",
-  'Hidetoshi Nakata', 'Shunsuke Nakamura', 'Park Ji-sung',
-  'Ali Daei', 'Mehdi Taremi',
-  'Carlos Valderrama', 'Freddy Rincón', 'René Higuita',
-  'Hakan Şükür', 'Rüştü Reçber',
-  'Peter Crouch', 'Dion Dublin', 'Stan Collymore',
-  'Nicolas Anelka', 'Samir Nasri', 'Hatem Ben Arfa', 'Thierry Henry',
-  'Miroslav Klose', 'Michael Ballack', 'Jürgen Klinsmann',
-  'Stefan Effenberg', 'Andreas Möller', 'Thomas Häßler',
-  'Fernando Redondo', 'Diego Simeone', 'Claudio López',
-  'Abel Balbo', 'Claudio Caniggia', 'Marcelo Gallardo',
-  'Eidur Gudjohnsen', 'Gylfi Sigurdsson',
-  'Dimitar Berbatov', 'Martin Petrov',
-  'Robbie Keane', 'Damien Duff',
-  'Peter Shilton', 'Gordon Banks', 'Pat Jennings',
-  'George Best', 'Bobby Charlton', 'Bobby Moore',
-  'Alfredo Di Stéfano', 'Ferenc Puskás', 'Raymond Kopa',
-  'Just Fontaine', 'Roger Milla', 'Abedi Pelé',
-] as const;
-
-const NOTABLE_MANAGERS = [
-  'Arrigo Sacchi', 'Fabio Capello', 'Marcello Lippi',
-  'Ottmar Hitzfeld', 'Jupp Heynckes', 'Louis van Gaal', 'Dick Advocaat',
-  'Rinus Michels', 'Ernst Happel',
-  'Bobby Robson', 'Howard Kendall', 'Brian Clough', 'Don Revie',
-  'Bill Shankly', 'Bob Paisley', 'Kenny Dalglish',
-  'Helenio Herrera', 'Béla Guttmann', 'Viktor Maslov',
-  'César Luis Menotti', 'Carlos Bilardo',
-  'Valeri Lobanovsky', 'Vanderlei Luxemburgo', 'Telê Santana',
-  'Nevio Scala', 'Zdeněk Zeman',
-  'Peter Reid', 'Dave Bassett', 'Graham Taylor',
-  'Sven-Göran Eriksson', 'Graeme Souness', 'George Graham',
-  'Guus Hiddink', 'Frank de Boer',
-  'Luiz Felipe Scolari', 'Mano Menezes', 'Tite',
-  'Didier Deschamps', 'Raymond Domenech', 'Jacques Santini',
-] as const;
-
-const NOTABLE_STADIUMS = [
-  'Camp Nou', 'Maracanã', 'Azteca', 'Wembley (original)', 'San Siro',
-  'Stadio Olimpico (Rome)', 'Luzhniki', 'Stade de France', 'Santiago Bernabéu',
-  'Allianz Arena', 'Signal Iduna Park', 'Veltins-Arena',
-  'Anfield', 'Old Trafford', 'Stamford Bridge', 'Highbury',
-  'Celtic Park', 'Ibrox', 'Hampden Park',
-  'De Kuip', 'Johan Cruyff Arena', 'Philips Stadion',
-  'Stade Vélodrome', 'Parc des Princes',
-  'Estádio da Luz', 'Estádio José Alvalade',
-  'Vicente Calderón', 'Wanda Metropolitano',
-  'Cairo International Stadium', 'Stade Mohammed V',
-  'Karaiskakis Stadium', 'OAKA Olympic Stadium',
-  'Şükrü Saracoğlu Stadium', 'Atatürk Olympic Stadium',
-  'King Fahd International Stadium', 'Lusail Stadium',
-  'Estadio Monumental (Buenos Aires)', 'Estadio Nacional (Lima)',
-  'Estadio Centenario (Montevideo)', 'Estadio Hernando Siles',
-  'Commerzbank-Arena Frankfurt', 'Weser-Stadion',
-  'Stadio San Paolo (Napoli)', 'Stadio Artemio Franchi',
-] as const;
-
-// ─── Existing Dimension Lists ─────────────────────────────────────────────────
+// ─── Dimension Lists ───────────────────────────────────────────────────────────
 
 const YEAR_RANGES = [
   'pre-1960', '1960s', '1970s',
@@ -330,25 +203,43 @@ ANTI-REPETITION RULES (strictly enforced):
 - If you think of the most obvious fact first — pivot to something adjacent, lesser-known, or more specific.`;
 }
 
-// ─── Entity Selection ─────────────────────────────────────────────────────────
+// ─── Minority Scale ────────────────────────────────────────────────────────────
 
-function pickEntityForCategory(category: string, index?: number): string {
+function randomInRange(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/**
+ * Maps a target difficulty to a minority scale range.
+ * Scale: 1 = extremely obscure/niche, 100 = universally famous worldwide.
+ */
+export function minorityScaleForDifficulty(difficulty: Difficulty): number {
+  switch (difficulty) {
+    case 'EASY':   return randomInRange(70, 90);
+    case 'MEDIUM': return randomInRange(45, 65);
+    case 'HARD':   return randomInRange(25, 45);
+  }
+}
+
+/**
+ * Maps a player ELO to a minority scale. Higher ELO → more obscure entities.
+ */
+export function minorityScaleForElo(elo: number): number {
+  if (elo < 800)  return randomInRange(75, 90);
+  if (elo < 1100) return randomInRange(60, 80);
+  if (elo < 1400) return randomInRange(40, 65);
+  if (elo < 1800) return randomInRange(15, 40);
+  return randomInRange(5, 20);
+}
+
+function entityTypeForCategory(category: string): string {
   switch (category) {
     case 'PLAYER_ID':
-    case 'HIGHER_OR_LOWER':
-      return pick(NOTABLE_PLAYERS, index);
-    case 'GOSSIP':
-      return pick(Math.random() < 0.6 ? NOTABLE_PLAYERS : NOTABLE_MANAGERS, index);
-    case 'GUESS_SCORE':
-      return pick(NOTABLE_CLUBS, index);
-    case 'GEOGRAPHY':
-      return pick(Math.random() < 0.5 ? NOTABLE_STADIUMS : NOTABLE_CLUBS, index);
-    case 'HISTORY':
-      return pick(Math.random() < 0.5 ? NOTABLE_CLUBS : NOTABLE_PLAYERS, index);
-    case 'TOP_5':
-      return pick(Math.random() < 0.5 ? NOTABLE_CLUBS : NOTABLE_PLAYERS, index);
-    default:
-      return pick(NOTABLE_CLUBS, index);
+    case 'HIGHER_OR_LOWER': return 'player';
+    case 'GOSSIP':          return 'player or manager/coach';
+    case 'GUESS_SCORE':     return 'club';
+    case 'GEOGRAPHY':       return 'stadium, club, or city';
+    default:                return 'player or club';
   }
 }
 
@@ -365,11 +256,11 @@ function pick<T>(arr: readonly T[], index?: number): T {
 
 /**
  * Builds 2–4 diversity constraints for a category.
- * 70% of the time uses entity injection + angle (highest impact).
+ * 70% of the time uses minority-scale entity injection + angle (highest impact).
  * 30% of the time uses traditional dimension constraints (year + competition).
  * Always stacks at least 2 independent axes for combinatorial diversity.
  */
-function pickConstraints(category: string, slotIndex?: number): string[] {
+function pickConstraints(category: string, slotIndex?: number, minorityScale?: number): string[] {
   const constraints: string[] = [];
   const useIndex = (offset: number) =>
     slotIndex !== undefined ? (slotIndex + offset) % 100 : undefined;
@@ -377,12 +268,13 @@ function pickConstraints(category: string, slotIndex?: number): string[] {
   const useEntityInjection = Math.random() < 0.7;
 
   if (useEntityInjection) {
-    const entity = pickEntityForCategory(category, useIndex(0));
+    const entityType = entityTypeForCategory(category);
+    const scale = minorityScale ?? randomInRange(25, 85);
     const angles = QUESTION_ANGLES[category] ?? [];
     const angle = angles.length ? pick(angles as readonly string[], useIndex(1)) : null;
 
-    // Entity constraint + chain-of-thought brainstorm instruction combined
-    let entityConstraint = `The question MUST specifically involve: "${entity}". Before writing the question, mentally recall 2 unusual or lesser-known facts about this entity, then use the most interesting one.`;
+    // Minority scale entity constraint + chain-of-thought brainstorm instruction
+    let entityConstraint = `Pick a football ${entityType} at obscurity level ${scale}/100 (where 1 = extremely obscure/niche, 100 = universally famous worldwide). The question MUST specifically involve this entity. Before writing the question, mentally recall 2 unusual or lesser-known facts about this entity, then use the most interesting one.`;
     if (angle) {
       entityConstraint += ` The specific angle MUST be: ${angle}.`;
     }
@@ -480,15 +372,15 @@ export interface ExplicitConstraintsResult {
  * Returns mandatory diversity constraints to append to the user prompt.
  * Use slotIndex when filling pool in parallel so each call gets different constraints.
  */
-export function getExplicitConstraintsWithMeta(category: string, slotIndex?: number): ExplicitConstraintsResult {
-  const constraints = pickConstraints(category, slotIndex);
+export function getExplicitConstraintsWithMeta(category: string, slotIndex?: number, minorityScale?: number): ExplicitConstraintsResult {
+  const constraints = pickConstraints(category, slotIndex, minorityScale);
   const promptPart = constraints.length === 0 ? '' : `\n\nMANDATORY CONSTRAINTS:\n${constraints.map((c, i) => `${i + 1}. ${c}`).join('\n')}`;
   return { promptPart, constraints };
 }
 
 /** Returns only the prompt string. */
-export function getExplicitConstraints(category: string, slotIndex?: number): string {
-  return getExplicitConstraintsWithMeta(category, slotIndex).promptPart;
+export function getExplicitConstraints(category: string, slotIndex?: number, minorityScale?: number): string {
+  return getExplicitConstraintsWithMeta(category, slotIndex, minorityScale).promptPart;
 }
 
 /** @deprecated Use getExplicitConstraints. Kept for backward compatibility. */

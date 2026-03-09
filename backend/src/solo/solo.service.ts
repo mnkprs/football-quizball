@@ -61,7 +61,7 @@ export class SoloService {
     if (session.userId !== userId) throw new ForbiddenException();
 
     const difficulty = this.eloService.getDifficultyForElo(session.currentElo);
-    const question = await this.generator.generate(difficulty);
+    const question = await this.generator.generate(difficulty, session.currentElo);
     const now = new Date();
 
     session.currentQuestion = question;

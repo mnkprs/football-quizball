@@ -39,7 +39,14 @@
       "mcp__supabase__apply_migration",
       "mcp__Railway__set-variables",
       "Bash(railway variables:*)",
-      "Bash(npx ng:*)"
+      "Bash(npx ng:*)",
+      "Bash(for f in history player-id higher-or-lower guess-score top5 geography gossip)",
+      "Bash(do)",
+      "Bash(echo \"=== $f ===\")",
+      "Read(//Users/instashop/Projects/football-quizball/backend/src/questions/generators/**)",
+      "Bash(done)",
+      "mcp__supabase__execute_sql",
+      "mcp__Railway__deploy"
     ]
   },
   "enableAllProjectMcpServers": true,

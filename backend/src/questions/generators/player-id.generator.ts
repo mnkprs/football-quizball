@@ -20,7 +20,7 @@ export class PlayerIdGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -45,7 +45,7 @@ The career array must have at least 3 entries. All career data must be factually
 fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.
 specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${langInstruction}`;
 
-    const { promptPart, constraints } = getExplicitConstraintsWithMeta('PLAYER_ID', options?.slotIndex);
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('PLAYER_ID', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[PLAYER_ID] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 

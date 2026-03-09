@@ -10,7 +10,7 @@ export class Top5Generator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -35,7 +35,7 @@ The top5 array must have exactly 5 entries ordered from 1st to 5th place. All da
 fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.
 specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.${langInstruction}`;
 
-    const { promptPart, constraints } = getExplicitConstraintsWithMeta('TOP_5', options?.slotIndex);
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('TOP_5', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[TOP_5] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique and interesting "Name the Top 5" football question. Make it varied — avoid repeating common rankings. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 

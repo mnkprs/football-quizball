@@ -19,7 +19,10 @@ async function main() {
   const data = await res.json();
   console.log(`Done. Total added: ${data.totalAdded}`);
   data.results.forEach((r) => {
-    if (r.added > 0) console.log(`  ${r.slot}: +${r.added}`);
+    if (r.added > 0) {
+      console.log(`  ${r.slot}: +${r.added}`);
+      (r.questions || []).forEach((q) => console.log(`    → ${q}`));
+    }
   });
 }
 

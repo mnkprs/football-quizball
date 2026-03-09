@@ -10,7 +10,7 @@ export class GossipGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -31,7 +31,7 @@ Return ONLY a valid JSON object with these exact fields:
 fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.
 specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific incident detail, 5 = very niche off-pitch fact.${langInstruction}`;
 
-    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GOSSIP', options?.slotIndex);
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GOSSIP', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[GOSSIP] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique football gossip trivia question about a real off-pitch event, controversy, or celebrity moment. Keep it fun and factual. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 

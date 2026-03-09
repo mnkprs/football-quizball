@@ -183,20 +183,30 @@ export class QuestionPoolService implements OnModuleInit {
    * Use for initial population (e.g. target=100). Skips slots already at or above target.
    * @param force When true, runs even if a background refill is in progress (e.g. from CLI script).
    */
-  async seedPool(target: number, force = false): Promise<{ slot: string; added: number }[]> {
+  async seedPool(target: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }[]> {
     if (!force && this.isRefilling) {
       this.logger.warn('[seedPool] Refill already in progress, skipping');
       return [];
     }
     this.isRefilling = true;
-    const results: { slot: string; added: number }[] = [];
+    const results: { slot: string; added: number; questions?: string[] }[] = [];
 
     try {
       const counts = await this.getPoolCounts();
       const uniqueSlots = this.getUniqueSlots();
+
+      // Prioritize driest slots first (fewest unanswered questions)
+      const sortedSlots = [...uniqueSlots].sort((a, b) => {
+        const keyA = `${a.category}/${a.difficulty}`;
+        const keyB = `${b.category}/${b.difficulty}`;
+        const countA = counts[keyA] ?? 0;
+        const countB = counts[keyB] ?? 0;
+        return countA - countB;
+      });
+
       let globalSlotIndex = 0;
 
-      for (const { category, difficulty } of uniqueSlots) {
+      for (const { category, difficulty } of sortedSlots) {
         const key = `${category}/${difficulty}`;
         const current = counts[key] ?? 0;
         const needed = Math.max(0, target - current);
@@ -206,9 +216,9 @@ export class QuestionPoolService implements OnModuleInit {
           continue;
         }
         this.logger.log(`[seedPool] ${key}: ${current}/${target} — generating ${needed}`);
-        await this.fillSlot(category, difficulty, needed, globalSlotIndex);
+        const questions = await this.fillSlot(category, difficulty, needed, globalSlotIndex);
         globalSlotIndex += needed;
-        results.push({ slot: key, added: needed });
+        results.push({ slot: key, added: questions.length, questions });
       }
       return results;
     } finally {
@@ -225,10 +235,19 @@ export class QuestionPoolService implements OnModuleInit {
       const counts = await this.getPoolCounts();
       const uniqueSlots = this.getUniqueSlots();
 
+      // Prioritize driest slots first (fewest unanswered questions)
+      const sortedSlots = [...uniqueSlots].sort((a, b) => {
+        const keyA = `${a.category}/${a.difficulty}`;
+        const keyB = `${b.category}/${b.difficulty}`;
+        const countA = counts[keyA] ?? 0;
+        const countB = counts[keyB] ?? 0;
+        return countA - countB;
+      });
+
       const slotsToFill: Array<{ category: QuestionCategory; difficulty: Difficulty; needed: number; baseSlotIndex: number }> = [];
       let globalSlotIndex = 0;
 
-      for (const { category, difficulty } of uniqueSlots) {
+      for (const { category, difficulty } of sortedSlots) {
         const key = `${category}/${difficulty}`;
         const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
         const current = counts[key] ?? 0;
@@ -291,12 +310,10 @@ export class QuestionPoolService implements OnModuleInit {
     difficulty: Difficulty,
     count: number,
     baseSlotIndex = 0,
-  ): Promise<void> {
-    const avoidAnswers = await this.getExistingAnswers(category);
+  ): Promise<string[]> {
     const results = await Promise.allSettled(
       Array.from({ length: count }, (_, i) =>
         this.questionsService.generateOne(category, difficulty, 'en', {
-          avoidAnswers,
           slotIndex: baseSlotIndex + i,
         }),
       ),
@@ -314,63 +331,35 @@ export class QuestionPoolService implements OnModuleInit {
         return true;
       });
 
-    if (candidates.length === 0) return;
+    if (candidates.length === 0) return [];
 
-    // Fetch existing question keys and answers for this category to prevent duplicates
-    const [existingKeys, existingAnswersNorm] = await Promise.all([
-      this.getExistingQuestionKeys(category),
-      this.getExistingAnswersNormalized(category),
-    ]);
+    // Fetch existing question keys for this category to prevent exact duplicates (same Q + same A)
+    const existingKeys = await this.getExistingQuestionKeys(category);
 
     const rows = candidates
       .filter((q) => {
         const key = `${q.question_text}|||${q.correct_answer}`;
         if (existingKeys.has(key)) {
-          this.logger.debug(`[fillSlot] Skipping duplicate: "${q.question_text.slice(0, 60)}..."`);
-          return false;
-        }
-        const ansNorm = q.correct_answer.trim().toLowerCase();
-        if (existingAnswersNorm.has(ansNorm)) {
-          this.logger.debug(`[fillSlot] Skipping same-answer: "${q.correct_answer}"`);
+          this.logger.log(`[fillSlot] Skipping duplicate — LLM output: "${q.question_text}"`);
           return false;
         }
         existingKeys.add(key);
-        existingAnswersNorm.add(ansNorm);
         return true;
       })
       .map((q) => ({ category, difficulty, question: q }));
 
     if (rows.length === 0) {
       this.logger.warn(`[fillSlot] All ${candidates.length} generated questions were duplicates for ${category}/${difficulty}`);
-      return;
+      return [];
     }
 
     const { error } = await this.supabaseService.client.from('question_pool').insert(rows);
     if (error) {
       this.logger.error(`[fillSlot] Insert error for ${category}/${difficulty}: ${error.message}`);
-    } else {
-      this.logger.log(`[fillSlot] Inserted ${rows.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - rows.length} duplicates skipped)`);
-    }
-  }
-
-  /** Returns unique correct_answer values already in the pool for a category (for LLM "avoid" hints). */
-  private async getExistingAnswers(category: QuestionCategory): Promise<string[]> {
-    const { data, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('question->correct_answer')
-      .eq('category', category);
-
-    if (error) {
-      this.logger.error(`[getExistingAnswers] Query error: ${error.message}`);
       return [];
     }
-
-    const answers = new Set<string>();
-    for (const r of data as Array<{ correct_answer?: string }>) {
-      const a = r?.correct_answer;
-      if (typeof a === 'string' && a.trim()) answers.add(a.trim());
-    }
-    return Array.from(answers).slice(0, 80);
+    this.logger.log(`[fillSlot] Inserted ${rows.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - rows.length} duplicates skipped)`);
+    return rows.map((r) => r.question.question_text);
   }
 
   /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */
@@ -389,26 +378,6 @@ export class QuestionPoolService implements OnModuleInit {
       (data as Array<{ question_text: string; correct_answer: string }>)
         .map((r) => `${r.question_text}|||${r.correct_answer}`),
     );
-  }
-
-  /** Returns a Set of normalized (lowercase, trimmed) correct_answer values for a category. */
-  private async getExistingAnswersNormalized(category: QuestionCategory): Promise<Set<string>> {
-    const { data, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('question->correct_answer')
-      .eq('category', category);
-
-    if (error) {
-      this.logger.error(`[getExistingAnswersNormalized] Query error: ${error.message}`);
-      return new Set();
-    }
-
-    const set = new Set<string>();
-    for (const r of data as Array<{ correct_answer?: string }>) {
-      const a = r?.correct_answer;
-      if (typeof a === 'string' && a.trim()) set.add(a.trim().toLowerCase());
-    }
-    return set;
   }
 
   private async getPoolCounts(): Promise<Record<string, number>> {

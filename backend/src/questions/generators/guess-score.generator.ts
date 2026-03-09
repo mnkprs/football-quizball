@@ -28,7 +28,7 @@ export class GuessScoreGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -52,7 +52,7 @@ Return ONLY valid JSON:
 fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.
 specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not top-of-mind, 5 = very obscure match detail.${langInstruction}`;
 
-    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex);
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[GUESS_SCORE] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 

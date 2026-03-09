@@ -10,7 +10,7 @@ export class GeographyGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -30,7 +30,7 @@ Return ONLY a valid JSON object with these exact fields:
 fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.
 specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).${langInstruction}`;
 
-    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GEOGRAPHY', options?.slotIndex);
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GEOGRAPHY', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[GEOGRAPHY] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique football geography trivia question. Make it interesting. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 

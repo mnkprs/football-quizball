@@ -28,7 +28,7 @@ export class HigherOrLowerGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -53,7 +53,7 @@ Return ONLY valid JSON:
 fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.
 specificity_score is 1-5: 1 = widely known career total, 3 = season-specific stat, 5 = very obscure sub-statistic.${langInstruction}`;
 
-    const { promptPart, constraints } = getExplicitConstraintsWithMeta('HIGHER_OR_LOWER', options?.slotIndex);
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('HIGHER_OR_LOWER', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[HIGHER_OR_LOWER] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique Higher or Lower football question with accurate statistics. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 

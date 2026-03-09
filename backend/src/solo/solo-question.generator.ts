@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
 import { Difficulty } from '../questions/question.types';
 import { SoloQuestion } from './solo.types';
-import { getExplicitConstraints, getAntiConvergenceInstruction } from '../questions/diversity-hints';
+import { getExplicitConstraints, getAntiConvergenceInstruction, minorityScaleForElo } from '../questions/diversity-hints';
 
 @Injectable()
 export class SoloQuestionGenerator {
@@ -10,7 +10,7 @@ export class SoloQuestionGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(difficulty: Difficulty): Promise<SoloQuestion> {
+  async generate(difficulty: Difficulty, elo: number = 1000): Promise<SoloQuestion> {
     const difficultyGuide: Record<Difficulty, string> = {
       EASY: 'well-known fact, easily recalled (e.g., which club did Messi win the 2015 Champions League with?)',
       MEDIUM: 'moderate difficulty, requires real football knowledge (e.g., year of a specific title win, top scorer in a specific season)',
@@ -31,7 +31,8 @@ Return ONLY valid JSON:
 }
 difficulty_factor: float 0.1–1.0 (how hard within the difficulty tier)`;
 
-    const diversityConstraints = getExplicitConstraints('HISTORY'); // broad category for solo
+    const scale = minorityScaleForElo(elo);
+    const diversityConstraints = getExplicitConstraints('HISTORY', undefined, scale);
     const userPrompt = `Generate a ${difficulty} football trivia question. Return only the JSON object.${diversityConstraints}`;
 
     const raw = await this.llmService.generateStructuredJson<{

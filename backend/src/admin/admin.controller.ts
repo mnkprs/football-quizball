@@ -1,8 +1,10 @@
-import { Controller, Post, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Query, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { QuestionPoolService } from '../questions/question-pool.service';
 
 @Controller('api/admin')
 export class AdminController {
+  private readonly logger = new Logger(AdminController.name);
+
   constructor(private questionPoolService: QuestionPoolService) {}
 
   /**
@@ -13,6 +15,7 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async seedPool(@Query('target') target?: string) {
     const count = Math.min(500, Math.max(1, parseInt(target || '100', 10)));
+    this.logger.log(`[seed-pool] Request received: target=${count}`);
     const results = await this.questionPoolService.seedPool(count, true);
     return {
       target: count,

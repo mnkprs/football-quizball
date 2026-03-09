@@ -10,7 +10,7 @@ export class HistoryGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -32,7 +32,7 @@ fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-nich
 answer_type: one of "name", "team", "number", "score", "year", "country" — pick whichever matches the correct_answer.
 specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"), 3 = moderate (specific match/season detail), 5 = very specific (exact shirt number or obscure stat).${langInstruction}`;
 
-    const { promptPart, constraints } = getExplicitConstraintsWithMeta('HISTORY', options?.slotIndex);
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('HISTORY', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[HISTORY] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique football history trivia question. Make it specific and interesting. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
