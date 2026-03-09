@@ -6,11 +6,11 @@
 
 const YEAR_RANGES = [
   'pre-1980',
-  '1980–1989',
-  '1990–1999',
-  '2000–2009',
-  '2010–2019',
-  '2020 onwards',
+  '1980', '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', '1989',
+  '1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999',
+  '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009',
+  '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019',
+  '2020', '2021', '2022', '2023', '2024',
 ];
 
 const NATIONALITIES = [
@@ -53,9 +53,15 @@ const REGIONS = [
 
 const POSITIONS = [
   'goalkeeper',
-  'defender',
-  'midfielder',
-  'forward',
+  'right-back',
+  'left-back',
+  'centre-back',
+  'defensive midfielder',
+  'central midfielder',
+  'attacking midfielder',
+  'right winger',
+  'left winger',
+  'striker',
 ];
 
 const STAT_TYPES = [
@@ -65,6 +71,12 @@ const STAT_TYPES = [
   'clean sheets',
   'transfer fee',
   'trophies won',
+  'yellow or red cards',
+  'minutes played or games started',
+  'winning or decisive goals',
+  'hat-tricks or braces',
+  'clean sheet streak',
+  'international caps',
 ];
 
 const GEOGRAPHY_ENTITY_TYPES = [
@@ -72,6 +84,11 @@ const GEOGRAPHY_ENTITY_TYPES = [
   'city and its clubs',
   'stadium or venue',
   'confederation or regional football',
+  'club rivalry or derby city',
+  'host nation of a major tournament',
+  'league or domestic structure',
+  'youth academy or footballing region',
+  'continental qualification zone',
 ];
 
 const GOSSIP_TOPICS = [
@@ -79,6 +96,12 @@ const GOSSIP_TOPICS = [
   'controversy or incident',
   'celebrity or lifestyle story',
   'feud or rivalry off the pitch',
+  'retirement or comeback',
+  'injury saga or medical drama',
+  'manager feud or sack story',
+  'social media or interview controversy',
+  'lifestyle or charity work',
+  'legal or disciplinary incident',
 ];
 
 function pick<T>(arr: readonly T[], index?: number): T {
@@ -154,14 +177,25 @@ function pickConstraints(
   return constraints.slice(0, 2);
 }
 
+export interface ExplicitConstraintsResult {
+  promptPart: string;
+  constraints: string[];
+}
+
 /**
  * Returns mandatory diversity constraints to append to the user prompt.
  * Use slotIndex when filling pool in parallel so each call gets different constraints.
+ * Also returns constraints array for logging.
  */
-export function getExplicitConstraints(category: string, slotIndex?: number): string {
+export function getExplicitConstraintsWithMeta(category: string, slotIndex?: number): ExplicitConstraintsResult {
   const constraints = pickConstraints(category, slotIndex);
-  if (constraints.length === 0) return '';
-  return `\n\nMANDATORY: ${constraints.join(' ')}`;
+  const promptPart = constraints.length === 0 ? '' : `\n\nMANDATORY: ${constraints.join(' ')}`;
+  return { promptPart, constraints };
+}
+
+/** Returns only the prompt string (backward compatible). */
+export function getExplicitConstraints(category: string, slotIndex?: number): string {
+  return getExplicitConstraintsWithMeta(category, slotIndex).promptPart;
 }
 
 /** @deprecated Use getExplicitConstraints for stronger diversity. Kept for backward compatibility. */
@@ -172,7 +206,7 @@ export function getDiversityHints(category: string): string {
 /** Returns an "avoid" instruction if answers to avoid are provided. */
 export function getAvoidInstruction(avoidAnswers: string[] | undefined): string {
   if (!avoidAnswers?.length) return '';
-  const sample = avoidAnswers.slice(0, 12).join(', ');
-  const suffix = avoidAnswers.length > 12 ? ` (and ${avoidAnswers.length - 12} more)` : '';
+  const sample = avoidAnswers.slice(0, 25).join(', ');
+  const suffix = avoidAnswers.length > 25 ? ` (and ${avoidAnswers.length - 25} more)` : '';
   return `\n\nIMPORTANT: Do NOT generate questions with these answers — pick something different: ${sample}${suffix}`;
 }
