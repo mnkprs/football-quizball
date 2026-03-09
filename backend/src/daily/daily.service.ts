@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { TodayGenerator } from './today.generator';
@@ -11,7 +11,7 @@ export interface DailyQuestionRef {
 }
 
 @Injectable()
-export class DailyService {
+export class DailyService implements OnModuleInit {
   private readonly logger = new Logger(DailyService.name);
 
   constructor(
@@ -19,8 +19,15 @@ export class DailyService {
     private todayGenerator: TodayGenerator,
   ) {}
 
+  onModuleInit() {
+    this.pregenerateToday().catch((err) =>
+      this.logger.error(`[onModuleInit] Pre-generate failed: ${(err as Error).message}`),
+    );
+  }
+
   /**
-   * Returns today's questions. Same set for all users.
+   * Returns today's questions from DB. Same set for all users.
+   * Fetches instantly when pre-generated; falls back to generate+save if missing.
    * Generates and caches if not yet created.
    */
   async getTodaysQuestions(): Promise<DailyQuestionRef[]> {

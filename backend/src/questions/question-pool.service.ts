@@ -70,11 +70,20 @@ export class QuestionPoolService implements OnModuleInit {
    * For Greek: uses stored translations when available; questions without translations
    * are returned with fromPoolTranslation=false for LLM fallback.
    */
-  async drawBoardFromPoolOnly(language: string = 'en'): Promise<DrawBoardResult> {
+  async drawBoardFromPoolOnly(
+    language: string = 'en',
+    excludeNewsQuestionIds?: string[],
+  ): Promise<DrawBoardResult> {
     const board: GeneratedQuestion[] = [];
     const poolIds: string[] = [];
     for (const slot of DRAW_REQUIREMENTS) {
-      const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count, language);
+      const drawn = await this.drawSlot(
+        slot.category,
+        slot.difficulty,
+        slot.count,
+        language,
+        slot.category === 'NEWS' ? excludeNewsQuestionIds : undefined,
+      );
       if (drawn.length < slot.count) {
         if (slot.category === 'NEWS') {
           this.logger.warn(`[drawBoardFromPoolOnly] NEWS pool empty for Greek — skipping NEWS slot`);
@@ -99,7 +108,10 @@ export class QuestionPoolService implements OnModuleInit {
    * For non-English languages, bypasses the pool and generates all questions live.
    * Falls back to live generation for any English slot not covered by the pool.
    */
-  async drawBoard(language: string = 'en'): Promise<DrawBoardResult> {
+  async drawBoard(
+    language: string = 'en',
+    excludeNewsQuestionIds?: string[],
+  ): Promise<DrawBoardResult> {
     // For non-English, generate all questions live (pool is English-only)
     if (language !== 'en') {
       const board: GeneratedQuestion[] = [];
@@ -124,7 +136,13 @@ export class QuestionPoolService implements OnModuleInit {
     const poolIds: string[] = [];
     await Promise.all(
       DRAW_REQUIREMENTS.map(async (slot) => {
-        const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count);
+        const drawn = await this.drawSlot(
+          slot.category,
+          slot.difficulty,
+          slot.count,
+          'en',
+          slot.category === 'NEWS' ? excludeNewsQuestionIds : undefined,
+        );
         for (const q of drawn) {
           board.push(q);
           poolIds.push(q.id);
@@ -301,12 +319,17 @@ export class QuestionPoolService implements OnModuleInit {
     difficulty: Difficulty,
     count: number,
     language: string = 'en',
+    excludeNewsQuestionIds?: string[],
   ): Promise<GeneratedQuestion[]> {
-    const { data, error } = await this.supabaseService.client.rpc('draw_questions', {
+    const rpcParams: Record<string, unknown> = {
       p_category: category,
       p_difficulty: difficulty,
       p_count: count,
-    });
+    };
+    if (category === 'NEWS' && excludeNewsQuestionIds?.length) {
+      rpcParams.p_exclude_ids = excludeNewsQuestionIds;
+    }
+    const { data, error } = await this.supabaseService.client.rpc('draw_questions', rpcParams);
 
     if (error) {
       this.logger.error(`[drawSlot] RPC error for ${category}/${difficulty}: ${error.message}`);

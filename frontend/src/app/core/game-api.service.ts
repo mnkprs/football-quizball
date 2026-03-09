@@ -7,6 +7,8 @@ export interface CreateGameRequest {
   player1Name: string;
   player2Name: string;
   language: string;
+  /** NEWS question IDs to exclude (from localStorage) to avoid repeats in back-to-back games */
+  excludeNewsQuestionIds?: string[];
 }
 
 export interface CreateGameResponse {

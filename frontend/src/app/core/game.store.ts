@@ -6,6 +6,31 @@ import { GameApiService, BoardState, Question, AnswerResult, Top5Entry, Top5Gues
 import { firstValueFrom } from 'rxjs';
 
 const STORAGE_KEY = 'quizball_game_id';
+const SEEN_NEWS_IDS_KEY = 'quizball_seen_news_ids';
+const MAX_SEEN_NEWS_IDS = 50;
+
+function getSeenNewsIds(): string[] {
+  try {
+    const raw = localStorage.getItem(SEEN_NEWS_IDS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveNewsIdsFromBoard(board: Array<Array<{ question_id: string; category: string }>>): void {
+  const newsIds = board.flat().filter((c) => c.category === 'NEWS' && c.question_id).map((c) => c.question_id);
+  if (newsIds.length === 0) return;
+  const existing = getSeenNewsIds();
+  const combined = [...newsIds, ...existing.filter((id) => !newsIds.includes(id))].slice(0, MAX_SEEN_NEWS_IDS);
+  try {
+    localStorage.setItem(SEEN_NEWS_IDS_KEY, JSON.stringify(combined));
+  } catch {
+    // ignore quota or other storage errors
+  }
+}
 
 export interface Top5State {
   filledSlots: Array<Top5Entry | null>;
@@ -75,9 +100,13 @@ export const GameStore = signalStore(
     async startGame(player1Name: string, player2Name: string, language: string): Promise<void> {
       patchState(store, { loading: true, error: null, phase: 'loading' });
       try {
-        const response = await firstValueFrom(api.createGame({ player1Name, player2Name, language }));
+        const excludeNewsQuestionIds = getSeenNewsIds();
+        const response = await firstValueFrom(
+          api.createGame({ player1Name, player2Name, language, excludeNewsQuestionIds })
+        );
         const boardState = await firstValueFrom(api.getGame(response.game_id));
         localStorage.setItem(STORAGE_KEY, response.game_id);
+        saveNewsIdsFromBoard(boardState.board);
         patchState(store, {
           gameId: response.game_id,
           boardState,
@@ -358,6 +387,7 @@ export const GameStore = signalStore(
       patchState(store, { loading: true, phase: 'loading' });
       try {
         const boardState = await firstValueFrom(api.getGame(gameId));
+        saveNewsIdsFromBoard(boardState.board);
         const phase = boardState.status === 'FINISHED' ? 'finished' : 'board';
         patchState(store, {
           gameId,

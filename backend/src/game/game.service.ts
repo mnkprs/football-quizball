@@ -48,12 +48,13 @@ export class GameService {
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
     const language = dto.language ?? 'en';
+    const excludeNewsQuestionIds = dto.excludeNewsQuestionIds?.filter(Boolean).slice(0, 100) ?? [];
     let questions: GeneratedQuestion[];
     let poolQuestionIds: string[] = [];
     // For Greek: fetch from pool only (no live generation), then translate. Answers stay in English.
     if (language === 'el') {
       try {
-        const result = await this.drawAndTranslateForGreek();
+        const result = await this.drawAndTranslateForGreek(excludeNewsQuestionIds);
         questions = result.questions;
         poolQuestionIds = result.poolQuestionIds;
       } catch (err) {
@@ -62,7 +63,7 @@ export class GameService {
         );
       }
     } else {
-      const result = await this.questionPoolService.drawBoard(language);
+      const result = await this.questionPoolService.drawBoard(language, excludeNewsQuestionIds);
       questions = result.questions;
       poolQuestionIds = result.poolQuestionIds;
     }
@@ -118,8 +119,13 @@ export class GameService {
   }
 
   /** Draws from pool, uses stored Greek translations when available, LLM for the rest. Answers stay in English. */
-  private async drawAndTranslateForGreek(): Promise<{ questions: GeneratedQuestion[]; poolQuestionIds: string[] }> {
-    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoardFromPoolOnly('el');
+  private async drawAndTranslateForGreek(
+    excludeNewsQuestionIds?: string[],
+  ): Promise<{ questions: GeneratedQuestion[]; poolQuestionIds: string[] }> {
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoardFromPoolOnly(
+      'el',
+      excludeNewsQuestionIds,
+    );
 
     type QWithFlag = GeneratedQuestion & { fromPoolTranslation?: boolean };
     const needsTranslation = questions.filter((q) => !(q as unknown as QWithFlag).fromPoolTranslation);
