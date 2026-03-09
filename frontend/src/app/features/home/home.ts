@@ -1,9 +1,10 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
+import { LanguageService } from '../../core/language.service';
 import { ThemeToggleComponent } from '../../shared/theme-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, ThemeToggleComponent, MatCardModule, MatButtonModule],
+  imports: [ThemeToggleComponent, MatCardModule, MatButtonModule],
   template: `
     <div class="home-page">
       <div class="home-content">
@@ -20,7 +21,16 @@ import { MatButtonModule } from '@angular/material/button';
             <span class="home-emoji">⚽</span>
             <h1 class="home-title">Unlimited Quizball</h1>
           </div>
-          <app-theme-toggle />
+          <div class="home-header-actions">
+            <button
+              type="button"
+              class="home-lang-toggle"
+              (click)="lang.toggle()"
+            >
+              {{ lang.lang() === 'en' ? '🇬🇷 EL' : '🇬🇧 EN' }}
+            </button>
+            <app-theme-toggle />
+          </div>
         </header>
 
         <p class="home-subtitle">The football trivia game</p>
@@ -71,8 +81,6 @@ import { MatButtonModule } from '@angular/material/button';
             📅 Today in Football
           </button>
         </div>
-
-        <a routerLink="/leaderboard" class="home-leaderboard-link">View Global Leaderboard →</a>
       </div>
     </div>
   `,
@@ -96,6 +104,29 @@ import { MatButtonModule } from '@angular/material/button';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2rem;
+    }
+
+    .home-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .home-lang-toggle {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
+      background: transparent;
+      color: var(--mat-sys-on-surface-variant, #666);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .home-lang-toggle:hover {
+      border-color: var(--mat-sys-primary, #1976d2);
+      color: var(--mat-sys-primary, #1976d2);
     }
 
     .home-title-row {
@@ -202,24 +233,11 @@ import { MatButtonModule } from '@angular/material/button';
       color: var(--mat-sys-on-surface-variant);
       margin-top: 0.25rem;
     }
-
-    .home-leaderboard-link {
-      display: block;
-      text-align: center;
-      color: var(--mat-sys-primary);
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: opacity 0.2s;
-    }
-
-    .home-leaderboard-link:hover {
-      opacity: 0.85;
-    }
   `],
 })
 export class HomeComponent implements OnInit {
   auth = inject(AuthService);
+  lang = inject(LanguageService);
   private router = inject(Router);
   private blitzApi = inject(BlitzApiService);
   private soloApi = inject(SoloApiService);
