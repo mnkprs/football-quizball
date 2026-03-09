@@ -1,6 +1,6 @@
-// Supabase Edge Function: seed-pool-stats
-// Returns formatted seed pool stats (unanswered/answered per category and difficulty).
-// Invoke: POST/GET https://<project>.supabase.co/functions/v1/seed-pool-stats
+// Supabase Edge Function: list-blitz-questions
+// Returns blitz question pool rows (category, difficulty_score, question_text, answer, created_at).
+// Invoke: GET/POST https://<project>.supabase.co/functions/v1/list-blitz-questions
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data, error } = await supabase.rpc("get_seed_pool_stats");
+    const { data, error } = await supabase.rpc("get_blitz_questions_list");
 
     if (error) {
       return new Response(
@@ -30,33 +30,27 @@ Deno.serve(async (req) => {
 
     const rows = (data ?? []) as Array<{
       category: string;
-      difficulty: string;
-      unanswered: number;
-      answered: number;
+      difficulty_score: number;
+      question_text: string;
+      answer: string;
+      created_at: string;
+      id: string;
     }>;
 
-    const lines: string[] = [];
-
-    for (const row of rows) {
-      const cat = row.category ?? "";
-      const diff = row.difficulty ?? "";
-      const label = `${String(cat).replace(/_/g, " ")} / ${diff}`;
-      lines.push(label);
-      lines.push(`UNANSWERED: ${row.unanswered ?? 0}`);
-      lines.push(`ANSWERED: ${row.answered ?? 0}`);
-      lines.push("");
-    }
-
-    const text = lines.join("\n");
     const accept = req.headers.get("accept") ?? "";
 
     if (accept.includes("application/json")) {
-      return new Response(JSON.stringify({ stats: data, formatted: text }), {
+      return new Response(JSON.stringify({ questions: rows }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(text, {
+    // Plain text: one line per question
+    const lines = rows.map(
+      (r) =>
+        `[${r.category}/${r.difficulty_score}] ${r.question_text ?? ""} → ${r.answer ?? ""} (${r.created_at ?? ""})`
+    );
+    return new Response(lines.join("\n"), {
       headers: { ...corsHeaders, "Content-Type": "text/plain" },
     });
   } catch (err) {

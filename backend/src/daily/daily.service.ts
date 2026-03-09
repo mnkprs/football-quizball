@@ -20,8 +20,9 @@ export class DailyService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.pregenerateToday().catch((err) =>
-      this.logger.error(`[onModuleInit] Pre-generate failed: ${(err as Error).message}`),
+    this.logger.log('[INIT] Daily: checking today\'s questions...');
+    this.pregenerateToday(false).catch((err) =>
+      this.logger.error(`[INIT] Daily pre-generate failed: ${(err as Error).message}`),
     );
   }
 
@@ -53,15 +54,21 @@ export class DailyService implements OnModuleInit {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
-  async pregenerateToday() {
+  async pregenerateTodayCron() {
+    this.logger.log('[CRON] Daily pre-generate (1AM): running...');
+    return this.pregenerateToday(true);
+  }
+
+  async pregenerateToday(fromCron = false): Promise<void> {
+    const prefix = fromCron ? '[CRON] Daily (1AM)' : '[INIT] Daily';
     const today = this.getTodayDateStr();
     const existing = await this.fetchForDate(today);
     if (existing.length > 0) {
-      this.logger.log(`[pregenerateToday] ${today} already has questions, skipping`);
+      this.logger.log(`${prefix}: ${today} already has questions, skipping`);
       return;
     }
 
-    this.logger.log(`[pregenerateToday] Pre-generating questions for ${today}`);
+    this.logger.log(`${prefix}: generating for ${today}`);
     const generated = await this.todayGenerator.generateForDate(
       new Date().getDate(),
       new Date().getMonth() + 1,
@@ -69,7 +76,7 @@ export class DailyService implements OnModuleInit {
 
     if (generated.length > 0) {
       await this.saveForDate(today, generated);
-      this.logger.log(`[pregenerateToday] Saved ${generated.length} questions for ${today}`);
+      this.logger.log(`${prefix}: saved ${generated.length} questions for ${today}`);
     }
   }
 

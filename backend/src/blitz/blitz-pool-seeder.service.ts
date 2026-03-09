@@ -15,17 +15,19 @@ interface BandSpec {
 }
 
 const BANDS: BandSpec[] = [
-  { category: 'HISTORY',   minScore: 10, maxScore: 35, target: 150 },
-  { category: 'HISTORY',   minScore: 40, maxScore: 65, target: 150 },
-  { category: 'HISTORY',   minScore: 70, maxScore: 95, target: 100 },
-  { category: 'GEOGRAPHY', minScore: 10, maxScore: 35, target: 100 },
-  { category: 'GEOGRAPHY', minScore: 40, maxScore: 65, target: 100 },
-  { category: 'GEOGRAPHY', minScore: 70, maxScore: 95, target:  75 },
-  { category: 'GOSSIP',    minScore: 10, maxScore: 35, target: 100 },
-  { category: 'GOSSIP',    minScore: 40, maxScore: 65, target: 100 },
-  { category: 'GOSSIP',    minScore: 70, maxScore: 95, target:  75 },
-  { category: 'PLAYER_ID', minScore: 50, maxScore: 95, target: 100 },
+  { category: 'HISTORY',   minScore: 10, maxScore: 35, target: 20 },
+  { category: 'HISTORY',   minScore: 40, maxScore: 65, target: 20 },
+  { category: 'HISTORY',   minScore: 70, maxScore: 95, target: 20 },
+  { category: 'GEOGRAPHY', minScore: 10, maxScore: 35, target: 20 },
+  { category: 'GEOGRAPHY', minScore: 40, maxScore: 65, target: 20 },
+  { category: 'GEOGRAPHY', minScore: 70, maxScore: 95, target: 20 },
+  { category: 'GOSSIP',    minScore: 10, maxScore: 35, target: 20 },
+  { category: 'GOSSIP',    minScore: 40, maxScore: 65, target: 20 },
+  { category: 'GOSSIP',    minScore: 70, maxScore: 95, target: 20 },
+  { category: 'PLAYER_ID', minScore: 50, maxScore: 95, target: 20 },
 ];
+
+const GENERATION_BATCH_SIZE = 5;
 
 function scoreToDifficulty(score: number): 'EASY' | 'MEDIUM' | 'HARD' {
   if (score <= 33) return 'EASY';
@@ -49,14 +51,15 @@ export class BlitzPoolSeederService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    this.logger.log('[INIT] Blitz pool: checking initial levels...');
     this.seedIfLow(500).catch((err) =>
-      this.logger.error(`Initial blitz seed check failed: ${err.message}`),
+      this.logger.error(`[INIT] Blitz seed check failed: ${err.message}`),
     );
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async scheduledTopUp() {
-    this.logger.log('[blitz-seeder] Scheduled top-up: checking band levels...');
+    this.logger.log('[CRON] Blitz top-up (daily 3AM): checking band levels...');
     await this.seedPool();
   }
 
@@ -112,51 +115,56 @@ export class BlitzPoolSeederService implements OnModuleInit {
 
     const total = await this.getTotalCount();
     if (total >= minTotal) {
-      this.logger.log(`[blitz-seeder] Pool has ${total} rows (>= ${minTotal}), skipping init seed`);
+      this.logger.log(`[INIT] Blitz pool: ${total} rows (>= ${minTotal}), skipping seed`);
       return;
     }
 
-    this.logger.log(`[blitz-seeder] Pool has ${total} rows (< ${minTotal}), seeding...`);
+    this.logger.log(`[INIT] Blitz pool: ${total} rows (< ${minTotal}), seeding...`);
     await this.seedPool();
   }
 
   private async fillBand(band: BandSpec, count: number): Promise<number> {
     const existingKeys = await this.getExistingKeys(band.category);
-
-    const results = await Promise.allSettled(
-      Array.from({ length: count }, (_, i) => {
-        const score = randomScore(band.minScore, band.maxScore);
-        const minorityScale = 100 - score;
-        const difficulty = scoreToDifficulty(score);
-        return this.questionsService
-          .generateOne(band.category as QuestionCategory, difficulty, 'en', {
-            slotIndex: i,
-            minorityScale,
-            forBlitz: true,
-          })
-          .then((q) => ({ q, score }));
-      }),
-    );
-
     const rows: Array<{ category: string; difficulty_score: number; question: object }> = [];
-    for (const result of results) {
-      if (result.status !== 'fulfilled') continue;
-      const { q, score } = result.value;
-      const key = `${q.question_text}|||${q.correct_answer}`;
-      if (existingKeys.has(key)) {
-        this.logger.log(`[blitz-seeder] Skipping duplicate: "${q.question_text}"`);
-        continue;
+    let slotIndex = 0;
+
+    for (let offset = 0; offset < count; offset += GENERATION_BATCH_SIZE) {
+      const batchSize = Math.min(GENERATION_BATCH_SIZE, count - offset);
+      const results = await Promise.allSettled(
+        Array.from({ length: batchSize }, () => {
+          const score = randomScore(band.minScore, band.maxScore);
+          const minorityScale = 100 - score;
+          const difficulty = scoreToDifficulty(score);
+          const idx = slotIndex++;
+          return this.questionsService
+            .generateOne(band.category as QuestionCategory, difficulty, 'en', {
+              slotIndex: idx,
+              minorityScale,
+              forBlitz: true,
+            })
+            .then((q) => ({ q, score }));
+        }),
+      );
+
+      for (const result of results) {
+        if (result.status !== 'fulfilled') continue;
+        const { q, score } = result.value;
+        const key = `${q.question_text}|||${q.correct_answer}`;
+        if (existingKeys.has(key)) {
+          this.logger.log(`[blitz-seeder] Skipping duplicate: "${q.question_text}"`);
+          continue;
+        }
+        existingKeys.add(key);
+        rows.push({
+          category: band.category,
+          difficulty_score: score,
+          question: {
+            question_text: q.question_text,
+            correct_answer: q.correct_answer,
+            ...(q.wrong_choices?.length === 2 && { wrong_choices: q.wrong_choices }),
+          },
+        });
       }
-      existingKeys.add(key);
-      rows.push({
-        category: band.category,
-        difficulty_score: score,
-        question: {
-          question_text: q.question_text,
-          correct_answer: q.correct_answer,
-          ...(q.wrong_choices?.length === 2 && { wrong_choices: q.wrong_choices }),
-        },
-      });
     }
 
     if (rows.length === 0) return 0;
@@ -189,7 +197,7 @@ export class BlitzPoolSeederService implements OnModuleInit {
       return 0;
     }
 
-    this.logger.log(`[blitz-seeder] Inserted ${rows.length}/${results.length} for ${band.category}/${band.minScore}-${band.maxScore}`);
+    this.logger.log(`[blitz-seeder] Inserted ${rows.length} for ${band.category}/${band.minScore}-${band.maxScore}`);
     return rows.length;
   }
 
@@ -213,7 +221,8 @@ export class BlitzPoolSeederService implements OnModuleInit {
   private async getBandCounts(): Promise<Record<string, number>> {
     const { data, error } = await this.supabaseService.client
       .from('blitz_question_pool')
-      .select('category, difficulty_score');
+      .select('category, difficulty_score')
+      .eq('used', false);
 
     if (error) {
       this.logger.error(`[blitz-seeder] getBandCounts error: ${error.message}`);
@@ -239,7 +248,8 @@ export class BlitzPoolSeederService implements OnModuleInit {
   private async getTotalCount(): Promise<number> {
     const { count, error } = await this.supabaseService.client
       .from('blitz_question_pool')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .eq('used', false);
 
     if (error) {
       this.logger.error(`[blitz-seeder] getTotalCount error: ${error.message}`);

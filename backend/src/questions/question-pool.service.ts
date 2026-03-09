@@ -35,11 +35,12 @@ const DRAW_REQUIREMENTS: SlotRequirement[] = [
 ];
 
 // Target unused questions to keep per unique (category, difficulty) slot
+// Cron refills any slot that drops below target.
 const POOL_TARGET: Partial<Record<string, number>> = {
-  'GOSSIP/MEDIUM': 10, // 2 consumed per game
-  'NEWS/MEDIUM': 10,   // 2 consumed per game; refilled by news ingestion
+  'NEWS/MEDIUM': 10, // Refilled by news ingest cron, not pool refill
 };
-const DEFAULT_TARGET = 5;
+const DEFAULT_TARGET = 50;
+const GENERATION_BATCH_SIZE = 5;
 
 export interface DrawBoardResult {
   questions: GeneratedQuestion[];
@@ -59,9 +60,9 @@ export class QuestionPoolService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Kick off initial refill in background without blocking startup
+    this.logger.log('[INIT] Question pool: checking levels...');
     this.refillIfNeeded().catch((err) =>
-      this.logger.error(`Initial pool refill failed: ${err.message}`),
+      this.logger.error(`[INIT] Pool refill failed: ${err.message}`),
     );
   }
 
@@ -308,7 +309,7 @@ export class QuestionPoolService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_5_MINUTES)
   async scheduledRefill() {
-    this.logger.log('[scheduledRefill] Checking pool levels...');
+    this.logger.log('[CRON] Question pool refill (every 5 min): checking levels...');
     await this.refillIfNeeded();
   }
 
@@ -365,25 +366,29 @@ export class QuestionPoolService implements OnModuleInit {
     count: number,
     baseSlotIndex = 0,
   ): Promise<string[]> {
-    const results = await Promise.allSettled(
-      Array.from({ length: count }, (_, i) =>
-        this.questionsService.generateOne(category, difficulty, 'en', {
-          slotIndex: baseSlotIndex + i,
-        }),
-      ),
-    );
-
-    const candidates = results
-      .filter((r): r is PromiseFulfilledResult<GeneratedQuestion> => r.status === 'fulfilled')
-      .map((r) => r.value)
-      .filter((q) => {
-        const { valid, reason } = this.questionValidator.validate(q);
-        if (!valid) {
-          this.logger.debug(`[fillSlot] Rejected invalid question: ${reason}`);
-          return false;
-        }
-        return true;
-      });
+    const candidates: GeneratedQuestion[] = [];
+    for (let offset = 0; offset < count; offset += GENERATION_BATCH_SIZE) {
+      const batchSize = Math.min(GENERATION_BATCH_SIZE, count - offset);
+      const results = await Promise.allSettled(
+        Array.from({ length: batchSize }, (_, i) =>
+          this.questionsService.generateOne(category, difficulty, 'en', {
+            slotIndex: baseSlotIndex + offset + i,
+          }),
+        ),
+      );
+      const batch = results
+        .filter((r): r is PromiseFulfilledResult<GeneratedQuestion> => r.status === 'fulfilled')
+        .map((r) => r.value)
+        .filter((q) => {
+          const { valid, reason } = this.questionValidator.validate(q);
+          if (!valid) {
+            this.logger.debug(`[fillSlot] Rejected invalid question: ${reason}`);
+            return false;
+          }
+          return true;
+        });
+      candidates.push(...batch);
+    }
 
     if (candidates.length === 0) return [];
 

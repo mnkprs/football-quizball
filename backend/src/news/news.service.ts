@@ -121,7 +121,7 @@ export class NewsService {
 
   @Cron(CronExpression.EVERY_6_HOURS)
   async scheduledIngest() {
-    this.logger.log('[scheduledIngest] Checking news pool...');
+    this.logger.log('[CRON] News ingest (every 6h): checking pool, expiring old...');
     await this.expireOldNews();
     await this.ingestNews();
   }
