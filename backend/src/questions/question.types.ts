@@ -80,6 +80,8 @@ export interface BoardCell {
   answered_by?: string;
   points_awarded?: number;
   lifeline_applied?: boolean;
+  /** Set when player submitted with 2x armed; used by override to apply multiplier */
+  double_armed?: boolean;
 }
 
 export const DIFFICULTY_POINTS: Record<Difficulty, number> = {

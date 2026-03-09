@@ -206,8 +206,12 @@ export class GameService {
     if (correct) {
       session.players[dto.playerIndex].score += points_awarded;
     }
-    if (doubleApplied) {
+    // Only consume 2x when answer is correct; if wrong, override can still apply it
+    if (correct && doubleApplied) {
       session.players[dto.playerIndex].doubleUsed = true;
+    }
+    if (doubleApplied) {
+      cell.double_armed = true;
     }
 
     cell.answered = true;
@@ -231,7 +235,7 @@ export class GameService {
       points_awarded,
       player_scores: [session.players[0].score, session.players[1].score],
       lifeline_used: lifelineUsed,
-      double_used: doubleApplied,
+      double_used: doubleApplied && correct,
     };
   }
 
@@ -282,9 +286,14 @@ export class GameService {
     const cell = session.board.flat().find((c) => c.question_id === questionId);
     if (!cell) throw new NotFoundException('Board cell not found');
 
+    const player = session.players[playerIndex];
+    const basePoints = isCorrect ? cell.points : 0;
+    const doubleApply =
+      isCorrect && !!cell.double_armed && !player.doubleUsed;
+    const newPoints = doubleApply ? basePoints * 2 : basePoints;
+
     // Adjust score
     const previousPoints = cell.points_awarded || 0;
-    const newPoints = isCorrect ? cell.points : 0;
     const scoreDelta = newPoints - previousPoints;
 
     session.players[playerIndex].score = Math.max(
@@ -292,6 +301,9 @@ export class GameService {
       session.players[playerIndex].score + scoreDelta,
     );
     cell.points_awarded = newPoints;
+    if (doubleApply) {
+      session.players[playerIndex].doubleUsed = true;
+    }
 
     session.updatedAt = new Date();
     this.cacheService.set(`game:${session.id}`, session, 86400);
@@ -303,7 +315,7 @@ export class GameService {
       points_awarded: newPoints,
       player_scores: [session.players[0].score, session.players[1].score],
       lifeline_used: false,
-      double_used: false,
+      double_used: doubleApply,
     };
   }
 
