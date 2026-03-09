@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 /**
  * Seed the question pool via the admin API.
- * Usage: npm run seed-pool -- [target]
+ * Usage: npm run seed-pool -- 50  (or npm run seed-pool --50)
  * Example: npm run seed-pool -- 100
  */
-const target = Math.min(500, Math.max(1, parseInt(process.argv[2] || '100', 10)));
+function parseTargetArg() {
+  const raw = (process.argv[2] || '100').replace(/^--/, '');
+  const n = parseInt(raw, 10);
+  return Number.isNaN(n) ? 100 : Math.min(500, Math.max(1, n));
+}
+const target = parseTargetArg();
 const baseUrl = process.env.API_URL || 'http://localhost:3001';
 
 async function main() {

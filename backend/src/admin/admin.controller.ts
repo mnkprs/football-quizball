@@ -18,7 +18,8 @@ export class AdminController {
   @Post('seed-pool')
   @HttpCode(HttpStatus.OK)
   async seedPool(@Query('target') target?: string) {
-    const count = Math.min(500, Math.max(1, parseInt(target || '100', 10)));
+    const n = parseInt(String(target || '100').replace(/^--/, ''), 10);
+    const count = Number.isNaN(n) ? 100 : Math.min(500, Math.max(1, n));
     this.logger.log(`[seed-pool] Request received: target=${count}`);
     const results = await this.questionPoolService.seedPool(count, true);
     return {
