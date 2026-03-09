@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
 import { Difficulty } from '../questions/question.types';
 import { SoloQuestion } from './solo.types';
+import { getExplicitConstraints, getAntiConvergenceInstruction } from '../questions/diversity-hints';
 
 @Injectable()
 export class SoloQuestionGenerator {
@@ -20,7 +21,7 @@ export class SoloQuestionGenerator {
 Generate a single football question. The question should be ${difficultyGuide[difficulty]}.
 Cover any football topic: history, players, clubs, transfers, trophies, scores, records, gossip, geography.
 Phrase questions to be SPECIFIC and harder to Google quickly (avoid simple "who scored in the 2014 World Cup final" style).
-The answer must be a SHORT, precise text answer (a name, number, year, score, or country — NOT a long sentence).
+The answer must be a SHORT, precise text answer (a name, number, year, score, or country — NOT a long sentence).${getAntiConvergenceInstruction()}
 Return ONLY valid JSON:
 {
   "question_text": "...",
@@ -30,7 +31,8 @@ Return ONLY valid JSON:
 }
 difficulty_factor: float 0.1–1.0 (how hard within the difficulty tier)`;
 
-    const userPrompt = `Generate a ${difficulty} football trivia question. Return only the JSON object.`;
+    const diversityConstraints = getExplicitConstraints('HISTORY'); // broad category for solo
+    const userPrompt = `Generate a ${difficulty} football trivia question. Return only the JSON object.${diversityConstraints}`;
 
     const raw = await this.llmService.generateStructuredJson<{
       question_text: string;

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
 
 
 @Injectable()
@@ -15,7 +15,7 @@ export class GeographyGenerator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football geography expert. Generate a football-related geography question.
-Topics can include: countries with famous clubs, cities and their football teams, stadium locations, nationalities of famous players, nations that have hosted tournaments, FIFA/UEFA confederation memberships.
+Topics can include: countries with famous clubs, cities and their football teams, stadium locations, nationalities of famous players, nations that have hosted tournaments, FIFA/UEFA confederation memberships.${getAntiConvergenceInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",

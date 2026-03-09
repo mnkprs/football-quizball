@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion, Top5Entry, DifficultyFactors } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
 
 
 @Injectable()
@@ -15,7 +15,7 @@ export class Top5Generator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football statistics expert. Generate a "Name the Top 5" football quiz question.
-Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.
+Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.${getAntiConvergenceInstruction()}
 Return ONLY valid JSON:
 {
   "question_text": "Name the top 5 ...",

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
 
 
 @Injectable()
@@ -16,7 +16,7 @@ export class GossipGenerator {
       : '';
     const systemPrompt = `You are a football celebrity gossip expert. Generate a fun football gossip trivia question.
 Topics can include: famous transfer sagas, player controversies, WAG stories, celebrity footballer relationships, off-pitch incidents, feuds between players or managers, outrageous quotes, extravagant lifestyles.
-Keep it factual (real events) and entertaining.
+Keep it factual (real events) and entertaining.${getAntiConvergenceInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",

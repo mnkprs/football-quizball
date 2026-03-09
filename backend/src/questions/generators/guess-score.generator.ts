@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
 
 
 interface MatchData {
@@ -33,7 +33,7 @@ export class GuessScoreGenerator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football historian. Generate a "Guess the Score" question.
-Pick any real, historically accurate match — any era, any competition.
+Pick any real, historically accurate match — any era, any competition.${getAntiConvergenceInstruction()}
 Return ONLY valid JSON:
 {
   "home_team": "Team Name",

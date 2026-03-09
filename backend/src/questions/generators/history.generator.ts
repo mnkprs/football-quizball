@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
 
 
 @Injectable()
@@ -15,7 +15,7 @@ export class HistoryGenerator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
-Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.
+Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getAntiConvergenceInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",

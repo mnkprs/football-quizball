@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
 
 
 interface CareerEntry {
@@ -25,7 +25,7 @@ export class PlayerIdGenerator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
-Pick any interesting footballer — legendary, retired, or current, from any era or league.
+Pick any interesting footballer — legendary, retired, or current, from any era or league.${getAntiConvergenceInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "player_name": "Full Name",

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
 
 
 interface HolData {
@@ -35,7 +35,7 @@ export class HigherOrLowerGenerator {
     const systemPrompt = `You are a football statistics expert. Create a "Higher or Lower" question.
 The question shows a player's stat with a WRONG value, and the player must guess if the real value is Higher or Lower.
 The "shown_value" should be plausibly wrong (within 20-30% of real value, either above or below).
-Pick any interesting football statistic — any era, any league.
+Pick any interesting football statistic — any era, any league.${getAntiConvergenceInstruction()}
 Return ONLY valid JSON:
 {
   "player": "Player Full Name",
