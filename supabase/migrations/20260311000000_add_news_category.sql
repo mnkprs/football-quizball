@@ -1,0 +1,4 @@
+-- Add NEWS category support for question_pool.
+-- question_pool has no CHECK constraint on category, so NEWS can be inserted directly.
+-- This migration documents the NEWS category and ensures compatibility.
+-- No schema changes required; NEWS rows are inserted by the news ingestion service.

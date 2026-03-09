@@ -12,7 +12,7 @@ const TRANSLATIONS = {
     player1Placeholder: 'Player 1 name...',
     player2Placeholder: 'Player 2 name...',
     kickOff: 'Kick Off! ⚽',
-    howToPlay: '7 categories · Up to 3 difficulties · 1 lifeline each',
+    howToPlay: '8 categories · Up to 3 difficulties · 1 lifeline each',
     failedToStart: 'Failed to start game. Please try again.',
     // Board
     turn: 'Turn',
@@ -59,6 +59,7 @@ const TRANSLATIONS = {
     catGeography: 'GEOGRAPHY',
     catGossip: 'GOSSIP',
     catTop5: 'TOP 5',
+    catNews: 'NEWS',
     // Category labels (question view)
     catHistoryQ: 'History',
     catPlayerIdQ: 'Player ID',
@@ -68,6 +69,7 @@ const TRANSLATIONS = {
     catGeographyQ: 'Geography',
     catGossipQ: 'Gossip',
     catTop5Q: 'Top 5',
+    catNewsQ: 'News',
     // Result
     correct: 'Correct!',
     wrong: 'Wrong!',
@@ -99,7 +101,7 @@ const TRANSLATIONS = {
     player1Placeholder: 'Όνομα Παίκτη 1...',
     player2Placeholder: 'Όνομα Παίκτη 2...',
     kickOff: 'Έναρξη! ⚽',
-    howToPlay: '7 κατηγορίες · Μέχρι 3 επίπεδα δυσκολίας · 1 βοήθεια ο καθένας',
+    howToPlay: '8 κατηγορίες · Μέχρι 3 επίπεδα δυσκολίας · 1 βοήθεια ο καθένας',
     failedToStart: 'Αποτυχία εκκίνησης. Παρακαλώ δοκιμάστε ξανά.',
     // Board
     turn: 'Σειρά',
@@ -146,6 +148,7 @@ const TRANSLATIONS = {
     catGeography: 'ΓΕΩΓΡΑΦΙΑ',
     catGossip: 'GOSSIP',
     catTop5: 'TOP 5',
+    catNews: 'ΝΕΑ',
     // Category labels (question view)
     catHistoryQ: 'Ιστορία',
     catPlayerIdQ: 'Παίκτης',
@@ -155,6 +158,7 @@ const TRANSLATIONS = {
     catGeographyQ: 'Γεωγραφία',
     catGossipQ: 'Gossip',
     catTop5Q: 'Top 5',
+    catNewsQ: 'Νέα',
     // Result
     correct: 'Σωστό!',
     wrong: 'Λάθος!',

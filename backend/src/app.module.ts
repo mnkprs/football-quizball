@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { SoloModule } from './solo/solo.module';
 import { BlitzModule } from './blitz/blitz.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { NewsModule } from './news/news.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
     SoloModule,
     BlitzModule,
     LeaderboardModule,
+    NewsModule,
   ],
 })
 export class AppModule {}

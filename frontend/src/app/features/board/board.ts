@@ -105,7 +105,7 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
                 @for (cell of row.cells; track cell.question_id) {
                   <button
                     (click)="selectQuestion(cell)"
-                    [disabled]="cell.answered"
+                    [disabled]="cell.answered || !cell.question_id"
                     [class]="'w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center font-black transition-all shadow-md ' + circleClass(cell, row.key)"
                   >
                     @if (cell.answered) {
@@ -150,6 +150,7 @@ export class BoardComponent {
     GEOGRAPHY:       { rowCls: 'bg-gradient-to-r from-green-700 to-green-500',   circleCls: 'bg-green-900 border-green-700', icon: '🌍' },
     GOSSIP:          { rowCls: 'bg-gradient-to-r from-pink-700 to-pink-500',     circleCls: 'bg-pink-900 border-pink-700',   icon: '💬' },
     TOP_5:           { rowCls: 'bg-gradient-to-r from-indigo-700 to-indigo-500', circleCls: 'bg-indigo-900 border-indigo-700', icon: '🏅' },
+    NEWS:            { rowCls: 'bg-gradient-to-r from-orange-700 to-orange-500',   circleCls: 'bg-orange-900 border-orange-700', icon: '📰' },
   };
 
   private readonly categoryLabelKey: Record<string, keyof ReturnType<typeof this.lang.t>> = {
@@ -161,6 +162,7 @@ export class BoardComponent {
     GEOGRAPHY: 'catGeography',
     GOSSIP: 'catGossip',
     TOP_5: 'catTop5',
+    NEWS: 'catNews',
   };
 
   categoryRows = computed(() => {

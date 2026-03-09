@@ -30,11 +30,13 @@ const DRAW_REQUIREMENTS: SlotRequirement[] = [
   { category: 'GEOGRAPHY',       difficulty: 'MEDIUM', count: 1 },
   { category: 'GEOGRAPHY',       difficulty: 'HARD',   count: 1 },
   { category: 'GOSSIP',          difficulty: 'MEDIUM', count: 2 },
+  { category: 'NEWS',            difficulty: 'MEDIUM', count: 2 },
 ];
 
 // Target unused questions to keep per unique (category, difficulty) slot
 const POOL_TARGET: Partial<Record<string, number>> = {
   'GOSSIP/MEDIUM': 10, // 2 consumed per game
+  'NEWS/MEDIUM': 10,   // 2 consumed per game; refilled by news ingestion
 };
 const DEFAULT_TARGET = 5;
 
@@ -72,11 +74,15 @@ export class QuestionPoolService implements OnModuleInit {
     for (const slot of DRAW_REQUIREMENTS) {
       const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count, language);
       if (drawn.length < slot.count) {
-        const missing = slot.count - drawn.length;
-        throw new Error(
-          `Pool insufficient for Greek: ${slot.category}/${slot.difficulty} has ${drawn.length}, need ${slot.count}. ` +
-            `Missing ${missing}. Seed the pool first (e.g. POST /api/admin/seed-pool?target=5).`,
-        );
+        if (slot.category === 'NEWS') {
+          this.logger.warn(`[drawBoardFromPoolOnly] NEWS pool empty for Greek — skipping NEWS slot`);
+        } else {
+          const missing = slot.count - drawn.length;
+          throw new Error(
+            `Pool insufficient for Greek: ${slot.category}/${slot.difficulty} has ${drawn.length}, need ${slot.count}. ` +
+              `Missing ${missing}. Seed the pool first (e.g. POST /api/admin/seed-pool?target=5).`,
+          );
+        }
       }
       for (const q of drawn) {
         board.push(q);
@@ -97,6 +103,7 @@ export class QuestionPoolService implements OnModuleInit {
       const board: GeneratedQuestion[] = [];
       await Promise.all(
         DRAW_REQUIREMENTS.map(async (slot) => {
+          if (slot.category === 'NEWS') return; // NEWS has no live generator; use pool only
           for (let i = 0; i < slot.count; i++) {
             try {
               const q = await this.questionsService.generateOne(slot.category, slot.difficulty, language);
@@ -122,8 +129,9 @@ export class QuestionPoolService implements OnModuleInit {
         }
 
         // Fill missing with live generation (these are NOT from pool)
+        // NEWS has no live generator — it is filled by news ingestion only
         const missing = slot.count - drawn.length;
-        if (missing > 0) {
+        if (missing > 0 && slot.category !== 'NEWS') {
           this.logger.warn(`[drawBoard] Pool empty for ${slot.category}/${slot.difficulty} — generating ${missing} live`);
           for (let i = 0; i < missing; i++) {
             try {
@@ -133,6 +141,8 @@ export class QuestionPoolService implements OnModuleInit {
               this.logger.error(`[drawBoard] Live fallback failed for ${slot.category}/${slot.difficulty}: ${(err as Error).message}`);
             }
           }
+        } else if (missing > 0 && slot.category === 'NEWS') {
+          this.logger.warn(`[drawBoard] NEWS pool empty — run POST /api/news/ingest to populate`);
         }
       }),
     );
@@ -208,6 +218,7 @@ export class QuestionPoolService implements OnModuleInit {
       let globalSlotIndex = 0;
 
       for (const { category, difficulty } of sortedSlots) {
+        if (category === 'NEWS') continue; // NEWS is filled by news ingestion service
         const key = `${category}/${difficulty}`;
         const current = counts[key] ?? 0;
         const needed = Math.max(0, target - current);
@@ -249,6 +260,7 @@ export class QuestionPoolService implements OnModuleInit {
       let globalSlotIndex = 0;
 
       for (const { category, difficulty } of sortedSlots) {
+        if (category === 'NEWS') continue; // NEWS is filled by news ingestion service, not pool refill
         const key = `${category}/${difficulty}`;
         const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
         const current = counts[key] ?? 0;

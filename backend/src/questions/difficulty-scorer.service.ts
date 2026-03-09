@@ -12,6 +12,7 @@ const CATEGORY_MODIFIERS: Record<QuestionCategory, number> = {
   HISTORY:           0.02,  // Historical fact recall — slight upward
   TOP_5:             0.06,  // Must recall 5 ordered items
   GUESS_SCORE:       0.08,  // Exact two-number recall — hardest
+  NEWS:             -0.05,  // Current events — similar to gossip
 };
 
 // Answer precision modifier — exact numbers harder than names

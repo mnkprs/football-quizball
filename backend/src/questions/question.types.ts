@@ -5,7 +5,8 @@ export type QuestionCategory =
   | 'GUESS_SCORE'
   | 'TOP_5'
   | 'GEOGRAPHY'
-  | 'GOSSIP';
+  | 'GOSSIP'
+  | 'NEWS';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -98,6 +99,7 @@ export const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   TOP_5: 'Top 5',
   GEOGRAPHY: 'Geography',
   GOSSIP: 'Gossip',
+  NEWS: 'News',
 };
 
 export const CATEGORY_LABELS_EL: Record<QuestionCategory, string> = {
@@ -108,6 +110,7 @@ export const CATEGORY_LABELS_EL: Record<QuestionCategory, string> = {
   TOP_5: 'Top 5',
   GEOGRAPHY: 'Γεωγραφία',
   GOSSIP: 'Gossip',
+  NEWS: 'Νέα',
 };
 
 export interface Top5Entry {

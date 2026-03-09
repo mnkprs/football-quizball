@@ -171,6 +171,7 @@ export class QuestionsService {
       case 'TOP_5':           return this.top5Generator.generate(language, genOpts);
       case 'GEOGRAPHY':       return this.geographyGenerator.generate(language, genOpts);
       case 'GOSSIP':          return this.gossipGenerator.generate(language, genOpts);
+      case 'NEWS':            throw new Error('NEWS has no live generator — use news ingestion service');
     }
   }
 

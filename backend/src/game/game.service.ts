@@ -20,13 +20,14 @@ import {
 } from './game.types';
 import { Top5Entry, Top5Progress } from '../questions/question.types';
 
-const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'GOSSIP'] as const;
+const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'GOSSIP', 'NEWS'] as const;
 const DIFFICULTIES_ORDER = ['EASY', 'MEDIUM', 'HARD'] as const;
 
 // Per-category difficulty slots (GOSSIP has 2 fixed MEDIUM slots)
 const CATEGORY_DIFFICULTY_SLOTS: Partial<Record<string, readonly Difficulty[]>> = {
   GOSSIP: ['MEDIUM', 'MEDIUM'],
   TOP_5: ['HARD', 'HARD'],
+  NEWS: ['MEDIUM', 'MEDIUM'],
 };
 
 @Injectable()
