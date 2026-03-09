@@ -122,7 +122,7 @@ export class QuestionsService {
     category: QuestionCategory,
     difficulty: Difficulty,
     language: string = 'en',
-    options?: { avoidAnswers?: string[] },
+    options?: { avoidAnswers?: string[]; slotIndex?: number },
   ): Promise<GeneratedQuestion> {
     const question = await this.generateRawWithRetry(category, language, options);
     const { difficulty: scoredDiff, points } = this.difficultyScorer.score(question.difficulty_factors!);
@@ -133,7 +133,7 @@ export class QuestionsService {
   private async generateRawWithRetry(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[] },
+    options?: { avoidAnswers?: string[]; slotIndex?: number },
     maxRetries = 3,
   ): Promise<GeneratedQuestion> {
     let lastError: Error | null = null;
@@ -155,9 +155,12 @@ export class QuestionsService {
   private async generateRaw(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[] },
+    options?: { avoidAnswers?: string[]; slotIndex?: number },
   ): Promise<GeneratedQuestion> {
-    const genOpts = options?.avoidAnswers?.length ? { avoidAnswers: options.avoidAnswers } : undefined;
+    const genOpts =
+      options?.avoidAnswers?.length || options?.slotIndex !== undefined
+        ? { avoidAnswers: options.avoidAnswers, slotIndex: options.slotIndex }
+        : undefined;
     switch (category) {
       case 'HISTORY':         return this.historyGenerator.generate(language, genOpts);
       case 'PLAYER_ID':       return this.playerIdGenerator.generate(language, genOpts);

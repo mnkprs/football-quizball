@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { getDiversityHints, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraints, getAvoidInstruction } from '../diversity-hints';
 
 
 @Injectable()
@@ -10,7 +10,7 @@ export class GeographyGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[] }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -30,7 +30,7 @@ Return ONLY a valid JSON object with these exact fields:
 fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.
 specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).${langInstruction}`;
 
-    const userPrompt = `Generate a unique football geography trivia question. It can be about any country, city, stadium, or tournament location. Make it interesting. Return JSON only.${getDiversityHints('GEOGRAPHY')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate a unique football geography trivia question. Make it interesting. Return JSON only.${getExplicitConstraints('GEOGRAPHY', options?.slotIndex)}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{
       question_text: string;

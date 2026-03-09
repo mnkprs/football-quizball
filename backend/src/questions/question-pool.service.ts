@@ -258,8 +258,11 @@ export class QuestionPoolService implements OnModuleInit {
   ): Promise<void> {
     const avoidAnswers = await this.getExistingAnswers(category);
     const results = await Promise.allSettled(
-      Array.from({ length: count }, () =>
-        this.questionsService.generateOne(category, difficulty, 'en', { avoidAnswers }),
+      Array.from({ length: count }, (_, i) =>
+        this.questionsService.generateOne(category, difficulty, 'en', {
+          avoidAnswers,
+          slotIndex: i,
+        }),
       ),
     );
 
@@ -269,8 +272,11 @@ export class QuestionPoolService implements OnModuleInit {
 
     if (candidates.length === 0) return;
 
-    // Fetch existing question keys for this category to prevent duplicates
-    const existingKeys = await this.getExistingQuestionKeys(category);
+    // Fetch existing question keys and answers for this category to prevent duplicates
+    const [existingKeys, existingAnswersNorm] = await Promise.all([
+      this.getExistingQuestionKeys(category),
+      this.getExistingAnswersNormalized(category),
+    ]);
 
     const rows = candidates
       .filter((q) => {
@@ -279,7 +285,13 @@ export class QuestionPoolService implements OnModuleInit {
           this.logger.debug(`[fillSlot] Skipping duplicate: "${q.question_text.slice(0, 60)}..."`);
           return false;
         }
-        existingKeys.add(key); // prevent intra-batch duplicates too
+        const ansNorm = q.correct_answer.trim().toLowerCase();
+        if (existingAnswersNorm.has(ansNorm)) {
+          this.logger.debug(`[fillSlot] Skipping same-answer: "${q.correct_answer}"`);
+          return false;
+        }
+        existingKeys.add(key);
+        existingAnswersNorm.add(ansNorm);
         return true;
       })
       .map((q) => ({ category, difficulty, question: q }));
@@ -314,7 +326,7 @@ export class QuestionPoolService implements OnModuleInit {
       const a = r?.correct_answer;
       if (typeof a === 'string' && a.trim()) answers.add(a.trim());
     }
-    return Array.from(answers).slice(0, 15);
+    return Array.from(answers).slice(0, 30);
   }
 
   /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */
@@ -333,6 +345,26 @@ export class QuestionPoolService implements OnModuleInit {
       (data as Array<{ question_text: string; correct_answer: string }>)
         .map((r) => `${r.question_text}|||${r.correct_answer}`),
     );
+  }
+
+  /** Returns a Set of normalized (lowercase, trimmed) correct_answer values for a category. */
+  private async getExistingAnswersNormalized(category: QuestionCategory): Promise<Set<string>> {
+    const { data, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('question->correct_answer')
+      .eq('category', category);
+
+    if (error) {
+      this.logger.error(`[getExistingAnswersNormalized] Query error: ${error.message}`);
+      return new Set();
+    }
+
+    const set = new Set<string>();
+    for (const r of data as Array<{ correct_answer?: string }>) {
+      const a = r?.correct_answer;
+      if (typeof a === 'string' && a.trim()) set.add(a.trim().toLowerCase());
+    }
+    return set;
   }
 
   private async getPoolCounts(): Promise<Record<string, number>> {
