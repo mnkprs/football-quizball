@@ -6,8 +6,10 @@
     "backend": "cd backend && npm run start:dev",
     "frontend": "cd frontend && ng serve --port 4200",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "build": "cd backend && npm install && npm run build",
     "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && ng build"
+    "build:frontend": "cd frontend && ng build",
+    "start:prod": "cd backend && npm run start:prod"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
