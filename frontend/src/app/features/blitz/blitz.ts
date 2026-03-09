@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { BlitzApiService, BlitzQuestionRef, BlitzLeaderboardEntry } from '../../core/blitz-api.service';
+import { BlitzApiService, BlitzQuestionRef } from '../../core/blitz-api.service';
+import { LanguageService } from '../../core/language.service';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
 
@@ -9,8 +10,9 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
   selector: 'app-blitz',
   standalone: true,
   imports: [],
+  host: { class: 'blitz-host' },
   template: `
-    <div class="min-h-screen bg-background flex flex-col p-4">
+    <div class="blitz-root bg-background flex flex-col p-4">
       <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
 
         <!-- Header -->
@@ -26,33 +28,21 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
             <div class="text-6xl mb-6">⚡</div>
             <h2 class="text-2xl font-black text-foreground mb-2">Blitz Mode</h2>
             <p class="text-muted-foreground text-center mb-2">60 seconds. Answer as many as you can.</p>
-            <p class="text-muted-foreground text-sm text-center mb-8">Pick from 3 choices — no typing.</p>
+            <ul class="text-muted-foreground text-sm text-center mb-8 space-y-1 max-w-xs">
+              <li>• Pick from 3 choices — no typing required</li>
+              <li>• Fast-paced: each question appears right after you answer</li>
+              <li>• Your best score is saved and ranked on the leaderboard</li>
+              <li>• Perfect for quick sessions and testing your knowledge</li>
+            </ul>
             <button
               (click)="startSession()"
               [disabled]="loading()"
-              class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-xl hover:bg-accent-light active:scale-95 transition disabled:opacity-50 pressable"
+              class="blitz-start-btn"
             >
               {{ loading() ? 'Loading...' : 'Start Blitz' }}
             </button>
             @if (error()) {
               <p class="text-loss text-sm mt-4">{{ error() }}</p>
-            }
-
-            @if (leaderboard().length > 0) {
-              <div class="w-full max-w-xs mt-10">
-                <h3 class="text-muted-foreground text-xs uppercase tracking-widest font-bold mb-3 text-center">Top Scores</h3>
-                <div class="space-y-2">
-                  @for (entry of leaderboard().slice(0, 5); track entry.user_id; let i = $index) {
-                    <div class="flex items-center justify-between bg-card rounded-xl px-4 py-2 border border-border">
-                      <div class="flex items-center gap-3">
-                        <span class="text-muted-foreground text-sm font-bold w-5">{{ i + 1 }}</span>
-                        <span class="text-foreground text-sm font-semibold">{{ entry.username }}</span>
-                      </div>
-                      <span class="text-accent font-black">{{ entry.score }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
             }
           </div>
         }
@@ -129,23 +119,6 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
               </div>
             </div>
 
-            @if (leaderboard().length > 0) {
-              <div class="w-full max-w-xs mb-8">
-                <h3 class="text-muted-foreground text-xs uppercase tracking-widest font-bold mb-3 text-center">Blitz Leaderboard</h3>
-                <div class="space-y-2">
-                  @for (entry of leaderboard(); track entry.user_id; let i = $index) {
-                    <div class="flex items-center justify-between bg-card rounded-xl px-4 py-2 border border-border">
-                      <div class="flex items-center gap-3">
-                        <span class="text-muted-foreground text-sm font-bold w-5">{{ i + 1 }}</span>
-                        <span class="text-foreground text-sm font-semibold">{{ entry.username }}</span>
-                      </div>
-                      <span class="text-accent font-black">{{ entry.score }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-
             <button
               (click)="resetToIdle()"
               class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light transition mb-3 pressable"
@@ -161,10 +134,47 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
       </div>
     </div>
   `,
+  styles: [`
+    :host.blitz-host {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .blitz-root {
+      flex: 1;
+      min-height: 0;
+    }
+    .blitz-start-btn {
+      width: 100%;
+      max-width: 20rem;
+      padding: 1rem 1.5rem;
+      border-radius: 1rem;
+      background: var(--color-accent);
+      color: var(--color-accent-foreground);
+      font-weight: 800;
+      font-size: 1.25rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .blitz-start-btn:hover:not(:disabled) {
+      background: var(--color-accent-light);
+    }
+    .blitz-start-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    .blitz-start-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  `],
 })
 export class BlitzComponent implements OnDestroy {
   private api = inject(BlitzApiService);
   private router = inject(Router);
+  private lang = inject(LanguageService);
 
   phase = signal<BlitzPhase>('idle');
   loading = signal(false);
@@ -175,7 +185,6 @@ export class BlitzComponent implements OnDestroy {
   score = signal(0);
   totalAnswered = signal(0);
   timeLeft = signal(60);
-  leaderboard = signal<BlitzLeaderboardEntry[]>([]);
 
   showFlash = signal(false);
   flashCorrect = signal(false);
@@ -210,15 +219,13 @@ export class BlitzComponent implements OnDestroy {
     return `${base} bg-card border border-border text-muted-foreground opacity-40`;
   }
 
-  constructor() {
-    this.loadLeaderboard();
-  }
+  constructor() {}
 
   async startSession(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(this.api.startSession());
+      const res = await firstValueFrom(this.api.startSession(this.lang.lang()));
       this.sessionId.set(res.session_id);
       this.currentQuestion.set(res.first_question);
       this.score.set(0);
@@ -277,7 +284,6 @@ export class BlitzComponent implements OnDestroy {
     try {
       await firstValueFrom(this.api.endSession(sid));
     } catch { /* score already saved by backend on time_up */ }
-    await this.loadLeaderboard();
     this.phase.set('finished');
   }
 
@@ -309,13 +315,6 @@ export class BlitzComponent implements OnDestroy {
     this.showFlash.set(false);
   }
 
-  private async loadLeaderboard(): Promise<void> {
-    try {
-      const data = await firstValueFrom(this.api.getLeaderboard());
-      this.leaderboard.set(data);
-    } catch { /* non-critical */ }
-  }
-
   resetToIdle(): void {
     this.sessionId.set(null);
     this.score.set(0);
@@ -325,7 +324,6 @@ export class BlitzComponent implements OnDestroy {
     this.selectedChoice.set(null);
     this.timeLeft.set(60);
     this.phase.set('idle');
-    this.loadLeaderboard();
   }
 
   goHome(): void {

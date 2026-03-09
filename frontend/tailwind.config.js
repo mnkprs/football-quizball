@@ -12,6 +12,11 @@ module.exports = {
     'from-green-700',  'to-green-500',  'bg-green-900',  'border-green-700',
     'from-pink-700',   'to-pink-500',   'bg-pink-900',   'border-pink-700',
     'from-indigo-700', 'to-indigo-500', 'bg-indigo-900', 'border-indigo-700',
+    // Solo & Blitz dynamic classes (choiceClass, difficultyBadgeClass, result banners)
+    'bg-win/10', 'bg-win/20', 'bg-win/95', 'border-win', 'border-win/50', 'text-win',
+    'bg-loss/10', 'bg-loss/20', 'bg-loss/95', 'border-loss', 'text-loss',
+    'bg-yellow-900/50', 'text-yellow-400', 'border-yellow-700',
+    'text-white/80',
   ],
   theme: {
     extend: {

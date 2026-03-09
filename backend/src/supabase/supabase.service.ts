@@ -24,6 +24,33 @@ export class SupabaseService {
     return data;
   }
 
+  /** Returns max ELO ever reached (current elo or peak from history). */
+  async getMaxElo(userId: string): Promise<number | null> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return null;
+    const { data } = await this.client
+      .from('elo_history')
+      .select('elo_after')
+      .eq('user_id', userId)
+      .order('elo_after', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const maxFromHistory = data?.elo_after ?? 0;
+    return Math.max(profile.elo, maxFromHistory);
+  }
+
+  /** Returns 1-based rank by ELO (1 = highest). */
+  async getSoloRank(userId: string): Promise<number | null> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return null;
+    const { count, error } = await this.client
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .gt('elo', profile.elo);
+    if (error) return null;
+    return (count ?? 0) + 1;
+  }
+
   async updateElo(userId: string, newElo: number): Promise<void> {
     await this.client.from('profiles').update({ elo: newElo }).eq('id', userId);
   }
@@ -77,6 +104,22 @@ export class SupabaseService {
   }>> {
     const { data } = await this.client.rpc('get_blitz_leaderboard', { p_limit: limit });
     return data ?? [];
+  }
+
+  async getBlitzStatsForUser(userId: string): Promise<{ bestScore: number; totalGames: number; rank: number | null } | null> {
+    const { data: scores } = await this.client
+      .from('blitz_scores')
+      .select('score')
+      .eq('user_id', userId)
+      .order('score', { ascending: false });
+    if (!scores || scores.length === 0) return null;
+    const bestScore = scores[0].score;
+    const { data: rank } = await this.client.rpc('get_blitz_rank', { p_user_id: userId });
+    return {
+      bestScore,
+      totalGames: scores.length,
+      rank: rank != null ? (rank as number) : null,
+    };
   }
 
   async incrementGamesPlayed(userId: string, questionsAnswered: number, correctAnswers: number): Promise<void> {

@@ -51,8 +51,8 @@ export class BlitzApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  startSession(): Observable<BlitzStartResponse> {
-    return this.http.post<BlitzStartResponse>(`${this.base}/session`, {}, { headers: this.headers() });
+  startSession(language: string = 'en'): Observable<BlitzStartResponse> {
+    return this.http.post<BlitzStartResponse>(`${this.base}/session`, { language }, { headers: this.headers() });
   }
 
   submitAnswer(sessionId: string, answer: string): Observable<BlitzAnswerResponse> {
@@ -73,5 +73,11 @@ export class BlitzApiService {
 
   getLeaderboard(): Observable<BlitzLeaderboardEntry[]> {
     return this.http.get<BlitzLeaderboardEntry[]>(`${this.base}/leaderboard`);
+  }
+
+  getMyStats(): Observable<{ bestScore: number; totalGames: number; rank: number | null }> {
+    return this.http.get<{ bestScore: number; totalGames: number; rank: number | null }>(`${this.base}/me/stats`, {
+      headers: this.headers(),
+    });
   }
 }

@@ -11,8 +11,9 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
   selector: 'app-solo',
   standalone: true,
   imports: [FormsModule, RouterLink],
+  host: { class: 'solo-host' },
   template: `
-    <div class="min-h-screen bg-background flex flex-col p-4">
+    <div class="solo-root bg-background flex flex-col p-4">
       <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
 
         <!-- Header -->
@@ -33,7 +34,13 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-6xl mb-6">🏆</div>
             <h2 class="text-2xl font-black text-foreground mb-2">Solo Ranked</h2>
-            <p class="text-muted-foreground text-center mb-2">Answer football questions to earn ELO and climb the leaderboard</p>
+            <p class="text-muted-foreground text-center mb-2">Answer football questions to earn ELO and climb the leaderboard.</p>
+            <ul class="text-muted-foreground text-sm text-center mb-4 space-y-1 max-w-xs">
+              <li>• Type your answers — no multiple choice</li>
+              <li>• Adaptive difficulty: EASY (25s), MEDIUM (35s), HARD (45s)</li>
+              <li>• Win ELO on correct answers, lose on wrong or timeout</li>
+              <li>• Play as many questions as you like per session</li>
+            </ul>
             <p class="text-muted-foreground text-sm text-center mb-8">Starting ELO: <span class="text-accent font-bold">{{ startElo() }}</span></p>
             <button
               (click)="startSession()"
@@ -198,6 +205,18 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
       </div>
     </div>
   `,
+  styles: [`
+    :host.solo-host {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .solo-root {
+      flex: 1;
+      min-height: 0;
+    }
+  `],
 })
 export class SoloComponent implements OnDestroy {
   private api = inject(SoloApiService);

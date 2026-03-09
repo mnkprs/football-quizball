@@ -13,13 +13,21 @@ export class AuthService {
   readonly isLoggedIn = computed(() => !!this._user());
   readonly accessToken = computed(() => this._session()?.access_token ?? null);
 
+  /** Resolves when the initial session has been restored from storage (e.g. after refresh). */
+  readonly sessionReady: Promise<void>;
+
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
-    // Restore session from localStorage
-    this.supabase.auth.getSession().then(({ data }) => {
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseAnonKey, {
+      auth: {
+        // Use no-op lock to avoid NavigatorLockAcquireTimeoutError (multi-tab / strict mode contention)
+        lock: async (_name, _acquireTimeout, fn) => fn(),
+      },
+    });
+    // Restore session from localStorage — guard must await sessionReady before checking
+    this.sessionReady = this.supabase.auth.getSession().then(({ data }) => {
       this._session.set(data.session);
       this._user.set(data.session?.user ?? null);
-    });
+    }).then(() => undefined);
     // Listen for auth changes
     this.supabase.auth.onAuthStateChange((_event, session) => {
       this._session.set(session);

@@ -116,23 +116,37 @@ export class GameService {
     return session;
   }
 
-  /** Draws English questions from pool only (no live generation), then translates to Greek. Answers stay in English. */
+  /** Draws from pool, uses stored Greek translations when available, LLM for the rest. Answers stay in English. */
   private async drawAndTranslateForGreek(): Promise<{ questions: GeneratedQuestion[]; poolQuestionIds: string[] }> {
-    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoardFromPoolOnly();
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoardFromPoolOnly('el');
 
-    const stringsToTranslate = questions.map((q) => ({
+    type QWithFlag = GeneratedQuestion & { fromPoolTranslation?: boolean };
+    const needsTranslation = questions.filter((q) => !(q as unknown as QWithFlag).fromPoolTranslation);
+    if (needsTranslation.length === 0) {
+      const cleaned = questions.map((q) => {
+        const { fromPoolTranslation: _, ...rest } = q as QWithFlag;
+        return rest;
+      });
+      return { questions: cleaned, poolQuestionIds };
+    }
+
+    const stringsToTranslate = needsTranslation.map((q) => ({
       question_text: q.question_text,
       explanation: q.explanation,
     }));
-
     const translated = await this.llmService.translateToGreek(stringsToTranslate);
 
-    const translatedQuestions = questions.map((q, i) => ({
-      ...q,
-      question_text: translated[i].question_text,
-      explanation: translated[i].explanation,
-      // correct_answer, fifty_fifty_hint, meta stay in English for validation
-    }));
+    let ti = 0;
+    const translatedQuestions = questions.map((q) => {
+      const withFlag = q as QWithFlag;
+      if (withFlag.fromPoolTranslation) {
+        const { fromPoolTranslation, ...rest } = withFlag;
+        return rest;
+      }
+      const t = translated[ti++];
+      const { fromPoolTranslation, ...rest } = withFlag;
+      return { ...rest, question_text: t.question_text, explanation: t.explanation };
+    });
     return { questions: translatedQuestions, poolQuestionIds };
   }
 

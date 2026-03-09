@@ -24,6 +24,6 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
-  console.log(`Football QuizBall backend running on port ${port}`);
+  console.log(`Unlimited Quizball backend running on port ${port}`);
 }
 bootstrap();

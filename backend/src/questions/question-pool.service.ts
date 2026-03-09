@@ -63,13 +63,14 @@ export class QuestionPoolService implements OnModuleInit {
 
   /**
    * Draw all questions from the pool only. No live generation.
-   * Use for Greek: fetch from DB then translate. Throws if pool is insufficient.
+   * For Greek: uses stored translations when available; questions without translations
+   * are returned with fromPoolTranslation=false for LLM fallback.
    */
-  async drawBoardFromPoolOnly(): Promise<DrawBoardResult> {
+  async drawBoardFromPoolOnly(language: string = 'en'): Promise<DrawBoardResult> {
     const board: GeneratedQuestion[] = [];
     const poolIds: string[] = [];
     for (const slot of DRAW_REQUIREMENTS) {
-      const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count);
+      const drawn = await this.drawSlot(slot.category, slot.difficulty, slot.count, language);
       if (drawn.length < slot.count) {
         const missing = slot.count - drawn.length;
         throw new Error(
@@ -285,6 +286,7 @@ export class QuestionPoolService implements OnModuleInit {
     category: QuestionCategory,
     difficulty: Difficulty,
     count: number,
+    language: string = 'en',
   ): Promise<GeneratedQuestion[]> {
     const { data, error } = await this.supabaseService.client.rpc('draw_questions', {
       p_category: category,
@@ -297,12 +299,27 @@ export class QuestionPoolService implements OnModuleInit {
       return [];
     }
 
-    return (data as Array<{ question: GeneratedQuestion; difficulty: string; category: string }>)
-      .map((row) => ({
-        ...row.question,
+    const rows = data as Array<{
+      question: GeneratedQuestion;
+      difficulty: string;
+      category: string;
+      translations?: { el?: { question_text?: string; explanation?: string } };
+    }>;
+
+    return rows.map((row) => {
+      const q = row.question;
+      const tr = row.translations?.el;
+      const useEl = language === 'el' && tr?.question_text;
+
+      return {
+        ...q,
         difficulty: row.difficulty as Difficulty,
-        points: this.resolvePoints(row.question, row.difficulty as Difficulty),
-      }));
+        points: this.resolvePoints(q, row.difficulty as Difficulty),
+        question_text: useEl ? tr!.question_text! : q.question_text,
+        explanation: useEl && tr?.explanation ? tr.explanation : q.explanation,
+        ...(useEl && { fromPoolTranslation: true }),
+      } as GeneratedQuestion & { fromPoolTranslation?: boolean };
+    });
   }
 
   private async fillSlot(

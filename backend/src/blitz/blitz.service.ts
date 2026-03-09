@@ -35,7 +35,7 @@ export class BlitzService {
     };
   }
 
-  async startSession(userId: string): Promise<{
+  async startSession(userId: string, language: string = 'en'): Promise<{
     session_id: string;
     time_limit: number;
     first_question: BlitzQuestionRef;
@@ -43,7 +43,7 @@ export class BlitzService {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('User profile not found');
 
-    const questions = await this.drawBlitzQuestions();
+    const questions = await this.drawBlitzQuestions(language);
     if (questions.length === 0) {
       throw new NotFoundException('Not enough questions in pool for Blitz mode. Please try again later.');
     }
@@ -146,7 +146,12 @@ export class BlitzService {
     return this.supabaseService.getBlitzLeaderboard(20);
   }
 
-  private async drawBlitzQuestions(): Promise<BlitzQuestion[]> {
+  async getMyBlitzStats(userId: string): Promise<{ bestScore: number; totalGames: number; rank: number | null }> {
+    const stats = await this.supabaseService.getBlitzStatsForUser(userId);
+    return stats ?? { bestScore: 0, totalGames: 0, rank: null };
+  }
+
+  private async drawBlitzQuestions(language: string = 'en'): Promise<BlitzQuestion[]> {
     const { data, error } = await this.supabaseService.client.rpc('draw_blitz_questions_v2', {
       p_count: DRAW_COUNT,
     });
@@ -161,6 +166,7 @@ export class BlitzService {
       category: string;
       difficulty_score: number;
       question: { question_text: string; correct_answer: string; wrong_choices?: string[] };
+      translations?: { el?: { question_text?: string } };
     }>;
 
     const sessionRows = rows.slice(0, SESSION_SIZE);
@@ -169,9 +175,11 @@ export class BlitzService {
     return sessionRows.map((row) => {
       const correctAnswer = row.question.correct_answer;
       const choices = this.buildChoices(correctAnswer, row.question.wrong_choices, row.category, distractorPool);
+      const useEl = language === 'el' && row.translations?.el?.question_text;
+      const questionText = useEl ? row.translations!.el!.question_text! : row.question.question_text;
       return {
         poolRowId: row.id,
-        question_text: row.question.question_text,
+        question_text: questionText,
         correct_answer: correctAnswer,
         choices,
         category: row.category,

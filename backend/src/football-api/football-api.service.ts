@@ -172,7 +172,7 @@ export class FootballApiService {
       const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`;
       const response = await axios.get<{ thumbnail?: { source: string } }>(url, {
         timeout: 8000,
-        headers: { 'User-Agent': 'FootballQuizBall/1.0 (educational quiz app; contact@quizball.app)' },
+        headers: { 'User-Agent': 'UnlimitedQuizball/1.0 (educational quiz app; contact@quizball.app)' },
       });
       const src = response.data?.thumbnail?.source ?? null;
       this.cacheService.set(cacheKey, src, 86400); // cache 24h

@@ -1,1 +1,68 @@
-/* Global styles live in tailwind.css — nothing needed here */
+// Angular Material theming — kickup-inspired green palette
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light;
+  @include mat.theme((
+    color: (
+      primary: mat.$green-palette,
+      tertiary: mat.$blue-palette,
+      theme-type: light,
+    ),
+    typography: (
+      plain-family: Inter,
+      brand-family: Inter,
+      bold-weight: 800,
+      medium-weight: 600,
+      regular-weight: 400,
+    ),
+    density: 0,
+  ));
+}
+
+html.dark {
+  color-scheme: dark;
+  @include mat.theme((
+    color: (
+      primary: mat.$green-palette,
+      tertiary: mat.$blue-palette,
+      theme-type: dark,
+    ),
+    typography: (
+      plain-family: Inter,
+      brand-family: Inter,
+      bold-weight: 800,
+      medium-weight: 600,
+      regular-weight: 400,
+    ),
+    density: 0,
+  ));
+}
+
+body {
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Kickup-style utilities (kept for compatibility) */
+.pressable {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.15s ease, color 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+
+button:not([disabled]),
+a[href] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}

@@ -28,6 +28,9 @@ export interface GameState {
   error: string | null;
   phase: 'setup' | 'loading' | 'board' | 'question' | 'result' | 'finished';
   top5State: Top5State | null;
+  correctAnswers: [number, number];
+  totalAnswered: [number, number];
+  currentStreak: [number, number];
 }
 
 const initialState: GameState = {
@@ -42,6 +45,9 @@ const initialState: GameState = {
   error: null,
   phase: 'setup',
   top5State: null,
+  correctAnswers: [0, 0],
+  totalAnswered: [0, 0],
+  currentStreak: [0, 0],
 };
 
 export const GameStore = signalStore(
@@ -56,6 +62,14 @@ export const GameStore = signalStore(
     currentPlayerIndex: computed(() => store.boardState()?.currentPlayerIndex ?? 0),
     players: computed(() => store.boardState()?.players ?? []),
     isFinished: computed(() => store.boardState()?.status === 'FINISHED' || store.phase() === 'finished'),
+    accuracy: computed(() => {
+      const ca = store.correctAnswers();
+      const ta = store.totalAnswered();
+      return [
+        ta[0] === 0 ? 0 : Math.round((ca[0] / ta[0]) * 100),
+        ta[1] === 0 ? 0 : Math.round((ca[1] / ta[1]) * 100),
+      ] as [number, number];
+    }),
   })),
   withMethods((store, api = inject(GameApiService)) => ({
     async startGame(player1Name: string, player2Name: string, language: string): Promise<void> {
@@ -69,6 +83,9 @@ export const GameStore = signalStore(
           boardState,
           loading: false,
           phase: 'board',
+          correctAnswers: [0, 0],
+          totalAnswered: [0, 0],
+          currentStreak: [0, 0],
         });
       } catch (err: unknown) {
         const body = err && typeof err === 'object' && 'error' in err ? (err as { error: { message?: string } }).error : null;
@@ -109,12 +126,26 @@ export const GameStore = signalStore(
           api.submitAnswer(gameId, questionId, answer, board.currentPlayerIndex, useDouble)
         );
         const updatedBoard = await firstValueFrom(api.getGame(gameId));
+        const pi = board.currentPlayerIndex;
+        const ca = [...store.correctAnswers()];
+        const ta = [...store.totalAnswered()];
+        const cs = [...store.currentStreak()];
+        ta[pi] += 1;
+        if (result.correct) {
+          ca[pi] += 1;
+          cs[pi] += 1;
+        } else {
+          cs[pi] = 0;
+        }
         patchState(store, {
           lastResult: result,
           boardState: updatedBoard,
           loading: false,
           phase: 'result',
           doubleArmed: false,
+          correctAnswers: ca as [number, number],
+          totalAnswered: ta as [number, number],
+          currentStreak: cs as [number, number],
         });
         if (updatedBoard.status === 'FINISHED') {
           patchState(store, { phase: 'finished' });
@@ -158,12 +189,26 @@ export const GameStore = signalStore(
             lifeline_used: false,
             double_used: useDouble,
           };
+          const pi = board.currentPlayerIndex;
+          const ca = [...store.correctAnswers()];
+          const ta = [...store.totalAnswered()];
+          const cs = [...store.currentStreak()];
+          ta[pi] += 1;
+          if (result.won) {
+            ca[pi] += 1;
+            cs[pi] += 1;
+          } else {
+            cs[pi] = 0;
+          }
           patchState(store, {
             top5State,
             lastResult: answerResult,
             boardState: updatedBoard,
             phase: 'result',
             doubleArmed: false,
+            correctAnswers: ca as [number, number],
+            totalAnswered: ta as [number, number],
+            currentStreak: cs as [number, number],
           });
           if (updatedBoard.status === 'FINISHED') {
             patchState(store, { phase: 'finished' });
@@ -203,7 +248,23 @@ export const GameStore = signalStore(
           complete: true,
           won: true,
         };
-        patchState(store, { top5State, lastResult: answerResult, boardState: updatedBoard, phase: 'result', doubleArmed: false });
+        const pi = board.currentPlayerIndex;
+        const ca = [...store.correctAnswers()];
+        const ta = [...store.totalAnswered()];
+        const cs = [...store.currentStreak()];
+        ta[pi] += 1;
+        ca[pi] += 1;
+        cs[pi] += 1;
+        patchState(store, {
+          top5State,
+          lastResult: answerResult,
+          boardState: updatedBoard,
+          phase: 'result',
+          doubleArmed: false,
+          correctAnswers: ca as [number, number],
+          totalAnswered: ta as [number, number],
+          currentStreak: cs as [number, number],
+        });
         if (updatedBoard.status === 'FINISHED') patchState(store, { phase: 'finished' });
       } catch (err) {
         patchState(store, { error: 'Failed to stop early' });
@@ -236,14 +297,32 @@ export const GameStore = signalStore(
       const gameId = store.gameId();
       const questionId = store.currentQuestionId();
       const board = store.boardState();
-      if (!gameId || !questionId || !board) return;
+      const lastResult = store.lastResult();
+      if (!gameId || !questionId || !board || !lastResult) return;
+
+      const pi = board.currentPlayerIndex;
+      const wasCorrect = lastResult.correct;
 
       try {
         const result = await firstValueFrom(
           api.overrideAnswer(gameId, questionId, isCorrect, board.currentPlayerIndex === 0 ? 1 : 0)
         );
         const updatedBoard = await firstValueFrom(api.getGame(gameId));
-        patchState(store, { lastResult: result, boardState: updatedBoard });
+        const ca = [...store.correctAnswers()];
+        const cs = [...store.currentStreak()];
+        if (wasCorrect && !isCorrect) {
+          ca[pi] = Math.max(0, ca[pi] - 1);
+          cs[pi] = 0;
+        } else if (!wasCorrect && isCorrect) {
+          ca[pi] += 1;
+          cs[pi] += 1;
+        }
+        patchState(store, {
+          lastResult: result,
+          boardState: updatedBoard,
+          correctAnswers: ca as [number, number],
+          currentStreak: cs as [number, number],
+        });
       } catch (err) {
         patchState(store, { error: 'Override failed' });
       }
@@ -280,7 +359,15 @@ export const GameStore = signalStore(
       try {
         const boardState = await firstValueFrom(api.getGame(gameId));
         const phase = boardState.status === 'FINISHED' ? 'finished' : 'board';
-        patchState(store, { gameId, boardState, loading: false, phase });
+        patchState(store, {
+          gameId,
+          boardState,
+          loading: false,
+          phase,
+          correctAnswers: [0, 0],
+          totalAnswered: [0, 0],
+          currentStreak: [0, 0],
+        });
       } catch {
         localStorage.removeItem(STORAGE_KEY);
         patchState(store, { loading: false, phase: 'setup' });

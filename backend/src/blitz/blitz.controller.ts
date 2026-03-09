@@ -8,8 +8,9 @@ export class BlitzController {
 
   @Post('session')
   @UseGuards(AuthGuard)
-  startSession(@Req() req: any) {
-    return this.blitzService.startSession(req.user.id);
+  startSession(@Req() req: any, @Body() body?: { language?: string }) {
+    const language = body?.language ?? 'en';
+    return this.blitzService.startSession(req.user.id, language);
   }
 
   @Post('session/:id/answer')
@@ -31,5 +32,11 @@ export class BlitzController {
   @Get('leaderboard')
   getLeaderboard() {
     return this.blitzService.getLeaderboard();
+  }
+
+  @Get('me/stats')
+  @UseGuards(AuthGuard)
+  getMyStats(@Req() req: any) {
+    return this.blitzService.getMyBlitzStats(req.user.id);
   }
 }

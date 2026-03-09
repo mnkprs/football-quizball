@@ -481,7 +481,7 @@ export class QuestionComponent implements OnDestroy {
       meta: q.meta ?? undefined,
     };
 
-    const subject = encodeURIComponent(`QuizBall Question Report - ${q.id}`);
+    const subject = encodeURIComponent(`Unlimited Quizball Question Report - ${q.id}`);
     const body = encodeURIComponent(
       `Describe the problem:\n\n\n---\nQuestion data:\n${JSON.stringify(payload, null, 2)}`
     );

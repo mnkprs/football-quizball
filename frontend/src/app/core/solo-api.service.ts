@@ -45,6 +45,8 @@ export interface LeaderboardEntry {
   games_played: number;
   questions_answered: number;
   correct_answers: number;
+  rank?: number;
+  max_elo?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -78,7 +80,11 @@ export class SoloApiService {
     return this.http.get<LeaderboardEntry[]>(`${this.base}/leaderboard`);
   }
 
-  getProfile(userId: string): Observable<{ profile: LeaderboardEntry; history: any[] }> {
-    return this.http.get<any>(`${this.base}/profile/${userId}`);
+  getProfile(userId: string): Observable<{
+    profile: LeaderboardEntry;
+    blitz_stats?: { bestScore: number; totalGames: number; rank: number | null };
+    history: any[];
+  }> {
+    return this.http.get<any>(`${this.base}/profile/${userId}`, { headers: this.headers() });
   }
 }
