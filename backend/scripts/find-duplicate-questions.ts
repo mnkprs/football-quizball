@@ -53,7 +53,7 @@ async function main() {
     }
   } else if (qpData?.length) {
     const dups = findBySameAnswer(
-      qpData as PoolRow[],
+      (qpData as PoolRow[]).filter((r) => r.category !== 'HIGHER_OR_LOWER'),
       (r) =>
         `${r.category}|${r.difficulty}|${(r.question?.correct_answer ?? '').trim().toLowerCase()}`,
     );

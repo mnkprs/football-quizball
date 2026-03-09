@@ -1,5 +1,7 @@
 -- Find questions that share the same correct_answer within each (category, difficulty).
 -- Normalized: lower(trim()) to catch "Neymar" vs "Neymar " vs "neymar".
+-- Excludes HIGHER_OR_LOWER: answer is always "higher"/"lower", so grouping by answer
+-- would falsely flag distinct questions as duplicates.
 
 WITH normalized AS (
   SELECT
@@ -10,6 +12,7 @@ WITH normalized AS (
     question->>'correct_answer' AS correct_answer,
     lower(trim(question->>'correct_answer')) AS norm_answer
   FROM question_pool
+  WHERE category != 'HIGHER_OR_LOWER'
 ),
 grouped AS (
   SELECT
