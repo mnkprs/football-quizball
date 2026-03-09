@@ -34,15 +34,15 @@ export class SoloController {
     return this.soloService.endSession(id, req.user.id);
   }
 
-  @Get('leaderboard')
-  getLeaderboard() {
-    return this.supabaseService.getLeaderboard(10);
-  }
-
   @Get('leaderboard/me')
   @UseGuards(AuthGuard)
   getMyLeaderboardEntry(@Req() req: any) {
     return this.supabaseService.getLeaderboardEntryForUser(req.user.id);
+  }
+
+  @Get('leaderboard')
+  getLeaderboard() {
+    return this.supabaseService.getLeaderboard(5);
   }
 
   @Get('profile/:userId')

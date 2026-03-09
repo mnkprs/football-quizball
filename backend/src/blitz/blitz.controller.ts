@@ -29,15 +29,15 @@ export class BlitzController {
     return this.blitzService.endSession(id, req.user.id);
   }
 
-  @Get('leaderboard')
-  getLeaderboard() {
-    return this.blitzService.getLeaderboard();
-  }
-
   @Get('leaderboard/me')
   @UseGuards(AuthGuard)
   getMyLeaderboardEntry(@Req() req: any) {
     return this.blitzService.getMyLeaderboardEntry(req.user.id);
+  }
+
+  @Get('leaderboard')
+  getLeaderboard() {
+    return this.blitzService.getLeaderboard();
   }
 
   @Get('me/stats')

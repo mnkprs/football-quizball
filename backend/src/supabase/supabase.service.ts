@@ -86,7 +86,7 @@ export class SupabaseService {
     return combined;
   }
 
-  /** Returns current user's solo leaderboard entry with rank, for display below top 10. */
+  /** Returns current user's solo leaderboard entry with rank, for display below top 5. */
   async getLeaderboardEntryForUser(userId: string): Promise<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number; rank: number } | null> {
     const profile = await this.getProfile(userId);
     if (!profile) return null;
@@ -129,7 +129,7 @@ export class SupabaseService {
     return data ?? [];
   }
 
-  /** Returns current user's best blitz entry with rank, for display below top 10. */
+  /** Returns current user's best blitz entry with rank, for display below top 5. */
   async getBlitzLeaderboardEntryForUser(userId: string): Promise<{ user_id: string; username: string; score: number; total_answered: number; rank: number } | null> {
     const profile = await this.getProfile(userId);
     if (!profile) return null;

@@ -2,8 +2,11 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
-import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
-import { BlitzApiService, BlitzLeaderboardEntry } from '../../core/blitz-api.service';
+import {
+  LeaderboardApiService,
+  LeaderboardEntry,
+  BlitzLeaderboardEntry,
+} from '../../core/leaderboard-api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -61,7 +64,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
               </a>
             }
           </div>
-          @if (soloMeEntry() && !entries().some(e => e.id === soloMeEntry()!.id)) {
+          @if (showSoloMeBelow()) {
             <div class="leaderboard-you-separator">Your rank</div>
             <a [routerLink]="['/profile', soloMeEntry()!.id]" class="leaderboard-card-link">
               <mat-card class="leaderboard-card leaderboard-card--you">
@@ -115,7 +118,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
               </a>
             }
           </div>
-          @if (blitzMeEntry() && !blitzEntries().some(e => e.user_id === blitzMeEntry()!.user_id)) {
+          @if (showBlitzMeBelow()) {
             <div class="leaderboard-you-separator">Your rank</div>
             <a [routerLink]="['/profile', blitzMeEntry()!.user_id]" class="leaderboard-card-link">
               <mat-card class="leaderboard-card leaderboard-card--you">
@@ -182,11 +185,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     }
 
     .leaderboard-section-title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-weight: 600;
-      color: var(--mat-sys-on-surface-variant);
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--mat-sys-on-surface);
       margin: 0 0 1rem 0;
     }
 
@@ -293,8 +294,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   `],
 })
 export class LeaderboardComponent implements OnInit {
-  private soloApi = inject(SoloApiService);
-  private blitzApi = inject(BlitzApiService);
+  private leaderboardApi = inject(LeaderboardApiService);
   auth = inject(AuthService);
 
   entries = signal<LeaderboardEntry[]>([]);
@@ -312,20 +312,21 @@ export class LeaderboardComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [soloData, blitzData, soloMe, blitzMe] = await Promise.all([
-        firstValueFrom(this.soloApi.getLeaderboard()),
-        firstValueFrom(this.blitzApi.getLeaderboard()).catch(() => []),
-        this.auth.isLoggedIn()
-          ? firstValueFrom(this.soloApi.getMyLeaderboardEntry()).catch(() => null)
-          : Promise.resolve(null),
-        this.auth.isLoggedIn()
-          ? firstValueFrom(this.blitzApi.getMyLeaderboardEntry()).catch(() => null)
-          : Promise.resolve(null),
+      await this.auth.sessionReady;
+      const isLoggedIn = this.auth.isLoggedIn();
+      const [leaderboardRes, meRes] = await Promise.all([
+        firstValueFrom(this.leaderboardApi.getLeaderboard()),
+        isLoggedIn
+          ? firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries()).catch(() => ({
+              soloMe: null,
+              blitzMe: null,
+            }))
+          : Promise.resolve({ soloMe: null, blitzMe: null }),
       ]);
-      this.entries.set(soloData);
-      this.blitzEntries.set(blitzData);
-      this.soloMeEntry.set(soloMe ?? null);
-      this.blitzMeEntry.set(blitzMe ?? null);
+      this.entries.set(leaderboardRes.solo);
+      this.blitzEntries.set(leaderboardRes.blitz);
+      this.soloMeEntry.set(meRes.soloMe ?? null);
+      this.blitzMeEntry.set(meRes.blitzMe ?? null);
     } catch (err: any) {
       this.error.set('Failed to load leaderboard');
     } finally {
@@ -335,6 +336,18 @@ export class LeaderboardComponent implements OnInit {
 
   isCurrentUser(userId: string): boolean {
     return this.auth.user()?.id === userId;
+  }
+
+  showSoloMeBelow(): boolean {
+    const me = this.soloMeEntry();
+    if (!me) return false;
+    return !this.entries().some((entry) => entry.id === me.id);
+  }
+
+  showBlitzMeBelow(): boolean {
+    const me = this.blitzMeEntry();
+    if (!me) return false;
+    return !this.blitzEntries().some((entry) => entry.user_id === me.user_id);
   }
 
   accuracy(entry: LeaderboardEntry): number {

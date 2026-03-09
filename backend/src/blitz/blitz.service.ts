@@ -133,7 +133,7 @@ export class BlitzService {
   }
 
   async getLeaderboard(): Promise<any[]> {
-    return this.supabaseService.getBlitzLeaderboard(10);
+    return this.supabaseService.getBlitzLeaderboard(5);
   }
 
   async getMyLeaderboardEntry(userId: string): Promise<any> {
