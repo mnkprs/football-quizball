@@ -67,6 +67,9 @@ import { MatButtonModule } from '@angular/material/button';
               <span class="home-btn-hint">Login required</span>
             }
           </button>
+          <button mat-stroked-button class="home-btn" (click)="goDaily()">
+            📅 Today in Football
+          </button>
         </div>
 
         <a routerLink="/leaderboard" class="home-leaderboard-link">View Global Leaderboard →</a>
@@ -315,6 +318,10 @@ export class HomeComponent implements OnInit {
     } else {
       this.router.navigate(['/login']);
     }
+  }
+
+  goDaily(): void {
+    this.router.navigate(['/daily']);
   }
 
   async signOut(): Promise<void> {

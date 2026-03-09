@@ -12,6 +12,7 @@ import { SoloModule } from './solo/solo.module';
 import { BlitzModule } from './blitz/blitz.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NewsModule } from './news/news.module';
+import { DailyModule } from './daily/daily.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { NewsModule } from './news/news.module';
     BlitzModule,
     LeaderboardModule,
     NewsModule,
+    DailyModule,
   ],
 })
 export class AppModule {}

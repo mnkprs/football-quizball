@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
+import { LlmService } from '../llm/llm.service';
 import { NewsFetcherService } from './news-fetcher.service';
 import { NewsQuestionGenerator } from './news-question.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
@@ -17,6 +18,7 @@ export class NewsService {
     private newsFetcher: NewsFetcherService,
     private newsGenerator: NewsQuestionGenerator,
     private supabaseService: SupabaseService,
+    private llmService: LlmService,
     private questionValidator: QuestionValidator,
   ) {}
 
@@ -77,9 +79,31 @@ export class NewsService {
         return { added: 0, skipped };
       }
 
+      type PoolQuestion = { question_text: string; explanation?: string };
+      const toPoolQ = (q: unknown) => q as PoolQuestion;
+      let translations: Array<{ question_text: string; explanation: string }> = rows.map((r) => ({
+        question_text: toPoolQ(r.question).question_text,
+        explanation: toPoolQ(r.question).explanation ?? '',
+      }));
+      try {
+        translations = await this.llmService.translateToGreek(translations);
+      } catch (err) {
+        this.logger.warn(`[ingestNews] Greek translation failed, inserting without translations: ${(err as Error).message}`);
+      }
+
+      const rowsWithTranslations = rows.map((r, i) => ({
+        ...r,
+        translations: {
+          el: {
+            question_text: translations[i]?.question_text ?? toPoolQ(r.question).question_text,
+            explanation: translations[i]?.explanation ?? toPoolQ(r.question).explanation ?? '',
+          },
+        },
+      }));
+
       const { error } = await this.supabaseService.client
         .from('question_pool')
-        .insert(rows);
+        .insert(rowsWithTranslations);
 
       if (error) {
         this.logger.error(`[ingestNews] Insert error: ${error.message}`);

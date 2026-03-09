@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
+import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
 import { QuestionValidator } from './validators/question.validator';
 import { GeneratedQuestion, QuestionCategory, Difficulty, DIFFICULTY_POINTS } from './question.types';
@@ -52,6 +53,7 @@ export class QuestionPoolService implements OnModuleInit {
 
   constructor(
     private supabaseService: SupabaseService,
+    private llmService: LlmService,
     private questionsService: QuestionsService,
     private questionValidator: QuestionValidator,
   ) {}
@@ -365,22 +367,41 @@ export class QuestionPoolService implements OnModuleInit {
     // Fetch existing question keys for this category to prevent exact duplicates (same Q + same A)
     const existingKeys = await this.getExistingQuestionKeys(category);
 
-    const rows = candidates
-      .filter((q) => {
-        const key = `${q.question_text}|||${q.correct_answer}`;
-        if (existingKeys.has(key)) {
-          this.logger.log(`[fillSlot] Skipping duplicate — LLM output: "${q.question_text}"`);
-          return false;
-        }
-        existingKeys.add(key);
-        return true;
-      })
-      .map((q) => ({ category, difficulty, question: q }));
+    const filtered = candidates.filter((q) => {
+      const key = `${q.question_text}|||${q.correct_answer}`;
+      if (existingKeys.has(key)) {
+        this.logger.log(`[fillSlot] Skipping duplicate — LLM output: "${q.question_text}"`);
+        return false;
+      }
+      existingKeys.add(key);
+      return true;
+    });
 
-    if (rows.length === 0) {
+    if (filtered.length === 0) {
       this.logger.warn(`[fillSlot] All ${candidates.length} generated questions were duplicates for ${category}/${difficulty}`);
       return [];
     }
+
+    let translations: Array<{ question_text: string; explanation: string }> = filtered;
+    try {
+      translations = await this.llmService.translateToGreek(
+        filtered.map((q) => ({ question_text: q.question_text, explanation: q.explanation ?? '' })),
+      );
+    } catch (err) {
+      this.logger.warn(`[fillSlot] Greek translation failed, inserting without translations: ${(err as Error).message}`);
+    }
+
+    const rows = filtered.map((q, i) => ({
+      category,
+      difficulty,
+      question: q,
+      translations: {
+        el: {
+          question_text: translations[i]?.question_text ?? q.question_text,
+          explanation: translations[i]?.explanation ?? q.explanation ?? '',
+        },
+      },
+    }));
 
     const { error } = await this.supabaseService.client.from('question_pool').insert(rows);
     if (error) {
@@ -388,7 +409,7 @@ export class QuestionPoolService implements OnModuleInit {
       return [];
     }
     this.logger.log(`[fillSlot] Inserted ${rows.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - rows.length} duplicates skipped)`);
-    return rows.map((r) => r.question.question_text);
+    return filtered.map((q) => q.question_text);
   }
 
   /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */

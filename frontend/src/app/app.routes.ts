@@ -10,6 +10,7 @@ export const routes: Routes = [
       { path: 'invite', loadComponent: () => import('./features/invite/invite').then(m => m.InviteComponent) },
       { path: 'solo', loadComponent: () => import('./features/solo/solo').then(m => m.SoloComponent), canActivate: [authGuard] },
       { path: 'blitz', loadComponent: () => import('./features/blitz/blitz').then(m => m.BlitzComponent), canActivate: [authGuard] },
+      { path: 'daily', loadComponent: () => import('./features/daily/daily').then(m => m.DailyComponent) },
       { path: 'leaderboard', loadComponent: () => import('./features/leaderboard/leaderboard').then(m => m.LeaderboardComponent) },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
       { path: 'profile/:userId', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },
