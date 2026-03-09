@@ -118,8 +118,13 @@ export class QuestionsService {
   }
 
   /** Generate and score a single question for use by the pool service. */
-  async generateOne(category: QuestionCategory, difficulty: Difficulty, language: string = 'en'): Promise<GeneratedQuestion> {
-    const question = await this.generateRawWithRetry(category, language);
+  async generateOne(
+    category: QuestionCategory,
+    difficulty: Difficulty,
+    language: string = 'en',
+    options?: { avoidAnswers?: string[] },
+  ): Promise<GeneratedQuestion> {
+    const question = await this.generateRawWithRetry(category, language, options);
     const { difficulty: scoredDiff, points } = this.difficultyScorer.score(question.difficulty_factors!);
     // Use the requested difficulty if the scored one doesn't match (pool stores by requested slot)
     return { ...question, difficulty: scoredDiff ?? difficulty, points };
@@ -128,13 +133,14 @@ export class QuestionsService {
   private async generateRawWithRetry(
     category: QuestionCategory,
     language: string = 'en',
+    options?: { avoidAnswers?: string[] },
     maxRetries = 3,
   ): Promise<GeneratedQuestion> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const question = await this.generateRaw(category, language);
+        const question = await this.generateRaw(category, language, options);
         this.validateQuestion(question);
         return question;
       } catch (err) {
@@ -146,15 +152,20 @@ export class QuestionsService {
     throw lastError || new Error(`Failed to generate ${category}`);
   }
 
-  private async generateRaw(category: QuestionCategory, language: string = 'en'): Promise<GeneratedQuestion> {
+  private async generateRaw(
+    category: QuestionCategory,
+    language: string = 'en',
+    options?: { avoidAnswers?: string[] },
+  ): Promise<GeneratedQuestion> {
+    const genOpts = options?.avoidAnswers?.length ? { avoidAnswers: options.avoidAnswers } : undefined;
     switch (category) {
-      case 'HISTORY':         return this.historyGenerator.generate(language);
-      case 'PLAYER_ID':       return this.playerIdGenerator.generate(language);
-      case 'HIGHER_OR_LOWER': return this.higherOrLowerGenerator.generate(language);
-      case 'GUESS_SCORE':     return this.guessScoreGenerator.generate(language);
-      case 'TOP_5':           return this.top5Generator.generate(language);
-      case 'GEOGRAPHY':       return this.geographyGenerator.generate(language);
-      case 'GOSSIP':          return this.gossipGenerator.generate(language);
+      case 'HISTORY':         return this.historyGenerator.generate(language, genOpts);
+      case 'PLAYER_ID':       return this.playerIdGenerator.generate(language, genOpts);
+      case 'HIGHER_OR_LOWER': return this.higherOrLowerGenerator.generate(language, genOpts);
+      case 'GUESS_SCORE':     return this.guessScoreGenerator.generate(language, genOpts);
+      case 'TOP_5':           return this.top5Generator.generate(language, genOpts);
+      case 'GEOGRAPHY':       return this.geographyGenerator.generate(language, genOpts);
+      case 'GOSSIP':          return this.gossipGenerator.generate(language, genOpts);
     }
   }
 

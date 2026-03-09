@@ -42,6 +42,10 @@ export class LlmService {
               parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
             },
           ],
+          config: {
+            temperature: 0.9,
+            topP: 0.95,
+          },
         });
 
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
+import { getDiversityHints, getAvoidInstruction } from '../diversity-hints';
 
 
 interface HolData {
@@ -27,7 +28,7 @@ export class HigherOrLowerGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[] }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -52,7 +53,7 @@ Return ONLY valid JSON:
 fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.
 specificity_score is 1-5: 1 = widely known career total, 3 = season-specific stat, 5 = very obscure sub-statistic.${langInstruction}`;
 
-    const userPrompt = `Generate a unique Higher or Lower football question with accurate statistics. It can be from any league or era. Return JSON only.`;
+    const userPrompt = `Generate a unique Higher or Lower football question with accurate statistics. It can be from any league or era. Return JSON only.${getDiversityHints('HIGHER_OR_LOWER')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<HolData>(systemPrompt, userPrompt);
 

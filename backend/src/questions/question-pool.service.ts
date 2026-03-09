@@ -256,9 +256,10 @@ export class QuestionPoolService implements OnModuleInit {
     difficulty: Difficulty,
     count: number,
   ): Promise<void> {
+    const avoidAnswers = await this.getExistingAnswers(category);
     const results = await Promise.allSettled(
       Array.from({ length: count }, () =>
-        this.questionsService.generateOne(category, difficulty, 'en'),
+        this.questionsService.generateOne(category, difficulty, 'en', { avoidAnswers }),
       ),
     );
 
@@ -294,6 +295,26 @@ export class QuestionPoolService implements OnModuleInit {
     } else {
       this.logger.log(`[fillSlot] Inserted ${rows.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - rows.length} duplicates skipped)`);
     }
+  }
+
+  /** Returns unique correct_answer values already in the pool for a category (for LLM "avoid" hints). */
+  private async getExistingAnswers(category: QuestionCategory): Promise<string[]> {
+    const { data, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('question->correct_answer')
+      .eq('category', category);
+
+    if (error) {
+      this.logger.error(`[getExistingAnswers] Query error: ${error.message}`);
+      return [];
+    }
+
+    const answers = new Set<string>();
+    for (const r of data as Array<{ correct_answer?: string }>) {
+      const a = r?.correct_answer;
+      if (typeof a === 'string' && a.trim()) answers.add(a.trim());
+    }
+    return Array.from(answers).slice(0, 15);
   }
 
   /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */

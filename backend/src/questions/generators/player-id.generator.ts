@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion } from '../question.types';
+import { getDiversityHints, getAvoidInstruction } from '../diversity-hints';
 
 
 interface CareerEntry {
@@ -19,7 +20,7 @@ export class PlayerIdGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[] }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -44,7 +45,7 @@ The career array must have at least 3 entries. All career data must be factually
 fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.
 specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${langInstruction}`;
 
-    const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. The player can be from any era or league. Return JSON only.`;
+    const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. The player can be from any era or league. Return JSON only.${getDiversityHints('PLAYER_ID')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{
       player_name: string;

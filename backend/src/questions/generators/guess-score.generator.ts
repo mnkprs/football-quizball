@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
+import { getDiversityHints, getAvoidInstruction } from '../diversity-hints';
 
 
 interface MatchData {
@@ -27,7 +28,7 @@ export class GuessScoreGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(language: string = 'en'): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[] }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -51,7 +52,7 @@ Return ONLY valid JSON:
 fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.
 specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not top-of-mind, 5 = very obscure match detail.${langInstruction}`;
 
-    const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. It can be from any era or league. Return JSON only.`;
+    const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. It can be from any era or league. Return JSON only.${getDiversityHints('GUESS_SCORE')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<MatchData & { specificity_score?: number }>(systemPrompt, userPrompt);
 
