@@ -2,9 +2,10 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
+import { LanguageService } from '../../core/language.service';
 
 export interface NavTab {
-  label: string;
+  labelKey: 'navHome' | 'navInvite' | 'navLeaderboard' | 'navProfile';
   icon: string;
   href: string;
   match: string;
@@ -27,7 +28,7 @@ export interface NavTab {
       </main>
       <nav class="bottom-nav">
         <div class="bottom-nav__container">
-          @for (tab of tabs; track tab.label) {
+          @for (tab of tabs; track tab.href) {
             <a
               [routerLink]="tab.href"
               routerLinkActive="bottom-nav__tab--active"
@@ -37,7 +38,7 @@ export interface NavTab {
               <span class="material-icons" [class.bottom-nav__icon-active]="isActive(tab)">
                 {{ tab.icon }}
               </span>
-              <span class="bottom-nav__label">{{ tab.label }}</span>
+              <span class="bottom-nav__label">{{ lang.t()[tab.labelKey] }}</span>
               @if (isActive(tab)) {
                 <div class="bottom-nav__indicator"></div>
               }
@@ -132,12 +133,13 @@ export interface NavTab {
 })
 export class ShellComponent {
   private router = inject(Router);
+  lang = inject(LanguageService);
 
   readonly tabs: NavTab[] = [
-    { label: 'Home', icon: 'home', href: '/', match: '/' },
-    { label: 'Invite', icon: 'person_add', href: '/invite', match: '/invite' },
-    { label: 'Leaderboard', icon: 'leaderboard', href: '/leaderboard', match: '/leaderboard' },
-    { label: 'Profile', icon: 'person', href: '/profile', match: '/profile' },
+    { labelKey: 'navHome', icon: 'home', href: '/', match: '/' },
+    { labelKey: 'navInvite', icon: 'person_add', href: '/invite', match: '/invite' },
+    { labelKey: 'navLeaderboard', icon: 'leaderboard', href: '/leaderboard', match: '/leaderboard' },
+    { labelKey: 'navProfile', icon: 'person', href: '/profile', match: '/profile' },
   ];
 
   isActive(tab: NavTab): boolean {

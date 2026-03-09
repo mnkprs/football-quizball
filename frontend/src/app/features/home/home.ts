@@ -19,7 +19,7 @@ import { MatButtonModule } from '@angular/material/button';
         <header class="home-header">
           <div class="home-title-row">
             <span class="home-emoji">⚽</span>
-            <h1 class="home-title">Unlimited Quizball</h1>
+            <h1 class="home-title">{{ lang.t().appTitle }}</h1>
           </div>
           <div class="home-header-actions">
             <button
@@ -33,7 +33,7 @@ import { MatButtonModule } from '@angular/material/button';
           </div>
         </header>
 
-        <p class="home-subtitle">The football trivia game</p>
+        <p class="home-subtitle">{{ lang.t().appSubtitle }}</p>
 
         @if (auth.isLoggedIn()) {
           <mat-card class="home-auth-card">
@@ -56,29 +56,29 @@ import { MatButtonModule } from '@angular/material/button';
                 <p class="home-auth-elo">ELO: {{ userElo() }} · Rank #{{ eloRank() }}</p>
                 <p class="home-auth-blitz">Blitz: {{ blitzBest() }} · Rank #{{ blitzRank() }}</p>
               </div>
-              <button mat-button (click)="signOut()">Sign out</button>
+              <button mat-button (click)="signOut()">{{ lang.t().signOut }}</button>
             </mat-card-content>
           </mat-card>
         }
 
         <div class="home-buttons">
           <button mat-flat-button color="primary" class="home-btn home-btn-primary" (click)="go2Player()">
-            🎮 2-Player Game
+            🎮 {{ lang.t().btn2Player }}
           </button>
           <button mat-stroked-button class="home-btn" (click)="goSolo()">
-            🏆 Solo Ranked
+            🏆 {{ lang.t().btnSolo }}
             @if (!auth.isLoggedIn()) {
-              <span class="home-btn-hint">Login required</span>
+              <span class="home-btn-hint">{{ lang.t().loginRequired }}</span>
             }
           </button>
           <button mat-stroked-button class="home-btn" (click)="goBlitz()">
-            ⚡ Blitz Mode
+            ⚡ {{ lang.t().btnBlitz }}
             @if (!auth.isLoggedIn()) {
-              <span class="home-btn-hint">Login required</span>
+              <span class="home-btn-hint">{{ lang.t().loginRequired }}</span>
             }
           </button>
           <button mat-stroked-button class="home-btn" (click)="goDaily()">
-            📅 Today in Football
+            📅 {{ lang.t().btnDaily }}
           </button>
         </div>
       </div>

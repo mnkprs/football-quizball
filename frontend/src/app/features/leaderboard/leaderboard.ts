@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { LanguageService } from '../../core/language.service';
 import {
   LeaderboardApiService,
   LeaderboardEntry,
@@ -18,16 +19,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   template: `
     <div class="leaderboard-page">
       <header class="leaderboard-header">
-        <h1 class="leaderboard-title">Leaderboard</h1>
+        <h1 class="leaderboard-title">{{ lang.t().lbTitle }}</h1>
         <button mat-button (click)="load()" [disabled]="loading()">
-          {{ loading() ? '...' : 'Refresh' }}
+          {{ loading() ? '...' : lang.t().lbRefresh }}
         </button>
       </header>
 
       @if (loading() && entries().length === 0) {
         <div class="leaderboard-loading">
           <mat-spinner diameter="32"></mat-spinner>
-          <span>Loading...</span>
+          <span>{{ lang.t().lbLoading }}</span>
         </div>
       }
 
@@ -36,7 +37,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       }
 
       <section class="leaderboard-section">
-        <h2 class="leaderboard-section-title">🏆 Solo Ranked</h2>
+        <h2 class="leaderboard-section-title">🏆 {{ lang.t().lbSolo }}</h2>
         @if (entries().length > 0) {
           <div class="leaderboard-list">
             @for (entry of entries(); track entry.id; let i = $index) {
@@ -49,15 +50,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
                   <div class="leaderboard-info">
                     <div class="leaderboard-name">
                       {{ entry.username }}
-                      @if (isCurrentUser(entry.id)) { <span class="leaderboard-you">(you)</span> }
+                      @if (isCurrentUser(entry.id)) { <span class="leaderboard-you">{{ lang.t().lbYou }}</span> }
                     </div>
                     <div class="leaderboard-meta">
-                      {{ entry.questions_answered }} questions · {{ accuracy(entry) }}% accuracy
+                      {{ entry.questions_answered }} {{ lang.t().lbQuestions }} · {{ accuracy(entry) }}% {{ lang.t().lbAccuracy }}
                     </div>
                   </div>
                   <div class="leaderboard-score">
                     <span class="leaderboard-score-value">{{ entry.elo }}</span>
-                    <span class="leaderboard-score-label">ELO</span>
+                    <span class="leaderboard-score-label">{{ lang.t().profileElo }}</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -65,18 +66,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             }
           </div>
           @if (showSoloMeBelow()) {
-            <div class="leaderboard-you-separator">Your rank</div>
+            <div class="leaderboard-you-separator">{{ lang.t().lbYourRank }}</div>
             <a [routerLink]="['/profile', soloMeEntry()!.id]" class="leaderboard-card-link">
               <mat-card class="leaderboard-card leaderboard-card--you">
                 <mat-card-content class="leaderboard-card-content">
                   <div class="leaderboard-rank">#{{ soloMeEntry()!.rank }}</div>
                   <div class="leaderboard-info">
-                    <div class="leaderboard-name">{{ soloMeEntry()!.username }} <span class="leaderboard-you">(you)</span></div>
-                    <div class="leaderboard-meta">{{ soloMeEntry()!.questions_answered }} questions · {{ accuracy(soloMeEntry()!) }}% accuracy</div>
+                    <div class="leaderboard-name">{{ soloMeEntry()!.username }} <span class="leaderboard-you">{{ lang.t().lbYou }}</span></div>
+                    <div class="leaderboard-meta">{{ soloMeEntry()!.questions_answered }} {{ lang.t().lbQuestions }} · {{ accuracy(soloMeEntry()!) }}% {{ lang.t().lbAccuracy }}</div>
                   </div>
                   <div class="leaderboard-score">
                     <span class="leaderboard-score-value">{{ soloMeEntry()!.elo }}</span>
-                    <span class="leaderboard-score-label">ELO</span>
+                    <span class="leaderboard-score-label">{{ lang.t().profileElo }}</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -84,13 +85,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           }
         } @else if (!loading()) {
           <mat-card class="leaderboard-empty">
-            <mat-card-content>No players yet. Be the first!</mat-card-content>
+            <mat-card-content>{{ lang.t().lbNoPlayers }}</mat-card-content>
           </mat-card>
         }
       </section>
 
       <section class="leaderboard-section">
-        <h2 class="leaderboard-section-title">⚡ Blitz Mode</h2>
+        <h2 class="leaderboard-section-title">⚡ {{ lang.t().lbBlitz }}</h2>
         @if (blitzEntries().length > 0) {
           <div class="leaderboard-list">
             @for (entry of blitzEntries(); track entry.user_id; let i = $index) {
@@ -103,15 +104,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
                   <div class="leaderboard-info">
                     <div class="leaderboard-name">
                       {{ entry.username }}
-                      @if (isCurrentUser(entry.user_id)) { <span class="leaderboard-you">(you)</span> }
+                      @if (isCurrentUser(entry.user_id)) { <span class="leaderboard-you">{{ lang.t().lbYou }}</span> }
                     </div>
                     <div class="leaderboard-meta">
-                      {{ entry.total_answered }} answered
+                      {{ entry.total_answered }} {{ lang.t().lbAnswered }}
                     </div>
                   </div>
                   <div class="leaderboard-score">
                     <span class="leaderboard-score-value">{{ entry.score }}</span>
-                    <span class="leaderboard-score-label">Best</span>
+                    <span class="leaderboard-score-label">{{ lang.t().lbBest }}</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -119,18 +120,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             }
           </div>
           @if (showBlitzMeBelow()) {
-            <div class="leaderboard-you-separator">Your rank</div>
+            <div class="leaderboard-you-separator">{{ lang.t().lbYourRank }}</div>
             <a [routerLink]="['/profile', blitzMeEntry()!.user_id]" class="leaderboard-card-link">
               <mat-card class="leaderboard-card leaderboard-card--you">
                 <mat-card-content class="leaderboard-card-content">
                   <div class="leaderboard-rank">#{{ blitzMeEntry()!.rank }}</div>
                   <div class="leaderboard-info">
-                    <div class="leaderboard-name">{{ blitzMeEntry()!.username }} <span class="leaderboard-you">(you)</span></div>
-                    <div class="leaderboard-meta">{{ blitzMeEntry()!.total_answered }} answered</div>
+                    <div class="leaderboard-name">{{ blitzMeEntry()!.username }} <span class="leaderboard-you">{{ lang.t().lbYou }}</span></div>
+                    <div class="leaderboard-meta">{{ blitzMeEntry()!.total_answered }} {{ lang.t().lbAnswered }}</div>
                   </div>
                   <div class="leaderboard-score">
                     <span class="leaderboard-score-value">{{ blitzMeEntry()!.score }}</span>
-                    <span class="leaderboard-score-label">Best</span>
+                    <span class="leaderboard-score-label">{{ lang.t().lbBest }}</span>
                   </div>
                 </mat-card-content>
               </mat-card>
@@ -138,7 +139,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           }
         } @else if (!loading()) {
           <mat-card class="leaderboard-empty">
-            <mat-card-content>No Blitz scores yet. Play now!</mat-card-content>
+            <mat-card-content>{{ lang.t().lbNoBlitz }}</mat-card-content>
           </mat-card>
         }
       </section>
@@ -296,6 +297,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export class LeaderboardComponent implements OnInit {
   private leaderboardApi = inject(LeaderboardApiService);
   auth = inject(AuthService);
+  lang = inject(LanguageService);
 
   entries = signal<LeaderboardEntry[]>([]);
   blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
@@ -328,7 +330,7 @@ export class LeaderboardComponent implements OnInit {
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.blitzMeEntry.set(meRes.blitzMe ?? null);
     } catch (err: any) {
-      this.error.set('Failed to load leaderboard');
+      this.error.set(this.lang.t().lbLoadFailed);
     } finally {
       this.loading.set(false);
     }

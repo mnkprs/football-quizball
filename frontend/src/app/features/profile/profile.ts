@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,20 +18,20 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       @if (!auth.isLoggedIn()) {
         <div class="profile-guest">
           <div class="profile-guest-icon">👤</div>
-          <h1 class="profile-guest-title">Your Profile</h1>
+          <h1 class="profile-guest-title">{{ lang.t().profileTitle }}</h1>
           <p class="profile-guest-text">
-            Sign in to track your ELO, Blitz scores, and compete on the leaderboard.
+            {{ lang.t().profileGuestText }}
           </p>
           <button mat-flat-button color="primary" class="profile-guest-btn" (click)="goToLogin()">
             <span class="material-icons">login</span>
-            Sign in
+            {{ lang.t().profileSignIn }}
           </button>
         </div>
       } @else {
         @if (loading()) {
           <div class="profile-loading">
             <mat-spinner diameter="40"></mat-spinner>
-            <span>Loading profile...</span>
+            <span>{{ lang.t().profileLoading }}</span>
           </div>
         } @else {
           <div class="profile-content">
@@ -49,28 +50,28 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             <div class="profile-stats">
               <div class="profile-stat-card">
                 <span class="profile-stat-value">{{ profile()?.elo ?? 1000 }}</span>
-                <span class="profile-stat-label">ELO</span>
+                <span class="profile-stat-label">{{ lang.t().profileElo }}</span>
                 <span class="profile-stat-hint">Rank #{{ profile()?.rank ?? '—' }}</span>
               </div>
               <div class="profile-stat-card">
                 <span class="profile-stat-value">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
-                <span class="profile-stat-label">Max ELO</span>
-                <span class="profile-stat-hint">Peak rating</span>
+                <span class="profile-stat-label">{{ lang.t().profileMaxElo }}</span>
+                <span class="profile-stat-hint">{{ lang.t().profilePeakRating }}</span>
               </div>
               <div class="profile-stat-card">
                 <span class="profile-stat-value">{{ blitzStats()?.bestScore ?? '—' }}</span>
-                <span class="profile-stat-label">Blitz Best</span>
+                <span class="profile-stat-label">{{ lang.t().profileBlitzBest }}</span>
                 <span class="profile-stat-hint">Rank #{{ blitzStats()?.rank ?? '—' }}</span>
               </div>
               <div class="profile-stat-card">
                 <span class="profile-stat-value">{{ profile()?.games_played ?? 0 }}</span>
-                <span class="profile-stat-label">Games</span>
-                <span class="profile-stat-hint">Solo played</span>
+                <span class="profile-stat-label">{{ lang.t().profileGames }}</span>
+                <span class="profile-stat-hint">{{ lang.t().profileSoloPlayed }}</span>
               </div>
               <div class="profile-stat-card">
                 <span class="profile-stat-value">{{ accuracy() }}%</span>
-                <span class="profile-stat-label">Accuracy</span>
-                <span class="profile-stat-hint">Solo questions</span>
+                <span class="profile-stat-label">{{ lang.t().profileAccuracy }}</span>
+                <span class="profile-stat-hint">{{ lang.t().profileSoloQuestions }}</span>
               </div>
             </div>
 
@@ -78,19 +79,19 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             <div class="profile-actions">
               <a routerLink="/leaderboard" class="profile-action-link">
                 <span class="material-icons">leaderboard</span>
-                View Leaderboard
+                {{ lang.t().profileViewLeaderboard }}
               </a>
             </div>
 
             @if (isOwnProfile()) {
               <button mat-stroked-button class="profile-signout" (click)="signOut()">
                 <span class="material-icons">logout</span>
-                Sign out
+                {{ lang.t().signOut }}
               </button>
             } @else {
               <a routerLink="/leaderboard" mat-stroked-button class="profile-back-link">
                 <span class="material-icons">arrow_back</span>
-                Back to Leaderboard
+                {{ lang.t().profileBackToLeaderboard }}
               </a>
             }
           </div>
@@ -285,6 +286,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class ProfileComponent implements OnInit {
   auth = inject(AuthService);
+  lang = inject(LanguageService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private soloApi = inject(SoloApiService);

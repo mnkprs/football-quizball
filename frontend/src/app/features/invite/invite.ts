@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { LanguageService } from '../../core/language.service';
 
 @Component({
   selector: 'app-invite',
@@ -11,9 +12,9 @@ import { MatIconModule } from '@angular/material/icon';
       <div class="invite-content">
         <div class="invite-hero">
           <div class="invite-emoji">🤝</div>
-          <h1 class="invite-title">Invite a Friend</h1>
+          <h1 class="invite-title">{{ lang.t().inviteTitle }}</h1>
           <p class="invite-subtitle">
-            Share the link so they can try football trivia.
+            {{ lang.t().inviteSubtitle }}
           </p>
         </div>
 
@@ -25,7 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
             (click)="copyLink()"
           >
             <span class="material-icons">content_copy</span>
-            {{ copied() ? 'Copied!' : 'Copy link' }}
+            {{ copied() ? lang.t().inviteCopied : lang.t().inviteCopy }}
           </button>
 
           @if (canShare()) {
@@ -35,28 +36,28 @@ import { MatIconModule } from '@angular/material/icon';
               (click)="share()"
             >
               <span class="material-icons">share</span>
-              Share via...
+              {{ lang.t().inviteShare }}
             </button>
           }
         </div>
 
-        <div class="invite-steps">
-          <h3 class="invite-steps-title">How it works</h3>
+        <!-- <div class="invite-steps">
+          <h3 class="invite-steps-title">{{ lang.t().inviteHowItWorks }}</h3>
           <ol class="invite-steps-list">
             <li>
               <span class="invite-step-num">1</span>
-              <span>Share the link with a friend</span>
+              <span>{{ lang.t().inviteStep1 }}</span>
             </li>
             <li>
               <span class="invite-step-num">2</span>
-              <span>They open it and try the app</span>
+              <span>{{ lang.t().inviteStep2 }}</span>
             </li>
             <li>
               <span class="invite-step-num">3</span>
-              <span>Play 2-player head-to-head on the same device</span>
+              <span>{{ lang.t().inviteStep3 }}</span>
             </li>
           </ol>
-        </div>
+        </div> -->
       </div>
     </div>
   `,
@@ -175,6 +176,7 @@ import { MatIconModule } from '@angular/material/icon';
   `],
 })
 export class InviteComponent {
+  lang = inject(LanguageService);
   copied = signal(false);
 
   get inviteUrl(): string {

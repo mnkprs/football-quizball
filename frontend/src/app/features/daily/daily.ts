@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { DailyApiService, DailyQuestionRef } from '../../core/daily-api.service';
+import { LanguageService } from '../../core/language.service';
 
 type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
 
@@ -16,8 +17,8 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-6 pt-2">
-          <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">← Home</button>
-          <div class="text-accent font-black text-xl">📅 Today in Football</div>
+          <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().dailyBackBtn }}</button>
+          <div class="text-accent font-black text-xl">📅 {{ lang.t().dailyTitle }}</div>
           <div class="w-16"></div>
         </div>
 
@@ -25,17 +26,17 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
         @if (phase() === 'idle' || phase() === 'loading') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-6xl mb-6">📅</div>
-            <h2 class="text-2xl font-black text-foreground mb-2">Today in Football</h2>
-            <p class="text-muted-foreground text-center mb-2">On this day in football history.</p>
+            <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().dailyTitle }}</h2>
+            <p class="text-muted-foreground text-center mb-2">{{ lang.t().dailySubtitle }}</p>
             <p class="text-muted-foreground text-sm text-center mb-8 max-w-xs">
-              Same questions for everyone today. How many can you get right?
+              {{ lang.t().dailySameQuestions }}
             </p>
             <button
               (click)="startQuiz()"
               [disabled]="phase() === 'loading'"
               class="daily-start-btn"
             >
-              {{ phase() === 'loading' ? 'Loading...' : 'Start Quiz' }}
+              {{ phase() === 'loading' ? lang.t().dailyLoading : lang.t().dailyStart }}
             </button>
             @if (error()) {
               <p class="text-loss text-sm mt-4">{{ error() }}</p>
@@ -49,7 +50,7 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
             <!-- Progress -->
             <div class="flex items-center justify-between mb-5">
               <div class="text-muted-foreground text-sm">
-                Question {{ currentIndex() + 1 }} of {{ questions().length }}
+                {{ lang.t().dailyQuestionOf }} {{ currentIndex() + 1 }} of {{ questions().length }}
               </div>
               <div class="text-accent font-black text-xl">{{ score() }}/{{ currentIndex() + 1 }}</div>
             </div>
@@ -81,7 +82,7 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
                 [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
               >
                 <div class="text-5xl mb-3">{{ flashCorrect() ? '✅' : '❌' }}</div>
-                <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? 'Correct!' : 'Wrong' }}</div>
+                <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
                 @if (!flashCorrect()) {
                   <div class="text-white/80 text-sm text-center px-4 mb-4">{{ flashAnswer() }}</div>
                 }
@@ -97,18 +98,18 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
         @if (phase() === 'finished') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-5xl mb-4">🏆</div>
-            <h2 class="text-2xl font-black text-foreground mb-2">All Done!</h2>
+            <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().dailyAllDone }}</h2>
             <div class="text-6xl font-black text-accent mb-2 tabular-nums">{{ score() }}/{{ questions().length }}</div>
-            <p class="text-muted-foreground mb-8">{{ accuracy() }}% correct</p>
+            <p class="text-muted-foreground mb-8">{{ accuracy() }}% {{ lang.t().dailyCorrectPct }}</p>
 
             <button
               (click)="resetToIdle()"
               class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light transition mb-3 pressable"
             >
-              Play Again
+              {{ lang.t().playAgain }}
             </button>
             <button (click)="goHome()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
-              Home
+              {{ lang.t().navHome }}
             </button>
           </div>
         }
@@ -156,6 +157,7 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
 export class DailyComponent {
   private api = inject(DailyApiService);
   private router = inject(Router);
+  lang = inject(LanguageService);
 
   phase = signal<DailyPhase>('idle');
   loading = signal(false);
@@ -205,7 +207,7 @@ export class DailyComponent {
       const res = await firstValueFrom(this.api.getQuestions());
       const qs = res.questions ?? [];
       if (qs.length === 0) {
-        this.error.set('No questions available for today. Try again later.');
+        this.error.set(this.lang.t().dailyNoQuestions);
         this.phase.set('idle');
         return;
       }
@@ -214,7 +216,7 @@ export class DailyComponent {
       this.score.set(0);
       this.phase.set('playing');
     } catch (err: any) {
-      this.error.set(err?.error?.message ?? 'Failed to load questions');
+      this.error.set(err?.error?.message ?? this.lang.t().dailyLoadFailed);
       this.phase.set('idle');
     }
   }

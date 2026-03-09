@@ -21,7 +21,7 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
       <div class="text-center mb-5">
         <div class="inline-flex items-center gap-3 bg-blue-600 rounded-full px-6 py-2.5 shadow-lg shadow-blue-900/30">
           <span class="text-2xl">⚽</span>
-          <span class="text-white font-black text-xl tracking-widest uppercase">Unlimited Quizball</span>
+          <span class="text-white font-black text-xl tracking-widest uppercase">{{ lang.t().appTitle }}</span>
         </div>
       </div>
 

@@ -17,8 +17,8 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-6 pt-2">
-          <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">← Home</button>
-          <div class="text-accent font-black text-xl">⚡ Blitz</div>
+          <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().blitzBackBtn }}</button>
+          <div class="text-accent font-black text-xl">⚡ {{ lang.t().blitzTitle }}</div>
           <div class="w-16"></div>
         </div>
 
@@ -26,20 +26,20 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
         @if (phase() === 'idle') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-6xl mb-6">⚡</div>
-            <h2 class="text-2xl font-black text-foreground mb-2">Blitz Mode</h2>
-            <p class="text-muted-foreground text-center mb-2">60 seconds. Answer as many as you can.</p>
+            <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().blitzTitle }}</h2>
+            <p class="text-muted-foreground text-center mb-2">{{ lang.t().blitzSubtitle }}</p>
             <ul class="text-muted-foreground text-sm text-center mb-8 space-y-1 max-w-xs">
-              <li>• Pick from 3 choices — no typing required</li>
-              <li>• Fast-paced: each question appears right after you answer</li>
-              <li>• Your best score is saved and ranked on the leaderboard</li>
-              <li>• Perfect for quick sessions and testing your knowledge</li>
+              <li>• {{ lang.t().blitzBullet1 }}</li>
+              <li>• {{ lang.t().blitzBullet2 }}</li>
+              <li>• {{ lang.t().blitzBullet3 }}</li>
+              <li>• {{ lang.t().blitzBullet4 }}</li>
             </ul>
             <button
               (click)="startSession()"
               [disabled]="loading()"
               class="blitz-start-btn"
             >
-              {{ loading() ? 'Loading...' : 'Start Blitz' }}
+              {{ loading() ? lang.t().dailyLoading : lang.t().blitzStart }}
             </button>
             @if (error()) {
               <p class="text-loss text-sm mt-4">{{ error() }}</p>
@@ -66,7 +66,7 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
               </div>
               <div class="text-right">
                 <div class="text-accent font-black text-2xl tabular-nums">{{ score() }}</div>
-                <div class="text-muted-foreground text-xs">{{ totalAnswered() }} answered</div>
+                <div class="text-muted-foreground text-xs">{{ totalAnswered() }} {{ lang.t().blitzAnswered }}</div>
               </div>
             </div>
 
@@ -95,7 +95,7 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
                 [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
               >
                 <div class="text-5xl mb-3">{{ flashCorrect() ? '✅' : '❌' }}</div>
-                <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? 'Correct!' : 'Wrong' }}</div>
+                <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
                 @if (!flashCorrect()) {
                   <div class="text-white/80 text-sm">{{ flashAnswer() }}</div>
                 }
@@ -108,13 +108,13 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
         @if (phase() === 'finished') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-5xl mb-4">🏁</div>
-            <h2 class="text-2xl font-black text-foreground mb-2">Time's Up!</h2>
+            <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().blitzTimesUp }}</h2>
             <div class="text-6xl font-black text-accent mb-2 tabular-nums">{{ score() }}</div>
-            <p class="text-muted-foreground mb-8">correct out of {{ totalAnswered() }} answered</p>
+            <p class="text-muted-foreground mb-8">{{ lang.t().blitzCorrectOutOf }} {{ totalAnswered() }} {{ lang.t().blitzAnswered }}</p>
 
             <div class="w-full max-w-xs space-y-3 mb-8">
               <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-                <span class="text-muted-foreground">Accuracy</span>
+                <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>
                 <span class="text-foreground font-bold">{{ accuracy() }}%</span>
               </div>
             </div>
@@ -123,10 +123,10 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
               (click)="resetToIdle()"
               class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light transition mb-3 pressable"
             >
-              Play Again
+              {{ lang.t().playAgain }}
             </button>
             <button (click)="goHome()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
-              Home
+              {{ lang.t().navHome }}
             </button>
           </div>
         }
@@ -174,7 +174,7 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
 export class BlitzComponent implements OnDestroy {
   private api = inject(BlitzApiService);
   private router = inject(Router);
-  private lang = inject(LanguageService);
+  lang = inject(LanguageService);
 
   phase = signal<BlitzPhase>('idle');
   loading = signal(false);
@@ -234,7 +234,7 @@ export class BlitzComponent implements OnDestroy {
       this.phase.set('playing');
       this.startTimer();
     } catch (err: any) {
-      this.error.set(err?.error?.message ?? 'Failed to start session');
+      this.error.set(err?.error?.message ?? this.lang.t().blitzSessionFailed);
     } finally {
       this.loading.set(false);
     }
