@@ -14,4 +14,13 @@ export class DailyController {
     const questions = await this.dailyService.getTodaysQuestions();
     return { questions };
   }
+
+  /**
+   * Returns metadata for today's daily (question count, reset time).
+   * Lightweight — does not trigger generation.
+   */
+  @Get('metadata')
+  async getMetadata() {
+    return this.dailyService.getMetadata();
+  }
 }

@@ -80,6 +80,22 @@ export class DailyService implements OnModuleInit {
     }
   }
 
+  /**
+   * Returns metadata for today's daily challenge (count, next reset time).
+   * Does not trigger generation — returns 0 if not yet created.
+   */
+  async getMetadata(): Promise<{ count: number; resetsAt: string }> {
+    const today = this.getTodayDateStr();
+    const existing = await this.fetchForDate(today);
+    const count = existing.length;
+
+    const now = new Date();
+    const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+    const resetsAt = tomorrow.toISOString();
+
+    return { count, resetsAt };
+  }
+
   private getTodayDateStr(): string {
     const d = new Date();
     return d.toISOString().slice(0, 10);

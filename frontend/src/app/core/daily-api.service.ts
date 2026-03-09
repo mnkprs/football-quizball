@@ -14,6 +14,11 @@ export interface DailyQuestionsResponse {
   questions: DailyQuestionRef[];
 }
 
+export interface DailyMetadata {
+  count: number;
+  resetsAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DailyApiService {
   private http = inject(HttpClient);
@@ -21,5 +26,9 @@ export class DailyApiService {
 
   getQuestions(): Observable<DailyQuestionsResponse> {
     return this.http.get<DailyQuestionsResponse>(`${this.base}/questions`);
+  }
+
+  getMetadata(): Observable<DailyMetadata> {
+    return this.http.get<DailyMetadata>(`${this.base}/metadata`);
   }
 }

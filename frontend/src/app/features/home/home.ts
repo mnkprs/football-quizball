@@ -1,18 +1,18 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
+import { DailyApiService } from '../../core/daily-api.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeToggleComponent } from '../../shared/theme-toggle';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ThemeToggleComponent, MatCardModule, MatButtonModule],
+  imports: [ThemeToggleComponent, MatButtonModule],
   template: `
     <div class="home-page">
       <div class="home-content">
@@ -36,8 +36,8 @@ import { MatButtonModule } from '@angular/material/button';
         <p class="home-subtitle">{{ lang.t().appSubtitle }}</p>
 
         @if (auth.isLoggedIn()) {
-          <mat-card class="home-auth-card">
-            <mat-card-content class="home-auth-content">
+          <div class="home-auth-card">
+            <div class="home-auth-content">
               <div class="home-auth-left">
                 @if (avatarUrl() && !avatarLoadFailed()) {
                   <img
@@ -53,32 +53,46 @@ import { MatButtonModule } from '@angular/material/button';
               </div>
               <div class="home-auth-info">
                 <p class="home-auth-name">{{ displayName() }}</p>
-                <p class="home-auth-elo">ELO: {{ userElo() }} · Rank #{{ eloRank() }}</p>
-                <p class="home-auth-blitz">Blitz: {{ blitzBest() }} · Rank #{{ blitzRank() }}</p>
+                <p class="home-auth-stats">
+                  <span class="home-auth-stat">ELO {{ userElo() }}</span>
+                  <span class="home-auth-stat-sep">·</span>
+                  <span class="home-auth-stat">{{ lang.t().rankLabel }} #{{ eloRank() }}</span>
+                  <span class="home-auth-stat-sep">·</span>
+                  <span class="home-auth-stat">{{ lang.t().blitzStatsHint }} {{ blitzBest() }}</span>
+                </p>
               </div>
-              <button mat-button (click)="signOut()">{{ lang.t().signOut }}</button>
-            </mat-card-content>
-          </mat-card>
+              <button class="home-sign-out" (click)="signOut()">{{ lang.t().signOut }}</button>
+            </div>
+          </div>
         }
 
         <div class="home-buttons">
           <button mat-flat-button color="primary" class="home-btn home-btn-primary" (click)="go2Player()">
-            🎮 {{ lang.t().btn2Player }}
+            <span class="home-btn-main">🎮 {{ lang.t().btn2Player }}</span>
+            <span class="home-btn-hint home-btn-hint-primary">{{ lang.t().btn2PlayerHint }}</span>
           </button>
-          <button mat-stroked-button class="home-btn" (click)="goSolo()">
-            🏆 {{ lang.t().btnSolo }}
-            @if (!auth.isLoggedIn()) {
-              <span class="home-btn-hint">{{ lang.t().loginRequired }}</span>
-            }
-          </button>
-          <button mat-stroked-button class="home-btn" (click)="goBlitz()">
-            ⚡ {{ lang.t().btnBlitz }}
-            @if (!auth.isLoggedIn()) {
-              <span class="home-btn-hint">{{ lang.t().loginRequired }}</span>
-            }
-          </button>
+          @if (auth.isLoggedIn()) {
+            <button class="home-btn home-btn-active home-btn-accent" (click)="goSolo()">
+              <span class="home-btn-main">🏆 {{ lang.t().btnSolo }}</span>
+              <span class="home-btn-hint home-btn-hint-active">{{ lang.t().soloStatsHint }} {{ userElo() }} · {{ lang.t().rankLabel }} #{{ eloRank() }}</span>
+            </button>
+            <button class="home-btn home-btn-active home-btn-accent" (click)="goBlitz()">
+              <span class="home-btn-main">⚡ {{ lang.t().btnBlitz }}</span>
+              <span class="home-btn-hint home-btn-hint-active">{{ lang.t().blitzStatsHint }} {{ blitzBest() }} · {{ lang.t().rankLabel }} #{{ blitzRank() }}</span>
+            </button>
+          } @else {
+            <button mat-stroked-button class="home-btn" (click)="goSolo()">
+              <span class="home-btn-main">🏆 {{ lang.t().btnSolo }}</span>
+              <span class="home-btn-hint">{{ lang.t().btnSoloDesc }} · {{ lang.t().loginRequired }}</span>
+            </button>
+            <button mat-stroked-button class="home-btn" (click)="goBlitz()">
+              <span class="home-btn-main">⚡ {{ lang.t().btnBlitz }}</span>
+              <span class="home-btn-hint">{{ lang.t().btnBlitzDesc }} · {{ lang.t().loginRequired }}</span>
+            </button>
+          }
           <button mat-stroked-button class="home-btn" (click)="goDaily()">
-            📅 {{ lang.t().btnDaily }}
+            <span class="home-btn-main">📅 {{ lang.t().btnDaily }}</span>
+            <span class="home-btn-hint">{{ dailyCount() ?? '—' }} {{ lang.t().dailyQuestionsLabel }} · {{ lang.t().dailyResetsIn }} {{ dailyResetsIn() }}</span>
           </button>
         </div>
       </div>
@@ -154,6 +168,10 @@ import { MatButtonModule } from '@angular/material/button';
 
     .home-auth-card {
       margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-radius: 1rem;
+      background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.05));
+      border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
     }
 
     .home-auth-content {
@@ -167,15 +185,15 @@ import { MatButtonModule } from '@angular/material/button';
     }
 
     .home-auth-avatar {
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 3rem;
+      height: 3rem;
       border-radius: 50%;
       object-fit: cover;
     }
 
     .home-auth-avatar-fallback {
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 3rem;
+      height: 3rem;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--mat-sys-primary) 0%, color-mix(in srgb, var(--mat-sys-primary) 70%, #000) 100%);
       color: var(--mat-sys-on-primary);
@@ -194,36 +212,84 @@ import { MatButtonModule } from '@angular/material/button';
 
     .home-auth-name {
       font-weight: 600;
-      margin: 0 0 0.25rem 0;
+      font-size: 1rem;
+      margin: 0 0 0.375rem 0;
+      color: var(--mat-sys-on-surface);
     }
 
-    .home-auth-elo,
-    .home-auth-blitz {
-      color: var(--mat-sys-primary);
-      font-size: 0.875rem;
+    .home-auth-stats {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.5rem;
+      font-size: 0.8125rem;
       font-weight: 600;
+      color: var(--mat-sys-primary);
       margin: 0;
     }
 
-    .home-auth-blitz {
-      margin-top: 0.125rem;
+    .home-auth-stat-sep {
+      color: var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.4));
+      font-weight: 400;
+    }
+
+    .home-sign-out {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
+      background: transparent;
+      color: var(--mat-sys-on-surface-variant);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+
+    .home-sign-out:hover {
+      border-color: var(--mat-sys-error, #b3261e);
+      color: var(--mat-sys-error, #b3261e);
+      background: color-mix(in srgb, var(--mat-sys-error, #b3261e) 8%, transparent);
     }
 
     .home-buttons {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.25rem;
       margin-bottom: 2rem;
     }
 
     .home-btn {
-      padding: 1rem 1.5rem !important;
-      font-size: 1.125rem !important;
+      padding: 1.25rem 1.5rem !important;
+      font-size: 1.25rem !important;
       font-weight: 500 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      text-align: left !important;
+      min-height: 4rem !important;
+      border-radius: 1rem !important;
+    }
+
+    .home-btn-main {
+      display: block;
     }
 
     .home-btn-primary {
       font-weight: 700 !important;
+    }
+
+    .home-btn-active {
+      font-weight: 600 !important;
+    }
+
+    .home-btn-accent {
+      background: var(--color-accent) !important;
+      color: var(--color-accent-foreground) !important;
+      border: none !important;
+    }
+
+    .home-btn-accent:hover {
+      background: var(--color-accent-light) !important;
     }
 
     .home-btn-hint {
@@ -231,20 +297,50 @@ import { MatButtonModule } from '@angular/material/button';
       font-size: 0.875rem;
       font-weight: 400;
       color: var(--mat-sys-on-surface-variant);
-      margin-top: 0.25rem;
+      margin-top: 0.375rem;
+      opacity: 0.9;
+    }
+
+    .home-btn-hint-active {
+      color: inherit;
+      opacity: 0.85;
+    }
+
+    .home-btn-hint-primary {
+      color: rgba(255, 255, 255, 0.9);
     }
   `],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
   lang = inject(LanguageService);
   private router = inject(Router);
   private blitzApi = inject(BlitzApiService);
   private soloApi = inject(SoloApiService);
+  private dailyApi = inject(DailyApiService);
 
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   avatarLoadFailed = signal(false);
+  dailyMetadata = signal<{ count: number; resetsAt: string } | null>(null);
+  private countdownTick = signal(0);
+
+  dailyCount = computed(() => {
+    const meta = this.dailyMetadata();
+    return meta ? meta.count : null;
+  });
+
+  dailyResetsIn = computed(() => {
+    const meta = this.dailyMetadata();
+    this.countdownTick(); // trigger recompute on tick
+    if (!meta?.resetsAt) return '—';
+    const ms = new Date(meta.resetsAt).getTime() - Date.now();
+    if (ms <= 0) return '0:00:00';
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  });
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
@@ -290,12 +386,31 @@ export class HomeComponent implements OnInit {
     return r != null ? String(r) : '—';
   }
 
+  private countdownInterval: ReturnType<typeof setInterval> | null = null;
+
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
         this.loadProfile();
       }
     });
+    this.loadDailyMetadata();
+    this.countdownInterval = setInterval(() => this.countdownTick.update((v) => v + 1), 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+  }
+
+  private async loadDailyMetadata(): Promise<void> {
+    try {
+      const meta = await firstValueFrom(this.dailyApi.getMetadata());
+      this.dailyMetadata.set(meta);
+    } catch {
+      this.dailyMetadata.set(null);
+    }
   }
 
   onAvatarError(): void {
