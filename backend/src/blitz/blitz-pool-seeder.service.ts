@@ -58,6 +58,19 @@ export class BlitzPoolSeederService implements OnModuleInit {
     await this.seedPool();
   }
 
+  async cleanupPool(): Promise<{ deletedInvalid: number; deletedDuplicates: number }> {
+    const { data, error } = await this.supabaseService.client.rpc('cleanup_blitz_question_pool');
+    if (error) {
+      this.logger.error(`[blitz-seeder] cleanup RPC error: ${error.message}`);
+      return { deletedInvalid: 0, deletedDuplicates: 0 };
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    const deletedInvalid = Number(row?.deleted_invalid ?? 0);
+    const deletedDuplicates = Number(row?.deleted_duplicates ?? 0);
+    this.logger.log(`[blitz-seeder] Cleanup: removed ${deletedInvalid} invalid, ${deletedDuplicates} duplicates`);
+    return { deletedInvalid, deletedDuplicates };
+  }
+
   async seedPool(bandTarget?: number): Promise<{ band: string; added: number }[]> {
     if (this.isSeeding) {
       this.logger.warn('[blitz-seeder] Seeding already in progress, skipping');

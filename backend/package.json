@@ -11,6 +11,9 @@
   "scripts": {
     "seed-pool": "ts-node -r tsconfig-paths/register scripts/seed-pool.ts",
     "seed-blitz-pool": "ts-node -r tsconfig-paths/register scripts/seed-blitz-pool.ts",
+    "find-duplicates": "ts-node -r tsconfig-paths/register scripts/find-duplicate-questions.ts",
+    "find-similarities": "ts-node -r tsconfig-paths/register scripts/find-similar-questions.ts",
+    "cleanup": "ts-node -r tsconfig-paths/register scripts/run-cleanup.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

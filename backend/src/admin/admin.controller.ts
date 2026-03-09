@@ -29,13 +29,18 @@ export class AdminController {
   }
 
   /**
-   * Remove invalid and duplicate questions from the pool.
+   * Remove invalid and duplicate questions from both pools.
    * Example: POST /api/admin/cleanup-questions
    */
   @Post('cleanup-questions')
   @HttpCode(HttpStatus.OK)
   async cleanupQuestions() {
-    return this.questionPoolService.cleanupPool();
+    const questionPool = await this.questionPoolService.cleanupPool();
+    const blitzPool = await this.blitzPoolSeederService.cleanupPool();
+    return {
+      question_pool: questionPool,
+      blitz_question_pool: blitzPool,
+    };
   }
 
   /**
