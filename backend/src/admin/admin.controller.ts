@@ -1,11 +1,15 @@
 import { Controller, Post, Query, HttpCode, HttpStatus, Logger } from '@nestjs/common';
 import { QuestionPoolService } from '../questions/question-pool.service';
+import { BlitzPoolSeederService } from '../blitz/blitz-pool-seeder.service';
 
 @Controller('api/admin')
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);
 
-  constructor(private questionPoolService: QuestionPoolService) {}
+  constructor(
+    private questionPoolService: QuestionPoolService,
+    private blitzPoolSeederService: BlitzPoolSeederService,
+  ) {}
 
   /**
    * Bulk seed the question pool. Fills each (category, difficulty) slot to the target count.
@@ -32,5 +36,22 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async cleanupQuestions() {
     return this.questionPoolService.cleanupPool();
+  }
+
+  /**
+   * Seed the blitz question pool. Fills each band to the target count.
+   * Example: POST /api/admin/seed-blitz-pool?target=150
+   */
+  @Post('seed-blitz-pool')
+  @HttpCode(HttpStatus.OK)
+  async seedBlitzPool(@Query('target') target?: string) {
+    const count = target ? Math.min(500, Math.max(1, parseInt(target, 10))) : undefined;
+    this.logger.log(`[seed-blitz-pool] Request received: target=${count ?? 'default'}`);
+    const results = await this.blitzPoolSeederService.seedPool(count);
+    return {
+      target: count ?? 'band-defaults',
+      results,
+      totalAdded: results.reduce((sum, r) => sum + r.added, 0),
+    };
   }
 }

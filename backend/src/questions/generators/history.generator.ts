@@ -10,9 +10,12 @@ export class HistoryGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean }): Promise<GeneratedQuestion> {
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
+    const wrongChoicesBlock = options?.forBlitz
+      ? '\n  "wrong_choices": ["plausible wrong answer 1", "plausible wrong answer 2"],  // two plausible but incorrect options, similar in type to correct_answer'
       : '';
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
 Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getAntiConvergenceInstruction()}
@@ -21,7 +24,7 @@ Return ONLY a valid JSON object with these exact fields:
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
   "answer_type": "name",
-  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Brazil' write 'Argentina'",
+  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Brazil' write 'Argentina'",${wrongChoicesBlock}
   "explanation": "brief explanation of why this is correct (1-2 sentences)",
   "event_year": 1966,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League, UEFA Champions League",
@@ -41,6 +44,7 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
       correct_answer: string;
       answer_type: string;
       fifty_fifty_hint: string;
+      wrong_choices?: string[];
       explanation: string;
       event_year: number;
       competition: string;
@@ -52,6 +56,13 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
       throw new Error('Invalid LLM response: missing question_text or correct_answer');
     }
 
+    const rawWrong = options?.forBlitz && Array.isArray(result.wrong_choices)
+      ? result.wrong_choices
+          .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
+          .filter((s) => s.trim().toLowerCase() !== result.correct_answer.trim().toLowerCase())
+          .slice(0, 2)
+      : [];
+    const wrongChoices = rawWrong.length >= 2 ? rawWrong : undefined;
     return {
       id: crypto.randomUUID(),
       category: 'HISTORY',
@@ -59,6 +70,7 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
       points: 1,
       question_text: result.question_text,
       correct_answer: result.correct_answer,
+      wrong_choices: wrongChoices,
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',

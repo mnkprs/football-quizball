@@ -147,7 +147,7 @@ export class BlitzService {
   }
 
   private async drawBlitzQuestions(): Promise<BlitzQuestion[]> {
-    const { data, error } = await this.supabaseService.client.rpc('draw_blitz_questions', {
+    const { data, error } = await this.supabaseService.client.rpc('draw_blitz_questions_v2', {
       p_count: DRAW_COUNT,
     });
 
@@ -159,8 +159,8 @@ export class BlitzService {
     const rows = (data ?? []) as Array<{
       id: string;
       category: string;
-      difficulty: string;
-      question: { question_text: string; correct_answer: string };
+      difficulty_score: number;
+      question: { question_text: string; correct_answer: string; wrong_choices?: string[] };
     }>;
 
     const sessionRows = rows.slice(0, SESSION_SIZE);
@@ -168,19 +168,53 @@ export class BlitzService {
 
     return sessionRows.map((row) => {
       const correctAnswer = row.question.correct_answer;
-      const choices = this.pickChoices(correctAnswer, row.category, distractorPool);
+      const choices = this.buildChoices(correctAnswer, row.question.wrong_choices, row.category, distractorPool);
       return {
         poolRowId: row.id,
         question_text: row.question.question_text,
         correct_answer: correctAnswer,
         choices,
         category: row.category,
-        difficulty: row.difficulty,
+        difficulty: this.scoreToLabel(row.difficulty_score),
       };
     });
   }
 
-  private pickChoices(
+  private shuffle<T>(arr: T[]): T[] {
+    const out = [...arr];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  private scoreToLabel(score: number): string {
+    if (score <= 33) return 'EASY';
+    if (score <= 66) return 'MEDIUM';
+    return 'HARD';
+  }
+
+  /** Build 3 choices: correct + 2 wrong. Prefer LLM wrong_choices when present, else pick from pool. */
+  private buildChoices(
+    correct: string,
+    wrongChoices: string[] | undefined,
+    category: string,
+    pool: Array<{ category: string; question: { correct_answer: string } }>,
+  ): string[] {
+    const fromLlm = wrongChoices?.length === 2
+      ? wrongChoices.filter((s) => s.trim().toLowerCase() !== correct.trim().toLowerCase()).slice(0, 2)
+      : [];
+    const distractors = fromLlm.length >= 2 ? fromLlm : this.pickChoicesFromPool(correct, category, pool);
+    const choices = [correct, ...distractors.slice(0, 2)];
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
+    return choices;
+  }
+
+  private pickChoicesFromPool(
     correct: string,
     category: string,
     pool: Array<{ category: string; question: { correct_answer: string } }>,
@@ -193,7 +227,9 @@ export class BlitzService {
       (r) => r.category !== category && r.question.correct_answer.toLowerCase() !== correct.toLowerCase(),
     );
 
-    const candidates = [...sameCat, ...others];
+    // Shuffle to avoid order bias — otherwise the first few answers in the pool
+    // (e.g. Giovanni Simeone) get picked as distractors for almost every question
+    const candidates = this.shuffle([...sameCat, ...others]);
     const distractors: string[] = [];
     const seen = new Set<string>([correct.toLowerCase()]);
 
@@ -216,12 +252,6 @@ export class BlitzService {
       }
     }
 
-    // Shuffle the 3 choices
-    const choices = [correct, ...distractors.slice(0, 2)];
-    for (let i = choices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [choices[i], choices[j]] = [choices[j], choices[i]];
-    }
-    return choices;
+    return distractors.slice(0, 2);
   }
 }

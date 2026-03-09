@@ -10,7 +10,10 @@ export class GeographyGenerator {
 
   constructor(private llmService: LlmService) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean }): Promise<GeneratedQuestion> {
+    const wrongChoicesBlock = options?.forBlitz
+      ? '\n  "wrong_choices": ["plausible wrong answer 1", "plausible wrong answer 2"],'
+      : '';
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -20,7 +23,7 @@ Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
-  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Germany' write 'France'",
+  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Germany' write 'France'",${wrongChoicesBlock}
   "explanation": "brief explanation (1-2 sentences)",
   "event_year": 2010,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League",
@@ -38,6 +41,7 @@ specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderat
       question_text: string;
       correct_answer: string;
       fifty_fifty_hint: string;
+      wrong_choices?: string[];
       explanation: string;
       event_year: number;
       competition: string;
@@ -49,6 +53,14 @@ specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderat
       throw new Error('Invalid LLM response: missing question_text or correct_answer');
     }
 
+    const rawWrong = options?.forBlitz && Array.isArray(result.wrong_choices)
+      ? result.wrong_choices
+          .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
+          .filter((s) => s.trim().toLowerCase() !== result.correct_answer.trim().toLowerCase())
+          .slice(0, 2)
+      : [];
+    const wrongChoices = rawWrong.length >= 2 ? rawWrong : undefined;
+
     return {
       id: crypto.randomUUID(),
       category: 'GEOGRAPHY',
@@ -56,6 +68,7 @@ specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderat
       points: 1,
       question_text: result.question_text,
       correct_answer: result.correct_answer,
+      wrong_choices: wrongChoices,
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',

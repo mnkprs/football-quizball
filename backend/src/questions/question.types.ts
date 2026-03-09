@@ -59,6 +59,8 @@ export interface GeneratedQuestion {
   points: number;
   question_text: string;
   correct_answer: string;
+  /** For Blitz: 2 plausible wrong choices from LLM. */
+  wrong_choices?: string[];
   fifty_fifty_hint: string | null;
   fifty_fifty_applicable: boolean;
   explanation: string;

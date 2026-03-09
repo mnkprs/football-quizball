@@ -123,7 +123,7 @@ export class QuestionsService {
     category: QuestionCategory,
     difficulty: Difficulty,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number },
+    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean },
   ): Promise<GeneratedQuestion> {
     const scale = options?.minorityScale ?? minorityScaleForDifficulty(difficulty);
     const question = await this.generateRawWithRetry(category, language, { ...options, minorityScale: scale });
@@ -135,7 +135,7 @@ export class QuestionsService {
   private async generateRawWithRetry(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number },
+    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean },
     maxRetries = 3,
   ): Promise<GeneratedQuestion> {
     let lastError: Error | null = null;
@@ -157,11 +157,11 @@ export class QuestionsService {
   private async generateRaw(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number },
+    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean },
   ): Promise<GeneratedQuestion> {
     const genOpts =
-      options?.avoidAnswers?.length || options?.slotIndex !== undefined
-        ? { avoidAnswers: options.avoidAnswers, slotIndex: options.slotIndex }
+      options?.avoidAnswers?.length || options?.slotIndex !== undefined || options?.minorityScale !== undefined || options?.forBlitz
+        ? { avoidAnswers: options.avoidAnswers, slotIndex: options.slotIndex, minorityScale: options.minorityScale, forBlitz: options.forBlitz }
         : undefined;
     switch (category) {
       case 'HISTORY':         return this.historyGenerator.generate(language, genOpts);

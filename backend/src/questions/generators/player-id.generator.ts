@@ -20,7 +20,10 @@ export class PlayerIdGenerator {
     private footballApiService: FootballApiService,
   ) {}
 
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
+  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean }): Promise<GeneratedQuestion> {
+    const wrongChoicesBlock = options?.forBlitz
+      ? '\n  "wrong_choices": ["plausible wrong player 1", "plausible wrong player 2"],'
+      : '';
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
@@ -32,7 +35,7 @@ Return ONLY a valid JSON object with these exact fields:
   "career": [{"club": "Club Name", "from": "YYYY", "to": "YYYY or Present"}],
   "nationality": "Nationality",
   "position": "Position",
-  "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",
+  "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",${wrongChoicesBlock}
   "image_url": null,
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
   "event_year": 2018,
@@ -55,6 +58,7 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
       nationality: string;
       position: string;
       wrong_player_name: string;
+      wrong_choices?: string[];
       image_url: string | null;
       competition: string;
       event_year: number;
@@ -70,6 +74,14 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
 
     const careerText = result.career.map((c) => `${c.club} (${c.from}–${c.to})`).join(' → ');
 
+    const rawWrong = options?.forBlitz && Array.isArray(result.wrong_choices)
+      ? result.wrong_choices
+          .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
+          .filter((s) => s.trim().toLowerCase() !== result.player_name.trim().toLowerCase())
+          .slice(0, 2)
+      : [];
+    const wrongChoices = rawWrong.length >= 2 ? rawWrong : undefined;
+
     const question_text = result.question_text ?? 'Identify the player from their career path:';
     const explanation = result.explanation ?? `The player is ${result.player_name}. Career: ${careerText}`;
 
@@ -80,6 +92,7 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
       points: 1,
       question_text,
       correct_answer: result.player_name,
+      wrong_choices: wrongChoices,
       fifty_fifty_hint: result.wrong_player_name || null,
       fifty_fifty_applicable: true,
       explanation,

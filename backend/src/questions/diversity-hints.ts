@@ -388,6 +388,18 @@ export function getDiversityHints(category: string): string {
   return getExplicitConstraints(category);
 }
 
+/**
+ * Maps a player ELO to the difficulty_score range for blitz question selection.
+ * Returns a 25-point window that widens as ELO increases.
+ */
+export function difficultyRangeForElo(elo: number): { min: number; max: number } {
+  if (elo < 800)  return { min: 10, max: 35 };
+  if (elo < 1100) return { min: 25, max: 50 };
+  if (elo < 1400) return { min: 40, max: 65 };
+  if (elo < 1800) return { min: 55, max: 80 };
+  return          { min: 70, max: 95 };
+}
+
 /** Returns an "avoid" instruction if answers to avoid are provided. */
 export function getAvoidInstruction(avoidAnswers: string[] | undefined): string {
   if (!avoidAnswers?.length) return '';
