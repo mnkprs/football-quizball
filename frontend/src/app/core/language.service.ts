@@ -117,6 +117,7 @@ const TRANSLATIONS = {
     dailyNoQuestions: 'No questions available for today. Try again later.',
     dailyLoadFailed: 'Failed to load questions',
     dailyBackBtn: '← Home',
+    tapToContinue: 'Tap to continue',
     // Blitz
     blitzTitle: 'Blitz Mode',
     blitzSubtitle: '60 seconds. Answer as many as you can.',
@@ -285,6 +286,7 @@ const TRANSLATIONS = {
     dailyNoQuestions: 'Δεν υπάρχουν ερωτήσεις για σήμερα. Δοκίμασε αργότερα.',
     dailyLoadFailed: 'Αποτυχία φόρτωσης ερωτήσεων',
     dailyBackBtn: '← Αρχική',
+    tapToContinue: 'Πάτα για συνέχεια',
     // Blitz
     blitzTitle: 'Blitz Mode',
     blitzSubtitle: '60 δευτερόλεπτα. Απάντησε όσες περισσότερες μπορείς.',

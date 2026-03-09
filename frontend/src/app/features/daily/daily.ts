@@ -52,7 +52,7 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
               <div class="text-muted-foreground text-sm">
                 {{ lang.t().dailyQuestionOf }} {{ currentIndex() + 1 }} of {{ questions().length }}
               </div>
-              <div class="text-accent font-black text-xl">{{ score() }}/{{ currentIndex() + 1 }}</div>
+              <div class="text-accent font-black text-xl">{{ score() }}/{{ questions().length }}</div>
             </div>
 
             <!-- Question -->
@@ -78,16 +78,22 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
             <!-- Result flash overlay -->
             @if (showFlash()) {
               <div
-                class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl z-10"
+                (click)="dismissFlash()"
+                class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl z-10 cursor-pointer backdrop-blur-xl"
                 [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
               >
-                <div class="text-5xl mb-3">{{ flashCorrect() ? '✅' : '❌' }}</div>
-                <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
+                <div class="text-5xl mb-3 shrink-0">{{ flashCorrect() ? '✅' : '❌' }}</div>
+                <div class="text-white font-black text-2xl mb-2 shrink-0">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
                 @if (!flashCorrect()) {
-                  <div class="text-white/80 text-sm text-center px-4 mb-4">{{ flashAnswer() }}</div>
+                  <div class="text-white/90 text-sm text-center px-6 mb-3 shrink-0">{{ lang.t().correctAnswer }}: {{ flashAnswer() }}</div>
                 }
                 @if (currentQuestion(); as q) {
-                  <div class="text-white/90 text-xs text-center px-6 max-w-md">{{ q.explanation }}</div>
+                  <div class="text-white text-sm text-center px-6 max-w-md max-h-[40vh] overflow-y-auto leading-relaxed break-words overscroll-contain">
+                    {{ q.explanation }}
+                  </div>
+                }
+                @if (!flashCorrect()) {
+                  <div class="text-white/70 text-xs mt-4 shrink-0">{{ lang.t().tapToContinue }}</div>
                 }
               </div>
             }
@@ -170,6 +176,7 @@ export class DailyComponent {
   flashCorrect = signal(false);
   flashAnswer = signal('');
   selectedChoice = signal<string | null>(null);
+  private advanceTimeout: ReturnType<typeof setTimeout> | null = null;
 
   currentQuestion = computed(() => {
     const qs = this.questions();
@@ -236,12 +243,24 @@ export class DailyComponent {
 
     if (correct) {
       this.score.update((s) => s + 1);
+      this.advanceTimeout = setTimeout(() => this.advanceQuestion(), 2000);
     }
+  }
 
-    setTimeout(() => this.advanceQuestion(), 2000);
+  dismissFlash(): void {
+    if (!this.showFlash()) return;
+    if (this.advanceTimeout) {
+      clearTimeout(this.advanceTimeout);
+      this.advanceTimeout = null;
+    }
+    this.advanceQuestion();
   }
 
   private advanceQuestion(): void {
+    if (this.advanceTimeout) {
+      clearTimeout(this.advanceTimeout);
+      this.advanceTimeout = null;
+    }
     this.showFlash.set(false);
     this.selectedChoice.set(null);
 
