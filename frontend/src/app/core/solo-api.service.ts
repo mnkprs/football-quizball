@@ -80,6 +80,12 @@ export class SoloApiService {
     return this.http.get<LeaderboardEntry[]>(`${this.base}/leaderboard`);
   }
 
+  getMyLeaderboardEntry(): Observable<(LeaderboardEntry & { rank: number }) | null> {
+    return this.http.get<(LeaderboardEntry & { rank: number }) | null>(`${this.base}/leaderboard/me`, {
+      headers: this.headers(),
+    });
+  }
+
   getProfile(userId: string): Observable<{
     profile: LeaderboardEntry;
     blitz_stats?: { bestScore: number; totalGames: number; rank: number | null };

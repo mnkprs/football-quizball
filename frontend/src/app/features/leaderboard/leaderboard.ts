@@ -61,6 +61,24 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
               </a>
             }
           </div>
+          @if (soloMeEntry() && !entries().some(e => e.id === soloMeEntry()!.id)) {
+            <div class="leaderboard-you-separator">Your rank</div>
+            <a [routerLink]="['/profile', soloMeEntry()!.id]" class="leaderboard-card-link">
+              <mat-card class="leaderboard-card leaderboard-card--you">
+                <mat-card-content class="leaderboard-card-content">
+                  <div class="leaderboard-rank">#{{ soloMeEntry()!.rank }}</div>
+                  <div class="leaderboard-info">
+                    <div class="leaderboard-name">{{ soloMeEntry()!.username }} <span class="leaderboard-you">(you)</span></div>
+                    <div class="leaderboard-meta">{{ soloMeEntry()!.questions_answered }} questions · {{ accuracy(soloMeEntry()!) }}% accuracy</div>
+                  </div>
+                  <div class="leaderboard-score">
+                    <span class="leaderboard-score-value">{{ soloMeEntry()!.elo }}</span>
+                    <span class="leaderboard-score-label">ELO</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </a>
+          }
         } @else if (!loading()) {
           <mat-card class="leaderboard-empty">
             <mat-card-content>No players yet. Be the first!</mat-card-content>
@@ -97,6 +115,24 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
               </a>
             }
           </div>
+          @if (blitzMeEntry() && !blitzEntries().some(e => e.user_id === blitzMeEntry()!.user_id)) {
+            <div class="leaderboard-you-separator">Your rank</div>
+            <a [routerLink]="['/profile', blitzMeEntry()!.user_id]" class="leaderboard-card-link">
+              <mat-card class="leaderboard-card leaderboard-card--you">
+                <mat-card-content class="leaderboard-card-content">
+                  <div class="leaderboard-rank">#{{ blitzMeEntry()!.rank }}</div>
+                  <div class="leaderboard-info">
+                    <div class="leaderboard-name">{{ blitzMeEntry()!.username }} <span class="leaderboard-you">(you)</span></div>
+                    <div class="leaderboard-meta">{{ blitzMeEntry()!.total_answered }} answered</div>
+                  </div>
+                  <div class="leaderboard-score">
+                    <span class="leaderboard-score-value">{{ blitzMeEntry()!.score }}</span>
+                    <span class="leaderboard-score-label">Best</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </a>
+          }
         } @else if (!loading()) {
           <mat-card class="leaderboard-empty">
             <mat-card-content>No Blitz scores yet. Play now!</mat-card-content>
@@ -243,6 +279,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       color: var(--mat-sys-on-surface-variant);
       padding: 2rem !important;
     }
+
+    .leaderboard-you-separator {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--mat-sys-on-surface-variant);
+      margin: 1rem 0 0.5rem 0;
+      padding-top: 1rem;
+      border-top: 1px solid var(--mat-sys-outline-variant, #e0e0e0);
+    }
   `],
 })
 export class LeaderboardComponent implements OnInit {
@@ -252,6 +299,8 @@ export class LeaderboardComponent implements OnInit {
 
   entries = signal<LeaderboardEntry[]>([]);
   blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
+  soloMeEntry = signal<(LeaderboardEntry & { rank: number }) | null>(null);
+  blitzMeEntry = signal<(BlitzLeaderboardEntry & { rank: number }) | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -263,12 +312,20 @@ export class LeaderboardComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const [soloData, blitzData] = await Promise.all([
+      const [soloData, blitzData, soloMe, blitzMe] = await Promise.all([
         firstValueFrom(this.soloApi.getLeaderboard()),
         firstValueFrom(this.blitzApi.getLeaderboard()).catch(() => []),
+        this.auth.isLoggedIn()
+          ? firstValueFrom(this.soloApi.getMyLeaderboardEntry()).catch(() => null)
+          : Promise.resolve(null),
+        this.auth.isLoggedIn()
+          ? firstValueFrom(this.blitzApi.getMyLeaderboardEntry()).catch(() => null)
+          : Promise.resolve(null),
       ]);
       this.entries.set(soloData);
       this.blitzEntries.set(blitzData);
+      this.soloMeEntry.set(soloMe ?? null);
+      this.blitzMeEntry.set(blitzMe ?? null);
     } catch (err: any) {
       this.error.set('Failed to load leaderboard');
     } finally {

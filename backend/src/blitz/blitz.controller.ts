@@ -34,6 +34,12 @@ export class BlitzController {
     return this.blitzService.getLeaderboard();
   }
 
+  @Get('leaderboard/me')
+  @UseGuards(AuthGuard)
+  getMyLeaderboardEntry(@Req() req: any) {
+    return this.blitzService.getMyLeaderboardEntry(req.user.id);
+  }
+
   @Get('me/stats')
   @UseGuards(AuthGuard)
   getMyStats(@Req() req: any) {

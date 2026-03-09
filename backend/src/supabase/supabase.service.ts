@@ -15,13 +15,18 @@ export class SupabaseService {
   }
 
   async getProfile(userId: string): Promise<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number } | null> {
-    const { data, error } = await this.client
+    const { data: profile } = await this.client
       .from('profiles')
       .select('id, username, elo, games_played, questions_answered, correct_answers')
       .eq('id', userId)
-      .single();
-    if (error) return null;
-    return data;
+      .maybeSingle();
+    if (profile) return profile;
+    const { data: dummy } = await this.client
+      .from('dummy_users')
+      .select('id, username, elo, games_played, questions_answered, correct_answers')
+      .eq('id', userId)
+      .maybeSingle();
+    return dummy ?? null;
   }
 
   /** Returns max ELO ever reached (current elo or peak from history). */
@@ -39,16 +44,17 @@ export class SupabaseService {
     return Math.max(profile.elo, maxFromHistory);
   }
 
-  /** Returns 1-based rank by ELO (1 = highest). */
+  /** Returns 1-based rank by ELO (1 = highest). Counts both profiles and dummy_users. */
   async getSoloRank(userId: string): Promise<number | null> {
     const profile = await this.getProfile(userId);
     if (!profile) return null;
-    const { count, error } = await this.client
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .gt('elo', profile.elo);
-    if (error) return null;
-    return (count ?? 0) + 1;
+    const [profilesRes, dummiesRes] = await Promise.all([
+      this.client.from('profiles').select('id', { count: 'exact', head: true }).gt('elo', profile.elo),
+      this.client.from('dummy_users').select('id', { count: 'exact', head: true }).gt('elo', profile.elo),
+    ]);
+    const pCount = profilesRes.count ?? 0;
+    const dCount = dummiesRes.count ?? 0;
+    return pCount + dCount + 1;
   }
 
   async updateElo(userId: string, newElo: number): Promise<void> {
@@ -68,12 +74,24 @@ export class SupabaseService {
   }
 
   async getLeaderboard(limit: number): Promise<Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>> {
-    const { data } = await this.client
-      .from('profiles')
-      .select('id, username, elo, games_played, questions_answered, correct_answers')
-      .order('elo', { ascending: false })
-      .limit(limit);
-    return data ?? [];
+    const [profilesRes, dummyRes] = await Promise.all([
+      this.client.from('profiles').select('id, username, elo, games_played, questions_answered, correct_answers'),
+      this.client.from('dummy_users').select('id, username, elo, games_played, questions_answered, correct_answers'),
+    ]);
+    const profiles = (profilesRes.data ?? []) as Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>;
+    const dummies = (dummyRes.data ?? []) as Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>;
+    const combined = [...profiles, ...dummies]
+      .sort((a, b) => b.elo - a.elo)
+      .slice(0, limit);
+    return combined;
+  }
+
+  /** Returns current user's solo leaderboard entry with rank, for display below top 10. */
+  async getLeaderboardEntryForUser(userId: string): Promise<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number; rank: number } | null> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return null;
+    const rank = await this.getSoloRank(userId);
+    return { ...profile, rank: rank ?? 0 };
   }
 
   async getEloHistory(userId: string, limit: number): Promise<any[]> {
@@ -86,13 +104,19 @@ export class SupabaseService {
     return data ?? [];
   }
 
-  async insertBlitzScore(entry: {
-    user_id: string;
-    username: string;
-    score: number;
-    total_answered: number;
-  }): Promise<void> {
-    await this.client.from('blitz_scores').insert(entry);
+  /** Update profile max_blitz_score only if this session is a new high score. */
+  async upsertMaxBlitzScore(userId: string, score: number, totalAnswered: number): Promise<void> {
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('max_blitz_score')
+      .eq('id', userId)
+      .maybeSingle();
+    const currentMax = (profile as { max_blitz_score?: number } | null)?.max_blitz_score ?? 0;
+    if (score <= currentMax) return;
+    await this.client
+      .from('profiles')
+      .update({ max_blitz_score: score, max_blitz_total_answered: totalAnswered })
+      .eq('id', userId);
   }
 
   async getBlitzLeaderboard(limit: number): Promise<Array<{
@@ -100,24 +124,45 @@ export class SupabaseService {
     username: string;
     score: number;
     total_answered: number;
-    created_at: string;
   }>> {
     const { data } = await this.client.rpc('get_blitz_leaderboard', { p_limit: limit });
     return data ?? [];
   }
 
-  async getBlitzStatsForUser(userId: string): Promise<{ bestScore: number; totalGames: number; rank: number | null } | null> {
-    const { data: scores } = await this.client
-      .from('blitz_scores')
-      .select('score')
-      .eq('user_id', userId)
-      .order('score', { ascending: false });
-    if (!scores || scores.length === 0) return null;
-    const bestScore = scores[0].score;
+  /** Returns current user's best blitz entry with rank, for display below top 10. */
+  async getBlitzLeaderboardEntryForUser(userId: string): Promise<{ user_id: string; username: string; score: number; total_answered: number; rank: number } | null> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return null;
+    const { data: p } = await this.client
+      .from('profiles')
+      .select('max_blitz_score, max_blitz_total_answered')
+      .eq('id', userId)
+      .maybeSingle();
+    const row = p as { max_blitz_score?: number; max_blitz_total_answered?: number } | null;
+    const score = row?.max_blitz_score ?? 0;
+    if (score === 0) return null;
     const { data: rank } = await this.client.rpc('get_blitz_rank', { p_user_id: userId });
     return {
-      bestScore,
-      totalGames: scores.length,
+      user_id: userId,
+      username: profile.username,
+      score,
+      total_answered: row?.max_blitz_total_answered ?? 0,
+      rank: (rank as number) ?? 0,
+    };
+  }
+
+  async getBlitzStatsForUser(userId: string): Promise<{ bestScore: number; totalGames: number; rank: number | null } | null> {
+    const { data: p } = await this.client
+      .from('profiles')
+      .select('max_blitz_score')
+      .eq('id', userId)
+      .maybeSingle();
+    const score = (p as { max_blitz_score?: number } | null)?.max_blitz_score ?? 0;
+    if (score === 0) return null;
+    const { data: rank } = await this.client.rpc('get_blitz_rank', { p_user_id: userId });
+    return {
+      bestScore: score,
+      totalGames: 0,
       rank: rank != null ? (rank as number) : null,
     };
   }

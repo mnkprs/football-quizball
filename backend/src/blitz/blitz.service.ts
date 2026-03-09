@@ -100,12 +100,7 @@ export class BlitzService {
 
     if (timeUp && !session.saved) {
       session.saved = true;
-      await this.supabaseService.insertBlitzScore({
-        user_id: userId,
-        username: session.username,
-        score: session.score,
-        total_answered: session.totalAnswered,
-      });
+      await this.supabaseService.upsertMaxBlitzScore(userId, session.score, session.totalAnswered);
       this.logger.log(`[blitz] Saved score for ${session.username}: ${session.score}/${session.totalAnswered}`);
     }
 
@@ -130,12 +125,7 @@ export class BlitzService {
 
     if (!session.saved) {
       session.saved = true;
-      await this.supabaseService.insertBlitzScore({
-        user_id: userId,
-        username: session.username,
-        score: session.score,
-        total_answered: session.totalAnswered,
-      });
+      await this.supabaseService.upsertMaxBlitzScore(userId, session.score, session.totalAnswered);
     }
 
     this.cacheService.del(this.sessionKey(sessionId));
@@ -143,7 +133,11 @@ export class BlitzService {
   }
 
   async getLeaderboard(): Promise<any[]> {
-    return this.supabaseService.getBlitzLeaderboard(20);
+    return this.supabaseService.getBlitzLeaderboard(10);
+  }
+
+  async getMyLeaderboardEntry(userId: string): Promise<any> {
+    return this.supabaseService.getBlitzLeaderboardEntryForUser(userId);
   }
 
   async getMyBlitzStats(userId: string): Promise<{ bestScore: number; totalGames: number; rank: number | null }> {

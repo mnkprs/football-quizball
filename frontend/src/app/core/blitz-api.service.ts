@@ -37,7 +37,6 @@ export interface BlitzLeaderboardEntry {
   username: string;
   score: number;
   total_answered: number;
-  created_at: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -73,6 +72,12 @@ export class BlitzApiService {
 
   getLeaderboard(): Observable<BlitzLeaderboardEntry[]> {
     return this.http.get<BlitzLeaderboardEntry[]>(`${this.base}/leaderboard`);
+  }
+
+  getMyLeaderboardEntry(): Observable<(BlitzLeaderboardEntry & { rank: number }) | null> {
+    return this.http.get<(BlitzLeaderboardEntry & { rank: number }) | null>(`${this.base}/leaderboard/me`, {
+      headers: this.headers(),
+    });
   }
 
   getMyStats(): Observable<{ bestScore: number; totalGames: number; rank: number | null }> {

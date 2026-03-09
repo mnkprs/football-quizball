@@ -36,7 +36,13 @@ export class SoloController {
 
   @Get('leaderboard')
   getLeaderboard() {
-    return this.supabaseService.getLeaderboard(20);
+    return this.supabaseService.getLeaderboard(10);
+  }
+
+  @Get('leaderboard/me')
+  @UseGuards(AuthGuard)
+  getMyLeaderboardEntry(@Req() req: any) {
+    return this.supabaseService.getLeaderboardEntryForUser(req.user.id);
   }
 
   @Get('profile/:userId')
