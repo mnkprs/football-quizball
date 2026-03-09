@@ -51,6 +51,8 @@ export interface DrawBoardResult {
 export class QuestionPoolService implements OnModuleInit {
   private readonly logger = new Logger(QuestionPoolService.name);
   private isRefilling = false;
+  /** Serializes seed + refill so they never run concurrently (prevents double/triple inserts). */
+  private refillLock: Promise<void> = Promise.resolve();
 
   constructor(
     private supabaseService: SupabaseService,
@@ -220,10 +222,9 @@ export class QuestionPoolService implements OnModuleInit {
       this.logger.warn('[seedPool] Refill already in progress, skipping');
       return [];
     }
-    this.isRefilling = true;
-    const results: { slot: string; added: number; questions?: string[] }[] = [];
+    return this.withRefillLock(async () => {
+      const results: { slot: string; added: number; questions?: string[] }[] = [];
 
-    try {
       const counts = await this.getPoolCounts();
       const uniqueSlots = this.getUniqueSlots();
 
@@ -254,9 +255,7 @@ export class QuestionPoolService implements OnModuleInit {
         results.push({ slot: key, added: questions.length, questions });
       }
       return results;
-    } finally {
-      this.isRefilling = false;
-    }
+    });
   }
 
   /** Refill the pool for any slot below target. No-op if already running. */
@@ -264,7 +263,7 @@ export class QuestionPoolService implements OnModuleInit {
     if (this.isRefilling) return;
     this.isRefilling = true;
 
-    try {
+    await this.withRefillLock(async () => {
       const counts = await this.getPoolCounts();
       const uniqueSlots = this.getUniqueSlots();
 
@@ -302,8 +301,23 @@ export class QuestionPoolService implements OnModuleInit {
           return this.fillSlot(category, difficulty, needed, baseSlotIndex);
         }),
       );
-    } finally {
+    }).finally(() => {
       this.isRefilling = false;
+    });
+  }
+
+  /** Runs fn with exclusive lock; prevents seed + refill from running concurrently. */
+  private async withRefillLock<T>(fn: () => Promise<T>): Promise<T> {
+    const prev = this.refillLock;
+    let resolve: () => void;
+    this.refillLock = new Promise<void>((r) => {
+      resolve = r;
+    });
+    await prev;
+    try {
+      return await fn();
+    } finally {
+      resolve!();
     }
   }
 
