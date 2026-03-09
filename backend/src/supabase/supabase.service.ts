@@ -104,19 +104,14 @@ export class SupabaseService {
     return data ?? [];
   }
 
-  /** Update profile max_blitz_score only if this session is a new high score. */
+  /** Update profile max_blitz_score only if this session is a new high score.
+   *  Uses a conditional UPDATE to avoid a read-before-write race condition. */
   async upsertMaxBlitzScore(userId: string, score: number, totalAnswered: number): Promise<void> {
-    const { data: profile } = await this.client
-      .from('profiles')
-      .select('max_blitz_score')
-      .eq('id', userId)
-      .maybeSingle();
-    const currentMax = (profile as { max_blitz_score?: number } | null)?.max_blitz_score ?? 0;
-    if (score <= currentMax) return;
     await this.client
       .from('profiles')
       .update({ max_blitz_score: score, max_blitz_total_answered: totalAnswered })
-      .eq('id', userId);
+      .eq('id', userId)
+      .or(`max_blitz_score.is.null,max_blitz_score.lt.${score}`);
   }
 
   async getBlitzLeaderboard(limit: number): Promise<Array<{
@@ -167,18 +162,36 @@ export class SupabaseService {
     };
   }
 
+  /** Atomically increments games_played, questions_answered, correct_answers via DB function.
+   *  Requires the Supabase SQL function:
+   *    CREATE OR REPLACE FUNCTION increment_stats(p_user_id uuid, p_questions int, p_correct int)
+   *    RETURNS void LANGUAGE sql AS $$
+   *      UPDATE profiles SET
+   *        games_played = games_played + 1,
+   *        questions_answered = questions_answered + p_questions,
+   *        correct_answers = correct_answers + p_correct
+   *      WHERE id = p_user_id;
+   *    $$;
+   */
   async incrementGamesPlayed(userId: string, questionsAnswered: number, correctAnswers: number): Promise<void> {
-    // Use rpc for atomic increment, fallback to read-modify-write
-    const { data: profile } = await this.client
-      .from('profiles')
-      .select('games_played, questions_answered, correct_answers')
-      .eq('id', userId)
-      .single();
-    if (!profile) return;
-    await this.client.from('profiles').update({
-      games_played: profile.games_played + 1,
-      questions_answered: profile.questions_answered + questionsAnswered,
-      correct_answers: profile.correct_answers + correctAnswers,
-    }).eq('id', userId);
+    const { error } = await this.client.rpc('increment_stats', {
+      p_user_id: userId,
+      p_questions: questionsAnswered,
+      p_correct: correctAnswers,
+    });
+    if (error) {
+      // Fallback to read-modify-write if RPC not yet created
+      const { data: profile } = await this.client
+        .from('profiles')
+        .select('games_played, questions_answered, correct_answers')
+        .eq('id', userId)
+        .single();
+      if (!profile) return;
+      await this.client.from('profiles').update({
+        games_played: profile.games_played + 1,
+        questions_answered: profile.questions_answered + questionsAnswered,
+        correct_answers: profile.correct_answers + correctAnswers,
+      }).eq('id', userId);
+    }
   }
 }

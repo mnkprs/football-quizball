@@ -3,20 +3,40 @@ import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 import { jsonrepair } from 'jsonrepair';
 
+/** Model fallback chain: primary first, then fallbacks on rate limit (429). */
+const MODEL_FALLBACK_CHAIN = ['gemini-flash-latest', 'gemini-2.5-pro', 'gemini-2.5-flash'] as const;
+
+function isRateLimitError(err: unknown): boolean {
+  const msg = String((err as Error)?.message ?? '');
+  return (
+    (err as { status?: string })?.status === 'RESOURCE_EXHAUSTED' ||
+    (err as { code?: number })?.code === 429 ||
+    msg.includes('429') ||
+    msg.includes('RESOURCE_EXHAUSTED') ||
+    msg.includes('quota') ||
+    msg.includes('rate limit')
+  );
+}
+
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private client: GoogleGenAI | null = null;
-  private readonly model = 'gemini-2.5-flash';
+  /** Current model index in fallback chain. Advances on rate limit. */
+  private currentModelIndex = 0;
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     if (apiKey) {
       this.client = new GoogleGenAI({ apiKey });
-      this.logger.log(`LlmService ready — model: ${this.model}`);
+      this.logger.log(`LlmService ready — model: ${MODEL_FALLBACK_CHAIN[this.currentModelIndex]}`);
     } else {
       this.logger.warn('GEMINI_API_KEY not set — LLM text generation disabled');
     }
+  }
+
+  private get currentModel(): string {
+    return MODEL_FALLBACK_CHAIN[this.currentModelIndex];
   }
 
   async generateStructuredJson<T>(
@@ -38,43 +58,68 @@ export class LlmService {
       console.log('\n' + '─'.repeat(80) + '\n[LLM FULL PROMPT]\n' + '─'.repeat(80) + '\n' + fullPrompt + '\n' + '─'.repeat(80) + '\n');
     }
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const result = await this.client.models.generateContent({
-          model: this.model,
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: fullPrompt }],
-            },
-          ],
-          config: {
-            temperature: 0.9,
-            topP: 0.95,
-          },
-        });
+    for (let modelIdx = this.currentModelIndex; modelIdx < MODEL_FALLBACK_CHAIN.length; modelIdx++) {
+      this.currentModelIndex = modelIdx;
+      const model = this.currentModel;
 
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error('No JSON found in LLM response');
-
-        const raw = jsonMatch[0];
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          return JSON.parse(raw) as T;
-        } catch {
-          const repaired = jsonrepair(raw);
-          return JSON.parse(repaired) as T;
-        }
-      } catch (err) {
-        lastError = err as Error;
-        this.logger.error(
-          `[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed\n` +
-          `  Prompt: "${promptSnippet}..."\n` +
-          `  Error: ${lastError.message}\n` +
-          `  Stack: ${lastError.stack ?? 'n/a'}`,
-        );
-        if (attempt < maxRetries) {
-          await new Promise((r) => setTimeout(r, 1000 * attempt));
+          const result = await this.client.models.generateContent({
+            model,
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: fullPrompt }],
+              },
+            ],
+            config: {
+              temperature: 0.9,
+              topP: 0.95,
+            },
+          });
+
+          const text = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) throw new Error('No JSON found in LLM response');
+
+          const raw = jsonMatch[0];
+          try {
+            return JSON.parse(raw) as T;
+          } catch {
+            const repaired = jsonrepair(raw);
+            return JSON.parse(repaired) as T;
+          }
+        } catch (err) {
+          lastError = err as Error;
+
+          if (isRateLimitError(err)) {
+            this.logger.warn(
+              `[generateStructuredJson] Rate limit on ${model} — switching model`,
+            );
+            if (modelIdx + 1 < MODEL_FALLBACK_CHAIN.length) {
+              this.currentModelIndex = modelIdx + 1;
+              this.logger.log(
+                `[generateStructuredJson] Using fallback: ${MODEL_FALLBACK_CHAIN[this.currentModelIndex]}`,
+              );
+              break; // exit retry loop, try next model
+            }
+            this.logger.error(
+              `[generateStructuredJson] Rate limit on all models. Stop the operation and restart it.`,
+            );
+            throw lastError;
+          }
+
+          this.logger.error(
+            `[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed (${model})\n` +
+              `  Prompt: "${promptSnippet}..."\n` +
+              `  Error: ${lastError.message}\n` +
+              `  Stack: ${lastError.stack ?? 'n/a'}`,
+          );
+          if (attempt < maxRetries) {
+            await new Promise((r) => setTimeout(r, 1000 * attempt));
+          } else {
+            throw lastError;
+          }
         }
       }
     }

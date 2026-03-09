@@ -2,6 +2,8 @@ import { Controller, Post, Get, Param, Body, UseGuards, Req } from '@nestjs/comm
 import { AuthGuard } from '../auth/auth.guard';
 import { SoloService } from './solo.service';
 import { SupabaseService } from '../supabase/supabase.service';
+import { SubmitAnswerDto } from '../common/dto/submit-answer.dto';
+import type { AuthenticatedRequest } from '../common/interfaces/request.interface';
 
 @Controller('api/solo')
 export class SoloController {
@@ -12,31 +14,31 @@ export class SoloController {
 
   @Post('session')
   @UseGuards(AuthGuard)
-  startSession(@Req() req: any) {
+  startSession(@Req() req: AuthenticatedRequest) {
     return this.soloService.startSession(req.user.id);
   }
 
   @Get('session/:id/next')
   @UseGuards(AuthGuard)
-  getNextQuestion(@Param('id') id: string, @Req() req: any) {
+  getNextQuestion(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.soloService.getNextQuestion(id, req.user.id);
   }
 
   @Post('session/:id/answer')
   @UseGuards(AuthGuard)
-  submitAnswer(@Param('id') id: string, @Body() body: { answer: string }, @Req() req: any) {
+  submitAnswer(@Param('id') id: string, @Body() body: SubmitAnswerDto, @Req() req: AuthenticatedRequest) {
     return this.soloService.submitAnswer(id, req.user.id, body.answer);
   }
 
   @Post('session/:id/end')
   @UseGuards(AuthGuard)
-  endSession(@Param('id') id: string, @Req() req: any) {
+  endSession(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.soloService.endSession(id, req.user.id);
   }
 
   @Get('leaderboard/me')
   @UseGuards(AuthGuard)
-  getMyLeaderboardEntry(@Req() req: any) {
+  getMyLeaderboardEntry(@Req() req: AuthenticatedRequest) {
     return this.supabaseService.getLeaderboardEntryForUser(req.user.id);
   }
 

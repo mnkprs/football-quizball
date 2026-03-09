@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from './cache/cache.module';
 import { LlmModule } from './llm/llm.module';
 import { FootballApiModule } from './football-api/football-api.module';
@@ -17,6 +18,7 @@ import { DailyModule } from './daily/daily.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     SupabaseModule,
     CacheModule,
     LlmModule,

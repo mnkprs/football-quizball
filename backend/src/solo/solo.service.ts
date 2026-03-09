@@ -113,15 +113,20 @@ export class SoloService {
 
     // Persist ELO change to Supabase
     await this.supabaseService.updateElo(userId, eloAfter);
-    await this.supabaseService.insertEloHistory({
-      user_id: userId,
-      elo_before: eloBefore,
-      elo_after: eloAfter,
-      elo_change: eloChange,
-      question_difficulty: question.difficulty,
-      correct,
-      timed_out: timedOut,
-    });
+    try {
+      await this.supabaseService.insertEloHistory({
+        user_id: userId,
+        elo_before: eloBefore,
+        elo_after: eloAfter,
+        elo_change: eloChange,
+        question_difficulty: question.difficulty,
+        correct,
+        timed_out: timedOut,
+      });
+    } catch (err) {
+      // ELO already committed — log and continue. TODO: move to DB-side transaction (stored procedure).
+      this.logger.warn(`[submitAnswer] ELO history insert failed for user ${userId}: ${(err as Error).message}`);
+    }
 
     return {
       correct,
