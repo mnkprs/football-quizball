@@ -3,7 +3,9 @@
 /**
  * Seed the question pool. Run with: npm run seed-pool -- 5
  * (5 is the target per slot; default 5 if omitted)
+ * Set LOG_PROMPTS=1 to see the full LLM prompt for each question in the console.
  */
+process.env.LOG_PROMPTS = process.env.LOG_PROMPTS ?? '1';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { QuestionPoolService } from '../src/questions/question-pool.service';

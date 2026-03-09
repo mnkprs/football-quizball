@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
-import { getExplicitConstraints, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
 
 
 interface MatchData {
@@ -52,7 +52,9 @@ Return ONLY valid JSON:
 fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.
 specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not top-of-mind, 5 = very obscure match detail.${langInstruction}`;
 
-    const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. Return JSON only.${getExplicitConstraints('GUESS_SCORE', options?.slotIndex)}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex);
+    this.logger.log(`[GUESS_SCORE] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
+    const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<MatchData & { specificity_score?: number }>(systemPrompt, userPrompt);
 

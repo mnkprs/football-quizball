@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraints, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
 
 
 @Injectable()
@@ -30,7 +30,9 @@ Return ONLY a valid JSON object with these exact fields:
 fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.
 specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).${langInstruction}`;
 
-    const userPrompt = `Generate a unique football geography trivia question. Make it interesting. Return JSON only.${getExplicitConstraints('GEOGRAPHY', options?.slotIndex)}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('GEOGRAPHY', options?.slotIndex);
+    this.logger.log(`[GEOGRAPHY] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
+    const userPrompt = `Generate a unique football geography trivia question. Make it interesting. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{
       question_text: string;

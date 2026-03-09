@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraints, getAvoidInstruction } from '../diversity-hints';
+import { getExplicitConstraintsWithMeta, getAvoidInstruction } from '../diversity-hints';
 
 
 interface CareerEntry {
@@ -45,7 +45,9 @@ The career array must have at least 3 entries. All career data must be factually
 fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.
 specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${langInstruction}`;
 
-    const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. Return JSON only.${getExplicitConstraints('PLAYER_ID', options?.slotIndex)}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const { promptPart, constraints } = getExplicitConstraintsWithMeta('PLAYER_ID', options?.slotIndex);
+    this.logger.log(`[PLAYER_ID] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
+    const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{
       player_name: string;

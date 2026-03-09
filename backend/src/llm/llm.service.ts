@@ -32,6 +32,11 @@ export class LlmService {
     const promptSnippet = systemPrompt.slice(0, 120).replace(/\n/g, ' ');
     let lastError: Error | null = null;
 
+    const fullPrompt = `${systemPrompt}\n\n${userPrompt}`;
+    if (process.env.LOG_PROMPTS === '1' || process.env.LOG_PROMPTS === 'true') {
+      console.log('\n' + '─'.repeat(80) + '\n[LLM FULL PROMPT]\n' + '─'.repeat(80) + '\n' + fullPrompt + '\n' + '─'.repeat(80) + '\n');
+    }
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await this.client.models.generateContent({
@@ -39,7 +44,7 @@ export class LlmService {
           contents: [
             {
               role: 'user',
-              parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }],
+              parts: [{ text: fullPrompt }],
             },
           ],
           config: {

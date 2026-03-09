@@ -194,6 +194,7 @@ export class QuestionPoolService implements OnModuleInit {
     try {
       const counts = await this.getPoolCounts();
       const uniqueSlots = this.getUniqueSlots();
+      let globalSlotIndex = 0;
 
       for (const { category, difficulty } of uniqueSlots) {
         const key = `${category}/${difficulty}`;
@@ -205,7 +206,8 @@ export class QuestionPoolService implements OnModuleInit {
           continue;
         }
         this.logger.log(`[seedPool] ${key}: ${current}/${target} — generating ${needed}`);
-        await this.fillSlot(category, difficulty, needed);
+        await this.fillSlot(category, difficulty, needed, globalSlotIndex);
+        globalSlotIndex += needed;
         results.push({ slot: key, added: needed });
       }
       return results;
@@ -223,17 +225,28 @@ export class QuestionPoolService implements OnModuleInit {
       const counts = await this.getPoolCounts();
       const uniqueSlots = this.getUniqueSlots();
 
+      const slotsToFill: Array<{ category: QuestionCategory; difficulty: Difficulty; needed: number; baseSlotIndex: number }> = [];
+      let globalSlotIndex = 0;
+
+      for (const { category, difficulty } of uniqueSlots) {
+        const key = `${category}/${difficulty}`;
+        const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
+        const current = counts[key] ?? 0;
+        const needed = target - current;
+
+        if (needed > 0) {
+          slotsToFill.push({ category, difficulty, needed, baseSlotIndex: globalSlotIndex });
+          globalSlotIndex += needed;
+        }
+      }
+
       await Promise.all(
-        uniqueSlots.map(async ({ category, difficulty }) => {
+        slotsToFill.map(({ category, difficulty, needed, baseSlotIndex }) => {
           const key = `${category}/${difficulty}`;
-          const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
           const current = counts[key] ?? 0;
-          const needed = target - current;
-
-          if (needed <= 0) return;
-
+          const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
           this.logger.log(`[refill] ${key}: ${current}/${target} — generating ${needed}`);
-          await this.fillSlot(category, difficulty, needed);
+          return this.fillSlot(category, difficulty, needed, baseSlotIndex);
         }),
       );
     } finally {
@@ -277,13 +290,14 @@ export class QuestionPoolService implements OnModuleInit {
     category: QuestionCategory,
     difficulty: Difficulty,
     count: number,
+    baseSlotIndex = 0,
   ): Promise<void> {
     const avoidAnswers = await this.getExistingAnswers(category);
     const results = await Promise.allSettled(
       Array.from({ length: count }, (_, i) =>
         this.questionsService.generateOne(category, difficulty, 'en', {
           avoidAnswers,
-          slotIndex: i,
+          slotIndex: baseSlotIndex + i,
         }),
       ),
     );
@@ -356,7 +370,7 @@ export class QuestionPoolService implements OnModuleInit {
       const a = r?.correct_answer;
       if (typeof a === 'string' && a.trim()) answers.add(a.trim());
     }
-    return Array.from(answers).slice(0, 30);
+    return Array.from(answers).slice(0, 80);
   }
 
   /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */
