@@ -261,14 +261,36 @@ export class QuestionPoolService implements OnModuleInit {
   /** Refill the pool for any slot below target. No-op if already running. */
   async refillIfNeeded(): Promise<void> {
     if (this.isRefilling) return;
+
+    const counts = await this.getPoolCounts();
+    const uniqueSlots = this.getUniqueSlots();
+
+    // Build list of slots that need filling (current < target)
+    const slotsToFill: Array<{ category: QuestionCategory; difficulty: Difficulty; needed: number; baseSlotIndex: number }> = [];
+    let globalSlotIndex = 0;
+
+    for (const { category, difficulty } of uniqueSlots) {
+      if (category === 'NEWS') continue; // NEWS is filled by news ingest cron, not pool refill
+      const key = `${category}/${difficulty}`;
+      const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
+      const current = counts[key] ?? 0;
+      const needed = target - current;
+
+      if (needed > 0) {
+        slotsToFill.push({ category, difficulty, needed, baseSlotIndex: globalSlotIndex });
+        globalSlotIndex += needed;
+      }
+    }
+
+    if (slotsToFill.length === 0) {
+      this.logger.log('[refill] All slots at or above target (50 unanswered), skipping');
+      return;
+    }
+
     this.isRefilling = true;
-
     await this.withRefillLock(async () => {
-      const counts = await this.getPoolCounts();
-      const uniqueSlots = this.getUniqueSlots();
-
       // Prioritize driest slots first (fewest unanswered questions)
-      const sortedSlots = [...uniqueSlots].sort((a, b) => {
+      const sorted = [...slotsToFill].sort((a, b) => {
         const keyA = `${a.category}/${a.difficulty}`;
         const keyB = `${b.category}/${b.difficulty}`;
         const countA = counts[keyA] ?? 0;
@@ -276,24 +298,8 @@ export class QuestionPoolService implements OnModuleInit {
         return countA - countB;
       });
 
-      const slotsToFill: Array<{ category: QuestionCategory; difficulty: Difficulty; needed: number; baseSlotIndex: number }> = [];
-      let globalSlotIndex = 0;
-
-      for (const { category, difficulty } of sortedSlots) {
-        if (category === 'NEWS') continue; // NEWS is filled by news ingestion service, not pool refill
-        const key = `${category}/${difficulty}`;
-        const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
-        const current = counts[key] ?? 0;
-        const needed = target - current;
-
-        if (needed > 0) {
-          slotsToFill.push({ category, difficulty, needed, baseSlotIndex: globalSlotIndex });
-          globalSlotIndex += needed;
-        }
-      }
-
       await Promise.all(
-        slotsToFill.map(({ category, difficulty, needed, baseSlotIndex }) => {
+        sorted.map(({ category, difficulty, needed, baseSlotIndex }) => {
           const key = `${category}/${difficulty}`;
           const current = counts[key] ?? 0;
           const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
