@@ -265,6 +265,8 @@ export class QuestionPoolService implements OnModuleInit {
     const counts = await this.getPoolCounts();
     const uniqueSlots = this.getUniqueSlots();
 
+    this.logger.log(`[refill] Pool counts (unanswered per slot): ${JSON.stringify(counts)}`);
+
     // Build list of slots that need filling (current < target)
     const slotsToFill: Array<{ category: QuestionCategory; difficulty: Difficulty; needed: number; baseSlotIndex: number }> = [];
     let globalSlotIndex = 0;
@@ -479,20 +481,17 @@ export class QuestionPoolService implements OnModuleInit {
   }
 
   private async getPoolCounts(): Promise<Record<string, number>> {
-    const { data, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('category, difficulty')
-      .eq('used', false);
+    const { data, error } = await this.supabaseService.client.rpc('get_seed_pool_stats');
 
     if (error) {
-      this.logger.error(`[getPoolCounts] Query error: ${error.message}`);
+      this.logger.error(`[getPoolCounts] RPC error: ${error.message}`);
       return {};
     }
 
     const counts: Record<string, number> = {};
-    for (const row of data as Array<{ category: string; difficulty: string }>) {
+    for (const row of (data ?? []) as Array<{ category: string; difficulty: string; unanswered: number }>) {
       const key = `${row.category}/${row.difficulty}`;
-      counts[key] = (counts[key] ?? 0) + 1;
+      counts[key] = Number(row.unanswered ?? 0);
     }
     return counts;
   }

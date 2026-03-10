@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizBall — Partner Overview</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #ffffff;
+      color: #1a1a2e;
+      font-size: 13.5px;
+      line-height: 1.65;
+    }
+
+    /* ── Page layout ──────────────────────────────── */
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 64px;
+    }
+
+    /* ── Cover ──────────────────────────────────────── */
+    .cover {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f4c81 100%);
+      color: #ffffff;
+      padding: 80px 64px 72px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: "⚽";
+      font-size: 260px;
+      position: absolute;
+      right: -30px;
+      top: -20px;
+      opacity: 0.07;
+      line-height: 1;
+    }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+    .cover h1 {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.05;
+      margin-bottom: 16px;
+    }
+    .cover h1 span { color: #60a5fa; }
+    .cover .tagline {
+      font-size: 18px;
+      font-weight: 400;
+      color: #94a3b8;
+      margin-bottom: 40px;
+      max-width: 480px;
+    }
+    .cover-stats {
+      display: flex;
+      gap: 36px;
+      flex-wrap: wrap;
+    }
+    .cover-stat { }
+    .cover-stat .num {
+      font-size: 28px;
+      font-weight: 700;
+      color: #60a5fa;
+      line-height: 1;
+    }
+    .cover-stat .label {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .cover-divider {
+      width: 48px;
+      height: 3px;
+      background: #3b82f6;
+      border-radius: 2px;
+      margin: 36px 0;
+    }
+
+    /* ── Sections ──────────────────────────────────── */
+    h2 {
+      font-size: 21px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 18px;
+      margin-top: 44px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2:first-child { margin-top: 0; }
+    h2 .icon {
+      font-size: 18px;
+      background: #eff6ff;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e3a5f;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    p { margin-bottom: 10px; color: #374151; }
+
+    /* ── Cards ─────────────────────────────────────── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 20px 0;
+    }
+    .card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card .card-icon { font-size: 22px; margin-bottom: 10px; }
+    .card .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .card .card-body { font-size: 12.5px; color: #64748b; line-height: 1.55; }
+
+    .card-accent { border-left: 3px solid #3b82f6; }
+
+    /* ── Mode cards ────────────────────────────────── */
+    .mode-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .mode-emoji {
+      font-size: 28px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .mode-content .mode-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .mode-content .mode-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tag-green { background: #dcfce7; color: #16a34a; }
+    .tag-blue  { background: #dbeafe; color: #1d4ed8; }
+    .mode-content .mode-desc { font-size: 12.5px; color: #4b5563; line-height: 1.55; }
+
+    /* ── Flow chart ────────────────────────────────── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      margin: 14px 0;
+    }
+    .flow-step {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #1d4ed8;
+      white-space: nowrap;
+    }
+    .flow-arrow {
+      color: #93c5fd;
+      font-size: 16px;
+      padding: 0 6px;
+      font-weight: 300;
+    }
+
+    /* ── Callout ───────────────────────────────────── */
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      border-radius: 0 10px 10px 0;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+    .callout p { color: #1e40af; margin: 0; font-size: 13px; }
+    .callout strong { color: #1e3a8a; }
+
+    .callout-green {
+      background: #f0fdf4;
+      border-left-color: #22c55e;
+    }
+    .callout-green p { color: #166534; }
+
+    /* ── Table ─────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 12.5px;
+    }
+    th {
+      background: #0f172a;
+      color: #f1f5f9;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11.5px;
+      letter-spacing: 0.4px;
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #374151;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Pill list ─────────────────────────────────── */
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .pill {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── Divider ───────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 40px 0;
+    }
+
+    /* ── Footer ────────────────────────────────────── */
+    .footer {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 32px 64px;
+      font-size: 11.5px;
+      text-align: center;
+    }
+    .footer strong { color: #e2e8f0; }
+
+    /* ── Print ─────────────────────────────────────── */
+    @media print {
+      body { font-size: 12px; }
+      .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page { padding: 40px 48px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     COVER
+═══════════════════════════════════════════ -->
+<div class="cover">
+  <div style="max-width: 800px; margin: 0 auto; position: relative;">
+    <div class="cover-badge">Partnership Overview · 2026</div>
+    <h1>Quiz<span>Ball</span></h1>
+    <p class="tagline">The AI-powered football trivia platform — built for daily engagement, competitive play, and real fan culture.</p>
+    <div class="cover-divider"></div>
+    <div class="cover-stats">
+      <div class="cover-stat">
+        <div class="num">4</div>
+        <div class="label">Game Modes</div>
+      </div>
+      <div class="cover-stat">
+        <div class="num">8</div>
+        <div class="label">Question Categories</div>
+      </div>
+      <div class="cover-stat">
+        <div class="num">AI</div>
+        <div class="label">Powered Questions</div>
+      </div>
+      <div class="cover-stat">
+        <div class="num">2</div>
+        <div class="label">Languages (EN / EL)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════ -->
+<div class="page">
+
+  <!-- ── What is QuizBall ── -->
+  <h2><span class="icon">⚽</span> What is QuizBall?</h2>
+
+  <p>
+    QuizBall is a web-based football trivia platform that lets fans compete, learn, and engage with the sport they love every single day. Players can challenge each other locally, race the clock in a solo sprint, climb a global ranking ladder, or tackle a fresh daily puzzle — all powered by artificial intelligence that generates and validates every question automatically.
+  </p>
+  <p>
+    The platform requires no downloads and works on any device. Users log in with their Google account and immediately have access to a personalised experience with stats, rankings, and history tracked over time.
+  </p>
+
+  <div class="callout">
+    <p><strong>Core idea:</strong> football knowledge meets competitive gaming. Every session is different because the questions are generated fresh by AI — there is no static question bank to exhaust.</p>
+  </div>
+
+  <hr />
+
+  <!-- ── Game Modes ── -->
+  <h2><span class="icon">🎮</span> Game Modes</h2>
+
+  <p>QuizBall offers four distinct ways to play, each designed for a different occasion and audience.</p>
+
+  <!-- Solo -->
+  <div class="mode-card">
+    <div class="mode-emoji">🏆</div>
+    <div class="mode-content">
+      <div class="mode-title">Solo Ranked — The Climbing Ladder</div>
+      <span class="mode-tag tag-blue">Login required</span>
+      <div class="mode-desc">
+        A head-to-head between the player and the AI. Each question is generated on the spot at a difficulty level matched to the player's current skill rating. Answer correctly to gain points; answer wrong or run out of time to lose them. The difficulty adapts automatically — beginners get straightforward questions, advanced players face obscure and niche topics. A full ranking ladder (leaderboard) shows where every player sits globally.
+      </div>
+    </div>
+  </div>
+
+  <!-- Blitz -->
+  <div class="mode-card">
+    <div class="mode-emoji">⚡</div>
+    <div class="mode-content">
+      <div class="mode-title">Blitz — 60 Seconds on the Clock</div>
+      <span class="mode-tag tag-blue">Login required</span>
+      <div class="mode-desc">
+        A pure speed challenge. The player has 60 seconds to answer as many multiple-choice football questions as possible. Each question flashes by with a one-second result before the next one appears. The session ends when time runs out, and the final score is saved to the Blitz leaderboard. Players can always try to beat their personal best.
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily -->
+  <div class="mode-card">
+    <div class="mode-emoji">📅</div>
+    <div class="mode-content">
+      <div class="mode-title">Today in Football — The Daily Habit</div>
+      <span class="mode-tag tag-green">No login needed</span>
+      <div class="mode-desc">
+        Every day at midnight the AI generates a fresh set of 8 questions based on real football events that happened on that calendar date in history — transfers, match results, trophies, retirements, records. All players worldwide see the same questions on the same day. It is a quick, social format built to bring users back every day.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-Player -->
+  <div class="mode-card">
+    <div class="mode-emoji">👥</div>
+    <div class="mode-content">
+      <div class="mode-title">2-Player — Local Head-to-Head</div>
+      <span class="mode-tag tag-green">No login needed</span>
+      <div class="mode-desc">
+        Two players on the same device compete on a quiz board with 8 categories and 3 difficulty levels per category — 24 questions in total. Categories include History, Player ID, Guess the Score, Higher or Lower, Top 5, Geography, Gossip, and News. Players take turns choosing their questions, earn points per correct answer, and can use special power-ups (50/50 lifeline, 2× score multiplier). Answers are typed freely and validated by the AI, which understands approximate and informal responses.
+      </div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- ── How AI Works ── -->
+  <h2><span class="icon">🤖</span> How AI Powers the Platform</h2>
+
+  <p>
+    The artificial intelligence engine is at the core of what makes QuizBall different from any static trivia app. Rather than pulling from a fixed database of questions, QuizBall uses a large language model (Google's Gemini) to generate, validate, and score every question dynamically.
+  </p>
+
+  <h3>Question Generation</h3>
+  <p>
+    For each game session, the AI creates brand-new questions based on the mode and the player's profile. A Solo question is tailored to the player's exact skill level — the AI knows whether to ask about well-known Champions League winners or obscure 1980s transfer records. A Daily question is grounded in real historical football events on that exact date. A 2-Player board contains 24 questions spanning 8 different topic areas, all created on the fly.
+  </p>
+
+  <div class="flow">
+    <div class="flow-step">Player starts session</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">System checks player level</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">AI generates question</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Player answers</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">AI validates answer</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Score updated</div>
+  </div>
+
+  <h3>Answer Validation</h3>
+  <p>
+    In modes where players type free-text answers (Solo and 2-Player), the AI evaluates whether the response is correct — not just exact character matching. This means "Ronaldo", "C. Ronaldo", and "Cristiano" can all be accepted for the same answer. The AI handles abbreviations, spelling variations, and common nicknames, creating a much fairer and more natural experience.
+  </p>
+
+  <h3>Adaptive Difficulty</h3>
+  <p>
+    In Solo Ranked mode, every player has a skill rating (ELO score, the same system used in chess). The AI generates questions at the right difficulty for each player's current level. As a player improves, the questions automatically become harder. This ensures the game always feels challenging without being unfair.
+  </p>
+
+  <table>
+    <tr>
+      <th>Player ELO Range</th>
+      <th>Difficulty Assigned</th>
+      <th>Example Question Type</th>
+      <th>Time Limit</th>
+    </tr>
+    <tr>
+      <td>Below 1,100</td>
+      <td>Easy</td>
+      <td>Famous players, recent Champions League winners</td>
+      <td>25 seconds</td>
+    </tr>
+    <tr>
+      <td>1,100 – 1,399</td>
+      <td>Medium</td>
+      <td>Club records, specific tournament seasons</td>
+      <td>35 seconds</td>
+    </tr>
+    <tr>
+      <td>1,400 and above</td>
+      <td>Hard</td>
+      <td>Obscure stats, historical niche records</td>
+      <td>45 seconds</td>
+    </tr>
+  </table>
+
+  <h3>Translation & Localisation</h3>
+  <p>
+    The platform currently supports English and Greek. The AI translates questions and explanations into Greek in real time, preserving proper nouns (player and club names) while adapting the rest of the text naturally. The language switch is available on every screen with a single tap.
+  </p>
+
+  <hr />
+
+  <!-- ── User Journey ── -->
+  <h2><span class="icon">🚀</span> The User Journey</h2>
+
+  <h3>First Visit (No Account)</h3>
+  <p>
+    A new visitor lands on the home screen and can immediately start a 2-Player local game or take the Daily Quiz — no registration required. This lowers the barrier to entry and lets users experience the product before committing to sign up.
+  </p>
+
+  <h3>Sign Up</h3>
+  <p>
+    Signing up takes one click via Google. The system automatically creates a profile with a starting ELO of 1,000. From that point, every answer in Solo and Blitz modes is tracked and contributes to the player's long-term rating and history.
+  </p>
+
+  <h3>Regular Play Loop</h3>
+
+  <div class="card-grid">
+    <div class="card card-accent">
+      <div class="card-icon">📅</div>
+      <div class="card-title">Daily Check-In</div>
+      <div class="card-body">Open the app, play the 8 daily questions in under 3 minutes. Same time every day builds a habit. No account needed — perfect for casual fans.</div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-icon">🏆</div>
+      <div class="card-title">Ranking Grind</div>
+      <div class="card-body">Log in and play Solo Ranked to climb the leaderboard. ELO goes up or down after each question, creating tension and motivation to keep playing.</div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">Speed Run</div>
+      <div class="card-body">Jump into Blitz for a quick 60-second session. Beat your personal best. Check the leaderboard. Try again. Fast and addictive.</div>
+    </div>
+    <div class="card card-accent">
+      <div class="card-icon">👥</div>
+      <div class="card-title">Social Play</div>
+      <div class="card-body">Challenge a friend or family member on the same screen. No account needed. Works at watch parties, bars, or football events.</div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- ── Data & Profiles ── -->
+  <h2><span class="icon">📊</span> Player Profiles &amp; Statistics</h2>
+
+  <p>
+    Every registered user has a profile page showing their full history and performance metrics. This creates long-term investment in the platform — players build a record they can view, share, and improve over time.
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">Solo ELO Rating</div>
+      <div class="card-body">Current skill score and all-time peak. Tracked after every question answered.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Blitz Best Score</div>
+      <div class="card-body">Highest number of questions answered correctly in a single 60-second session.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Accuracy &amp; Games Played</div>
+      <div class="card-body">Overall correct answer percentage and total number of sessions completed.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">ELO History Graph</div>
+      <div class="card-body">Visual chart of the last 20 ELO changes, showing the player's progression over time.</div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- ── Question Categories ── -->
+  <h2><span class="icon">📋</span> Question Categories (2-Player Mode)</h2>
+
+  <p>The 2-Player board is structured around 8 topic categories, giving a broad and entertaining coverage of football knowledge.</p>
+
+  <table>
+    <tr>
+      <th>Category</th>
+      <th>What It Tests</th>
+    </tr>
+    <tr>
+      <td><strong>History</strong></td>
+      <td>Historical events, records, famous moments in football</td>
+    </tr>
+    <tr>
+      <td><strong>Player ID</strong></td>
+      <td>Identify a player from clues (stats, clubs, nationality, achievements)</td>
+    </tr>
+    <tr>
+      <td><strong>Guess the Score</strong></td>
+      <td>Predict the final score of a specific historic match</td>
+    </tr>
+    <tr>
+      <td><strong>Higher or Lower</strong></td>
+      <td>Was a statistic above or below a given number?</td>
+    </tr>
+    <tr>
+      <td><strong>Top 5</strong></td>
+      <td>Name 5 players or clubs ranked by a specific statistic</td>
+    </tr>
+    <tr>
+      <td><strong>Geography</strong></td>
+      <td>Stadium locations, national teams, city-to-club connections</td>
+    </tr>
+    <tr>
+      <td><strong>Gossip</strong></td>
+      <td>Transfers, feuds, and off-pitch stories</td>
+    </tr>
+    <tr>
+      <td><strong>News</strong></td>
+      <td>Current season events, recent signings and results</td>
+    </tr>
+  </table>
+
+  <hr />
+
+  <!-- ── Technical Summary ── -->
+  <h2><span class="icon">⚙️</span> Under the Hood (Brief)</h2>
+
+  <p>
+    QuizBall is a fully cloud-based product. There is nothing to install — users access it through any web browser. The platform is built on modern, scalable technology and is designed to handle growth without major re-architecture.
+  </p>
+
+  <div class="pill-list">
+    <span class="pill">Angular 20 (Web App)</span>
+    <span class="pill">NestJS (Backend API)</span>
+    <span class="pill">Supabase (Database)</span>
+    <span class="pill">Google Gemini AI</span>
+    <span class="pill">Google OAuth (Login)</span>
+    <span class="pill">Railway (Hosting)</span>
+    <span class="pill">English + Greek</span>
+    <span class="pill">Mobile Responsive</span>
+  </div>
+
+  <div class="callout callout-green">
+    <p><strong>Deployment:</strong> The backend and frontend are independently deployable and currently hosted on Railway (backend) and Vercel (frontend). The database is managed by Supabase. All infrastructure is cloud-native with no physical servers to maintain.</p>
+  </div>
+
+  <hr />
+
+  <!-- ── Partnership ── -->
+  <h2><span class="icon">🤝</span> Partnership Opportunity</h2>
+
+  <p>
+    QuizBall is production-ready and operational. The product has a complete feature set across four game modes, AI-driven question generation, global leaderboards, bilingual support, and user profiles. What it needs next is scale — growing the player base, expanding to new languages and football markets, and building the commercial layer on top of a solid foundation.
+  </p>
+
+  <h3>What We Bring</h3>
+  <p>A complete, working product. The hardest part — building the AI pipeline, the competitive systems, and the daily engagement loop — is already done and running.</p>
+
+  <h3>What We Are Looking For</h3>
+  <p>Partners who can contribute in areas such as user acquisition, football content licensing, regional market expansion, commercial partnerships with clubs or broadcasters, or investment to accelerate growth.</p>
+
+  <h3>Natural Monetisation Paths</h3>
+
+  <table>
+    <tr>
+      <th>Revenue Stream</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td><strong>Sponsorships</strong></td>
+      <td>Daily quiz or Blitz mode sponsored by a club, broadcaster, or betting platform</td>
+    </tr>
+    <tr>
+      <td><strong>Premium Subscription</strong></td>
+      <td>Unlock extended daily packs, cosmetic profiles, ad-free experience</td>
+    </tr>
+    <tr>
+      <td><strong>Branded Tournaments</strong></td>
+      <td>Time-limited events tied to real football calendar moments (World Cup, Champions League finals)</td>
+    </tr>
+    <tr>
+      <td><strong>White Label</strong></td>
+      <td>Platform can be skinned and licensed to clubs, media companies, or fan communities</td>
+    </tr>
+    <tr>
+      <td><strong>Data &amp; Engagement</strong></td>
+      <td>Aggregated (anonymised) fan knowledge data as a product for sports analytics firms</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <p><strong>The platform is designed for engagement-first.</strong> Daily quizzes drive daily active users. ELO and leaderboards drive session frequency. The competitive loop drives retention. These are all foundation pieces for a sustainable business.</p>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+<div class="footer">
+  <strong>QuizBall</strong> &nbsp;·&nbsp; Confidential Partner Overview &nbsp;·&nbsp; 2026<br />
+  <span style="margin-top: 6px; display: inline-block;">This document is intended for prospective partners and contains proprietary product information.</span>
+</div>
+
+</body>
+</html>
