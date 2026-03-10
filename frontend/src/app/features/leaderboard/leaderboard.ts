@@ -36,6 +36,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         <div class="leaderboard-error">{{ error() }}</div>
       }
 
+      @if (!loading()) {
       <section class="leaderboard-section">
         <h2 class="leaderboard-section-title">🏆 {{ lang.t().lbSolo }}</h2>
         @if (entries().length > 0) {
@@ -83,7 +84,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
               </mat-card>
             </a>
           }
-        } @else if (!loading()) {
+        } @else {
           <mat-card class="leaderboard-empty">
             <mat-card-content>{{ lang.t().lbNoPlayers }}</mat-card-content>
           </mat-card>
@@ -137,12 +138,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
               </mat-card>
             </a>
           }
-        } @else if (!loading()) {
+        } @else {
           <mat-card class="leaderboard-empty">
             <mat-card-content>{{ lang.t().lbNoBlitz }}</mat-card-content>
           </mat-card>
         }
       </section>
+      }
     </div>
   `,
   styles: [`
