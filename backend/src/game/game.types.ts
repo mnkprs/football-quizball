@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsArray, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsIn, IsBoolean, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { GeneratedQuestion, BoardCell, Top5Progress } from '../questions/question.types';
 
 export interface Player {
@@ -44,21 +45,45 @@ export class CreateGameDto {
 }
 
 export class SubmitAnswerDto {
+  @IsString()
   questionId: string;
+
+  @IsString()
+  @MaxLength(500)
   answer: string;
+
+  @IsIn([0, 1])
+  @Transform(({ value }) => (typeof value === 'string' ? parseInt(value, 10) : value))
   playerIndex: 0 | 1;
+
+  @IsOptional()
+  @IsBoolean()
   useDouble?: boolean;
 }
 
 export class UseLifelineDto {
+  @IsString()
   questionId: string;
+
+  @IsIn([0, 1])
+  @Transform(({ value }) => (typeof value === 'string' ? parseInt(value, 10) : value))
   playerIndex: 0 | 1;
 }
 
 export class Top5GuessDto {
+  @IsString()
   questionId: string;
+
+  @IsString()
+  @MaxLength(500)
   answer: string;
+
+  @IsIn([0, 1])
+  @Transform(({ value }) => (typeof value === 'string' ? parseInt(value, 10) : value))
   playerIndex: 0 | 1;
+
+  @IsOptional()
+  @IsBoolean()
   useDouble?: boolean;
 }
 
