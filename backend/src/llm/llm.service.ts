@@ -7,8 +7,8 @@ import { jsonrepair } from 'jsonrepair';
 /** DeepSeek model (primary). OpenAI-compatible API. */
 const DEEPSEEK_MODEL = 'deepseek-chat';
 
-/** Gemini fallback chain: Flash-Lite (1000 RPD free), Flash (250 RPD), Pro. */
-const GEMINI_FALLBACK_CHAIN = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro'] as const;
+/** Gemini fallback chain: Flash-Lite (1000 RPD), Flash (250 RPD), 1.5-Flash (separate quota). gemini-2.5-pro has 0 free tier. */
+const GEMINI_FALLBACK_CHAIN = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
 
 function isRateLimitError(err: unknown): boolean {
   const msg = String((err as Error)?.message ?? '');
@@ -156,6 +156,7 @@ export class LlmService {
       ) {
         this.geminiModelIndex = modelIdx;
         const model = this.currentGeminiModel;
+        this.logger.log(`[generateStructuredJson] Trying Gemini: ${model}`);
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
           try {
@@ -179,18 +180,8 @@ export class LlmService {
             lastError = err as Error;
 
             if (isRateLimitError(err)) {
-              this.logger.warn(
-                `[generateStructuredJson] Rate limit on ${model} — switching Gemini model`,
-              );
-              if (modelIdx + 1 < GEMINI_FALLBACK_CHAIN.length) {
-                this.geminiModelIndex = modelIdx + 1;
-                this.logger.log(
-                  `[generateStructuredJson] Using Gemini: ${GEMINI_FALLBACK_CHAIN[this.geminiModelIndex]}`,
-                );
-                break;
-              }
               this.logger.error(
-                '[generateStructuredJson] Rate limit on all Gemini models.',
+                `[generateStructuredJson] Rate limit (429) on ${model} — exiting, no retry`,
               );
               throw lastError;
             }

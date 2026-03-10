@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
+import { QuestionPoolService } from '../questions/question-pool.service';
 import { Difficulty } from '../questions/question.types';
 import { SoloQuestion } from './solo.types';
 import { getExplicitConstraints, getAntiConvergenceInstruction, minorityScaleForElo } from '../questions/diversity-hints';
@@ -8,9 +9,26 @@ import { getExplicitConstraints, getAntiConvergenceInstruction, minorityScaleFor
 export class SoloQuestionGenerator {
   private readonly logger = new Logger(SoloQuestionGenerator.name);
 
-  constructor(private llmService: LlmService) {}
+  constructor(
+    private llmService: LlmService,
+    private questionPoolService: QuestionPoolService,
+  ) {}
 
   async generate(difficulty: Difficulty, elo: number = 1000): Promise<SoloQuestion> {
+    // Use pool first — no LLM call when questions exist in DB
+    const fromPool = await this.questionPoolService.drawOneForSolo(difficulty, 'en');
+    if (fromPool) {
+      return {
+        id: fromPool.id,
+        question_text: fromPool.question_text,
+        correct_answer: fromPool.correct_answer,
+        explanation: fromPool.explanation ?? '',
+        difficulty,
+        difficulty_factor: 0.5,
+      };
+    }
+
+    // Pool empty — fall back to LLM
     const difficultyGuide: Record<Difficulty, string> = {
       EASY: 'well-known fact, easily recalled (e.g., which club did Messi win the 2015 Champions League with?)',
       MEDIUM: 'moderate difficulty, requires real football knowledge (e.g., year of a specific title win, top scorer in a specific season)',

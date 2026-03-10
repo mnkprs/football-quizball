@@ -166,6 +166,19 @@ export class QuestionPoolService {
   }
 
   /**
+   * Draw a single question for Solo mode by difficulty.
+   * Tries categories in order until one has stock. Returns null if pool is empty for all.
+   */
+  async drawOneForSolo(difficulty: Difficulty, language: string = 'en'): Promise<GeneratedQuestion | null> {
+    const categories: QuestionCategory[] = ['HISTORY', 'PLAYER_ID', 'GEOGRAPHY', 'GOSSIP', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5'];
+    for (const category of categories) {
+      const drawn = await this.drawSlot(category, difficulty, 1, language);
+      if (drawn.length > 0) return drawn[0];
+    }
+    return null;
+  }
+
+  /**
    * Remove invalid and duplicate questions from the pool.
    * Call via POST /api/admin/cleanup-questions or run migration.
    */
