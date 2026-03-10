@@ -414,6 +414,10 @@ export class QuestionPoolService {
           }),
         ),
       );
+      // Free tier: 15 RPM (Flash-Lite), 10 RPM (Flash). Throttle to stay under limit.
+      if (offset + batchSize < count) {
+        await new Promise((r) => setTimeout(r, 20000)); // 5 req/batch → 20s ≈ 15/min
+      }
       const batch = results
         .filter((r): r is PromiseFulfilledResult<GeneratedQuestion> => r.status === 'fulfilled')
         .map((r) => r.value)
