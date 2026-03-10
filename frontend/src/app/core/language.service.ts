@@ -90,6 +90,8 @@ const TRANSLATIONS = {
     points: 'points',
     lifelineUsed: 'Lifeline: Used',
     lifelineNotUsed: 'Lifeline: Not used',
+    doubleUsed: '2x: Used',
+    doubleNotUsed: '2x: Not used',
     categoryBreakdown: 'Category Breakdown',
     playAgain: 'Play Again ⚽',
     // Home
@@ -97,6 +99,7 @@ const TRANSLATIONS = {
     appSubtitle: 'The football trivia game',
     signOut: 'Sign out',
     btn2Player: '2-Player Game',
+    btn2PlayerResume: 'Resume 2-Player',
     btnSolo: 'Solo Ranked',
     btnBlitz: 'Blitz Mode',
     btnDaily: 'Today in Football',
@@ -274,6 +277,8 @@ const TRANSLATIONS = {
     points: 'βαθμοί',
     lifelineUsed: 'Βοήθεια: Χρησιμοποιήθηκε',
     lifelineNotUsed: 'Βοήθεια: Δεν χρησιμοποιήθηκε',
+    doubleUsed: '2x: Χρησιμοποιήθηκε',
+    doubleNotUsed: '2x: Δεν χρησιμοποιήθηκε',
     categoryBreakdown: 'Ανάλυση Κατηγοριών',
     playAgain: 'Παίξε Ξανά ⚽',
     // Home
@@ -281,6 +286,7 @@ const TRANSLATIONS = {
     appSubtitle: 'Το ποδοσφαιρικό κουίζ',
     signOut: 'Αποσύνδεση',
     btn2Player: 'Παιχνίδι 2 Παικτών',
+    btn2PlayerResume: 'Συνέχισε 2 Παίκτες',
     btnSolo: 'Solo Ranked',
     btnBlitz: 'Blitz Mode',
     btnDaily: 'Σήμερα στο Ποδόσφαιρο',

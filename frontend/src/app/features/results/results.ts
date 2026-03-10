@@ -1,5 +1,6 @@
 import { Component, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { GameStore } from '../../core/game.store';
 import { LanguageService } from '../../core/language.service';
 import { DonateModalService } from '../../core/donate-modal.service';
@@ -39,6 +40,9 @@ import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
               <div class="text-xs text-muted-foreground mt-2">
                 {{ player.lifelineUsed ? lang.t().lifelineUsed : lang.t().lifelineNotUsed }}
               </div>
+              <div class="text-xs text-muted-foreground mt-2">
+                {{ player.doubleUsed ? lang.t().doubleUsed : lang.t().doubleNotUsed }}
+              </div>
             </div>
           }
         </div>
@@ -62,13 +66,21 @@ import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
         <!-- Ad after 2-player game -->
         <app-ad-display />
 
-        <!-- Play again -->
-        <button
-          (click)="playAgain()"
-          class="w-full py-4 rounded-xl bg-accent text-accent-foreground font-bold text-lg hover:bg-accent-light active:scale-95 transition pressable"
-        >
-          {{ lang.t().playAgain }}
-        </button>
+        <!-- Actions -->
+        <div class="flex flex-col gap-3">
+          <button
+            (click)="playAgain()"
+            class="w-full py-4 rounded-xl bg-accent text-accent-foreground font-bold text-lg hover:bg-accent-light active:scale-95 transition pressable"
+          >
+            {{ lang.t().playAgain }}
+          </button>
+          <button
+            (click)="goHome()"
+            class="w-full py-3 rounded-xl border-2 border-border text-muted-foreground font-medium hover:bg-muted/50 transition pressable"
+          >
+            {{ lang.t().backToHome }}
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -77,6 +89,7 @@ export class ResultsComponent implements OnInit {
   store = inject(GameStore);
   lang = inject(LanguageService);
   private donateModal = inject(DonateModalService);
+  private router = inject(Router);
   players = this.store.players;
 
   ngOnInit(): void {
@@ -120,5 +133,10 @@ export class ResultsComponent implements OnInit {
 
   playAgain(): void {
     this.store.resetGame();
+  }
+
+  goHome(): void {
+    this.store.resetGame();
+    this.router.navigate(['/']);
   }
 }

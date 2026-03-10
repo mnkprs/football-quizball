@@ -68,7 +68,7 @@ import { MatButtonModule } from '@angular/material/button';
 
         <div class="home-buttons">
           <button mat-flat-button color="primary" class="home-btn home-btn-primary" (click)="go2Player()">
-            <span class="home-btn-main">🎮 {{ lang.t().btn2Player }}</span>
+            <span class="home-btn-main">🎮 {{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</span>
             <span class="home-btn-hint home-btn-hint-primary">{{ lang.t().btn2PlayerHint }}</span>
           </button>
           @if (auth.isLoggedIn()) {
@@ -430,6 +430,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     } catch {
       this.profile.set(null);
       this.blitzStats.set(null);
+    }
+  }
+
+  hasActive2PlayerGame(): boolean {
+    try {
+      return !!localStorage.getItem('quizball_game_id');
+    } catch {
+      return false;
     }
   }
 

@@ -47,8 +47,8 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
             } @else {
               <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-win/60 text-win text-xs font-bold hover:bg-win/10 transition pressable">{{ lang.t().use2x }}</button>
             }
-          } @else {
-            <div class="text-xs opacity-50 mt-1">{{ players()[0]?.doubleUsed ? '2x ✗' : '' }}</div>
+          }           @else {
+            <div class="text-xs opacity-50 mt-1">{{ players()[0]?.doubleUsed ? '2x ✗' : '2x ✓' }}</div>
           }
         </div>
 
@@ -78,8 +78,8 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
             } @else {
               <button (click)="armDouble()" class="mt-2 w-full py-1 rounded-lg border border-win/60 text-win text-xs font-bold hover:bg-win/10 transition pressable">{{ lang.t().use2x }}</button>
             }
-          } @else {
-            <div class="text-xs opacity-50 mt-1">{{ players()[1]?.doubleUsed ? '2x ✗' : '' }}</div>
+          }           @else {
+            <div class="text-xs opacity-50 mt-1">{{ players()[1]?.doubleUsed ? '2x ✗' : '2x ✓' }}</div>
           }
         </div>
       </div>

@@ -17,7 +17,7 @@ import { LanguageService } from '../../core/language.service';
             {{ result()?.correct ? lang.t().correct : lang.t().wrong }}
           </h2>
           @if (result()?.correct) {
-            <p class="text-win font-bold text-xl">+{{ result()?.points_awarded }} point{{ result()?.points_awarded !== 1 ? 's' : '' }}</p>
+            <p class="text-win font-bold text-xl">+{{ result()?.points_awarded }} point{{ result()?.points_awarded !== 1 ? 's' : '' }}{{ result()?.double_used ? ' (2x)' : '' }}</p>
           } @else {
             <p class="text-muted-foreground">{{ lang.t().noPoints }}</p>
           }

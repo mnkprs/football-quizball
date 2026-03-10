@@ -24,7 +24,7 @@ import { ResultsComponent } from '../results/results';
   ],
   template: `
     <div class="relative min-h-screen bg-background max-w-md mx-auto">
-      @if (store.phase() === 'setup') {
+      @if (store.phase() !== 'loading' && store.phase() !== 'finished') {
         <button
           (click)="goBack()"
           class="fixed top-4 left-4 z-20 py-2 px-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition text-sm font-medium"
