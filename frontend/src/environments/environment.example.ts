@@ -5,6 +5,7 @@
 export const environment = {
   production: false, // set true for environment.prod.ts
   apiUrl: 'http://localhost:3001', // or production URL
+  appUrl: '', // production only: frontend URL for OAuth redirects (e.g. https://your-app.vercel.app)
   supabaseUrl: 'https://npwneqworgyclzaofuln.supabase.co',
   supabaseAnonKey: '', // Dashboard → Project Settings → API → anon public
   reportEmail: 'mkaparos95@gmail.com', // Your email to receive question reports

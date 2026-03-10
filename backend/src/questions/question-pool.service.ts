@@ -40,7 +40,7 @@ const DRAW_REQUIREMENTS: SlotRequirement[] = [
 const POOL_TARGET: Partial<Record<string, number>> = {
   'NEWS/MEDIUM': 10, // Refilled by news ingest cron, not pool refill
 };
-const DEFAULT_TARGET = 55;
+const DEFAULT_TARGET = 55 ;
 const GENERATION_BATCH_SIZE = 5;
 
 export interface DrawBoardResult {

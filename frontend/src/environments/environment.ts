@@ -7,6 +7,7 @@
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3001',
+  appUrl: '', // unused in dev; uses window.location.origin
   supabaseUrl: 'https://npwneqworgyclzaofuln.supabase.co',
   supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wd25lcXdvcmd5Y2x6YW9mdWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODU3ODEsImV4cCI6MjA4ODU2MTc4MX0.RutdVolELWFbYNv1FKC74xb6ZUrjY62OxsPFJgXmhOo', // Dashboard → Project Settings → API → anon public
   /** Email to receive question reports. Leave empty to open mailto without pre-filled recipient. */
