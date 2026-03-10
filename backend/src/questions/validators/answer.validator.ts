@@ -124,6 +124,13 @@ export class AnswerValidator {
     return false;
   }
 
+  private isMultiWordPrefixMatch(full: string, submitted: string): boolean {
+    const submittedParts = submitted.split(' ');
+    if (submittedParts.length < 2) return false;
+    if (submitted.length < 6) return false;
+    return full.startsWith(`${submitted} `);
+  }
+
   /**
    * Try to match a submitted string against a list of Top5 entries.
    * Returns the 0-based index of the match, or -1 if no match.
@@ -147,6 +154,9 @@ export class AnswerValidator {
 
       // First word only (mono-name like "Pelé", or team shorthand like "Inter" for "Inter Milan")
       if (firstName === normalSubmitted && firstName.length > 3) return i;
+
+      // Accept a safe multi-word prefix like "sir alex" for "Sir Alex Ferguson"
+      if (this.isMultiWordPrefixMatch(normalFull, normalSubmitted)) return i;
 
       // Fuzzy on full name
       const dist = Levenshtein.get(normalFull, normalSubmitted);
