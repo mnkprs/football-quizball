@@ -46,7 +46,10 @@
       "Read(//Users/instashop/Projects/football-quizball/backend/src/questions/generators/**)",
       "Bash(done)",
       "mcp__supabase__execute_sql",
-      "mcp__Railway__deploy"
+      "mcp__Railway__deploy",
+      "Bash(bun add:*)",
+      "Bash(open:*)",
+      "Bash(bun run:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -3,7 +3,7 @@
 /**
  * Populate Greek translations for existing questions in question_pool and blitz_question_pool.
  * Run with: npm run translate-seed-greek
- * Requires: GEMINI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ * Requires: DEEPSEEK_API_KEY and/or GEMINI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
