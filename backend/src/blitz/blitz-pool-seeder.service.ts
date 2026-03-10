@@ -1,5 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from '../questions/questions.service';
@@ -40,7 +39,7 @@ function randomScore(min: number, max: number): number {
 }
 
 @Injectable()
-export class BlitzPoolSeederService implements OnModuleInit {
+export class BlitzPoolSeederService {
   private readonly logger = new Logger(BlitzPoolSeederService.name);
   private isSeeding = false;
 
@@ -49,19 +48,6 @@ export class BlitzPoolSeederService implements OnModuleInit {
     private llmService: LlmService,
     private questionsService: QuestionsService,
   ) {}
-
-  async onModuleInit() {
-    this.logger.log('[INIT] Blitz pool: checking initial levels...');
-    this.seedIfLow(500).catch((err) =>
-      this.logger.error(`[INIT] Blitz seed check failed: ${err.message}`),
-    );
-  }
-
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
-  async scheduledTopUp() {
-    this.logger.log('[CRON] Blitz top-up (daily 3AM): checking band levels...');
-    await this.seedPool();
-  }
 
   async cleanupPool(): Promise<{ deletedInvalid: number; deletedDuplicates: number }> {
     const { data, error } = await this.supabaseService.client.rpc('cleanup_blitz_question_pool');
@@ -108,19 +94,6 @@ export class BlitzPoolSeederService implements OnModuleInit {
     }
 
     return results;
-  }
-
-  private async seedIfLow(minTotal: number): Promise<void> {
-    if (this.isSeeding) return;
-
-    const total = await this.getTotalCount();
-    if (total >= minTotal) {
-      this.logger.log(`[INIT] Blitz pool: ${total} rows (>= ${minTotal}), skipping seed`);
-      return;
-    }
-
-    this.logger.log(`[INIT] Blitz pool: ${total} rows (< ${minTotal}), seeding...`);
-    await this.seedPool();
   }
 
   private async fillBand(band: BandSpec, count: number): Promise<number> {
@@ -243,18 +216,5 @@ export class BlitzPoolSeederService implements OnModuleInit {
       }
     }
     return counts;
-  }
-
-  private async getTotalCount(): Promise<number> {
-    const { count, error } = await this.supabaseService.client
-      .from('blitz_question_pool')
-      .select('id', { count: 'exact', head: true })
-      .eq('used', false);
-
-    if (error) {
-      this.logger.error(`[blitz-seeder] getTotalCount error: ${error.message}`);
-      return 0;
-    }
-    return count ?? 0;
   }
 }

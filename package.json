@@ -2,7 +2,8 @@
   "name": "football-quizball",
   "version": "1.0.0",
   "scripts": {
-    "seed-pool": "node scripts/seed-pool.js",
+    "seed-pool": "cd backend && npm run seed-pool --",
+    "seed-blitz-pool": "cd backend && npm run seed-blitz-pool --",
     "backend": "cd backend && npm run start:dev",
     "frontend": "cd frontend && ng serve --port 4200",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",

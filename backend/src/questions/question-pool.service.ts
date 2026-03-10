@@ -205,49 +205,78 @@ export class QuestionPoolService {
   }
 
   /**
-   * One-time bulk seed: fill every slot to the given target.
-   * Seeds one batch at a time, always choosing the slot with the lowest unanswered count,
-   * until all slots reach target. E.g. with target=150 and 3 slots at 50, 100, 120:
-   * seeds the 50-slot first, then re-evaluates and seeds the new lowest, etc.
+   * Add questions to a single slot (e.g. GUESS_SCORE/MEDIUM).
+   * Use for: npm run seed-pool -- GUESS_SCORE/MEDIUM 50  (adds 50 to that slot)
+   */
+  async seedSlot(slotKey: string, count: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }> {
+    const parts = slotKey.toUpperCase().split('/');
+    if (parts.length !== 2) {
+      throw new Error(`Invalid slot format: ${slotKey}. Use CATEGORY/DIFFICULTY (e.g. GUESS_SCORE/MEDIUM)`);
+    }
+    const [cat, diff] = parts;
+    const categoryMap: Record<string, QuestionCategory> = {
+      HISTORY: 'HISTORY',
+      PLAYER_ID: 'PLAYER_ID',
+      HIGHER_OR_LOWER: 'HIGHER_OR_LOWER',
+      GUESS_SCORE: 'GUESS_SCORE',
+      GUESSTHESCORE: 'GUESS_SCORE',
+      TOP_5: 'TOP_5',
+      GEOGRAPHY: 'GEOGRAPHY',
+      GOSSIP: 'GOSSIP',
+      NEWS: 'NEWS',
+    };
+    const difficultyMap: Record<string, Difficulty> = {
+      EASY: 'EASY',
+      MEDIUM: 'MEDIUM',
+      HARD: 'HARD',
+    };
+    const category = categoryMap[cat];
+    const difficulty = difficultyMap[diff];
+    if (!category || !difficulty) {
+      throw new Error(`Invalid slot: ${slotKey}. Category: ${cat}, Difficulty: ${diff}`);
+    }
+    if (category === 'NEWS') {
+      throw new Error('NEWS is filled by news ingest cron, not pool seed');
+    }
+
+    if (!force && this.isRefilling) {
+      throw new Error('Refill already in progress');
+    }
+
+    const toAdd = Math.min(500, Math.max(1, count));
+    return this.withRefillLock(async () => {
+      const key = `${category}/${difficulty}`;
+      this.logger.log(`[seedSlot] ${key}: adding ${toAdd} questions`);
+      const questions = await this.fillSlot(category, difficulty, toAdd, 0);
+      return { slot: key, added: questions.length, questions };
+    });
+  }
+
+  /**
+   * Add the given number of questions to every slot (except NEWS).
+   * Use for: npm run seed-pool -- 50  (adds 50 to each slot)
    * @param force When true, runs even if a background refill is in progress (e.g. from CLI script).
    */
-  async seedPool(target: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }[]> {
+  async seedPool(count: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }[]> {
     if (!force && this.isRefilling) {
       this.logger.warn('[seedPool] Refill already in progress, skipping');
       return [];
     }
+    const toAdd = Math.min(500, Math.max(1, count));
     return this.withRefillLock(async () => {
-      const slotAdded: Record<string, number> = {};
-      let counts = await this.getPoolCounts();
       const uniqueSlots = this.getUniqueSlots().filter((s) => s.category !== 'NEWS');
       let globalSlotIndex = 0;
+      const results: { slot: string; added: number }[] = [];
 
       for (const { category, difficulty } of uniqueSlots) {
-        slotAdded[`${category}/${difficulty}`] = 0;
-      }
-
-      // Loop: seed one batch for the lowest slot each time until all reach target
-      while (true) {
-        const belowTarget = uniqueSlots
-          .map((s) => ({ ...s, key: `${s.category}/${s.difficulty}`, current: counts[s.category + '/' + s.difficulty] ?? 0 }))
-          .filter((s) => s.current < target);
-
-        if (belowTarget.length === 0) break;
-
-        // Pick the slot with the lowest count (driest first)
-        belowTarget.sort((a, b) => a.current - b.current);
-        const { category, difficulty, key, current } = belowTarget[0];
-        const needed = Math.min(GENERATION_BATCH_SIZE, target - current);
-
-        this.logger.log(`[seedPool] ${key}: ${current}/${target} — generating batch of ${needed}`);
-        const questions = await this.fillSlot(category, difficulty, needed, globalSlotIndex);
+        const key = `${category}/${difficulty}`;
+        this.logger.log(`[seedPool] ${key}: adding ${toAdd} questions`);
+        const questions = await this.fillSlot(category, difficulty, toAdd, globalSlotIndex);
         globalSlotIndex += questions.length;
-
-        slotAdded[key] += questions.length;
-        counts = { ...counts, [key]: current + questions.length };
+        results.push({ slot: key, added: questions.length });
       }
 
-      return Object.entries(slotAdded).map(([slot, added]) => ({ slot, added }));
+      return results;
     });
   }
 
