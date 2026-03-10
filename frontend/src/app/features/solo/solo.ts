@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { DonateModalService } from '../../core/donate-modal.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
@@ -222,8 +223,17 @@ export class SoloComponent implements OnDestroy {
   private api = inject(SoloApiService);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private donateModal = inject(DonateModalService);
 
   phase = signal<SoloPhase>('idle');
+
+  constructor() {
+    effect(() => {
+      if (this.phase() === 'finished') {
+        this.donateModal.considerShowing();
+      }
+    });
+  }
   loading = signal(false);
   submitting = signal(false);
   error = signal<string | null>(null);

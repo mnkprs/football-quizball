@@ -179,6 +179,12 @@ const TRANSLATIONS = {
     profileSoloQuestions: 'Solo questions',
     profileViewLeaderboard: 'View Leaderboard',
     profileBackToLeaderboard: 'Back to Leaderboard',
+    // Donate modal
+    donateModalTitle: 'Enjoying the game?',
+    donateModalMessage: 'If you\'re having fun, consider supporting the creator with a coffee. Every bit helps!',
+    donateModalSupport: 'Support on Ko-fi',
+    donateModalMaybeLater: 'Maybe later',
+    navBuyMeACoffee: 'Buy me a coffee',
   },
   el: {
     // Setup
@@ -356,6 +362,12 @@ const TRANSLATIONS = {
     profileSoloQuestions: 'ερωτήσεις Solo',
     profileViewLeaderboard: 'Προβολή Κατάταξης',
     profileBackToLeaderboard: 'Πίσω στην Κατάταξη',
+    // Donate modal
+    donateModalTitle: 'Σου αρέσει το παιχνίδι;',
+    donateModalMessage: 'Αν το απολαμβάνεις, σκέψου να υποστηρίξεις τον δημιουργό με έναν καφέ. Κάθε βοήθεια μετράει!',
+    donateModalSupport: 'Υποστήριξε στο Ko-fi',
+    donateModalMaybeLater: 'Ίσως αργότερα',
+    navBuyMeACoffee: 'Καφέ για μένα',
   },
 } as const;
 

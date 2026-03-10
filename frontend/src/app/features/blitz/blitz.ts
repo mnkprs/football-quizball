@@ -1,7 +1,8 @@
-import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { BlitzApiService, BlitzQuestionRef } from '../../core/blitz-api.service';
+import { DonateModalService } from '../../core/donate-modal.service';
 import { LanguageService } from '../../core/language.service';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
@@ -80,7 +81,7 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
               @for (choice of currentQuestion()?.choices ?? []; track choice) {
                 <button
                   (click)="selectChoice(choice)"
-                  [disabled]="showFlash()"
+                  [disabled]="showFlash() || submitting()"
                   [class]="choiceClass(choice)"
                 >
                   {{ choice }}
@@ -91,14 +92,16 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
             <!-- Result flash overlay -->
             @if (showFlash()) {
               <div
-                class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl"
+                (click)="dismissFlash()"
+                class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl cursor-pointer"
                 [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
               >
                 <div class="text-5xl mb-3">{{ flashCorrect() ? '✅' : '❌' }}</div>
                 <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
                 @if (!flashCorrect()) {
-                  <div class="text-white/80 text-sm">{{ flashAnswer() }}</div>
+                  <div class="text-white/80 text-sm mb-2">{{ flashAnswer() }}</div>
                 }
+                <div class="text-white/70 text-xs">{{ lang.t().tapToContinue }}</div>
               </div>
             }
           </div>
@@ -174,9 +177,18 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
 export class BlitzComponent implements OnDestroy {
   private api = inject(BlitzApiService);
   private router = inject(Router);
+  private donateModal = inject(DonateModalService);
   lang = inject(LanguageService);
 
   phase = signal<BlitzPhase>('idle');
+
+  constructor() {
+    effect(() => {
+      if (this.phase() === 'finished') {
+        this.donateModal.considerShowing();
+      }
+    });
+  }
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -186,6 +198,8 @@ export class BlitzComponent implements OnDestroy {
   totalAnswered = signal(0);
   timeLeft = signal(60);
 
+  /** True while waiting for API response after selecting an answer. */
+  submitting = signal(false);
   showFlash = signal(false);
   flashCorrect = signal(false);
   flashAnswer = signal('');
@@ -219,8 +233,6 @@ export class BlitzComponent implements OnDestroy {
     return `${base} bg-card border border-border text-muted-foreground opacity-40`;
   }
 
-  constructor() {}
-
   async startSession(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
@@ -241,12 +253,12 @@ export class BlitzComponent implements OnDestroy {
   }
 
   async selectChoice(choice: string): Promise<void> {
-    if (this.showFlash()) return;
+    if (this.showFlash() || this.submitting()) return;
     const sid = this.sessionId();
     if (!sid) return;
 
     this.selectedChoice.set(choice);
-    this.showFlash.set(true);
+    this.submitting.set(true);
 
     try {
       const result = await firstValueFrom(this.api.submitAnswer(sid, choice));
@@ -255,6 +267,9 @@ export class BlitzComponent implements OnDestroy {
       this.flashCorrect.set(result.correct);
       this.flashAnswer.set(result.correct_answer);
       this.pendingNext = result.next_question;
+
+      this.submitting.set(false);
+      this.showFlash.set(true);
 
       if (result.time_up || !result.next_question) {
         this.stopTimer();
@@ -265,9 +280,18 @@ export class BlitzComponent implements OnDestroy {
       // Auto-advance after 1s
       this.flashTimeout = setTimeout(() => this.advanceQuestion(), 1000);
     } catch {
-      this.showFlash.set(false);
+      this.submitting.set(false);
       this.selectedChoice.set(null);
     }
+  }
+
+  dismissFlash(): void {
+    if (!this.showFlash()) return;
+    if (this.flashTimeout) {
+      clearTimeout(this.flashTimeout);
+      this.flashTimeout = null;
+    }
+    this.advanceQuestion();
   }
 
   private advanceQuestion(): void {

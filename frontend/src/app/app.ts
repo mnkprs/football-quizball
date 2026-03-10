@@ -1,13 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { DonateModalComponent } from './shared/donate-modal/donate-modal';
+import { DonateModalService } from './core/donate-modal.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, DonateModalComponent],
   template: `
     <div class="app-container">
       <router-outlet />
+      @if (donateService.showModal()) {
+        <app-donate-modal />
+      }
     </div>
   `,
   styles: [`
@@ -19,4 +24,6 @@ import { RouterOutlet } from '@angular/router';
     }
   `],
 })
-export class App {}
+export class App {
+  donateService = inject(DonateModalService);
+}

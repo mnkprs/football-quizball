@@ -16,3 +16,5 @@ supabase/.temp/
 
 # Local AI/Claude settings
 .claude/
+.vercel
+.env*.local

@@ -1,7 +1,8 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { DailyApiService, DailyQuestionRef } from '../../core/daily-api.service';
+import { DonateModalService } from '../../core/donate-modal.service';
 import { LanguageService } from '../../core/language.service';
 
 type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
@@ -163,9 +164,18 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
 export class DailyComponent {
   private api = inject(DailyApiService);
   private router = inject(Router);
+  private donateModal = inject(DonateModalService);
   lang = inject(LanguageService);
 
   phase = signal<DailyPhase>('idle');
+
+  constructor() {
+    effect(() => {
+      if (this.phase() === 'finished') {
+        this.donateModal.considerShowing();
+      }
+    });
+  }
   loading = signal(false);
   error = signal<string | null>(null);
 

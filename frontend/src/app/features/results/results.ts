@@ -1,7 +1,8 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
 import { LanguageService } from '../../core/language.service';
+import { DonateModalService } from '../../core/donate-modal.service';
 
 @Component({
   selector: 'app-results',
@@ -68,10 +69,15 @@ import { LanguageService } from '../../core/language.service';
     </div>
   `,
 })
-export class ResultsComponent {
+export class ResultsComponent implements OnInit {
   store = inject(GameStore);
   lang = inject(LanguageService);
+  private donateModal = inject(DonateModalService);
   players = this.store.players;
+
+  ngOnInit(): void {
+    this.donateModal.considerShowing();
+  }
 
   winner = computed(() => {
     const ps = this.store.players();

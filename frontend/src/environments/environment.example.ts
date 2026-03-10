@@ -8,4 +8,5 @@ export const environment = {
   supabaseUrl: 'https://npwneqworgyclzaofuln.supabase.co',
   supabaseAnonKey: '', // Dashboard → Project Settings → API → anon public
   reportEmail: 'mkaparos95@gmail.com', // Your email to receive question reports
+  buyMeACoffeeUrl: '', // e.g. https://buymeacoffee.com/yourusername — leave empty to hide
 };

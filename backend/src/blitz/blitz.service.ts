@@ -6,7 +6,7 @@ import { BlitzSession, BlitzQuestion, BlitzQuestionRef, BlitzAnswerResult } from
 const SESSION_TTL = 3600; // 1h
 const BLITZ_DURATION_MS = 60_000;
 const DRAW_COUNT = 50;   // enough for session + distractor pool
-const SESSION_SIZE = 20;
+const SESSION_SIZE = 25;
 
 @Injectable()
 export class BlitzService {
