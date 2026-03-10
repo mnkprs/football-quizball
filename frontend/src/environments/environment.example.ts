@@ -10,4 +10,10 @@ export const environment = {
   supabaseAnonKey: '', // Dashboard → Project Settings → API → anon public
   reportEmail: 'mkaparos95@gmail.com', // Your email to receive question reports
   buyMeACoffeeUrl: '', // e.g. https://buymeacoffee.com/yourusername — leave empty to hide
+  /** Google Ads tag ID (e.g. AW-123456789). Leave empty to disable. */
+  googleAdsId: '',
+  /** AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX). Leave empty to hide display ads. */
+  adSenseClientId: '',
+  /** AdSense ad slot ID (numeric). Required if adSenseClientId is set. */
+  adSenseSlotId: '',
 };

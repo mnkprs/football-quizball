@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
 import { LanguageService } from '../../core/language.service';
 import { DonateModalService } from '../../core/donate-modal.service';
+import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 
 @Component({
   selector: 'app-results',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AdDisplayComponent],
   template: `
     <div class="min-h-screen flex items-center justify-center p-4 bg-background">
       <div class="max-w-lg w-full text-center">
@@ -57,6 +58,9 @@ import { DonateModalService } from '../../core/donate-modal.service';
             }
           </div>
         }
+
+        <!-- Ad after 2-player game -->
+        <app-ad-display />
 
         <!-- Play again -->
         <button

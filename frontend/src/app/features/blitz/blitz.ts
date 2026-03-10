@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, effect, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { firstValueFrom } from 'rxjs';
 import { BlitzApiService, BlitzQuestionRef } from '../../core/blitz-api.service';
 import { DonateModalService } from '../../core/donate-modal.service';
@@ -10,7 +11,7 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
 @Component({
   selector: 'app-blitz',
   standalone: true,
-  imports: [],
+  imports: [AdDisplayComponent],
   host: { class: 'blitz-host' },
   template: `
     <div class="blitz-root bg-background flex flex-col p-4">
@@ -115,6 +116,7 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
             <div class="text-6xl font-black text-accent mb-2 tabular-nums">{{ score() }}</div>
             <p class="text-muted-foreground mb-8">{{ lang.t().blitzCorrectOutOf }} {{ totalAnswered() }} {{ lang.t().blitzAnswered }}</p>
 
+            <app-ad-display />
             <div class="w-full max-w-xs space-y-3 mb-8">
               <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
                 <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>

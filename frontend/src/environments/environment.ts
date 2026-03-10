@@ -14,4 +14,10 @@ export const environment = {
   reportEmail: 'mkaparos95@gmail.com',
   /** Support/tip URL (Ko-fi, Buy Me a Coffee, etc.). Leave empty to hide the button. */
   buyMeACoffeeUrl: 'https://ko-fi.com/manoskaparos',
+  /** Google Ads tag ID (e.g. AW-123456789). Leave empty to disable tracking. */
+  googleAdsId: '',
+  /** AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX). Leave empty to hide display ads. */
+  adSenseClientId: '',
+  /** AdSense ad slot ID (numeric). Required if adSenseClientId is set. */
+  adSenseSlotId: '',
 };

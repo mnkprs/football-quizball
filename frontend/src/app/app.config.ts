@@ -1,8 +1,9 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, APP_INITIALIZER } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { routes } from './app.routes';
+import { GoogleAdsService } from './core/google-ads.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -11,5 +12,11 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(),
     provideAnimations(),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (ads: GoogleAdsService) => () => ads.init(),
+      deps: [GoogleAdsService],
+      multi: true,
+    },
   ]
 };

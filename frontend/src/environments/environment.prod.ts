@@ -16,4 +16,10 @@ export const environment = {
   reportEmail: 'mkaparos95@gmail.com',
   /** Support/tip URL (Ko-fi, Buy Me a Coffee, etc.). Leave empty to hide the button. */
   buyMeACoffeeUrl: 'https://ko-fi.com/manoskaparos',
+  /** Google Ads tag ID (e.g. AW-123456789). Get from Google Ads → Tools → Conversions. Leave empty to disable. */
+  googleAdsId: 'AW-18006514945',
+  /** AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX). Get from AdSense → Account → Sites. Leave empty to hide ads. */
+  adSenseClientId: 'ca-pub-7781323448253047',
+  /** AdSense ad slot ID (numeric). Create in AdSense → Ads → By ad unit. */
+  adSenseSlotId: '',
 };

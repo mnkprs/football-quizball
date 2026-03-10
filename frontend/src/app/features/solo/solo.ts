@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, effect, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { DonateModalService } from '../../core/donate-modal.service';
@@ -11,7 +12,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
 @Component({
   selector: 'app-solo',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, AdDisplayComponent],
   host: { class: 'solo-host' },
   template: `
     <div class="solo-root bg-background flex flex-col p-4">
@@ -176,6 +177,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-5xl mb-4">🏁</div>
             <h2 class="text-2xl font-black text-foreground mb-6">Session Complete</h2>
+            <app-ad-display />
             <div class="w-full max-w-xs space-y-3 mb-8">
               <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
                 <span class="text-muted-foreground">Starting ELO</span>
