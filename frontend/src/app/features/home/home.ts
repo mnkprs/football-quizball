@@ -7,93 +7,132 @@ import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { DailyApiService } from '../../core/daily-api.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeToggleComponent } from '../../shared/theme-toggle';
-import { MatButtonModule } from '@angular/material/button';
+import { PageHeaderComponent } from '../../shared/page-header/page-header';
+import { SectionHeaderComponent } from '../../shared/section-header/section-header';
+import { ModeCardComponent } from '../../shared/mode-card/mode-card';
+import { DailyHeroComponent } from '../../shared/daily-hero/daily-hero';
+import { AuthCardComponent } from '../../shared/auth-card/auth-card';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [ThemeToggleComponent, MatButtonModule],
+  imports: [
+    ThemeToggleComponent,
+    PageHeaderComponent,
+    SectionHeaderComponent,
+    ModeCardComponent,
+    DailyHeroComponent,
+    AuthCardComponent,
+  ],
   template: `
     <div class="home-page">
       <div class="home-content">
-        <header class="home-header">
-          <div class="home-title-row">
-            <span class="home-emoji">⚽</span>
-            <h1 class="home-title">{{ lang.t().appTitle }}</h1>
-          </div>
-          <div class="home-header-actions">
+        <app-page-header
+          [title]="lang.t().appTitle"
+          [titlePart1]="lang.t().appTitlePart1"
+          [titlePart2]="lang.t().appTitlePart2"
+          [subtitle]="lang.t().appSubtitle"
+          emoji="⚽"
+        >
+          <div pageHeaderActions>
             <button
               type="button"
               class="home-lang-toggle"
               (click)="lang.toggle()"
+              [attr.aria-label]="lang.lang() === 'en' ? 'Switch to Greek' : 'Switch to English'"
             >
               {{ lang.lang() === 'en' ? '🇬🇷 EL' : '🇬🇧 EN' }}
             </button>
             <app-theme-toggle />
           </div>
-        </header>
+        </app-page-header>
 
-        <p class="home-subtitle">{{ lang.t().appSubtitle }}</p>
+        <app-daily-hero
+          [title]="lang.t().btnDaily"
+          [badgeLabel]="lang.t().dailyChallenge"
+          [questionCount]="dailyCount() ?? '—'"
+          [resetsIn]="dailyResetsIn()"
+          [questionsLabel]="lang.t().dailyQuestionsLabel"
+          [resetsLabel]="lang.t().dailyResetsIn"
+          [playLabel]="lang.t().dailyPlay"
+          (play)="goDaily()"
+        />
 
         @if (auth.isLoggedIn()) {
-          <div class="home-auth-card">
-            <div class="home-auth-content">
-              <div class="home-auth-left">
-                @if (avatarUrl() && !avatarLoadFailed()) {
-                  <img
-                    [src]="avatarUrl()"
-                    alt=""
-                    class="home-auth-avatar"
-                    referrerpolicy="no-referrer"
-                    (error)="onAvatarError()"
-                  />
-                } @else {
-                  <div class="home-auth-avatar home-auth-avatar-fallback">{{ initials() }}</div>
-                }
-              </div>
-              <div class="home-auth-info">
-                <p class="home-auth-name">{{ displayName() }}</p>
-                <p class="home-auth-stats">
-                  <span class="home-auth-stat">ELO {{ userElo() }}</span>
-                  <span class="home-auth-stat-sep">·</span>
-                  <span class="home-auth-stat">{{ lang.t().rankLabel }} #{{ eloRank() }}</span>
-                  <span class="home-auth-stat-sep">·</span>
-                  <span class="home-auth-stat">{{ lang.t().blitzStatsHint }} {{ blitzBest() }}</span>
-                </p>
-              </div>
-              <button class="home-sign-out" (click)="signOut()">{{ lang.t().signOut }}</button>
-            </div>
-          </div>
+          <app-auth-card
+            [avatarUrl]="avatarUrl()"
+            [avatarLoadFailed]="avatarLoadFailed()"
+            [displayName]="displayName()"
+            [initials]="initials()"
+            [statsText]="authStatsText()"
+            [signOutLabel]="lang.t().signOut"
+            (signOut)="signOut()"
+            (avatarError)="onAvatarError()"
+          />
         }
 
-        <div class="home-buttons">
-          <button mat-flat-button color="primary" class="home-btn home-btn-primary" (click)="go2Player()">
-            <span class="home-btn-main">🎮 {{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</span>
-            <span class="home-btn-hint home-btn-hint-primary">{{ lang.t().btn2PlayerHint }}</span>
-          </button>
+        <app-section-header
+          [title]="lang.t().gameModes"
+          [actionLabel]="lang.t().viewAll"
+          actionHref="/leaderboard"
+        />
+
+        <div class="home-modes">
+          <app-mode-card
+            icon="group"
+            [sectionLabel]="lang.t().localMultiplayer"
+            backgroundIcon="group"
+            [title]="hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player"
+            [hint]="lang.t().btn2PlayerHint"
+            variant="primary"
+            [actionLabel]="lang.t().startMatch"
+            (cardClick)="go2Player()"
+          />
           @if (auth.isLoggedIn()) {
-            <button class="home-btn home-btn-active home-btn-accent" (click)="goSolo()">
-              <span class="home-btn-main">🏆 {{ lang.t().btnSolo }}</span>
-              <span class="home-btn-hint home-btn-hint-active">{{ lang.t().soloStatsHint }} {{ userElo() }} · {{ lang.t().rankLabel }} #{{ eloRank() }}</span>
-            </button>
-            <button class="home-btn home-btn-active home-btn-accent" (click)="goBlitz()">
-              <span class="home-btn-main">⚡ {{ lang.t().btnBlitz }}</span>
-              <span class="home-btn-hint home-btn-hint-active">{{ lang.t().blitzStatsHint }} {{ blitzBest() }} · {{ lang.t().rankLabel }} #{{ blitzRank() }}</span>
-            </button>
+            <app-mode-card
+              icon="emoji_events"
+              iconBgColor="gold"
+              [title]="lang.t().btnSolo"
+              [hint]="lang.t().soloStatsHint + ' ' + userElo() + ' · ' + lang.t().rankLabel + ' #' + eloRank()"
+              [badge]="lang.t().eloSystem"
+              badgeColor="lime"
+              [footerText]="lang.t().playersOnline"
+              variant="accent"
+              (cardClick)="goSolo()"
+            />
+            <app-mode-card
+              icon="bolt"
+              iconBgColor="blue"
+              [title]="lang.t().btnBlitz"
+              [hint]="lang.t().blitzStatsHint + ' ' + blitzBest() + ' · ' + lang.t().rankLabel + ' #' + blitzRank()"
+              [badge]="lang.t().speedrun"
+              badgeColor="blue"
+              variant="accent"
+              (cardClick)="goBlitz()"
+            />
           } @else {
-            <button mat-stroked-button class="home-btn" (click)="goSolo()">
-              <span class="home-btn-main">🏆 {{ lang.t().btnSolo }}</span>
-              <span class="home-btn-hint">{{ lang.t().btnSoloDesc }} · {{ lang.t().loginRequired }}</span>
-            </button>
-            <button mat-stroked-button class="home-btn" (click)="goBlitz()">
-              <span class="home-btn-main">⚡ {{ lang.t().btnBlitz }}</span>
-              <span class="home-btn-hint">{{ lang.t().btnBlitzDesc }} · {{ lang.t().loginRequired }}</span>
-            </button>
+            <app-mode-card
+              icon="emoji_events"
+              iconBgColor="gold"
+              [title]="lang.t().btnSolo"
+              [hint]="lang.t().btnSoloDesc + ' · ' + lang.t().loginRequired"
+              [badge]="lang.t().eloSystem"
+              badgeColor="lime"
+              [footerText]="lang.t().playersOnline"
+              variant="outline"
+              (cardClick)="goSolo()"
+            />
+            <app-mode-card
+              icon="bolt"
+              iconBgColor="blue"
+              [title]="lang.t().btnBlitz"
+              [hint]="lang.t().btnBlitzDesc + ' · ' + lang.t().loginRequired"
+              [badge]="lang.t().speedrun"
+              badgeColor="blue"
+              variant="outline"
+              (cardClick)="goBlitz()"
+            />
           }
-          <button mat-stroked-button class="home-btn" (click)="goDaily()">
-            <span class="home-btn-main">📅 {{ lang.t().btnDaily }}</span>
-            <span class="home-btn-hint">{{ dailyCount() ?? '—' }} {{ lang.t().dailyQuestionsLabel }} · {{ lang.t().dailyResetsIn }} {{ dailyResetsIn() }}</span>
-          </button>
         </div>
       </div>
     </div>
@@ -104,26 +143,13 @@ import { MatButtonModule } from '@angular/material/button';
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       padding: 1.5rem;
     }
 
     .home-content {
       max-width: 28rem;
       width: 100%;
-    }
-
-    .home-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-
-    .home-header-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
 
     .home-lang-toggle {
@@ -143,171 +169,11 @@ import { MatButtonModule } from '@angular/material/button';
       color: var(--mat-sys-primary, #1976d2);
     }
 
-    .home-title-row {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .home-emoji {
-      font-size: 2.5rem;
-    }
-
-    .home-title {
-      font-size: 1.75rem;
-      font-weight: 800;
-      margin: 0;
-      color: var(--mat-sys-on-surface);
-    }
-
-    .home-subtitle {
-      text-align: center;
-      color: var(--mat-sys-on-surface-variant);
-      margin: 0 0 3rem 0;
-    }
-
-    .home-auth-card {
-      margin-bottom: 1.5rem;
-      padding: 1rem 1.25rem;
-      border-radius: 1rem;
-      background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.05));
-      border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
-    }
-
-    .home-auth-content {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .home-auth-left {
-      flex-shrink: 0;
-    }
-
-    .home-auth-avatar {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .home-auth-avatar-fallback {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--mat-sys-primary) 0%, color-mix(in srgb, var(--mat-sys-primary) 70%, #000) 100%);
-      color: var(--mat-sys-on-primary);
-      font-size: 0.875rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-transform: uppercase;
-    }
-
-    .home-auth-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .home-auth-name {
-      font-weight: 600;
-      font-size: 1rem;
-      margin: 0 0 0.375rem 0;
-      color: var(--mat-sys-on-surface);
-    }
-
-    .home-auth-stats {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.25rem 0.5rem;
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: var(--mat-sys-primary);
-      margin: 0;
-    }
-
-    .home-auth-stat-sep {
-      color: var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.4));
-      font-weight: 400;
-    }
-
-    .home-sign-out {
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      border-radius: 0.5rem;
-      border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
-      background: transparent;
-      color: var(--mat-sys-on-surface-variant);
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s, background 0.2s;
-    }
-
-    .home-sign-out:hover {
-      border-color: var(--mat-sys-error, #b3261e);
-      color: var(--mat-sys-error, #b3261e);
-      background: color-mix(in srgb, var(--mat-sys-error, #b3261e) 8%, transparent);
-    }
-
-    .home-buttons {
+    .home-modes {
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 1rem;
       margin-bottom: 2rem;
-    }
-
-    .home-btn {
-      padding: 1.25rem 1.5rem !important;
-      font-size: 1.25rem !important;
-      font-weight: 500 !important;
-      display: flex !important;
-      flex-direction: column !important;
-      align-items: flex-start !important;
-      text-align: left !important;
-      min-height: 4rem !important;
-      border-radius: 1rem !important;
-    }
-
-    .home-btn-main {
-      display: block;
-    }
-
-    .home-btn-primary {
-      font-weight: 700 !important;
-    }
-
-    .home-btn-active {
-      font-weight: 600 !important;
-    }
-
-    .home-btn-accent {
-      background: var(--color-accent) !important;
-      color: var(--color-accent-foreground) !important;
-      border: none !important;
-    }
-
-    .home-btn-accent:hover {
-      background: var(--color-accent-light) !important;
-    }
-
-    .home-btn-hint {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 400;
-      color: var(--mat-sys-on-surface-variant);
-      margin-top: 0.375rem;
-      opacity: 0.9;
-    }
-
-    .home-btn-hint-active {
-      color: inherit;
-      opacity: 0.85;
-    }
-
-    .home-btn-hint-primary {
-      color: rgba(255, 255, 255, 0.9);
     }
   `],
 })
@@ -342,13 +208,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   });
 
+  authStatsText = computed(() => {
+    const t = this.lang.t();
+    return `ELO ${this.userElo()} · ${t.rankLabel} #${this.eloRank()} · ${t.blitzStatsHint} ${this.blitzBest()}`;
+  });
+
   avatarUrl = computed(() => {
     const u = this.auth.user();
     if (!u) return null;
-    // user_metadata (Supabase merges provider data here)
     const fromMeta = u.user_metadata?.['avatar_url'] ?? u.user_metadata?.['picture'];
     if (fromMeta) return fromMeta;
-    // identities[0].identity_data (Google OAuth stores picture here)
     const idData = u.identities?.[0]?.identity_data as Record<string, unknown> | undefined;
     const fromIdentity = idData?.['avatar_url'] ?? idData?.['picture'];
     return (typeof fromIdentity === 'string' ? fromIdentity : null);
