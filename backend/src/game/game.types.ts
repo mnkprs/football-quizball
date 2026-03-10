@@ -1,3 +1,4 @@
+import { IsString, IsOptional, IsArray, MaxLength } from 'class-validator';
 import { GeneratedQuestion, BoardCell, Top5Progress } from '../questions/question.types';
 
 export interface Player {
@@ -23,10 +24,22 @@ export interface GameSession {
 }
 
 export class CreateGameDto {
+  @IsString()
+  @MaxLength(100)
   player1Name: string;
+
+  @IsString()
+  @MaxLength(100)
   player2Name: string;
+
+  @IsOptional()
+  @IsString()
   language?: string; // 'en' | 'el', defaults to 'en'
+
   /** NEWS question IDs to exclude (from localStorage) to avoid repeats in back-to-back games */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   excludeNewsQuestionIds?: string[];
 }
 
