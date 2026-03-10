@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
@@ -39,7 +40,7 @@ const DRAW_REQUIREMENTS: SlotRequirement[] = [
 const POOL_TARGET: Partial<Record<string, number>> = {
   'NEWS/MEDIUM': 10, // Refilled by news ingest cron, not pool refill
 };
-const DEFAULT_TARGET = 50;
+const DEFAULT_TARGET = 15;
 const GENERATION_BATCH_SIZE = 5;
 
 export interface DrawBoardResult {
@@ -55,6 +56,7 @@ export class QuestionPoolService implements OnModuleInit {
   private refillLock: Promise<void> = Promise.resolve();
 
   constructor(
+    private configService: ConfigService,
     private supabaseService: SupabaseService,
     private llmService: LlmService,
     private questionsService: QuestionsService,
@@ -62,6 +64,10 @@ export class QuestionPoolService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    if (this.configService.get<string>('DISABLE_POOL_CRON') === '1') {
+      this.logger.log('[INIT] Question pool: startup refill skipped (DISABLE_POOL_CRON=1)');
+      return;
+    }
     this.logger.log('[INIT] Question pool: checking levels...');
     this.refillIfNeeded().catch((err) =>
       this.logger.error(`[INIT] Pool refill failed: ${err.message}`),
@@ -214,7 +220,9 @@ export class QuestionPoolService implements OnModuleInit {
 
   /**
    * One-time bulk seed: fill every slot to the given target.
-   * Use for initial population (e.g. target=100). Skips slots already at or above target.
+   * Seeds one batch at a time, always choosing the slot with the lowest unanswered count,
+   * until all slots reach target. E.g. with target=150 and 3 slots at 50, 100, 120:
+   * seeds the 50-slot first, then re-evaluates and seeds the new lowest, etc.
    * @param force When true, runs even if a background refill is in progress (e.g. from CLI script).
    */
   async seedPool(target: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }[]> {
@@ -223,38 +231,37 @@ export class QuestionPoolService implements OnModuleInit {
       return [];
     }
     return this.withRefillLock(async () => {
-      const results: { slot: string; added: number; questions?: string[] }[] = [];
-
-      const counts = await this.getPoolCounts();
-      const uniqueSlots = this.getUniqueSlots();
-
-      // Prioritize driest slots first (fewest unanswered questions)
-      const sortedSlots = [...uniqueSlots].sort((a, b) => {
-        const keyA = `${a.category}/${a.difficulty}`;
-        const keyB = `${b.category}/${b.difficulty}`;
-        const countA = counts[keyA] ?? 0;
-        const countB = counts[keyB] ?? 0;
-        return countA - countB;
-      });
-
+      const slotAdded: Record<string, number> = {};
+      let counts = await this.getPoolCounts();
+      const uniqueSlots = this.getUniqueSlots().filter((s) => s.category !== 'NEWS');
       let globalSlotIndex = 0;
 
-      for (const { category, difficulty } of sortedSlots) {
-        if (category === 'NEWS') continue; // NEWS is filled by news ingestion service
-        const key = `${category}/${difficulty}`;
-        const current = counts[key] ?? 0;
-        const needed = Math.max(0, target - current);
-        if (needed <= 0) {
-          this.logger.log(`[seedPool] ${key}: already at ${current}/${target}, skipping`);
-          results.push({ slot: key, added: 0 });
-          continue;
-        }
-        this.logger.log(`[seedPool] ${key}: ${current}/${target} — generating ${needed}`);
-        const questions = await this.fillSlot(category, difficulty, needed, globalSlotIndex);
-        globalSlotIndex += needed;
-        results.push({ slot: key, added: questions.length, questions });
+      for (const { category, difficulty } of uniqueSlots) {
+        slotAdded[`${category}/${difficulty}`] = 0;
       }
-      return results;
+
+      // Loop: seed one batch for the lowest slot each time until all reach target
+      while (true) {
+        const belowTarget = uniqueSlots
+          .map((s) => ({ ...s, key: `${s.category}/${s.difficulty}`, current: counts[s.category + '/' + s.difficulty] ?? 0 }))
+          .filter((s) => s.current < target);
+
+        if (belowTarget.length === 0) break;
+
+        // Pick the slot with the lowest count (driest first)
+        belowTarget.sort((a, b) => a.current - b.current);
+        const { category, difficulty, key, current } = belowTarget[0];
+        const needed = Math.min(GENERATION_BATCH_SIZE, target - current);
+
+        this.logger.log(`[seedPool] ${key}: ${current}/${target} — generating batch of ${needed}`);
+        const questions = await this.fillSlot(category, difficulty, needed, globalSlotIndex);
+        globalSlotIndex += questions.length;
+
+        slotAdded[key] += questions.length;
+        counts = { ...counts, [key]: current + questions.length };
+      }
+
+      return Object.entries(slotAdded).map(([slot, added]) => ({ slot, added }));
     });
   }
 
@@ -285,7 +292,7 @@ export class QuestionPoolService implements OnModuleInit {
     }
 
     if (slotsToFill.length === 0) {
-      this.logger.log('[refill] All slots at or above target (50 unanswered), skipping');
+      this.logger.log(`[refill] All slots at or above target (${DEFAULT_TARGET}), skipping — no LLM calls`);
       return;
     }
 
@@ -329,9 +336,13 @@ export class QuestionPoolService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_HOUR)
   async scheduledRefill() {
-    this.logger.log('[CRON] Question pool refill (every 5 min): checking levels...');
+    if (this.configService.get<string>('DISABLE_POOL_CRON') === '1') {
+      this.logger.debug('[CRON] Question pool refill skipped (DISABLE_POOL_CRON=1)');
+      return;
+    }
+    this.logger.log('[CRON] Question pool refill (hourly): checking levels...');
     await this.refillIfNeeded();
   }
 
