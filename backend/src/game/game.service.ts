@@ -6,7 +6,14 @@ import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from '../questions/questions.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
-import { GeneratedQuestion, DIFFICULTY_POINTS, CATEGORY_LABELS, CATEGORY_LABELS_EL, Difficulty } from '../questions/question.types';
+import {
+  GeneratedQuestion,
+  DIFFICULTY_POINTS,
+  CATEGORY_LABELS,
+  CATEGORY_LABELS_EL,
+  Difficulty,
+  CATEGORY_DIFFICULTY_SLOTS,
+} from '../questions/question.types';
 import {
   GameSession,
   Player,
@@ -22,13 +29,6 @@ import { Top5Entry, Top5Progress } from '../questions/question.types';
 
 const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'GOSSIP', 'NEWS'] as const;
 const DIFFICULTIES_ORDER = ['EASY', 'MEDIUM', 'HARD'] as const;
-
-// Per-category difficulty slots (GOSSIP has 2 fixed MEDIUM slots)
-const CATEGORY_DIFFICULTY_SLOTS: Partial<Record<string, readonly Difficulty[]>> = {
-  GOSSIP: ['MEDIUM', 'MEDIUM'],
-  TOP_5: ['HARD', 'HARD'],
-  NEWS: ['MEDIUM', 'MEDIUM'],
-};
 
 @Injectable()
 export class GameService {

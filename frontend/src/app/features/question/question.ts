@@ -221,6 +221,11 @@ import { LanguageService } from '../../core/language.service';
                 <div class="flex items-center gap-3">
                   <div class="w-2 h-2 rounded-full bg-accent shrink-0"></div>
                   <span class="text-foreground font-medium">{{ entry.club }}</span>
+                  @if (entry.is_loan) {
+                    <span class="px-2 py-0.5 rounded-full bg-accent/10 border border-accent/30 text-accent text-[10px] font-bold uppercase tracking-wide">
+                      {{ lang.t().loanSpell }}
+                    </span>
+                  }
                   <span class="text-muted-foreground text-sm ml-auto">{{ entry.from }} – {{ entry.to }}</span>
                 </div>
                 @if ($index < careerPath()!.length - 1) {
@@ -427,7 +432,7 @@ export class QuestionComponent implements OnDestroy {
   careerPath = computed(() => {
     const meta = this.question()?.meta;
     if (!meta?.['career']) return null;
-    return meta['career'] as Array<{ club: string; from: string; to: string }>;
+    return meta['career'] as Array<{ club: string; from: string; to: string; is_loan?: boolean }>;
   });
 
   matchMeta = computed(() => {

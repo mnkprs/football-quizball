@@ -1,7 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
+import {
+  getExplicitConstraintsWithMeta,
+  getAvoidInstruction,
+  getAntiConvergenceInstruction,
+  getRelativityConstraint,
+  getLeagueFameGuidanceForBatch,
+} from '../diversity-hints';
+
+interface GossipPayload {
+  question_text: string;
+  correct_answer: string;
+  fifty_fifty_hint: string;
+  wrong_choices?: string[];
+  explanation: string;
+  event_year: number;
+  competition: string;
+  fame_score: number;
+  specificity_score: number;
+}
 
 
 @Injectable()
@@ -38,23 +56,45 @@ specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific inciden
     this.logger.log(`[GOSSIP] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique football gossip trivia question about a real off-pitch event, controversy, or celebrity moment. Keep it fun and factual. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
-    const result = await this.llmService.generateStructuredJson<{
-      question_text: string;
-      correct_answer: string;
-      fifty_fifty_hint: string;
-      wrong_choices?: string[];
-      explanation: string;
-      event_year: number;
-      competition: string;
-      fame_score: number;
-      specificity_score: number;
-    }>(systemPrompt, userPrompt);
+    const result = await this.llmService.generateStructuredJson<GossipPayload>(systemPrompt, userPrompt);
 
+    return this.mapQuestion(result, options?.forBlitz);
+  }
+
+  async generateBatch(
+    language: string = 'en',
+    options?: { avoidAnswers?: string[]; questionCount?: number },
+  ): Promise<GeneratedQuestion[]> {
+    const questionCount = options?.questionCount ?? 2;
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
+    const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
+They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getAntiConvergenceInstruction()}
+Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score.
+${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+    const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const result = await this.llmService.generateStructuredJson<{ questions: GossipPayload[] }>(
+      systemPrompt,
+      userPrompt,
+    );
+    return (result.questions ?? [])
+      .map((item) => {
+        try {
+          return this.mapQuestion(item, false);
+        } catch {
+          return null;
+        }
+      })
+      .filter((item): item is GeneratedQuestion => item !== null);
+  }
+
+  private mapQuestion(result: GossipPayload, forBlitz = false): GeneratedQuestion {
     if (!result.question_text || !result.correct_answer) {
       throw new Error('Invalid LLM response: missing question_text or correct_answer');
     }
 
-    const rawWrong = options?.forBlitz && Array.isArray(result.wrong_choices)
+    const rawWrong = forBlitz && Array.isArray(result.wrong_choices)
       ? result.wrong_choices
           .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
           .filter((s) => s.trim().toLowerCase() !== result.correct_answer.trim().toLowerCase())

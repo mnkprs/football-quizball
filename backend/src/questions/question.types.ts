@@ -9,6 +9,7 @@ export type QuestionCategory =
   | 'NEWS';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type QuestionLocale = 'en' | 'el';
 
 // Type of value the player must recall — drives precision modifier
 export type AnswerType = 'name' | 'team' | 'number' | 'score' | 'year' | 'country';
@@ -19,7 +20,7 @@ export interface DifficultyFactors {
   fame_score: number | null;    // LLM 1–10 rating; null → fallback to familiarity_score
   category: QuestionCategory;   // For category-intrinsic modifier
   answer_type: AnswerType;      // For answer precision modifier
-  specificity_score: number;    // LLM 1–5: 1=general knowledge, 5=very specific fact
+  specificity_score: number;    // LLM 1–10: higher = more precise / harder by nature
 }
 
 export const LEAGUE_FAMILIARITY_TIERS: Record<string, number> = {
@@ -27,6 +28,8 @@ export const LEAGUE_FAMILIARITY_TIERS: Record<string, number> = {
   'UEFA Champions League': 1,
   'FIFA World Cup': 1,
   'Premier League': 1,
+  'Greek Super League': 1,
+  'Super League Greece': 1,
   'La Liga': 1,
   'Bundesliga': 1,
   'Serie A': 1,
@@ -53,11 +56,40 @@ export const LEAGUE_FAMILIARITY_TIERS: Record<string, number> = {
   'Indian Super League': 5,
 };
 
+export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Difficulty[]> = {
+  HISTORY: ['EASY', 'MEDIUM', 'HARD'],
+  PLAYER_ID: ['MEDIUM', 'MEDIUM'],
+  HIGHER_OR_LOWER: ['MEDIUM', 'MEDIUM'],
+  GUESS_SCORE: ['EASY', 'MEDIUM', 'HARD'],
+  TOP_5: ['HARD', 'HARD'],
+  GEOGRAPHY: ['EASY', 'MEDIUM', 'HARD'],
+  GOSSIP: ['MEDIUM', 'MEDIUM'],
+  NEWS: ['MEDIUM', 'MEDIUM'],
+};
+
+export const CATEGORY_BATCH_SIZES: Partial<Record<QuestionCategory, number>> = {
+  HISTORY: 3,
+  PLAYER_ID: 2,
+  HIGHER_OR_LOWER: 2,
+  GUESS_SCORE: 3,
+  TOP_5: 2,
+  GEOGRAPHY: 3,
+  GOSSIP: 2,
+};
+
+export const CATEGORY_FIXED_DIFFICULTY: Partial<Record<QuestionCategory, Difficulty>> = {
+  PLAYER_ID: 'MEDIUM',
+  HIGHER_OR_LOWER: 'MEDIUM',
+  TOP_5: 'HARD',
+  GOSSIP: 'MEDIUM',
+};
+
 export interface GeneratedQuestion {
   id: string;
   category: QuestionCategory;
   difficulty: Difficulty;
   points: number;
+  raw_score?: number;
   question_text: string;
   correct_answer: string;
   /** For Blitz: 2 plausible wrong choices from LLM. */
@@ -90,6 +122,43 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
   MEDIUM: 2,
   HARD: 3,
 };
+
+const CATEGORY_POINT_OVERRIDES: Partial<Record<QuestionCategory, number>> = {
+  TOP_5: 3,
+  GOSSIP: 2,
+};
+
+export function resolveQuestionPoints(category: QuestionCategory, difficulty: Difficulty): number {
+  return CATEGORY_POINT_OVERRIDES[category] ?? DIFFICULTY_POINTS[difficulty];
+}
+
+function getDirectTier(tiers: Record<string, number> | undefined, competition: string): number | null {
+  if (!tiers) return null;
+  return tiers[competition] ?? null;
+}
+
+function getMatchedTier(tiers: Record<string, number> | undefined, competition: string): number | null {
+  if (!tiers) return null;
+  const lower = competition.toLowerCase();
+  for (const [key, tier] of Object.entries(tiers)) {
+    if (lower.includes(key.toLowerCase()) || key.toLowerCase().includes(lower)) {
+      return tier;
+    }
+  }
+  return null;
+}
+
+export function getLeagueFamiliarityTier(
+  competition: string,
+): number {
+  const directDefaultTier = getDirectTier(LEAGUE_FAMILIARITY_TIERS, competition);
+  if (directDefaultTier !== null) return directDefaultTier;
+
+  const matchedDefaultTier = getMatchedTier(LEAGUE_FAMILIARITY_TIERS, competition);
+  if (matchedDefaultTier !== null) return matchedDefaultTier;
+
+  return 3;
+}
 
 export const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   HISTORY: 'History',

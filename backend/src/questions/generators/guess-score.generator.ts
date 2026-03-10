@@ -2,7 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
+import {
+  getExplicitConstraintsWithMeta,
+  getAvoidInstruction,
+  getAntiConvergenceInstruction,
+  getRelativityConstraint,
+  getLeagueFameGuidanceForBatch,
+} from '../diversity-hints';
 
 
 interface MatchData {
@@ -58,6 +64,56 @@ specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not
 
     const result = await this.llmService.generateStructuredJson<MatchData & { specificity_score?: number }>(systemPrompt, userPrompt);
 
+    return this.mapQuestion(result);
+  }
+
+  async generateBatch(
+    language: string = 'en',
+    options?: { avoidAnswers?: string[]; questionCount?: number },
+  ): Promise<GeneratedQuestion[]> {
+    const questionCount = options?.questionCount ?? 3;
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
+    const systemPrompt = `You are a football historian. Generate ${questionCount} "Guess the Score" questions.
+Every question MUST use a famous real match. Avoid obscure matches because exact score recall is inherently hard.${getAntiConvergenceInstruction()}
+Return ONLY valid JSON:
+{
+  "questions": [
+    {
+      "home_team": "Team Name",
+      "away_team": "Team Name",
+      "home_score": 3,
+      "away_score": 1,
+      "competition": "Competition Name",
+      "date": "Day Month Year",
+      "significance": "brief note about the match",
+      "event_year": 2019,
+      "fame_score": 8,
+      "specificity_score": 7,
+      "question_text": "Full question sentence shown to the player",
+      "explanation": "Brief explanation of the correct answer"
+    }
+  ]
+}
+${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+    const userPrompt = `Generate ${questionCount} guess-the-score questions in one batch. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const result = await this.llmService.generateStructuredJson<{ questions: Array<MatchData & { specificity_score?: number }> }>(
+      systemPrompt,
+      userPrompt,
+    );
+    return (result.questions ?? [])
+      .map((item) => {
+        try {
+          return this.mapQuestion(item);
+        } catch {
+          return null;
+        }
+      })
+      .filter((item): item is GeneratedQuestion => item !== null);
+  }
+
+  private mapQuestion(result: MatchData & { specificity_score?: number }): GeneratedQuestion {
     if (!result.home_team || !result.away_team || result.home_score === undefined || result.away_score === undefined) {
       throw new Error('Invalid LLM response: missing team names or scores');
     }

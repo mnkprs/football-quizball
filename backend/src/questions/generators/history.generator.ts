@@ -1,8 +1,26 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
+import {
+  getExplicitConstraintsWithMeta,
+  getAvoidInstruction,
+  getAntiConvergenceInstruction,
+  getRelativityConstraint,
+  getLeagueFameGuidanceForBatch,
+} from '../diversity-hints';
 
+interface HistoryPayload {
+  question_text: string;
+  correct_answer: string;
+  answer_type: string;
+  fifty_fifty_hint: string;
+  wrong_choices?: string[];
+  explanation: string;
+  event_year: number;
+  competition: string;
+  fame_score: number;
+  specificity_score: number;
+}
 
 @Injectable()
 export class HistoryGenerator {
@@ -39,24 +57,60 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
     this.logger.log(`[HISTORY] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
     const userPrompt = `Generate a unique football history trivia question. Make it specific and interesting. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
-    const result = await this.llmService.generateStructuredJson<{
-      question_text: string;
-      correct_answer: string;
-      answer_type: string;
-      fifty_fifty_hint: string;
-      wrong_choices?: string[];
-      explanation: string;
-      event_year: number;
-      competition: string;
-      fame_score: number;
-      specificity_score: number;
-    }>(systemPrompt, userPrompt);
+    const result = await this.llmService.generateStructuredJson<HistoryPayload>(systemPrompt, userPrompt);
 
+    return this.mapQuestion(result, options?.forBlitz);
+  }
+
+  async generateBatch(
+    language: string = 'en',
+    options?: { avoidAnswers?: string[]; questionCount?: number },
+  ): Promise<GeneratedQuestion[]> {
+    const questionCount = options?.questionCount ?? 3;
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
+    const systemPrompt = `You are a football trivia expert. Generate ${questionCount} interesting football history questions on real events.
+The questions must be factual, answerable, and clearly distinct.${getAntiConvergenceInstruction()}
+Return ONLY a valid JSON object:
+{
+  "questions": [
+    {
+      "question_text": "the question",
+      "correct_answer": "the answer",
+      "answer_type": "name",
+      "fifty_fifty_hint": "a plausible but wrong answer",
+      "explanation": "brief explanation",
+      "event_year": 1999,
+      "competition": "UEFA Champions League",
+      "fame_score": 8,
+      "specificity_score": 3
+    }
+  ]
+}
+${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+    const userPrompt = `Generate ${questionCount} football history questions in one batch. ${getRelativityConstraint('HISTORY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const result = await this.llmService.generateStructuredJson<{ questions: HistoryPayload[] }>(
+      systemPrompt,
+      userPrompt,
+    );
+    return (result.questions ?? [])
+      .map((item) => {
+        try {
+          return this.mapQuestion(item, false);
+        } catch {
+          return null;
+        }
+      })
+      .filter((item): item is GeneratedQuestion => item !== null);
+  }
+
+  private mapQuestion(result: HistoryPayload, forBlitz = false): GeneratedQuestion {
     if (!result.question_text || !result.correct_answer) {
       throw new Error('Invalid LLM response: missing question_text or correct_answer');
     }
 
-    const rawWrong = options?.forBlitz && Array.isArray(result.wrong_choices)
+    const rawWrong = forBlitz && Array.isArray(result.wrong_choices)
       ? result.wrong_choices
           .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
           .filter((s) => s.trim().toLowerCase() !== result.correct_answer.trim().toLowerCase())

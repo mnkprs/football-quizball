@@ -1,4 +1,4 @@
-import { Difficulty } from './question.types';
+import { Difficulty, QuestionCategory, QuestionLocale } from './question.types';
 
 /**
  * Explicit diversity constraints to inject into LLM prompts.
@@ -197,10 +197,7 @@ const SEASON_PHASES = [
 export function getAntiConvergenceInstruction(): string {
   return `
 ANTI-REPETITION RULES (strictly enforced):
-- NEVER ask about: Zidane's headbutt in 2006, Maradona's Hand of God, Gerrard's slip in 2014, "who won the 2022 World Cup", "who scored in the 2014 World Cup final".
-- Do NOT generate questions whose answer is simply "Cristiano Ronaldo" or "Lionel Messi" without a genuinely niche, non-obvious angle.
-- Avoid universally known pub-quiz questions. The question should surprise an average football fan.
-- If you think of the most obvious fact first — pivot to something adjacent, lesser-known, or more specific.`;
+- Do NOT generate questions without a genuinely niche, non-obvious angle.`;
 }
 
 // ─── Minority Scale ────────────────────────────────────────────────────────────
@@ -225,11 +222,15 @@ export function minorityScaleForDifficulty(difficulty: Difficulty): number {
  * Maps a player ELO to a minority scale. Higher ELO → more obscure entities.
  */
 export function minorityScaleForElo(elo: number): number {
-  if (elo < 800)  return randomInRange(75, 90);
-  if (elo < 1100) return randomInRange(60, 80);
-  if (elo < 1400) return randomInRange(40, 65);
-  if (elo < 1800) return randomInRange(15, 40);
-  return randomInRange(5, 20);
+  const bands = [
+    { max: 800, range: [75, 90] as const },
+    { max: 1100, range: [60, 80] as const },
+    { max: 1400, range: [40, 65] as const },
+    { max: 1800, range: [15, 40] as const },
+  ];
+  const band = bands.find((entry) => elo < entry.max);
+  const [min, max] = band?.range ?? [5, 20];
+  return randomInRange(min, max);
 }
 
 function entityTypeForCategory(category: string): string {
@@ -366,6 +367,85 @@ function pickConstraints(category: string, slotIndex?: number, minorityScale?: n
 export interface ExplicitConstraintsResult {
   promptPart: string;
   constraints: string[];
+}
+
+const RELATIVE_CONTEXTS: Partial<Record<QuestionCategory, readonly string[]>> = {
+  HISTORY: [
+    'domestic cup finals',
+    'title deciders',
+    'European knockout ties',
+    'international tournament knockout matches',
+  ],
+  PLAYER_ID: [
+    'players known for a particular career path pattern',
+    'players associated with a well-known football era',
+    'players linked by club-to-club movement themes',
+  ],
+  HIGHER_OR_LOWER: [
+    'single-season league statistics',
+    'domestic cup statistics',
+    'European competition statistics',
+  ],
+  GUESS_SCORE: [
+    'domestic cup finals',
+    'World Cup knockout matches',
+    'European knockout matches',
+  ],
+  TOP_5: [
+    'domestic cup finals',
+    'league-season rankings',
+    'European competition records',
+  ],
+  GEOGRAPHY: [
+    'major tournament host contexts',
+    'stadium and city contexts',
+    'club geography within well-known leagues',
+  ],
+  GOSSIP: [
+    'transfer sagas',
+    'manager-player feuds',
+    'viral press conference moments',
+  ],
+};
+
+export function getRelativityConstraint(
+  category: QuestionCategory,
+  questionCount: number,
+  locale: QuestionLocale = 'en',
+): string {
+  return [
+    `The ${questionCount} questions MUST share a common context type, not a common object.`,
+    'Relativity is about event type, setting, or situation. Do NOT anchor the batch around the same player, team, or league.',
+    'Vary the specific teams, leagues, players, or countries inside that shared context to create contrast.',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+export function getLeagueFameGuidanceForBatch(
+  category: QuestionCategory,
+  locale: QuestionLocale = 'en',
+): string {
+  const localeHint =
+    locale === 'el'
+      ? 'For Greek audience, Greek Super League should be treated as having the same familiarity weight as Premier League.'
+      : '';
+  switch (category) {
+    case 'HISTORY':
+    case 'GEOGRAPHY':
+      return `Produce 3 questions ordered by answerability: Q1 EASY (Tier 1 league/tournament, fame 7-10), Q2 MEDIUM (Tier 1-2, fame 5-7), Q3 HARD (Tier 1, fame 3-5). ${localeHint}`;
+    case 'GUESS_SCORE':
+      return `Produce 3 questions ordered by answerability, but every question MUST be from a famous match (fame 7-10 minimum). Q1 EASY, Q2 MEDIUM, Q3 HARD should all remain findable because the context is famous. ${localeHint}`;
+    case 'PLAYER_ID':
+    case 'HIGHER_OR_LOWER':
+      return `Produce 2 questions and keep both in the MEDIUM band: Tier 1-2 competitions, fame 5-7, no impossible obscurity. ${localeHint}`;
+    case 'TOP_5':
+      return `Produce 2 HARD questions because TOP_5 is hard by nature, but keep them findable: Tier 1 competitions, fame 3-6, high-recognition context, specificity 10. ${localeHint}`;
+    case 'GOSSIP':
+      return `Produce 2 questions that are easy to answer in spirit even though they sit in the MEDIUM slot: use highly recognizable gossip contexts, fame 6-9, specificity 2. ${localeHint}`;
+    default:
+      return localeHint;
+  }
 }
 
 /**

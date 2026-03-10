@@ -2,7 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
-import { getExplicitConstraintsWithMeta, getAvoidInstruction, getAntiConvergenceInstruction } from '../diversity-hints';
+import {
+  getExplicitConstraintsWithMeta,
+  getAvoidInstruction,
+  getAntiConvergenceInstruction,
+  getRelativityConstraint,
+  getLeagueFameGuidanceForBatch,
+} from '../diversity-hints';
 
 
 interface HolData {
@@ -59,6 +65,55 @@ specificity_score is 1-5: 1 = widely known career total, 3 = season-specific sta
 
     const result = await this.llmService.generateStructuredJson<HolData>(systemPrompt, userPrompt);
 
+    return this.mapQuestion(result);
+  }
+
+  async generateBatch(
+    language: string = 'en',
+    options?: { avoidAnswers?: string[]; questionCount?: number },
+  ): Promise<GeneratedQuestion[]> {
+    const questionCount = options?.questionCount ?? 2;
+    const langInstruction = language === 'el'
+      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
+      : '';
+    const systemPrompt = `You are a football statistics expert. Create ${questionCount} "Higher or Lower" questions.
+Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getAntiConvergenceInstruction()}
+Return ONLY valid JSON:
+{
+  "questions": [
+    {
+      "player": "Player Full Name",
+      "stat_description": "brief stat description",
+      "shown_value": 25,
+      "real_value": 30,
+      "competition": "League/Cup name",
+      "season": "YYYY-YY or YYYY",
+      "event_year": 2024,
+      "fame_score": 6,
+      "specificity_score": 6,
+      "question_text": "Full question sentence shown to the player",
+      "explanation": "Brief explanation"
+    }
+  ]
+}
+${getLeagueFameGuidanceForBatch('HIGHER_OR_LOWER', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+    const userPrompt = `Generate ${questionCount} Higher or Lower questions in one batch. ${getRelativityConstraint('HIGHER_OR_LOWER', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const result = await this.llmService.generateStructuredJson<{ questions: HolData[] }>(
+      systemPrompt,
+      userPrompt,
+    );
+    return (result.questions ?? [])
+      .map((item) => {
+        try {
+          return this.mapQuestion(item);
+        } catch {
+          return null;
+        }
+      })
+      .filter((item): item is GeneratedQuestion => item !== null);
+  }
+
+  private mapQuestion(result: HolData): GeneratedQuestion {
     if (!result.player || result.real_value === undefined || result.shown_value === undefined) {
       throw new Error('Invalid LLM response: missing player, real_value, or shown_value');
     }

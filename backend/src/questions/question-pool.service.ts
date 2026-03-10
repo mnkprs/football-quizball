@@ -3,7 +3,14 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
 import { QuestionValidator } from './validators/question.validator';
-import { GeneratedQuestion, QuestionCategory, Difficulty, DIFFICULTY_POINTS } from './question.types';
+import {
+  GeneratedQuestion,
+  QuestionCategory,
+  Difficulty,
+  CATEGORY_BATCH_SIZES,
+  CATEGORY_DIFFICULTY_SLOTS,
+  resolveQuestionPoints,
+} from './question.types';
 
 interface SlotRequirement {
   category: QuestionCategory;
@@ -11,27 +18,19 @@ interface SlotRequirement {
   count: number;
 }
 
-// What each game board draws from the pool
-const DRAW_REQUIREMENTS: SlotRequirement[] = [
-  { category: 'HISTORY',         difficulty: 'EASY',   count: 1 },
-  { category: 'HISTORY',         difficulty: 'MEDIUM', count: 1 },
-  { category: 'HISTORY',         difficulty: 'HARD',   count: 1 },
-  { category: 'PLAYER_ID',       difficulty: 'EASY',   count: 1 },
-  { category: 'PLAYER_ID',       difficulty: 'MEDIUM', count: 1 },
-  { category: 'PLAYER_ID',       difficulty: 'HARD',   count: 1 },
-  { category: 'HIGHER_OR_LOWER', difficulty: 'EASY',   count: 1 },
-  { category: 'HIGHER_OR_LOWER', difficulty: 'MEDIUM', count: 1 },
-  { category: 'HIGHER_OR_LOWER', difficulty: 'HARD',   count: 1 },
-  { category: 'GUESS_SCORE',     difficulty: 'EASY',   count: 1 },
-  { category: 'GUESS_SCORE',     difficulty: 'MEDIUM', count: 1 },
-  { category: 'GUESS_SCORE',     difficulty: 'HARD',   count: 1 },
-  { category: 'TOP_5',           difficulty: 'HARD',   count: 2 },
-  { category: 'GEOGRAPHY',       difficulty: 'EASY',   count: 1 },
-  { category: 'GEOGRAPHY',       difficulty: 'MEDIUM', count: 1 },
-  { category: 'GEOGRAPHY',       difficulty: 'HARD',   count: 1 },
-  { category: 'GOSSIP',          difficulty: 'MEDIUM', count: 2 },
-  { category: 'NEWS',            difficulty: 'MEDIUM', count: 2 },
-];
+const DRAW_REQUIREMENTS: SlotRequirement[] = Object.entries(CATEGORY_DIFFICULTY_SLOTS).flatMap(
+  ([category, slots]) => {
+    const counts = new Map<Difficulty, number>();
+    for (const difficulty of slots) {
+      counts.set(difficulty, (counts.get(difficulty) ?? 0) + 1);
+    }
+    return Array.from(counts.entries()).map(([difficulty, count]) => ({
+      category: category as QuestionCategory,
+      difficulty,
+      count,
+    }));
+  },
+);
 
 // Target unused questions to keep per unique (category, difficulty) slot
 // Use seedPool/refillIfNeeded manually (e.g. POST /api/admin/seed-pool).
@@ -40,6 +39,7 @@ const POOL_TARGET: Partial<Record<string, number>> = {
 };
 const DEFAULT_TARGET = 40 ;
 const GENERATION_BATCH_SIZE = 5;
+const MAX_CATEGORY_BATCH_ATTEMPTS = 20;
 
 export interface DrawBoardResult {
   questions: GeneratedQuestion[];
@@ -110,25 +110,18 @@ export class QuestionPoolService {
     // For non-English, generate all questions live (pool is English-only)
     if (language !== 'en') {
       const board: GeneratedQuestion[] = [];
-      await Promise.all(
-        DRAW_REQUIREMENTS.map(async (slot) => {
-          if (slot.category === 'NEWS') return; // NEWS has no live generator; use pool only
-          for (let i = 0; i < slot.count; i++) {
-            try {
-              const q = await this.questionsService.generateOne(slot.category, slot.difficulty, language);
-              board.push(q);
-            } catch (err) {
-              this.logger.error(`[drawBoard] Live generation failed for ${slot.category}/${slot.difficulty}: ${(err as Error).message}`);
-            }
-          }
-        }),
-      );
+      for (const category of this.getLiveCategories()) {
+        const slots = CATEGORY_DIFFICULTY_SLOTS[category].filter((difficulty) => difficulty !== undefined);
+        const generated = await this.generateCategoryFallback(category, [...slots], language);
+        board.push(...generated);
+      }
       return { questions: board, poolQuestionIds: [] };
     }
 
     // English: use pool with fallback to live generation
     const board: GeneratedQuestion[] = [];
     const poolIds: string[] = [];
+    const missingByCategory = new Map<QuestionCategory, Difficulty[]>();
     await Promise.all(
       DRAW_REQUIREMENTS.map(async (slot) => {
         const drawn = await this.drawSlot(
@@ -143,24 +136,21 @@ export class QuestionPoolService {
           poolIds.push(q.id);
         }
 
-        // Fill missing with live generation (these are NOT from pool)
-        // NEWS has no live generator — it is filled by news ingestion only
         const missing = slot.count - drawn.length;
         if (missing > 0 && slot.category !== 'NEWS') {
-          this.logger.warn(`[drawBoard] Pool empty for ${slot.category}/${slot.difficulty} — generating ${missing} live`);
-          for (let i = 0; i < missing; i++) {
-            try {
-              const q = await this.questionsService.generateOne(slot.category, slot.difficulty, 'en');
-              board.push(q);
-            } catch (err) {
-              this.logger.error(`[drawBoard] Live fallback failed for ${slot.category}/${slot.difficulty}: ${(err as Error).message}`);
-            }
-          }
+          const list = missingByCategory.get(slot.category) ?? [];
+          for (let i = 0; i < missing; i++) list.push(slot.difficulty);
+          missingByCategory.set(slot.category, list);
         } else if (missing > 0 && slot.category === 'NEWS') {
           this.logger.warn(`[drawBoard] NEWS pool empty — run POST /api/news/ingest to populate`);
         }
       }),
     );
+
+    for (const [category, difficulties] of missingByCategory.entries()) {
+      const generated = await this.generateCategoryFallback(category, difficulties, 'en');
+      board.push(...generated);
+    }
 
     return { questions: board, poolQuestionIds: poolIds };
   }
@@ -275,18 +265,19 @@ export class QuestionPoolService {
       this.logger.warn('[seedPool] Refill already in progress, skipping');
       return [];
     }
-    const toAdd = Math.min(500, Math.max(1, count));
+    const passes = Math.min(500, Math.max(1, count));
     return this.withRefillLock(async () => {
-      const uniqueSlots = this.getUniqueSlots().filter((s) => s.category !== 'NEWS');
-      let globalSlotIndex = 0;
       const results: { slot: string; added: number }[] = [];
 
-      for (const { category, difficulty } of uniqueSlots) {
-        const key = `${category}/${difficulty}`;
-        this.logger.log(`[seedPool] ${key}: adding ${toAdd} questions`);
-        const questions = await this.fillSlot(category, difficulty, toAdd, globalSlotIndex);
-        globalSlotIndex += questions.length;
-        results.push({ slot: key, added: questions.length });
+      for (const category of this.getLiveCategories()) {
+        this.logger.log(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
+        const addedCounts = await this.seedCategoryPasses(category, passes);
+        const totalAdded = Object.values(addedCounts).reduce((sum, value) => sum + value, 0);
+        this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
+        for (const [difficulty, added] of Object.entries(addedCounts) as Array<[Difficulty, number]>) {
+          const key = `${category}/${difficulty}`;
+          results.push({ slot: key, added });
+        }
       }
 
       return results;
@@ -298,52 +289,39 @@ export class QuestionPoolService {
     if (this.isRefilling) return;
 
     const counts = await this.getPoolCounts();
-    const uniqueSlots = this.getUniqueSlots();
 
     this.logger.log(`[refill] Pool counts (unanswered per slot): ${JSON.stringify(counts)}`);
 
-    // Build list of slots that need filling (current < target)
-    const slotsToFill: Array<{ category: QuestionCategory; difficulty: Difficulty; needed: number; baseSlotIndex: number }> = [];
-    let globalSlotIndex = 0;
-
-    for (const { category, difficulty } of uniqueSlots) {
-      if (category === 'NEWS') continue; // NEWS is filled by news ingest cron, not pool refill
+    const needsByCategory = new Map<QuestionCategory, Partial<Record<Difficulty, number>>>();
+    for (const { category, difficulty } of this.getUniqueSlots()) {
+      if (category === 'NEWS') continue;
       const key = `${category}/${difficulty}`;
       const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
       const current = counts[key] ?? 0;
       const needed = target - current;
-
       if (needed > 0) {
-        slotsToFill.push({ category, difficulty, needed, baseSlotIndex: globalSlotIndex });
-        globalSlotIndex += needed;
+        const existing = needsByCategory.get(category) ?? {};
+        existing[difficulty] = needed;
+        needsByCategory.set(category, existing);
       }
     }
 
-    if (slotsToFill.length === 0) {
+    if (needsByCategory.size === 0) {
       this.logger.log(`[refill] All slots at or above target (${DEFAULT_TARGET}), skipping — no LLM calls`);
       return;
     }
 
     this.isRefilling = true;
     await this.withRefillLock(async () => {
-      // Prioritize driest slots first (fewest unanswered questions)
-      const sorted = [...slotsToFill].sort((a, b) => {
-        const keyA = `${a.category}/${a.difficulty}`;
-        const keyB = `${b.category}/${b.difficulty}`;
-        const countA = counts[keyA] ?? 0;
-        const countB = counts[keyB] ?? 0;
-        return countA - countB;
+      const sorted = [...needsByCategory.entries()].sort((a, b) => {
+        const totalA = Object.values(a[1]).reduce((sum, value) => sum + (value ?? 0), 0);
+        const totalB = Object.values(b[1]).reduce((sum, value) => sum + (value ?? 0), 0);
+        return totalB - totalA;
       });
 
-      await Promise.all(
-        sorted.map(({ category, difficulty, needed, baseSlotIndex }) => {
-          const key = `${category}/${difficulty}`;
-          const current = counts[key] ?? 0;
-          const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
-          this.logger.log(`[refill] ${key}: ${current}/${target} — generating ${needed}`);
-          return this.fillSlot(category, difficulty, needed, baseSlotIndex);
-        }),
-      );
+      for (const [category, needs] of sorted) {
+        await this.fillCategoryUntilSatisfied(category, { ...needs });
+      }
     }).finally(() => {
       this.isRefilling = false;
     });
@@ -477,7 +455,13 @@ export class QuestionPoolService {
     const rows = filtered.map((q, i) => ({
       category,
       difficulty,
-      question: q,
+      question: {
+        ...q,
+        difficulty,
+        points: resolveQuestionPoints(q.category, difficulty),
+        raw_score: undefined,
+      },
+      raw_score: q.raw_score ?? null,
       translations: {
         el: {
           question_text: translations[i]?.question_text ?? q.question_text,
@@ -540,8 +524,185 @@ export class QuestionPoolService {
   }
 
   private resolvePoints(q: GeneratedQuestion, difficulty: Difficulty): number {
-    if (q.category === 'TOP_5') return 3;
-    if (q.category === 'GOSSIP') return 2;
-    return DIFFICULTY_POINTS[difficulty];
+    return resolveQuestionPoints(q.category, difficulty);
+  }
+
+  private getLiveCategories(): QuestionCategory[] {
+    return Object.keys(CATEGORY_BATCH_SIZES) as QuestionCategory[];
+  }
+
+  private buildNeedMapForCategory(
+    category: QuestionCategory,
+    count: number,
+  ): Partial<Record<Difficulty, number>> {
+    const needs: Partial<Record<Difficulty, number>> = {};
+    for (const difficulty of CATEGORY_DIFFICULTY_SLOTS[category]) {
+      needs[difficulty] = (needs[difficulty] ?? 0) + count;
+    }
+    return needs;
+  }
+
+  private async seedCategoryPasses(
+    category: QuestionCategory,
+    passes: number,
+  ): Promise<Record<Difficulty, number>> {
+    const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const existingKeys = await this.getExistingQuestionKeys(category);
+
+    for (let pass = 0; pass < passes; pass += 1) {
+      this.logger.log(`[seedPool] ${category} pass ${pass + 1}/${passes}`);
+      const batch = await this.questionsService.generateBatch(category, 'en', {
+        questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
+      });
+      const accepted = batch
+        .filter((q) => this.questionValidator.validate(q).valid)
+        .filter((q) => {
+          const key = `${q.question_text}|||${q.correct_answer}`;
+          if (existingKeys.has(key)) return false;
+          existingKeys.add(key);
+          return true;
+        });
+
+      if (accepted.length === 0) {
+        this.logger.warn(`[seedPool] ${category} pass ${pass + 1}/${passes}: no accepted questions`);
+        continue;
+      }
+
+      await this.insertQuestions(category, accepted);
+      for (const question of accepted) {
+        addedTotals[question.difficulty] += 1;
+      }
+      this.logger.log(
+        `[seedPool] ${category} pass ${pass + 1}/${passes}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'}`,
+      );
+
+      if (pass + 1 < passes) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+
+    return addedTotals;
+  }
+
+  private async generateCategoryFallback(
+    category: QuestionCategory,
+    difficulties: Difficulty[],
+    language: string,
+  ): Promise<GeneratedQuestion[]> {
+    const remaining = [...difficulties];
+    const generated: GeneratedQuestion[] = [];
+    let attempts = 0;
+
+    while (remaining.length > 0 && attempts < 3) {
+      attempts += 1;
+      const batch = await this.questionsService.generateBatch(category, language, {
+        questionCount: CATEGORY_BATCH_SIZES[category] ?? remaining.length,
+      });
+      const used = new Set<number>();
+      for (let i = 0; i < remaining.length; i++) {
+        const difficulty = remaining[i];
+        const matchIdx = batch.findIndex((q, idx) => !used.has(idx) && q.difficulty === difficulty);
+        if (matchIdx !== -1) {
+          used.add(matchIdx);
+          generated.push(batch[matchIdx]);
+          remaining.splice(i, 1);
+          i -= 1;
+        }
+      }
+    }
+
+    for (const difficulty of remaining) {
+      try {
+        const question = await this.questionsService.generateOne(category, difficulty, language);
+        generated.push(question);
+      } catch (err) {
+        this.logger.error(`[generateCategoryFallback] Failed ${category}/${difficulty}: ${(err as Error).message}`);
+      }
+    }
+
+    return generated;
+  }
+
+  private async fillCategoryUntilSatisfied(
+    category: QuestionCategory,
+    needs: Partial<Record<Difficulty, number>>,
+  ): Promise<Record<Difficulty, number>> {
+    const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const existingKeys = await this.getExistingQuestionKeys(category);
+    let attempts = 0;
+
+    while (this.hasRemainingNeeds(needs) && attempts < MAX_CATEGORY_BATCH_ATTEMPTS) {
+      attempts += 1;
+      const batch = await this.questionsService.generateBatch(category, 'en', {
+        questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
+      });
+      const remainingByDifficulty = { ...needs };
+      const accepted = batch
+        .filter((q) => this.questionValidator.validate(q).valid)
+        .filter((q) => {
+          const remaining = remainingByDifficulty[q.difficulty] ?? 0;
+          if (remaining <= 0) return false;
+          remainingByDifficulty[q.difficulty] = remaining - 1;
+          return true;
+        })
+        .filter((q) => {
+          const key = `${q.question_text}|||${q.correct_answer}`;
+          if (existingKeys.has(key)) return false;
+          existingKeys.add(key);
+          return true;
+        });
+
+      if (accepted.length === 0) {
+        continue;
+      }
+
+      await this.insertQuestions(category, accepted);
+      for (const question of accepted) {
+        const current = needs[question.difficulty] ?? 0;
+        needs[question.difficulty] = Math.max(0, current - 1);
+        addedTotals[question.difficulty] += 1;
+      }
+      if (this.hasRemainingNeeds(needs)) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+
+    return addedTotals;
+  }
+
+  private async insertQuestions(category: QuestionCategory, questions: GeneratedQuestion[]): Promise<void> {
+    if (questions.length === 0) return;
+    let translations: Array<{ question_text: string; explanation: string }> = questions;
+    try {
+      translations = await this.llmService.translateToGreek(
+        questions.map((q) => ({ question_text: q.question_text, explanation: q.explanation ?? '' })),
+      );
+    } catch (err) {
+      this.logger.warn(`[insertQuestions] Greek translation failed: ${(err as Error).message}`);
+    }
+
+    const rows = questions.map((q, i) => ({
+      category,
+      difficulty: q.difficulty,
+      question: {
+        ...q,
+        raw_score: undefined,
+      },
+      raw_score: q.raw_score ?? null,
+      translations: {
+        el: {
+          question_text: translations[i]?.question_text ?? q.question_text,
+          explanation: translations[i]?.explanation ?? q.explanation ?? '',
+        },
+      },
+    }));
+    const { error } = await this.supabaseService.client.from('question_pool').insert(rows);
+    if (error) {
+      throw new Error(`[insertQuestions] Insert error for ${category}: ${error.message}`);
+    }
+  }
+
+  private hasRemainingNeeds(needs: Partial<Record<Difficulty, number>>): boolean {
+    return (needs.EASY ?? 0) > 0 || (needs.MEDIUM ?? 0) > 0 || (needs.HARD ?? 0) > 0;
   }
 }

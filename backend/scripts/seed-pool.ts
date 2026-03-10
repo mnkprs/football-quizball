@@ -4,11 +4,12 @@
  * Seed the question pool.
  *
  * Single slot:  npm run seed-pool -- GUESS_SCORE/MEDIUM 50   (adds 50 to that slot)
- * All slots:    npm run seed-pool -- 50                      (adds 50 to each slot)
+ * All slots:    npm run seed-pool -- 1                       (runs one category-fill pass)
  *
  * Set LOG_PROMPTS=1 to see the full LLM prompt for each question.
  */
-process.env.LOG_PROMPTS = process.env.LOG_PROMPTS ?? '1';
+process.env.LOG_PROMPTS = process.env.LOG_PROMPTS ?? '0';
+process.env.LOG_GENERATED_QUESTIONS = process.env.LOG_GENERATED_QUESTIONS ?? '1';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { QuestionPoolService } from '../src/questions/question-pool.service';
@@ -21,9 +22,9 @@ function parseArgs(): { slot?: string; target: number } {
     const target = Number.isNaN(n) ? 50 : Math.min(500, Math.max(1, n));
     return { slot, target };
   }
-  const targetRaw = args[0] || '5';
+  const targetRaw = args[0] || '1';
   const n = parseInt(targetRaw, 10);
-  const target = Number.isNaN(n) ? 5 : Math.min(500, Math.max(1, n));
+  const target = Number.isNaN(n) ? 1 : Math.min(500, Math.max(1, n));
   return { target };
 }
 
@@ -38,7 +39,7 @@ async function main() {
     await app.close();
     console.log(JSON.stringify(result, null, 2));
   } else {
-    console.log(`[seed-pool] All slots, adding: ${target} per slot`);
+    console.log(`[seed-pool] All categories, target passes: ${target}`);
     const results = await pool.seedPool(target, true);
     await app.close();
     console.log(JSON.stringify({ target, results, totalAdded: results.reduce((s, r) => s + r.added, 0) }, null, 2));
