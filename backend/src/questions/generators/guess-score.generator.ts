@@ -63,10 +63,16 @@ specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not
     }
 
     const correct_answer = `${result.home_score}-${result.away_score}`;
-    // Generate a plausible wrong score by shifting one score by ±1
-    const wrongHome = result.home_score + (Math.random() < 0.5 ? 1 : -1);
-    const wrongAway = wrongHome === result.home_score ? result.away_score + 1 : result.away_score;
-    const fifty_hint = `${Math.max(0, wrongHome)}-${Math.max(0, wrongAway)}`;
+    // Generate a plausible wrong score by shifting one score by ±1. Must differ from correct (e.g. 0-0 → avoid 0-0).
+    let wrongHome = result.home_score + (Math.random() < 0.5 ? 1 : -1);
+    let wrongAway = wrongHome === result.home_score ? result.away_score + 1 : result.away_score;
+    wrongHome = Math.max(0, wrongHome);
+    wrongAway = Math.max(0, wrongAway);
+    let fifty_hint = `${wrongHome}-${wrongAway}`;
+    if (fifty_hint === correct_answer) {
+      // 0-0 can produce 0-0; use 1-0 or 0-1 instead
+      fifty_hint = result.home_score === 0 && result.away_score === 0 ? '1-0' : `${result.home_score + 1}-${result.away_score}`;
+    }
 
     const difficulty_factors: DifficultyFactors = {
       event_year: result.event_year ?? new Date().getFullYear(),
