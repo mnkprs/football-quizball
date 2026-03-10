@@ -1,6 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
@@ -36,7 +34,7 @@ const DRAW_REQUIREMENTS: SlotRequirement[] = [
 ];
 
 // Target unused questions to keep per unique (category, difficulty) slot
-// Cron refills any slot that drops below target.
+// Use seedPool/refillIfNeeded manually (e.g. POST /api/admin/seed-pool).
 const POOL_TARGET: Partial<Record<string, number>> = {
   'NEWS/MEDIUM': 10, // Refilled by news ingest cron, not pool refill
 };
@@ -49,30 +47,18 @@ export interface DrawBoardResult {
 }
 
 @Injectable()
-export class QuestionPoolService implements OnModuleInit {
+export class QuestionPoolService {
   private readonly logger = new Logger(QuestionPoolService.name);
   private isRefilling = false;
   /** Serializes seed + refill so they never run concurrently (prevents double/triple inserts). */
   private refillLock: Promise<void> = Promise.resolve();
 
   constructor(
-    private configService: ConfigService,
     private supabaseService: SupabaseService,
     private llmService: LlmService,
     private questionsService: QuestionsService,
     private questionValidator: QuestionValidator,
   ) {}
-
-  async onModuleInit() {
-    if (this.configService.get<string>('DISABLE_POOL_CRON') === '1') {
-      this.logger.log('[INIT] Question pool: startup refill skipped (DISABLE_POOL_CRON=1)');
-      return;
-    }
-    this.logger.log('[INIT] Question pool: checking levels...');
-    this.refillIfNeeded().catch((err) =>
-      this.logger.error(`[INIT] Pool refill failed: ${err.message}`),
-    );
-  }
 
   /**
    * Draw all questions from the pool only. No live generation.
@@ -334,16 +320,6 @@ export class QuestionPoolService implements OnModuleInit {
     } finally {
       resolve!();
     }
-  }
-
-  @Cron(CronExpression.EVERY_HOUR)
-  async scheduledRefill() {
-    if (this.configService.get<string>('DISABLE_POOL_CRON') === '1') {
-      this.logger.debug('[CRON] Question pool refill skipped (DISABLE_POOL_CRON=1)');
-      return;
-    }
-    this.logger.log('[CRON] Question pool refill (hourly): checking levels...');
-    await this.refillIfNeeded();
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────

@@ -21,7 +21,7 @@ export class DailyService implements OnModuleInit {
 
   onModuleInit() {
     this.logger.log('[INIT] Daily: checking today\'s questions...');
-    this.pregenerateToday(false).catch((err) =>
+    this.pregenerateToday().catch((err) =>
       this.logger.error(`[INIT] Daily pre-generate failed: ${(err as Error).message}`),
     );
   }
@@ -56,19 +56,18 @@ export class DailyService implements OnModuleInit {
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async pregenerateTodayCron() {
     this.logger.log('[CRON] Daily pre-generate (1AM): running...');
-    return this.pregenerateToday(true);
+    return this.pregenerateToday();
   }
 
-  async pregenerateToday(fromCron = false): Promise<void> {
-    const prefix = fromCron ? '[CRON] Daily (1AM)' : '[INIT] Daily';
+  async pregenerateToday(): Promise<void> {
     const today = this.getTodayDateStr();
     const existing = await this.fetchForDate(today);
     if (existing.length > 0) {
-      this.logger.log(`${prefix}: ${today} already has questions, skipping`);
+      this.logger.log(`[pregenerateToday] ${today} already has questions, skipping`);
       return;
     }
 
-    this.logger.log(`${prefix}: generating for ${today}`);
+    this.logger.log(`[pregenerateToday] generating for ${today}`);
     const generated = await this.todayGenerator.generateForDate(
       new Date().getDate(),
       new Date().getMonth() + 1,
@@ -76,7 +75,7 @@ export class DailyService implements OnModuleInit {
 
     if (generated.length > 0) {
       await this.saveForDate(today, generated);
-      this.logger.log(`${prefix}: saved ${generated.length} questions for ${today}`);
+      this.logger.log(`[pregenerateToday] saved ${generated.length} questions for ${today}`);
     }
   }
 
