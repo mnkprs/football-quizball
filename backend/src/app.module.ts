@@ -14,6 +14,7 @@ import { BlitzModule } from './blitz/blitz.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NewsModule } from './news/news.module';
 import { DailyModule } from './daily/daily.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DailyModule } from './daily/daily.module';
     LeaderboardModule,
     NewsModule,
     DailyModule,
+    ReportsModule,
   ],
 })
 export class AppModule {}

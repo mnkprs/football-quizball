@@ -69,6 +69,18 @@ export interface Top5Entry {
   stat: string;
 }
 
+export interface ReportProblemPayload {
+  questionId: string;
+  gameId?: string;
+  category: string;
+  difficulty: string;
+  points: number;
+  questionText: string;
+  fiftyFiftyApplicable?: boolean;
+  imageUrl?: string;
+  meta?: Record<string, unknown>;
+}
+
 export interface Top5GuessResult {
   matched: boolean;
   position: number | null;
@@ -145,5 +157,9 @@ export class GameApiService {
 
   endGame(gameId: string): Observable<{ game_id: string; status: string; final_scores: [number, number]; winner: string }> {
     return this.http.post<any>(`${this.base}/api/games/${gameId}/end`, {});
+  }
+
+  reportProblem(payload: ReportProblemPayload): Observable<void> {
+    return this.http.post<void>(`${this.base}/api/reports/problem`, payload);
   }
 }

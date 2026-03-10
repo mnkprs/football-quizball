@@ -1,9 +1,10 @@
 import { Component, inject, computed, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { GameStore } from '../../core/game.store';
+import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-question',
@@ -113,6 +114,21 @@ import { environment } from '../../../environments/environment';
         </div>
       }
     </div>
+
+    <!-- Problem reported popup -->
+    @if (problemReported()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
+        <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
+          <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
+          <button
+            (click)="dismissProblemReported()"
+            class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    }
 
     <!-- Default text question template -->
     <ng-template #defaultTemplate>
@@ -373,10 +389,12 @@ import { environment } from '../../../environments/environment';
 })
 export class QuestionComponent implements OnDestroy {
   store = inject(GameStore);
+  gameApi = inject(GameApiService);
   lang = inject(LanguageService);
   answer = '';
 
   reportDisabled = signal(false);
+  problemReported = signal(false);
   private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
 
   question = this.store.currentQuestion;
@@ -456,7 +474,7 @@ export class QuestionComponent implements OnDestroy {
     await this.store.submitTop5Guess(guess);
   }
 
-  reportQuestion(): void {
+  async reportQuestion(): Promise<void> {
     if (this.reportDisabled()) return;
     const q = this.question();
     const gameId = this.store.gameId();
@@ -470,28 +488,31 @@ export class QuestionComponent implements OnDestroy {
     }, 60_000);
 
     const payload = {
-      question_id: q.id,
-      game_id: gameId ?? undefined,
+      questionId: q.id,
+      gameId: gameId ?? undefined,
       category: q.category,
       difficulty: q.difficulty,
       points: q.points,
-      question_text: q.question_text,
-      fifty_fifty_applicable: q.fifty_fifty_applicable,
-      image_url: q.image_url ?? undefined,
+      questionText: q.question_text,
+      fiftyFiftyApplicable: q.fifty_fifty_applicable,
+      imageUrl: q.image_url ?? undefined,
       meta: q.meta ?? undefined,
     };
 
-    const subject = encodeURIComponent(`Unlimited Quizball Question Report - ${q.id}`);
-    const body = encodeURIComponent(
-      `Describe the problem:\n\n\n---\nQuestion data:\n${JSON.stringify(payload, null, 2)}`
-    );
+    try {
+      await firstValueFrom(this.gameApi.reportProblem(payload));
+      this.problemReported.set(true);
+    } catch {
+      this.reportDisabled.set(false);
+      if (this.reportCooldownTimeout) {
+        clearTimeout(this.reportCooldownTimeout);
+        this.reportCooldownTimeout = null;
+      }
+    }
+  }
 
-    const email = environment.reportEmail;
-    const mailto = email
-      ? `mailto:${email}?subject=${subject}&body=${body}`
-      : `mailto:?subject=${subject}&body=${body}`;
-
-    window.location.href = mailto;
+  dismissProblemReported(): void {
+    this.problemReported.set(false);
   }
 
   ngOnDestroy(): void {
