@@ -1,8 +1,23 @@
 {
     "mcpServers": {
-      "Railway": {
+        "Railway": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@railway/mcp-server"
+            ]
+        },
+        "vercel": {
+            "url": "https://mcp.vercel.com"
+        },
+        "v0": {
         "command": "npx",
-        "args": ["-y", "@railway/mcp-server"]
-      }
+        "args": [
+            "mcp-remote",
+            "https://mcp.v0.dev",
+            "--header",
+            "Authorization: Bearer ${V0_API_KEY}"
+        ]
+        }
     }
   }
