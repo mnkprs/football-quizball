@@ -19,10 +19,11 @@ export class SoloQuestionGenerator {
     private questionPoolService: QuestionPoolService,
   ) {}
 
-  async generate(difficulty: Difficulty, elo: number = 1000): Promise<SoloQuestion> {
+  async generate(difficulty: Difficulty, elo: number = 1000, language: string = 'en'): Promise<SoloQuestion> {
     // Use pool first — no LLM call when questions exist in DB
-    const fromPool = await this.questionPoolService.drawOneForSolo(difficulty, 'en');
+    const fromPool = await this.questionPoolService.drawOneForSolo(difficulty, language);
     if (fromPool) {
+      this.logger.debug(`[generate] Using pool question ${fromPool.id} (${fromPool.category}/${difficulty})`);
       return {
         id: fromPool.id,
         question_text: fromPool.question_text,
@@ -35,6 +36,10 @@ export class SoloQuestionGenerator {
       };
     }
 
+    this.logger.warn(
+      `[generate] Pool empty for difficulty=${difficulty} language=${language} — falling back to LLM. ` +
+        'Seed the pool via POST /api/admin/seed-pool?target=5 to avoid LLM calls.',
+    );
     // Pool empty — fall back to LLM
     const difficultyGuide: Record<Difficulty, string> = {
       EASY: 'well-known fact, easily recalled (e.g., which club did Messi win the 2015 Champions League with?)',

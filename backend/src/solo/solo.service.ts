@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { CacheService } from '../cache/cache.service';
 import { SupabaseService } from '../supabase/supabase.service';
+import { QuestionPoolService } from '../questions/question-pool.service';
 import { EloService } from './elo.service';
 import { SoloQuestionGenerator } from './solo-question.generator';
 import { SoloSession, SoloAnswerResult, TIME_LIMITS } from './solo.types';
@@ -15,6 +16,7 @@ export class SoloService {
   constructor(
     private cacheService: CacheService,
     private supabaseService: SupabaseService,
+    private questionPoolService: QuestionPoolService,
     private eloService: EloService,
     private generator: SoloQuestionGenerator,
     private answerValidator: AnswerValidator,
@@ -28,7 +30,7 @@ export class SoloService {
     return session;
   }
 
-  async startSession(userId: string): Promise<{ session_id: string; user_elo: number }> {
+  async startSession(userId: string, language: string = 'en'): Promise<{ session_id: string; user_elo: number }> {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('User profile not found');
 
@@ -38,11 +40,13 @@ export class SoloService {
       userId,
       userElo: profile.elo,
       currentElo: profile.elo,
+      language,
       currentQuestion: null,
       servedAt: null,
       questionsAnswered: 0,
       correctAnswers: 0,
       eloChanges: [],
+      drawnQuestionIds: [],
       createdAt: new Date(),
     };
     this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
@@ -63,10 +67,11 @@ export class SoloService {
     if (session.userId !== userId) throw new ForbiddenException();
 
     const difficulty = this.eloService.getDifficultyForElo(session.currentElo);
-    const question = await this.generator.generate(difficulty, session.currentElo);
+    const question = await this.generator.generate(difficulty, session.currentElo, session.language);
     const now = new Date();
 
     session.currentQuestion = question;
+    session.drawnQuestionIds.push(question.id);
     session.servedAt = now;
     this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
@@ -154,6 +159,14 @@ export class SoloService {
   }> {
     const session = this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
+
+    // Return drawn questions to pool so they can be reused in future sessions
+    if (session.drawnQuestionIds.length > 0) {
+      const returned = await this.questionPoolService.returnUnansweredToPool(session.drawnQuestionIds);
+      if (returned > 0) {
+        this.logger.log(`[endSession] Returned ${returned} questions to pool for reuse`);
+      }
+    }
 
     // Increment games_played
     await this.supabaseService.incrementGamesPlayed(userId, session.questionsAnswered, session.correctAnswers);

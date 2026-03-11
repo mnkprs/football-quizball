@@ -62,8 +62,8 @@ export class SoloApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  startSession(): Observable<StartSessionResponse> {
-    return this.http.post<StartSessionResponse>(`${this.base}/session`, {}, { headers: this.headers() });
+  startSession(language: string = 'en'): Observable<StartSessionResponse> {
+    return this.http.post<StartSessionResponse>(`${this.base}/session`, { language }, { headers: this.headers() });
   }
 
   getNextQuestion(sessionId: string): Observable<NextQuestionResponse> {

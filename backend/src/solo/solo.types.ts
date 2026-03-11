@@ -10,7 +10,7 @@ export const DIFFICULTY_ELO: Record<Difficulty, number> = {
 };
 
 export const TIME_LIMITS: Record<Difficulty, number> = {
-  EASY: 25,
-  MEDIUM: 35,
-  HARD: 45,
+  EASY: 10,
+  MEDIUM: 15,
+  HARD: 20,
 };

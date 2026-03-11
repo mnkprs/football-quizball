@@ -12,10 +12,10 @@ import type { QuestionCategory } from '../../common/interfaces/question.interfac
 export const RAW_THRESHOLD_EASY = 0.36;
 
 /** Raw score below this → MEDIUM (above → HARD) */
-export const RAW_THRESHOLD_MEDIUM = 0.66;
+export const RAW_THRESHOLD_MEDIUM = 0.55;
 
 /** Distance from threshold within which a question can be used in the adjacent easier level. */
-export const BOUNDARY_TOLERANCE = 0.11;
+export const BOUNDARY_TOLERANCE = 0.08;
 
 // ─── Raw score formula weights ─────────────────────────────────────────────
 // raw = W_DATE * dateScore + W_FAMILIARITY * familiarityScore + W_FAME * fameScore

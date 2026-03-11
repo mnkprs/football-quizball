@@ -96,6 +96,7 @@ function getAllowedDifficulties(raw: number, primaryDifficulty: Difficulty): Dif
   }
   if (primaryDifficulty === 'MEDIUM') {
     if (raw < RAW_THRESHOLD_EASY + BOUNDARY_TOLERANCE) allowed.unshift('EASY');
+    if (raw >= RAW_THRESHOLD_MEDIUM - BOUNDARY_TOLERANCE) allowed.push('HARD');
     return allowed;
   }
   if (primaryDifficulty === 'HARD') {

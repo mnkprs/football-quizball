@@ -617,8 +617,12 @@ export class QuestionPoolService {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
         targetDifficulty: difficulty,
       });
-      const afterDifficulty = batch.filter((q) => q.difficulty === difficulty);
-      const afterValidator = afterDifficulty.filter((q) => {
+      const candidates = batch.filter(
+        (q) =>
+          q.difficulty === difficulty ||
+          q.allowedDifficulties?.includes(difficulty),
+      );
+      const afterValidator = candidates.filter((q) => {
         const { valid } = this.questionValidator.validate(q);
         return valid;
       });
@@ -632,8 +636,8 @@ export class QuestionPoolService {
         .slice(0, targetCount - added);
 
       if (accepted.length === 0) {
-        const diffRej = batch.length - afterDifficulty.length;
-        const valRej = afterDifficulty.length - afterValidator.length;
+        const diffRej = batch.length - candidates.length;
+        const valRej = candidates.length - afterValidator.length;
         const dupHint = afterValidator.length > 0 ? ', all_duplicates' : '';
         this.logger.warn(
           `[seedSlot] ${category}/${difficulty} pass ${pass}: no accepted questions ` +
@@ -643,7 +647,10 @@ export class QuestionPoolService {
         continue;
       }
 
-      await this.insertQuestions(category, accepted);
+      const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
+        ? difficulty
+        : undefined;
+      await this.insertQuestions(category, accepted, difficultyOverride);
       for (const q of accepted) {
         added += 1;
         questions.push(q.question_text);
@@ -746,8 +753,12 @@ export class QuestionPoolService {
     return addedTotals;
   }
 
-  private async insertQuestions(category: QuestionCategory, questions: GeneratedQuestion[]): Promise<void> {
-    await this.persistQuestionsToPool(category, questions);
+  private async insertQuestions(
+    category: QuestionCategory,
+    questions: GeneratedQuestion[],
+    difficultyOverride?: Difficulty,
+  ): Promise<void> {
+    await this.persistQuestionsToPool(category, questions, difficultyOverride);
   }
 
   /**

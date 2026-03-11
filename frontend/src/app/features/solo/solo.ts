@@ -22,14 +22,14 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
 
         <!-- Header -->
         <div class="flex items-center justify-between mb-6 pt-2">
-          <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">← Home</button>
+          <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().soloBackBtn }}</button>
           <div class="text-center">
             <div class="text-accent font-black text-2xl">{{ currentElo() }}</div>
-            <div class="text-muted-foreground text-xs">ELO</div>
+            <div class="text-muted-foreground text-xs">{{ lang.t().profileElo }}</div>
           </div>
           <div class="text-right">
             <div class="text-foreground font-semibold">{{ correctAnswers() }}/{{ questionsAnswered() }}</div>
-            <div class="text-muted-foreground text-xs">Correct</div>
+            <div class="text-muted-foreground text-xs">{{ lang.t().soloCorrectCount }}</div>
           </div>
         </div>
 
@@ -37,21 +37,21 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
         @if (phase() === 'idle') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-6xl mb-6">🏆</div>
-            <h2 class="text-2xl font-black text-foreground mb-2">Solo Ranked</h2>
-            <p class="text-muted-foreground text-center mb-2">Answer football questions to earn ELO and climb the leaderboard.</p>
+            <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().soloTitle }}</h2>
+            <p class="text-muted-foreground text-center mb-2">{{ lang.t().soloSubtitle }}</p>
             <ul class="text-muted-foreground text-sm text-center mb-4 space-y-1 max-w-xs">
-              <li>• Type your answers — no multiple choice</li>
-              <li>• Adaptive difficulty: EASY (25s), MEDIUM (35s), HARD (45s)</li>
-              <li>• Win ELO on correct answers, lose on wrong or timeout</li>
-              <li>• Play as many questions as you like per session</li>
+              <li>• {{ lang.t().soloBullet1 }}</li>
+              <li>• {{ lang.t().soloBullet2 }}</li>
+              <li>• {{ lang.t().soloBullet3 }}</li>
+              <li>• {{ lang.t().soloBullet4 }}</li>
             </ul>
-            <p class="text-muted-foreground text-sm text-center mb-8">Starting ELO: <span class="text-accent font-bold">{{ startElo() }}</span></p>
+            <p class="text-muted-foreground text-sm text-center mb-8">{{ lang.t().soloStartingElo }} <span class="text-accent font-bold">{{ startElo() }}</span></p>
             <button
               (click)="startSession()"
               [disabled]="loading()"
               class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-xl hover:bg-accent-light active:scale-95 transition disabled:opacity-50 pressable"
             >
-              {{ loading() ? 'Starting...' : 'Start Playing' }}
+              {{ loading() ? lang.t().soloStarting : lang.t().soloStartPlaying }}
             </button>
             @if (error()) {
               <p class="text-loss text-sm mt-4">{{ error() }}</p>
@@ -73,7 +73,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
             <div class="flex items-center justify-between mb-4">
               <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
                     [class]="difficultyBadgeClass()">
-                {{ currentQuestion()?.difficulty }}
+                {{ difficultyLabel() }}
               </span>
               <!-- Timer -->
               <div class="flex items-center gap-2">
@@ -100,7 +100,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
               <input
                 [(ngModel)]="answer"
                 (keydown.enter)="submitAnswer()"
-                placeholder="Your answer..."
+                [placeholder]="lang.t().soloYourAnswer"
                 class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
               />
               <button
@@ -108,7 +108,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
                 [disabled]="!answer.trim() || submitting()"
                 class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
               >
-                Submit
+                {{ lang.t().submit }}
               </button>
             </div>
 
@@ -133,10 +133,10 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
                  [class]="lastResult()!.correct ? 'bg-win/10 border-win/50' : 'bg-loss/10 border-loss/50'">
               <div class="text-4xl mb-2">{{ lastResult()!.correct ? '✅' : lastResult()!.timed_out ? '⏰' : '❌' }}</div>
               <div class="text-xl font-black text-foreground mb-1">
-                {{ lastResult()!.correct ? 'Correct!' : lastResult()!.timed_out ? "Time's up!" : 'Wrong' }}
+                {{ lastResult()!.correct ? lang.t().soloCorrect : lastResult()!.timed_out ? lang.t().soloTimesUp : lang.t().soloWrong }}
               </div>
               @if (!lastResult()!.correct) {
-                <div class="text-foreground text-sm">Answer: <span class="text-foreground font-semibold">{{ lastResult()!.correct_answer }}</span></div>
+                <div class="text-foreground text-sm">{{ lang.t().soloAnswerLabel }} <span class="text-foreground font-semibold">{{ lastResult()!.correct_answer }}</span></div>
               }
               <div class="text-muted-foreground text-sm mt-2">{{ lastResult()!.explanation }}</div>
             </div>
@@ -144,13 +144,13 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
             <!-- ELO change -->
             <div class="bg-card rounded-2xl p-4 mb-6 border border-border flex items-center justify-between">
               <div>
-                <div class="text-muted-foreground text-sm">ELO Change</div>
+                <div class="text-muted-foreground text-sm">{{ lang.t().soloEloChange }}</div>
                 <div class="font-black text-2xl" [class]="lastResult()!.elo_change >= 0 ? 'text-win' : 'text-loss'">
                   {{ lastResult()!.elo_change >= 0 ? '+' : '' }}{{ lastResult()!.elo_change }}
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-muted-foreground text-sm">New ELO</div>
+                <div class="text-muted-foreground text-sm">{{ lang.t().soloNewElo }}</div>
                 <div class="text-foreground font-black text-2xl">{{ lastResult()!.elo_after }}</div>
               </div>
             </div>
@@ -158,11 +158,11 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
             <!-- Stats -->
             <div class="grid grid-cols-2 gap-3 mb-6">
               <div class="bg-card rounded-xl p-3 border border-border text-center">
-                <div class="text-muted-foreground text-xs">Questions</div>
+                <div class="text-muted-foreground text-xs">{{ lang.t().lbQuestions }}</div>
                 <div class="text-foreground font-bold text-lg">{{ lastResult()!.questions_answered }}</div>
               </div>
               <div class="bg-card rounded-xl p-3 border border-border text-center">
-                <div class="text-muted-foreground text-xs">Accuracy</div>
+                <div class="text-muted-foreground text-xs">{{ lang.t().accuracy }}</div>
                 <div class="text-foreground font-bold text-lg">{{ accuracy() }}%</div>
               </div>
             </div>
@@ -173,13 +173,13 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
                 [disabled]="loading()"
                 class="flex-1 py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light active:scale-95 transition disabled:opacity-50 pressable"
               >
-                {{ loading() ? '...' : 'Next Question' }}
+                {{ loading() ? '...' : lang.t().soloNextQuestion }}
               </button>
               <button
                 (click)="endSession()"
                 class="py-4 px-6 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable"
               >
-                End
+                {{ lang.t().soloEnd }}
               </button>
             </div>
           </div>
@@ -189,31 +189,31 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
         @if (phase() === 'finished') {
           <div class="flex-1 flex flex-col items-center justify-center">
             <div class="text-5xl mb-4">🏁</div>
-            <h2 class="text-2xl font-black text-foreground mb-6">Session Complete</h2>
+            <h2 class="text-2xl font-black text-foreground mb-6">{{ lang.t().soloSessionComplete }}</h2>
             <app-ad-display />
             <div class="w-full max-w-xs space-y-3 mb-8">
               <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-                <span class="text-muted-foreground">Starting ELO</span>
+                <span class="text-muted-foreground">{{ lang.t().soloStartingEloLabel }}</span>
                 <span class="text-foreground font-bold">{{ startElo() }}</span>
               </div>
               <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-                <span class="text-muted-foreground">Final ELO</span>
+                <span class="text-muted-foreground">{{ lang.t().soloFinalElo }}</span>
                 <span class="text-accent font-black text-lg">{{ currentElo() }}</span>
               </div>
               <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-                <span class="text-muted-foreground">Questions</span>
+                <span class="text-muted-foreground">{{ lang.t().lbQuestions }}</span>
                 <span class="text-foreground font-bold">{{ questionsAnswered() }}</span>
               </div>
               <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-                <span class="text-muted-foreground">Accuracy</span>
+                <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>
                 <span class="text-foreground font-bold">{{ accuracy() }}%</span>
               </div>
             </div>
             <a routerLink="/leaderboard" class="w-full max-w-xs py-3 rounded-2xl bg-accent text-accent-foreground font-black text-center block hover:bg-accent-light transition mb-3">
-              View Leaderboard
+              {{ lang.t().soloViewLeaderboard }}
             </a>
             <button (click)="resetToIdle()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
-              Play Again
+              {{ lang.t().soloPlayAgain }}
             </button>
           </div>
         }
@@ -230,7 +230,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
             (click)="dismissProblemReported()"
             class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
           >
-            OK
+            {{ lang.t().soloOk }}
           </button>
         </div>
       </div>
@@ -302,11 +302,20 @@ export class SoloComponent implements OnDestroy {
     return 'bg-loss/10 text-loss border border-loss/50';
   });
 
+  difficultyLabel = computed(() => {
+    const diff = this.currentQuestion()?.difficulty;
+    const t = this.lang.t();
+    if (diff === 'EASY') return t.soloEasy;
+    if (diff === 'MEDIUM') return t.soloMedium;
+    if (diff === 'HARD') return t.soloHard;
+    return diff ?? '';
+  });
+
   async startSession(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(this.api.startSession());
+      const res = await firstValueFrom(this.api.startSession(this.lang.lang()));
       this.sessionId.set(res.session_id);
       this.startElo.set(res.user_elo);
       this.currentElo.set(res.user_elo);

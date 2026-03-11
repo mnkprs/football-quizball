@@ -71,6 +71,7 @@ export class NewsService {
         .map((q) => ({
           category: 'NEWS',
           difficulty: 'MEDIUM',
+          used: false,
           question: this.toPoolQuestion(q),
         }));
 
