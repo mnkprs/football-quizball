@@ -13,12 +13,12 @@ const CURRENT_YEAR = new Date().getFullYear();
 
 const CATEGORY_MODIFIERS: Record<QuestionCategory, number> = {
   GOSSIP:           -0.08,  // Recent, shallow knowledge — inherently easier
-  HIGHER_OR_LOWER:   0.10,  // Match-specific stat thresholds are harder than familiarity alone suggests
+  HIGHER_OR_LOWER:   0.06,  // Stat thresholds — moderate
   GEOGRAPHY:         0.00,  // Neutral
   PLAYER_ID:         0.02,  // Recognition difficulty is moderate by nature
   HISTORY:           0.02,  // Historical fact recall — slight upward
-  TOP_5:             0.20,  // Ordered list recall of five answers is hard even in familiar competitions
-  GUESS_SCORE:       0.08,  // Exact two-number recall — hardest
+  TOP_5:             0.12,  // Ordered list recall — hard but not punishing
+  GUESS_SCORE:       0.04,  // Score recall — moderate (fame matters more)
   NEWS:             -0.05,  // Current events — similar to gossip
 };
 
@@ -41,8 +41,8 @@ const CATEGORY_MULTI_ANSWER_BONUSES: Partial<Record<QuestionCategory, number>> =
 
 function computeDateScore(event_year: number): number {
   const age = CURRENT_YEAR - event_year;
-  if (age <= 2) return 0.1;
-  if (age <= 5) return 0.18;
+  if (age <= 2) return 0.05;  // Very recent = easier (humans remember)
+  if (age <= 5) return 0.12;
   if (age <= 30) return computeRecentHistoricalScore(age);
   return Math.max(0.58 - (age - 30) * 0.008, 0.32);
 }
@@ -80,8 +80,8 @@ function getRejectedResult(reason: string): DifficultyScoreResult {
 }
 
 function resolveDynamicDifficulty(raw: number, tier: number, category: QuestionCategory): Difficulty {
-  if (raw < 0.36) return 'EASY';
-  if (raw < 0.62) return 'MEDIUM';
+  if (raw < 0.36) return 'EASY';   // Keep original — don't push MEDIUM into EASY (frustrating)
+  if (raw < 0.66) return 'MEDIUM'; // Widen MEDIUM only: more HARD→MEDIUM, not MEDIUM→EASY
   if (tier > 1 && category !== 'GUESS_SCORE') return 'MEDIUM';
   return 'HARD';
 }
@@ -99,10 +99,11 @@ function computeRawScore(
   const categoryMod = CATEGORY_MODIFIERS[factors.category] ?? 0;
   const multiAnswerBonus = CATEGORY_MULTI_ANSWER_BONUSES[factors.category] ?? 0;
 
+  // Favor fame over raw competition tier — humans know famous things regardless of league
   return (
-    0.12 * dateScore +
-    0.45 * familiarityScore +
-    0.25 * fameScoreNormalized +
+    0.15 * dateScore +
+    0.35 * familiarityScore +
+    0.30 * fameScoreNormalized +
     specificityModifier +
     answerTypeMod +
     categoryMod +
