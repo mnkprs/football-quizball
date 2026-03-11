@@ -55,6 +55,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
           [questionsLabel]="lang.t().dailyQuestionsLabel"
           [resetsLabel]="lang.t().dailyResetsIn"
           [playLabel]="lang.t().dailyPlay"
+          backgroundImage="/football-field.png"
           (play)="goDaily()"
         />
 
@@ -97,6 +98,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
               [badge]="lang.t().eloSystem"
               badgeColor="lime"
               [footerText]="lang.t().playersOnline"
+              backgroundImage="/solo-mode.png"
               variant="accent"
               (cardClick)="goSolo()"
             />
@@ -107,6 +109,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
               [hint]="lang.t().blitzStatsHint + ' ' + blitzBest() + ' · ' + lang.t().rankLabel + ' #' + blitzRank()"
               [badge]="lang.t().speedrun"
               badgeColor="blue"
+              backgroundImage="/blitz-mode.png"
               variant="accent"
               (cardClick)="goBlitz()"
             />
@@ -119,6 +122,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
               [badge]="lang.t().eloSystem"
               badgeColor="lime"
               [footerText]="lang.t().playersOnline"
+              backgroundImage="/solo-mode.png"
               variant="outline"
               (cardClick)="goSolo()"
             />
@@ -129,6 +133,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
               [hint]="lang.t().btnBlitzDesc + ' · ' + lang.t().loginRequired"
               [badge]="lang.t().speedrun"
               badgeColor="blue"
+              backgroundImage="/blitz-mode.png"
               variant="outline"
               (cardClick)="goBlitz()"
             />

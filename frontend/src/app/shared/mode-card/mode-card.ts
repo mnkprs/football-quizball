@@ -13,6 +13,7 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     <app-mode-card-container
       [variant]="variant()"
       [backgroundIcon]="backgroundIcon()"
+      [backgroundImage]="backgroundImage()"
       [ariaLabel]="title()"
       (clicked)="cardClick.emit()"
     >
@@ -236,6 +237,7 @@ export class ModeCardComponent {
   badgeColor = input<'lime' | 'blue'>('lime');
   sectionLabel = input<string>();
   backgroundIcon = input<string>();
+  backgroundImage = input<string>();
   iconBgColor = input<'gold' | 'blue'>();
   footerText = input<string>();
   variant = input<ModeCardVariant>('outline');
