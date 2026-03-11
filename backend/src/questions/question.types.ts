@@ -1,32 +1,17 @@
-export type QuestionCategory =
-  | 'HISTORY'
-  | 'PLAYER_ID'
-  | 'HIGHER_OR_LOWER'
-  | 'GUESS_SCORE'
-  | 'TOP_5'
-  | 'GEOGRAPHY'
-  | 'GOSSIP'
-  | 'NEWS';
+import {
+  QuestionCategory,
+  Difficulty,
+  QuestionLocale,
+  QuestionTranslation,
+  AnswerType,
+  DifficultyFactors,
+  GeneratedQuestion,
+  BoardCell,
+  Top5Entry,
+  Top5Progress,
+} from '../common/interfaces/question.interface';
 
-export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
-export type QuestionLocale = 'en' | 'el';
-
-export interface QuestionTranslation {
-  question_text: string;
-  explanation: string;
-}
-
-// Type of value the player must recall — drives precision modifier
-export type AnswerType = 'name' | 'team' | 'number' | 'score' | 'year' | 'country';
-
-export interface DifficultyFactors {
-  event_year: number;           // Calendar year of the event
-  competition: string;          // Maps to LEAGUE_FAMILIARITY_TIERS
-  fame_score: number | null;    // LLM 1–10 rating; null → fallback to familiarity_score
-  category: QuestionCategory;   // For category-intrinsic modifier
-  answer_type: AnswerType;      // For answer precision modifier
-  specificity_score: number;    // LLM 1–10: higher = more precise / harder by nature
-}
+export type { QuestionCategory, Difficulty, QuestionLocale, QuestionTranslation, AnswerType, DifficultyFactors, GeneratedQuestion, BoardCell, Top5Entry, Top5Progress };
 
 export const LEAGUE_FAMILIARITY_TIERS: Record<string, number> = {
   // Tier 1
@@ -88,43 +73,6 @@ export const CATEGORY_FIXED_DIFFICULTY: Partial<Record<QuestionCategory, Difficu
   TOP_5: 'HARD',
   GOSSIP: 'MEDIUM',
 };
-
-export interface GeneratedQuestion {
-  id: string;
-  category: QuestionCategory;
-  difficulty: Difficulty;
-  points: number;
-  raw_score?: number;
-  question_text: string;
-  correct_answer: string;
-  /** For Blitz: 2 plausible wrong choices from LLM. */
-  wrong_choices?: string[];
-  fifty_fifty_hint: string | null;
-  fifty_fifty_applicable: boolean;
-  explanation: string;
-  image_url: string | null;
-  // Category-specific extras
-  meta?: Record<string, unknown>;
-  // Canonical English source kept server-side so active games can switch locale on resume.
-  source_question_text?: string;
-  source_explanation?: string;
-  translations?: Partial<Record<QuestionLocale, QuestionTranslation>>;
-  // Difficulty scoring factors — stripped before sending to client
-  difficulty_factors?: DifficultyFactors;
-}
-
-export interface BoardCell {
-  question_id: string;
-  category: QuestionCategory;
-  difficulty: Difficulty;
-  points: number;
-  answered: boolean;
-  answered_by?: string;
-  points_awarded?: number;
-  lifeline_applied?: boolean;
-  /** Set when player submitted with 2x armed; used by override to apply multiplier */
-  double_armed?: boolean;
-}
 
 export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
   EASY: 1,
@@ -190,15 +138,3 @@ export const CATEGORY_LABELS_EL: Record<QuestionCategory, string> = {
   GOSSIP: 'Gossip',
   NEWS: 'Νέα',
 };
-
-export interface Top5Entry {
-  name: string;
-  stat: string;
-}
-
-export interface Top5Progress {
-  filledSlots: Array<Top5Entry | null>; // index = position (0-4)
-  wrongGuesses: Top5Entry[];            // entries that were guessed but NOT in top 5
-  complete: boolean;
-  won: boolean;
-}

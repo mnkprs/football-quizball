@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion } from '../question.types';
 import {
@@ -9,6 +9,7 @@ import {
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
+import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
 interface HistoryPayload {
   question_text: string;
@@ -24,18 +25,12 @@ interface HistoryPayload {
 }
 
 @Injectable()
-export class HistoryGenerator {
-  private readonly logger = new Logger(HistoryGenerator.name);
+export class HistoryGenerator extends BaseGenerator {
+  constructor(llmService: LlmService) {
+    super(llmService);
+  }
 
-  constructor(private llmService: LlmService) {}
-
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean }): Promise<GeneratedQuestion> {
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
-    const wrongChoicesBlock = options?.forBlitz
-      ? '\n  "wrong_choices": ["plausible wrong answer 1", "plausible wrong answer 2"],  // two plausible but incorrect options, similar in type to correct_answer'
-      : '';
+  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
 Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with these exact fields:
@@ -43,7 +38,7 @@ Return ONLY a valid JSON object with these exact fields:
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
   "answer_type": "name",
-  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Brazil' write 'Argentina'",${wrongChoicesBlock}
+  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Brazil' write 'Argentina'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
   "explanation": "brief explanation of why this is correct (1-2 sentences)",
   "event_year": 1966,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League, UEFA Champions League",
@@ -52,25 +47,18 @@ Return ONLY a valid JSON object with these exact fields:
 }
 fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.
 answer_type: one of "name", "team", "number", "score", "year", "country" — pick whichever matches the correct_answer.
-specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"), 3 = moderate (specific match/season detail), 5 = very specific (exact shirt number or obscure stat).${langInstruction}`;
+specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"), 3 = moderate (specific match/season detail), 5 = very specific (exact shirt number or obscure stat).${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('HISTORY', options?.slotIndex, options?.minorityScale);
-    this.logger.log(`[HISTORY] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
+    this.logConstraints('HISTORY', options?.slotIndex, constraints);
     const userPrompt = `Generate a unique football history trivia question. Make it specific and interesting. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<HistoryPayload>(systemPrompt, userPrompt);
-
     return this.mapQuestion(result, options?.forBlitz);
   }
 
-  async generateBatch(
-    language: string = 'en',
-    options?: { avoidAnswers?: string[]; questionCount?: number },
-  ): Promise<GeneratedQuestion[]> {
+  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
     const systemPrompt = `You are a football trivia expert. Generate ${questionCount} interesting football history questions on real events.
 The questions must be factual, answerable, and clearly distinct.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object:
@@ -89,35 +77,17 @@ Return ONLY a valid JSON object:
     }
   ]
 }
-${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football history questions in one batch. ${getRelativityConstraint('HISTORY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
-    const result = await this.llmService.generateStructuredJson<{ questions: HistoryPayload[] }>(
-      systemPrompt,
-      userPrompt,
-    );
-    return (result.questions ?? [])
-      .map((item) => {
-        try {
-          return this.mapQuestion(item, false);
-        } catch {
-          return null;
-        }
-      })
-      .filter((item): item is GeneratedQuestion => item !== null);
+
+    const result = await this.llmService.generateStructuredJson<{ questions: HistoryPayload[] }>(systemPrompt, userPrompt);
+    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));
   }
 
   private mapQuestion(result: HistoryPayload, forBlitz = false): GeneratedQuestion {
     if (!result.question_text || !result.correct_answer) {
       throw new Error('Invalid LLM response: missing question_text or correct_answer');
     }
-
-    const rawWrong = forBlitz && Array.isArray(result.wrong_choices)
-      ? result.wrong_choices
-          .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
-          .filter((s) => s.trim().toLowerCase() !== result.correct_answer.trim().toLowerCase())
-          .slice(0, 2)
-      : [];
-    const wrongChoices = rawWrong.length >= 2 ? rawWrong : undefined;
     return {
       id: crypto.randomUUID(),
       category: 'HISTORY',
@@ -125,7 +95,7 @@ ${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en')}${la
       points: 1,
       question_text: result.question_text,
       correct_answer: result.correct_answer,
-      wrong_choices: wrongChoices,
+      wrong_choices: this.extractWrongChoices(forBlitz, result.wrong_choices, result.correct_answer),
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',

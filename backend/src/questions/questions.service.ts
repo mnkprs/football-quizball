@@ -9,6 +9,7 @@ import {
 } from './question.types';
 import { minorityScaleForDifficulty } from './diversity-hints';
 import { DifficultyScorer } from './difficulty-scorer.service';
+import { GeneratorOptions, GeneratorBatchOptions } from './generators/base-generator';
 import { HistoryGenerator } from './generators/history.generator';
 import { PlayerIdGenerator } from './generators/player-id.generator';
 import { HigherOrLowerGenerator } from './generators/higher-or-lower.generator';
@@ -132,7 +133,7 @@ export class QuestionsService {
     category: QuestionCategory,
     difficulty: Difficulty,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean },
+    options?: GeneratorOptions,
   ): Promise<GeneratedQuestion> {
     const scale = options?.minorityScale ?? minorityScaleForDifficulty(difficulty);
     const question = await this.generateRawWithRetry(category, language, { ...options, minorityScale: scale });
@@ -146,7 +147,7 @@ export class QuestionsService {
   async generateBatch(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; questionCount?: number },
+    options?: GeneratorBatchOptions,
   ): Promise<GeneratedQuestion[]> {
     const results = await this.generateRawBatch(category, language, options);
     return results
@@ -157,7 +158,7 @@ export class QuestionsService {
   private async generateRawWithRetry(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean },
+    options?: GeneratorOptions,
     maxRetries = 3,
   ): Promise<GeneratedQuestion> {
     let lastError: Error | null = null;
@@ -179,7 +180,7 @@ export class QuestionsService {
   private async generateRaw(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean },
+    options?: GeneratorOptions,
   ): Promise<GeneratedQuestion> {
     const genOpts =
       options?.avoidAnswers?.length || options?.slotIndex !== undefined || options?.minorityScale !== undefined || options?.forBlitz
@@ -200,7 +201,7 @@ export class QuestionsService {
   private async generateRawBatch(
     category: QuestionCategory,
     language: string = 'en',
-    options?: { avoidAnswers?: string[]; questionCount?: number },
+    options?: GeneratorBatchOptions,
   ): Promise<GeneratedQuestion[]> {
     switch (category) {
       case 'HISTORY':

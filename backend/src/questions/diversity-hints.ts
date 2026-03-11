@@ -1,4 +1,5 @@
 import { Difficulty, QuestionCategory, QuestionLocale } from './question.types';
+import type { ExplicitConstraintsResult } from '../common/interfaces/diversity.interface';
 
 /**
  * Explicit diversity constraints to inject into LLM prompts.
@@ -381,11 +382,6 @@ function pickConstraints(category: string, slotIndex?: number, minorityScale?: n
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
-
-export interface ExplicitConstraintsResult {
-  promptPart: string;
-  constraints: string[];
-}
 
 const RELATIVE_CONTEXTS: Partial<Record<QuestionCategory, readonly string[]>> = {
   HISTORY: [

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
 import { GeneratedQuestion, Top5Entry, DifficultyFactors } from '../question.types';
 import {
@@ -9,6 +9,7 @@ import {
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
+import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
 interface Top5Payload {
   question_text: string;
@@ -23,6 +24,7 @@ function normalizeText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
+/** Returns true if any answer name appears verbatim inside the question text — a cheat indicator. */
 function leaksTop5Answer(questionText: string, top5: Top5Entry[]): boolean {
   const normalizedQuestion = ` ${normalizeText(questionText)} `;
   return top5.some((entry) => {
@@ -31,17 +33,13 @@ function leaksTop5Answer(questionText: string, top5: Top5Entry[]): boolean {
   });
 }
 
-
 @Injectable()
-export class Top5Generator {
-  private readonly logger = new Logger(Top5Generator.name);
+export class Top5Generator extends BaseGenerator {
+  constructor(llmService: LlmService) {
+    super(llmService);
+  }
 
-  constructor(private llmService: LlmService) {}
-
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
+  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football statistics expert. Generate a "Name the Top 5" football quiz question.
 Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
@@ -62,25 +60,18 @@ Return ONLY valid JSON:
 The top5 array must have exactly 5 entries ordered from 1st to 5th place. All data must be factually accurate.
 Do not mention any of the 5 answer names anywhere in question_text.
 fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.
-specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.${langInstruction}`;
+specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('TOP_5', options?.slotIndex, options?.minorityScale);
-    this.logger.log(`[TOP_5] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
+    this.logConstraints('TOP_5', options?.slotIndex, constraints);
     const userPrompt = `Generate a unique and interesting "Name the Top 5" football question. Make it varied — avoid repeating common rankings. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<Top5Payload>(systemPrompt, userPrompt);
-
     return this.mapQuestion(result);
   }
 
-  async generateBatch(
-    language: string = 'en',
-    options?: { avoidAnswers?: string[]; questionCount?: number },
-  ): Promise<GeneratedQuestion[]> {
+  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
     const systemPrompt = `You are a football statistics expert. Generate ${questionCount} "Name the Top 5" football quiz questions.
 These questions are hard by nature, but they must still be findable because the competition context is familiar.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
@@ -103,21 +94,11 @@ Return ONLY valid JSON:
   ]
 }
 Do not mention any answer name from the top5 array anywhere in question_text.
-${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} Top 5 questions in one batch. ${getRelativityConstraint('TOP_5', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
-    const result = await this.llmService.generateStructuredJson<{ questions: Top5Payload[] }>(
-      systemPrompt,
-      userPrompt,
-    );
-    return (result.questions ?? [])
-      .map((item) => {
-        try {
-          return this.mapQuestion(item);
-        } catch {
-          return null;
-        }
-      })
-      .filter((item): item is GeneratedQuestion => item !== null);
+
+    const result = await this.llmService.generateStructuredJson<{ questions: Top5Payload[] }>(systemPrompt, userPrompt);
+    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));
   }
 
   private mapQuestion(result: Top5Payload): GeneratedQuestion {

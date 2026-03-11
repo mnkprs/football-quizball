@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { GeneratedQuestion, Top5Entry } from '../question.types';
+import type { ValidationResult } from '../../common/interfaces/validation.interface';
 
-export interface ValidationResult {
-  valid: boolean;
-  reason?: string;
-}
+export type { ValidationResult };
 
 /**
  * Validates question quality before inserting into the pool.

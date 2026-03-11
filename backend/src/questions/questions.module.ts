@@ -13,10 +13,9 @@ import { Top5Generator } from './generators/top5.generator';
 import { GeographyGenerator } from './generators/geography.generator';
 import { GossipGenerator } from './generators/gossip.generator';
 import { LlmModule } from '../llm/llm.module';
-import { FootballApiModule } from '../football-api/football-api.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), LlmModule, FootballApiModule],
+  imports: [ScheduleModule.forRoot(), LlmModule],
   providers: [
     QuestionsService,
     QuestionPoolService,

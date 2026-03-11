@@ -8,6 +8,7 @@ import {
   getLeagueFamiliarityTier,
   resolveQuestionPoints,
 } from './question.types';
+import type { DifficultyScoreResult } from '../common/interfaces/difficulty.interface';
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -125,14 +126,6 @@ function getRejectReason(factors: DifficultyFactors, tier: number): string | nul
     return 'Low-familiarity competitions are too obscure for the main pool';
   }
   return null;
-}
-
-export interface DifficultyScoreResult {
-  difficulty: Difficulty;
-  points: number;
-  raw: number;
-  rejected?: boolean;
-  rejectReason?: string;
 }
 
 @Injectable()

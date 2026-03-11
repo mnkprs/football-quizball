@@ -11,11 +11,49 @@ import {
   CATEGORY_DIFFICULTY_SLOTS,
   resolveQuestionPoints,
 } from './question.types';
+import type { DrawBoardResult } from '../common/interfaces/pool.interface';
 
 interface SlotRequirement {
   category: QuestionCategory;
   difficulty: Difficulty;
   count: number;
+}
+
+// ── Named types for Supabase RPC responses ──────────────────────────────────
+
+interface PoolTranslation {
+  el?: { question_text?: string; explanation?: string };
+}
+
+interface DrawBoardRow {
+  id: string;
+  question: GeneratedQuestion;
+  difficulty: string;
+  category: string;
+  translations?: PoolTranslation;
+}
+
+interface DrawQuestionsRow {
+  question: GeneratedQuestion;
+  difficulty: string;
+  category: string;
+  translations?: PoolTranslation;
+}
+
+interface PoolStatsRow {
+  category: string;
+  difficulty: string;
+  unanswered: number;
+}
+
+interface CleanupResultRow {
+  deleted_invalid?: number;
+  deleted_duplicates?: number;
+}
+
+interface ExistingQuestionRow {
+  question_text: string;
+  correct_answer: string;
 }
 
 const DRAW_REQUIREMENTS: SlotRequirement[] = Object.entries(CATEGORY_DIFFICULTY_SLOTS).flatMap(
@@ -40,11 +78,6 @@ const POOL_TARGET: Partial<Record<string, number>> = {
 const DEFAULT_TARGET = 40 ;
 const GENERATION_BATCH_SIZE = 5;
 const MAX_CATEGORY_BATCH_ATTEMPTS = 20;
-
-export interface DrawBoardResult {
-  questions: GeneratedQuestion[];
-  poolQuestionIds: string[];
-}
 
 @Injectable()
 export class QuestionPoolService {
@@ -168,9 +201,9 @@ export class QuestionPoolService {
       this.logger.error(`[cleanupPool] RPC error: ${error.message}`);
       return { deletedInvalid: 0, deletedDuplicates: 0 };
     }
-    const row = Array.isArray(data) && data[0] ? data[0] : data;
-    const deletedInvalid = Number((row as { deleted_invalid?: number })?.deleted_invalid ?? 0);
-    const deletedDuplicates = Number((row as { deleted_duplicates?: number })?.deleted_duplicates ?? 0);
+    const row = (Array.isArray(data) && data[0] ? data[0] : data) as CleanupResultRow;
+    const deletedInvalid = Number(row?.deleted_invalid ?? 0);
+    const deletedDuplicates = Number(row?.deleted_duplicates ?? 0);
     if (deletedInvalid > 0 || deletedDuplicates > 0) {
       this.logger.log(`[cleanupPool] Removed ${deletedInvalid} invalid, ${deletedDuplicates} duplicates`);
     }
@@ -359,13 +392,7 @@ export class QuestionPoolService {
       return { questions: [], poolIds: [], missingByCategory };
     }
 
-    const rows = (data ?? []) as Array<{
-      id: string;
-      question: GeneratedQuestion;
-      difficulty: string;
-      category: string;
-      translations?: { el?: { question_text?: string; explanation?: string } };
-    }>;
+    const rows = (data ?? []) as DrawBoardRow[];
 
     const questions = rows.map((row) => {
       const q = row.question;
@@ -435,12 +462,7 @@ export class QuestionPoolService {
       return [];
     }
 
-    const rows = data as Array<{
-      question: GeneratedQuestion;
-      difficulty: string;
-      category: string;
-      translations?: { el?: { question_text?: string; explanation?: string } };
-    }>;
+    const rows = (data ?? []) as DrawQuestionsRow[];
 
     return rows.map((row) => {
       const q = row.question;
@@ -522,40 +544,13 @@ export class QuestionPoolService {
       return [];
     }
 
-    let translations: Array<{ question_text: string; explanation: string }> = filtered;
     try {
-      translations = await this.llmService.translateToGreek(
-        filtered.map((q) => ({ question_text: q.question_text, explanation: q.explanation ?? '' })),
-      );
+      await this.persistQuestionsToPool(category, filtered, difficulty);
     } catch (err) {
-      this.logger.warn(`[fillSlot] Greek translation failed, inserting without translations: ${(err as Error).message}`);
-    }
-
-    const rows = filtered.map((q, i) => ({
-      id: q.id,
-      category,
-      difficulty,
-      question: {
-        ...q,
-        difficulty,
-        points: resolveQuestionPoints(q.category, difficulty),
-        raw_score: undefined,
-      },
-      raw_score: q.raw_score ?? null,
-      translations: {
-        el: {
-          question_text: translations[i]?.question_text ?? q.question_text,
-          explanation: translations[i]?.explanation ?? q.explanation ?? '',
-        },
-      },
-    }));
-
-    const { error } = await this.supabaseService.client.from('question_pool').insert(rows);
-    if (error) {
-      this.logger.error(`[fillSlot] Insert error for ${category}/${difficulty}: ${error.message}`);
+      this.logger.error(`[fillSlot] ${(err as Error).message}`);
       return [];
     }
-    this.logger.log(`[fillSlot] Inserted ${rows.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - rows.length} duplicates skipped)`);
+    this.logger.log(`[fillSlot] Inserted ${filtered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - filtered.length} duplicates skipped)`);
     return filtered.map((q) => q.question_text);
   }
 
@@ -572,8 +567,7 @@ export class QuestionPoolService {
     }
 
     return new Set(
-      (data as Array<{ question_text: string; correct_answer: string }>)
-        .map((r) => `${r.question_text}|||${r.correct_answer}`),
+      (data as ExistingQuestionRow[]).map((r) => `${r.question_text}|||${r.correct_answer}`),
     );
   }
 
@@ -586,7 +580,7 @@ export class QuestionPoolService {
     }
 
     const counts: Record<string, number> = {};
-    for (const row of (data ?? []) as Array<{ category: string; difficulty: string; unanswered: number }>) {
+    for (const row of (data ?? []) as PoolStatsRow[]) {
       const key = `${row.category}/${row.difficulty}`;
       counts[key] = Number(row.unanswered ?? 0);
     }
@@ -751,35 +745,63 @@ export class QuestionPoolService {
   }
 
   private async insertQuestions(category: QuestionCategory, questions: GeneratedQuestion[]): Promise<void> {
+    await this.persistQuestionsToPool(category, questions);
+  }
+
+  /**
+   * Translate questions to Greek and insert them into the pool.
+   * If translation fails, falls back to inserting with English text.
+   * Throws if the DB insert fails.
+   *
+   * @param difficultyOverride Force a specific difficulty on the row (used by seedSlot).
+   *   If omitted, uses each question's own scored difficulty.
+   */
+  private async persistQuestionsToPool(
+    category: QuestionCategory,
+    questions: GeneratedQuestion[],
+    difficultyOverride?: Difficulty,
+  ): Promise<void> {
     if (questions.length === 0) return;
-    let translations: Array<{ question_text: string; explanation: string }> = questions;
+
+    let translations: Array<{ question_text: string; explanation: string }> = questions.map((q) => ({
+      question_text: q.question_text,
+      explanation: q.explanation ?? '',
+    }));
     try {
       translations = await this.llmService.translateToGreek(
         questions.map((q) => ({ question_text: q.question_text, explanation: q.explanation ?? '' })),
       );
     } catch (err) {
-      this.logger.warn(`[insertQuestions] Greek translation failed: ${(err as Error).message}`);
+      this.logger.warn(
+        `[persistQuestionsToPool] Greek translation failed, inserting without translations: ${(err as Error).message}`,
+      );
     }
 
-    const rows = questions.map((q, i) => ({
-      id: q.id,
-      category,
-      difficulty: q.difficulty,
-      question: {
-        ...q,
-        raw_score: undefined,
-      },
-      raw_score: q.raw_score ?? null,
-      translations: {
-        el: {
-          question_text: translations[i]?.question_text ?? q.question_text,
-          explanation: translations[i]?.explanation ?? q.explanation ?? '',
+    const rows = questions.map((q, i) => {
+      const difficulty = difficultyOverride ?? q.difficulty;
+      return {
+        id: q.id,
+        category,
+        difficulty,
+        question: {
+          ...q,
+          difficulty,
+          points: resolveQuestionPoints(q.category, difficulty),
+          raw_score: undefined,
         },
-      },
-    }));
+        raw_score: q.raw_score ?? null,
+        translations: {
+          el: {
+            question_text: translations[i]?.question_text ?? q.question_text,
+            explanation: translations[i]?.explanation ?? q.explanation ?? '',
+          },
+        },
+      };
+    });
+
     const { error } = await this.supabaseService.client.from('question_pool').insert(rows);
     if (error) {
-      throw new Error(`[insertQuestions] Insert error for ${category}: ${error.message}`);
+      throw new Error(`[persistQuestionsToPool] Insert error for ${category}: ${error.message}`);
     }
   }
 

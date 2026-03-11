@@ -1,40 +1,7 @@
 import { Difficulty } from '../questions/question.types';
+import { SoloSession, SoloQuestion, SoloAnswerResult } from '../common/interfaces/solo.interface';
 
-export interface SoloSession {
-  id: string;
-  userId: string;
-  userElo: number;         // snapshot at session start
-  currentElo: number;      // live-updated
-  currentQuestion: SoloQuestion | null;
-  servedAt: Date | null;
-  questionsAnswered: number;
-  correctAnswers: number;
-  eloChanges: number[];
-  createdAt: Date;
-}
-
-export interface SoloQuestion {
-  id: string;
-  question_text: string;
-  correct_answer: string;
-  explanation: string;
-  difficulty: Difficulty;
-  difficulty_factor: number;
-  category: string;
-  points: number;
-}
-
-export interface SoloAnswerResult {
-  correct: boolean;
-  timed_out: boolean;
-  correct_answer: string;
-  explanation: string;
-  elo_before: number;
-  elo_after: number;
-  elo_change: number;
-  questions_answered: number;
-  correct_answers: number;
-}
+export type { SoloSession, SoloQuestion, SoloAnswerResult };
 
 export const DIFFICULTY_ELO: Record<Difficulty, number> = {
   EASY: 1000,

@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
-import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion, DifficultyFactors } from '../question.types';
 import {
   getExplicitConstraintsWithMeta,
@@ -10,9 +9,9 @@ import {
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
+import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
-
-interface MatchData {
+interface MatchPayload {
   home_team: string;
   away_team: string;
   home_score: number;
@@ -22,23 +21,18 @@ interface MatchData {
   significance: string;
   event_year: number;
   fame_score: number;
+  specificity_score?: number;
   question_text?: string;
   explanation?: string;
 }
 
 @Injectable()
-export class GuessScoreGenerator {
-  private readonly logger = new Logger(GuessScoreGenerator.name);
+export class GuessScoreGenerator extends BaseGenerator {
+  constructor(llmService: LlmService) {
+    super(llmService);
+  }
 
-  constructor(
-    private llmService: LlmService,
-    private footballApiService: FootballApiService,
-  ) {}
-
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number }): Promise<GeneratedQuestion> {
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
+  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football historian. Generate a "Guess the Score" question.
 Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older.${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
@@ -57,25 +51,18 @@ Return ONLY valid JSON:
   "explanation": "Brief explanation of the correct answer"
 }
 fame_score is 1-10: 10 = universally iconic, 7 = well-known match most fans recall, 4 = notable but not top-of-mind, 1 = obscure.
-specificity_score is 1-5: Prefer 1-3 (famous finals, widely recallable matches). Avoid 5 (very obscure).${langInstruction}`;
+specificity_score is 1-5: Prefer 1-3 (famous finals, widely recallable matches). Avoid 5 (very obscure).${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex, options?.minorityScale);
-    this.logger.log(`[GUESS_SCORE] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
+    this.logConstraints('GUESS_SCORE', options?.slotIndex, constraints);
     const userPrompt = `Generate a unique guess-the-score football question with accurate historical data. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
-    const result = await this.llmService.generateStructuredJson<MatchData & { specificity_score?: number }>(systemPrompt, userPrompt);
-
+    const result = await this.llmService.generateStructuredJson<MatchPayload>(systemPrompt, userPrompt);
     return this.mapQuestion(result);
   }
 
-  async generateBatch(
-    language: string = 'en',
-    options?: { avoidAnswers?: string[]; questionCount?: number },
-  ): Promise<GeneratedQuestion[]> {
+  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
     const systemPrompt = `You are a football historian. Generate ${questionCount} "Guess the Score" questions.
 Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older. Prefer well-known matches so players can recall the score.${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
@@ -97,39 +84,20 @@ Return ONLY valid JSON:
     }
   ]
 }
-${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} guess-the-score questions in one batch. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
-    const result = await this.llmService.generateStructuredJson<{ questions: Array<MatchData & { specificity_score?: number }> }>(
-      systemPrompt,
-      userPrompt,
-    );
-    return (result.questions ?? [])
-      .map((item) => {
-        try {
-          return this.mapQuestion(item);
-        } catch {
-          return null;
-        }
-      })
-      .filter((item): item is GeneratedQuestion => item !== null);
+
+    const result = await this.llmService.generateStructuredJson<{ questions: MatchPayload[] }>(systemPrompt, userPrompt);
+    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));
   }
 
-  private mapQuestion(result: MatchData & { specificity_score?: number }): GeneratedQuestion {
+  private mapQuestion(result: MatchPayload): GeneratedQuestion {
     if (!result.home_team || !result.away_team || result.home_score === undefined || result.away_score === undefined) {
       throw new Error('Invalid LLM response: missing team names or scores');
     }
 
     const correct_answer = `${result.home_score}-${result.away_score}`;
-    // Generate a plausible wrong score by shifting one score by ±1. Must differ from correct (e.g. 0-0 → avoid 0-0).
-    let wrongHome = result.home_score + (Math.random() < 0.5 ? 1 : -1);
-    let wrongAway = wrongHome === result.home_score ? result.away_score + 1 : result.away_score;
-    wrongHome = Math.max(0, wrongHome);
-    wrongAway = Math.max(0, wrongAway);
-    let fifty_hint = `${wrongHome}-${wrongAway}`;
-    if (fifty_hint === correct_answer) {
-      // 0-0 can produce 0-0; use 1-0 or 0-1 instead
-      fifty_hint = result.home_score === 0 && result.away_score === 0 ? '1-0' : `${result.home_score + 1}-${result.away_score}`;
-    }
+    const fifty_fifty_hint = this.buildWrongScore(result.home_score, result.away_score, correct_answer);
 
     const difficulty_factors: DifficultyFactors = {
       event_year: result.event_year ?? new Date().getFullYear(),
@@ -140,21 +108,18 @@ ${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en')}
       specificity_score: result.specificity_score ?? 4,
     };
 
-    const question_text = result.question_text
-      ?? `What was the final score in ${result.competition}?\n${result.home_team} vs ${result.away_team} — ${result.date}`;
-    const explanation = result.explanation
-      ?? `The final score was ${result.home_team} ${result.home_score}-${result.away_score} ${result.away_team}. ${result.significance || ''}`;
-
     return {
       id: crypto.randomUUID(),
       category: 'GUESS_SCORE',
       difficulty: 'EASY',
       points: 1,
-      question_text,
+      question_text: result.question_text
+        ?? `What was the final score in ${result.competition}?\n${result.home_team} vs ${result.away_team} — ${result.date}`,
       correct_answer,
-      fifty_fifty_hint: fifty_hint,
+      fifty_fifty_hint,
       fifty_fifty_applicable: true,
-      explanation,
+      explanation: result.explanation
+        ?? `The final score was ${result.home_team} ${result.home_score}-${result.away_score} ${result.away_team}. ${result.significance || ''}`,
       image_url: null,
       meta: {
         home_team: result.home_team,
@@ -166,5 +131,22 @@ ${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en')}
       },
       difficulty_factors,
     };
+  }
+
+  /**
+   * Generates a plausible wrong score for the 50-50 hint by shifting one score by ±1.
+   * Guards against producing the same string as `correct_answer`.
+   */
+  private buildWrongScore(homeScore: number, awayScore: number, correctAnswer: string): string {
+    let wrongHome = homeScore + (Math.random() < 0.5 ? 1 : -1);
+    let wrongAway = wrongHome === homeScore ? awayScore + 1 : awayScore;
+    wrongHome = Math.max(0, wrongHome);
+    wrongAway = Math.max(0, wrongAway);
+    const candidate = `${wrongHome}-${wrongAway}`;
+    if (candidate === correctAnswer) {
+      // 0-0 edge case: shift produces same score; fallback to 1-0
+      return homeScore === 0 && awayScore === 0 ? '1-0' : `${homeScore + 1}-${awayScore}`;
+    }
+    return candidate;
   }
 }

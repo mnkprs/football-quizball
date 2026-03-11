@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
 import { GeneratedQuestion } from '../questions/question.types';
 import { getCompactQuestionInstruction } from '../questions/diversity-hints';
-import type { NewsHeadline } from './news-fetcher.service';
+import type { NewsHeadline } from '../common/interfaces/news.interface';
 
 @Injectable()
 export class NewsQuestionGenerator {

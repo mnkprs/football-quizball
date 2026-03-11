@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
 import { getCompactQuestionInstruction } from '../questions/diversity-hints';
-
-export interface DailyQuestion {
-  question_text: string;
-  correct_answer: string;
-  wrong_choices: string[];
-  explanation: string;
-}
+import type { DailyQuestion } from '../common/interfaces/daily.interface';
 
 @Injectable()
 export class TodayGenerator {

@@ -1,6 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LlmService } from '../../llm/llm.service';
-import { FootballApiService } from '../../football-api/football-api.service';
 import { GeneratedQuestion } from '../question.types';
 import {
   getExplicitConstraintsWithMeta,
@@ -10,7 +9,7 @@ import {
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
-
+import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
 interface CareerEntry {
   club: string;
@@ -36,21 +35,12 @@ interface PlayerIdPayload {
 }
 
 @Injectable()
-export class PlayerIdGenerator {
-  private readonly logger = new Logger(PlayerIdGenerator.name);
+export class PlayerIdGenerator extends BaseGenerator {
+  constructor(llmService: LlmService) {
+    super(llmService);
+  }
 
-  constructor(
-    private llmService: LlmService,
-    private footballApiService: FootballApiService,
-  ) {}
-
-  async generate(language: string = 'en', options?: { avoidAnswers?: string[]; slotIndex?: number; minorityScale?: number; forBlitz?: boolean }): Promise<GeneratedQuestion> {
-    const wrongChoicesBlock = options?.forBlitz
-      ? '\n  "wrong_choices": ["plausible wrong player 1", "plausible wrong player 2"],'
-      : '';
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
+  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
 Pick any interesting footballer — legendary, retired, or current, from any era or league.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with these exact fields:
@@ -59,7 +49,7 @@ Return ONLY a valid JSON object with these exact fields:
   "career": [{"club": "Club Name", "from": "YYYY", "to": "YYYY or Present", "is_loan": false}],
   "nationality": "Nationality",
   "position": "Position",
-  "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",${wrongChoicesBlock}
+  "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false, 'player')}
   "image_url": null,
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
   "event_year": 2018,
@@ -71,25 +61,18 @@ Return ONLY a valid JSON object with these exact fields:
 The career array must have at least 3 entries. All career data must be factually accurate.
 Set "is_loan": true for any spell where the player was on loan, otherwise false.
 fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.
-specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${langInstruction}`;
+specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('PLAYER_ID', options?.slotIndex, options?.minorityScale);
-    this.logger.log(`[PLAYER_ID] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
+    this.logConstraints('PLAYER_ID', options?.slotIndex, constraints);
     const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<PlayerIdPayload>(systemPrompt, userPrompt);
-
     return this.mapQuestion(result, options?.forBlitz);
   }
 
-  async generateBatch(
-    language: string = 'en',
-    options?: { avoidAnswers?: string[]; questionCount?: number },
-  ): Promise<GeneratedQuestion[]> {
+  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
-    const langInstruction = language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
     const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each question must include:
 {
@@ -107,21 +90,11 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
   "explanation": "Short explanation"
 }
 Set "is_loan": true for any loan spell in the career path, otherwise false.
-${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${langInstruction}`;
+${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} player-id questions in one batch. ${getRelativityConstraint('PLAYER_ID', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
-    const result = await this.llmService.generateStructuredJson<{ questions: PlayerIdPayload[] }>(
-      systemPrompt,
-      userPrompt,
-    );
-    return (result.questions ?? [])
-      .map((item) => {
-        try {
-          return this.mapQuestion(item, false);
-        } catch {
-          return null;
-        }
-      })
-      .filter((item): item is GeneratedQuestion => item !== null);
+
+    const result = await this.llmService.generateStructuredJson<{ questions: PlayerIdPayload[] }>(systemPrompt, userPrompt);
+    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));
   }
 
   private mapQuestion(result: PlayerIdPayload, forBlitz = false): GeneratedQuestion {
@@ -133,28 +106,17 @@ ${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${
       .map((c) => `${c.club}${c.is_loan ? ' [Loan]' : ''} (${c.from}–${c.to})`)
       .join(' → ');
 
-    const rawWrong = forBlitz && Array.isArray(result.wrong_choices)
-      ? result.wrong_choices
-          .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
-          .filter((s) => s.trim().toLowerCase() !== result.player_name.trim().toLowerCase())
-          .slice(0, 2)
-      : [];
-    const wrongChoices = rawWrong.length >= 2 ? rawWrong : undefined;
-
-    const question_text = result.question_text ?? 'Identify the player from their career path:';
-    const explanation = result.explanation ?? `The player is ${result.player_name}. Career: ${careerText}`;
-
     return {
       id: crypto.randomUUID(),
       category: 'PLAYER_ID',
       difficulty: 'EASY',
       points: 1,
-      question_text,
+      question_text: result.question_text ?? 'Identify the player from their career path:',
       correct_answer: result.player_name,
-      wrong_choices: wrongChoices,
+      wrong_choices: this.extractWrongChoices(forBlitz, result.wrong_choices, result.player_name),
       fifty_fifty_hint: result.wrong_player_name || null,
       fifty_fifty_applicable: true,
-      explanation,
+      explanation: result.explanation ?? `The player is ${result.player_name}. Career: ${careerText}`,
       image_url: result.image_url,
       meta: { career: result.career, nationality: result.nationality, position: result.position },
       difficulty_factors: {

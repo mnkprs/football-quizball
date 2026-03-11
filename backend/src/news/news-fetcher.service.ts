@@ -1,11 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
-
-export interface NewsHeadline {
-  headline: string;
-  url: string;
-  date: Date;
-}
+import type { NewsHeadline } from '../common/interfaces/news.interface';
 
 const BBC_FOOTBALL_RSS = 'https://feeds.bbci.co.uk/sport/football/rss.xml';
 const MAX_HEADLINES = 15;

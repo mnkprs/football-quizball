@@ -2,13 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { TodayGenerator } from './today.generator';
-
-export interface DailyQuestionRef {
-  question_text: string;
-  correct_answer: string;
-  choices: string[];
-  explanation: string;
-}
+import type { DailyQuestionRef } from '../common/interfaces/daily.interface';
 
 @Injectable()
 export class DailyService implements OnModuleInit {
