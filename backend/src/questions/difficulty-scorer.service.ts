@@ -54,7 +54,7 @@ function computeRecentHistoricalScore(age: number): number {
 
 function normalizeSpecificity(category: QuestionCategory, specificityScore: number): number {
   if (category === 'TOP_5') return 10;
-  if (category === 'GUESS_SCORE') return Math.max(7, specificityScore);
+  if (category === 'GUESS_SCORE') return Math.max(4, specificityScore); // Lower floor = less obscure
   if (category === 'PLAYER_ID' || category === 'HIGHER_OR_LOWER') return 6;
   if (category === 'GOSSIP') return 2;
   return Math.max(1, Math.min(10, specificityScore));
@@ -116,11 +116,11 @@ function applyCategoryRawFloor(category: QuestionCategory, raw: number): number 
 }
 
 function getRejectReason(factors: DifficultyFactors, tier: number): string | null {
-  // Only reject when fame_score is explicitly provided and low; missing → allow through
-  if (factors.category === 'GUESS_SCORE' && factors.fame_score != null && factors.fame_score < 7) {
-    return 'GUESS_SCORE questions must be built from famous matches';
+  // Only reject when fame_score is explicitly provided and very low; missing → allow through
+  if (factors.category === 'GUESS_SCORE' && factors.fame_score != null && factors.fame_score < 4) {
+    return 'GUESS_SCORE questions must be from at least moderately known matches';
   }
-  if (tier >= 4 && (factors.fame_score ?? 0) <= 5) {
+  if (tier >= 4 && (factors.fame_score ?? 0) <= 3) {
     return 'Low-familiarity competitions are too obscure for the main pool';
   }
   return null;

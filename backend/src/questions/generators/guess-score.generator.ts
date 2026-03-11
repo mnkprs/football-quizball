@@ -40,7 +40,7 @@ export class GuessScoreGenerator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football historian. Generate a "Guess the Score" question.
-Pick any real, historically accurate match — any era, any competition.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older.${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "home_team": "Team Name",
@@ -51,13 +51,13 @@ Return ONLY valid JSON:
   "date": "Day Month Year",
   "significance": "brief note about the match",
   "event_year": 2019,
-  "fame_score": 8,
+  "fame_score": 7,
   "specificity_score": 4,
   "question_text": "Full question sentence shown to the player",
   "explanation": "Brief explanation of the correct answer"
 }
-fame_score is 1-10: 10 = universally iconic match, 1 = obscure match only experts know.
-specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not top-of-mind, 5 = very obscure match detail.${langInstruction}`;
+fame_score is 1-10: 10 = universally iconic, 7 = well-known match most fans recall, 4 = notable but not top-of-mind, 1 = obscure.
+specificity_score is 1-5: Prefer 1-3 (famous finals, widely recallable matches). Avoid 5 (very obscure).${langInstruction}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex, options?.minorityScale);
     this.logger.log(`[GUESS_SCORE] slotIndex=${options?.slotIndex} constraints=${JSON.stringify(constraints)}`);
@@ -77,7 +77,7 @@ specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football historian. Generate ${questionCount} "Guess the Score" questions.
-Every question MUST use a famous real match. Avoid obscure matches because exact score recall is inherently hard.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older. Prefer well-known matches so players can recall the score.${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [
@@ -90,8 +90,8 @@ Return ONLY valid JSON:
       "date": "Day Month Year",
       "significance": "brief note about the match",
       "event_year": 2019,
-      "fame_score": 8,
-      "specificity_score": 7,
+      "fame_score": 7,
+      "specificity_score": 3,
       "question_text": "Full question sentence shown to the player",
       "explanation": "Brief explanation of the correct answer"
     }

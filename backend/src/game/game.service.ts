@@ -670,7 +670,7 @@ export class GameService {
         .flat()
         .filter((c) => !c.answered)
         .map((c) => c.question_id)
-        .filter((id) => poolIds.includes(id));
+        .filter((id) => id && poolIds.includes(id));
       if (unansweredIds.length > 0) {
         await this.questionPoolService.returnUnansweredToPool(unansweredIds).catch((err) =>
           this.logger.error(`[endGame] Failed to return questions to pool: ${(err as Error).message}`),

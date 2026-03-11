@@ -193,8 +193,14 @@ const SEASON_PHASES = [
 /**
  * System-prompt instruction to ban the LLM's most-cached football trivia tropes.
  * Inject into every generator's system prompt.
+ * GUESS_SCORE: softer version to reduce obscurity (prefer recallable matches).
  */
-export function getAntiConvergenceInstruction(): string {
+export function getAntiConvergenceInstruction(category?: string): string {
+  if (category === 'GUESS_SCORE') {
+    return `
+ANTI-REPETITION RULES:
+- Vary the type of match (finals, league classics, tournament shocks) to avoid repetition.`;
+  }
   return `
 ANTI-REPETITION RULES (strictly enforced):
 - Do NOT generate questions without a genuinely niche, non-obvious angle.`;
@@ -278,12 +284,16 @@ function pickConstraints(category: string, slotIndex?: number, minorityScale?: n
 
   if (useEntityInjection) {
     const entityType = entityTypeForCategory(category);
-    const scale = minorityScale ?? randomInRange(25, 85);
+    // GUESS_SCORE: prefer famous clubs (higher scale) to reduce obscurity
+    const scale = minorityScale ?? (category === 'GUESS_SCORE' ? randomInRange(65, 95) : randomInRange(25, 85));
     const angles = QUESTION_ANGLES[category] ?? [];
     const angle = angles.length ? pick(angles as readonly string[], useIndex(1)) : null;
 
     // Minority scale entity constraint + chain-of-thought brainstorm instruction
-    let entityConstraint = `Pick a football ${entityType} at obscurity level ${scale}/100 (where 1 = extremely obscure/niche, 100 = universally famous worldwide). The question MUST specifically involve this entity. Before writing the question, mentally recall 2 unusual or lesser-known facts about this entity, then use the most interesting one.`;
+    const obscureHint = category === 'GUESS_SCORE'
+      ? 'Pick a well-known match involving this entity.'
+      : 'Before writing the question, mentally recall 2 unusual or lesser-known facts about this entity, then use the most interesting one.';
+    let entityConstraint = `Pick a football ${entityType} at obscurity level ${scale}/100 (where 1 = extremely obscure/niche, 100 = universally famous worldwide). The question MUST specifically involve this entity. ${obscureHint}`;
     if (angle) {
       entityConstraint += ` The specific angle MUST be: ${angle}.`;
     }
@@ -443,7 +453,7 @@ export function getLeagueFameGuidanceForBatch(
     case 'GEOGRAPHY':
       return `Produce 3 questions ordered by answerability: Q1 EASY (Tier 1 league/tournament, fame 7-10), Q2 MEDIUM (Tier 1-2, fame 5-7), Q3 HARD (Tier 1, fame 3-5). ${localeHint}`;
     case 'GUESS_SCORE':
-      return `Produce 3 questions ordered by answerability, but every question MUST be from a famous match (fame 7-10 minimum). Q1 EASY, Q2 MEDIUM, Q3 HARD should all remain findable because the context is famous. ${localeHint}`;
+      return `Produce 3 questions ordered by answerability. Prefer matches from the last decade (2015+); exception: very famous matches (iconic finals, legendary comebacks) may be older. Use well-known matches (fame 5-10). Q1 EASY, Q2 MEDIUM, Q3 HARD should all be findable. ${localeHint}`;
     case 'PLAYER_ID':
     case 'HIGHER_OR_LOWER':
       return `Produce 2 questions and keep both in the MEDIUM band: Tier 1-2 competitions, fame 5-7, no impossible obscurity. ${localeHint}`;

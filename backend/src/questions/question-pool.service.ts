@@ -120,40 +120,23 @@ export class QuestionPoolService {
       return { questions: board, poolQuestionIds: [] };
     }
 
-    // English: use pool with fallback to live generation
-    const board: GeneratedQuestion[] = [];
-    const poolIds: string[] = [];
-    const missingByCategory = new Map<QuestionCategory, Difficulty[]>();
-    await Promise.all(
-      DRAW_REQUIREMENTS.map(async (slot) => {
-        const drawn = await this.drawSlot(
-          slot.category,
-          slot.difficulty,
-          slot.count,
-          'en',
-          undefined, // NEWS recycled through games (no exclusion of used questions)
-        );
-        for (const q of drawn) {
-          board.push(q);
-          poolIds.push(q.id);
-        }
+    // English: single RPC to draw full board, then fallback for any missing slots
+    const { questions: poolQuestions, poolIds, missingByCategory } = await this.drawBoardFromDb();
+    const board: GeneratedQuestion[] = [...poolQuestions];
 
-        const missing = slot.count - drawn.length;
-        if (missing > 0 && slot.category !== 'NEWS') {
-          const list = missingByCategory.get(slot.category) ?? [];
-          for (let i = 0; i < missing; i++) list.push(slot.difficulty);
-          missingByCategory.set(slot.category, list);
-        } else if (missing > 0 && slot.category === 'NEWS') {
-          this.logger.warn(`[drawBoard] NEWS pool empty — run POST /api/news/ingest to populate`);
-        }
-      }),
-    );
+    for (const [category, difficulties] of missingByCategory.entries()) {
+      if (category === 'NEWS') {
+        this.logger.warn(`[drawBoard] NEWS pool empty — run POST /api/news/ingest to populate`);
+      }
+    }
 
-    // Generate missing categories in parallel to reduce latency
+    // Generate missing categories in parallel (NEWS has no live generator)
     const fallbackResults = await Promise.all(
-      Array.from(missingByCategory.entries()).map(([category, difficulties]) =>
-        this.generateCategoryFallback(category, difficulties, 'en'),
-      ),
+      Array.from(missingByCategory.entries())
+        .filter(([cat]) => cat !== 'NEWS')
+        .map(([category, difficulties]) =>
+          this.generateCategoryFallback(category, difficulties, 'en'),
+        ),
     );
     for (const generated of fallbackResults) {
       board.push(...generated);
@@ -200,6 +183,7 @@ export class QuestionPoolService {
    */
   async returnUnansweredToPool(questionIds: string[]): Promise<number> {
     if (questionIds.length === 0) return 0;
+    this.logger.debug(`[returnUnansweredToPool] Returning ${questionIds.length} ids: ${questionIds.slice(0, 3).join(', ')}${questionIds.length > 3 ? '...' : ''}`);
     const { data, error } = await this.supabaseService.client.rpc('return_questions_to_pool', {
       p_question_ids: questionIds,
     });
@@ -210,6 +194,8 @@ export class QuestionPoolService {
     const count = (data as number) ?? 0;
     if (count > 0) {
       this.logger.log(`[returnUnansweredToPool] Returned ${count} unanswered questions to pool`);
+    } else if (questionIds.length > 0) {
+      this.logger.warn(`[returnUnansweredToPool] RPC returned 0 updated rows for ${questionIds.length} ids — check id format matches question_pool`);
     }
     return count;
   }
@@ -350,6 +336,82 @@ export class QuestionPoolService {
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
+
+  /** Single RPC to draw full board (replaces 18 drawSlot calls). */
+  private async drawBoardFromDb(): Promise<{
+    questions: GeneratedQuestion[];
+    poolIds: string[];
+    missingByCategory: Map<QuestionCategory, Difficulty[]>;
+  }> {
+    const { data, error } = await this.supabaseService.client.rpc('draw_board', {
+      p_exclude_ids: null,
+    });
+
+    if (error) {
+      this.logger.error(`[drawBoardFromDb] RPC error: ${error.message}`);
+      const missingByCategory = new Map<QuestionCategory, Difficulty[]>();
+      for (const slot of DRAW_REQUIREMENTS) {
+        if (slot.category === 'NEWS') continue;
+        const list = missingByCategory.get(slot.category) ?? [];
+        for (let i = 0; i < slot.count; i++) list.push(slot.difficulty);
+        missingByCategory.set(slot.category, list);
+      }
+      return { questions: [], poolIds: [], missingByCategory };
+    }
+
+    const rows = (data ?? []) as Array<{
+      id: string;
+      question: GeneratedQuestion;
+      difficulty: string;
+      category: string;
+      translations?: { el?: { question_text?: string; explanation?: string } };
+    }>;
+
+    const questions = rows.map((row) => {
+      const q = row.question;
+      const tr = row.translations?.el;
+      const useEl = false; // English board, no Greek
+      return {
+        ...q,
+        difficulty: row.difficulty as Difficulty,
+        points: this.resolvePoints(q, row.difficulty as Difficulty),
+        source_question_text: q.question_text,
+        source_explanation: q.explanation,
+        translations: tr?.question_text
+          ? {
+              el: {
+                question_text: tr.question_text,
+                explanation: tr.explanation ?? q.explanation,
+              },
+            }
+          : undefined,
+        question_text: useEl ? tr!.question_text! : q.question_text,
+        explanation: useEl && tr?.explanation ? tr.explanation : q.explanation,
+      } as GeneratedQuestion;
+    });
+
+    const poolIds = questions.map((q) => q.id);
+
+    // Count drawn per slot and compute missing
+    const drawnBySlot = new Map<string, number>();
+    for (const row of rows) {
+      const key = `${row.category}/${row.difficulty}`;
+      drawnBySlot.set(key, (drawnBySlot.get(key) ?? 0) + 1);
+    }
+    const missingByCategory = new Map<QuestionCategory, Difficulty[]>();
+    for (const slot of DRAW_REQUIREMENTS) {
+      const key = `${slot.category}/${slot.difficulty}`;
+      const drawn = drawnBySlot.get(key) ?? 0;
+      const missing = slot.count - drawn;
+      if (missing > 0) {
+        const list = missingByCategory.get(slot.category) ?? [];
+        for (let i = 0; i < missing; i++) list.push(slot.difficulty);
+        missingByCategory.set(slot.category, list);
+      }
+    }
+
+    return { questions, poolIds, missingByCategory };
+  }
 
   private async drawSlot(
     category: QuestionCategory,
