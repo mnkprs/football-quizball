@@ -1,14 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 import { jsonrepair } from 'jsonrepair';
 
-/** DeepSeek model (primary). OpenAI-compatible API. */
+/** DeepSeek model. OpenAI-compatible API. */
 const DEEPSEEK_MODEL = 'deepseek-chat';
 
-/** Gemini fallback chain: Flash-Lite (1000 RPD), Flash (250 RPD), 1.5-Flash (separate quota). gemini-2.5-pro has 0 free tier. */
-const GEMINI_FALLBACK_CHAIN = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-1.5-flash'] as const;
+/** Delay (ms) before retry when rate limited. */
+const RATE_LIMIT_RETRY_MS = 30_000;
 
 function isRateLimitError(err: unknown): boolean {
   const msg = String((err as Error)?.message ?? '');
@@ -38,40 +37,23 @@ function extractJson<T>(text: string): T {
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private deepseekClient: OpenAI | null = null;
-  private geminiClient: GoogleGenAI | null = null;
-  /** Current Gemini model index. Advances on rate limit. */
-  private geminiModelIndex = 0;
 
   constructor(private configService: ConfigService) {
     const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
-    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
 
     if (deepseekKey) {
       this.deepseekClient = new OpenAI({
         apiKey: deepseekKey,
         baseURL: 'https://api.deepseek.com',
       });
-      this.logger.log(`LlmService ready — primary: ${DEEPSEEK_MODEL}`);
-    }
-
-    if (geminiKey) {
-      this.geminiClient = new GoogleGenAI({ apiKey: geminiKey });
-      this.logger.log(
-        `LlmService — Gemini fallback: ${GEMINI_FALLBACK_CHAIN[this.geminiModelIndex]}`,
-      );
-    }
-
-    if (!this.deepseekClient && !this.geminiClient) {
-      this.logger.warn('Neither DEEPSEEK_API_KEY nor GEMINI_API_KEY set — LLM disabled');
+      this.logger.log(`LlmService ready — ${DEEPSEEK_MODEL}`);
+    } else {
+      this.logger.warn('DEEPSEEK_API_KEY not set — LLM disabled');
     }
   }
 
   private get hasLlm(): boolean {
-    return !!(this.deepseekClient || this.geminiClient);
-  }
-
-  private get currentGeminiModel(): string {
-    return GEMINI_FALLBACK_CHAIN[this.geminiModelIndex];
+    return !!this.deepseekClient;
   }
 
   async generateStructuredJson<T>(
@@ -81,7 +63,7 @@ export class LlmService {
   ): Promise<T> {
     if (!this.hasLlm) {
       const err = new Error(
-        'No LLM configured — set DEEPSEEK_API_KEY and/or GEMINI_API_KEY',
+        'No LLM configured — set DEEPSEEK_API_KEY',
       );
       this.logger.error(
         `[generateStructuredJson] Cannot call LLM — no API key\n  Caller stack:\n${err.stack}`,
@@ -108,95 +90,45 @@ export class LlmService {
 
     let lastError: Error | null = null;
 
-    // 1. Try DeepSeek first
-    if (this.deepseekClient) {
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          const result = await this.deepseekClient.chat.completions.create({
-            model: DEEPSEEK_MODEL,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: 0.9,
-            top_p: 0.95,
-            response_format: { type: 'json_object' },
-          });
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.deepseekClient!.chat.completions.create({
+          model: DEEPSEEK_MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.9,
+          top_p: 0.95,
+          response_format: { type: 'json_object' },
+        });
 
-          const text = result.choices?.[0]?.message?.content ?? '';
-          return extractJson<T>(text);
-        } catch (err) {
-          lastError = err as Error;
-          if (isRateLimitError(err)) {
-            this.logger.warn(
-              `[generateStructuredJson] Rate limit on ${DEEPSEEK_MODEL} — falling back to Gemini`,
-            );
-            break;
-          }
-          this.logger.error(
-            `[generateStructuredJson] DeepSeek attempt ${attempt}/${maxRetries} failed\n` +
-              `  Prompt: "${promptSnippet}..."\n` +
-              `  Error: ${lastError.message}`,
+        const text = result.choices?.[0]?.message?.content ?? '';
+        return extractJson<T>(text);
+      } catch (err) {
+        lastError = err as Error;
+
+        if (isRateLimitError(err)) {
+          this.logger.warn(
+            `[generateStructuredJson] Rate limit on ${DEEPSEEK_MODEL} — retrying in ${RATE_LIMIT_RETRY_MS / 1000}s (attempt ${attempt}/${maxRetries})`,
           );
           if (attempt < maxRetries) {
-            await new Promise((r) => setTimeout(r, 1000 * attempt));
+            await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS));
           } else {
-            break;
+            throw lastError;
           }
+          continue;
         }
-      }
-    }
 
-    // 2. Fall back to Gemini
-    if (this.geminiClient) {
-      for (
-        let modelIdx = this.geminiModelIndex;
-        modelIdx < GEMINI_FALLBACK_CHAIN.length;
-        modelIdx++
-      ) {
-        this.geminiModelIndex = modelIdx;
-        const model = this.currentGeminiModel;
-        this.logger.log(`[generateStructuredJson] Trying Gemini: ${model}`);
-
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-          try {
-            const result = await this.geminiClient.models.generateContent({
-              model,
-              contents: [
-                {
-                  role: 'user',
-                  parts: [{ text: fullPrompt }],
-                },
-              ],
-              config: {
-                temperature: 0.9,
-                topP: 0.95,
-              },
-            });
-
-            const text = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-            return extractJson<T>(text);
-          } catch (err) {
-            lastError = err as Error;
-
-            if (isRateLimitError(err)) {
-              this.logger.error(
-                `[generateStructuredJson] Rate limit (429) on ${model} — exiting, no retry`,
-              );
-              throw lastError;
-            }
-
-            this.logger.error(
-              `[generateStructuredJson] Gemini attempt ${attempt}/${maxRetries} failed (${model})\n` +
-                `  Prompt: "${promptSnippet}..."\n` +
-                `  Error: ${lastError.message}`,
-            );
-            if (attempt < maxRetries) {
-              await new Promise((r) => setTimeout(r, 1000 * attempt));
-            } else {
-              throw lastError;
-            }
-          }
+        this.logger.error(
+          `[generateStructuredJson] DeepSeek attempt ${attempt}/${maxRetries} failed\n` +
+            `  Prompt: "${promptSnippet}..."\n` +
+            `  Error: ${lastError.message}`,
+        );
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, 1000 * attempt));
+        } else {
+          throw lastError;
         }
       }
     }

@@ -25,7 +25,7 @@ npm run seed-pool -- 50
 ```
 
 - Slots: `HISTORY`, `PLAYER_ID`, `HIGHER_OR_LOWER`, `GUESS_SCORE`, `TOP_5`, `GEOGRAPHY`, `GOSSIP` + `EASY`/`MEDIUM`/`HARD`
-- Requires `.env` with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `DEEPSEEK_API_KEY` and/or `GEMINI_API_KEY` (DeepSeek primary, Gemini fallback).
+- Requires `.env` with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `DEEPSEEK_API_KEY`.
 
 ### Blitz pool
 
