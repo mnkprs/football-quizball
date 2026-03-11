@@ -22,7 +22,6 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
           alt=""
           aria-hidden="true"
         />
-        <span class="mode-card-container__bg-overlay" aria-hidden="true"></span>
       }
       @if (backgroundIcon()) {
         <span class="mode-card-container__bg-icon material-icons">{{ backgroundIcon() }}</span>
@@ -50,7 +49,7 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
       transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
     }
 
-    .mode-card-container > :not(.mode-card-container__bg-image):not(.mode-card-container__bg-overlay):not(.mode-card-container__bg-icon) {
+    .mode-card-container > :not(.mode-card-container__bg-image):not(.mode-card-container__bg-icon) {
       position: relative;
       z-index: 1;
     }
@@ -65,6 +64,8 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
       border-color: color-mix(in srgb, var(--color-accent) 72%, #000000 28%);
       color: #000000;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+      padding: 1.5rem;
+      min-height: 12.5rem;
     }
 
     .mode-card-container--primary:hover {
@@ -75,6 +76,7 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
     .mode-card-container--accent {
       background: color-mix(in srgb, var(--color-card, #111111) 90%, #000000 10%);
       border-color: rgba(255, 255, 255, 0.1);
+      min-height: 180px;
     }
 
     .mode-card-container--accent:hover {
@@ -83,10 +85,10 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
 
     .mode-card-container--outline {
       background: color-mix(in srgb, var(--color-card, #111111) 82%, #000000 18%);
+      min-height: 180px;
     }
 
     .mode-card-container__bg-image,
-    .mode-card-container__bg-overlay,
     .mode-card-container__bg-icon {
       position: absolute;
       pointer-events: none;
@@ -110,37 +112,18 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
       opacity: 0.28;
     }
 
-    .mode-card-container__bg-overlay {
-      inset: 0;
-      background: linear-gradient(180deg, rgba(9, 12, 18, 0.2), rgba(9, 12, 18, 0.58));
-      z-index: 0;
-    }
-
-    .mode-card-container--primary .mode-card-container__bg-overlay {
-      background:
-        linear-gradient(180deg, rgba(204, 255, 0, 0.5), rgba(204, 255, 0, 0.78)),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.18));
-    }
-
-    .mode-card-container--accent .mode-card-container__bg-overlay {
-      background:
-        linear-gradient(180deg, rgba(9, 12, 18, 0.22), rgba(9, 12, 18, 0.68)),
-        linear-gradient(135deg, rgba(204, 255, 0, 0.18), rgba(255, 255, 255, 0.03));
-    }
-
-    .mode-card-container--outline .mode-card-container__bg-overlay {
-      background:
-        linear-gradient(180deg, rgba(9, 12, 18, 0.26), rgba(9, 12, 18, 0.74)),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(204, 255, 0, 0.08));
-    }
-
     .mode-card-container__bg-icon {
-      top: -0.5rem;
-      right: -0.5rem;
-      font-size: 8rem;
-      opacity: 0.25;
+      top: -1.75rem;
+      right: -1.75rem;
+      font-size: 7.5rem;
+      opacity: 0.18;
       color: #000000;
       z-index: 1;
+      transition: transform 0.5s ease;
+    }
+
+    .mode-card-container:hover .mode-card-container__bg-icon {
+      transform: rotate(12deg);
     }
   `],
 })

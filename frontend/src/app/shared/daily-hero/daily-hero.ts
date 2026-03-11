@@ -20,24 +20,22 @@ import { MatIconModule } from '@angular/material/icon';
         @if (badgeLabel()) {
           <span class="daily-hero__badge">{{ badgeLabel() }}</span>
         }
-        <div class="daily-hero__row">
-          <div class="daily-hero__text">
-            <h2 class="daily-hero__title">{{ title() }}</h2>
-            <p class="daily-hero__meta">
-              <span class="material-icons daily-hero__meta-icon">schedule</span>
-              {{ questionCount() }} {{ questionsLabel() }} · {{ resetsLabel() }} {{ resetsIn() }}
-            </p>
-          </div>
-          <button
-            type="button"
-            class="daily-hero__play pressable"
-            (click)="play.emit()"
-            [attr.aria-label]="playLabel() + ' ' + title()"
-          >
-            <span class="material-icons">play_arrow</span>
-          </button>
+        <div class="daily-hero__text">
+          <h2 class="daily-hero__title">{{ title() }}</h2>
+          <p class="daily-hero__meta">
+            <span class="material-icons daily-hero__meta-icon">schedule</span>
+            {{ questionCount() }} {{ questionsLabel() }} · {{ resetsLabel() }} {{ resetsIn() }}
+          </p>
         </div>
       </div>
+      <button
+        type="button"
+        class="daily-hero__play pressable"
+        (click)="play.emit()"
+        [attr.aria-label]="playLabel() + ' ' + title()"
+      >
+        <span class="material-icons">play_arrow</span>
+      </button>
     </div>
   `,
   styles: [`
@@ -45,8 +43,10 @@ import { MatIconModule } from '@angular/material/icon';
       position: relative;
       isolation: isolate;
       overflow: hidden;
-      min-height: 9.75rem;
-      padding: 1.125rem 1.25rem;
+      display: flex;
+      align-items: flex-end;
+      min-height: 180px;
+      padding: 1.5rem;
       border-radius: 1rem;
       background: color-mix(in srgb, var(--color-card, #111111) 88%, #000000 12%);
       border: 1px solid rgba(255, 255, 255, 0.1);
@@ -77,8 +77,8 @@ import { MatIconModule } from '@angular/material/icon';
 
     .daily-hero__bg-overlay {
       background:
-        linear-gradient(180deg, rgba(9, 12, 18, 0.22), rgba(9, 12, 18, 0.68)),
-        linear-gradient(135deg, rgba(204, 255, 0, 0.18), rgba(255, 255, 255, 0.03));
+        linear-gradient(180deg, rgba(9, 12, 18, 0.02), rgba(9, 12, 18, 0.38) 40%, rgba(9, 12, 18, 0.82)),
+        linear-gradient(135deg, rgba(204, 255, 0, 0.08), rgba(255, 255, 255, 0.03));
     }
 
     .daily-hero__content {
@@ -86,7 +86,9 @@ import { MatIconModule } from '@angular/material/icon';
       z-index: 1;
       display: flex;
       flex-direction: column;
-      gap: 0.75rem;
+      align-items: flex-start;
+      gap: 0.5rem;
+      max-width: calc(100% - 5rem);
     }
 
     .daily-hero__badge {
@@ -102,20 +104,12 @@ import { MatIconModule } from '@angular/material/icon';
       text-transform: uppercase;
       background: var(--color-accent);
       color: var(--color-accent-foreground);
-      border-radius: 0.75rem;
+      border-radius: 0.5rem;
       border: 1px solid color-mix(in srgb, var(--color-accent) 72%, #000000 28%);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
     }
 
-    .daily-hero__row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-
     .daily-hero__text {
-      flex: 1;
       min-width: 0;
     }
 
@@ -124,7 +118,7 @@ import { MatIconModule } from '@angular/material/icon';
       font-weight: 800;
       line-height: 1.05;
       letter-spacing: -0.03em;
-      margin: 0 0 0.5rem 0;
+      margin: 0 0 0.375rem 0;
       color: #ffffff;
     }
 
@@ -146,11 +140,15 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     .daily-hero__play {
+      position: absolute;
+      right: 1.5rem;
+      bottom: 1.5rem;
+      z-index: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 3.25rem;
-      height: 3.25rem;
+      width: 3.5rem;
+      height: 3.5rem;
       flex-shrink: 0;
       color: var(--color-accent-foreground);
       background: var(--color-accent);

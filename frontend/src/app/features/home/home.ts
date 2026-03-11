@@ -155,6 +155,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
     .home-content {
       max-width: 24.375rem;
       width: 100%;
+      padding-bottom: 7.5rem;
     }
 
     .home-lang-toggle {

@@ -111,10 +111,10 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 3rem;
-      height: 3rem;
+      width: 3.5rem;
+      height: 3.5rem;
       flex-shrink: 0;
-      border-radius: 50%;
+      border-radius: 0.875rem;
       border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
     }
@@ -143,12 +143,12 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
     .mode-card__title-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
+      justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.375rem 0.5rem;
       flex: 1;
       min-width: 0;
-      opacity: 0.9;
     }
 
     .mode-card__footer {
@@ -177,19 +177,23 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     }
 
     .mode-card__footer-text {
-      font-size: 0.8125rem;
-      font-weight: 600;
+      font-size: 0.625rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       color: var(--mat-sys-on-surface-variant);
-      opacity: 0.9;
+      opacity: 0.8;
     }
 
     .mode-card__title {
-      font-size: 1.375rem;
+      font-size: 1.5rem;
       font-weight: 800;
       line-height: 1.08;
       margin: 0;
       color: inherit;
       letter-spacing: -0.03em;
+      text-transform: uppercase;
+      font-style: italic;
     }
 
     .mode-card__title-row .mode-card__title {
@@ -197,11 +201,11 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     }
 
     .mode-card__hint {
-      font-size: 0.9375rem;
+      font-size: 0.875rem;
       font-weight: 500;
-      margin: 0.375rem 0 0 0;
-      opacity: 0.9;
-      line-height: 1.35;
+      margin: 0.25rem 0 0 0;
+      opacity: 0.82;
+      line-height: 1.4;
     }
 
     .mode-card__section {
@@ -218,7 +222,8 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     .mode-card__section-text {
       font-size: 0.75rem;
       font-weight: 700;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }
 
     .mode-card__cta {
@@ -234,10 +239,10 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     }
 
     .mode-card__cta--pill {
-      padding: 0.6875rem 1.125rem;
+      padding: 0.75rem 1.5rem;
       background: #000000;
-      color: #ffffff;
-      border-radius: 9999px;
+      color: var(--color-accent);
+      border-radius: 0.75rem;
       border: none;
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
     }
