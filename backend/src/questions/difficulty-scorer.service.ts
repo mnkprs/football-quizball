@@ -116,7 +116,8 @@ function applyCategoryRawFloor(category: QuestionCategory, raw: number): number 
 }
 
 function getRejectReason(factors: DifficultyFactors, tier: number): string | null {
-  if (factors.category === 'GUESS_SCORE' && (factors.fame_score ?? 0) < 7) {
+  // Only reject when fame_score is explicitly provided and low; missing → allow through
+  if (factors.category === 'GUESS_SCORE' && factors.fame_score != null && factors.fame_score < 7) {
     return 'GUESS_SCORE questions must be built from famous matches';
   }
   if (tier >= 4 && (factors.fame_score ?? 0) <= 5) {

@@ -230,7 +230,7 @@ export class QuestionsService {
     const factors = question.difficulty_factors;
     const result = this.difficultyScorer.score(question.difficulty_factors);
     if (result.rejected) {
-      this.logger.warn(`[scoreQuestion] Rejected ${question.category}: ${result.rejectReason}`);
+      this.logger.debug(`[scoreQuestion] Rejected ${question.category}: ${result.rejectReason}`);
       return null;
     }
     const scoredQuestion = {

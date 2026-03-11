@@ -109,12 +109,14 @@ export class QuestionPoolService {
   ): Promise<DrawBoardResult> {
     // For non-English, generate all questions live (pool is English-only)
     if (language !== 'en') {
-      const board: GeneratedQuestion[] = [];
-      for (const category of this.getLiveCategories()) {
-        const slots = CATEGORY_DIFFICULTY_SLOTS[category].filter((difficulty) => difficulty !== undefined);
-        const generated = await this.generateCategoryFallback(category, [...slots], language);
-        board.push(...generated);
-      }
+      const categories = this.getLiveCategories();
+      const fallbackResults = await Promise.all(
+        categories.map((category) => {
+          const slots = CATEGORY_DIFFICULTY_SLOTS[category].filter((difficulty) => difficulty !== undefined);
+          return this.generateCategoryFallback(category, [...slots], language);
+        }),
+      );
+      const board = fallbackResults.flat();
       return { questions: board, poolQuestionIds: [] };
     }
 
@@ -147,8 +149,13 @@ export class QuestionPoolService {
       }),
     );
 
-    for (const [category, difficulties] of missingByCategory.entries()) {
-      const generated = await this.generateCategoryFallback(category, difficulties, 'en');
+    // Generate missing categories in parallel to reduce latency
+    const fallbackResults = await Promise.all(
+      Array.from(missingByCategory.entries()).map(([category, difficulties]) =>
+        this.generateCategoryFallback(category, difficulties, 'en'),
+      ),
+    );
+    for (const generated of fallbackResults) {
       board.push(...generated);
     }
 
