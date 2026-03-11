@@ -110,6 +110,15 @@ export class QuestionPoolService {
     const { questions: poolQuestions, poolIds, missingByCategory } = await this.drawBoardFromDb();
     const board: GeneratedQuestion[] = [...poolQuestions];
 
+    if (missingByCategory.size > 0) {
+      const missingList = Array.from(missingByCategory.entries())
+        .map(([cat, diffs]) => `${cat}: ${diffs.join(', ')}`)
+        .join('; ');
+      this.logger.warn(
+        `[drawBoard] Pool missing ${missingByCategory.size} slot(s) — falling back to LLM: ${missingList}. ` +
+          'Seed via POST /api/admin/seed-pool?target=5 to avoid LLM calls.',
+      );
+    }
     for (const [category, difficulties] of missingByCategory.entries()) {
       if (category === 'NEWS') {
         this.logger.warn(`[drawBoard] NEWS pool empty — run POST /api/news/ingest to populate`);
@@ -187,6 +196,8 @@ export class QuestionPoolService {
 
   /**
    * Seeds a single slot (e.g. GUESS_SCORE/MEDIUM) with generated questions.
+   * Uses the same batch logic as seedPool: generateBatch, validate, deduplicate, insert.
+   * Runs passes until target count is reached (not batched across categories).
    * @param slotKey Format: CATEGORY/DIFFICULTY (NEWS not allowed — use ingest cron).
    */
   async seedSlot(slotKey: string, count: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }> {
@@ -199,9 +210,9 @@ export class QuestionPoolService {
     const toAdd = Math.min(500, Math.max(1, count));
     return this.withRefillLock(async () => {
       const key = `${category}/${difficulty}`;
-      this.logger.log(`[seedSlot] ${key}: adding ${toAdd} questions`);
-      const questions = await this.fillSlot(category, difficulty, toAdd, 0);
-      return { slot: key, added: questions.length, questions };
+      this.logger.log(`[seedSlot] ${key}: adding ${toAdd} questions (batch logic)`);
+      const { added, questions } = await this.seedSlotPasses(category, difficulty, toAdd);
+      return { slot: key, added, questions };
     });
   }
 
@@ -584,6 +595,71 @@ export class QuestionPoolService {
     return addedTotals;
   }
 
+  /**
+   * Seeds a single slot using the same batch logic as seedCategoryPasses.
+   * Uses generateBatch, filters to target difficulty, validates, deduplicates, inserts.
+   * Runs passes until target count is reached (not batched across categories).
+   */
+  private async seedSlotPasses(
+    category: QuestionCategory,
+    difficulty: Difficulty,
+    targetCount: number,
+  ): Promise<{ added: number; questions: string[] }> {
+    const existingKeys = await this.getExistingQuestionKeys(category);
+    const questions: string[] = [];
+    let added = 0;
+    let pass = 0;
+
+    while (added < targetCount && pass < MAX_CATEGORY_BATCH_ATTEMPTS) {
+      pass += 1;
+      this.logger.log(`[seedSlot] ${category}/${difficulty} pass ${pass}`);
+      const batch = await this.questionsService.generateBatch(category, 'en', {
+        questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
+        targetDifficulty: difficulty,
+      });
+      const afterDifficulty = batch.filter((q) => q.difficulty === difficulty);
+      const afterValidator = afterDifficulty.filter((q) => {
+        const { valid } = this.questionValidator.validate(q);
+        return valid;
+      });
+      const accepted = afterValidator
+        .filter((q) => {
+          const key = `${q.question_text}|||${q.correct_answer}`;
+          if (existingKeys.has(key)) return false;
+          existingKeys.add(key);
+          return true;
+        })
+        .slice(0, targetCount - added);
+
+      if (accepted.length === 0) {
+        const diffRej = batch.length - afterDifficulty.length;
+        const valRej = afterDifficulty.length - afterValidator.length;
+        const dupHint = afterValidator.length > 0 ? ', all_duplicates' : '';
+        this.logger.warn(
+          `[seedSlot] ${category}/${difficulty} pass ${pass}: no accepted questions ` +
+            `(batch=${batch.length}, diff_mismatch=${diffRej}, validator_rej=${valRej}${dupHint})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
+        continue;
+      }
+
+      await this.insertQuestions(category, accepted);
+      for (const q of accepted) {
+        added += 1;
+        questions.push(q.question_text);
+      }
+      this.logger.log(
+        `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'} (total: ${added}/${targetCount})`,
+      );
+
+      if (added < targetCount) {
+        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
+      }
+    }
+
+    return { added, questions };
+  }
+
   private async generateCategoryFallback(
     category: QuestionCategory,
     difficulties: Difficulty[],
@@ -710,6 +786,7 @@ export class QuestionPoolService {
         id: q.id,
         category,
         difficulty,
+        used: false,
         allowed_difficulties: allowedDifficulties,
         question: {
           ...q,

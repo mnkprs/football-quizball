@@ -34,6 +34,7 @@ export class HistoryGenerator extends BaseGenerator {
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
 Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+CRITICAL: Do NOT mention the correct_answer anywhere in question_text. The question must not give away the answer.
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
@@ -64,6 +65,7 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football trivia expert. Generate ${questionCount} interesting football history questions on real events.
 The questions must be factual, answerable, and clearly distinct.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+CRITICAL: Do NOT mention the correct_answer anywhere in question_text. The question must not give away the answer.
 Return ONLY a valid JSON object:
 {
   "questions": [
@@ -81,7 +83,7 @@ Return ONLY a valid JSON object:
     }
   ]
 }
-${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
+${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football history questions in one batch. ${getRelativityConstraint('HISTORY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: HistoryPayload[] }>(systemPrompt, userPrompt);

@@ -54,7 +54,8 @@ Return ONLY valid JSON:
 }
 fame_score is 1-10: 10 = universally iconic, 7 = well-known match most fans recall, 4 = notable but not top-of-mind, 1 = obscure.
 specificity_score is 1-5: Prefer 1-3 (famous finals, widely recallable matches). Avoid 5 (very obscure).
-combinational_thinking_score 1-10: 1 = single match recall, 5 = combines teams+competition+context, 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
+combinational_thinking_score 1-10: 1 = single match recall, 5 = combines teams+competition+context, 10 = multi-dimensional reasoning.
+CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the score when Germany met Brazil in the 2014 World Cup semi-final?" NOT "where Germany defeated Brazil 7-1?".${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GUESS_SCORE', options?.slotIndex, constraints);
@@ -88,7 +89,8 @@ Return ONLY valid JSON:
     }
   ]
 }
-${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
+${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}
+CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the score when Liverpool hosted Barcelona in the 2019 Champions League semi-final second leg?" NOT "where Liverpool overturned a 3-0 first-leg deficit?".${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} guess-the-score questions in one batch. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: MatchPayload[] }>(systemPrompt, userPrompt);

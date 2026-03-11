@@ -39,6 +39,14 @@ export class QuestionValidator {
       }
     }
 
+    const answerInQuestion = this.answerAppearsInQuestion(question);
+    if (answerInQuestion) {
+      return {
+        valid: false,
+        reason: 'question_text contains the correct_answer (answer leaked in question)',
+      };
+    }
+
     switch (question.category) {
       case 'HIGHER_OR_LOWER':
         return this.validateHigherOrLower(question);
@@ -49,6 +57,31 @@ export class QuestionValidator {
       default:
         return { valid: true };
     }
+  }
+
+  /**
+   * Returns true if the correct answer appears in the question text (invalid — gives away the answer).
+   * Handles GUESS_SCORE variants (7-1, 7 - 1, 7:1) and skips HIGHER_OR_LOWER (both options appear by design).
+   */
+  private answerAppearsInQuestion(question: GeneratedQuestion): boolean {
+    const q = question.question_text.trim().toLowerCase();
+    const a = question.correct_answer.trim().toLowerCase();
+
+    if (question.category === 'HIGHER_OR_LOWER') {
+      return false;
+    }
+
+    if (question.category === 'GUESS_SCORE') {
+      const scoreMatch = a.match(/^(\d{1,2})-(\d{1,2})$/);
+      if (scoreMatch) {
+        const [, x, y] = scoreMatch;
+        const patterns = [`${x}-${y}`, `${x} - ${y}`, `${x} – ${y}`, `${x}:${y}`];
+        return patterns.some((p) => q.includes(p));
+      }
+    }
+
+    if (a.length < 2) return false;
+    return q.includes(a);
   }
 
   private validateHigherOrLower(q: GeneratedQuestion): ValidationResult {

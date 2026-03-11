@@ -1,4 +1,8 @@
-import type { QuestionCategory, QuestionLocale } from '../../common/interfaces/question.interface';
+import type {
+  QuestionCategory,
+  QuestionLocale,
+  Difficulty,
+} from '../../common/interfaces/question.interface';
 
 /**
  * System-prompt instruction to ban the LLM's most-cached football trivia tropes.
@@ -53,16 +57,33 @@ const LEAGUE_FAME_GUIDANCE: Partial<Record<QuestionCategory, string>> = {
   GOSSIP: 'Produce 2 questions that are easy to answer in spirit even though they sit in the MEDIUM slot: use highly recognizable gossip contexts, fame 6-9, specificity 2.',
 };
 
+const TARGET_DIFFICULTY_OVERRIDES: Partial<Record<QuestionCategory, Partial<Record<Difficulty, string>>>> = {
+  GUESS_SCORE: {
+    HARD: 'ALL questions must score as HARD: use fame_score 4-6 (not top-of-mind), less obvious matches, specificity_score 4-5. Do NOT use universally iconic matches (fame 8-10) like Germany 7-1 Brazil or Liverpool 4-0 Barcelona.',
+  },
+  HISTORY: {
+    HARD: 'ALL questions must score as HARD: use fame_score 3-5 (niche facts), older events (pre-2015), specificity_score 4-5, combinational_thinking_score 5+. Avoid universally iconic moments (fame 8-10).',
+  },
+};
+
 const GREEK_LOCALE_HINT = 'For Greek audience, Greek Super League should be treated as having the same familiarity weight as Premier League.';
+
+function getTargetDifficultyOverride(category: QuestionCategory, targetDifficulty?: Difficulty): string | undefined {
+  if (!targetDifficulty) return undefined;
+  return TARGET_DIFFICULTY_OVERRIDES[category]?.[targetDifficulty];
+}
 
 /**
  * League fame guidance per category for batch generation.
+ * When targetDifficulty is set (e.g. when seeding a slot), overrides guidance to bias toward that difficulty.
  */
 export function getLeagueFameGuidanceForBatch(
   category: QuestionCategory,
   locale: QuestionLocale = 'en',
+  targetDifficulty?: Difficulty,
 ): string {
-  const guidance = LEAGUE_FAME_GUIDANCE[category] ?? '';
+  const override = getTargetDifficultyOverride(category, targetDifficulty);
+  const guidance = override ?? LEAGUE_FAME_GUIDANCE[category] ?? '';
   const localeHint = locale === 'el' ? GREEK_LOCALE_HINT : '';
   return guidance ? `${guidance} ${localeHint}`.trim() : localeHint;
 }
