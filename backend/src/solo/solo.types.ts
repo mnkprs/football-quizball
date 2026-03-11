@@ -20,6 +20,8 @@ export interface SoloQuestion {
   explanation: string;
   difficulty: Difficulty;
   difficulty_factor: number;
+  category: string;
+  points: number;
 }
 
 export interface SoloAnswerResult {

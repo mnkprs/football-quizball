@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
-import { Difficulty } from '../questions/question.types';
+import { Difficulty, resolveQuestionPoints } from '../questions/question.types';
 import { SoloQuestion } from './solo.types';
 import {
   getExplicitConstraints,
@@ -30,6 +30,8 @@ export class SoloQuestionGenerator {
         explanation: fromPool.explanation ?? '',
         difficulty,
         difficulty_factor: 0.5,
+        category: fromPool.category,
+        points: fromPool.points,
       };
     }
 
@@ -72,6 +74,8 @@ difficulty_factor: float 0.1–1.0 (how hard within the difficulty tier)`;
       explanation: raw.explanation,
       difficulty,
       difficulty_factor: Math.max(0.1, Math.min(1.0, raw.difficulty_factor ?? 0.5)),
+      category: 'HISTORY',
+      points: resolveQuestionPoints('HISTORY', difficulty),
     };
   }
 }

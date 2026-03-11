@@ -4,6 +4,7 @@ import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { firstValueFrom } from 'rxjs';
 import { BlitzApiService, BlitzQuestionRef } from '../../core/blitz-api.service';
 import { DonateModalService } from '../../core/donate-modal.service';
+import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
@@ -90,6 +91,17 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
               }
             </div>
 
+            <!-- Report problem -->
+            <div class="mt-auto pt-6">
+              <button
+                (click)="reportQuestion()"
+                [disabled]="reportDisabled()"
+                class="w-full py-2 rounded-xl border border-border text-muted-foreground text-sm hover:bg-muted hover:border-border transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+              >
+                {{ reportDisabled() ? lang.t().reportCooldown : lang.t().reportProblem }}
+              </button>
+            </div>
+
             <!-- Result flash overlay -->
             @if (showFlash()) {
               <div
@@ -138,6 +150,21 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
 
       </div>
     </div>
+
+    <!-- Problem reported popup -->
+    @if (problemReported()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
+        <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
+          <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
+          <button
+            (click)="dismissProblemReported()"
+            class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     :host.blitz-host {
@@ -180,6 +207,7 @@ export class BlitzComponent implements OnDestroy {
   private api = inject(BlitzApiService);
   private router = inject(Router);
   private donateModal = inject(DonateModalService);
+  private gameApi = inject(GameApiService);
   lang = inject(LanguageService);
 
   phase = signal<BlitzPhase>('idle');
@@ -202,6 +230,9 @@ export class BlitzComponent implements OnDestroy {
 
   /** True while waiting for API response after selecting an answer. */
   submitting = signal(false);
+  reportDisabled = signal(false);
+  problemReported = signal(false);
+  private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
   showFlash = signal(false);
   flashCorrect = signal(false);
   flashAnswer = signal('');
@@ -358,8 +389,45 @@ export class BlitzComponent implements OnDestroy {
     this.router.navigate(['/']);
   }
 
+  async reportQuestion(): Promise<void> {
+    if (this.reportDisabled()) return;
+    const q = this.currentQuestion();
+    if (!q) return;
+
+    this.reportDisabled.set(true);
+    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
+    this.reportCooldownTimeout = setTimeout(() => {
+      this.reportDisabled.set(false);
+      this.reportCooldownTimeout = null;
+    }, 60_000);
+
+    const payload = {
+      questionId: q.question_id,
+      category: q.category,
+      difficulty: q.difficulty,
+      points: 1,
+      questionText: q.question_text,
+    };
+
+    try {
+      await firstValueFrom(this.gameApi.reportProblem(payload));
+      this.problemReported.set(true);
+    } catch {
+      this.reportDisabled.set(false);
+      if (this.reportCooldownTimeout) {
+        clearTimeout(this.reportCooldownTimeout);
+        this.reportCooldownTimeout = null;
+      }
+    }
+  }
+
+  dismissProblemReported(): void {
+    this.problemReported.set(false);
+  }
+
   ngOnDestroy(): void {
     this.stopTimer();
     this.clearFlash();
+    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
   }
 }

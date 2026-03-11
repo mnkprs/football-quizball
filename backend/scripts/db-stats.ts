@@ -14,7 +14,7 @@ async function main() {
 
   console.log('\n=== Tables with seed/delete automations ===\n');
 
-  // question_pool
+  // question_pool (Solo + 2-player pool)
   const { count: qpTotal } = await supabase.client
     .from('question_pool')
     .select('id', { count: 'exact', head: true });
@@ -28,11 +28,18 @@ async function main() {
     .eq('category', 'NEWS')
     .eq('used', false);
 
-  console.log('question_pool');
+  console.log('question_pool (Solo + 2-player, active — seeded with new questions)');
   console.log(`  total: ${qpTotal ?? 0}`);
   console.log(`  unanswered (available): ${qpUnanswered ?? 0}`);
   console.log(`  NEWS unanswered: ${qpNews ?? 0}`);
   console.log('  Automations: refill (5min), news ingest (6h), expire news (6h), cleanup');
+
+  // questions_v1 (storage/archive)
+  const { count: v1Total } = await supabase.client
+    .from('questions_v1')
+    .select('id', { count: 'exact', head: true });
+  console.log('\nquestions_v1 (storage/archive)');
+  console.log(`  total: ${v1Total ?? 0}`);
 
   // blitz_question_pool
   const { count: bqpTotal } = await supabase.client

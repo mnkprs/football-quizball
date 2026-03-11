@@ -18,6 +18,7 @@
     "db-stats": "ts-node -r tsconfig-paths/register scripts/db-stats.ts",
     "translate-seed-greek": "ts-node -r tsconfig-paths/register scripts/translate-seed-greek.ts",
     "migrate-pool-difficulty": "ts-node -r tsconfig-paths/register scripts/migrate-question-pool-difficulty.ts",
+    "transfer-pool-to-questions-v1": "ts-node -r tsconfig-paths/register scripts/transfer-pool-to-questions-v1.ts",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

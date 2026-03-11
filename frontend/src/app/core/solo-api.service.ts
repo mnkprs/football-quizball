@@ -12,7 +12,9 @@ export interface StartSessionResponse {
 export interface NextQuestionResponse {
   question_id: string;
   question_text: string;
+  category: string;
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  points: number;
   time_limit: number;
   questions_answered: number;
   current_elo: number;

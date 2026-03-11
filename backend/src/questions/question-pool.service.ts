@@ -463,6 +463,7 @@ export class QuestionPoolService {
     }
 
     const rows = filtered.map((q, i) => ({
+      id: q.id,
       category,
       difficulty,
       question: {
@@ -692,6 +693,7 @@ export class QuestionPoolService {
     }
 
     const rows = questions.map((q, i) => ({
+      id: q.id,
       category,
       difficulty: q.difficulty,
       question: {

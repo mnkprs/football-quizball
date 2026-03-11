@@ -5,6 +5,8 @@ import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { DonateModalService } from '../../core/donate-modal.service';
+import { GameApiService } from '../../core/game-api.service';
+import { LanguageService } from '../../core/language.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
@@ -109,6 +111,17 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
                 Submit
               </button>
             </div>
+
+            <!-- Report problem -->
+            <div class="mt-auto pt-6">
+              <button
+                (click)="reportQuestion()"
+                [disabled]="reportDisabled()"
+                class="w-full py-2 rounded-xl border border-border text-muted-foreground text-sm hover:bg-muted hover:border-border transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+              >
+                {{ reportDisabled() ? lang.t().reportCooldown : lang.t().reportProblem }}
+              </button>
+            </div>
           </div>
         }
 
@@ -207,6 +220,21 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
 
       </div>
     </div>
+
+    <!-- Problem reported popup -->
+    @if (problemReported()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
+        <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
+          <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
+          <button
+            (click)="dismissProblemReported()"
+            class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     :host.solo-host {
@@ -226,6 +254,8 @@ export class SoloComponent implements OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private donateModal = inject(DonateModalService);
+  private gameApi = inject(GameApiService);
+  lang = inject(LanguageService);
 
   phase = signal<SoloPhase>('idle');
 
@@ -250,6 +280,9 @@ export class SoloComponent implements OnDestroy {
   lastResult = signal<AnswerResponse | null>(null);
 
   answer = '';
+  reportDisabled = signal(false);
+  problemReported = signal(false);
+  private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
   timeLeft = signal(35);
   timerPercent = computed(() => (this.timeLeft() / this.totalTimeLimit()) * 100);
   totalTimeLimit = signal(35);
@@ -383,7 +416,44 @@ export class SoloComponent implements OnDestroy {
     this.router.navigate(['/']);
   }
 
+  async reportQuestion(): Promise<void> {
+    if (this.reportDisabled()) return;
+    const q = this.currentQuestion();
+    if (!q) return;
+
+    this.reportDisabled.set(true);
+    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
+    this.reportCooldownTimeout = setTimeout(() => {
+      this.reportDisabled.set(false);
+      this.reportCooldownTimeout = null;
+    }, 60_000);
+
+    const payload = {
+      questionId: q.question_id,
+      category: q.category,
+      difficulty: q.difficulty,
+      points: q.points,
+      questionText: q.question_text,
+    };
+
+    try {
+      await firstValueFrom(this.gameApi.reportProblem(payload));
+      this.problemReported.set(true);
+    } catch {
+      this.reportDisabled.set(false);
+      if (this.reportCooldownTimeout) {
+        clearTimeout(this.reportCooldownTimeout);
+        this.reportCooldownTimeout = null;
+      }
+    }
+  }
+
+  dismissProblemReported(): void {
+    this.problemReported.set(false);
+  }
+
   ngOnDestroy(): void {
     this.stopTimer();
+    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
   }
 }

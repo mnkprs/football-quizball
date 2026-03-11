@@ -52,7 +52,9 @@ export class SoloService {
   async getNextQuestion(sessionId: string, userId: string): Promise<{
     question_id: string;
     question_text: string;
+    category: string;
     difficulty: string;
+    points: number;
     time_limit: number;
     questions_answered: number;
     current_elo: number;
@@ -71,7 +73,9 @@ export class SoloService {
     return {
       question_id: question.id,
       question_text: question.question_text,
+      category: question.category,
       difficulty: question.difficulty,
+      points: question.points,
       time_limit: TIME_LIMITS[question.difficulty],
       questions_answered: session.questionsAnswered,
       current_elo: session.currentElo,
@@ -94,7 +98,7 @@ export class SoloService {
     if (!timedOut) {
       // Use the existing answer validator logic — create a fake GeneratedQuestion
       correct = this.answerValidator.validate(
-        { correct_answer: question.correct_answer, category: 'HISTORY' } as any,
+        { correct_answer: question.correct_answer, category: question.category } as any,
         answer,
       );
     }
