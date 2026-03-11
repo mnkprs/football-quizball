@@ -3,8 +3,8 @@
 /**
  * Seed the question pool.
  *
- * Single slot:  npm run seed-pool -- GUESS_SCORE/MEDIUM 50   (adds 50 to that slot)
- * All slots:    npm run seed-pool -- 1                       (runs one category-fill pass)
+ * Single slot:  npm run pool:seed -- GUESS_SCORE/MEDIUM 50   (adds 50 to that slot)
+ * All slots:    npm run pool:seed -- 1                       (runs one category-fill pass)
  *
  * Set LOG_PROMPTS=1 to see the full LLM prompt for each question.
  */

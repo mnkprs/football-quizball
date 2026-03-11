@@ -1,7 +1,7 @@
 #!/usr/bin/env npx ts-node
 /* eslint-disable no-undef */
 /**
- * Seed the blitz question pool. Run with: npm run seed-blitz-pool -- 50
+ * Seed the blitz question pool. Run with: npm run blitz:seed -- 50
  * (50 is the target per band; omit to use per-band defaults from BANDS config)
  * Set LOG_PROMPTS=1 to see the full LLM prompt for each question in the console.
  */

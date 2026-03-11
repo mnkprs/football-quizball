@@ -21,6 +21,7 @@ interface HolPayload {
   event_year: number;
   fame_score: number;
   specificity_score?: number;
+  combinational_thinking_score?: number;
   question_text?: string;
   explanation?: string;
 }
@@ -47,11 +48,13 @@ Return ONLY valid JSON:
   "event_year": 2024,
   "fame_score": 7,
   "specificity_score": 3,
+  "combinational_thinking_score": 4,
   "question_text": "Full question sentence shown to the player",
   "explanation": "Brief explanation of the correct answer"
 }
 fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.
-specificity_score is 1-5: 1 = widely known career total, 3 = season-specific stat, 5 = very obscure sub-statistic.${this.langInstruction(language)}`;
+specificity_score is 1-5: 1 = widely known career total, 3 = season-specific stat, 5 = very obscure sub-statistic.
+combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+season+competition+stat type, 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('HIGHER_OR_LOWER', options?.slotIndex, options?.minorityScale);
     this.logConstraints('HIGHER_OR_LOWER', options?.slotIndex, constraints);
@@ -78,6 +81,7 @@ Return ONLY valid JSON:
       "event_year": 2024,
       "fame_score": 6,
       "specificity_score": 6,
+      "combinational_thinking_score": 4,
       "question_text": "Full question sentence shown to the player",
       "explanation": "Brief explanation"
     }
@@ -105,6 +109,7 @@ ${getLeagueFameGuidanceForBatch('HIGHER_OR_LOWER', language === 'el' ? 'el' : 'e
       category: 'HIGHER_OR_LOWER',
       answer_type: 'number',
       specificity_score: result.specificity_score ?? 3,
+      combinational_thinking_score: result.combinational_thinking_score,
     };
 
     return {

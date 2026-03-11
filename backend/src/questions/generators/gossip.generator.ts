@@ -21,6 +21,7 @@ interface GossipPayload {
   competition: string;
   fame_score: number;
   specificity_score: number;
+  combinational_thinking_score?: number;
 }
 
 @Injectable()
@@ -42,10 +43,12 @@ Return ONLY a valid JSON object with these exact fields:
   "event_year": 2018,
   "competition": "Premier League",
   "fame_score": 6,
-  "specificity_score": 2
+  "specificity_score": 2,
+  "combinational_thinking_score": 3
 }
 fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.
-specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific incident detail, 5 = very niche off-pitch fact.${this.langInstruction(language)}`;
+specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific incident detail, 5 = very niche off-pitch fact.
+combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dimensions (person+event+context), 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GOSSIP', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GOSSIP', options?.slotIndex, constraints);
@@ -59,7 +62,7 @@ specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific inciden
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
 They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
-Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score.
+Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
@@ -90,6 +93,7 @@ ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${thi
         category: 'GOSSIP',
         answer_type: 'name',
         specificity_score: result.specificity_score ?? 2,
+        combinational_thinking_score: result.combinational_thinking_score,
       },
     };
   }

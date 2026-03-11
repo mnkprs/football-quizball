@@ -22,6 +22,7 @@ interface MatchPayload {
   event_year: number;
   fame_score: number;
   specificity_score?: number;
+  combinational_thinking_score?: number;
   question_text?: string;
   explanation?: string;
 }
@@ -47,11 +48,13 @@ Return ONLY valid JSON:
   "event_year": 2019,
   "fame_score": 7,
   "specificity_score": 4,
+  "combinational_thinking_score": 3,
   "question_text": "Full question sentence shown to the player",
   "explanation": "Brief explanation of the correct answer"
 }
 fame_score is 1-10: 10 = universally iconic, 7 = well-known match most fans recall, 4 = notable but not top-of-mind, 1 = obscure.
-specificity_score is 1-5: Prefer 1-3 (famous finals, widely recallable matches). Avoid 5 (very obscure).${this.langInstruction(language)}`;
+specificity_score is 1-5: Prefer 1-3 (famous finals, widely recallable matches). Avoid 5 (very obscure).
+combinational_thinking_score 1-10: 1 = single match recall, 5 = combines teams+competition+context, 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GUESS_SCORE', options?.slotIndex, constraints);
@@ -79,6 +82,7 @@ Return ONLY valid JSON:
       "event_year": 2019,
       "fame_score": 7,
       "specificity_score": 3,
+      "combinational_thinking_score": 3,
       "question_text": "Full question sentence shown to the player",
       "explanation": "Brief explanation of the correct answer"
     }
@@ -106,6 +110,7 @@ ${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en')}
       category: 'GUESS_SCORE',
       answer_type: 'score',
       specificity_score: result.specificity_score ?? 4,
+      combinational_thinking_score: result.combinational_thinking_score,
     };
 
     return {

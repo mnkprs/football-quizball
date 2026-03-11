@@ -25,12 +25,15 @@ export interface DifficultyFactors {
   category: QuestionCategory;
   answer_type: AnswerType;
   specificity_score: number;
+  /** 1-10: how much the question requires combining dimensions and reasoning across facts. 1 = simple recall, 10 = multi-dimensional reasoning. */
+  combinational_thinking_score?: number;
 }
 
 export interface GeneratedQuestion {
   id: string;
   category: QuestionCategory;
   difficulty: Difficulty;
+  allowedDifficulties?: Difficulty[];
   points: number;
   raw_score?: number;
   question_text: string;

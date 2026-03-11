@@ -2,7 +2,7 @@
 /* eslint-disable no-undef */
 /**
  * Run cleanup on both question_pool and blitz_question_pool.
- * Run: npm run cleanup (from backend/)
+ * Run: npm run db:cleanup-pools (from backend/)
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';

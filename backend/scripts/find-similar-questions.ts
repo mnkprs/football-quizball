@@ -2,12 +2,13 @@
 /**
  * Find questions with similar players, leagues, and significant words.
  * Detects potential redundancy via entity overlap and Jaccard similarity.
- * Run: npm run find-similarities (from backend/)
+ * Run: npm run db:find-similar-questions (from backend/)
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { SupabaseService } from '../src/supabase/supabase.service';
 import { LEAGUE_FAMILIARITY_TIERS } from '../src/questions/question.types';
+import { fetchAllRows } from './utils/fetch-all-rows';
 
 type PoolRow = {
   id: string;
@@ -171,14 +172,16 @@ async function run() {
   const MIN_SCORE = 0.45;
 
   console.log('=== Similar questions in question_pool (by category/difficulty) ===\n');
-  const { data: qpData, error: qpErr } = await supabase.client
-    .from('question_pool')
-    .select('id, category, difficulty, question');
+  let qpData: PoolRow[] | null = null;
+  try {
+    qpData = await fetchAllRows<PoolRow>(supabase.client, 'question_pool', 'id, category, difficulty, question');
+  } catch (qpErr: unknown) {
+    const err = qpErr as { code?: string; message?: string };
+    if (err?.code === '42P01') console.log('question_pool does not exist');
+    else console.error('question_pool error:', err?.message ?? qpErr);
+  }
 
-  if (qpErr) {
-    if (qpErr.code === '42P01') console.log('question_pool does not exist');
-    else console.error('question_pool error:', qpErr.message);
-  } else if (qpData?.length) {
+  if (qpData?.length) {
     const pairs = findSimilarPairs(
       qpData as PoolRow[],
       (r) => `${r.category}|${r.difficulty}`,
@@ -198,19 +201,21 @@ async function run() {
       });
       if (pairs.length > 25) console.log(`... and ${pairs.length - 25} more.\n`);
     }
-  } else {
+  } else if (qpData !== null) {
     console.log('question_pool is empty');
   }
 
   console.log('=== Similar questions in blitz_question_pool (by category) ===\n');
-  const { data: bqpData, error: bqpErr } = await supabase.client
-    .from('blitz_question_pool')
-    .select('id, category, difficulty_score, question');
+  let bqpData: PoolRow[] | null = null;
+  try {
+    bqpData = await fetchAllRows<PoolRow>(supabase.client, 'blitz_question_pool', 'id, category, difficulty_score, question');
+  } catch (bqpErr: unknown) {
+    const err = bqpErr as { code?: string; message?: string };
+    if (err?.code === '42P01') console.log('blitz_question_pool does not exist');
+    else console.error('blitz_question_pool error:', err?.message ?? bqpErr);
+  }
 
-  if (bqpErr) {
-    if (bqpErr.code === '42P01') console.log('blitz_question_pool does not exist');
-    else console.error('blitz_question_pool error:', bqpErr.message);
-  } else if (bqpData?.length) {
+  if (bqpData?.length) {
     const pairs = findSimilarPairs(
       bqpData as PoolRow[],
       (r) => r.category,
@@ -230,7 +235,7 @@ async function run() {
       });
       if (pairs.length > 25) console.log(`... and ${pairs.length - 25} more.\n`);
     }
-  } else {
+  } else if (bqpData !== null) {
     console.log('blitz_question_pool is empty');
   }
 

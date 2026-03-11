@@ -3,7 +3,7 @@
 /**
  * Transfer questions from question_pool to questions_v1.
  * Use to consolidate any remaining questions from the old pool.
- * Run: npm run transfer-pool-to-questions-v1 (from backend/)
+ * Run: npm run pool:transfer-to-questions-v1 (from backend/)
  * Requires: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 import { NestFactory } from '@nestjs/core';

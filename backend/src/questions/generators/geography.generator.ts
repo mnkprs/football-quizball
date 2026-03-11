@@ -21,6 +21,7 @@ interface GeographyPayload {
   competition: string;
   fame_score: number;
   specificity_score: number;
+  combinational_thinking_score?: number;
 }
 
 @Injectable()
@@ -41,10 +42,12 @@ export class GeographyGenerator extends BaseGenerator {
         "event_year": 2010,
         "competition": "Competition or league name e.g. FIFA World Cup, Premier League",
         "fame_score": 7,
-        "specificity_score": 2
+        "specificity_score": 2,
+        "combinational_thinking_score": 3
       }
       fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.
-      specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).${this.langInstruction(language)}`;
+      specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).
+      combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dimensions (country+competition+context), 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GEOGRAPHY', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GEOGRAPHY', options?.slotIndex, constraints);
@@ -58,7 +61,7 @@ export class GeographyGenerator extends BaseGenerator {
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football geography expert. Generate ${questionCount} football geography questions.
 They should range from easy to hard while staying answerable in familiar contexts.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
-Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score.
+Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
     ${getLeagueFameGuidanceForBatch('GEOGRAPHY', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
@@ -89,6 +92,7 @@ Return ONLY a valid JSON object with a "questions" array. Each item must include
         category: 'GEOGRAPHY',
         answer_type: 'country',
         specificity_score: result.specificity_score ?? 2,
+        combinational_thinking_score: result.combinational_thinking_score,
       },
     };
   }

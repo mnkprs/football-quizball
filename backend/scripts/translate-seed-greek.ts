@@ -2,13 +2,14 @@
 /* eslint-disable no-undef */
 /**
  * Populate Greek translations for existing questions in question_pool and blitz_question_pool.
- * Run with: npm run translate-seed-greek
+ * Run with: npm run db:translate-greek
  * Requires: DEEPSEEK_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { SupabaseService } from '../src/supabase/supabase.service';
 import { LlmService } from '../src/llm/llm.service';
+import { fetchAllRows } from './utils/fetch-all-rows';
 
 const BATCH_SIZE = 5;
 const DELAY_MS = 500; // Avoid rate limits
@@ -17,20 +18,21 @@ async function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+type PoolRow = { id: string; question: Record<string, unknown>; translations: Record<string, unknown> | null };
+
 async function translateQuestionPool(
   supabase: SupabaseService,
   llm: LlmService,
 ): Promise<{ translated: number; skipped: number; errors: number }> {
-  const { data: rows, error } = await supabase.client
-    .from('question_pool')
-    .select('id, question, translations');
-
-  if (error) {
-    console.error('question_pool fetch error:', error.message);
+  let rows: PoolRow[];
+  try {
+    rows = await fetchAllRows<PoolRow>(supabase.client, 'question_pool', 'id, question, translations');
+  } catch (error) {
+    console.error('question_pool fetch error:', (error as Error).message);
     return { translated: 0, skipped: 0, errors: 1 };
   }
 
-  const toTranslate = (rows ?? []).filter((r) => {
+  const toTranslate = rows.filter((r) => {
     const t = r.translations as Record<string, unknown> | null;
     const el = t?.el as Record<string, string> | undefined;
     return !el?.question_text;
@@ -38,7 +40,7 @@ async function translateQuestionPool(
 
   if (toTranslate.length === 0) {
     console.log('question_pool: all rows already have Greek translations');
-    return { translated: 0, skipped: rows?.length ?? 0, errors: 0 };
+    return { translated: 0, skipped: rows.length, errors: 0 };
   }
 
   console.log(`question_pool: translating ${toTranslate.length} questions...`);
@@ -90,23 +92,22 @@ async function translateQuestionPool(
     }
   }
 
-  return { translated, skipped: (rows?.length ?? 0) - toTranslate.length, errors };
+  return { translated, skipped: rows.length - toTranslate.length, errors };
 }
 
 async function translateBlitzPool(
   supabase: SupabaseService,
   llm: LlmService,
 ): Promise<{ translated: number; skipped: number; errors: number }> {
-  const { data: rows, error } = await supabase.client
-    .from('blitz_question_pool')
-    .select('id, question, translations');
-
-  if (error) {
-    console.error('blitz_question_pool fetch error:', error.message);
+  let rows: PoolRow[];
+  try {
+    rows = await fetchAllRows<PoolRow>(supabase.client, 'blitz_question_pool', 'id, question, translations');
+  } catch (error) {
+    console.error('blitz_question_pool fetch error:', (error as Error).message);
     return { translated: 0, skipped: 0, errors: 1 };
   }
 
-  const toTranslate = (rows ?? []).filter((r) => {
+  const toTranslate = rows.filter((r) => {
     const t = r.translations as Record<string, unknown> | null;
     const el = t?.el as Record<string, string> | undefined;
     return !el?.question_text;
@@ -114,7 +115,7 @@ async function translateBlitzPool(
 
   if (toTranslate.length === 0) {
     console.log('blitz_question_pool: all rows already have Greek translations');
-    return { translated: 0, skipped: rows?.length ?? 0, errors: 0 };
+    return { translated: 0, skipped: rows.length, errors: 0 };
   }
 
   console.log(`blitz_question_pool: translating ${toTranslate.length} questions...`);
@@ -165,7 +166,7 @@ async function translateBlitzPool(
     }
   }
 
-  return { translated, skipped: (rows?.length ?? 0) - toTranslate.length, errors };
+  return { translated, skipped: rows.length - toTranslate.length, errors };
 }
 
 async function main() {

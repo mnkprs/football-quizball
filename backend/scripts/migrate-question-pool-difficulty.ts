@@ -121,10 +121,20 @@ function shouldLogRawBandChange(
   return getRawBand(rawBefore) !== getRawBand(rawAfter);
 }
 
+const RAW_SCORE_EPSILON = 1e-6;
+
+function rawScoresEqual(a: number | null | undefined, b: number | null | undefined): boolean {
+  const an = a ?? null;
+  const bn = b ?? null;
+  if (an === bn) return true;
+  if (typeof an !== 'number' || typeof bn !== 'number') return false;
+  return Math.abs(an - bn) < RAW_SCORE_EPSILON;
+}
+
 function hasRowChanged(row: PoolRow, scored: GeneratedQuestion): boolean {
   const difficultyChanged = row.difficulty !== scored.difficulty;
   const pointsChanged = row.question.points !== scored.points;
-  const rawChanged = row.raw_score !== (scored.raw_score ?? null);
+  const rawChanged = !rawScoresEqual(row.raw_score, scored.raw_score ?? null);
   return difficultyChanged || pointsChanged || rawChanged;
 }
 
@@ -227,13 +237,27 @@ function collectUpdates(
   locale: QuestionLocale,
 ): {
   rejectedIds: string[];
-  updates: Array<{ id: string; difficulty: string; raw_score: number | null; question: GeneratedQuestion }>;
+  updates: Array<{
+    id: string;
+    difficulty: string;
+    allowed_difficulties: string[];
+    raw_score: number | null;
+    question: GeneratedQuestion;
+  }>;
 } {
   const rejectedIds: string[] = [];
-  const updates: Array<{ id: string; difficulty: string; raw_score: number | null; question: GeneratedQuestion }> = [];
+  const updates: Array<{
+    id: string;
+    difficulty: string;
+    allowed_difficulties: string[];
+    raw_score: number | null;
+    question: GeneratedQuestion;
+  }> = [];
 
   for (const row of rows) {
-    const scored = questionsService.scoreQuestion(row.question, locale);
+    const scored = questionsService.scoreQuestion(row.question, locale, {
+      categoryOverride: row.category as QuestionCategory,
+    });
     if (!scored) {
       rejectedIds.push(row.id);
       continue;
@@ -243,11 +267,12 @@ function collectUpdates(
       continue;
     }
 
-    const { raw_score, ...questionWithoutRaw } = scored;
+    const { raw_score, allowedDifficulties, ...questionWithoutRaw } = scored;
     logRowIfBandChanged(row.question.question_text, row.raw_score, raw_score ?? null);
     updates.push({
       id: row.id,
       difficulty: scored.difficulty,
+      allowed_difficulties: allowedDifficulties ?? [scored.difficulty],
       raw_score: raw_score ?? null,
       question: questionWithoutRaw,
     });
@@ -258,7 +283,13 @@ function collectUpdates(
 
 async function applyUpdates(
   supabase: SupabaseService,
-  updates: Array<{ id: string; difficulty: string; raw_score: number | null; question: GeneratedQuestion }>,
+  updates: Array<{
+    id: string;
+    difficulty: string;
+    allowed_difficulties: string[];
+    raw_score: number | null;
+    question: GeneratedQuestion;
+  }>,
 ): Promise<void> {
   let processed = 0;
 
@@ -267,6 +298,7 @@ async function applyUpdates(
       .from('question_pool')
       .update({
         difficulty: update.difficulty,
+        allowed_difficulties: update.allowed_difficulties,
         raw_score: update.raw_score,
         question: update.question,
       })

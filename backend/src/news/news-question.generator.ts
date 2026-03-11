@@ -98,6 +98,7 @@ Return ONLY a valid JSON object:
         category: 'NEWS',
         answer_type: 'name',
         specificity_score: 2,
+        combinational_thinking_score: 3,
       },
     };
   }

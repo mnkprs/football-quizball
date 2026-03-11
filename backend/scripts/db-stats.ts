@@ -2,7 +2,7 @@
 /* eslint-disable no-undef */
 /**
  * Print row counts for tables with seed/delete automations.
- * Run: npm run db-stats (from backend/)
+ * Run: npm run db:stats (from backend/)
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';

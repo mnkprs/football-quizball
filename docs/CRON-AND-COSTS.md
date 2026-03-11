@@ -18,10 +18,10 @@ You seed `question_pool` and `blitz_question_pool` yourself. No cron or onModule
 ```bash
 cd backend
 # Single slot: add N questions to CATEGORY/DIFFICULTY
-npm run seed-pool -- GUESS_SCORE/MEDIUM 50
+npm run pool:seed -- GUESS_SCORE/MEDIUM 50
 
 # All slots: add N questions to each slot
-npm run seed-pool -- 50
+npm run pool:seed -- 50
 ```
 
 - Slots: `HISTORY`, `PLAYER_ID`, `HIGHER_OR_LOWER`, `GUESS_SCORE`, `TOP_5`, `GEOGRAPHY`, `GOSSIP` + `EASY`/`MEDIUM`/`HARD`
@@ -31,17 +31,17 @@ npm run seed-pool -- 50
 
 ```bash
 cd backend
-npm run seed-blitz-pool -- 20
+npm run blitz:seed -- 20
 ```
 
 - `20` = target per band. Omit for per-band defaults (20 each).
 - Same env vars as above.
 
-### Cleanup (remove invalid/duplicates)
+### Cleanup (remove invalid/duplicates from both pools)
 
 ```bash
 cd backend
-npm run cleanup
+npm run db:cleanup-pools
 ```
 
 ## Database Stats

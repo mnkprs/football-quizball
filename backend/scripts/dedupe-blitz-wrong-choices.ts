@@ -1,11 +1,12 @@
 #!/usr/bin/env npx ts-node
 /**
  * Remove duplicate entries from wrong_choices arrays in blitz_question_pool.
- * Run: npm run dedupe-blitz (from backend/)
+ * Run: npm run blitz:dedupe-wrong-choices (from backend/)
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { SupabaseService } from '../src/supabase/supabase.service';
+import { fetchAllRows } from './utils/fetch-all-rows';
 
 function dedupeWrongChoices(arr: string[]): string[] {
   const seen = new Set<string>();
@@ -21,16 +22,16 @@ async function main() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const supabase = app.get(SupabaseService);
 
-  const { data: rows, error } = await supabase.client
-    .from('blitz_question_pool')
-    .select('id, question');
-
-  if (error) {
-    console.error('Error fetching blitz_question_pool:', error.message);
+  type Row = { id: string; question: { wrong_choices?: string[] } };
+  let rows: Row[];
+  try {
+    rows = await fetchAllRows<Row>(supabase.client, 'blitz_question_pool', 'id, question');
+  } catch (error) {
+    console.error('Error fetching blitz_question_pool:', (error as Error).message);
     process.exit(1);
   }
 
-  const raw = rows as Array<{ id: string; question: { wrong_choices?: string[] } }>;
+  const raw = rows;
   let updated = 0;
 
   for (const row of raw) {

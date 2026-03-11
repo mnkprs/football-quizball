@@ -3,87 +3,123 @@ import {
   DifficultyFactors,
   Difficulty,
   QuestionCategory,
-  AnswerType,
-  CATEGORY_FIXED_DIFFICULTY,
   getLeagueFamiliarityTier,
   resolveQuestionPoints,
-} from './question.types';
+  CATEGORY_FIXED_DIFFICULTY,
+} from './config';
 import type { DifficultyScoreResult } from '../common/interfaces/difficulty.interface';
-
-const CURRENT_YEAR = new Date().getFullYear();
-
-const CATEGORY_MODIFIERS: Record<QuestionCategory, number> = {
-  GOSSIP:           -0.08,  // Recent, shallow knowledge — inherently easier
-  HIGHER_OR_LOWER:   0.06,  // Stat thresholds — moderate
-  GEOGRAPHY:         0.00,  // Neutral
-  PLAYER_ID:         0.02,  // Recognition difficulty is moderate by nature
-  HISTORY:           0.02,  // Historical fact recall — slight upward
-  TOP_5:             0.12,  // Ordered list recall — hard but not punishing
-  GUESS_SCORE:       0.04,  // Score recall — moderate (fame matters more)
-  NEWS:             -0.05,  // Current events — similar to gossip
-};
-
-const ANSWER_TYPE_MODIFIERS: Record<AnswerType, number> = {
-  country:  -0.05,  // Geographic, stable knowledge
-  team:     -0.03,  // Brand recognition
-  name:      0.00,  // Neutral baseline
-  year:      0.05,  // Must recall exact year
-  number:    0.07,  // Exact stat
-  score:     0.09,  // Two exact numbers
-};
-
-const CATEGORY_RAW_FLOORS: Partial<Record<QuestionCategory, number>> = {
-  TOP_5: 0.66,
-};
-
-const CATEGORY_MULTI_ANSWER_BONUSES: Partial<Record<QuestionCategory, number>> = {
-  TOP_5: 0.08,
-};
+import {
+  CATEGORY_MODIFIERS,
+  ANSWER_TYPE_MODIFIERS,
+  CATEGORY_RAW_FLOORS,
+  CATEGORY_MULTI_ANSWER_BONUSES,
+} from './config/difficulty.config';
+import { CURRENT_YEAR } from './config/difficulty.config';
+import {
+  RAW_THRESHOLD_EASY,
+  RAW_THRESHOLD_MEDIUM,
+  BOUNDARY_TOLERANCE,
+  WEIGHT_DATE,
+  WEIGHT_FAMILIARITY,
+  WEIGHT_FAME,
+  SPECIFICITY_MODIFIER_MAX,
+  SPECIFICITY_SCALE_DENOMINATOR,
+  COMBINATIONAL_MODIFIER_MAX,
+  COMBINATIONAL_DEFAULT,
+  TIER_SCALE_DENOMINATOR,
+  FAME_SCALE_DENOMINATOR,
+  DATE_AGE_VERY_RECENT_YEARS,
+  DATE_SCORE_VERY_RECENT,
+  DATE_AGE_RECENT_YEARS,
+  DATE_SCORE_RECENT,
+  DATE_AGE_SLOPE_END_YEARS,
+  DATE_SCORE_SLOPE_BASE,
+  DATE_SCORE_SLOPE_PER_YEAR,
+  DATE_SCORE_RECENT_HISTORY_CAP,
+  DATE_AGE_DECAY_START_YEARS,
+  DATE_SCORE_DECAY_PER_YEAR,
+  DATE_SCORE_OLD_FLOOR,
+  SPECIFICITY_OVERRIDES,
+  SPECIFICITY_FLOORS,
+  SPECIFICITY_DEFAULT,
+  REJECT_GUESS_SCORE_FAME_MIN,
+  REJECT_OBSCURE_TIER_MIN,
+  REJECT_OBSCURE_FAME_MAX,
+  TIER_DOWNGRADE_THRESHOLD,
+  REJECTED_RESULT_DIFFICULTY,
+  REJECTED_RESULT_POINTS,
+  REJECTED_RESULT_RAW,
+} from './config/difficulty-scoring.config';
 
 function computeDateScore(event_year: number): number {
   const age = CURRENT_YEAR - event_year;
-  if (age <= 2) return 0.05;  // Very recent = easier (humans remember)
-  if (age <= 5) return 0.12;
-  if (age <= 30) return computeRecentHistoricalScore(age);
-  return Math.max(0.58 - (age - 30) * 0.008, 0.32);
+  if (age <= DATE_AGE_VERY_RECENT_YEARS) return DATE_SCORE_VERY_RECENT;
+  if (age <= DATE_AGE_RECENT_YEARS) return DATE_SCORE_RECENT;
+  if (age <= DATE_AGE_DECAY_START_YEARS) return computeRecentHistoricalScore(age);
+  const yearsOver30 = age - DATE_AGE_DECAY_START_YEARS;
+  return Math.max(
+    DATE_SCORE_RECENT_HISTORY_CAP - yearsOver30 * DATE_SCORE_DECAY_PER_YEAR,
+    DATE_SCORE_OLD_FLOOR,
+  );
 }
 
 function computeRecentHistoricalScore(age: number): number {
-  if (age <= 15) return 0.30 + (age - 5) * 0.025;
-  return 0.58;
+  if (age <= DATE_AGE_SLOPE_END_YEARS) {
+    return DATE_SCORE_SLOPE_BASE + (age - DATE_AGE_RECENT_YEARS) * DATE_SCORE_SLOPE_PER_YEAR;
+  }
+  return DATE_SCORE_RECENT_HISTORY_CAP;
 }
 
 function normalizeSpecificity(category: QuestionCategory, specificityScore: number): number {
-  if (category === 'TOP_5') return 10;
-  if (category === 'GUESS_SCORE') return Math.max(4, specificityScore); // Lower floor = less obscure
-  if (category === 'PLAYER_ID' || category === 'HIGHER_OR_LOWER') return 6;
-  if (category === 'GOSSIP') return 2;
+  const override = SPECIFICITY_OVERRIDES[category];
+  if (override !== undefined) return override;
+  const floor = SPECIFICITY_FLOORS[category];
+  if (floor !== undefined) return Math.max(floor, specificityScore);
   return Math.max(1, Math.min(10, specificityScore));
 }
 
 function normalizeFame(fameScore: number | null, tier: number): number {
-  if (fameScore !== null) return (10 - fameScore) / 9;
-  return (tier - 1) / 4;
+  if (fameScore !== null) return (10 - fameScore) / FAME_SCALE_DENOMINATOR;
+  return (tier - 1) / TIER_SCALE_DENOMINATOR;
 }
 
 function resolveFixedDifficulty(category: QuestionCategory): Difficulty | null {
   return CATEGORY_FIXED_DIFFICULTY[category] ?? null;
 }
 
+function getAllowedDifficulties(raw: number, primaryDifficulty: Difficulty): Difficulty[] {
+  const allowed: Difficulty[] = [primaryDifficulty];
+  if (primaryDifficulty === 'EASY') return allowed;
+  if (raw < RAW_THRESHOLD_EASY) {
+    allowed.unshift('EASY');
+    return allowed;
+  }
+  if (primaryDifficulty === 'MEDIUM') {
+    if (raw < RAW_THRESHOLD_EASY + BOUNDARY_TOLERANCE) allowed.unshift('EASY');
+    return allowed;
+  }
+  if (primaryDifficulty === 'HARD') {
+    if (raw < RAW_THRESHOLD_MEDIUM + BOUNDARY_TOLERANCE) allowed.unshift('MEDIUM');
+    return allowed;
+  }
+  return allowed;
+}
+
 function getRejectedResult(reason: string): DifficultyScoreResult {
   return {
-    difficulty: 'HARD',
-    points: 3,
-    raw: 1,
+    difficulty: REJECTED_RESULT_DIFFICULTY,
+    allowedDifficulties: [REJECTED_RESULT_DIFFICULTY],
+    points: REJECTED_RESULT_POINTS,
+    raw: REJECTED_RESULT_RAW,
     rejected: true,
     rejectReason: reason,
   };
 }
 
 function resolveDynamicDifficulty(raw: number, tier: number, category: QuestionCategory): Difficulty {
-  if (raw < 0.36) return 'EASY';   // Keep original — don't push MEDIUM into EASY (frustrating)
-  if (raw < 0.66) return 'MEDIUM'; // Widen MEDIUM only: more HARD→MEDIUM, not MEDIUM→EASY
-  if (tier > 1 && category !== 'GUESS_SCORE') return 'MEDIUM';
+  if (raw < RAW_THRESHOLD_EASY) return 'EASY';
+  if (raw < RAW_THRESHOLD_MEDIUM) return 'MEDIUM';
+  if (tier > TIER_DOWNGRADE_THRESHOLD && category !== 'GUESS_SCORE') return 'MEDIUM';
   return 'HARD';
 }
 
@@ -93,19 +129,25 @@ function computeRawScore(
   specificityScore: number,
 ): number {
   const dateScore = computeDateScore(factors.event_year);
-  const familiarityScore = (tier - 1) / 4;
+  const familiarityScore = (tier - 1) / TIER_SCALE_DENOMINATOR;
   const fameScoreNormalized = normalizeFame(factors.fame_score, tier);
-  const specificityModifier = ((specificityScore ?? 3) - 1) / 9 * 0.1;
+  const specificityModifier =
+    ((specificityScore ?? SPECIFICITY_DEFAULT) - 1) / SPECIFICITY_SCALE_DENOMINATOR *
+    SPECIFICITY_MODIFIER_MAX;
+  const combinationalMod =
+    ((factors.combinational_thinking_score ?? COMBINATIONAL_DEFAULT) - 1) /
+    SPECIFICITY_SCALE_DENOMINATOR *
+    COMBINATIONAL_MODIFIER_MAX;
   const answerTypeMod = ANSWER_TYPE_MODIFIERS[factors.answer_type] ?? 0;
   const categoryMod = CATEGORY_MODIFIERS[factors.category] ?? 0;
   const multiAnswerBonus = CATEGORY_MULTI_ANSWER_BONUSES[factors.category] ?? 0;
 
-  // Favor fame over raw competition tier — humans know famous things regardless of league
   return (
-    0.15 * dateScore +
-    0.35 * familiarityScore +
-    0.30 * fameScoreNormalized +
+    WEIGHT_DATE * dateScore +
+    WEIGHT_FAMILIARITY * familiarityScore +
+    WEIGHT_FAME * fameScoreNormalized +
     specificityModifier +
+    combinationalMod +
     answerTypeMod +
     categoryMod +
     multiAnswerBonus
@@ -118,23 +160,30 @@ function applyCategoryRawFloor(category: QuestionCategory, raw: number): number 
 }
 
 function getRejectReason(factors: DifficultyFactors, tier: number): string | null {
-  // Only reject when fame_score is explicitly provided and very low; missing → allow through
-  if (factors.category === 'GUESS_SCORE' && factors.fame_score != null && factors.fame_score < 4) {
+  if (
+    factors.category === 'GUESS_SCORE' &&
+    factors.fame_score != null &&
+    factors.fame_score < REJECT_GUESS_SCORE_FAME_MIN
+  ) {
     return 'GUESS_SCORE questions must be from at least moderately known matches';
   }
-  if (tier >= 4 && (factors.fame_score ?? 0) <= 3) {
+  if (tier >= REJECT_OBSCURE_TIER_MIN && (factors.fame_score ?? 0) <= REJECT_OBSCURE_FAME_MAX) {
     return 'Low-familiarity competitions are too obscure for the main pool';
   }
   return null;
 }
 
+/**
+ * Scores question difficulty from LLM-provided factors.
+ * Returns EASY/MEDIUM/HARD, points, and optional rejection.
+ */
 @Injectable()
 export class DifficultyScorer {
   score(factors: DifficultyFactors): DifficultyScoreResult {
     const tier = getLeagueFamiliarityTier(factors.competition);
     const specificityScore = normalizeSpecificity(
       factors.category,
-      factors.specificity_score ?? 3,
+      factors.specificity_score ?? SPECIFICITY_DEFAULT,
     );
     const raw = applyCategoryRawFloor(
       factors.category,
@@ -142,8 +191,10 @@ export class DifficultyScorer {
     );
     const fixedDifficulty = resolveFixedDifficulty(factors.category);
     if (fixedDifficulty) {
+      const allowedDifficulties = getAllowedDifficulties(raw, fixedDifficulty);
       return {
         difficulty: fixedDifficulty,
+        allowedDifficulties,
         points: resolveQuestionPoints(factors.category, fixedDifficulty),
         raw,
       };
@@ -155,7 +206,8 @@ export class DifficultyScorer {
     }
 
     const difficulty = resolveDynamicDifficulty(raw, tier, factors.category);
+    const allowedDifficulties = getAllowedDifficulties(raw, difficulty);
     const points = resolveQuestionPoints(factors.category, difficulty);
-    return { difficulty, points, raw };
+    return { difficulty, allowedDifficulties, points, raw };
   }
 }

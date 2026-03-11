@@ -6,10 +6,12 @@ import {
   CATEGORY_BATCH_SIZES,
   CATEGORY_DIFFICULTY_SLOTS,
   resolveQuestionPoints,
-} from './question.types';
+} from './config';
+import { BOARD_CATEGORIES } from './config/category.config';
 import { minorityScaleForDifficulty } from './diversity-hints';
 import { DifficultyScorer } from './difficulty-scorer.service';
 import { GeneratorOptions, GeneratorBatchOptions } from './generators/base-generator';
+import { colorize, colorRawScoreOrNa, ANSI } from './utils/logger-colors';
 import { HistoryGenerator } from './generators/history.generator';
 import { PlayerIdGenerator } from './generators/player-id.generator';
 import { HigherOrLowerGenerator } from './generators/higher-or-lower.generator';
@@ -17,45 +19,6 @@ import { GuessScoreGenerator } from './generators/guess-score.generator';
 import { Top5Generator } from './generators/top5.generator';
 import { GeographyGenerator } from './generators/geography.generator';
 import { GossipGenerator } from './generators/gossip.generator';
-
-const CATEGORIES: QuestionCategory[] = [
-  'HISTORY',
-  'PLAYER_ID',
-  'HIGHER_OR_LOWER',
-  'GUESS_SCORE',
-  'TOP_5',
-  'GEOGRAPHY',
-  'GOSSIP',
-];
-
-const ANSI = {
-  reset: '\x1b[0m',
-  dim: '\x1b[2m',
-  cyan: '\x1b[36m',
-  blue: '\x1b[34m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  magenta: '\x1b[35m',
-  red: '\x1b[31m',
-  boldWhite: '\x1b[1;37m',
-} as const;
-
-function colorize(text: string, color: string): string {
-  return `${color}${text}${ANSI.reset}`;
-}
-
-function colorRawScore(raw: number): string {
-  if (raw < 0.36) return colorize(raw.toFixed(2), ANSI.green);
-  if (raw < 0.62) return colorize(raw.toFixed(2), ANSI.yellow);
-  return colorize(raw.toFixed(2), ANSI.red);
-}
-
-function colorRawScoreBefore(raw: number | undefined): string {
-  if (typeof raw !== 'number' || Number.isNaN(raw)) {
-    return colorize('n/a', ANSI.magenta);
-  }
-  return colorRawScore(raw);
-}
 
 @Injectable()
 export class QuestionsService {
@@ -72,8 +35,12 @@ export class QuestionsService {
     private gossipGenerator: GossipGenerator,
   ) {}
 
+  /**
+   * Generates a full board (one question per slot) for all BOARD_CATEGORIES.
+   * Matches generated questions to slots by category and difficulty.
+   */
   async generateBoard(language: string = 'en'): Promise<GeneratedQuestion[]> {
-    const tasks: Promise<GeneratedQuestion[]>[] = CATEGORIES.map((category) =>
+    const tasks: Promise<GeneratedQuestion[]>[] = BOARD_CATEGORIES.map((category) =>
       this.generateBatch(category, language, {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? 3,
       }),
@@ -94,7 +61,7 @@ export class QuestionsService {
     const board: GeneratedQuestion[] = [];
     const usedIndices = new Set<number>();
 
-    for (const category of CATEGORIES) {
+    for (const category of BOARD_CATEGORIES) {
       const slots = CATEGORY_DIFFICULTY_SLOTS[category];
       for (const difficulty of slots) {
         const matchIdx = scored.findIndex(
@@ -128,7 +95,10 @@ export class QuestionsService {
     return board;
   }
 
-  /** Generate and score a single question for use by the pool service. */
+  /**
+   * Generates, scores, and validates a single question. Used by pool seeding.
+   * @throws Error if generation fails after retries or question is rejected.
+   */
   async generateOne(
     category: QuestionCategory,
     difficulty: Difficulty,
@@ -144,6 +114,9 @@ export class QuestionsService {
     return scoredQuestion;
   }
 
+  /**
+   * Generates a batch of questions for a category, scores each, filters rejected.
+   */
   async generateBatch(
     category: QuestionCategory,
     language: string = 'en',
@@ -195,6 +168,7 @@ export class QuestionsService {
       case 'GEOGRAPHY':       return this.geographyGenerator.generate(language, genOpts);
       case 'GOSSIP':          return this.gossipGenerator.generate(language, genOpts);
       case 'NEWS':            throw new Error('NEWS has no live generator — use news ingestion service');
+      default:                throw new Error(`Unknown category: ${category}`);
     }
   }
 
@@ -220,16 +194,28 @@ export class QuestionsService {
         return this.gossipGenerator.generateBatch(language, options);
       case 'NEWS':
         throw new Error('NEWS has no live generator — use news ingestion service');
+      default:
+        throw new Error(`Unknown category: ${category}`);
     }
   }
 
-  scoreQuestion(question: GeneratedQuestion, language: string = 'en'): GeneratedQuestion | null {
+  /**
+   * Scores a question's difficulty from difficulty_factors. Returns null if rejected.
+   * @param categoryOverride When set (e.g. from migration), uses this category instead of factors.category for slot consistency.
+   */
+  scoreQuestion(
+    question: GeneratedQuestion,
+    language: string = 'en',
+    options?: { categoryOverride?: QuestionCategory },
+  ): GeneratedQuestion | null {
     if (!question.difficulty_factors) {
       this.logger.warn(`Question missing difficulty_factors: ${question.category}`);
       return null;
     }
-    const factors = question.difficulty_factors;
-    const result = this.difficultyScorer.score(question.difficulty_factors);
+    const factors = options?.categoryOverride
+      ? { ...question.difficulty_factors, category: options.categoryOverride }
+      : question.difficulty_factors;
+    const result = this.difficultyScorer.score(factors);
     if (result.rejected) {
       this.logger.debug(`[scoreQuestion] Rejected ${question.category}: ${result.rejectReason}`);
       return null;
@@ -237,6 +223,7 @@ export class QuestionsService {
     const scoredQuestion = {
       ...question,
       difficulty: result.difficulty,
+      allowedDifficulties: result.allowedDifficulties,
       points: result.points,
       raw_score: result.raw,
     };
@@ -246,7 +233,7 @@ export class QuestionsService {
     ) {
       const rawBefore = question.raw_score;
       this.logger.log(
-        `${colorize('[scored]', ANSI.boldWhite)} ${colorize(`"${scoredQuestion.question_text}"`, ANSI.boldWhite)} ${colorize('raw_before=', ANSI.dim)}${colorRawScoreBefore(rawBefore)} ${colorize('raw_after=', ANSI.dim)}${colorRawScore(result.raw)}`,
+        `${colorize('[scored]', ANSI.boldWhite)} ${colorize(`"${scoredQuestion.question_text}"`, ANSI.boldWhite)} ${colorize('raw_before=', ANSI.dim)}${colorRawScoreOrNa(rawBefore)} ${colorize('raw_after=', ANSI.dim)}${colorRawScoreOrNa(result.raw)}`,
       );
     }
     return scoredQuestion;
@@ -264,10 +251,13 @@ export class QuestionsService {
     }
   }
 
+  /**
+   * Finds a question by ID and strips server-only fields (difficulty_factors, raw_score).
+   */
   getQuestionById(questions: GeneratedQuestion[], id: string): GeneratedQuestion | undefined {
     const question = questions.find((q) => q.id === id);
     if (!question) return undefined;
-    const { difficulty_factors, raw_score, ...safeQuestion } = question;
+    const { difficulty_factors, raw_score, allowedDifficulties, ...safeQuestion } = question;
     return safeQuestion;
   }
 }

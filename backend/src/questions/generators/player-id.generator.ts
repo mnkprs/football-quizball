@@ -30,6 +30,7 @@ interface PlayerIdPayload {
   event_year: number;
   fame_score: number;
   specificity_score?: number;
+  combinational_thinking_score?: number;
   question_text?: string;
   explanation?: string;
 }
@@ -55,10 +56,12 @@ Return ONLY a valid JSON object with these exact fields:
   "event_year": 2018,
   "fame_score": 8,
   "specificity_score": 3,
+  "combinational_thinking_score": 5,
   "question_text": "Question prompt shown to the player",
   "explanation": "Brief explanation naming the player and career summary"
 }
-The career array must have at least 3 entries. All career data must be factually accurate.
+The career array must have at least 3 entries.
+combinational_thinking_score 1-10: 1 = single fact (iconic player with unique path), 5 = combines career path + era + league, 10 = multi-dimensional reasoning across many clubs/eras. All career data must be factually accurate.
 Set "is_loan": true for any spell where the player was on loan, otherwise false.
 fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.
 specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${this.langInstruction(language)}`;
@@ -86,6 +89,7 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
   "event_year": 2018,
   "fame_score": 6,
   "specificity_score": 6,
+  "combinational_thinking_score": 5,
   "question_text": "Prompt",
   "explanation": "Short explanation"
 }
@@ -126,6 +130,7 @@ ${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${
         category: 'PLAYER_ID',
         answer_type: 'name',
         specificity_score: result.specificity_score ?? 3,
+        combinational_thinking_score: result.combinational_thinking_score,
       },
     };
   }

@@ -10,74 +10,28 @@ import {
   CATEGORY_BATCH_SIZES,
   CATEGORY_DIFFICULTY_SLOTS,
   resolveQuestionPoints,
-} from './question.types';
-import type { DrawBoardResult } from '../common/interfaces/pool.interface';
+} from './config';
+import {
+  buildDrawRequirements,
+  parseSlotKey,
+  POOL_TARGET,
+  DEFAULT_POOL_TARGET,
+  GENERATION_BATCH_SIZE,
+  MAX_CATEGORY_BATCH_ATTEMPTS,
+  BATCH_THROTTLE_MS,
+  SEED_PASS_DELAY_MS,
+} from './config/pool.config';
+import { LIVE_CATEGORIES, SOLO_DRAW_CATEGORY_ORDER } from './config/category.config';
+import type {
+  DrawBoardResult,
+  DrawBoardRow,
+  DrawQuestionsRow,
+  PoolStatsRow,
+  CleanupResultRow,
+  ExistingQuestionRow,
+} from '../common/interfaces/pool.interface';
 
-interface SlotRequirement {
-  category: QuestionCategory;
-  difficulty: Difficulty;
-  count: number;
-}
-
-// ── Named types for Supabase RPC responses ──────────────────────────────────
-
-interface PoolTranslation {
-  el?: { question_text?: string; explanation?: string };
-}
-
-interface DrawBoardRow {
-  id: string;
-  question: GeneratedQuestion;
-  difficulty: string;
-  category: string;
-  translations?: PoolTranslation;
-}
-
-interface DrawQuestionsRow {
-  question: GeneratedQuestion;
-  difficulty: string;
-  category: string;
-  translations?: PoolTranslation;
-}
-
-interface PoolStatsRow {
-  category: string;
-  difficulty: string;
-  unanswered: number;
-}
-
-interface CleanupResultRow {
-  deleted_invalid?: number;
-  deleted_duplicates?: number;
-}
-
-interface ExistingQuestionRow {
-  question_text: string;
-  correct_answer: string;
-}
-
-const DRAW_REQUIREMENTS: SlotRequirement[] = Object.entries(CATEGORY_DIFFICULTY_SLOTS).flatMap(
-  ([category, slots]) => {
-    const counts = new Map<Difficulty, number>();
-    for (const difficulty of slots) {
-      counts.set(difficulty, (counts.get(difficulty) ?? 0) + 1);
-    }
-    return Array.from(counts.entries()).map(([difficulty, count]) => ({
-      category: category as QuestionCategory,
-      difficulty,
-      count,
-    }));
-  },
-);
-
-// Target unused questions to keep per unique (category, difficulty) slot
-// Use seedPool/refillIfNeeded manually (e.g. POST /api/admin/seed-pool).
-const POOL_TARGET: Partial<Record<string, number>> = {
-  'NEWS/MEDIUM': 10, // Refilled by news ingest cron, not pool refill
-};
-const DEFAULT_TARGET = 40 ;
-const GENERATION_BATCH_SIZE = 5;
-const MAX_CATEGORY_BATCH_ATTEMPTS = 20;
+const DRAW_REQUIREMENTS = buildDrawRequirements();
 
 @Injectable()
 export class QuestionPoolService {
@@ -94,9 +48,9 @@ export class QuestionPoolService {
   ) {}
 
   /**
-   * Draw all questions from the pool only. No live generation.
-   * For Greek: uses stored translations when available; questions without translations
-   * are returned with fromPoolTranslation=false for LLM fallback.
+   * Draws a full board from the pool only. No live generation.
+   * Use for Greek mode where pool has pre-translated questions.
+   * @throws Error if any non-NEWS slot is insufficient (seed pool first).
    */
   async drawBoardFromPoolOnly(
     language: string = 'en',
@@ -132,9 +86,8 @@ export class QuestionPoolService {
   }
 
   /**
-   * Draw all questions needed for one board from the pool.
-   * For non-English languages, bypasses the pool and generates all questions live.
-   * Falls back to live generation for any English slot not covered by the pool.
+   * Draws a full board for a game. English: pool first, live fallback for missing slots.
+   * Non-English: generates all questions live (pool is English-only).
    */
   async drawBoard(
     language: string = 'en',
@@ -179,12 +132,11 @@ export class QuestionPoolService {
   }
 
   /**
-   * Draw a single question for Solo mode by difficulty.
-   * Tries categories in order until one has stock. Returns null if pool is empty for all.
+   * Draws one question for Solo mode. Tries categories in SOLO_DRAW_CATEGORY_ORDER.
+   * @returns The drawn question or null if pool is empty for all categories.
    */
   async drawOneForSolo(difficulty: Difficulty, language: string = 'en'): Promise<GeneratedQuestion | null> {
-    const categories: QuestionCategory[] = ['HISTORY', 'PLAYER_ID', 'GEOGRAPHY', 'GOSSIP', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5'];
-    for (const category of categories) {
+    for (const category of SOLO_DRAW_CATEGORY_ORDER) {
       const drawn = await this.drawSlot(category, difficulty, 1, language);
       if (drawn.length > 0) return drawn[0];
     }
@@ -192,8 +144,8 @@ export class QuestionPoolService {
   }
 
   /**
-   * Remove invalid and duplicate questions from the pool.
-   * Call via POST /api/admin/cleanup-questions or run migration.
+   * Removes invalid and duplicate questions from the pool via RPC.
+   * Call via POST /api/admin/cleanup-questions.
    */
   async cleanupPool(): Promise<{ deletedInvalid: number; deletedDuplicates: number }> {
     const { data, error } = await this.supabaseService.client.rpc('cleanup_question_pool');
@@ -211,8 +163,8 @@ export class QuestionPoolService {
   }
 
   /**
-   * Returns unanswered questions to the pool so they can be used in future matches.
-   * Call when a game ends prematurely to prevent abuse (create → peek → end).
+   * Returns unanswered question IDs to the pool (marks them available again).
+   * Call when a game ends early to prevent create→peek→end abuse.
    */
   async returnUnansweredToPool(questionIds: string[]): Promise<number> {
     if (questionIds.length === 0) return 0;
@@ -234,39 +186,11 @@ export class QuestionPoolService {
   }
 
   /**
-   * Add questions to a single slot (e.g. GUESS_SCORE/MEDIUM).
-   * Use for: npm run seed-pool -- GUESS_SCORE/MEDIUM 50  (adds 50 to that slot)
+   * Seeds a single slot (e.g. GUESS_SCORE/MEDIUM) with generated questions.
+   * @param slotKey Format: CATEGORY/DIFFICULTY (NEWS not allowed — use ingest cron).
    */
   async seedSlot(slotKey: string, count: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }> {
-    const parts = slotKey.toUpperCase().split('/');
-    if (parts.length !== 2) {
-      throw new Error(`Invalid slot format: ${slotKey}. Use CATEGORY/DIFFICULTY (e.g. GUESS_SCORE/MEDIUM)`);
-    }
-    const [cat, diff] = parts;
-    const categoryMap: Record<string, QuestionCategory> = {
-      HISTORY: 'HISTORY',
-      PLAYER_ID: 'PLAYER_ID',
-      HIGHER_OR_LOWER: 'HIGHER_OR_LOWER',
-      GUESS_SCORE: 'GUESS_SCORE',
-      GUESSTHESCORE: 'GUESS_SCORE',
-      TOP_5: 'TOP_5',
-      GEOGRAPHY: 'GEOGRAPHY',
-      GOSSIP: 'GOSSIP',
-      NEWS: 'NEWS',
-    };
-    const difficultyMap: Record<string, Difficulty> = {
-      EASY: 'EASY',
-      MEDIUM: 'MEDIUM',
-      HARD: 'HARD',
-    };
-    const category = categoryMap[cat];
-    const difficulty = difficultyMap[diff];
-    if (!category || !difficulty) {
-      throw new Error(`Invalid slot: ${slotKey}. Category: ${cat}, Difficulty: ${diff}`);
-    }
-    if (category === 'NEWS') {
-      throw new Error('NEWS is filled by news ingest cron, not pool seed');
-    }
+    const { category, difficulty } = parseSlotKey(slotKey);
 
     if (!force && this.isRefilling) {
       throw new Error('Refill already in progress');
@@ -282,9 +206,9 @@ export class QuestionPoolService {
   }
 
   /**
-   * Add the given number of questions to every slot (except NEWS).
-   * Use for: npm run seed-pool -- 50  (adds 50 to each slot)
-   * @param force When true, runs even if a background refill is in progress (e.g. from CLI script).
+   * Seeds all live categories with generated questions. Skips NEWS (use ingest cron).
+   * @param count Number of passes per category (each pass adds a batch).
+   * @param force Bypass refill lock (e.g. for CLI scripts).
    */
   async seedPool(count: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }[]> {
     if (!force && this.isRefilling) {
@@ -310,7 +234,9 @@ export class QuestionPoolService {
     });
   }
 
-  /** Refill the pool for any slot below target. No-op if already running. */
+  /**
+   * Refills pool slots that are below target. Runs in background, no-op if already refilling.
+   */
   async refillIfNeeded(): Promise<void> {
     if (this.isRefilling) return;
 
@@ -322,7 +248,7 @@ export class QuestionPoolService {
     for (const { category, difficulty } of this.getUniqueSlots()) {
       if (category === 'NEWS') continue;
       const key = `${category}/${difficulty}`;
-      const target = POOL_TARGET[key] ?? DEFAULT_TARGET;
+      const target = POOL_TARGET[key] ?? DEFAULT_POOL_TARGET;
       const current = counts[key] ?? 0;
       const needed = target - current;
       if (needed > 0) {
@@ -333,15 +259,15 @@ export class QuestionPoolService {
     }
 
     if (needsByCategory.size === 0) {
-      this.logger.log(`[refill] All slots at or above target (${DEFAULT_TARGET}), skipping — no LLM calls`);
+      this.logger.log(`[refill] All slots at or above target (${DEFAULT_POOL_TARGET}), skipping — no LLM calls`);
       return;
     }
 
     this.isRefilling = true;
     await this.withRefillLock(async () => {
       const sorted = [...needsByCategory.entries()].sort((a, b) => {
-        const totalA = Object.values(a[1]).reduce((sum, value) => sum + (value ?? 0), 0);
-        const totalB = Object.values(b[1]).reduce((sum, value) => sum + (value ?? 0), 0);
+        const totalA = Object.values(a[1]).reduce<number>((s, value) => s + (value ?? 0), 0);
+        const totalB = Object.values(b[1]).reduce<number>((s, value) => s + (value ?? 0), 0);
         return totalB - totalA;
       });
 
@@ -508,7 +434,7 @@ export class QuestionPoolService {
       );
       // Free tier: 15 RPM (Flash-Lite), 10 RPM (Flash). Throttle to stay under limit.
       if (offset + batchSize < count) {
-        await new Promise((r) => setTimeout(r, 20000)); // 5 req/batch → 20s ≈ 15/min
+        await new Promise((r) => setTimeout(r, BATCH_THROTTLE_MS));
       }
       const batch = results
         .filter((r): r is PromiseFulfilledResult<GeneratedQuestion> => r.status === 'fulfilled')
@@ -602,7 +528,7 @@ export class QuestionPoolService {
   }
 
   private getLiveCategories(): QuestionCategory[] {
-    return Object.keys(CATEGORY_BATCH_SIZES) as QuestionCategory[];
+    return LIVE_CATEGORIES;
   }
 
   private buildNeedMapForCategory(
@@ -651,7 +577,7 @@ export class QuestionPoolService {
       );
 
       if (pass + 1 < passes) {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
       }
     }
 
@@ -737,7 +663,7 @@ export class QuestionPoolService {
         addedTotals[question.difficulty] += 1;
       }
       if (this.hasRemainingNeeds(needs)) {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
       }
     }
 
@@ -779,15 +705,18 @@ export class QuestionPoolService {
 
     const rows = questions.map((q, i) => {
       const difficulty = difficultyOverride ?? q.difficulty;
+      const allowedDifficulties = q.allowedDifficulties ?? [difficulty];
       return {
         id: q.id,
         category,
         difficulty,
+        allowed_difficulties: allowedDifficulties,
         question: {
           ...q,
           difficulty,
           points: resolveQuestionPoints(q.category, difficulty),
           raw_score: undefined,
+          allowedDifficulties: undefined,
         },
         raw_score: q.raw_score ?? null,
         translations: {

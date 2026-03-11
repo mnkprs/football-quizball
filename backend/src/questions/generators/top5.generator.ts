@@ -18,6 +18,7 @@ interface Top5Payload {
   event_year: number;
   fame_score: number;
   specificity_score?: number;
+  combinational_thinking_score?: number;
 }
 
 function normalizeText(value: string): string {
@@ -55,10 +56,12 @@ Return ONLY valid JSON:
   "competition": "Competition or league name",
   "event_year": 2024,
   "fame_score": 7,
-  "specificity_score": 3
+  "specificity_score": 3,
+  "combinational_thinking_score": 7
 }
-The top5 array must have exactly 5 entries ordered from 1st to 5th place. All data must be factually accurate.
-Do not mention any of the 5 answer names anywhere in question_text.
+The top5 array must have exactly 5 entries ordered from 1st to 5th place.
+combinational_thinking_score 1-10: 1 = iconic all-time list everyone knows, 5 = combines league+season+stat type, 10 = obscure multi-criteria ranking requiring reasoning across many facts.
+All data must be factually accurate. Do not mention any of the 5 answer names anywhere in question_text.
 fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.
 specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.${this.langInstruction(language)}`;
 
@@ -89,7 +92,8 @@ Return ONLY valid JSON:
       "competition": "Competition or league name",
       "event_year": 2024,
       "fame_score": 5,
-      "specificity_score": 10
+      "specificity_score": 10,
+      "combinational_thinking_score": 7
     }
   ]
 }
@@ -116,6 +120,7 @@ ${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${this
       category: 'TOP_5',
       answer_type: 'name',
       specificity_score: result.specificity_score ?? 10,
+      combinational_thinking_score: result.combinational_thinking_score,
     };
 
     return {

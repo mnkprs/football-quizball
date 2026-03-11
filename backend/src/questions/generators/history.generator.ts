@@ -22,6 +22,7 @@ interface HistoryPayload {
   competition: string;
   fame_score: number;
   specificity_score: number;
+  combinational_thinking_score?: number;
 }
 
 @Injectable()
@@ -43,9 +44,11 @@ Return ONLY a valid JSON object with these exact fields:
   "event_year": 1966,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League, UEFA Champions League",
   "fame_score": 8,
-  "specificity_score": 3
+  "specificity_score": 3,
+  "combinational_thinking_score": 4
 }
 fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.
+combinational_thinking_score 1-10: 1 = single fact recall ("Who won X?"), 5 = combines 2-3 dimensions (league+season+event), 10 = multi-dimensional reasoning across many facts.
 answer_type: one of "name", "team", "number", "score", "year", "country" — pick whichever matches the correct_answer.
 specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"), 3 = moderate (specific match/season detail), 5 = very specific (exact shirt number or obscure stat).${this.langInstruction(language)}`;
 
@@ -73,7 +76,8 @@ Return ONLY a valid JSON object:
       "event_year": 1999,
       "competition": "UEFA Champions League",
       "fame_score": 8,
-      "specificity_score": 3
+      "specificity_score": 3,
+      "combinational_thinking_score": 4
     }
   ]
 }
@@ -107,6 +111,7 @@ ${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en')}${th
         category: 'HISTORY',
         answer_type: (result.answer_type as any) ?? 'name',
         specificity_score: result.specificity_score ?? 3,
+        combinational_thinking_score: result.combinational_thinking_score,
       },
     };
   }
