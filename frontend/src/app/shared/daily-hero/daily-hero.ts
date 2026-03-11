@@ -45,11 +45,12 @@ import { MatIconModule } from '@angular/material/icon';
       position: relative;
       isolation: isolate;
       overflow: hidden;
-      min-height: 150px;
-      padding: 1.25rem 1.5rem;
+      min-height: 9.75rem;
+      padding: 1.125rem 1.25rem;
       border-radius: 1rem;
-      background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.05));
-      border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
+      background: color-mix(in srgb, var(--color-card, #111111) 88%, #000000 12%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: var(--shadow-card);
       margin-bottom: 1.5rem;
     }
 
@@ -63,8 +64,9 @@ import { MatIconModule } from '@angular/material/icon';
     .daily-hero__bg-image {
       width: 100%;
       height: 100%;
-      object-fit: fill;
-      opacity: 0.5;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0.34;
       transform: scale(1);
       transition: transform 0.7s ease;
     }
@@ -75,8 +77,8 @@ import { MatIconModule } from '@angular/material/icon';
 
     .daily-hero__bg-overlay {
       background:
-        linear-gradient(180deg, rgba(7, 10, 16, 0.28), rgba(7, 10, 16, 0.72)),
-        linear-gradient(135deg, rgba(204, 255, 0, 0.2), rgba(255, 255, 255, 0.04));
+        linear-gradient(180deg, rgba(9, 12, 18, 0.22), rgba(9, 12, 18, 0.68)),
+        linear-gradient(135deg, rgba(204, 255, 0, 0.18), rgba(255, 255, 255, 0.03));
     }
 
     .daily-hero__content {
@@ -88,16 +90,21 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     .daily-hero__badge {
-      display: inline-block;
-      padding: 0.25rem 0.625rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      padding: 0.375rem 0.6875rem;
       font-size: 0.6875rem;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 0.08em;
+      line-height: 1;
       text-transform: uppercase;
       background: var(--color-accent);
       color: var(--color-accent-foreground);
-      border-radius: 0.375rem;
-      width: fit-content;
+      border-radius: 0.75rem;
+      border: 1px solid color-mix(in srgb, var(--color-accent) 72%, #000000 28%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
     }
 
     .daily-hero__row {
@@ -113,20 +120,24 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     .daily-hero__title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 0 0 0.375rem 0;
-      color: var(--mat-sys-on-surface);
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.5rem 0;
+      color: #ffffff;
     }
 
     .daily-hero__meta {
       display: flex;
       align-items: center;
-      gap: 0.25rem;
+      flex-wrap: wrap;
+      gap: 0.375rem;
       font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--mat-sys-on-surface-variant);
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.82);
       margin: 0;
+      line-height: 1.35;
     }
 
     .daily-hero__meta-icon {
@@ -138,14 +149,15 @@ import { MatIconModule } from '@angular/material/icon';
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 3rem;
-      height: 3rem;
+      width: 3.25rem;
+      height: 3.25rem;
       flex-shrink: 0;
       color: var(--color-accent-foreground);
       background: var(--color-accent);
       border: none;
       border-radius: 50%;
       cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
       transition: background-color 0.2s, transform 0.15s;
     }
 

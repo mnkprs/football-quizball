@@ -5,6 +5,7 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAntiConvergenceInstruction,
+  getCompactQuestionInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -37,7 +38,7 @@ export class GossipGenerator {
       : '';
     const systemPrompt = `You are a football celebrity gossip expert. Generate a fun football gossip trivia question.
 Topics can include: famous transfer sagas, player controversies, WAG stories, celebrity footballer relationships, off-pitch incidents, feuds between players or managers, outrageous quotes, extravagant lifestyles.
-Keep it factual (real events) and entertaining.${getAntiConvergenceInstruction()}
+Keep it factual (real events) and entertaining.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
@@ -70,7 +71,7 @@ specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific inciden
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
-They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getAntiConvergenceInstruction()}
+They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score.
 ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${langInstruction}`;
     const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;

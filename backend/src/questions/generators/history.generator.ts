@@ -5,6 +5,7 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAntiConvergenceInstruction,
+  getCompactQuestionInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -36,7 +37,7 @@ export class HistoryGenerator {
       ? '\n  "wrong_choices": ["plausible wrong answer 1", "plausible wrong answer 2"],  // two plausible but incorrect options, similar in type to correct_answer'
       : '';
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
-Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getAntiConvergenceInstruction()}
+Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
@@ -71,7 +72,7 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football trivia expert. Generate ${questionCount} interesting football history questions on real events.
-The questions must be factual, answerable, and clearly distinct.${getAntiConvergenceInstruction()}
+The questions must be factual, answerable, and clearly distinct.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object:
 {
   "questions": [

@@ -5,6 +5,7 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAntiConvergenceInstruction,
+  getCompactQuestionInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -42,7 +43,7 @@ export class Top5Generator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football statistics expert. Generate a "Name the Top 5" football quiz question.
-Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.${getAntiConvergenceInstruction()}
+Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "question_text": "Name the top 5 ...",
@@ -59,8 +60,6 @@ Return ONLY valid JSON:
   "specificity_score": 3
 }
 The top5 array must have exactly 5 entries ordered from 1st to 5th place. All data must be factually accurate.
-Question text must be compact and straightforward.
-Ask directly. Do not add background trivia, setup sentences, or explanatory lead-ins before the actual ask.
 Do not mention any of the 5 answer names anywhere in question_text.
 fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.
 specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.${langInstruction}`;
@@ -83,7 +82,7 @@ specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific seas
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football statistics expert. Generate ${questionCount} "Name the Top 5" football quiz questions.
-These questions are hard by nature, but they must still be findable because the competition context is familiar.${getAntiConvergenceInstruction()}
+These questions are hard by nature, but they must still be findable because the competition context is familiar.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [
@@ -103,8 +102,6 @@ Return ONLY valid JSON:
     }
   ]
 }
-Each question_text must be compact and straightforward.
-Ask directly. Do not add background trivia, setup sentences, or explanatory lead-ins before the actual ask.
 Do not mention any answer name from the top5 array anywhere in question_text.
 ${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${langInstruction}`;
     const userPrompt = `Generate ${questionCount} Top 5 questions in one batch. ${getRelativityConstraint('TOP_5', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;

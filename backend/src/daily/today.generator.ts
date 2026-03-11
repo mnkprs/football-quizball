@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
+import { getCompactQuestionInstruction } from '../questions/diversity-hints';
 
 export interface DailyQuestion {
   question_text: string;
@@ -31,6 +32,7 @@ Rules:
 - Answer must be SHORT: a name, team, year, score, or number (1-5 words).
 - Generate exactly 8 questions. Each must have 2 plausible wrong choices.
 - Vary the years (different decades) and topics.
+${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object:
 {
   "questions": [

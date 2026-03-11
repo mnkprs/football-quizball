@@ -200,6 +200,14 @@ ANTI-REPETITION RULES (strictly enforced):
 - Do NOT generate questions without a genuinely niche, non-obvious angle.`;
 }
 
+export function getCompactQuestionInstruction(): string {
+  return `
+QUESTION WRITING RULES (strictly enforced):
+- Write question_text to be compact and straightforward.
+- Ask directly.
+- Do NOT add background trivia, setup sentences, or explanatory lead-ins before the actual ask.`;
+}
+
 // ─── Minority Scale ────────────────────────────────────────────────────────────
 
 function randomInRange(min: number, max: number): number {

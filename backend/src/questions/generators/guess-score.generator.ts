@@ -6,6 +6,7 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAntiConvergenceInstruction,
+  getCompactQuestionInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -39,7 +40,7 @@ export class GuessScoreGenerator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football historian. Generate a "Guess the Score" question.
-Pick any real, historically accurate match — any era, any competition.${getAntiConvergenceInstruction()}
+Pick any real, historically accurate match — any era, any competition.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "home_team": "Team Name",
@@ -76,7 +77,7 @@ specificity_score is 1-5: 1 = famous final everyone recalls, 3 = notable but not
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football historian. Generate ${questionCount} "Guess the Score" questions.
-Every question MUST use a famous real match. Avoid obscure matches because exact score recall is inherently hard.${getAntiConvergenceInstruction()}
+Every question MUST use a famous real match. Avoid obscure matches because exact score recall is inherently hard.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [

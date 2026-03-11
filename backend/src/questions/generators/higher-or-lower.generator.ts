@@ -6,6 +6,7 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAntiConvergenceInstruction,
+  getCompactQuestionInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -41,7 +42,7 @@ export class HigherOrLowerGenerator {
     const systemPrompt = `You are a football statistics expert. Create a "Higher or Lower" question.
 The question shows a player's stat with a WRONG value, and the player must guess if the real value is Higher or Lower.
 The "shown_value" should be plausibly wrong (within 20-30% of real value, either above or below).
-Pick any interesting football statistic — any era, any league.${getAntiConvergenceInstruction()}
+Pick any interesting football statistic — any era, any league.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "player": "Player Full Name",
@@ -77,7 +78,7 @@ specificity_score is 1-5: 1 = widely known career total, 3 = season-specific sta
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football statistics expert. Create ${questionCount} "Higher or Lower" questions.
-Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getAntiConvergenceInstruction()}
+Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [

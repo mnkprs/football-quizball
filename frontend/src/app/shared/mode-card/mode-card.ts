@@ -81,6 +81,10 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
       color: inherit;
     }
 
+    .mode-card-container--primary .mode-card__footer-text {
+      color: rgba(0, 0, 0, 0.72);
+    }
+
     .mode-card-container--accent .mode-card__title,
     .mode-card-container--accent .mode-card__hint,
     .mode-card-container--accent .mode-card__footer-text,
@@ -97,9 +101,9 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
     .mode-card__header {
       display: flex;
-      align-items: flex-center;
-      gap: 0.875rem;
-      margin-bottom: 0.5rem;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.625rem;
       width: 100%;
     }
 
@@ -107,10 +111,12 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 3rem;
+      height: 3rem;
       flex-shrink: 0;
       border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
     }
 
     .mode-card__icon-wrap--gold {
@@ -139,7 +145,7 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.375rem 0.5rem;
       flex: 1;
       min-width: 0;
       opacity: 0.9;
@@ -148,8 +154,8 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     .mode-card__footer {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
+      gap: 0.625rem;
+      margin-top: 0.75rem;
     }
 
     .mode-card__footer-avatars {
@@ -158,12 +164,12 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     }
 
     .mode-card__footer-avatar {
-      width: 0.75rem;
-      height: 0.75rem;
+      width: 0.8125rem;
+      height: 0.8125rem;
       border-radius: 50%;
-      background: var(--mat-sys-surface-container-highest, #333);
+      background: var(--color-accent);
       margin-left: -0.35rem;
-      border: 2px solid var(--mat-sys-surface-container-high, #222);
+      border: 2px solid rgba(9, 12, 18, 0.82);
     }
 
     .mode-card__footer-avatar:first-child {
@@ -172,18 +178,18 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
     .mode-card__footer-text {
       font-size: 0.8125rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--mat-sys-on-surface-variant);
       opacity: 0.9;
     }
 
     .mode-card__title {
-      font-size: 1.125rem;
-      font-weight: 700;
+      font-size: 1.375rem;
+      font-weight: 800;
+      line-height: 1.08;
       margin: 0;
       color: inherit;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
+      letter-spacing: -0.03em;
     }
 
     .mode-card__title-row .mode-card__title {
@@ -191,18 +197,18 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     }
 
     .mode-card__hint {
-      font-size: 0.875rem;
-      font-weight: 400;
-      margin: 0.25rem 0 0 0;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      margin: 0.375rem 0 0 0;
       opacity: 0.9;
-      line-height: 1.4;
+      line-height: 1.35;
     }
 
     .mode-card__section {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.625rem;
     }
 
     .mode-card__section-icon {
@@ -210,10 +216,9 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     }
 
     .mode-card__section-text {
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
       font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
 
     .mode-card__cta {
@@ -229,11 +234,12 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     }
 
     .mode-card__cta--pill {
-      padding: 0.625rem 1.25rem;
+      padding: 0.6875rem 1.125rem;
       background: #000000;
       color: #ffffff;
       border-radius: 9999px;
       border: none;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
     }
 
     .mode-card__cta .material-icons {

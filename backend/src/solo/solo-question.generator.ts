@@ -3,7 +3,12 @@ import { LlmService } from '../llm/llm.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { Difficulty } from '../questions/question.types';
 import { SoloQuestion } from './solo.types';
-import { getExplicitConstraints, getAntiConvergenceInstruction, minorityScaleForElo } from '../questions/diversity-hints';
+import {
+  getExplicitConstraints,
+  getAntiConvergenceInstruction,
+  getCompactQuestionInstruction,
+  minorityScaleForElo,
+} from '../questions/diversity-hints';
 
 @Injectable()
 export class SoloQuestionGenerator {
@@ -39,7 +44,7 @@ export class SoloQuestionGenerator {
 Generate a single football question. The question should be ${difficultyGuide[difficulty]}.
 Cover any football topic: history, players, clubs, transfers, trophies, scores, records, gossip, geography.
 Phrase questions to be SPECIFIC and harder to Google quickly (avoid simple "who scored in the 2014 World Cup final" style).
-The answer must be a SHORT, precise text answer (a name, number, year, score, or country — NOT a long sentence).${getAntiConvergenceInstruction()}
+The answer must be a SHORT, precise text answer (a name, number, year, score, or country — NOT a long sentence).${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "question_text": "...",

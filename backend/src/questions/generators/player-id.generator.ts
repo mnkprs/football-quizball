@@ -6,6 +6,7 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAntiConvergenceInstruction,
+  getCompactQuestionInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -51,7 +52,7 @@ export class PlayerIdGenerator {
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
-Pick any interesting footballer — legendary, retired, or current, from any era or league.${getAntiConvergenceInstruction()}
+Pick any interesting footballer — legendary, retired, or current, from any era or league.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "player_name": "Full Name",
@@ -89,7 +90,7 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
     const langInstruction = language === 'el'
       ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
       : '';
-    const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.${getAntiConvergenceInstruction()}
+    const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each question must include:
 {
   "player_name": "Full Name",

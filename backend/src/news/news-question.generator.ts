@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { LlmService } from '../llm/llm.service';
 import { GeneratedQuestion } from '../questions/question.types';
+import { getCompactQuestionInstruction } from '../questions/diversity-hints';
 import type { NewsHeadline } from './news-fetcher.service';
 
 @Injectable()
@@ -27,6 +28,7 @@ Rules:
 - Answer must be SHORT: a name, team, score, year, or number (1-5 words).
 - Generate 1-2 questions per headline. Skip headlines that don't yield a clear trivia question.
 - Avoid questions that would be outdated in a week (e.g. "who is currently manager" - prefer "who was appointed manager in March 2025").
+${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object:
 {
   "questions": [

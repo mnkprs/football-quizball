@@ -20,21 +20,21 @@ import { RouterLink } from '@angular/router';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
+      margin-bottom: 0.875rem;
     }
 
     .section-header__title {
-      font-size: 1rem;
+      font-size: 1.0625rem;
       font-weight: 700;
       margin: 0;
       color: var(--mat-sys-on-surface);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: -0.01em;
     }
 
     .section-header__action {
-      font-size: 0.8125rem;
-      font-weight: 500;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
       color: var(--mat-sys-on-surface-variant);
       text-decoration: none;
       transition: color 0.2s, opacity 0.2s;

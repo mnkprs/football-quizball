@@ -149,35 +149,37 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 1.5rem;
+      padding: 1rem;
     }
 
     .home-content {
-      max-width: 28rem;
+      max-width: 24.375rem;
       width: 100%;
     }
 
     .home-lang-toggle {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.875rem;
-      font-weight: 600;
+      padding: 0.5rem 0.8125rem;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
       border-radius: 9999px;
-      border: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.2));
-      background: transparent;
-      color: var(--mat-sys-on-surface-variant, #666);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--color-header-foreground);
       cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
+      transition: border-color 0.2s, color 0.2s, background-color 0.2s;
     }
 
     .home-lang-toggle:hover {
-      border-color: var(--mat-sys-primary, #1976d2);
-      color: var(--mat-sys-primary, #1976d2);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      background: rgba(255, 255, 255, 0.1);
     }
 
     .home-modes {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.875rem;
       margin-bottom: 2rem;
     }
   `],
