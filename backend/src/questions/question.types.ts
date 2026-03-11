@@ -11,6 +11,11 @@ export type QuestionCategory =
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 export type QuestionLocale = 'en' | 'el';
 
+export interface QuestionTranslation {
+  question_text: string;
+  explanation: string;
+}
+
 // Type of value the player must recall — drives precision modifier
 export type AnswerType = 'name' | 'team' | 'number' | 'score' | 'year' | 'country';
 
@@ -100,6 +105,10 @@ export interface GeneratedQuestion {
   image_url: string | null;
   // Category-specific extras
   meta?: Record<string, unknown>;
+  // Canonical English source kept server-side so active games can switch locale on resume.
+  source_question_text?: string;
+  source_explanation?: string;
+  translations?: Partial<Record<QuestionLocale, QuestionTranslation>>;
   // Difficulty scoring factors — stripped before sending to client
   difficulty_factors?: DifficultyFactors;
 }

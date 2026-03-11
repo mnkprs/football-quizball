@@ -45,6 +45,7 @@ import { MatIconModule } from '@angular/material/icon';
       position: relative;
       isolation: isolate;
       overflow: hidden;
+      min-height: 150px;
       padding: 1.25rem 1.5rem;
       border-radius: 1rem;
       background: var(--mat-sys-surface-container-high, rgba(0, 0, 0, 0.05));

@@ -8,7 +8,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { GameService } from './game.service';
-import { CreateGameDto, SubmitAnswerDto, UseLifelineDto, Top5GuessDto } from './game.types';
+import { CreateGameDto, SubmitAnswerDto, UseLifelineDto, Top5GuessDto, UpdateGameLanguageDto } from './game.types';
 
 @Controller('api/games')
 export class GameController {
@@ -29,6 +29,16 @@ export class GameController {
   @Get(':id')
   getGame(@Param('id') id: string) {
     return this.gameService.getBoardState(id);
+  }
+
+  @Post(':id/language')
+  @HttpCode(HttpStatus.OK)
+  async updateLanguage(@Param('id') id: string, @Body() dto: UpdateGameLanguageDto) {
+    const session = await this.gameService.updateLanguage(id, dto.language);
+    return {
+      game_id: session.id,
+      language: session.language,
+    };
   }
 
   @Get(':id/questions/:questionId')

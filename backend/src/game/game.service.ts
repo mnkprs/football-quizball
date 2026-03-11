@@ -67,6 +67,7 @@ export class GameService {
       questions = result.questions;
       poolQuestionIds = result.poolQuestionIds;
     }
+    questions = questions.map((question) => this.ensureQuestionLocaleState(question));
 
     // Refill pool in background after drawing (English pool only)
     if (language === 'en') {
@@ -138,23 +139,151 @@ export class GameService {
     }
 
     const stringsToTranslate = needsTranslation.map((q) => ({
-      question_text: q.question_text,
-      explanation: q.explanation,
+      question_text: q.source_question_text ?? q.question_text,
+      explanation: q.source_explanation ?? q.explanation,
     }));
     const translated = await this.llmService.translateToGreek(stringsToTranslate);
 
     let ti = 0;
     const translatedQuestions = questions.map((q) => {
       const withFlag = q as QWithFlag;
+      const sourceQuestionText = withFlag.source_question_text ?? withFlag.question_text;
+      const sourceExplanation = withFlag.source_explanation ?? withFlag.explanation;
       if (withFlag.fromPoolTranslation) {
         const { fromPoolTranslation, ...rest } = withFlag;
-        return rest;
+        return {
+          ...rest,
+          source_question_text: sourceQuestionText,
+          source_explanation: sourceExplanation,
+        };
       }
-      const t = translated[ti++];
+      const t = translated[ti++] ?? {
+        question_text: sourceQuestionText,
+        explanation: sourceExplanation,
+      };
       const { fromPoolTranslation, ...rest } = withFlag;
-      return { ...rest, question_text: t.question_text, explanation: t.explanation };
+      return {
+        ...rest,
+        source_question_text: sourceQuestionText,
+        source_explanation: sourceExplanation,
+        translations: {
+          ...rest.translations,
+          el: {
+            question_text: t.question_text,
+            explanation: t.explanation,
+          },
+        },
+        question_text: t.question_text,
+        explanation: t.explanation,
+      };
     });
     return { questions: translatedQuestions, poolQuestionIds };
+  }
+
+  async updateLanguage(gameId: string, language: 'en' | 'el'): Promise<GameSession> {
+    const session = this.getGame(gameId);
+    if (session.language === language) {
+      return session;
+    }
+
+    const answeredQuestionIds = new Set(
+      session.board
+        .flat()
+        .filter((cell) => cell.answered)
+        .map((cell) => cell.question_id),
+    );
+    const localizedQuestions = session.questions.map((question) =>
+      this.ensureQuestionLocaleState(question),
+    );
+
+    let generatedGreekTranslations = new Map<
+      string,
+      { question_text: string; explanation: string }
+    >();
+    if (language === 'el') {
+      const pendingGreekQuestions = localizedQuestions.filter(
+        (question) =>
+          !answeredQuestionIds.has(question.id) &&
+          !question.translations?.el?.question_text,
+      );
+      generatedGreekTranslations = await this.buildGreekTranslations(
+        pendingGreekQuestions,
+      );
+    }
+
+    session.questions = localizedQuestions.map((question) => {
+      if (answeredQuestionIds.has(question.id)) {
+        return question;
+      }
+      if (language === 'en') {
+        return {
+          ...question,
+          question_text: question.source_question_text ?? question.question_text,
+          explanation: question.source_explanation ?? question.explanation,
+        };
+      }
+
+      const greekTranslation =
+        question.translations?.el?.question_text
+          ? question.translations.el
+          : generatedGreekTranslations.get(question.id);
+      if (!greekTranslation) {
+        return question;
+      }
+
+      return {
+        ...question,
+        translations: {
+          ...question.translations,
+          el: greekTranslation,
+        },
+        question_text: greekTranslation.question_text,
+        explanation: greekTranslation.explanation,
+      };
+    });
+    session.language = language;
+    session.updatedAt = new Date();
+    this.cacheService.set(`game:${session.id}`, session, 86400);
+    return session;
+  }
+
+  private ensureQuestionLocaleState(question: GeneratedQuestion): GeneratedQuestion {
+    return {
+      ...question,
+      source_question_text: question.source_question_text ?? question.question_text,
+      source_explanation: question.source_explanation ?? question.explanation,
+    };
+  }
+
+  private async buildGreekTranslations(
+    questions: GeneratedQuestion[],
+  ): Promise<Map<string, { question_text: string; explanation: string }>> {
+    if (questions.length === 0) {
+      return new Map();
+    }
+
+    const translated = await this.llmService.translateToGreek(
+      questions.map((question) => ({
+        question_text: question.source_question_text ?? question.question_text,
+        explanation: question.source_explanation ?? question.explanation,
+      })),
+    );
+
+    return new Map(
+      questions.map((question, index) => [
+        question.id,
+        {
+          question_text:
+            translated[index]?.question_text ??
+            question.source_question_text ??
+            question.question_text,
+          explanation:
+            translated[index]?.explanation ??
+            question.source_explanation ??
+            question.explanation,
+        },
+      ]),
+    );
   }
 
   getGame(gameId: string): GameSession {
@@ -192,7 +321,15 @@ export class GameService {
     if (!question) throw new NotFoundException(`Question ${questionId} not found`);
 
     // Don't expose the correct answer or scoring internals to the client
-    const { correct_answer, fifty_fifty_hint, difficulty_factors, ...safeQuestion } = question;
+    const {
+      correct_answer,
+      fifty_fifty_hint,
+      difficulty_factors,
+      source_question_text,
+      source_explanation,
+      translations,
+      ...safeQuestion
+    } = question;
     return { ...safeQuestion, correct_answer: '', fifty_fifty_hint: null } as GeneratedQuestion;
   }
 

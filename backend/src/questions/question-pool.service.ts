@@ -382,6 +382,16 @@ export class QuestionPoolService {
         ...q,
         difficulty: row.difficulty as Difficulty,
         points: this.resolvePoints(q, row.difficulty as Difficulty),
+        source_question_text: q.question_text,
+        source_explanation: q.explanation,
+        translations: tr?.question_text
+          ? {
+              el: {
+                question_text: tr.question_text,
+                explanation: tr.explanation ?? q.explanation,
+              },
+            }
+          : undefined,
         question_text: useEl ? tr!.question_text! : q.question_text,
         explanation: useEl && tr?.explanation ? tr.explanation : q.explanation,
         ...(useEl && { fromPoolTranslation: true }),

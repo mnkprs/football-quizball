@@ -44,6 +44,12 @@ export class CreateGameDto {
   excludeNewsQuestionIds?: string[];
 }
 
+export class UpdateGameLanguageDto {
+  @IsString()
+  @IsIn(['en', 'el'])
+  language: 'en' | 'el';
+}
+
 export class SubmitAnswerDto {
   @IsString()
   questionId: string;

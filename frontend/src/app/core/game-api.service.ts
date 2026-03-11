@@ -18,6 +18,11 @@ export interface CreateGameResponse {
   status: string;
 }
 
+export interface UpdateGameLanguageResponse {
+  game_id: string;
+  language: string;
+}
+
 export interface BoardState {
   id: string;
   status: 'ACTIVE' | 'FINISHED';
@@ -109,6 +114,12 @@ export class GameApiService {
 
   getGame(gameId: string): Observable<BoardState> {
     return this.http.get<BoardState>(`${this.base}/api/games/${gameId}`);
+  }
+
+  setGameLanguage(gameId: string, language: string): Observable<UpdateGameLanguageResponse> {
+    return this.http.post<UpdateGameLanguageResponse>(`${this.base}/api/games/${gameId}/language`, {
+      language,
+    });
   }
 
   getQuestion(gameId: string, questionId: string): Observable<Question> {

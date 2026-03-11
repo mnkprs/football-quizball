@@ -2,6 +2,7 @@ import { signalStore, withState, withMethods, withComputed, patchState, withHook
 import { inject } from '@angular/core';
 import { computed } from '@angular/core';
 import { GameApiService, BoardState, Question, AnswerResult, Top5Entry, Top5GuessResult } from './game-api.service';
+import { LanguageService } from './language.service';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -96,7 +97,7 @@ export const GameStore = signalStore(
       ] as [number, number];
     }),
   })),
-  withMethods((store, api = inject(GameApiService)) => ({
+  withMethods((store, api = inject(GameApiService), language = inject(LanguageService)) => ({
     async startGame(player1Name: string, player2Name: string, language: string): Promise<void> {
       patchState(store, { loading: true, error: null, phase: 'loading' });
       try {
@@ -386,6 +387,7 @@ export const GameStore = signalStore(
     async restoreGame(gameId: string): Promise<void> {
       patchState(store, { loading: true, phase: 'loading' });
       try {
+        await firstValueFrom(api.setGameLanguage(gameId, language.lang()));
         const boardState = await firstValueFrom(api.getGame(gameId));
         saveNewsIdsFromBoard(boardState.board);
         const phase = boardState.status === 'FINISHED' ? 'finished' : 'board';
