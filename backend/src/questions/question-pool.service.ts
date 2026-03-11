@@ -77,7 +77,7 @@ export class QuestionPoolService {
         slot.difficulty,
         slot.count,
         language,
-        slot.category === 'NEWS' ? excludeNewsQuestionIds : undefined,
+        undefined, // NEWS recycled through games (no exclusion of used questions)
       );
       if (drawn.length < slot.count) {
         if (slot.category === 'NEWS') {
@@ -129,7 +129,7 @@ export class QuestionPoolService {
           slot.difficulty,
           slot.count,
           'en',
-          slot.category === 'NEWS' ? excludeNewsQuestionIds : undefined,
+          undefined, // NEWS recycled through games (no exclusion of used questions)
         );
         for (const q of drawn) {
           board.push(q);
