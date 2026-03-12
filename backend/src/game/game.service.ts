@@ -400,6 +400,11 @@ export class GameService {
   useLifeline(gameId: string, dto: UseLifelineDto): HintResult {
     const session = this.getGame(gameId);
 
+    const player = session.players[dto.playerIndex];
+    if (player.lifelineUsed) {
+      throw new BadRequestException('50-50 already used this game (one per player)');
+    }
+
     const question = session.questions.find((q) => q.id === dto.questionId);
     if (!question) throw new NotFoundException('Question not found');
 
@@ -417,6 +422,8 @@ export class GameService {
       cell.points = 1;
       cell.lifeline_applied = true;
     }
+
+    player.lifelineUsed = true;
 
     session.updatedAt = new Date();
     this.cacheService.set(`game:${session.id}`, session, 86400);
@@ -545,7 +552,7 @@ export class GameService {
     const filledCount = progress.filledSlots.filter(Boolean).length;
     const wrongCount = progress.wrongGuesses.length;
     const allFilled = filledCount === 5;
-    const tooManyWrong = wrongCount >= 1;
+    const tooManyWrong = wrongCount >= 2;
     const complete = allFilled || tooManyWrong;
 
     if (complete) {
