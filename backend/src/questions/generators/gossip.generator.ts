@@ -41,11 +41,11 @@ Return ONLY a valid JSON object with these exact fields:
   "correct_answer": "the answer (short, 1-5 words)",
   "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Neymar' write 'Mbappé'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
   "explanation": "brief explanation (1-2 sentences)",
-  "event_year": 2018,
+  "event_year": 2023,
   "competition": "Premier League",
-  "fame_score": 6,
-  "specificity_score": 2,
-  "combinational_thinking_score": 3
+  "fame_score": 8,
+  "specificity_score": 1,
+  "combinational_thinking_score": 2
 }
 fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.
 specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific incident detail, 5 = very niche off-pitch fact.

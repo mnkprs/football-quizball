@@ -9,6 +9,7 @@ export const LEAGUE_FAMILIARITY_TIERS: Record<string, number> = {
   'Premier League': 1,
   'Greek Super League': 1,
   'Super League Greece': 1,
+  'Greek Cup': 1,
   'La Liga': 1,
   'Bundesliga': 1,
   'Serie A': 1,

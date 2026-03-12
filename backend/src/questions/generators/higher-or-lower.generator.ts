@@ -47,9 +47,9 @@ Return ONLY valid JSON:
   "competition": "League/Cup name",
   "season": "YYYY-YY or YYYY",
   "event_year": 2024,
-  "fame_score": 7,
-  "specificity_score": 3,
-  "combinational_thinking_score": 4,
+  "fame_score": 8,
+  "specificity_score": 2,
+  "combinational_thinking_score": 2,
   "question_text": "Full question sentence shown to the player",
   "explanation": "Brief explanation of the correct answer"
 }
@@ -80,9 +80,9 @@ Return ONLY valid JSON:
       "competition": "League/Cup name",
       "season": "YYYY-YY or YYYY",
       "event_year": 2024,
-      "fame_score": 6,
-      "specificity_score": 6,
-      "combinational_thinking_score": 4,
+      "fame_score": 8,
+      "specificity_score": 2,
+      "combinational_thinking_score": 2,
       "question_text": "Full question sentence shown to the player",
       "explanation": "Brief explanation"
     }

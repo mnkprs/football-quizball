@@ -54,10 +54,10 @@ Return ONLY a valid JSON object with these exact fields:
   "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false, 'player')}
   "image_url": null,
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
-  "event_year": 2018,
-  "fame_score": 8,
-  "specificity_score": 3,
-  "combinational_thinking_score": 5,
+  "event_year": 2022,
+  "fame_score": 9,
+  "specificity_score": 2,
+  "combinational_thinking_score": 2,
   "question_text": "Question prompt shown to the player",
   "explanation": "Brief explanation naming the player and career summary"
 }
@@ -87,10 +87,10 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
   "wrong_player_name": "A plausible wrong player",
   "image_url": null,
   "competition": "most notable competition",
-  "event_year": 2018,
-  "fame_score": 6,
-  "specificity_score": 6,
-  "combinational_thinking_score": 5,
+  "event_year": 2022,
+  "fame_score": 8,
+  "specificity_score": 2,
+  "combinational_thinking_score": 2,
   "question_text": "Prompt",
   "explanation": "Short explanation"
 }

@@ -43,11 +43,11 @@ export class GeographyGenerator extends BaseGenerator {
         "answer_type": "country",
         "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Germany' write 'France'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
         "explanation": "brief explanation (1-2 sentences)",
-        "event_year": 2010,
+        "event_year": 2022,
         "competition": "Competition or league name e.g. FIFA World Cup, Premier League",
-        "fame_score": 7,
-        "specificity_score": 2,
-        "combinational_thinking_score": 3
+        "fame_score": 9,
+        "specificity_score": 1,
+        "combinational_thinking_score": 2
       }
       answer_type: What the question asks for (e.g. country, city, stadium, player nationality). Use lowercase, 1-3 words.
       fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.

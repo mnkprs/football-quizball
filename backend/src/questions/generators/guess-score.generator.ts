@@ -46,15 +46,15 @@ Return ONLY valid JSON:
   "competition": "Competition Name",
   "date": "Day Month Year",
   "significance": "brief note about the match",
-  "event_year": 2019,
-  "fame_score": 7,
-  "specificity_score": 4,
-  "combinational_thinking_score": 3,
+  "event_year": 2022,
+  "fame_score": 9,
+  "specificity_score": 2,
+  "combinational_thinking_score": 2,
   "question_text": "Full question sentence shown to the player",
   "explanation": "Brief explanation of the correct answer"
 }
-fame_score is 1-10: 10 = universally iconic, 7 = well-known match most fans recall, 4 = notable but not top-of-mind, 1 = obscure.
-specificity_score is 1-5: Prefer 1-3 (famous finals, widely recallable matches). Avoid 5 (very obscure).
+fame_score is 1-10: 10 = universally iconic, 8-9 = well-known match most fans recall. Prefer 8-10 for relevant questions.
+specificity_score is 1-5: Prefer 1-2 (famous finals, widely recallable matches). Avoid 4-5 (obscure).
 combinational_thinking_score 1-10: 1 = single match recall, 5 = combines teams+competition+context, 10 = multi-dimensional reasoning.
 CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the score when Germany met Brazil in the 2014 World Cup semi-final?" NOT "where Germany defeated Brazil 7-1?".${this.langInstruction(language)}`;
 
@@ -81,10 +81,10 @@ Return ONLY valid JSON:
       "competition": "Competition Name",
       "date": "Day Month Year",
       "significance": "brief note about the match",
-      "event_year": 2019,
-      "fame_score": 7,
-      "specificity_score": 3,
-      "combinational_thinking_score": 3,
+      "event_year": 2022,
+      "fame_score": 9,
+      "specificity_score": 2,
+      "combinational_thinking_score": 2,
       "question_text": "Full question sentence shown to the player",
       "explanation": "Brief explanation of the correct answer"
     }

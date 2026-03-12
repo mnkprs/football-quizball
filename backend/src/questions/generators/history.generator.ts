@@ -43,11 +43,11 @@ Return ONLY a valid JSON object with these exact fields:
   "answer_type": "name",
   "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Brazil' write 'Argentina'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
   "explanation": "brief explanation of why this is correct (1-2 sentences)",
-  "event_year": 1966,
+  "event_year": 2022,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League, UEFA Champions League",
-  "fame_score": 8,
-  "specificity_score": 3,
-  "combinational_thinking_score": 4
+  "fame_score": 9,
+  "specificity_score": 2,
+  "combinational_thinking_score": 2
 }
 fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.
 combinational_thinking_score 1-10: 1 = single fact recall ("Who won X?"), 5 = combines 2-3 dimensions (league+season+event), 10 = multi-dimensional reasoning across many facts.
@@ -76,11 +76,11 @@ Return ONLY a valid JSON object:
       "answer_type": "player name",
       "fifty_fifty_hint": "a plausible but wrong answer",
       "explanation": "brief explanation",
-      "event_year": 1999,
+      "event_year": 2022,
       "competition": "UEFA Champions League",
-      "fame_score": 8,
-      "specificity_score": 3,
-      "combinational_thinking_score": 4
+      "fame_score": 9,
+      "specificity_score": 2,
+      "combinational_thinking_score": 2
     }
   ]
 }
