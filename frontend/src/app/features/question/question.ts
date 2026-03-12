@@ -83,7 +83,7 @@ import { LanguageService } from '../../core/language.service';
                     @for (opt of opts; track $index) {
                       <button
                         (click)="submitFiftyFifty(opt)"
-                        class="py-3 px-4 rounded-xl bg-muted border border-border text-foreground font-semibold hover:bg-accent/20 hover:border-accent active:scale-95 transition text-sm"
+                        class="py-3 px-4 rounded-xl bg-muted border border-border text-foreground font-semibold hover:bg-accent/20 hover:border-accent focus:outline-none focus:ring-0 active:scale-95 transition text-sm"
                       >
                         {{ opt }}
                       </button>
@@ -312,7 +312,7 @@ import { LanguageService } from '../../core/language.service';
             <span class="text-muted-foreground text-sm">{{ t5.filledCount }}{{ lang.t().found }}</span>
             <div class="flex items-center gap-1.5">
               <span class="text-muted-foreground text-sm">{{ lang.t().lives }}</span>
-              @for (i of [0, 1]; track i) {
+              @for (i of [0]; track i) {
                 <span class="text-lg" [class.grayscale]="t5.wrongCount > i" [class.opacity-30]="t5.wrongCount > i">❤️</span>
               }
             </div>

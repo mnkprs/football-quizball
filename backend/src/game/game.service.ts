@@ -545,7 +545,7 @@ export class GameService {
     const filledCount = progress.filledSlots.filter(Boolean).length;
     const wrongCount = progress.wrongGuesses.length;
     const allFilled = filledCount === 5;
-    const tooManyWrong = wrongCount >= 2;
+    const tooManyWrong = wrongCount >= 1;
     const complete = allFilled || tooManyWrong;
 
     if (complete) {
