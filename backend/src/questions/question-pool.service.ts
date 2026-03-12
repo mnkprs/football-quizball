@@ -218,8 +218,8 @@ export class QuestionPoolService {
     return this.withRefillLock(async () => {
       const key = `${category}/${difficulty}`;
       this.logger.log(`[seedSlot] ${key}: adding ${toAdd} questions (batch logic)`);
-      const { added, questions } = await this.seedSlotPasses(category, difficulty, toAdd);
-      return { slot: key, added, questions };
+      const { added, questionIds } = await this.seedSlotPasses(category, difficulty, toAdd);
+      return { slot: key, added, questions: questionIds };
     });
   }
 
@@ -236,20 +236,38 @@ export class QuestionPoolService {
     const passes = Math.min(500, Math.max(1, count));
     return this.withRefillLock(async () => {
       const results: { slot: string; added: number }[] = [];
+      const allQuestionIds: string[] = [];
 
       for (const category of this.getLiveCategories()) {
         this.logger.log(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
-        const addedCounts = await this.seedCategoryPasses(category, passes);
-        const totalAdded = Object.values(addedCounts).reduce((sum, value) => sum + value, 0);
+        const { addedTotals, questionIds } = await this.seedCategoryPasses(category, passes);
+        const totalAdded = Object.values(addedTotals).reduce((sum, value) => sum + value, 0);
         this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
-        for (const [difficulty, added] of Object.entries(addedCounts) as Array<[Difficulty, number]>) {
+        allQuestionIds.push(...questionIds);
+        for (const [difficulty, added] of Object.entries(addedTotals) as Array<[Difficulty, number]>) {
           const key = `${category}/${difficulty}`;
           results.push({ slot: key, added });
         }
       }
 
+      if (allQuestionIds.length > 0) {
+        await this.storeSeedPoolSession(allQuestionIds, passes);
+      }
+
       return results;
     });
+  }
+
+  /** Persists a seed-pool session record for admin dashboard inspection. */
+  private async storeSeedPoolSession(questionIds: string[], target: number): Promise<void> {
+    const { error } = await this.supabaseService.client.from('seed_pool_sessions').insert({
+      question_ids: questionIds,
+      total_added: questionIds.length,
+      target,
+    });
+    if (error) {
+      this.logger.warn(`[storeSeedPoolSession] Failed to store session: ${error.message}`);
+    }
   }
 
   /**
@@ -593,8 +611,9 @@ export class QuestionPoolService {
   private async seedCategoryPasses(
     category: QuestionCategory,
     passes: number,
-  ): Promise<Record<Difficulty, number>> {
+  ): Promise<{ addedTotals: Record<Difficulty, number>; questionIds: string[] }> {
     const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const questionIds: string[] = [];
     const existingKeys = await this.getExistingQuestionKeys(category);
     const uniqueDifficulties = [...new Set(CATEGORY_DIFFICULTY_SLOTS[category])] as Difficulty[];
 
@@ -670,6 +689,7 @@ export class QuestionPoolService {
           await this.insertQuestions(category, accepted, difficultyOverride);
           for (const q of accepted) {
             addedTotals[difficulty] += 1;
+            questionIds.push(q.id);
           }
           this.logger.log(
             `[seedPool] ${category}/${difficulty} pass ${pass + 1}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'}`,
@@ -689,15 +709,16 @@ export class QuestionPoolService {
     if (missing.length > 0) {
       this.logger.log(`[seedPool] ${category}: retry for unfilled levels: ${missing.join(', ')}`);
       for (const difficulty of missing) {
-        const { added } = await this.seedSlotPasses(category, difficulty, 1);
+        const { added, questionIds: retryIds } = await this.seedSlotPasses(category, difficulty, 1);
         addedTotals[difficulty] += added;
+        questionIds.push(...retryIds);
         if (added > 0) {
           await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
         }
       }
     }
 
-    return addedTotals;
+    return { addedTotals, questionIds };
   }
 
   /**
@@ -709,9 +730,9 @@ export class QuestionPoolService {
     category: QuestionCategory,
     difficulty: Difficulty,
     targetCount: number,
-  ): Promise<{ added: number; questions: string[] }> {
+  ): Promise<{ added: number; questionIds: string[] }> {
     const existingKeys = await this.getExistingQuestionKeys(category);
-    const questions: string[] = [];
+    const questionIds: string[] = [];
     let added = 0;
     let pass = 0;
 
@@ -781,7 +802,7 @@ export class QuestionPoolService {
       await this.insertQuestions(category, accepted, difficultyOverride);
       for (const q of accepted) {
         added += 1;
-        questions.push(q.question_text);
+        questionIds.push(q.id);
       }
       this.logger.log(
         `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'} (total: ${added}/${targetCount})`,
@@ -792,7 +813,7 @@ export class QuestionPoolService {
       }
     }
 
-    return { added, questions };
+    return { added, questionIds };
   }
 
   private async generateCategoryFallback(
@@ -1132,6 +1153,61 @@ export class QuestionPoolService {
     }));
 
     return { questions, total: count ?? 0 };
+  }
+
+  /**
+   * Lists seed-pool sessions (runs) for admin dashboard.
+   */
+  async getSeedPoolSessions(): Promise<{ id: string; created_at: string; total_added: number; target: number }[]> {
+    const { data, error } = await this.supabaseService.client
+      .from('seed_pool_sessions')
+      .select('id, created_at, total_added, target')
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(`[getSeedPoolSessions] Query error: ${error.message}`);
+    return (data ?? []).map((r: { id: string; created_at: string; total_added: number; target: number }) => ({
+      id: r.id,
+      created_at: r.created_at,
+      total_added: r.total_added ?? 0,
+      target: r.target ?? 0,
+    }));
+  }
+
+  /**
+   * Fetches questions for a specific seed-pool session by session ID.
+   */
+  async getSessionQuestions(sessionId: string): Promise<PoolQuestionRow[]> {
+    const { data: session, error: sessionError } = await this.supabaseService.client
+      .from('seed_pool_sessions')
+      .select('question_ids')
+      .eq('id', sessionId)
+      .single();
+
+    if (sessionError || !session) {
+      throw new Error(`[getSessionQuestions] Session not found: ${sessionId}`);
+    }
+
+    const ids = (session.question_ids ?? []) as string[];
+    if (ids.length === 0) return [];
+
+    const { data, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('id, category, difficulty, raw_score, question')
+      .in('id', ids);
+
+    if (error) throw new Error(`[getSessionQuestions] Query error: ${error.message}`);
+
+    const orderMap = new Map(ids.map((id, i) => [id, i]));
+    return (data ?? [])
+      .map((r: { id: string; category: string; difficulty: string; raw_score: number; question: { question_text?: string; correct_answer?: string } }) => ({
+        id: r.id,
+        category: r.category,
+        difficulty: r.difficulty,
+        raw_score: r.raw_score ?? 0,
+        question_text: r.question?.question_text ?? '',
+        correct_answer: r.question?.correct_answer ?? '',
+      }))
+      .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
   }
 
   /**
