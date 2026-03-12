@@ -14,7 +14,11 @@ async function bootstrap() {
 
   const allowedOrigins = process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-    : ['http://localhost:4200', 'http://localhost:4300'];
+    : [
+        'http://localhost:4200',
+        'http://localhost:4300',
+        ...(process.env.NODE_ENV === 'production' ? ['https://football-quizball.vercel.app'] : []),
+      ];
 
   app.enableCors({
     origin: allowedOrigins,
