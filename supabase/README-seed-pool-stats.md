@@ -1,6 +1,6 @@
 # Seed Pool Stats Script
 
-Calculates unanswered (`used=false`) and answered (`used=true`) question counts per category and per difficulty.
+Calculates unanswered (`used=false`) and answered (`used=true`) question counts per category and per difficulty. Includes **drawable** counts (via `allowed_difficulties`) — questions that can fill each slot when drawing.
 
 ## Output format
 
@@ -8,10 +8,12 @@ Calculates unanswered (`used=false`) and answered (`used=true`) question counts 
 TOP 5 / EASY
 UNANSWERED: 122
 ANSWERED: 300
+DRAWABLE (unanswered/answered): 150 / 350
 
 TOP 5 / MEDIUM
 UNANSWERED: 45
 ANSWERED: 89
+DRAWABLE (unanswered/answered): 50 / 100
 ...
 ```
 

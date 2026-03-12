@@ -61,14 +61,26 @@ export const STAT_TYPES = [
 export const REGIONS = ['Europe', 'South America', 'Africa', 'Asia', 'North & Central America'] as const;
 
 export const GEOGRAPHY_ENTITY_TYPES = [
-  'national team from an unusual or unexpected country',
   'city famous for football rivalry between two clubs',
   'historically significant stadium or venue',
+  'nationality of a famous player (where they were born or represent)',
   'confederation or regional football body',
   'host nation of a major tournament',
-  'domestic league structure or promotion/relegation system',
-  'youth academy or player development region',
-  'country with unusual FIFA ranking history',
+  'country where a specific club is located',
+  'stadium capacity or location fact',
+  'nation that qualified for a World Cup or Euros',
+] as const;
+
+/** Question phrasings to force variety — avoid always "which country hosted...". */
+export const GEOGRAPHY_QUESTION_PATTERNS = [
+  'Which city...',
+  'In which country is...',
+  'Which stadium...',
+  'Which nationality...',
+  'Which nation...',
+  'Where is... located',
+  'Which confederation...',
+  'Which club is based in...',
 ] as const;
 
 export const GOSSIP_TOPICS = [

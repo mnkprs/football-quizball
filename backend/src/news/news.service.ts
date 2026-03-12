@@ -6,6 +6,7 @@ import { NewsFetcherService } from './news-fetcher.service';
 import { NewsQuestionGenerator } from './news-question.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
 import { GeneratedQuestion } from '../questions/question.types';
+import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 
 const NEWS_POOL_TARGET = 10;
 
@@ -72,6 +73,7 @@ export class NewsService {
           category: 'NEWS',
           difficulty: 'MEDIUM',
           used: false,
+          generation_version: GENERATION_VERSION,
           question: this.toPoolQuestion(q),
         }));
 

@@ -34,13 +34,13 @@ export class GeographyGenerator extends BaseGenerator {
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football geography expert. Generate a football-related geography question.
-      Topics can include: countries with famous clubs, cities and their football teams, stadium locations, nationalities of famous players, nations that have hosted tournaments, FIFA/UEFA confederation memberships.
+      VARY the question type: use cities, stadiums, nationalities, confederations, club locations — Topics: cities and their clubs, stadium locations, player nationalities, FIFA/UEFA confederations, host nations, club bases.
       ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
       Return ONLY a valid JSON object with these exact fields:
       {
         "question_text": "the question",
         "correct_answer": "the answer (short, 1-5 words)",
-        "answer_type": "country",
+        "answer_type": "location(vary by question)",
         "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Germany' write 'France'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
         "explanation": "brief explanation (1-2 sentences)",
         "event_year": 2022,
@@ -65,10 +65,11 @@ export class GeographyGenerator extends BaseGenerator {
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football geography expert. Generate ${questionCount} football geography questions.
+CRITICAL: Each question MUST use a DIFFERENT entity type and phrasing. Use exactly one of: (1) a city question, (2) a stadium question, (3) a country/nation question. Do NOT use "Which country hosted..." for more than one question. Vary: "Which city...", "In which country is...", "Which stadium...", "Which nationality...", etc.
 They should range from easy to hard while staying answerable in familiar contexts.
 ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
-    ${getLeagueFameGuidanceForBatch('GEOGRAPHY', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
+    ${getLeagueFameGuidanceForBatch('GEOGRAPHY', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: GeographyPayload[] }>(systemPrompt, userPrompt);

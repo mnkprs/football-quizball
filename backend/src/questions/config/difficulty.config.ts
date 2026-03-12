@@ -18,10 +18,8 @@ export const CATEGORY_MODIFIERS: Record<QuestionCategory, number> = {
   NEWS: -0.05,
 };
 
-/** Minimum raw score for certain categories (e.g. TOP_5). */
-export const CATEGORY_RAW_FLOORS: Partial<Record<QuestionCategory, number>> = {
-  TOP_5: 0.66,
-};
+/** Minimum raw score for certain categories. Removed TOP_5 so actual computed raw is stored; difficulty stays HARD via CATEGORY_FIXED_DIFFICULTY. */
+export const CATEGORY_RAW_FLOORS: Partial<Record<QuestionCategory, number>> = {};
 
 /** Bonus for multi-answer questions (e.g. TOP_5 list). */
 export const CATEGORY_MULTI_ANSWER_BONUSES: Partial<Record<QuestionCategory, number>> = {

@@ -22,7 +22,7 @@ async function main() {
     process.exit(1);
   }
   const data = await res.json();
-  console.log(`Done. Total added: ${data.totalAdded}`);
+  console.log(`Done. Total added: ${data.totalAdded} (generation version: ${data.generationVersion ?? 'n/a'})`);
   data.results.forEach((r) => {
     if (r.added > 0) {
       console.log(`  ${r.slot}: +${r.added}`);

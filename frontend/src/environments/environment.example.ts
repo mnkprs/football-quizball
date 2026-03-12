@@ -16,4 +16,6 @@ export const environment = {
   adSenseClientId: '',
   /** AdSense ad slot ID (numeric). Required if adSenseClientId is set. */
   adSenseSlotId: '',
+  /** Admin API key for /admin dashboard. Set to match backend ADMIN_API_KEY for local dev. */
+  adminApiKey: 'Manos1995' as string | undefined,
 };

@@ -45,3 +45,42 @@ export interface ExistingQuestionRow {
   question_text: string;
   correct_answer: string;
 }
+
+export interface SlotRawStats {
+  count: number;
+  avg: number;
+  min: number;
+  max: number;
+  std: number;
+  withRaw: number;
+}
+
+export interface PoolRawScoreStats {
+  totalRows: number;
+  withRawScore: number;
+  overallAvg: number;
+  overallStd: number;
+  categories: string[];
+  difficulties: string[];
+  slotStats: Record<string, SlotRawStats>;
+  bucketCounts: Record<string, number>;
+  buckets: number;
+}
+
+export interface SeedPoolStatsRow {
+  category: string;
+  difficulty: string;
+  unanswered: number;
+  answered: number;
+  drawable_unanswered: number;
+  drawable_answered: number;
+}
+
+export interface PoolQuestionRow {
+  id: string;
+  category: string;
+  difficulty: string;
+  raw_score: number;
+  question_text: string;
+  correct_answer: string;
+}

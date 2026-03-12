@@ -117,7 +117,7 @@ function colorize(text: string, color: string): string {
 
 function getRawBand(raw: number | null | undefined): 'EASY' | 'MEDIUM' | 'HARD' | 'UNKNOWN' {
   if (typeof raw !== 'number' || Number.isNaN(raw)) return 'UNKNOWN';
-  return raw >= 0.62 ? 'HARD' : raw >= 0.36 ? 'MEDIUM' : 'EASY';
+  return raw >= 0.48 ? 'HARD' : raw >= 0.30 ? 'MEDIUM' : 'EASY';
 }
 
 function shouldLogRawBandChange(

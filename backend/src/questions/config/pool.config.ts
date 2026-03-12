@@ -58,6 +58,9 @@ export const GENERATION_BATCH_SIZE = 5;
 /** Max attempts when filling a category slot before giving up. */
 export const MAX_CATEGORY_BATCH_ATTEMPTS = 20;
 
+/** Max retries when a batch is rejected entirely due to duplicates (re-run LLM). */
+export const DUPLICATE_RETRY_ATTEMPTS = 3;
+
 /** Throttle delay (ms) between batches to stay under LLM rate limits. */
 export const BATCH_THROTTLE_MS = 20000;
 

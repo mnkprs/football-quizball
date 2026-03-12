@@ -3,10 +3,13 @@
  * - supabaseUrl: Supabase project URL (Dashboard → Project Settings → API)
  * - supabaseAnonKey: Supabase anon/public key (Dashboard → Project Settings → API)
  * - apiUrl: Backend API base URL
+ * - adminApiKey: Optional. Set for local admin dashboard (must match backend ADMIN_API_KEY).
  */
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3001',
+  /** Admin API key for /admin dashboard. Set in .env or environment.ts for local dev. */
+  adminApiKey: 'Manos1995' as string | undefined,
   appUrl: '', // unused in dev; uses window.location.origin
   supabaseUrl: 'https://npwneqworgyclzaofuln.supabase.co',
   supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wd25lcXdvcmd5Y2x6YW9mdWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODU3ODEsImV4cCI6MjA4ODU2MTc4MX0.RutdVolELWFbYNv1FKC74xb6ZUrjY62OxsPFJgXmhOo', // Dashboard → Project Settings → API → anon public

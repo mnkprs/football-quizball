@@ -22,4 +22,6 @@ export const environment = {
   adSenseClientId: 'ca-pub-7781323448253047',
   /** AdSense ad slot ID (numeric). Create in AdSense → Ads → By ad unit. */
   adSenseSlotId: '',
+  /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
+  adminApiKey: undefined as string | undefined,
 };

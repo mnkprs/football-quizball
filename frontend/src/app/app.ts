@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { DonateModalComponent } from './shared/donate-modal/donate-modal';
@@ -10,7 +10,7 @@ import { GoogleAdsService } from './core/google-ads.service';
   standalone: true,
   imports: [RouterOutlet, DonateModalComponent],
   template: `
-    <div class="app-container">
+    <div class="app-container" [class.app-container--full]="isAdminRoute()">
       <router-outlet />
       @if (donateService.showModal()) {
         <app-donate-modal />
@@ -24,6 +24,10 @@ import { GoogleAdsService } from './core/google-ads.service';
       margin: 0 auto;
       background: var(--mat-sys-surface);
     }
+    .app-container--full {
+      max-width: none;
+      margin: 0;
+    }
   `],
 })
 export class App implements OnInit, OnDestroy {
@@ -32,10 +36,16 @@ export class App implements OnInit, OnDestroy {
   private googleAds = inject(GoogleAdsService);
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
 
+  isAdminRoute = signal(false);
+
   ngOnInit(): void {
+    this.isAdminRoute.set(this.router.url.startsWith('/admin'));
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe((e) => this.googleAds.pageView(e.urlAfterRedirects));
+      .subscribe((e) => {
+        this.isAdminRoute.set(e.urlAfterRedirects.startsWith('/admin'));
+        this.googleAds.pageView(e.urlAfterRedirects);
+      });
   }
 
   ngOnDestroy(): void {

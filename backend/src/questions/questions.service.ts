@@ -253,9 +253,18 @@ export class QuestionsService {
       process.env.LOG_GENERATED_QUESTIONS === '1' ||
       process.env.LOG_GENERATED_QUESTIONS === 'true'
     ) {
-      const rawBefore = question.raw_score;
+      const f = factors;
+      const factorsStr = [
+        `fame=${f.fame_score ?? 'n/a'}`,
+        `spec=${f.specificity_score ?? 'n/a'}`,
+        f.combinational_thinking_score != null ? `comb=${f.combinational_thinking_score}` : null,
+        `year=${f.event_year ?? 'n/a'}`,
+        `raw=${colorRawScoreOrNa(result.raw)}`,
+      ]
+        .filter(Boolean)
+        .join(' ');
       this.logger.log(
-        `${colorize('[scored]', ANSI.boldWhite)} ${colorize(`"${scoredQuestion.question_text}"`, ANSI.boldWhite)} ${colorize('raw_before=', ANSI.dim)}${colorRawScoreOrNa(rawBefore)} ${colorize('raw_after=', ANSI.dim)}${colorRawScoreOrNa(result.raw)}`,
+        `${colorize('[scored]', ANSI.boldWhite)} ${colorize(`"${scoredQuestion.question_text}"`, ANSI.boldWhite)} ${colorize(factorsStr, ANSI.dim)}`,
       );
     }
     return { scored: scoredQuestion };

@@ -7,6 +7,7 @@ import {
   STAT_TYPES,
   REGIONS,
   GEOGRAPHY_ENTITY_TYPES,
+  GEOGRAPHY_QUESTION_PATTERNS,
   GOSSIP_TOPICS,
   QUESTION_ANGLES,
 } from './diversity-dimensions.config';
@@ -114,6 +115,7 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
     }
     case 'GEOGRAPHY': {
       constraints.push(`The question MUST be about a ${pick(GEOGRAPHY_ENTITY_TYPES, useIndex(0))}.`);
+      constraints.push(`The question MUST start with or use the phrasing: "${pick(GEOGRAPHY_QUESTION_PATTERNS, useIndex(3))}" — do NOT default to "Which country hosted...".`);
       constraints.push(`The focus MUST be in ${pick(REGIONS, useIndex(1))}.`);
       constraints.push(`The angle MUST be: ${pick(QUESTION_ANGLES.GEOGRAPHY, useIndex(2))}.`);
       break;

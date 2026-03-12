@@ -18,5 +18,6 @@ export const routes: Routes = [
   },
   { path: 'game', loadComponent: () => import('./features/game/game').then(m => m.GameComponent) },
   { path: 'login', loadComponent: () => import('./features/login/login').then(m => m.LoginComponent) },
+  { path: 'admin', loadComponent: () => import('./features/admin/admin').then(m => m.AdminComponent) },
   { path: '**', redirectTo: '' },
 ];

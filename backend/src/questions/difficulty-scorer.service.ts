@@ -49,6 +49,7 @@ import {
   REJECTED_RESULT_DIFFICULTY,
   REJECTED_RESULT_POINTS,
   REJECTED_RESULT_RAW,
+  RAW_SCORE_OFFSET,
 } from './config/difficulty-scoring.config';
 
 function computeDateScore(event_year: number): number {
@@ -146,6 +147,7 @@ function computeRawScore(
   const multiAnswerBonus = CATEGORY_MULTI_ANSWER_BONUSES[factors.category] ?? 0;
 
   return (
+    RAW_SCORE_OFFSET +
     WEIGHT_DATE * dateScore +
     WEIGHT_FAMILIARITY * familiarityScore +
     WEIGHT_FAME * fameScoreNormalized +

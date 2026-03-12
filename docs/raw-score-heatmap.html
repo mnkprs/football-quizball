@@ -49,10 +49,10 @@
       background: linear-gradient(
         to right,
         #22c55e 0%,
-        #22c55e 36%,
-        #eab308 36%,
-        #eab308 55%,
-        #ef4444 55%,
+        #22c55e 30%,
+        #eab308 30%,
+        #eab308 48%,
+        #ef4444 48%,
         #ef4444 100%
       );
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
@@ -110,15 +110,15 @@
       overflow: visible;
     }
     .band-range.easy {
-      background: linear-gradient(to right, #22c55e 0%, #22c55e 44%, transparent 44%);
+      background: linear-gradient(to right, #22c55e 0%, #22c55e 38%, transparent 38%);
       border: 1px solid rgba(34, 197, 94, 0.5);
     }
     .band-range.medium {
-      background: linear-gradient(to right, transparent 0%, transparent 36%, #eab308 36%, #eab308 63%, transparent 63%);
+      background: linear-gradient(to right, transparent 0%, transparent 22%, #eab308 22%, #eab308 56%, transparent 56%);
       border: 1px solid rgba(234, 179, 8, 0.5);
     }
     .band-range.hard {
-      background: linear-gradient(to right, transparent 0%, transparent 47%, #ef4444 47%, #ef4444 100%);
+      background: linear-gradient(to right, transparent 0%, transparent 40%, #ef4444 40%, #ef4444 100%);
       border: 1px solid rgba(239, 68, 68, 0.5);
     }
     .band-desc {
@@ -140,7 +140,7 @@
 </head>
 <body>
   <h1>Raw Score Heatmap</h1>
-  <p class="subtitle">RAW_THRESHOLD_EASY=0.36 · RAW_THRESHOLD_MEDIUM=0.55 · BOUNDARY_TOLERANCE=0.08</p>
+  <p class="subtitle">RAW_THRESHOLD_EASY=0.30 · RAW_THRESHOLD_MEDIUM=0.48 · BOUNDARY_TOLERANCE=0.08</p>
 
   <div class="heatmap-container">
     <div class="axis">
@@ -153,34 +153,34 @@
     </div>
     <div class="heatmap-bar"></div>
     <div class="markers">
-      <div class="marker" style="left: 36%;" data-value="0.36"></div>
-      <div class="marker" style="left: 44%;" data-value="0.44"></div>
-      <div class="marker" style="left: 47%;" data-value="0.47"></div>
-      <div class="marker" style="left: 55%;" data-value="0.55"></div>
-      <div class="marker" style="left: 63%;" data-value="0.63"></div>
+      <div class="marker" style="left: 30%;" data-value="0.30"></div>
+      <div class="marker" style="left: 38%;" data-value="0.38"></div>
+      <div class="marker" style="left: 40%;" data-value="0.40"></div>
+      <div class="marker" style="left: 48%;" data-value="0.48"></div>
+      <div class="marker" style="left: 56%;" data-value="0.56"></div>
     </div>
 
     <div class="bands">
       <div class="band">
         <span class="band-label easy">EASY</span>
         <div class="band-range easy"></div>
-        <span class="band-desc">[0, 0.44)</span>
+        <span class="band-desc">[0, 0.38)</span>
       </div>
       <div class="band">
         <span class="band-label medium">MEDIUM</span>
         <div class="band-range medium"></div>
-        <span class="band-desc">[0.36, 0.63)</span>
+        <span class="band-desc">[0.22, 0.56)</span>
       </div>
       <div class="band">
         <span class="band-label hard">HARD</span>
         <div class="band-range hard"></div>
-        <span class="band-desc">[0.47, 1]</span>
+        <span class="band-desc">[0.40, 1]</span>
       </div>
     </div>
 
     <dl class="legend">
       <dt>Primary difficulty</dt>
-      <dd>EASY: raw &lt; 0.36 · MEDIUM: 0.36 ≤ raw &lt; 0.55 · HARD: raw ≥ 0.55</dd>
+      <dd>EASY: raw &lt; 0.30 · MEDIUM: 0.30 ≤ raw &lt; 0.48 · HARD: raw ≥ 0.48</dd>
       <dt>Slot acceptance (with BOUNDARY_TOLERANCE)</dt>
       <dd>Each slot accepts questions in the ranges above. Overlaps allow flexibility when seeding.</dd>
     </dl>

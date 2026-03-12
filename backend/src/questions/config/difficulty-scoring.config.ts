@@ -9,10 +9,10 @@ import type { QuestionCategory } from '../../common/interfaces/question.interfac
 // Raw score is 0–1. Higher = harder. Thresholds determine EASY/MEDIUM/HARD.
 
 /** Raw score below this → EASY */
-export const RAW_THRESHOLD_EASY = 0.36;
+export const RAW_THRESHOLD_EASY = 0.30;
 
 /** Raw score below this → MEDIUM (above → HARD) */
-export const RAW_THRESHOLD_MEDIUM = 0.55;
+export const RAW_THRESHOLD_MEDIUM = 0.48;
 
 /** Distance from threshold within which a question can be used in the adjacent easier level. */
 export const BOUNDARY_TOLERANCE = 0.08;
@@ -32,13 +32,16 @@ export const WEIGHT_FAMILIARITY = 0.35;
 export const WEIGHT_FAME = 0.30;
 
 /** Max contribution from specificity_score (1–10 scale). */
-export const SPECIFICITY_MODIFIER_MAX = 0.1;
+export const SPECIFICITY_MODIFIER_MAX = 0.12;
 
 /** Specificity scale: (score - 1) / 9 maps 1–10 to 0–1, then * SPECIFICITY_MODIFIER_MAX. */
 export const SPECIFICITY_SCALE_DENOMINATOR = 9;
 
 /** Max contribution from combinational_thinking_score (1–10 scale). Higher = more dimensions/reasoning required. */
-export const COMBINATIONAL_MODIFIER_MAX = 0.08;
+export const COMBINATIONAL_MODIFIER_MAX = 0.10;
+
+/** Offset added to all raw scores to push distribution toward MEDIUM/HARD. */
+export const RAW_SCORE_OFFSET = 0.06;
 
 /** Default when LLM omits combinational_thinking_score. 1 = no contribution (neutral). */
 export const COMBINATIONAL_DEFAULT = 1;

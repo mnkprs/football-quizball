@@ -20,13 +20,19 @@ import {
   MAX_CATEGORY_BATCH_ATTEMPTS,
   BATCH_THROTTLE_MS,
   SEED_PASS_DELAY_MS,
+  DUPLICATE_RETRY_ATTEMPTS,
 } from './config/pool.config';
+import { GENERATION_VERSION } from './config/generation-version.config';
 import { LIVE_CATEGORIES, SOLO_DRAW_CATEGORY_ORDER } from './config/category.config';
 import type {
   DrawBoardResult,
   DrawBoardRow,
   DrawQuestionsRow,
   PoolStatsRow,
+  PoolRawScoreStats,
+  PoolQuestionRow,
+  SeedPoolStatsRow,
+  SlotRawStats,
   CleanupResultRow,
   ExistingQuestionRow,
 } from '../common/interfaces/pool.interface';
@@ -559,36 +565,94 @@ export class QuestionPoolService {
   ): Promise<Record<Difficulty, number>> {
     const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
     const existingKeys = await this.getExistingQuestionKeys(category);
+    const uniqueDifficulties = [...new Set(CATEGORY_DIFFICULTY_SLOTS[category])] as Difficulty[];
 
     for (let pass = 0; pass < passes; pass += 1) {
       this.logger.log(`[seedPool] ${category} pass ${pass + 1}/${passes}`);
-      const batch = await this.questionsService.generateBatch(category, 'en', {
-        questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
-      });
-      const accepted = batch
-        .filter((q) => this.questionValidator.validate(q).valid)
-        .filter((q) => {
-          const key = `${q.question_text}|||${q.correct_answer}`;
-          if (existingKeys.has(key)) return false;
-          existingKeys.add(key);
-          return true;
-        });
+      for (const difficulty of uniqueDifficulties) {
+        let accepted: GeneratedQuestion[] = [];
+        let attempt = 0;
 
-      if (accepted.length === 0) {
-        this.logger.warn(`[seedPool] ${category} pass ${pass + 1}/${passes}: no accepted questions`);
-        continue;
-      }
+        while (attempt <= DUPLICATE_RETRY_ATTEMPTS) {
+          const batch = await this.questionsService.generateBatch(category, 'en', {
+            questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
+            targetDifficulty: difficulty,
+          });
+          const candidates = batch.filter(
+            (q) =>
+              q.difficulty === difficulty || q.allowedDifficulties?.includes(difficulty),
+          );
+          const validatorRejected = candidates.filter((q) => !this.questionValidator.validate(q).valid);
+          const afterValidator = candidates.filter((q) => this.questionValidator.validate(q).valid);
+          accepted = afterValidator.filter((q) => {
+            const key = `${q.question_text}|||${q.correct_answer}`;
+            if (existingKeys.has(key)) return false;
+            existingKeys.add(key);
+            return true;
+          });
 
-      await this.insertQuestions(category, accepted);
-      for (const question of accepted) {
-        addedTotals[question.difficulty] += 1;
+          if (accepted.length > 0) break;
+
+          const dupCount = afterValidator.length;
+          const allDuplicates = validatorRejected.length === 0 && dupCount > 0;
+          const reason =
+            validatorRejected.length > 0
+              ? `${validatorRejected.length} validator rejected, ${dupCount} duplicates`
+              : dupCount > 0
+                ? `all ${dupCount} duplicates (already in pool)`
+                : 'no matching difficulty';
+
+          this.logger.warn(
+            `[seedPool] ${category}/${difficulty} pass ${pass + 1}: no accepted (${reason})`,
+          );
+          if (dupCount > 0 && afterValidator.length > 0) {
+            this.logger.warn(
+              `[seedPool] Sample duplicate: "${afterValidator[0].question_text?.slice(0, 60)}..." → ${afterValidator[0].correct_answer}`,
+            );
+          }
+
+          if (allDuplicates && attempt < DUPLICATE_RETRY_ATTEMPTS) {
+            attempt += 1;
+            this.logger.log(
+              `[seedPool] ${category}/${difficulty}: retrying (attempt ${attempt}/${DUPLICATE_RETRY_ATTEMPTS})`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
+          } else {
+            break;
+          }
+        }
+
+        if (accepted.length > 0) {
+          const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
+            ? difficulty
+            : undefined;
+          await this.insertQuestions(category, accepted, difficultyOverride);
+          for (const q of accepted) {
+            addedTotals[difficulty] += 1;
+          }
+          this.logger.log(
+            `[seedPool] ${category}/${difficulty} pass ${pass + 1}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'}`,
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
       }
-      this.logger.log(
-        `[seedPool] ${category} pass ${pass + 1}/${passes}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'}`,
-      );
 
       if (pass + 1 < passes) {
         await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
+      }
+    }
+
+    // Retry: if any level unfilled, rerun targeted generation for those slots
+    const missing = uniqueDifficulties.filter((d) => addedTotals[d] === 0);
+    if (missing.length > 0) {
+      this.logger.log(`[seedPool] ${category}: retry for unfilled levels: ${missing.join(', ')}`);
+      for (const difficulty of missing) {
+        const { added } = await this.seedSlotPasses(category, difficulty, 1);
+        addedTotals[difficulty] += added;
+        if (added > 0) {
+          await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
+        }
       }
     }
 
@@ -729,36 +793,53 @@ export class QuestionPoolService {
 
     while (this.hasRemainingNeeds(needs) && attempts < MAX_CATEGORY_BATCH_ATTEMPTS) {
       attempts += 1;
-      const batch = await this.questionsService.generateBatch(category, 'en', {
-        questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
-      });
-      const remainingByDifficulty = { ...needs };
-      const accepted = batch
-        .filter((q) => this.questionValidator.validate(q).valid)
-        .filter((q) => {
-          const remaining = remainingByDifficulty[q.difficulty] ?? 0;
-          if (remaining <= 0) return false;
-          remainingByDifficulty[q.difficulty] = remaining - 1;
-          return true;
-        })
-        .filter((q) => {
-          const key = `${q.question_text}|||${q.correct_answer}`;
-          if (existingKeys.has(key)) return false;
-          existingKeys.add(key);
-          return true;
+      let anyAccepted = false;
+
+      for (const difficulty of ['EASY', 'MEDIUM', 'HARD'] as const) {
+        const needed = needs[difficulty] ?? 0;
+        if (needed <= 0) continue;
+
+        const batchSize = Math.min(
+          needed,
+          CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
+        );
+        const batch = await this.questionsService.generateBatch(category, 'en', {
+          questionCount: batchSize,
+          targetDifficulty: difficulty,
         });
 
-      if (accepted.length === 0) {
-        continue;
+        const candidates = batch.filter(
+          (q) =>
+            q.difficulty === difficulty ||
+            q.allowedDifficulties?.includes(difficulty),
+        );
+        const accepted = candidates
+          .filter((q) => this.questionValidator.validate(q).valid)
+          .filter((q) => {
+            const key = `${q.question_text}|||${q.correct_answer}`;
+            if (existingKeys.has(key)) return false;
+            existingKeys.add(key);
+            return true;
+          })
+          .slice(0, needed);
+
+        if (accepted.length > 0) {
+          anyAccepted = true;
+          const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
+            ? difficulty
+            : undefined;
+          await this.insertQuestions(category, accepted, difficultyOverride);
+          for (const q of accepted) {
+            const current = needs[difficulty] ?? 0;
+            needs[difficulty] = Math.max(0, current - 1);
+            addedTotals[difficulty] += 1;
+          }
+        }
+
+        await new Promise((r) => setTimeout(r, BATCH_THROTTLE_MS));
       }
 
-      await this.insertQuestions(category, accepted);
-      for (const question of accepted) {
-        const current = needs[question.difficulty] ?? 0;
-        needs[question.difficulty] = Math.max(0, current - 1);
-        addedTotals[question.difficulty] += 1;
-      }
-      if (this.hasRemainingNeeds(needs)) {
+      if (anyAccepted && this.hasRemainingNeeds(needs)) {
         await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
       }
     }
@@ -812,6 +893,7 @@ export class QuestionPoolService {
         difficulty,
         used: false,
         allowed_difficulties: allowedDifficulties,
+        generation_version: GENERATION_VERSION,
         question: {
           ...q,
           difficulty,
@@ -837,5 +919,157 @@ export class QuestionPoolService {
 
   private hasRemainingNeeds(needs: Partial<Record<Difficulty, number>>): boolean {
     return (needs.EASY ?? 0) > 0 || (needs.MEDIUM ?? 0) > 0 || (needs.HARD ?? 0) > 0;
+  }
+
+  /**
+   * Fetches question_pool raw_score data and returns stats for the admin dashboard.
+   */
+  async getPoolRawScoreStats(): Promise<PoolRawScoreStats> {
+    const PAGE_SIZE = 1000;
+    const rows: { category: string; difficulty: string; raw_score: number | null }[] = [];
+    let offset = 0;
+
+    while (true) {
+      const { data, error } = await this.supabaseService.client
+        .from('question_pool')
+        .select('category, difficulty, raw_score')
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) throw new Error(`[getPoolRawScoreStats] Query error: ${error.message}`);
+      const batch = (data ?? []) as { category: string; difficulty: string; raw_score: number | null }[];
+      rows.push(...batch);
+      if (batch.length < PAGE_SIZE) break;
+      offset += PAGE_SIZE;
+    }
+
+    const categories = [...new Set(rows.map((r) => r.category))].sort();
+    const difficulties = ['EASY', 'MEDIUM', 'HARD'];
+    const slotStats: Record<string, SlotRawStats> = {};
+    const rawValues: number[] = [];
+    const BUCKETS = 100; // 0.01 width each: [0,0.01), [0.01,0.02), ..., [0.99,1.0]
+    const bucketCounts: Record<string, number> = {};
+    for (let i = 0; i < BUCKETS; i++) bucketCounts[`${i}`] = 0;
+    bucketCounts['-1'] = 0;
+
+    for (const row of rows) {
+      const key = `${row.category}/${row.difficulty}`;
+      if (!slotStats[key]) {
+        slotStats[key] = { count: 0, avg: 0, min: 1, max: 0, std: 0, withRaw: 0 };
+      }
+      slotStats[key].count += 1;
+
+      if (row.raw_score != null && !Number.isNaN(row.raw_score)) {
+        rawValues.push(row.raw_score);
+        slotStats[key].withRaw += 1;
+        const bucket = Math.min(BUCKETS - 1, Math.floor(row.raw_score * BUCKETS));
+        bucketCounts[`${bucket}`] = (bucketCounts[`${bucket}`] ?? 0) + 1;
+      }
+    }
+
+    for (const key of Object.keys(slotStats)) {
+      const slot = slotStats[key];
+      const values = rows
+        .filter((r) => `${r.category}/${r.difficulty}` === key && r.raw_score != null)
+        .map((r) => r.raw_score as number);
+      if (values.length > 0) {
+        slot.avg = values.reduce((a, b) => a + b, 0) / values.length;
+        slot.min = Math.min(...values);
+        slot.max = Math.max(...values);
+        slot.std = this.stdDev(values);
+      }
+    }
+
+    const overallAvg =
+      rawValues.length > 0 ? rawValues.reduce((a, b) => a + b, 0) / rawValues.length : 0;
+    const overallStd = this.stdDev(rawValues);
+
+    return {
+      totalRows: rows.length,
+      withRawScore: rawValues.length,
+      overallAvg,
+      overallStd,
+      categories,
+      difficulties,
+      slotStats,
+      bucketCounts,
+      buckets: BUCKETS,
+    };
+  }
+
+  private stdDev(values: number[]): number {
+    if (values.length < 2) return 0;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const sqDiffs = values.map((v) => (v - avg) ** 2);
+    return Math.sqrt(sqDiffs.reduce((a, b) => a + b, 0) / values.length);
+  }
+
+  /**
+   * Fetches questions from question_pool by raw_score range with pagination.
+   * When search is provided, uses RPC for text search (question_text, correct_answer).
+   */
+  async getPoolQuestionsByRange(
+    minRaw: number,
+    maxRaw: number,
+    page: number = 1,
+    limit: number = 20,
+    search?: string,
+  ): Promise<{ questions: PoolQuestionRow[]; total: number }> {
+    const offset = (page - 1) * limit;
+
+    if (search) {
+      const { data, error } = await this.supabaseService.client.rpc('get_admin_pool_questions', {
+        p_min_raw: minRaw,
+        p_max_raw: maxRaw,
+        p_search: search,
+        p_limit: limit,
+        p_offset: offset,
+      });
+
+      if (error) throw new Error(`[getPoolQuestionsByRange] RPC error: ${error.message}`);
+
+      const rows = (data ?? []) as { id: string; category: string; difficulty: string; raw_score: number; question_text: string; correct_answer: string; total_count: number }[];
+      const total = rows[0]?.total_count ?? 0;
+      const questions = rows.map((r) => ({
+        id: r.id,
+        category: r.category,
+        difficulty: r.difficulty,
+        raw_score: r.raw_score,
+        question_text: r.question_text ?? '',
+        correct_answer: r.correct_answer ?? '',
+      }));
+
+      return { questions, total };
+    }
+
+    const { data, count, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('id, category, difficulty, raw_score, question', { count: 'exact' })
+      .gte('raw_score', minRaw)
+      .lt('raw_score', maxRaw)
+      .order('raw_score', { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw new Error(`[getPoolQuestionsByRange] Query error: ${error.message}`);
+
+    const questions = (data ?? []).map((r: { id: string; category: string; difficulty: string; raw_score: number; question: { question_text?: string; correct_answer?: string } }) => ({
+      id: r.id,
+      category: r.category,
+      difficulty: r.difficulty,
+      raw_score: r.raw_score,
+      question_text: r.question?.question_text ?? '',
+      correct_answer: r.question?.correct_answer ?? '',
+    }));
+
+    return { questions, total: count ?? 0 };
+  }
+
+  /**
+   * Fetches seed pool stats from get_seed_pool_stats RPC.
+   * Returns unanswered (used=false) and answered (used=true) per slot, plus drawable counts.
+   */
+  async getSeedPoolStats(): Promise<SeedPoolStatsRow[]> {
+    const { data, error } = await this.supabaseService.client.rpc('get_seed_pool_stats');
+    if (error) throw new Error(`[getSeedPoolStats] RPC error: ${error.message}`);
+    return (data ?? []) as SeedPoolStatsRow[];
   }
 }

@@ -16,3 +16,5 @@ export * from './league.util';
 export * from './pool.config';
 export * from './difficulty.config';
 export * from './difficulty-scoring.config';
+export * from './difficulty-prompts.config';
+export * from './generation-version.config';

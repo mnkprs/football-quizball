@@ -33,6 +33,8 @@ Deno.serve(async (req) => {
       difficulty: string;
       unanswered: number;
       answered: number;
+      drawable_unanswered?: number;
+      drawable_answered?: number;
     }>;
 
     const lines: string[] = [];
@@ -44,6 +46,9 @@ Deno.serve(async (req) => {
       lines.push(label);
       lines.push(`UNANSWERED: ${row.unanswered ?? 0}`);
       lines.push(`ANSWERED: ${row.answered ?? 0}`);
+      if (row.drawable_unanswered != null || row.drawable_answered != null) {
+        lines.push(`DRAWABLE (unanswered/answered): ${row.drawable_unanswered ?? 0} / ${row.drawable_answered ?? 0}`);
+      }
       lines.push("");
     }
 
