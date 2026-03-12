@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Query, HttpCode, HttpStatus, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Query, Param, HttpCode, HttpStatus, Logger, UseGuards, Header } from '@nestjs/common';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { BlitzPoolSeederService } from '../blitz/blitz-pool-seeder.service';
+import { AdminScriptsService } from './admin-scripts.service';
 import { AdminApiKeyGuard } from '../common/guards/admin-api-key.guard';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 
@@ -11,6 +12,7 @@ export class AdminController {
   constructor(
     private questionPoolService: QuestionPoolService,
     private blitzPoolSeederService: BlitzPoolSeederService,
+    private adminScriptsService: AdminScriptsService,
   ) {}
 
   /**
@@ -36,6 +38,26 @@ export class AdminController {
     const cat = (category ?? '').trim() || undefined;
     const diff = (difficulty ?? '').trim() || undefined;
     return this.questionPoolService.getPoolQuestionsByRange(min, max, p, l, q, cat, diff);
+  }
+
+  /**
+   * List seed-pool sessions (runs) with timestamps and counts.
+   * Example: GET /api/admin/seed-pool-sessions
+   */
+  @Get('seed-pool-sessions')
+  @UseGuards(AdminApiKeyGuard)
+  async getSeedPoolSessions() {
+    return this.questionPoolService.getSeedPoolSessions();
+  }
+
+  /**
+   * Get questions generated in a specific seed-pool session.
+   * Example: GET /api/admin/seed-pool-sessions/:id/questions
+   */
+  @Get('seed-pool-sessions/:id/questions')
+  @UseGuards(AdminApiKeyGuard)
+  async getSessionQuestions(@Param('id') id: string) {
+    return this.questionPoolService.getSessionQuestions(id);
   }
 
   /**
@@ -110,5 +132,58 @@ export class AdminController {
       results,
       totalAdded: results.reduce((sum, r) => sum + r.added, 0),
     };
+  }
+
+  /**
+   * Dedupe wrong_choices arrays in blitz_question_pool.
+   * Example: POST /api/admin/dedupe-blitz-wrong-choices
+   */
+  @Post('dedupe-blitz-wrong-choices')
+  @UseGuards(AdminApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  async dedupeBlitzWrongChoices() {
+    this.logger.log('[dedupe-blitz-wrong-choices] Request received');
+    return this.adminScriptsService.dedupeBlitzWrongChoices();
+  }
+
+  /**
+   * Find questions with same correct_answer (potential duplicates).
+   * Example: GET /api/admin/duplicate-answers
+   */
+  @Get('duplicate-answers')
+  @UseGuards(AdminApiKeyGuard)
+  async findDuplicateAnswers() {
+    return this.adminScriptsService.findDuplicateAnswers();
+  }
+
+  /**
+   * Find similar questions by entity overlap and Jaccard similarity.
+   * Example: GET /api/admin/similar-questions
+   */
+  @Get('similar-questions')
+  @UseGuards(AdminApiKeyGuard)
+  async findSimilarQuestions() {
+    return this.adminScriptsService.findSimilarQuestions();
+  }
+
+  /**
+   * Get DB stats (row counts for question_pool, blitz_question_pool, etc.).
+   * Example: GET /api/admin/db-stats
+   */
+  @Get('db-stats')
+  @UseGuards(AdminApiKeyGuard)
+  async getDbStats() {
+    return this.adminScriptsService.getDbStats();
+  }
+
+  /**
+   * Get heatmap HTML report (same as npm run db:heatmap output).
+   * Example: GET /api/admin/heatmap-html
+   */
+  @Get('heatmap-html')
+  @UseGuards(AdminApiKeyGuard)
+  @Header('Content-Type', 'text/html')
+  async getHeatmapHtml() {
+    return this.adminScriptsService.getHeatmapHtml();
   }
 }

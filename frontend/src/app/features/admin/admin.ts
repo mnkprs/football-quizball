@@ -7,14 +7,23 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { AdminApiService, PoolRawScoreStats, PoolQuestionRow } from '../../core/admin-api.service';
+import {
+  AdminApiService,
+  PoolRawScoreStats,
+  PoolQuestionRow,
+  SeedPoolSession,
+  DbStatsResponse,
+  DuplicateAnswersResponse,
+  SimilarQuestionsResponse,
+} from '../../core/admin-api.service';
+import { JsonPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [MatTableModule, MatPaginatorModule],
+  imports: [JsonPipe, MatTableModule, MatPaginatorModule],
   host: { class: 'admin-host block' },
   template: `
     <div class="admin-root">
@@ -57,6 +66,57 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
           }
         </div>
 
+        <div class="admin-section admin-scripts-section">
+          <h2>Scripts (npm run)</h2>
+          <p class="admin-section-hint">Run custom scripts from the admin panel. Actions may take a while.</p>
+          <div class="scripts-grid">
+            <div class="script-group">
+              <span class="script-group-label">Actions</span>
+              <div class="script-buttons">
+                <button (click)="runSeedPool()" [disabled]="scriptRunning()" class="script-btn">pool:seed</button>
+                <button (click)="runSeedBlitzPool()" [disabled]="scriptRunning()" class="script-btn">blitz:seed</button>
+                <button (click)="runCleanup()" [disabled]="scriptRunning()" class="script-btn">db:cleanup-pools</button>
+                <button (click)="runDedupeBlitz()" [disabled]="scriptRunning()" class="script-btn">blitz:dedupe-wrong-choices</button>
+              </div>
+            </div>
+            <div class="script-group">
+              <span class="script-group-label">Reports</span>
+              <div class="script-buttons">
+                <button (click)="runDbStats()" [disabled]="scriptRunning()" class="script-btn">db:stats</button>
+                <button (click)="runFindDuplicateAnswers()" [disabled]="scriptRunning()" class="script-btn">db:find-duplicate-answers</button>
+                <button (click)="runFindSimilarQuestions()" [disabled]="scriptRunning()" class="script-btn">db:find-similar-questions</button>
+                <button (click)="runHeatmapDownload()" [disabled]="scriptRunning()" class="script-btn">db:heatmap (download)</button>
+              </div>
+            </div>
+          </div>
+          @if (scriptRunning()) {
+            <span class="admin-meta">Running…</span>
+          }
+          @if (scriptMessage()) {
+            <div class="script-message" [class.script-message--error]="scriptError()">{{ scriptMessage() }}</div>
+          }
+          @if (dbStats(); as db) {
+            <div class="script-result">
+              <h3>DB Stats</h3>
+              <pre class="script-pre">{{ db | json }}</pre>
+            </div>
+          }
+          @if (duplicateAnswers(); as dup) {
+            <div class="script-result">
+              <h3>Duplicate Answers</h3>
+              <p>question_pool: {{ dup.question_pool.length }} groups · blitz_question_pool: {{ dup.blitz_question_pool.length }} groups</p>
+              <pre class="script-pre">{{ dup | json }}</pre>
+            </div>
+          }
+          @if (similarQuestions(); as sim) {
+            <div class="script-result">
+              <h3>Similar Questions</h3>
+              <p>question_pool: {{ sim.question_pool.length }} pairs · blitz_question_pool: {{ sim.blitz_question_pool.length }} pairs</p>
+              <pre class="script-pre">{{ sim | json }}</pre>
+            </div>
+          }
+        </div>
+
         @if (loading() && !stats()) {
           <div class="admin-loading">Loading…</div>
         }
@@ -79,6 +139,68 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
               <div class="admin-card-label">Overall std</div>
               <div class="admin-card-value">{{ s.overallStd.toFixed(3) }}</div>
             </div>
+          </div>
+
+          <div class="admin-section">
+            <h2>Seed-pool runs (scripts/seed-pool.js)</h2>
+            <p class="admin-section-hint">Click a run to view questions generated in that session.</p>
+            @if (sessionsLoading()) {
+              <div class="admin-loading">Loading sessions…</div>
+            } @else if (sessions().length === 0) {
+              <p class="admin-empty-hint">No seed-pool runs yet. Run <code>npm run pool:seed</code> to generate questions.</p>
+            } @else {
+              <div class="sessions-list">
+                @for (sess of sessions(); track sess.id) {
+                  <button
+                    type="button"
+                    class="session-item"
+                    [class.session-item--selected]="selectedSessionId() === sess.id"
+                    (click)="selectSession(sess)"
+                  >
+                    <span class="session-time">{{ formatTime(sess.created_at) }}</span>
+                    <span class="session-count">{{ sess.total_added }} questions</span>
+                    <span class="session-target">target: {{ sess.target }}</span>
+                  </button>
+                }
+              </div>
+            }
+            @if (selectedSessionId() && selectedSession()) {
+              <div class="session-questions-wrap">
+                <h3>Questions from {{ formatTime(selectedSession()!.created_at) }} — {{ sessionQuestions().length }} total</h3>
+                @if (sessionQuestionsLoading()) {
+                  <div class="admin-loading">Loading…</div>
+                } @else {
+                  <table mat-table [dataSource]="sessionQuestions()" class="admin-mat-table admin-questions-table">
+                    <ng-container matColumnDef="index">
+                      <th mat-header-cell *matHeaderCellDef>#</th>
+                      <td mat-cell *matCellDef="let q; let i = index" class="cell-avg">{{ i + 1 }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="category">
+                      <th mat-header-cell *matHeaderCellDef>Category</th>
+                      <td mat-cell *matCellDef="let q">{{ q.category }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="difficulty">
+                      <th mat-header-cell *matHeaderCellDef>Difficulty</th>
+                      <td mat-cell *matCellDef="let q">{{ q.difficulty }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="raw_score">
+                      <th mat-header-cell *matHeaderCellDef>Raw</th>
+                      <td mat-cell *matCellDef="let q" class="cell-avg">{{ q.raw_score.toFixed(3) }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="question_text">
+                      <th mat-header-cell *matHeaderCellDef>Question</th>
+                      <td mat-cell *matCellDef="let q" class="question-text">{{ q.question_text }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="correct_answer">
+                      <th mat-header-cell *matHeaderCellDef>Answer</th>
+                      <td mat-cell *matCellDef="let q" class="answer-text">{{ q.correct_answer }}</td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="sessionQuestionsColumns"></tr>
+                    <tr mat-row *matRowDef="let q; columns: sessionQuestionsColumns;"></tr>
+                  </table>
+                }
+              </div>
+            }
           </div>
 
           <div class="admin-section">
@@ -649,6 +771,158 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
       font-size: 0.65rem;
       color: #a1a1aa;
     }
+
+    .sessions-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .session-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #27272a;
+      background: #0f0f12;
+      color: #e4e4e7;
+      cursor: pointer;
+      font-size: 0.875rem;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .session-item:hover {
+      border-color: #3f3f46;
+      background: #18181b;
+    }
+
+    .session-item--selected {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .session-time {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .session-count,
+    .session-target {
+      font-size: 0.75rem;
+      color: #71717a;
+    }
+
+    .session-questions-wrap {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #27272a;
+    }
+
+    .session-questions-wrap h3 {
+      font-size: 0.9rem;
+      color: #a1a1aa;
+      margin-bottom: 1rem;
+    }
+
+    .admin-empty-hint {
+      font-size: 0.875rem;
+      color: #71717a;
+    }
+
+    .admin-empty-hint code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #27272a;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    .admin-scripts-section {
+      margin-bottom: 2rem;
+    }
+
+    .scripts-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .script-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .script-group-label {
+      font-size: 0.75rem;
+      color: #71717a;
+      text-transform: uppercase;
+    }
+
+    .script-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .script-btn {
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #27272a;
+      background: #0f0f12;
+      color: #e4e4e7;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .script-btn:hover:not(:disabled) {
+      background: #18181b;
+      border-color: #3f3f46;
+    }
+
+    .script-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .script-message {
+      font-size: 0.875rem;
+      color: #22c55e;
+      margin-top: 0.5rem;
+    }
+
+    .script-message--error {
+      color: #ef4444;
+    }
+
+    .script-result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #0f0f12;
+      border-radius: 8px;
+      border: 1px solid #27272a;
+    }
+
+    .script-result h3 {
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      color: #a1a1aa;
+    }
+
+    .script-pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #e4e4e7;
+      overflow-x: auto;
+      max-height: 20rem;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
   `],
 })
 export class AdminComponent implements OnInit, OnDestroy {
@@ -665,6 +939,14 @@ export class AdminComponent implements OnInit, OnDestroy {
   seedPoolColumns = ['slot', 'unanswered', 'answered', 'total', 'drawable_unanswered', 'drawable_answered'];
   spreadColumns = ['slot', 'count', 'avg', 'min', 'max', 'std'];
   questionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'question_text', 'correct_answer'];
+  sessionQuestionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'question_text', 'correct_answer'];
+
+  sessions = signal<SeedPoolSession[]>([]);
+  sessionsLoading = signal(false);
+  selectedSessionId = signal<string | null>(null);
+  selectedSession = signal<SeedPoolSession | null>(null);
+  sessionQuestions = signal<PoolQuestionRow[]>([]);
+  sessionQuestionsLoading = signal(false);
 
   selectedRange = signal<{ min: number; max: number } | null>(null);
   rangeQuestions = signal<PoolQuestionRow[]>([]);
@@ -676,9 +958,17 @@ export class AdminComponent implements OnInit, OnDestroy {
   filterDifficulty = signal('');
   private searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
+  scriptRunning = signal(false);
+  scriptMessage = signal<string | null>(null);
+  scriptError = signal(false);
+  dbStats = signal<DbStatsResponse | null>(null);
+  duplicateAnswers = signal<DuplicateAnswersResponse | null>(null);
+  similarQuestions = signal<SimilarQuestionsResponse | null>(null);
+
   ngOnInit(): void {
     if (this.admin.hasApiKey()) {
       this.load();
+      this.loadSessions();
     }
   }
 
@@ -713,6 +1003,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     if (key) {
       this.admin.setApiKey(key);
       this.load();
+      this.loadSessions();
     }
   }
 
@@ -732,6 +1023,33 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.stats.set(null);
     } finally {
       this.loading.set(false);
+    }
+    this.loadSessions();
+  }
+
+  async loadSessions(): Promise<void> {
+    this.sessionsLoading.set(true);
+    try {
+      const list = await firstValueFrom(this.admin.getSeedPoolSessions());
+      this.sessions.set(list);
+    } catch {
+      this.sessions.set([]);
+    } finally {
+      this.sessionsLoading.set(false);
+    }
+  }
+
+  async selectSession(sess: SeedPoolSession): Promise<void> {
+    this.selectedSessionId.set(sess.id);
+    this.selectedSession.set(sess);
+    this.sessionQuestionsLoading.set(true);
+    try {
+      const questions = await firstValueFrom(this.admin.getSessionQuestions(sess.id));
+      this.sessionQuestions.set(questions);
+    } catch {
+      this.sessionQuestions.set([]);
+    } finally {
+      this.sessionQuestionsLoading.set(false);
     }
   }
 
@@ -846,6 +1164,134 @@ export class AdminComponent implements OnInit, OnDestroy {
   onPaginatorPage(e: PageEvent): void {
     this.rangePage.set(e.pageIndex + 1);
     this.loadRangeQuestions();
+  }
+
+  private clearScriptResults(): void {
+    this.dbStats.set(null);
+    this.duplicateAnswers.set(null);
+    this.similarQuestions.set(null);
+  }
+
+  private setScriptResult(msg: string, isError = false): void {
+    this.scriptMessage.set(msg);
+    this.scriptError.set(isError);
+    this.scriptRunning.set(false);
+  }
+
+  async runSeedPool(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.clearScriptResults();
+    try {
+      const res = await firstValueFrom(this.admin.seedPool(100));
+      this.setScriptResult(`Seed pool: added ${res.totalAdded} questions (target ${res.target})`);
+      this.load();
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runSeedBlitzPool(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.clearScriptResults();
+    try {
+      const res = await firstValueFrom(this.admin.seedBlitzPool());
+      this.setScriptResult(`Blitz seed: added ${res.totalAdded} questions`);
+      this.load();
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runCleanup(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.clearScriptResults();
+    try {
+      const res = await firstValueFrom(this.admin.cleanupQuestions());
+      const qp = res.question_pool as { deletedInvalid: number; deletedDuplicates: number };
+      const bp = res.blitz_question_pool as { deletedInvalid: number; deletedDuplicates: number };
+      this.setScriptResult(
+        `Cleanup: question_pool removed ${qp?.deletedInvalid ?? 0} invalid, ${qp?.deletedDuplicates ?? 0} dup · blitz removed ${bp?.deletedInvalid ?? 0} invalid, ${bp?.deletedDuplicates ?? 0} dup`,
+      );
+      this.load();
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runDedupeBlitz(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.clearScriptResults();
+    try {
+      const res = await firstValueFrom(this.admin.dedupeBlitzWrongChoices());
+      this.setScriptResult(`Deduped wrong_choices in ${res.updated} blitz rows`);
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runDbStats(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.duplicateAnswers.set(null);
+    this.similarQuestions.set(null);
+    try {
+      const res = await firstValueFrom(this.admin.getDbStats());
+      this.dbStats.set(res);
+      this.setScriptResult('DB stats loaded');
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runFindDuplicateAnswers(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.dbStats.set(null);
+    this.similarQuestions.set(null);
+    try {
+      const res = await firstValueFrom(this.admin.findDuplicateAnswers());
+      this.duplicateAnswers.set(res);
+      const total = res.question_pool.length + res.blitz_question_pool.length;
+      this.setScriptResult(`Found ${total} duplicate-answer groups`);
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runFindSimilarQuestions(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.dbStats.set(null);
+    this.duplicateAnswers.set(null);
+    try {
+      const res = await firstValueFrom(this.admin.findSimilarQuestions());
+      this.similarQuestions.set(res);
+      const total = res.question_pool.length + res.blitz_question_pool.length;
+      this.setScriptResult(`Found ${total} similar question pairs`);
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runHeatmapDownload(): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    try {
+      const blob = await firstValueFrom(this.admin.getHeatmapHtml());
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'raw-score-heatmap.html';
+      a.click();
+      URL.revokeObjectURL(url);
+      this.setScriptResult('Heatmap HTML downloaded');
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
   }
 
   private async loadRangeQuestions(): Promise<void> {
