@@ -405,6 +405,31 @@ export const GameStore = signalStore(
         patchState(store, { loading: false, phase: 'setup' });
       }
     },
+
+    /** Syncs game language with backend. Call when returning to game after language change. */
+    async syncGameLanguage(): Promise<void> {
+      const gameId = store.gameId();
+      if (!gameId) return;
+      try {
+        await firstValueFrom(api.setGameLanguage(gameId, language.lang()));
+      } catch {
+        // ignore
+      }
+    },
+
+    /** Syncs game language and re-fetches current question. Use when returning to question screen after language change. */
+    async refreshQuestionForLanguage(): Promise<void> {
+      const gameId = store.gameId();
+      const questionId = store.currentQuestionId();
+      if (!gameId || !questionId || store.phase() !== 'question') return;
+      try {
+        await firstValueFrom(api.setGameLanguage(gameId, language.lang()));
+        const question = await firstValueFrom(api.getQuestion(gameId, questionId));
+        patchState(store, { currentQuestion: question });
+      } catch {
+        // ignore
+      }
+    },
   })),
   withHooks({
     onInit(store) {

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GameStore } from '../../core/game.store';
@@ -44,10 +44,21 @@ import { ResultsComponent } from '../results/results';
     </div>
   `,
 })
-export class GameComponent {
+export class GameComponent implements OnInit {
   store = inject(GameStore);
   lang = inject(LanguageService);
   private router = inject(Router);
+
+  ngOnInit(): void {
+    const gameId = this.store.gameId();
+    const phase = this.store.phase();
+    if (!gameId || phase === 'setup' || phase === 'loading' || phase === 'finished') return;
+    if (phase === 'question' && this.store.currentQuestionId()) {
+      this.store.refreshQuestionForLanguage();
+    } else {
+      this.store.syncGameLanguage();
+    }
+  }
 
   goBack(): void {
     this.router.navigate(['/']);
