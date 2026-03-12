@@ -21,7 +21,7 @@ export const environment = {
   /** AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX). Get from AdSense → Account → Sites. Leave empty to hide ads. */
   adSenseClientId: 'ca-pub-7781323448253047',
   /** AdSense ad slot ID (numeric). Create in AdSense → Ads → By ad unit. */
-  adSenseSlotId: '',
+  adSenseSlotId: '9966834671',
   /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
   adminApiKey: undefined as string | undefined,
 };
