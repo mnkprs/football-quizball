@@ -15,21 +15,23 @@ import {
   DbStatsResponse,
   DuplicateAnswersResponse,
   SimilarQuestionsResponse,
+  ScoreThresholds,
 } from '../../core/admin-api.service';
 import { JsonPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [JsonPipe, MatTableModule, MatPaginatorModule],
+  imports: [JsonPipe, MatTableModule, MatPaginatorModule, MatTabsModule],
   host: { class: 'admin-host block' },
   template: `
     <div class="admin-root">
       <header class="admin-header">
         <button (click)="goHome()" class="admin-back">← Back</button>
-        <h1>Admin Dashboard — Raw Score Heatmap</h1>
+        <h1>Admin Dashboard</h1>
         <p class="admin-subtitle">question_pool stats</p>
       </header>
 
@@ -66,6 +68,8 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
           }
         </div>
 
+        <mat-tab-group class="admin-tabs" [(selectedIndex)]="activeTabIndex">
+          <mat-tab label="Scripts">
         <div class="admin-section admin-scripts-section">
           <h2>Scripts (npm run)</h2>
           <p class="admin-section-hint">Run custom scripts from the admin panel. Actions may take a while.</p>
@@ -116,7 +120,9 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
             </div>
           }
         </div>
+          </mat-tab>
 
+          <mat-tab label="Avg + Stats">
         @if (loading() && !stats()) {
           <div class="admin-loading">Loading…</div>
         }
@@ -305,13 +311,43 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
               <tr mat-row *matRowDef="let entry; columns: spreadColumns;"></tr>
             </table>
           </div>
+        }
+          </mat-tab>
 
+          <mat-tab label="Score Distribution">
+          @if (stats(); as s) {
           <div class="admin-section">
-            <h2>Raw score distribution ({{ s.buckets }} buckets, 0.01 width) · Thresholds: 0.36, 0.55</h2>
-            <p class="admin-section-hint">Click a bar to load questions in that range.</p>
+            <h2>Raw score distribution ({{ s.buckets }} buckets, 0.01 width)</h2>
+            <p class="admin-section-hint">Adjust thresholds below, then Save to persist. Click a bar to load questions in that range.</p>
+            <div class="threshold-controls">
+              <div class="threshold-row">
+                <label>EASY / MEDIUM boundary</label>
+                <input type="range" min="0" max="100" step="1" [value]="thresholdEasyPercent()" (input)="onThresholdEasyInput($event)" />
+                <span class="threshold-value">{{ thresholdEasy().toFixed(2) }}</span>
+              </div>
+              <div class="threshold-row">
+                <label>MEDIUM / HARD boundary</label>
+                <input type="range" min="0" max="100" step="1" [value]="thresholdMediumPercent()" (input)="onThresholdMediumInput($event)" />
+                <span class="threshold-value">{{ thresholdMedium().toFixed(2) }}</span>
+              </div>
+              <div class="threshold-row">
+                <label>Boundary tolerance</label>
+                <input type="range" min="0" max="20" step="1" [value]="boundaryTolerancePercent()" (input)="onBoundaryToleranceInput($event)" />
+                <span class="threshold-value">{{ boundaryTolerance().toFixed(2) }}</span>
+              </div>
+              <div class="threshold-actions">
+                <button (click)="saveThresholds()" [disabled]="thresholdsSaving() || !thresholdsDirty()">Save thresholds</button>
+                <button (click)="resetThresholds()" [disabled]="!thresholdsDirty()">Reset</button>
+                @if (thresholdsSaveMessage()) {
+                  <span class="threshold-save-msg" [class.threshold-save-msg--error]="thresholdsSaveError()">{{ thresholdsSaveMessage() }}</span>
+                }
+              </div>
+            </div>
             <div class="histogram-wrap">
-              <div class="hist-threshold" style="left: 36%;" data-val="0.36"></div>
-              <div class="hist-threshold" style="left: 55%;" data-val="0.55"></div>
+              <div class="hist-tolerance-zone hist-tolerance-easy" [style.left.%]="toleranceZoneEasyLeft()" [style.width.%]="toleranceZoneWidth()" title="Tolerance: questions here can be EASY or MEDIUM"></div>
+              <div class="hist-tolerance-zone hist-tolerance-medium" [style.left.%]="toleranceZoneMediumLeft()" [style.width.%]="toleranceZoneWidth()" title="Tolerance: questions here can be MEDIUM or HARD"></div>
+              <div class="hist-threshold" [style.left.%]="thresholdEasyPercent()" [attr.data-val]="thresholdEasy().toFixed(2)"></div>
+              <div class="hist-threshold" [style.left.%]="thresholdMediumPercent()" [attr.data-val]="thresholdMedium().toFixed(2)"></div>
               <div class="histogram">
                 @for (bar of histogramBars(s); track bar.i) {
                   <button
@@ -333,6 +369,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
               <span>0.8</span>
               <span>1.0</span>
             </div>
+            <p class="hist-legend">Solid lines = boundaries. Shaded zones = tolerance (±{{ boundaryTolerance().toFixed(2) }}) — questions here can fill adjacent difficulty slots.</p>
           </div>
 
           @if (selectedRange(); as range) {
@@ -409,7 +446,11 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
               }
             </div>
           }
-        }
+          } @else {
+            <div class="admin-loading">Refresh to load stats first.</div>
+          }
+          </mat-tab>
+        </mat-tab-group>
       }
     </div>
   `,
@@ -696,12 +737,35 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
       position: relative;
     }
 
+    .hist-tolerance-zone {
+      position: absolute;
+      top: 0;
+      bottom: 24px;
+      pointer-events: none;
+      border-radius: 2px;
+      z-index: 0;
+    }
+
+    .hist-tolerance-easy {
+      background: rgba(34, 197, 94, 0.15);
+      border-left: 1px dashed rgba(34, 197, 94, 0.5);
+      border-right: 1px dashed rgba(234, 179, 8, 0.5);
+    }
+
+    .hist-tolerance-medium {
+      background: rgba(234, 179, 8, 0.15);
+      border-left: 1px dashed rgba(234, 179, 8, 0.5);
+      border-right: 1px dashed rgba(239, 68, 68, 0.5);
+    }
+
     .histogram {
       display: flex;
       align-items: flex-end;
       gap: 2px;
       height: 140px;
       margin-top: 1rem;
+      position: relative;
+      z-index: 1;
     }
 
     .hist-bar {
@@ -753,13 +817,104 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
       margin-top: 0.5rem;
     }
 
+    .hist-legend {
+      font-size: 0.75rem;
+      color: #71717a;
+      margin-top: 0.5rem;
+    }
+
     .hist-threshold {
       position: absolute;
+      z-index: 2;
       top: 0;
       bottom: 24px;
       width: 2px;
       background: rgba(255,255,255,0.6);
       transform: translateX(-50%);
+    }
+
+    .admin-tabs {
+      margin-top: 1rem;
+    }
+
+    :host ::ng-deep .admin-tabs .mat-mdc-tab-header {
+      border-bottom: 1px solid #27272a;
+    }
+
+    :host ::ng-deep .admin-tabs .mat-mdc-tab {
+      color: #a1a1aa;
+    }
+
+    :host ::ng-deep .admin-tabs .mat-mdc-tab.mdc-tab--active {
+      color: #fafafa;
+    }
+
+    .threshold-controls {
+      background: #0f0f12;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid #27272a;
+    }
+
+    .threshold-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .threshold-row label {
+      min-width: 12rem;
+      font-size: 0.875rem;
+      color: #a1a1aa;
+    }
+
+    .threshold-row input[type="range"] {
+      flex: 1;
+      max-width: 20rem;
+      accent-color: #3b82f6;
+    }
+
+    .threshold-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      min-width: 3.5rem;
+    }
+
+    .threshold-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .threshold-actions button {
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      border: 1px solid #3f3f46;
+      background: #27272a;
+      color: #e4e4e7;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .threshold-actions button:hover:not(:disabled) {
+      background: #3f3f46;
+    }
+
+    .threshold-actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .threshold-save-msg {
+      font-size: 0.875rem;
+      color: #22c55e;
+    }
+
+    .threshold-save-msg--error {
+      color: #ef4444;
     }
 
     .hist-threshold::after {
@@ -965,10 +1120,127 @@ export class AdminComponent implements OnInit, OnDestroy {
   duplicateAnswers = signal<DuplicateAnswersResponse | null>(null);
   similarQuestions = signal<SimilarQuestionsResponse | null>(null);
 
+  activeTabIndex = 0;
+  thresholdEasy = signal(0.30);
+  thresholdMedium = signal(0.48);
+  boundaryTolerance = signal(0.08);
+  thresholdsSaving = signal(false);
+  thresholdsSaveMessage = signal<string | null>(null);
+  thresholdsSaveError = signal(false);
+  private thresholdsSaved = signal<ScoreThresholds | null>(null);
+
+  thresholdEasyPercent(): number {
+    return Math.round(this.thresholdEasy() * 100);
+  }
+
+  thresholdMediumPercent(): number {
+    return Math.round(this.thresholdMedium() * 100);
+  }
+
+  boundaryTolerancePercent(): number {
+    return Math.round(this.boundaryTolerance() * 100);
+  }
+
+  /** Left edge of tolerance zone around EASY/MEDIUM threshold (%). */
+  toleranceZoneEasyLeft(): number {
+    return Math.max(0, (this.thresholdEasy() - this.boundaryTolerance()) * 100);
+  }
+
+  /** Left edge of tolerance zone around MEDIUM/HARD threshold (%). */
+  toleranceZoneMediumLeft(): number {
+    return Math.max(0, (this.thresholdMedium() - this.boundaryTolerance()) * 100);
+  }
+
+  /** Width of each tolerance zone (%). */
+  toleranceZoneWidth(): number {
+    return Math.min(100, this.boundaryTolerance() * 2 * 100);
+  }
+
+  thresholdsDirty(): boolean {
+    const saved = this.thresholdsSaved();
+    if (!saved) return this.thresholdEasy() !== 0.30 || this.thresholdMedium() !== 0.48 || this.boundaryTolerance() !== 0.08;
+    return (
+      Math.abs(this.thresholdEasy() - saved.rawThresholdEasy) > 0.001 ||
+      Math.abs(this.thresholdMedium() - saved.rawThresholdMedium) > 0.001 ||
+      Math.abs(this.boundaryTolerance() - saved.boundaryTolerance) > 0.001
+    );
+  }
+
+  onThresholdEasyInput(e: Event): void {
+    const v = (e.target as HTMLInputElement).valueAsNumber;
+    const val = Math.max(0, Math.min(1, v / 100));
+    this.thresholdEasy.set(Math.min(val, this.thresholdMedium() - 0.01));
+    this.thresholdsSaveMessage.set(null);
+  }
+
+  onThresholdMediumInput(e: Event): void {
+    const v = (e.target as HTMLInputElement).valueAsNumber;
+    const val = Math.max(0, Math.min(1, v / 100));
+    this.thresholdMedium.set(Math.max(val, this.thresholdEasy() + 0.01));
+    this.thresholdsSaveMessage.set(null);
+  }
+
+  onBoundaryToleranceInput(e: Event): void {
+    const v = (e.target as HTMLInputElement).valueAsNumber;
+    this.boundaryTolerance.set(Math.max(0, Math.min(0.2, v / 100)));
+    this.thresholdsSaveMessage.set(null);
+  }
+
+  async loadThresholds(): Promise<void> {
+    if (!this.admin.hasApiKey()) return;
+    try {
+      const t = await firstValueFrom(this.admin.getThresholds());
+      this.thresholdEasy.set(t.rawThresholdEasy);
+      this.thresholdMedium.set(t.rawThresholdMedium);
+      this.boundaryTolerance.set(t.boundaryTolerance);
+      this.thresholdsSaved.set(t);
+    } catch {
+      this.thresholdsSaved.set(null);
+    }
+  }
+
+  async saveThresholds(): Promise<void> {
+    if (!this.admin.hasApiKey()) return;
+    this.thresholdsSaving.set(true);
+    this.thresholdsSaveMessage.set(null);
+    this.thresholdsSaveError.set(false);
+    try {
+      const t = await firstValueFrom(
+        this.admin.updateThresholds({
+          rawThresholdEasy: this.thresholdEasy(),
+          rawThresholdMedium: this.thresholdMedium(),
+          boundaryTolerance: this.boundaryTolerance(),
+        }),
+      );
+      this.thresholdsSaved.set(t);
+      this.thresholdsSaveMessage.set('Thresholds saved.');
+    } catch (err) {
+      this.thresholdsSaveMessage.set(err instanceof Error ? err.message : String(err));
+      this.thresholdsSaveError.set(true);
+    } finally {
+      this.thresholdsSaving.set(false);
+    }
+  }
+
+  resetThresholds(): void {
+    const saved = this.thresholdsSaved();
+    if (saved) {
+      this.thresholdEasy.set(saved.rawThresholdEasy);
+      this.thresholdMedium.set(saved.rawThresholdMedium);
+      this.boundaryTolerance.set(saved.boundaryTolerance);
+    } else {
+      this.thresholdEasy.set(0.30);
+      this.thresholdMedium.set(0.48);
+      this.boundaryTolerance.set(0.08);
+    }
+    this.thresholdsSaveMessage.set(null);
+  }
+
   ngOnInit(): void {
     if (this.admin.hasApiKey()) {
       this.load();
       this.loadSessions();
+      this.loadThresholds();
     }
   }
 
@@ -1004,6 +1276,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.admin.setApiKey(key);
       this.load();
       this.loadSessions();
+      this.loadThresholds();
     }
   }
 

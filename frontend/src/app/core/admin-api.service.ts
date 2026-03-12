@@ -42,6 +42,12 @@ export interface SeedPoolSession {
   target: number;
 }
 
+export interface ScoreThresholds {
+  rawThresholdEasy: number;
+  rawThresholdMedium: number;
+  boundaryTolerance: number;
+}
+
 export interface PoolRawScoreStats {
   totalRows: number;
   withRawScore: number;
@@ -179,6 +185,20 @@ export class AdminApiService {
     const key = apiKey ?? this.apiKey;
     const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
     return this.http.get<DbStatsResponse>(`${this.base}/api/admin/db-stats`, { headers });
+  }
+
+  /** Get current difficulty score thresholds. */
+  getThresholds(apiKey?: string): Observable<ScoreThresholds> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.get<ScoreThresholds>(`${this.base}/api/admin/thresholds`, { headers });
+  }
+
+  /** Update difficulty score thresholds. */
+  updateThresholds(body: Partial<ScoreThresholds>, apiKey?: string): Observable<ScoreThresholds> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.put<ScoreThresholds>(`${this.base}/api/admin/thresholds`, body, { headers });
   }
 
   /** Get heatmap HTML report (blob for download). */

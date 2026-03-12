@@ -1,0 +1,19 @@
+{
+  "name": "Unlimited Quizball",
+  "short_name": "Quizball",
+  "description": "Football trivia quiz - play daily, blitz, or solo modes",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "scope": "./",
+  "start_url": "./",
+  "icons": [
+    {
+      "src": "icons/quizball-unlimited-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}

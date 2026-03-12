@@ -250,9 +250,9 @@ export class QuestionPoolService {
         }
       }
 
-      if (allQuestionIds.length > 0) {
-        await this.storeSeedPoolSession(allQuestionIds, passes);
-      }
+      // Always store a session record so every run appears in the admin panel,
+      // even when 0 questions were added (e.g. pool already full, all duplicates).
+      await this.storeSeedPoolSession(allQuestionIds, passes);
 
       return results;
     });

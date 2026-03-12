@@ -6,6 +6,7 @@ import { AnswerValidator } from './validators/answer.validator';
 import { QuestionValidator } from './validators/question.validator';
 import { AnswerTypeModifierService } from './answer-type-modifier.service';
 import { DifficultyScorer } from './difficulty-scorer.service';
+import { ThresholdConfigService } from './threshold-config.service';
 import { HistoryGenerator } from './generators/history.generator';
 import { PlayerIdGenerator } from './generators/player-id.generator';
 import { HigherOrLowerGenerator } from './generators/higher-or-lower.generator';
@@ -19,6 +20,7 @@ import { LlmModule } from '../llm/llm.module';
   imports: [ScheduleModule.forRoot(), LlmModule],
   providers: [
     AnswerTypeModifierService,
+    ThresholdConfigService,
     QuestionsService,
     QuestionPoolService,
     AnswerValidator,
@@ -32,6 +34,6 @@ import { LlmModule } from '../llm/llm.module';
     GeographyGenerator,
     GossipGenerator,
   ],
-  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator],
+  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator, ThresholdConfigService],
 })
 export class QuestionsModule {}

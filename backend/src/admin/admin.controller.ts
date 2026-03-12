@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Query, Param, HttpCode, HttpStatus, Logger, UseGuards, Header } from '@nestjs/common';
+import { Controller, Get, Post, Put, Query, Param, HttpCode, HttpStatus, Logger, UseGuards, Header, Body } from '@nestjs/common';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { BlitzPoolSeederService } from '../blitz/blitz-pool-seeder.service';
 import { AdminScriptsService } from './admin-scripts.service';
+import { ThresholdConfigService, type ScoreThresholds } from '../questions/threshold-config.service';
 import { AdminApiKeyGuard } from '../common/guards/admin-api-key.guard';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 
@@ -13,6 +14,7 @@ export class AdminController {
     private questionPoolService: QuestionPoolService,
     private blitzPoolSeederService: BlitzPoolSeederService,
     private adminScriptsService: AdminScriptsService,
+    private thresholdConfig: ThresholdConfigService,
   ) {}
 
   /**
@@ -185,5 +187,26 @@ export class AdminController {
   @Header('Content-Type', 'text/html')
   async getHeatmapHtml() {
     return this.adminScriptsService.getHeatmapHtml();
+  }
+
+  /**
+   * Get current difficulty score thresholds.
+   * Example: GET /api/admin/thresholds
+   */
+  @Get('thresholds')
+  @UseGuards(AdminApiKeyGuard)
+  async getThresholds() {
+    return this.thresholdConfig.getThresholds();
+  }
+
+  /**
+   * Update difficulty score thresholds. Persists to config/score-thresholds.json.
+   * Example: PUT /api/admin/thresholds with body { rawThresholdEasy?, rawThresholdMedium?, boundaryTolerance? }
+   */
+  @Put('thresholds')
+  @UseGuards(AdminApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  async updateThresholds(@Body() body: Partial<ScoreThresholds>) {
+    return this.thresholdConfig.updateThresholds(body);
   }
 }

@@ -15,10 +15,9 @@ import {
   CATEGORY_MULTI_ANSWER_BONUSES,
 } from './config/difficulty.config';
 import { CURRENT_YEAR } from './config/difficulty.config';
+import type { ScoreThresholds } from './threshold-config.service';
+import { ThresholdConfigService } from './threshold-config.service';
 import {
-  RAW_THRESHOLD_EASY,
-  RAW_THRESHOLD_MEDIUM,
-  BOUNDARY_TOLERANCE,
   WEIGHT_DATE,
   WEIGHT_FAMILIARITY,
   WEIGHT_FAME,
@@ -90,20 +89,20 @@ function resolveFixedDifficulty(category: QuestionCategory): Difficulty | null {
   return CATEGORY_FIXED_DIFFICULTY[category] ?? null;
 }
 
-function getAllowedDifficulties(raw: number, primaryDifficulty: Difficulty): Difficulty[] {
+function getAllowedDifficulties(raw: number, primaryDifficulty: Difficulty, t: ScoreThresholds): Difficulty[] {
   const allowed: Difficulty[] = [primaryDifficulty];
   if (primaryDifficulty === 'EASY') return allowed;
-  if (raw < RAW_THRESHOLD_EASY) {
+  if (raw < t.rawThresholdEasy) {
     allowed.unshift('EASY');
     return allowed;
   }
   if (primaryDifficulty === 'MEDIUM') {
-    if (raw < RAW_THRESHOLD_EASY + BOUNDARY_TOLERANCE) allowed.unshift('EASY');
-    if (raw >= RAW_THRESHOLD_MEDIUM - BOUNDARY_TOLERANCE) allowed.push('HARD');
+    if (raw < t.rawThresholdEasy + t.boundaryTolerance) allowed.unshift('EASY');
+    if (raw >= t.rawThresholdMedium - t.boundaryTolerance) allowed.push('HARD');
     return allowed;
   }
   if (primaryDifficulty === 'HARD') {
-    if (raw < RAW_THRESHOLD_MEDIUM + BOUNDARY_TOLERANCE) allowed.unshift('MEDIUM');
+    if (raw < t.rawThresholdMedium + t.boundaryTolerance) allowed.unshift('MEDIUM');
     return allowed;
   }
   return allowed;
@@ -120,9 +119,9 @@ function getRejectedResult(reason: string): DifficultyScoreResult {
   };
 }
 
-function resolveDynamicDifficulty(raw: number, tier: number, category: QuestionCategory): Difficulty {
-  if (raw < RAW_THRESHOLD_EASY) return 'EASY';
-  if (raw < RAW_THRESHOLD_MEDIUM) return 'MEDIUM';
+function resolveDynamicDifficulty(raw: number, tier: number, category: QuestionCategory, t: ScoreThresholds): Difficulty {
+  if (raw < t.rawThresholdEasy) return 'EASY';
+  if (raw < t.rawThresholdMedium) return 'MEDIUM';
   if (tier > TIER_DOWNGRADE_THRESHOLD && category !== 'GUESS_SCORE') return 'MEDIUM';
   return 'HARD';
 }
@@ -184,9 +183,13 @@ function getRejectReason(factors: DifficultyFactors, tier: number): string | nul
  */
 @Injectable()
 export class DifficultyScorer {
-  constructor(private answerTypeModifierService: AnswerTypeModifierService) {}
+  constructor(
+    private answerTypeModifierService: AnswerTypeModifierService,
+    private thresholdConfig: ThresholdConfigService,
+  ) {}
 
   score(factors: DifficultyFactors): DifficultyScoreResult {
+    const t = this.thresholdConfig.getThresholds();
     const competition = factors.competition && String(factors.competition).trim()
       ? factors.competition
       : 'Unknown';
@@ -208,7 +211,7 @@ export class DifficultyScorer {
     }
     const fixedDifficulty = resolveFixedDifficulty(factors.category);
     if (fixedDifficulty) {
-      const allowedDifficulties = getAllowedDifficulties(raw, fixedDifficulty);
+      const allowedDifficulties = getAllowedDifficulties(raw, fixedDifficulty, t);
       return {
         difficulty: fixedDifficulty,
         allowedDifficulties,
@@ -222,8 +225,8 @@ export class DifficultyScorer {
       return getRejectedResult(rejectReason);
     }
 
-    const difficulty = resolveDynamicDifficulty(raw, tier, factors.category);
-    const allowedDifficulties = getAllowedDifficulties(raw, difficulty);
+    const difficulty = resolveDynamicDifficulty(raw, tier, factors.category, t);
+    const allowedDifficulties = getAllowedDifficulties(raw, difficulty, t);
     const points = resolveQuestionPoints(factors.category, difficulty);
     return { difficulty, allowedDifficulties, points, raw };
   }
