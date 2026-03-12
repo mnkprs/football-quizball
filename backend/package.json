@@ -16,6 +16,7 @@
     "db:find-similar-questions": "ts-node -r tsconfig-paths/register scripts/find-similar-questions.ts",
     "db:cleanup-pools": "ts-node -r tsconfig-paths/register scripts/run-cleanup.ts",
     "db:stats": "ts-node -r tsconfig-paths/register scripts/db-stats.ts",
+    "db:heatmap": "ts-node -r tsconfig-paths/register scripts/raw-score-heatmap-data.ts",
     "db:translate-greek": "ts-node -r tsconfig-paths/register scripts/translate-seed-greek.ts",
     "pool:migrate-difficulty": "ts-node -r tsconfig-paths/register scripts/migrate-question-pool-difficulty.ts",
     "pool:migrate-difficulty:apply": "ts-node -r tsconfig-paths/register scripts/migrate-question-pool-difficulty.ts --apply",

@@ -20,6 +20,14 @@ ANTI-REPETITION RULES (strictly enforced):
 }
 
 /**
+ * Instruction to require a single answer per question. Use for all categories except TOP_5.
+ */
+export function getSingleAnswerInstruction(): string {
+  return `
+IMPORTANT: Each question must ask for exactly ONE answer. Do NOT ask "which two", "name both", "list two", or similar — correct_answer must be a single value (one name, one country, one score, etc.).`;
+}
+
+/**
  * Instruction for compact, direct question text (no lead-in trivia).
  */
 export function getCompactQuestionInstruction(): string {

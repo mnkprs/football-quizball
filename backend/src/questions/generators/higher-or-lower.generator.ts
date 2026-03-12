@@ -6,6 +6,7 @@ import {
   getAvoidInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
+  getSingleAnswerInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -36,7 +37,7 @@ export class HigherOrLowerGenerator extends BaseGenerator {
     const systemPrompt = `You are a football statistics expert. Create a "Higher or Lower" question.
 The question shows a player's stat with a WRONG value, and the player must guess if the real value is Higher or Lower.
 The "shown_value" should be plausibly wrong (within 20-30% of real value, either above or below).
-Pick any interesting football statistic — any era, any league.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Pick any interesting football statistic — any era, any league.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "player": "Player Full Name",
@@ -67,7 +68,7 @@ combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+s
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football statistics expert. Create ${questionCount} "Higher or Lower" questions.
-Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [

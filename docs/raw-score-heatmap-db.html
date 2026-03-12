@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raw Score Heatmap — question_pool</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Space Grotesk', sans-serif; background: #0f0f12; color: #e4e4e7; min-height: 100vh; padding: 2rem; }
+    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: #fafafa; }
+    .subtitle { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #71717a; margin-bottom: 1rem; }
+    .summary { display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .summary-card { background: #18181b; border-radius: 8px; padding: 1rem 1.5rem; border: 1px solid #27272a; }
+    .summary-card .label { font-size: 0.75rem; color: #71717a; }
+    .summary-card .value { font-family: 'JetBrains Mono', monospace; font-size: 1.25rem; font-weight: 600; }
+    .heatmap-container { background: #18181b; border-radius: 12px; padding: 2rem; border: 1px solid #27272a; margin-bottom: 2rem; }
+    .heatmap-title { font-size: 1rem; margin-bottom: 1rem; color: #a1a1aa; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid #27272a; }
+    th { font-size: 0.75rem; color: #71717a; font-weight: 500; text-transform: uppercase; }
+    td.cell-avg { font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
+    td.cell-count { font-size: 0.85rem; color: #a1a1aa; }
+    .heat-cell { width: 80px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+    .histogram-wrap { position: relative; }
+    .histogram { display: flex; align-items: flex-end; gap: 2px; height: 140px; margin-top: 1rem; }
+    .hist-bar { flex: 1; min-width: 8px; background: linear-gradient(to top, #22c55e, #eab308, #ef4444); border-radius: 2px 2px 0 0; transition: opacity 0.15s; }
+    .hist-bar:hover { opacity: 0.85; }
+    .hist-labels { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: #71717a; margin-top: 0.5rem; }
+    .hist-threshold { position: absolute; top: 0; bottom: 24px; width: 2px; background: rgba(255,255,255,0.6); transform: translateX(-50%); }
+    .hist-threshold::after { content: attr(data-val); position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; color: #a1a1aa; }
+  </style>
+</head>
+<body>
+  <h1>Raw Score Heatmap — question_pool</h1>
+  <p class="subtitle">Generated from 734 rows · 716 with raw_score</p>
+
+  <div class="summary">
+    <div class="summary-card">
+      <div class="label">Total questions</div>
+      <div class="value">734</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">With raw_score</div>
+      <div class="value">716</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Overall avg raw</div>
+      <div class="value">0.371</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">Overall std</div>
+      <div class="value">0.172</div>
+    </div>
+  </div>
+
+  <div class="heatmap-container">
+    <div class="heatmap-title">Avg raw score by category × difficulty (color = difficulty)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>EASY</th><th>MEDIUM</th><th>HARD</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>GEOGRAPHY</td>
+          <td>
+                <div class="heat-cell" style="background:rgb(116,197,50)">0.23</div>
+                <div class="cell-count">n=81</div>
+              </td><td>
+                <div class="heat-cell" style="background:rgb(244,133,50)">0.48</div>
+                <div class="cell-count">n=75</div>
+              </td><td>—</td>
+        </tr>
+        <tr>
+          <td>GOSSIP</td>
+          <td>—</td><td>
+                <div class="heat-cell" style="background:rgb(41,235,50)">0.08</div>
+                <div class="cell-count">n=60</div>
+              </td><td>—</td>
+        </tr>
+        <tr>
+          <td>GUESS_SCORE</td>
+          <td>
+                <div class="heat-cell" style="background:rgb(141,184,50)">0.28</div>
+                <div class="cell-count">n=62</div>
+              </td><td>
+                <div class="heat-cell" style="background:rgb(238,136,50)">0.47</div>
+                <div class="cell-count">n=24</div>
+              </td><td>
+                <div class="heat-cell" style="background:rgb(255,105,50)">0.59</div>
+                <div class="cell-count">n=8</div>
+              </td>
+        </tr>
+        <tr>
+          <td>HIGHER_OR_LOWER</td>
+          <td>—</td><td>
+                <div class="heat-cell" style="background:rgb(177,166,50)">0.35</div>
+                <div class="cell-count">n=77</div>
+              </td><td>—</td>
+        </tr>
+        <tr>
+          <td>HISTORY</td>
+          <td>
+                <div class="heat-cell" style="background:rgb(129,190,50)">0.25</div>
+                <div class="cell-count">n=66</div>
+              </td><td>
+                <div class="heat-cell" style="background:rgb(249,130,50)">0.49</div>
+                <div class="cell-count">n=119</div>
+              </td><td>—</td>
+        </tr>
+        <tr>
+          <td>NEWS</td>
+          <td>—</td><td>
+                <div class="heat-cell" style="background:#27272a">—</div>
+                <div class="cell-count">n=18 (0 w/raw)</div>
+              </td><td>—</td>
+        </tr>
+        <tr>
+          <td>PLAYER_ID</td>
+          <td>—</td><td>
+                <div class="heat-cell" style="background:rgb(147,182,50)">0.29</div>
+                <div class="cell-count">n=64</div>
+              </td><td>—</td>
+        </tr>
+        <tr>
+          <td>TOP_5</td>
+          <td>—</td><td>—</td><td>
+                <div class="heat-cell" style="background:rgb(255,86,50)">0.66</div>
+                <div class="cell-count">n=80</div>
+              </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="heatmap-container">
+    <div class="heatmap-title">Spread (min / max / std) by slot</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Slot</th>
+          <th>Count</th>
+          <th>Avg</th>
+          <th>Min</th>
+          <th>Max</th>
+          <th>Std</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>GEOGRAPHY/EASY</td>
+          <td>81</td>
+          <td class="cell-avg">0.227</td>
+          <td class="cell-avg">0.082</td>
+          <td class="cell-avg">0.359</td>
+          <td class="cell-avg">0.070</td>
+        </tr>
+        <tr>
+          <td>GEOGRAPHY/MEDIUM</td>
+          <td>75</td>
+          <td class="cell-avg">0.478</td>
+          <td class="cell-avg">0.367</td>
+          <td class="cell-avg">0.561</td>
+          <td class="cell-avg">0.054</td>
+        </tr>
+        <tr>
+          <td>GOSSIP/MEDIUM</td>
+          <td>60</td>
+          <td class="cell-avg">0.080</td>
+          <td class="cell-avg">-0.018</td>
+          <td class="cell-avg">0.288</td>
+          <td class="cell-avg">0.069</td>
+        </tr>
+        <tr>
+          <td>GUESS_SCORE/EASY</td>
+          <td>62</td>
+          <td class="cell-avg">0.277</td>
+          <td class="cell-avg">0.216</td>
+          <td class="cell-avg">0.348</td>
+          <td class="cell-avg">0.039</td>
+        </tr>
+        <tr>
+          <td>GUESS_SCORE/MEDIUM</td>
+          <td>24</td>
+          <td class="cell-avg">0.467</td>
+          <td class="cell-avg">0.369</td>
+          <td class="cell-avg">0.546</td>
+          <td class="cell-avg">0.051</td>
+        </tr>
+        <tr>
+          <td>GUESS_SCORE/HARD</td>
+          <td>8</td>
+          <td class="cell-avg">0.587</td>
+          <td class="cell-avg">0.556</td>
+          <td class="cell-avg">0.602</td>
+          <td class="cell-avg">0.018</td>
+        </tr>
+        <tr>
+          <td>HIGHER_OR_LOWER/MEDIUM</td>
+          <td>77</td>
+          <td class="cell-avg">0.348</td>
+          <td class="cell-avg">0.293</td>
+          <td class="cell-avg">0.576</td>
+          <td class="cell-avg">0.066</td>
+        </tr>
+        <tr>
+          <td>HISTORY/EASY</td>
+          <td>66</td>
+          <td class="cell-avg">0.254</td>
+          <td class="cell-avg">0.129</td>
+          <td class="cell-avg">0.359</td>
+          <td class="cell-avg">0.068</td>
+        </tr>
+        <tr>
+          <td>HISTORY/MEDIUM</td>
+          <td>119</td>
+          <td class="cell-avg">0.489</td>
+          <td class="cell-avg">0.361</td>
+          <td class="cell-avg">0.615</td>
+          <td class="cell-avg">0.067</td>
+        </tr>
+        <tr>
+          <td>NEWS/MEDIUM</td>
+          <td>18</td>
+          <td class="cell-avg">—</td>
+          <td class="cell-avg">—</td>
+          <td class="cell-avg">—</td>
+          <td class="cell-avg">—</td>
+        </tr>
+        <tr>
+          <td>PLAYER_ID/MEDIUM</td>
+          <td>64</td>
+          <td class="cell-avg">0.287</td>
+          <td class="cell-avg">0.224</td>
+          <td class="cell-avg">0.498</td>
+          <td class="cell-avg">0.045</td>
+        </tr>
+        <tr>
+          <td>TOP_5/HARD</td>
+          <td>80</td>
+          <td class="cell-avg">0.665</td>
+          <td class="cell-avg">0.660</td>
+          <td class="cell-avg">0.749</td>
+          <td class="cell-avg">0.015</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="heatmap-container">
+    <div class="heatmap-title">Raw score distribution (25 buckets, 0.04 width each) · Thresholds: 0.36 (EASY|MEDIUM), 0.55 (MEDIUM|HARD)</div>
+    <div class="histogram-wrap">
+      <div class="hist-threshold" style="left: 36%;" data-val="0.36"></div>
+      <div class="hist-threshold" style="left: 55%;" data-val="0.55"></div>
+      <div class="histogram" id="histogram"></div>
+    </div>
+    <div class="hist-labels">
+      <span>0</span>
+      <span>0.2</span>
+      <span>0.4</span>
+      <span>0.6</span>
+      <span>0.8</span>
+      <span>1.0</span>
+    </div>
+  </div>
+
+  <script>
+    const bucketCounts = {"0":17,"1":21,"2":15,"3":19,"4":34,"5":30,"6":93,"7":91,"8":69,"9":32,"10":42,"11":45,"12":38,"13":57,"14":26,"15":6,"16":70,"17":8,"18":2,"19":0,"20":0,"21":0,"22":0,"23":0,"24":0,"-1":1};
+    const BUCKETS = 25;
+    const maxCount = Math.max(...Object.values(bucketCounts), 1);
+    const hist = document.getElementById('histogram');
+    for (let i = 0; i < BUCKETS; i++) {
+      const h = ((bucketCounts[i] || 0) / maxCount) * 100;
+      const lo = (i / BUCKETS).toFixed(2);
+      const hi = ((i + 1) / BUCKETS).toFixed(2);
+      const bar = document.createElement('div');
+      bar.className = 'hist-bar';
+      bar.style.height = h + '%';
+      bar.title = '[' + lo + '-' + hi + '): ' + (bucketCounts[i] || 0);
+      hist.appendChild(bar);
+    }
+    function toHeatColor(value) {
+      const r = Math.round(Math.min(255, value * 510));
+      const g = Math.round(Math.min(255, (1 - value) * 255));
+      return 'rgb(' + r + ',' + g + ',50)';
+    }
+  </script>
+</body>
+</html>

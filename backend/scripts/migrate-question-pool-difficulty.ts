@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { SupabaseService } from '../src/supabase/supabase.service';
 import { QuestionsService } from '../src/questions/questions.service';
+import { QuestionValidator } from '../src/questions/validators/question.validator';
 import {
   Difficulty,
   GeneratedQuestion,
@@ -12,6 +13,7 @@ import {
 
 const PAGE_SIZE = 1000;
 const UPDATE_LOG_EVERY = 250;
+const VERBOSE_QUESTION_MAX_LEN = 60;
 
 const ANSI = {
   reset: '\x1b[0m',
@@ -51,6 +53,10 @@ type RowRange = {
 function getArgValue(flag: string): string | undefined {
   const match = process.argv.find((arg) => arg.startsWith(`${flag}=`));
   return match?.split('=').slice(1).join('=');
+}
+
+function hasFlag(flag: string): boolean {
+  return process.argv.includes(flag);
 }
 
 function parseSlotFilter(raw: string | undefined): SlotFilter | null {
@@ -231,10 +237,17 @@ async function fetchRows(
   return rows;
 }
 
+function truncate(s: string, maxLen: number): string {
+  if (s.length <= maxLen) return s;
+  return s.slice(0, maxLen - 3) + '...';
+}
+
 function collectUpdates(
   rows: PoolRow[],
   questionsService: QuestionsService,
+  questionValidator: QuestionValidator,
   locale: QuestionLocale,
+  verbose: boolean,
 ): {
   rejectedIds: string[];
   updates: Array<{
@@ -255,9 +268,38 @@ function collectUpdates(
   }> = [];
 
   for (const row of rows) {
-    const scored = questionsService.scoreQuestion(row.question, locale, {
-      categoryOverride: row.category as QuestionCategory,
-    });
+    const { scored, rejectReason } = questionsService.scoreQuestionWithDetails(
+      row.question,
+      locale,
+      { categoryOverride: row.category as QuestionCategory },
+    );
+
+    if (verbose) {
+      const qPreview = truncate(row.question.question_text ?? '', VERBOSE_QUESTION_MAX_LEN);
+      const idShort = row.id.slice(0, 8);
+      if (!scored) {
+        const validation = questionValidator.validate(row.question);
+        const extra =
+          validation.valid ? '' : ` | validation: ${validation.reason}`;
+        console.log(
+          `${colorize('[REJECTED]', ANSI.red)} ${idShort} "${qPreview}" reason=${rejectReason ?? 'unknown'}${extra}`,
+        );
+      } else {
+        const changed = hasRowChanged(row, scored);
+        const rawBefore = row.raw_score ?? null;
+        const rawAfter = scored.raw_score ?? null;
+        if (!changed) {
+          console.log(
+            `${colorize('[SKIPPED]', ANSI.yellow)} ${idShort} "${qPreview}" raw=${formatColoredRaw(rawBefore)}→${formatColoredRaw(rawAfter)} (no change)`,
+          );
+        } else {
+          console.log(
+            `${colorize('[UPDATE]', ANSI.green)} ${idShort} "${qPreview}" raw=${formatColoredRaw(rawBefore)}→${formatColoredRaw(rawAfter)}`,
+          );
+        }
+      }
+    }
+
     if (!scored) {
       rejectedIds.push(row.id);
       continue;
@@ -268,12 +310,16 @@ function collectUpdates(
     }
 
     const { raw_score, allowedDifficulties, ...questionWithoutRaw } = scored;
-    logRowIfBandChanged(row.question.question_text, row.raw_score, raw_score ?? null);
+    if (!verbose) {
+      logRowIfBandChanged(row.question.question_text, row.raw_score, raw_score ?? null);
+    }
+    const safeRaw =
+      typeof raw_score === 'number' && Number.isFinite(raw_score) ? raw_score : null;
     updates.push({
       id: row.id,
       difficulty: scored.difficulty,
       allowed_difficulties: allowedDifficulties ?? [scored.difficulty],
-      raw_score: raw_score ?? null,
+      raw_score: safeRaw,
       question: questionWithoutRaw,
     });
   }
@@ -315,6 +361,7 @@ async function applyUpdates(
 
 async function main() {
   const apply = process.argv.includes('--apply');
+  const verbose = hasFlag('--verbose');
   const locale = (getArgValue('--locale') ?? 'el') as QuestionLocale;
   const slotFilter = parseSlotFilter(getArgValue('--slot'));
   const rowRange = parseRowRange(getArgValue('--range'));
@@ -322,10 +369,23 @@ async function main() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const supabase = app.get(SupabaseService);
   const questionsService = app.get(QuestionsService);
+  const questionValidator = app.get(QuestionValidator);
 
   const rows = await fetchRows(supabase, slotFilter, rowRange);
-  const { rejectedIds, updates } = collectUpdates(rows, questionsService, locale);
+  if (verbose) {
+    console.log(`${colorize('[verbose]', ANSI.boldWhite)} Processing ${rows.length} rows...\n`);
+  }
+  const { rejectedIds, updates } = collectUpdates(
+    rows,
+    questionsService,
+    questionValidator,
+    locale,
+    verbose,
+  );
 
+  if (verbose) {
+    console.log('');
+  }
   console.log(
     `Scanned ${rows.length} question_pool rows (locale=${locale}, apply=${apply}, slot=${formatSlotFilter(slotFilter)}, range=${formatRowRange(rowRange)})`,
   );

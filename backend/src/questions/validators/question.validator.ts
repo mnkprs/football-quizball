@@ -47,6 +47,11 @@ export class QuestionValidator {
       };
     }
 
+    const multiAnswer = this.rejectsMultiAnswerQuestion(question);
+    if (multiAnswer) {
+      return { valid: false, reason: multiAnswer };
+    }
+
     switch (question.category) {
       case 'HIGHER_OR_LOWER':
         return this.validateHigherOrLower(question);
@@ -57,6 +62,29 @@ export class QuestionValidator {
       default:
         return { valid: true };
     }
+  }
+
+  /**
+   * Rejects questions that ask for multiple answers (e.g. "which two cities") when the category
+   * expects a single answer. TOP_5 explicitly allows multiple; others do not.
+   */
+  private rejectsMultiAnswerQuestion(question: GeneratedQuestion): string | null {
+    if (question.category === 'TOP_5') return null;
+
+    const q = question.question_text.trim().toLowerCase();
+    const a = question.correct_answer.trim();
+
+    const asksForMultiple =
+      /\b(which|what|name|list|identify)\s+(two|both|the\s+two|2)\b/i.test(q) ||
+      /\b(two|both)\s+(?:of\s+)?(?:the\s+)?(?:cities?|countries?|teams?|players?|answers?)\b/i.test(q);
+
+    const hasMultipleParts =
+      /\s+and\s+/i.test(a) || /\s*,\s*/.test(a) || /\s*&\s*/.test(a);
+
+    if (asksForMultiple && hasMultipleParts) {
+      return 'question asks for multiple answers but category expects a single answer';
+    }
+    return null;
   }
 
   /**

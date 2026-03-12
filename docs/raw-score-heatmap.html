@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raw Score Heatmap — Difficulty Bands</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: #0f0f12;
+      color: #e4e4e7;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #fafafa;
+    }
+    .subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #71717a;
+      margin-bottom: 2rem;
+    }
+    .heatmap-container {
+      background: #18181b;
+      border-radius: 12px;
+      padding: 2rem;
+      border: 1px solid #27272a;
+    }
+    .axis {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #a1a1aa;
+      margin-bottom: 0.5rem;
+    }
+    .heatmap-bar {
+      height: 48px;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      background: linear-gradient(
+        to right,
+        #22c55e 0%,
+        #22c55e 36%,
+        #eab308 36%,
+        #eab308 55%,
+        #ef4444 55%,
+        #ef4444 100%
+      );
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .markers {
+      position: relative;
+      height: 0;
+      margin-top: -2rem;
+      margin-bottom: 2rem;
+    }
+    .marker {
+      position: absolute;
+      top: 0;
+      width: 2px;
+      height: 60px;
+      background: #fff;
+      transform: translateX(-50%);
+      opacity: 0.9;
+      box-shadow: 0 0 8px rgba(255,255,255,0.5);
+    }
+    .marker::after {
+      content: attr(data-value);
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+    .bands {
+      display: grid;
+      gap: 1rem;
+    }
+    .band {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .band-label {
+      width: 80px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .band-label.easy { color: #22c55e; }
+    .band-label.medium { color: #eab308; }
+    .band-label.hard { color: #ef4444; }
+    .band-range {
+      flex: 1;
+      height: 32px;
+      border-radius: 6px;
+      position: relative;
+      overflow: visible;
+    }
+    .band-range.easy {
+      background: linear-gradient(to right, #22c55e 0%, #22c55e 44%, transparent 44%);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+    }
+    .band-range.medium {
+      background: linear-gradient(to right, transparent 0%, transparent 36%, #eab308 36%, #eab308 63%, transparent 63%);
+      border: 1px solid rgba(234, 179, 8, 0.5);
+    }
+    .band-range.hard {
+      background: linear-gradient(to right, transparent 0%, transparent 47%, #ef4444 47%, #ef4444 100%);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+    }
+    .band-desc {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #71717a;
+      width: 140px;
+    }
+    .legend {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #27272a;
+      font-size: 0.85rem;
+      color: #a1a1aa;
+    }
+    .legend dt { font-weight: 600; color: #e4e4e7; margin-top: 0.5rem; }
+    .legend dd { margin-left: 0; margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <h1>Raw Score Heatmap</h1>
+  <p class="subtitle">RAW_THRESHOLD_EASY=0.36 · RAW_THRESHOLD_MEDIUM=0.55 · BOUNDARY_TOLERANCE=0.08</p>
+
+  <div class="heatmap-container">
+    <div class="axis">
+      <span>0</span>
+      <span>0.2</span>
+      <span>0.4</span>
+      <span>0.6</span>
+      <span>0.8</span>
+      <span>1.0</span>
+    </div>
+    <div class="heatmap-bar"></div>
+    <div class="markers">
+      <div class="marker" style="left: 36%;" data-value="0.36"></div>
+      <div class="marker" style="left: 44%;" data-value="0.44"></div>
+      <div class="marker" style="left: 47%;" data-value="0.47"></div>
+      <div class="marker" style="left: 55%;" data-value="0.55"></div>
+      <div class="marker" style="left: 63%;" data-value="0.63"></div>
+    </div>
+
+    <div class="bands">
+      <div class="band">
+        <span class="band-label easy">EASY</span>
+        <div class="band-range easy"></div>
+        <span class="band-desc">[0, 0.44)</span>
+      </div>
+      <div class="band">
+        <span class="band-label medium">MEDIUM</span>
+        <div class="band-range medium"></div>
+        <span class="band-desc">[0.36, 0.63)</span>
+      </div>
+      <div class="band">
+        <span class="band-label hard">HARD</span>
+        <div class="band-range hard"></div>
+        <span class="band-desc">[0.47, 1]</span>
+      </div>
+    </div>
+
+    <dl class="legend">
+      <dt>Primary difficulty</dt>
+      <dd>EASY: raw &lt; 0.36 · MEDIUM: 0.36 ≤ raw &lt; 0.55 · HARD: raw ≥ 0.55</dd>
+      <dt>Slot acceptance (with BOUNDARY_TOLERANCE)</dt>
+      <dd>Each slot accepts questions in the ranges above. Overlaps allow flexibility when seeding.</dd>
+    </dl>
+  </div>
+</body>
+</html>

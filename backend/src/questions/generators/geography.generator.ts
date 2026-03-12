@@ -6,6 +6,7 @@ import {
   getAvoidInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
+  getSingleAnswerInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -14,6 +15,7 @@ import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-g
 interface GeographyPayload {
   question_text: string;
   correct_answer: string;
+  answer_type?: string;
   fifty_fifty_hint: string;
   wrong_choices?: string[];
   explanation: string;
@@ -32,11 +34,13 @@ export class GeographyGenerator extends BaseGenerator {
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football geography expert. Generate a football-related geography question.
-      Topics can include: countries with famous clubs, cities and their football teams, stadium locations, nationalities of famous players, nations that have hosted tournaments, FIFA/UEFA confederation memberships.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+      Topics can include: countries with famous clubs, cities and their football teams, stadium locations, nationalities of famous players, nations that have hosted tournaments, FIFA/UEFA confederation memberships.
+      ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
       Return ONLY a valid JSON object with these exact fields:
       {
         "question_text": "the question",
         "correct_answer": "the answer (short, 1-5 words)",
+        "answer_type": "country",
         "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Germany' write 'France'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
         "explanation": "brief explanation (1-2 sentences)",
         "event_year": 2010,
@@ -45,6 +49,7 @@ export class GeographyGenerator extends BaseGenerator {
         "specificity_score": 2,
         "combinational_thinking_score": 3
       }
+      answer_type: What the question asks for (e.g. country, city, stadium, player nationality). Use lowercase, 1-3 words.
       fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.
       specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).
       combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dimensions (country+competition+context), 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
@@ -60,8 +65,9 @@ export class GeographyGenerator extends BaseGenerator {
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football geography expert. Generate ${questionCount} football geography questions.
-They should range from easy to hard while staying answerable in familiar contexts.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
-Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
+They should range from easy to hard while staying answerable in familiar contexts.
+${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
     ${getLeagueFameGuidanceForBatch('GEOGRAPHY', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
@@ -90,7 +96,7 @@ Return ONLY a valid JSON object with a "questions" array. Each item must include
         competition: result.competition ?? 'Unknown',
         fame_score: result.fame_score ?? null,
         category: 'GEOGRAPHY',
-        answer_type: 'country',
+        answer_type: (result.answer_type ?? 'country').trim().toLowerCase() || 'country',
         specificity_score: result.specificity_score ?? 2,
         combinational_thinking_score: result.combinational_thinking_score,
       },

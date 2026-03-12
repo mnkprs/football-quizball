@@ -6,6 +6,7 @@ import {
   getAvoidInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
+  getSingleAnswerInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -33,7 +34,7 @@ export class HistoryGenerator extends BaseGenerator {
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
-Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 CRITICAL: Do NOT mention the correct_answer anywhere in question_text. The question must not give away the answer.
 Return ONLY a valid JSON object with these exact fields:
 {
@@ -50,7 +51,7 @@ Return ONLY a valid JSON object with these exact fields:
 }
 fame_score is 1-10: 10 = universally iconic like Zidane headbutt, 1 = hyper-niche fact.
 combinational_thinking_score 1-10: 1 = single fact recall ("Who won X?"), 5 = combines 2-3 dimensions (league+season+event), 10 = multi-dimensional reasoning across many facts.
-answer_type: one of "name", "team", "number", "score", "year", "country" — pick whichever matches the correct_answer.
+answer_type: Short description of what the question asks for (e.g. country, team, player name, year, score, shirt number, number of assists, stadium). Use lowercase, 1-3 words.
 specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"), 3 = moderate (specific match/season detail), 5 = very specific (exact shirt number or obscure stat).${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('HISTORY', options?.slotIndex, options?.minorityScale);
@@ -64,7 +65,7 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football trivia expert. Generate ${questionCount} interesting football history questions on real events.
-The questions must be factual, answerable, and clearly distinct.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+The questions must be factual, answerable, and clearly distinct.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 CRITICAL: Do NOT mention the correct_answer anywhere in question_text. The question must not give away the answer.
 Return ONLY a valid JSON object:
 {
@@ -72,7 +73,7 @@ Return ONLY a valid JSON object:
     {
       "question_text": "the question",
       "correct_answer": "the answer",
-      "answer_type": "name",
+      "answer_type": "player name",
       "fifty_fifty_hint": "a plausible but wrong answer",
       "explanation": "brief explanation",
       "event_year": 1999,

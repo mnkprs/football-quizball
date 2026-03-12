@@ -6,6 +6,7 @@ import {
   getAvoidInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
+  getSingleAnswerInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
 } from '../diversity-hints';
@@ -33,7 +34,7 @@ export class GossipGenerator extends BaseGenerator {
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football celebrity gossip expert. Generate a fun football gossip trivia question.
 Topics can include: famous transfer sagas, player controversies, WAG stories, celebrity footballer relationships, off-pitch incidents, feuds between players or managers, outrageous quotes, extravagant lifestyles.
-Keep it factual (real events) and entertaining.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Keep it factual (real events) and entertaining.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
@@ -61,7 +62,7 @@ combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dime
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
-They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;

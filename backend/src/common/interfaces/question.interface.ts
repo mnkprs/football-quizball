@@ -16,6 +16,7 @@ export interface QuestionTranslation {
   explanation: string;
 }
 
+/** @deprecated Use string for free-form answer types. Kept for backward compatibility. */
 export type AnswerType = 'name' | 'team' | 'number' | 'score' | 'year' | 'country';
 
 export interface DifficultyFactors {
@@ -23,7 +24,7 @@ export interface DifficultyFactors {
   competition: string;
   fame_score: number | null;
   category: QuestionCategory;
-  answer_type: AnswerType;
+  answer_type: string;
   specificity_score: number;
   /** 1-10: how much the question requires combining dimensions and reasoning across facts. 1 = simple recall, 10 = multi-dimensional reasoning. */
   combinational_thinking_score?: number;

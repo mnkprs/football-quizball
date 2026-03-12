@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AnswerTypeModifierService } from './answer-type-modifier.service';
 import {
   DifficultyFactors,
   Difficulty,
@@ -10,7 +11,6 @@ import {
 import type { DifficultyScoreResult } from '../common/interfaces/difficulty.interface';
 import {
   CATEGORY_MODIFIERS,
-  ANSWER_TYPE_MODIFIERS,
   CATEGORY_RAW_FLOORS,
   CATEGORY_MULTI_ANSWER_BONUSES,
 } from './config/difficulty.config';
@@ -52,7 +52,8 @@ import {
 } from './config/difficulty-scoring.config';
 
 function computeDateScore(event_year: number): number {
-  const age = CURRENT_YEAR - event_year;
+  const year = Number.isFinite(event_year) ? event_year : CURRENT_YEAR;
+  const age = CURRENT_YEAR - year;
   if (age <= DATE_AGE_VERY_RECENT_YEARS) return DATE_SCORE_VERY_RECENT;
   if (age <= DATE_AGE_RECENT_YEARS) return DATE_SCORE_RECENT;
   if (age <= DATE_AGE_DECAY_START_YEARS) return computeRecentHistoricalScore(age);
@@ -74,8 +75,9 @@ function normalizeSpecificity(category: QuestionCategory, specificityScore: numb
   const override = SPECIFICITY_OVERRIDES[category];
   if (override !== undefined) return override;
   const floor = SPECIFICITY_FLOORS[category];
-  if (floor !== undefined) return Math.max(floor, specificityScore);
-  return Math.max(1, Math.min(10, specificityScore));
+  const score = Number.isFinite(specificityScore) ? specificityScore : SPECIFICITY_DEFAULT;
+  if (floor !== undefined) return Math.max(floor, score);
+  return Math.max(1, Math.min(10, score));
 }
 
 function normalizeFame(fameScore: number | null, tier: number): number {
@@ -128,6 +130,7 @@ function computeRawScore(
   factors: DifficultyFactors,
   tier: number,
   specificityScore: number,
+  answerTypeModifier: number,
 ): number {
   const dateScore = computeDateScore(factors.event_year);
   const familiarityScore = (tier - 1) / TIER_SCALE_DENOMINATOR;
@@ -139,7 +142,6 @@ function computeRawScore(
     ((factors.combinational_thinking_score ?? COMBINATIONAL_DEFAULT) - 1) /
     SPECIFICITY_SCALE_DENOMINATOR *
     COMBINATIONAL_MODIFIER_MAX;
-  const answerTypeMod = ANSWER_TYPE_MODIFIERS[factors.answer_type] ?? 0;
   const categoryMod = CATEGORY_MODIFIERS[factors.category] ?? 0;
   const multiAnswerBonus = CATEGORY_MULTI_ANSWER_BONUSES[factors.category] ?? 0;
 
@@ -149,7 +151,7 @@ function computeRawScore(
     WEIGHT_FAME * fameScoreNormalized +
     specificityModifier +
     combinationalMod +
-    answerTypeMod +
+    answerTypeModifier +
     categoryMod +
     multiAnswerBonus
   );
@@ -180,16 +182,28 @@ function getRejectReason(factors: DifficultyFactors, tier: number): string | nul
  */
 @Injectable()
 export class DifficultyScorer {
+  constructor(private answerTypeModifierService: AnswerTypeModifierService) {}
+
   score(factors: DifficultyFactors): DifficultyScoreResult {
-    const tier = getLeagueFamiliarityTier(factors.competition);
+    const competition = factors.competition && String(factors.competition).trim()
+      ? factors.competition
+      : 'Unknown';
+    const tier = getLeagueFamiliarityTier(competition);
     const specificityScore = normalizeSpecificity(
       factors.category,
       factors.specificity_score ?? SPECIFICITY_DEFAULT,
     );
-    const raw = applyCategoryRawFloor(
+    const answerTypeModifier = this.answerTypeModifierService.getModifier(
+      factors.answer_type,
       factors.category,
-      computeRawScore(factors, tier, specificityScore),
     );
+    let raw = applyCategoryRawFloor(
+      factors.category,
+      computeRawScore(factors, tier, specificityScore, answerTypeModifier),
+    );
+    if (!Number.isFinite(raw)) {
+      raw = 0.5; // Fallback for legacy questions with missing/invalid factors
+    }
     const fixedDifficulty = resolveFixedDifficulty(factors.category);
     if (fixedDifficulty) {
       const allowedDifficulties = getAllowedDifficulties(raw, fixedDifficulty);

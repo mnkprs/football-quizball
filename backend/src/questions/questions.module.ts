@@ -4,6 +4,7 @@ import { QuestionsService } from './questions.service';
 import { QuestionPoolService } from './question-pool.service';
 import { AnswerValidator } from './validators/answer.validator';
 import { QuestionValidator } from './validators/question.validator';
+import { AnswerTypeModifierService } from './answer-type-modifier.service';
 import { DifficultyScorer } from './difficulty-scorer.service';
 import { HistoryGenerator } from './generators/history.generator';
 import { PlayerIdGenerator } from './generators/player-id.generator';
@@ -17,6 +18,7 @@ import { LlmModule } from '../llm/llm.module';
 @Module({
   imports: [ScheduleModule.forRoot(), LlmModule],
   providers: [
+    AnswerTypeModifierService,
     QuestionsService,
     QuestionPoolService,
     AnswerValidator,

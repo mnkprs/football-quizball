@@ -9,6 +9,7 @@ import {
 } from './config';
 import { BOARD_CATEGORIES } from './config/category.config';
 import { minorityScaleForDifficulty } from './diversity-hints';
+import { AnswerTypeModifierService } from './answer-type-modifier.service';
 import { DifficultyScorer } from './difficulty-scorer.service';
 import { GeneratorOptions, GeneratorBatchOptions } from './generators/base-generator';
 import { colorize, colorRawScoreOrNa, ANSI } from './utils/logger-colors';
@@ -25,6 +26,7 @@ export class QuestionsService {
   private readonly logger = new Logger(QuestionsService.name);
 
   constructor(
+    private answerTypeModifierService: AnswerTypeModifierService,
     private difficultyScorer: DifficultyScorer,
     private historyGenerator: HistoryGenerator,
     private playerIdGenerator: PlayerIdGenerator,
@@ -208,17 +210,37 @@ export class QuestionsService {
     language: string = 'en',
     options?: { categoryOverride?: QuestionCategory },
   ): GeneratedQuestion | null {
+    const details = this.scoreQuestionWithDetails(question, language, options);
+    return details.scored;
+  }
+
+  /**
+   * Same as scoreQuestion but returns reject reason when rejected. Useful for migration/debugging.
+   */
+  scoreQuestionWithDetails(
+    question: GeneratedQuestion,
+    language: string = 'en',
+    options?: { categoryOverride?: QuestionCategory },
+  ): { scored: GeneratedQuestion | null; rejectReason?: string } {
     if (!question.difficulty_factors) {
-      this.logger.warn(`Question missing difficulty_factors: ${question.category}`);
-      return null;
+      return {
+        scored: null,
+        rejectReason: 'missing difficulty_factors',
+      };
     }
     const factors = options?.categoryOverride
       ? { ...question.difficulty_factors, category: options.categoryOverride }
       : question.difficulty_factors;
     const result = this.difficultyScorer.score(factors);
+    this.answerTypeModifierService
+      .ensureAnswerType(factors.answer_type, factors.category)
+      .catch(() => {});
     if (result.rejected) {
       this.logger.debug(`[scoreQuestion] Rejected ${question.category}: ${result.rejectReason}`);
-      return null;
+      return {
+        scored: null,
+        rejectReason: result.rejectReason ?? 'scorer rejected',
+      };
     }
     const scoredQuestion = {
       ...question,
@@ -236,7 +258,7 @@ export class QuestionsService {
         `${colorize('[scored]', ANSI.boldWhite)} ${colorize(`"${scoredQuestion.question_text}"`, ANSI.boldWhite)} ${colorize('raw_before=', ANSI.dim)}${colorRawScoreOrNa(rawBefore)} ${colorize('raw_after=', ANSI.dim)}${colorRawScoreOrNa(result.raw)}`,
       );
     }
-    return scoredQuestion;
+    return { scored: scoredQuestion };
   }
 
   private validateQuestion(question: GeneratedQuestion): void {

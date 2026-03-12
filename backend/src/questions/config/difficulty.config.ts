@@ -1,4 +1,4 @@
-import type { QuestionCategory, AnswerType } from '../../common/interfaces/question.interface';
+import type { QuestionCategory } from '../../common/interfaces/question.interface';
 
 /** Current year for date-based difficulty calculations. */
 export const CURRENT_YEAR = new Date().getFullYear();
@@ -16,18 +16,6 @@ export const CATEGORY_MODIFIERS: Record<QuestionCategory, number> = {
   TOP_5: 0.12,
   GUESS_SCORE: 0.04,
   NEWS: -0.05,
-};
-
-/**
- * Answer type modifiers (e.g. exact score recall is harder than team name).
- */
-export const ANSWER_TYPE_MODIFIERS: Record<AnswerType, number> = {
-  country: -0.05,
-  team: -0.03,
-  name: 0,
-  year: 0.05,
-  number: 0.07,
-  score: 0.09,
 };
 
 /** Minimum raw score for certain categories (e.g. TOP_5). */

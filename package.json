@@ -9,6 +9,7 @@
     "db:find-similar-questions": "cd backend && npm run db:find-similar-questions --",
     "db:cleanup-pools": "cd backend && npm run db:cleanup-pools --",
     "db:stats": "cd backend && npm run db:stats --",
+    "db:heatmap": "cd backend && npm run db:heatmap --",
     "db:translate-greek": "cd backend && npm run db:translate-greek --",
     "pool:migrate-difficulty": "cd backend && npm run pool:migrate-difficulty --",
     "pool:migrate-difficulty:apply": "cd backend && npm run pool:migrate-difficulty:apply",

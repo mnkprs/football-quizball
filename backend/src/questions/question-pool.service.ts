@@ -622,10 +622,23 @@ export class QuestionPoolService {
           q.difficulty === difficulty ||
           q.allowedDifficulties?.includes(difficulty),
       );
+      const validatorRejected: Array<{ question: string; reason: string }> = [];
       const afterValidator = candidates.filter((q) => {
-        const { valid } = this.questionValidator.validate(q);
+        const { valid, reason } = this.questionValidator.validate(q);
+        if (!valid && reason) {
+          validatorRejected.push({
+            question: q.question_text?.slice(0, 60) ?? '',
+            reason,
+          });
+        }
         return valid;
       });
+      if (validatorRejected.length > 0) {
+        this.logger.warn(
+          `[seedSlot] Validator rejected ${validatorRejected.length}: ` +
+            validatorRejected.map((r) => `"${r.question}..." → ${r.reason}`).join('; '),
+        );
+      }
       const accepted = afterValidator
         .filter((q) => {
           const key = `${q.question_text}|||${q.correct_answer}`;
