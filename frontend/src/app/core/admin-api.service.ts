@@ -77,12 +77,16 @@ export class AdminApiService {
     page: number = 1,
     limit: number = 20,
     search?: string,
+    category?: string,
+    difficulty?: string,
     apiKey?: string,
   ): Observable<PoolQuestionsResponse> {
     const key = apiKey ?? this.apiKey;
     const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
     const params: Record<string, string> = { min: String(min), max: String(max), page: String(page), limit: String(limit) };
     if (search?.trim()) params['search'] = search.trim();
+    if (category?.trim()) params['category'] = category.trim();
+    if (difficulty?.trim()) params['difficulty'] = difficulty.trim();
     return this.http.get<PoolQuestionsResponse>(`${this.base}/api/admin/pool-questions`, {
       headers,
       params,

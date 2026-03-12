@@ -94,8 +94,8 @@ export const DATE_SCORE_OLD_FLOOR = 0.32;
 /** TOP_5: always treat as max specificity (hardest). */
 export const SPECIFICITY_OVERRIDE_TOP_5 = 10;
 
-/** GUESS_SCORE: minimum specificity (avoid too obscure). */
-export const SPECIFICITY_FLOOR_GUESS_SCORE = 4;
+/** GUESS_SCORE: minimum specificity. Lowered from 4 so EASY-targeted questions (spec 2-3) can score as EASY. Obscurity is guarded by REJECT_GUESS_SCORE_FAME_MIN. */
+export const SPECIFICITY_FLOOR_GUESS_SCORE = 2;
 
 /** PLAYER_ID, HIGHER_OR_LOWER: fixed moderate specificity. */
 export const SPECIFICITY_OVERRIDE_PLAYER_HOL = 6;

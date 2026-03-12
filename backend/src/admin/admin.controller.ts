@@ -15,7 +15,7 @@ export class AdminController {
 
   /**
    * Get paginated questions by raw_score range.
-   * Example: GET /api/admin/pool-questions?min=0.2&max=0.3&page=1&limit=20&search=...
+   * Example: GET /api/admin/pool-questions?min=0.2&max=0.3&page=1&limit=20&search=...&category=HISTORY&difficulty=EASY
    */
   @Get('pool-questions')
   @UseGuards(AdminApiKeyGuard)
@@ -25,13 +25,17 @@ export class AdminController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('difficulty') difficulty?: string,
   ) {
     const min = parseFloat(minRaw ?? '0');
     const max = parseFloat(maxRaw ?? '0.1');
     const p = Math.max(1, parseInt(page ?? '1', 10));
     const l = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10)));
     const q = (search ?? '').trim() || undefined;
-    return this.questionPoolService.getPoolQuestionsByRange(min, max, p, l, q);
+    const cat = (category ?? '').trim() || undefined;
+    const diff = (difficulty ?? '').trim() || undefined;
+    return this.questionPoolService.getPoolQuestionsByRange(min, max, p, l, q, cat, diff);
   }
 
   /**

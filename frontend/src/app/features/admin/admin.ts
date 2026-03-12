@@ -216,6 +216,35 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
           @if (selectedRange(); as range) {
             <div class="admin-section">
               <h2>Questions in range [{{ range.min.toFixed(2) }}, {{ range.max.toFixed(2) }}) — {{ rangeTotal() }} total</h2>
+              <div class="admin-filters-row">
+                <input
+                  type="search"
+                  class="admin-search-input"
+                  placeholder="Search questions or answers…"
+                  [value]="searchQuery()"
+                  (input)="onSearchInput($event)"
+                />
+                <select
+                  class="admin-filter-select"
+                  [value]="filterCategory()"
+                  (change)="onFilterCategory($event)"
+                >
+                  <option value="">All categories</option>
+                  @for (c of stats()?.categories ?? []; track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+                <select
+                  class="admin-filter-select"
+                  [value]="filterDifficulty()"
+                  (change)="onFilterDifficulty($event)"
+                >
+                  <option value="">All difficulties</option>
+                  @for (d of stats()?.difficulties ?? []; track d) {
+                    <option [value]="d">{{ d }}</option>
+                  }
+                </select>
+              </div>
               @if (rangeLoading()) {
                 <div class="admin-loading">Loading…</div>
               } @else {
@@ -386,6 +415,49 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
       font-size: 0.8rem;
       color: #71717a;
       margin-bottom: 1rem;
+    }
+
+    .admin-filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .admin-search-input {
+      width: 100%;
+      max-width: 24rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #27272a;
+      background: #0f0f12;
+      color: #e4e4e7;
+      font-size: 0.875rem;
+    }
+
+    .admin-search-input::placeholder {
+      color: #71717a;
+    }
+
+    .admin-search-input:focus {
+      outline: none;
+      border-color: #3f3f46;
+    }
+
+    .admin-filter-select {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #27272a;
+      background: #0f0f12;
+      color: #e4e4e7;
+      font-size: 0.875rem;
+      min-width: 10rem;
+    }
+
+    .admin-filter-select:focus {
+      outline: none;
+      border-color: #3f3f46;
     }
 
     .admin-error {
@@ -599,6 +671,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   rangeTotal = signal(0);
   rangePage = signal(1);
   rangeLoading = signal(false);
+  searchQuery = signal('');
+  filterCategory = signal('');
+  filterDifficulty = signal('');
+  private searchDebounce: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     if (this.admin.hasApiKey()) {
@@ -607,9 +683,8 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
-    }
+    if (this.refreshInterval) clearInterval(this.refreshInterval);
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
   }
 
   toggleAutoRefresh(e: Event): void {
@@ -727,7 +802,35 @@ export class AdminComponent implements OnInit, OnDestroy {
   async selectRange(min: number, max: number): Promise<void> {
     this.selectedRange.set({ min, max });
     this.rangePage.set(1);
+    this.searchQuery.set('');
+    this.filterCategory.set('');
+    this.filterDifficulty.set('');
     await this.loadRangeQuestions();
+  }
+
+  onSearchInput(e: Event): void {
+    const value = (e.target as HTMLInputElement).value;
+    this.searchQuery.set(value);
+    if (this.searchDebounce) clearTimeout(this.searchDebounce);
+    this.searchDebounce = setTimeout(() => {
+      this.rangePage.set(1);
+      this.loadRangeQuestions();
+      this.searchDebounce = null;
+    }, 300);
+  }
+
+  onFilterCategory(e: Event): void {
+    const value = (e.target as HTMLSelectElement).value;
+    this.filterCategory.set(value);
+    this.rangePage.set(1);
+    this.loadRangeQuestions();
+  }
+
+  onFilterDifficulty(e: Event): void {
+    const value = (e.target as HTMLSelectElement).value;
+    this.filterDifficulty.set(value);
+    this.rangePage.set(1);
+    this.loadRangeQuestions();
   }
 
   async rangePrevPage(): Promise<void> {
@@ -751,7 +854,15 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.rangeLoading.set(true);
     try {
       const res = await firstValueFrom(
-        this.admin.getPoolQuestions(range.min, range.max, this.rangePage(), 20),
+        this.admin.getPoolQuestions(
+          range.min,
+          range.max,
+          this.rangePage(),
+          20,
+          this.searchQuery() || undefined,
+          this.filterCategory() || undefined,
+          this.filterDifficulty() || undefined,
+        ),
       );
       this.rangeQuestions.set(res.questions);
       this.rangeTotal.set(res.total);

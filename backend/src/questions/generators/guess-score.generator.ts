@@ -69,7 +69,8 @@ CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in questi
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football historian. Generate ${questionCount} "Guess the Score" questions.
-Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older. Prefer well-known matches so players can recall the score.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}
+Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older. 
+Prefer well-known matches so players can recall the score.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [

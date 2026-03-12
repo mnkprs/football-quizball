@@ -44,6 +44,13 @@ export const CATEGORY_DIFFICULTY_OVERRIDES: Partial<
   Record<QuestionCategory, Partial<Record<Difficulty, DifficultyOverrideConfig>>>
 > = {
   GUESS_SCORE: {
+    EASY: {
+      fame_score: [6, 8],
+      specificity_score: [2, 3],
+      combinational_thinking_score: [2, 4],
+      extraInstructions:
+        'Prefer iconic, well-known matches most fans recall (finals, title deciders, famous comebacks).',
+    },
     MEDIUM: {
       fame_score: [5, 7],
       specificity_score: [3, 4],
@@ -58,6 +65,13 @@ export const CATEGORY_DIFFICULTY_OVERRIDES: Partial<
     },
   },
   HISTORY: {
+    EASY: {
+      fame_score: [6, 8],
+      specificity_score: [2, 3],
+      combinational_thinking_score: [2, 4],
+      extraInstructions:
+        'Prefer iconic, widely known moments most fans recall (World Cup/Euros finals, famous goals, title deciders).',
+    },
     MEDIUM: {
       fame_score: [5, 7],
       specificity_score: [2, 4],
@@ -74,6 +88,13 @@ export const CATEGORY_DIFFICULTY_OVERRIDES: Partial<
     },
   },
   GEOGRAPHY: {
+    EASY: {
+      fame_score: [6, 8],
+      specificity_score: [2, 3],
+      combinational_thinking_score: [2, 4],
+      extraInstructions:
+        'Prefer well-known geography facts (major nations, top leagues, famous clubs).',
+    },
     MEDIUM: {
       fame_score: [5, 7],
       specificity_score: [2, 4],

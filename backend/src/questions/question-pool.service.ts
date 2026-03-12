@@ -22,6 +22,7 @@ import {
   SEED_PASS_DELAY_MS,
   DUPLICATE_RETRY_ATTEMPTS,
 } from './config/pool.config';
+import { RAW_THRESHOLD_EASY, RAW_THRESHOLD_MEDIUM } from './config/difficulty-scoring.config';
 import { GENERATION_VERSION } from './config/generation-version.config';
 import { LIVE_CATEGORIES, SOLO_DRAW_CATEGORY_ORDER } from './config/category.config';
 import type {
@@ -548,6 +549,36 @@ export class QuestionPoolService {
     return LIVE_CATEGORIES;
   }
 
+  /**
+   * When no questions match target difficulty, take the closest by raw_score.
+   * EASY: lowest raw first. HARD: highest raw first. MEDIUM: closest to band center.
+   */
+  private takeClosestByRawScore(
+    batch: GeneratedQuestion[],
+    targetDifficulty: Difficulty,
+    existingKeys: Set<string>,
+  ): GeneratedQuestion[] {
+    const valid = batch.filter((q) => this.questionValidator.validate(q).valid);
+    const nonDup = valid.filter((q) => {
+      const key = `${q.question_text}|||${q.correct_answer}`;
+      if (existingKeys.has(key)) return false;
+      existingKeys.add(key);
+      return true;
+    });
+    if (nonDup.length === 0) return [];
+    const mid = (RAW_THRESHOLD_EASY + RAW_THRESHOLD_MEDIUM) / 2;
+    const sorted =
+      targetDifficulty === 'EASY'
+        ? [...nonDup].sort((a, b) => (a.raw_score ?? 1) - (b.raw_score ?? 1))
+        : targetDifficulty === 'HARD'
+          ? [...nonDup].sort((a, b) => (b.raw_score ?? 0) - (a.raw_score ?? 0))
+          : [...nonDup].sort(
+              (a, b) =>
+                Math.abs((a.raw_score ?? mid) - mid) - Math.abs((b.raw_score ?? mid) - mid),
+            );
+    return sorted;
+  }
+
   private buildNeedMapForCategory(
     category: QuestionCategory,
     count: number,
@@ -583,7 +614,7 @@ export class QuestionPoolService {
               q.difficulty === difficulty || q.allowedDifficulties?.includes(difficulty),
           );
           const validatorRejected = candidates.filter((q) => !this.questionValidator.validate(q).valid);
-          const afterValidator = candidates.filter((q) => this.questionValidator.validate(q).valid);
+          let afterValidator = candidates.filter((q) => this.questionValidator.validate(q).valid);
           accepted = afterValidator.filter((q) => {
             const key = `${q.question_text}|||${q.correct_answer}`;
             if (existingKeys.has(key)) return false;
@@ -592,6 +623,16 @@ export class QuestionPoolService {
           });
 
           if (accepted.length > 0) break;
+
+          if (afterValidator.length === 0 && candidates.length === 0 && batch.length > 0) {
+            accepted = this.takeClosestByRawScore(batch, difficulty, existingKeys);
+            if (accepted.length > 0) {
+              this.logger.warn(
+                `[seedPool] ${category}/${difficulty} pass ${pass + 1}: using ${accepted.length} closest-by-raw (no exact match)`,
+              );
+              break;
+            }
+          }
 
           const dupCount = afterValidator.length;
           const allDuplicates = validatorRejected.length === 0 && dupCount > 0;
@@ -703,7 +744,7 @@ export class QuestionPoolService {
             validatorRejected.map((r) => `"${r.question}..." → ${r.reason}`).join('; '),
         );
       }
-      const accepted = afterValidator
+      let accepted = afterValidator
         .filter((q) => {
           const key = `${q.question_text}|||${q.correct_answer}`;
           if (existingKeys.has(key)) return false;
@@ -711,6 +752,16 @@ export class QuestionPoolService {
           return true;
         })
         .slice(0, targetCount - added);
+
+      if (accepted.length === 0 && candidates.length === 0 && batch.length > 0) {
+        const fallback = this.takeClosestByRawScore(batch, difficulty, existingKeys);
+        accepted = fallback.slice(0, targetCount - added);
+        if (accepted.length > 0) {
+          this.logger.warn(
+            `[seedSlot] ${category}/${difficulty} pass ${pass}: using ${accepted.length} closest-by-raw (no exact match)`,
+          );
+        }
+      }
 
       if (accepted.length === 0) {
         const diffRej = batch.length - candidates.length;
@@ -813,7 +864,7 @@ export class QuestionPoolService {
             q.difficulty === difficulty ||
             q.allowedDifficulties?.includes(difficulty),
         );
-        const accepted = candidates
+        let accepted = candidates
           .filter((q) => this.questionValidator.validate(q).valid)
           .filter((q) => {
             const key = `${q.question_text}|||${q.correct_answer}`;
@@ -822,6 +873,16 @@ export class QuestionPoolService {
             return true;
           })
           .slice(0, needed);
+
+        if (accepted.length === 0 && candidates.length === 0 && batch.length > 0) {
+          const fallback = this.takeClosestByRawScore(batch, difficulty, existingKeys);
+          accepted = fallback.slice(0, needed);
+          if (accepted.length > 0) {
+            this.logger.warn(
+              `[fillCategory] ${category}/${difficulty}: using ${accepted.length} closest-by-raw (no exact match)`,
+            );
+          }
+        }
 
         if (accepted.length > 0) {
           anyAccepted = true;
@@ -1005,7 +1066,7 @@ export class QuestionPoolService {
 
   /**
    * Fetches questions from question_pool by raw_score range with pagination.
-   * When search is provided, uses RPC for text search (question_text, correct_answer).
+   * When search or filters are provided, uses RPC for text search and category/difficulty filters.
    */
   async getPoolQuestionsByRange(
     minRaw: number,
@@ -1013,14 +1074,19 @@ export class QuestionPoolService {
     page: number = 1,
     limit: number = 20,
     search?: string,
+    category?: string,
+    difficulty?: string,
   ): Promise<{ questions: PoolQuestionRow[]; total: number }> {
     const offset = (page - 1) * limit;
+    const useRpc = search || category || difficulty;
 
-    if (search) {
+    if (useRpc) {
       const { data, error } = await this.supabaseService.client.rpc('get_admin_pool_questions', {
         p_min_raw: minRaw,
         p_max_raw: maxRaw,
-        p_search: search,
+        p_search: search ?? null,
+        p_category: category ?? null,
+        p_difficulty: difficulty ?? null,
         p_limit: limit,
         p_offset: offset,
       });
@@ -1041,11 +1107,16 @@ export class QuestionPoolService {
       return { questions, total };
     }
 
-    const { data, count, error } = await this.supabaseService.client
+    let query = this.supabaseService.client
       .from('question_pool')
       .select('id, category, difficulty, raw_score, question', { count: 'exact' })
       .gte('raw_score', minRaw)
-      .lt('raw_score', maxRaw)
+      .lt('raw_score', maxRaw);
+
+    if (category) query = query.eq('category', category);
+    if (difficulty) query = query.eq('difficulty', difficulty);
+
+    const { data, count, error } = await query
       .order('raw_score', { ascending: true })
       .range(offset, offset + limit - 1);
 
