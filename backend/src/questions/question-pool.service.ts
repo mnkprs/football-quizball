@@ -520,7 +520,7 @@ export class QuestionPoolService {
     return filtered.map((q) => q.question_text);
   }
 
-  /** Filters questions by factual integrity (web search verification). No-op when disabled. */
+  /** Filters questions by factual integrity (LLM verification). No-op when disabled. */
   private async filterByIntegrity(questions: GeneratedQuestion[]): Promise<GeneratedQuestion[]> {
     if (!this.questionIntegrity.isEnabled || questions.length === 0) return questions;
 
@@ -995,7 +995,11 @@ export class QuestionPoolService {
 
     const rows = questions.map((q, i) => {
       const difficulty = difficultyOverride ?? q.difficulty;
-      const allowedDifficulties = q.allowedDifficulties ?? [difficulty];
+      let allowedDifficulties = q.allowedDifficulties ?? [difficulty];
+      // When forcing a question into a slot (difficultyOverride), ensure it can be drawn for that slot.
+      if (difficultyOverride && !allowedDifficulties.includes(difficultyOverride)) {
+        allowedDifficulties = [...allowedDifficulties, difficultyOverride];
+      }
       return {
         id: q.id,
         category,

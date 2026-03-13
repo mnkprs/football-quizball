@@ -2,36 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { jsonrepair } from 'jsonrepair';
-import { WebSearchService } from '../web-search/web-search.service';
 
 /** DeepSeek model. OpenAI-compatible API. */
 const DEEPSEEK_MODEL = 'deepseek-chat';
 
-/** Max tool-call rounds before forcing final response. */
-const MAX_TOOL_ROUNDS = 8;
-
 /** Delay (ms) before retry when rate limited. */
 const RATE_LIMIT_RETRY_MS = 30_000;
-
-const SEARCH_WEB_TOOL: OpenAI.Chat.Completions.ChatCompletionTool = {
-  type: 'function',
-  function: {
-    name: 'search_web',
-    description:
-      'Search the web to verify factual claims before returning them. Use for: match scores, player career/transfers, statistics, historical events. Only return facts that are explicitly confirmed in search results. Never guess — if search does not clearly confirm a fact, do not include it.',
-    parameters: {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-          description:
-            "Search query (e.g. 'Team A vs Team B 2019 Champions League final score', 'Player Name career clubs')",
-        },
-      },
-      required: ['query'],
-    },
-  },
-};
 
 function isRateLimitError(err: unknown): boolean {
   const msg = String((err as Error)?.message ?? '');
@@ -62,10 +38,7 @@ export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private deepseekClient: OpenAI | null = null;
 
-  constructor(
-    private configService: ConfigService,
-    private webSearchService: WebSearchService,
-  ) {
+  constructor(private configService: ConfigService) {
     const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
 
     if (deepseekKey) {
@@ -84,21 +57,31 @@ export class LlmService {
   }
 
   /**
-   * Generates structured JSON. When TAVILY_API_KEY is set, the model can use
-   * search_web to fetch real-time information for any question type.
+   * Generates structured JSON using the LLM's knowledge.
+   * Web search (Tavily) has been removed; the model relies on its training data.
    */
   async generateStructuredJson<T>(
     systemPrompt: string,
     userPrompt: string,
     maxRetries = 3,
   ): Promise<T> {
-    return this.generateStructuredJsonWithWebSearch<T>(systemPrompt, userPrompt, {
-      useWebSearch: true,
-      maxRetries,
-    });
+    return this.generateStructuredJsonPlain<T>(systemPrompt, userPrompt, maxRetries);
   }
 
-  /** Internal: plain LLM call without tools (used when web search unavailable or for translate). */
+  /**
+   * Alias for generateStructuredJson for callers that used web search.
+   * Now uses plain LLM (no external search).
+   */
+  async generateStructuredJsonWithWebSearch<T>(
+    systemPrompt: string,
+    userPrompt: string,
+    options?: { useWebSearch?: boolean; maxRetries?: number },
+  ): Promise<T> {
+    const maxRetries = options?.maxRetries ?? 3;
+    return this.generateStructuredJsonPlain<T>(systemPrompt, userPrompt, maxRetries);
+  }
+
+  /** Internal: plain LLM call (no tools). */
   private async generateStructuredJsonPlain<T>(
     systemPrompt: string,
     userPrompt: string,
@@ -160,114 +143,6 @@ export class LlmService {
     }
 
     throw lastError || new Error('LLM generation failed after all retries');
-  }
-
-  /**
-   * Generates structured JSON with optional real-time web search.
-   * When web search is enabled: the model can call search_web to fetch current info (e.g. player transfers).
-   * Falls back to regular generateStructuredJson when TAVILY_API_KEY is not set.
-   */
-  async generateStructuredJsonWithWebSearch<T>(
-    systemPrompt: string,
-    userPrompt: string,
-    options?: { useWebSearch?: boolean; maxRetries?: number },
-  ): Promise<T> {
-    const useWebSearch = options?.useWebSearch ?? true;
-    const maxRetries = options?.maxRetries ?? 3;
-
-    if (!useWebSearch || !this.webSearchService.hasWebSearch) {
-      return this.generateStructuredJsonPlain<T>(systemPrompt, userPrompt, maxRetries);
-    }
-
-    if (!this.hasLlm) {
-      const err = new Error('No LLM configured — set DEEPSEEK_API_KEY');
-      this.logger.error(`[generateStructuredJsonWithWebSearch] Cannot call LLM — no API key`);
-      throw err;
-    }
-
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ];
-
-    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-      const result = await this.deepseekClient!.chat.completions.create({
-        model: DEEPSEEK_MODEL,
-        messages,
-        temperature: 0.9,
-        top_p: 0.95,
-        tools: [SEARCH_WEB_TOOL],
-        tool_choice: 'auto',
-      });
-
-      const msg = result.choices?.[0]?.message;
-      if (!msg) throw new Error('Empty LLM response');
-
-      messages.push(msg as OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam);
-
-      const toolCalls = msg.tool_calls;
-      if (toolCalls?.length) {
-        const queries = toolCalls
-          .filter((tc) => 'function' in tc && tc.function?.name === 'search_web')
-          .map((tc) => {
-            const fn = 'function' in tc ? tc.function : null;
-            try {
-              const args = JSON.parse(typeof fn?.arguments === 'string' ? fn.arguments : '{}');
-              return args.query ?? '?';
-            } catch {
-              return '?';
-            }
-          });
-        if (queries.length) {
-          this.logger.log(`[LLM] web search requested: ${queries.join(' | ')}`);
-        }
-      }
-      if (!toolCalls?.length) {
-        const text = msg.content ?? '';
-        if (text.trim()) return extractJson<T>(text);
-        throw new Error('LLM returned empty content after tool rounds');
-      }
-
-      for (const tc of toolCalls) {
-        const fn = 'function' in tc ? tc.function : null;
-        if (!fn || fn.name !== 'search_web') continue;
-        let args: { query?: string } = {};
-        try {
-          args = JSON.parse(typeof fn.arguments === 'string' ? fn.arguments : '{}');
-        } catch {
-          this.logger.warn('[generateStructuredJsonWithWebSearch] Invalid tool args');
-        }
-        const query = args.query ?? '';
-        const searchResult = await this.webSearchService.search(query, 5);
-        const content = this.webSearchService.formatForPrompt(searchResult);
-        messages.push({
-          role: 'tool',
-          tool_call_id: tc.id,
-          content,
-        } as OpenAI.Chat.Completions.ChatCompletionToolMessageParam);
-      }
-
-      if (round === MAX_TOOL_ROUNDS - 1 && toolCalls?.length) {
-        this.logger.warn('[LLM] Max tool rounds reached — forcing final response');
-        const forced = await this.deepseekClient!.chat.completions.create({
-          model: DEEPSEEK_MODEL,
-          messages: [
-            ...messages,
-            {
-              role: 'user',
-              content:
-                'Return the final JSON now. Include ONLY items whose facts were explicitly confirmed in the search results. Omit any item you could not verify — do not guess. Output only valid JSON.',
-            },
-          ],
-          temperature: 0.7,
-          top_p: 0.95,
-        });
-        const text = forced.choices?.[0]?.message?.content ?? '';
-        if (text.trim()) return extractJson<T>(text);
-      }
-    }
-
-    throw new Error('Max tool rounds exceeded — no final JSON response');
   }
 
   /**

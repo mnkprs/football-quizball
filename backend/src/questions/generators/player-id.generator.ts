@@ -9,6 +9,7 @@ import {
   getSingleAnswerInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
+  getFactualAccuracyInstruction,
 } from '../diversity-hints';
 import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
@@ -43,12 +44,8 @@ export class PlayerIdGenerator extends BaseGenerator {
   }
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
-    const webSearchInstruction = `
-CRITICAL — Real-time web search for players: you MUST call the search_web tool first to verify their FULL career path (all clubs, not just current club).
-Search for "[Player Name] career clubs" or "[Player Name] transfer history" to confirm every club and date. Your training data may be stale — transfers happen constantly.`;
-
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
-Pick any interesting footballer — legendary, retired, or current, from any era or league.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
+Pick any interesting footballer — legendary, retired, or current, from any era or league.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "player_name": "Full Name",
@@ -73,7 +70,7 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('PLAYER_ID', options?.slotIndex, options?.minorityScale);
     this.logConstraints('PLAYER_ID', options?.slotIndex, constraints);
-    const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. For  players, use search_web to get their career path before returning. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<PlayerIdPayload>(systemPrompt, userPrompt);
     return this.mapQuestion(result, options?.forBlitz);
@@ -81,10 +78,7 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
 
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
-    const webSearchInstruction = `
-CRITICAL — For each player: call search_web to verify their FULL career path. Use "[Player Name] career clubs" or "[Player Name] transfer history" to confirm ALL clubs and dates (not just current club). Missing clubs earlier in the career path are common — always verify. Your training data may be stale. If unsure, prefer retired players.`;
-
-    const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
+    const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each question must include:
 {
   "player_name": "Full Name",
@@ -103,7 +97,7 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
 }
 Set "is_loan": true for any loan spell in the career path, otherwise false.
 ${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} player-id questions in one batch. For each player, use search_web to verify their full career path (all clubs). ${getRelativityConstraint('PLAYER_ID', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} player-id questions in one batch. ${getRelativityConstraint('PLAYER_ID', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: PlayerIdPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));

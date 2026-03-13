@@ -210,6 +210,42 @@ export class AdminApiService {
       responseType: 'blob',
     });
   }
+
+  /** Re-score question_pool and optionally apply difficulty/raw_score updates. Same as npm run pool:migrate-difficulty:apply. */
+  migratePoolDifficulty(
+    options?: { apply?: boolean; slot?: string; range?: string; locale?: string },
+    apiKey?: string,
+  ): Observable<MigratePoolDifficultyResponse> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    const params: Record<string, string> = {};
+    if (options?.apply) params['apply'] = 'true';
+    if (options?.slot?.trim()) params['slot'] = options.slot.trim();
+    if (options?.range?.trim()) params['range'] = options.range.trim();
+    if (options?.locale?.trim()) params['locale'] = options.locale.trim();
+    return this.http.post<MigratePoolDifficultyResponse>(
+      `${this.base}/api/admin/migrate-pool-difficulty`,
+      null,
+      { headers, params },
+    );
+  }
+}
+
+export interface MigratePoolDifficultyChange {
+  id: string;
+  question_text: string;
+  change: string;
+  question_version: string | null;
+}
+
+export interface MigratePoolDifficultyResponse {
+  scanned: number;
+  updated: number;
+  wouldUpdate: number;
+  rejected: number;
+  changes: MigratePoolDifficultyChange[];
+  generationVersion: string;
+  thresholds: { rawThresholdEasy: number; rawThresholdMedium: number; boundaryTolerance: number };
 }
 
 export interface DuplicateAnswerGroup {

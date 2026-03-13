@@ -15,6 +15,7 @@ import { GuessScoreGenerator } from './generators/guess-score.generator';
 import { Top5Generator } from './generators/top5.generator';
 import { GeographyGenerator } from './generators/geography.generator';
 import { GossipGenerator } from './generators/gossip.generator';
+import { MigratePoolDifficultyService } from './migrate-pool-difficulty.service';
 import { LlmModule } from '../llm/llm.module';
 
 @Module({
@@ -35,7 +36,8 @@ import { LlmModule } from '../llm/llm.module';
     Top5Generator,
     GeographyGenerator,
     GossipGenerator,
+    MigratePoolDifficultyService,
   ],
-  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator, QuestionIntegrityService, ThresholdConfigService],
+  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator, QuestionIntegrityService, ThresholdConfigService, MigratePoolDifficultyService],
 })
 export class QuestionsModule {}

@@ -9,6 +9,7 @@ import {
   getSingleAnswerInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
+  getFactualAccuracyInstruction,
 } from '../diversity-hints';
 import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
@@ -34,12 +35,10 @@ export class HigherOrLowerGenerator extends BaseGenerator {
   }
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
-    const webSearchInstruction = `
-Use search_web to verify the player's statistic before returning. Search "[Player Name] [stat description] [season]" to confirm the real_value.`;
     const systemPrompt = `You are a football statistics expert. Create a "Higher or Lower" question.
 The question shows a player's stat with a WRONG value, and the player must guess if the real value is Higher or Lower.
 The "shown_value" should be plausibly wrong (within 20-30% of real value, either above or below).
-Pick any interesting football statistic — any era, any league.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
+Pick any interesting football statistic — any era, any league.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY valid JSON:
 {
   "player": "Player Full Name",
@@ -61,7 +60,7 @@ combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+s
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('HIGHER_OR_LOWER', options?.slotIndex, options?.minorityScale);
     this.logConstraints('HIGHER_OR_LOWER', options?.slotIndex, constraints);
-    const userPrompt = `Generate a unique Higher or Lower football question. Use search_web to verify the player's stat before returning. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate a unique Higher or Lower football question. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<HolPayload>(systemPrompt, userPrompt);
     return this.mapQuestion(result);
@@ -69,10 +68,8 @@ combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+s
 
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
-    const webSearchInstruction = `
-For each question: use search_web to verify the player's statistic. Search "[Player Name] [stat description] [season]" to confirm real_value.`;
     const systemPrompt = `You are a football statistics expert. Create ${questionCount} "Higher or Lower" questions.
-Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
+Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [
@@ -93,7 +90,7 @@ Return ONLY valid JSON:
   ]
 }
 ${getLeagueFameGuidanceForBatch('HIGHER_OR_LOWER', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} Higher or Lower questions in one batch. Use search_web to verify each player's stat before returning. ${getRelativityConstraint('HIGHER_OR_LOWER', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} Higher or Lower questions in one batch. ${getRelativityConstraint('HIGHER_OR_LOWER', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: HolPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));

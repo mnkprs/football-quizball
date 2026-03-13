@@ -10,8 +10,8 @@ interface IntegrityCheckPayload {
 }
 
 /**
- * Verifies factual integrity of generated questions using web search.
- * When enabled, the LLM searches the web to confirm the answer is correct before accepting the question.
+ * Verifies factual integrity of generated questions using the LLM's knowledge.
+ * When enabled, the LLM checks if the answer appears correct before accepting the question.
  */
 @Injectable()
 export class QuestionIntegrityService {
@@ -26,7 +26,7 @@ export class QuestionIntegrityService {
       this.configService.get<string>('ENABLE_INTEGRITY_VERIFICATION') === 'true' ||
       this.configService.get<string>('ENABLE_INTEGRITY_VERIFICATION') === '1';
     if (this.enabled) {
-      this.logger.log('QuestionIntegrityService enabled — factual verification via web search');
+      this.logger.log('QuestionIntegrityService enabled — factual verification via LLM');
     }
   }
 
@@ -36,7 +36,7 @@ export class QuestionIntegrityService {
 
   /**
    * Verifies that the question and answer are factually correct.
-   * Uses LLM + web search. Returns valid: true if verified, false if contradicted or uncertain.
+   * Uses LLM knowledge. Returns valid: true if verified, false if contradicted or uncertain.
    */
   async verify(question: GeneratedQuestion): Promise<ValidationResult> {
     if (!this.enabled) {
@@ -44,13 +44,13 @@ export class QuestionIntegrityService {
     }
 
     const context = this.buildVerificationContext(question);
-    const systemPrompt = `You are a fact-checker for football trivia. Given a question and answer, search the web to verify if the answer is factually correct.
+    const systemPrompt = `You are a fact-checker for football trivia. Given a question and answer, verify using your knowledge if the answer is factually correct.
 Return ONLY a JSON object: { "valid": boolean, "reason"?: string }
-- valid: true if the answer is correct and supported by sources
-- valid: false if the answer is wrong, outdated, or contradicted by reliable sources. Set "reason" to a brief explanation.
-Be strict: if you cannot verify or find conflicting information, return valid: false.`;
+- valid: true if the answer is correct and you are confident
+- valid: false if the answer is wrong, outdated, or contradicted by what you know. Set "reason" to a brief explanation.
+Be strict: if you cannot verify or have doubts, return valid: false.`;
 
-    const userPrompt = `Verify this trivia:\n\nQuestion: ${question.question_text}\nAnswer: ${question.correct_answer}${context}\n\nSearch the web and return JSON only.`;
+    const userPrompt = `Verify this trivia:\n\nQuestion: ${question.question_text}\nAnswer: ${question.correct_answer}${context}\n\nReturn JSON only.`;
 
     try {
       const result = await this.llmService.generateStructuredJsonWithWebSearch<IntegrityCheckPayload>(

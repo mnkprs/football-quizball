@@ -9,6 +9,7 @@ import {
   getSingleAnswerInstruction,
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
+  getFactualAccuracyInstruction,
 } from '../diversity-hints';
 import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
@@ -35,15 +36,9 @@ export class GuessScoreGenerator extends BaseGenerator {
   }
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
-    const webSearchInstruction = `
-CRITICAL — SEARCH-FIRST, NEVER GUESS:
-1. FIRST: Search for a match using "[Team A] vs [Team B] [competition] [year] final score" or "result".
-2. ONLY return a match if search results EXPLICITLY state the final score (e.g. "ended 1-1", "3-2", "the score was X-Y").
-3. NEVER guess or infer a score. If search does not clearly confirm the exact score, pick a DIFFERENT match and search again.
-4. Prefer matches that finished at least 2+ months ago so search reliably returns match reports.`;
     const systemPrompt = `You are a football historian. Generate a "Guess the Score" question.
-Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}${webSearchInstruction}
-Return ONLY valid JSON. home_score and away_score must be the EXACT numbers from search results — never guess:
+Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+Return ONLY valid JSON. home_score and away_score must be the EXACT numbers you know — never guess:
 {
   "home_team": "Team Name",
   "away_team": "Team Name",
@@ -66,7 +61,7 @@ CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in questi
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GUESS_SCORE', options?.slotIndex, constraints);
-    const userPrompt = `Generate a guess-the-score question. SEARCH FIRST — only return a match whose exact score is explicitly confirmed in search results. Never guess. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate a guess-the-score question. Only use matches whose exact score you are confident about. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<MatchPayload>(systemPrompt, userPrompt);
     return this.mapQuestion(result);
@@ -74,16 +69,10 @@ CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in questi
 
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
-    const webSearchInstruction = `
-CRITICAL — SEARCH-FIRST, NEVER GUESS:
-1. For EACH match: FIRST search "[Team A] vs [Team B] [competition] [year] final score result".
-2. ONLY include a match if search results EXPLICITLY state the final score. Verify each match separately.
-3. NEVER guess. If search does not clearly confirm the score, pick a different match.
-4. Prefer matches finished 2+ months ago. If constraints force a recent match you cannot verify, relax constraints and pick a verified match instead.`;
     const systemPrompt = `You are a football historian. Generate ${questionCount} questions about matches and user need to remember the score.
 Prefer matches from the last decade (2015 onwards). Exception: very famous matches in football history (iconic World Cup/Euros finals, legendary Champions League comebacks, etc.) may be older. 
-Prefer well-known matches so players can recall the score.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}${webSearchInstruction}
-Return ONLY valid JSON. home_score and away_score must be EXACT numbers from search for each match:
+Prefer well-known matches so players can recall the score.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction('GUESS_SCORE')}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+Return ONLY valid JSON. home_score and away_score must be EXACT numbers you know for each match:
 {
   "questions": [
     {
@@ -105,7 +94,7 @@ Return ONLY valid JSON. home_score and away_score must be EXACT numbers from sea
 }
 ${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}
 CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the score when Liverpool hosted Barcelona in the 2019 Champions League semi-final second leg?" NOT "where Liverpool overturned a 3-0 first-leg deficit?".${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} guess-the-score questions. For EACH match: search first, only include if the exact score is explicitly confirmed in results. Never guess. If constraints cannot be satisfied with verified matches, relax them. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} guess-the-score questions. Only include matches whose exact score you are confident about. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: MatchPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));

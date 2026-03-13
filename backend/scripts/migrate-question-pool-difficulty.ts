@@ -37,6 +37,7 @@ type PoolRow = {
   category: string;
   difficulty: string;
   raw_score?: number | null;
+  allowed_difficulties?: string[] | null;
   question: GeneratedQuestion;
 };
 
@@ -180,7 +181,7 @@ function buildRowQuery(
 ) {
   let query = supabase.client
     .from('question_pool')
-    .select('id, category, difficulty, raw_score, question')
+    .select('id, category, difficulty, raw_score, allowed_difficulties, question')
     .order('id', { ascending: true });
 
   if (slotFilter?.category) {
@@ -242,6 +243,35 @@ function truncate(s: string, maxLen: number): string {
   return s.slice(0, maxLen - 3) + '...';
 }
 
+type UpdateEntry = {
+  id: string;
+  difficulty: string;
+  allowed_difficulties: string[];
+  raw_score: number | null;
+  question: GeneratedQuestion;
+  /** Before state for dry-run output */
+  before: { difficulty: string; raw_score: number | null; allowed_difficulties: string[] };
+};
+
+function formatChange(update: UpdateEntry): string {
+  const b = update.before;
+  const parts: string[] = [];
+  if (b.difficulty !== update.difficulty) {
+    parts.push(`difficulty ${b.difficulty}→${update.difficulty}`);
+  }
+  const rawBefore = b.raw_score != null ? b.raw_score.toFixed(3) : 'null';
+  const rawAfter = update.raw_score != null ? update.raw_score.toFixed(3) : 'null';
+  if (rawBefore !== rawAfter) {
+    parts.push(`raw_score ${rawBefore}→${rawAfter}`);
+  }
+  const allowedBefore = `[${(b.allowed_difficulties ?? []).join(',')}]`;
+  const allowedAfter = `[${(update.allowed_difficulties ?? []).join(',')}]`;
+  if (allowedBefore !== allowedAfter) {
+    parts.push(`allowed_difficulties ${allowedBefore}→${allowedAfter}`);
+  }
+  return parts.length > 0 ? parts.join(', ') : 'no change';
+}
+
 function collectUpdates(
   rows: PoolRow[],
   questionsService: QuestionsService,
@@ -250,22 +280,10 @@ function collectUpdates(
   verbose: boolean,
 ): {
   rejectedIds: string[];
-  updates: Array<{
-    id: string;
-    difficulty: string;
-    allowed_difficulties: string[];
-    raw_score: number | null;
-    question: GeneratedQuestion;
-  }>;
+  updates: UpdateEntry[];
 } {
   const rejectedIds: string[] = [];
-  const updates: Array<{
-    id: string;
-    difficulty: string;
-    allowed_difficulties: string[];
-    raw_score: number | null;
-    question: GeneratedQuestion;
-  }> = [];
+  const updates: UpdateEntry[] = [];
 
   for (const row of rows) {
     const { scored, rejectReason } = questionsService.scoreQuestionWithDetails(
@@ -315,28 +333,26 @@ function collectUpdates(
     }
     const safeRaw =
       typeof raw_score === 'number' && Number.isFinite(raw_score) ? raw_score : null;
+    const allowed = allowedDifficulties ?? [scored.difficulty];
+    const beforeAllowed = row.allowed_difficulties ?? (row.difficulty ? [row.difficulty] : []);
     updates.push({
       id: row.id,
       difficulty: scored.difficulty,
-      allowed_difficulties: allowedDifficulties ?? [scored.difficulty],
+      allowed_difficulties: allowed,
       raw_score: safeRaw,
       question: questionWithoutRaw,
+      before: {
+        difficulty: row.difficulty,
+        raw_score: row.raw_score ?? null,
+        allowed_difficulties: beforeAllowed,
+      },
     });
   }
 
   return { rejectedIds, updates };
 }
 
-async function applyUpdates(
-  supabase: SupabaseService,
-  updates: Array<{
-    id: string;
-    difficulty: string;
-    allowed_difficulties: string[];
-    raw_score: number | null;
-    question: GeneratedQuestion;
-  }>,
-): Promise<void> {
+async function applyUpdates(supabase: SupabaseService, updates: UpdateEntry[]): Promise<void> {
   let processed = 0;
 
   for (const update of updates) {
@@ -394,7 +410,15 @@ async function main() {
 
   if (!apply) {
     console.log('Dry run only. Re-run with --apply to write updates.');
+    if (updates.length > 0) {
+      console.log('');
+      console.log(`${colorize('Would update:', ANSI.boldWhite)}`);
+      for (const u of updates) {
+        console.log(`  ${u.id}  ${formatChange(u)}`);
+      }
+    }
     if (rejectedIds.length > 0) {
+      console.log('');
       console.log(`Sample rejected ids: ${rejectedIds.slice(0, 20).join(', ')}`);
     }
     await app.close();

@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Query, Param, HttpCode, HttpStatus, Logger,
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { BlitzPoolSeederService } from '../blitz/blitz-pool-seeder.service';
 import { AdminScriptsService } from './admin-scripts.service';
+import { MigratePoolDifficultyService } from '../questions/migrate-pool-difficulty.service';
 import { ThresholdConfigService, type ScoreThresholds } from '../questions/threshold-config.service';
 import { AdminApiKeyGuard } from '../common/guards/admin-api-key.guard';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
@@ -14,6 +15,7 @@ export class AdminController {
     private questionPoolService: QuestionPoolService,
     private blitzPoolSeederService: BlitzPoolSeederService,
     private adminScriptsService: AdminScriptsService,
+    private migratePoolDifficultyService: MigratePoolDifficultyService,
     private thresholdConfig: ThresholdConfigService,
   ) {}
 
@@ -208,5 +210,31 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async updateThresholds(@Body() body: Partial<ScoreThresholds>) {
     return this.thresholdConfig.updateThresholds(body);
+  }
+
+  /**
+   * Re-score question_pool rows and optionally apply updates (difficulty, allowed_difficulties, raw_score).
+   * Same logic as npm run pool:migrate-difficulty:apply.
+   * Example: POST /api/admin/migrate-pool-difficulty?apply=true&slot=HISTORY&locale=el
+   */
+  @Post('migrate-pool-difficulty')
+  @UseGuards(AdminApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  async migratePoolDifficulty(
+    @Query('apply') apply?: string,
+    @Query('slot') slot?: string,
+    @Query('range') range?: string,
+    @Query('locale') locale?: string,
+  ) {
+    const applyFlag = apply === 'true' || apply === '1';
+    this.logger.log(
+      `[migrate-pool-difficulty] Request: apply=${applyFlag} slot=${slot ?? 'all'} range=${range ?? 'all'} locale=${locale ?? 'el'}`,
+    );
+    return this.migratePoolDifficultyService.migrate({
+      apply: applyFlag,
+      slot: slot?.trim() || undefined,
+      range: range?.trim() || undefined,
+      locale: (locale?.trim() as 'en' | 'el') || 'el',
+    });
   }
 }

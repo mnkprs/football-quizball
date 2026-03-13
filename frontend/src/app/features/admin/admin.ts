@@ -15,6 +15,7 @@ import {
   DbStatsResponse,
   DuplicateAnswersResponse,
   SimilarQuestionsResponse,
+  MigratePoolDifficultyResponse,
   ScoreThresholds,
 } from '../../core/admin-api.service';
 import { JsonPipe } from '@angular/common';
@@ -81,6 +82,8 @@ import { MatTabsModule } from '@angular/material/tabs';
                 <button (click)="runSeedBlitzPool()" [disabled]="scriptRunning()" class="script-btn">blitz:seed</button>
                 <button (click)="runCleanup()" [disabled]="scriptRunning()" class="script-btn">db:cleanup-pools</button>
                 <button (click)="runDedupeBlitz()" [disabled]="scriptRunning()" class="script-btn">blitz:dedupe-wrong-choices</button>
+                <button (click)="runMigratePoolDifficulty(false)" [disabled]="scriptRunning()" class="script-btn" title="Dry run: re-score all questions, no DB writes">pool:migrate-difficulty</button>
+                <button (click)="runMigratePoolDifficulty(true)" [disabled]="scriptRunning()" class="script-btn script-btn--apply" title="Apply: update difficulty, allowed_difficulties, raw_score in DB">pool:migrate-difficulty:apply</button>
               </div>
             </div>
             <div class="script-group">
@@ -117,6 +120,23 @@ import { MatTabsModule } from '@angular/material/tabs';
               <h3>Similar Questions</h3>
               <p>question_pool: {{ sim.question_pool.length }} pairs · blitz_question_pool: {{ sim.blitz_question_pool.length }} pairs</p>
               <pre class="script-pre">{{ sim | json }}</pre>
+            </div>
+          }
+          @if (migratePoolDifficultyResult(); as mig) {
+            <div class="script-result">
+              <h3>Migrate Pool Difficulty</h3>
+              <p>Scanned {{ mig.scanned }} · {{ mig.wouldUpdate }} would update · {{ mig.rejected }} rejected</p>
+              <p class="migrate-meta">Generation version {{ mig.generationVersion }} · EASY/MEDIUM {{ mig.thresholds.rawThresholdEasy }} · MEDIUM/HARD {{ mig.thresholds.rawThresholdMedium }} · tolerance {{ mig.thresholds.boundaryTolerance }}</p>
+              @if (mig.changes.length > 0) {
+                <div class="migrate-changes-list">
+                  @for (c of mig.changes; track c.id) {
+                    <div class="migrate-change-row">
+                      <span class="migrate-change-question" [title]="c.id">{{ c.question_text }}</span>
+                      <span class="migrate-change-meta">v{{ c.question_version ?? '?' }} · {{ c.change }}</span>
+                    </div>
+                  }
+                </div>
+              }
             </div>
           }
         </div>
@@ -1044,6 +1064,15 @@ import { MatTabsModule } from '@angular/material/tabs';
       cursor: not-allowed;
     }
 
+    .script-btn--apply {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.15);
+    }
+    .script-btn--apply:hover:not(:disabled) {
+      background: rgba(59, 130, 246, 0.25);
+      border-color: #60a5fa;
+    }
+
     .script-message {
       font-size: 0.875rem;
       color: #22c55e;
@@ -1077,6 +1106,44 @@ import { MatTabsModule } from '@angular/material/tabs';
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
+    }
+
+    .migrate-meta {
+      font-size: 0.75rem;
+      color: #71717a;
+      margin-top: 0.25rem;
+    }
+
+    .migrate-changes-list {
+      margin-top: 0.75rem;
+      max-height: 20rem;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+
+    .migrate-change-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #27272a;
+    }
+
+    .migrate-change-row:last-child {
+      border-bottom: none;
+    }
+
+    .migrate-change-question {
+      color: #e4e4e7;
+      font-size: 0.85rem;
+      width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .migrate-change-meta {
+      color: #a1a1aa;
+      font-size: 0.75rem;
     }
   `],
 })
@@ -1119,6 +1186,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   dbStats = signal<DbStatsResponse | null>(null);
   duplicateAnswers = signal<DuplicateAnswersResponse | null>(null);
   similarQuestions = signal<SimilarQuestionsResponse | null>(null);
+  migratePoolDifficultyResult = signal<MigratePoolDifficultyResponse | null>(null);
 
   activeTabIndex = 0;
   thresholdEasy = signal(0.30);
@@ -1443,6 +1511,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.dbStats.set(null);
     this.duplicateAnswers.set(null);
     this.similarQuestions.set(null);
+    this.migratePoolDifficultyResult.set(null);
   }
 
   private setScriptResult(msg: string, isError = false): void {
@@ -1545,6 +1614,29 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.similarQuestions.set(res);
       const total = res.question_pool.length + res.blitz_question_pool.length;
       this.setScriptResult(`Found ${total} similar question pairs`);
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runMigratePoolDifficulty(apply: boolean): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.clearScriptResults();
+    try {
+      const res = await firstValueFrom(
+        this.admin.migratePoolDifficulty({ apply, locale: 'el' }),
+      );
+      this.migratePoolDifficultyResult.set(res);
+      const action = apply ? 'Applied' : 'Dry run';
+      const updateCount = apply ? res.updated : res.wouldUpdate;
+      this.setScriptResult(
+        `${action}: scanned ${res.scanned}, ${apply ? 'updated' : 'would update'} ${updateCount}, rejected ${res.rejected}` +
+          (apply ? ` — ${res.updated} rows written.` : ' — Re-run with Apply to write changes.'),
+      );
+      if (apply && res.updated > 0) {
+        this.load();
+      }
     } catch (err) {
       this.setScriptResult(err instanceof Error ? err.message : String(err), true);
     }
