@@ -3,11 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface DailyQuestionTranslation {
+  question_text: string;
+  explanation: string;
+}
+
 export interface DailyQuestionRef {
   question_text: string;
   correct_answer: string;
   choices: string[];
   explanation: string;
+  translations?: { el?: DailyQuestionTranslation };
 }
 
 export interface DailyQuestionsResponse {

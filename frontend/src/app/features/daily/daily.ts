@@ -59,7 +59,7 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
             <!-- Question -->
             @if (currentQuestion(); as q) {
               <div class="bg-card rounded-2xl p-5 mb-5 border border-border min-h-[110px] flex items-center">
-                <p class="text-foreground text-lg leading-relaxed">{{ q.question_text }}</p>
+                <p class="text-foreground text-lg leading-relaxed">{{ translatedText(q, 'question_text') }}</p>
               </div>
 
               <!-- Choices -->
@@ -90,7 +90,7 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
                 }
                 @if (currentQuestion(); as q) {
                   <div class="text-white text-sm text-center px-6 max-w-md max-h-[40vh] overflow-y-auto leading-relaxed break-words overscroll-contain">
-                    {{ q.explanation }}
+                    {{ translatedText(q, 'explanation') }}
                   </div>
                 }
                 @if (!flashCorrect()) {
@@ -292,6 +292,14 @@ export class DailyComponent {
     this.selectedChoice.set(null);
     this.error.set(null);
     this.phase.set('idle');
+  }
+
+  translatedText(q: DailyQuestionRef, field: 'question_text' | 'explanation'): string {
+    if (this.lang.lang() === 'el') {
+      const el = q.translations?.el;
+      if (el?.[field]) return el[field];
+    }
+    return q[field];
   }
 
   goHome(): void {

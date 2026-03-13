@@ -1,3 +1,8 @@
+export interface DailyQuestionTranslation {
+  question_text: string;
+  explanation: string;
+}
+
 export interface DailyQuestion {
   question_text: string;
   correct_answer: string;
@@ -10,4 +15,5 @@ export interface DailyQuestionRef {
   correct_answer: string;
   choices: string[];
   explanation: string;
+  translations?: { el?: DailyQuestionTranslation };
 }

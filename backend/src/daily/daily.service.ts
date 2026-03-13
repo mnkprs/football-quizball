@@ -1,8 +1,9 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
+import { LlmService } from '../llm/llm.service';
 import { TodayGenerator } from './today.generator';
-import type { DailyQuestionRef } from '../common/interfaces/daily.interface';
+import type { DailyQuestionRef, DailyQuestionTranslation } from '../common/interfaces/daily.interface';
 
 @Injectable()
 export class DailyService implements OnModuleInit {
@@ -11,6 +12,7 @@ export class DailyService implements OnModuleInit {
   constructor(
     private supabaseService: SupabaseService,
     private todayGenerator: TodayGenerator,
+    private llmService: LlmService,
   ) {}
 
   onModuleInit() {
@@ -42,9 +44,9 @@ export class DailyService implements OnModuleInit {
       return [];
     }
 
-    const questions = this.buildQuestionRefs(generated);
-    await this.saveForDate(today, generated);
-    return questions;
+    const translations = await this.translateQuestions(generated);
+    await this.saveForDate(today, generated, translations);
+    return this.buildQuestionRefs(generated, translations);
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
@@ -68,7 +70,8 @@ export class DailyService implements OnModuleInit {
     );
 
     if (generated.length > 0) {
-      await this.saveForDate(today, generated);
+      const translations = await this.translateQuestions(generated);
+      await this.saveForDate(today, generated, translations);
       this.logger.log(`[pregenerateToday] saved ${generated.length} questions for ${today}`);
     }
   }
@@ -94,26 +97,43 @@ export class DailyService implements OnModuleInit {
     return d.toISOString().slice(0, 10);
   }
 
-  private buildQuestionRefs(questions: Array<{ question_text: string; correct_answer: string; wrong_choices: string[]; explanation: string }>): DailyQuestionRef[] {
-    return questions.map((q) => {
+  private buildQuestionRefs(
+    questions: Array<{ question_text: string; correct_answer: string; wrong_choices: string[]; explanation: string }>,
+    translations: Array<{ el?: DailyQuestionTranslation }> = [],
+  ): DailyQuestionRef[] {
+    return questions.map((q, i) => {
       const choices = [q.correct_answer, ...q.wrong_choices.slice(0, 2)];
-      for (let i = choices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [choices[i], choices[j]] = [choices[j], choices[i]];
+      for (let k = choices.length - 1; k > 0; k--) {
+        const j = Math.floor(Math.random() * (k + 1));
+        [choices[k], choices[j]] = [choices[j], choices[k]];
       }
       return {
         question_text: q.question_text,
         correct_answer: q.correct_answer,
         choices,
         explanation: q.explanation,
+        translations: translations[i] ?? undefined,
       };
     });
+  }
+
+  private async translateQuestions(
+    questions: Array<{ question_text: string; explanation: string }>,
+  ): Promise<Array<{ el?: DailyQuestionTranslation }>> {
+    try {
+      const strings = questions.map((q) => ({ question_text: q.question_text, explanation: q.explanation }));
+      const greek = await this.llmService.translateToGreek(strings);
+      return greek.map((t) => ({ el: { question_text: t.question_text, explanation: t.explanation } }));
+    } catch (err) {
+      this.logger.warn(`[translateQuestions] Greek translation failed: ${(err as Error).message}`);
+      return questions.map(() => ({}));
+    }
   }
 
   private async fetchForDate(dateStr: string): Promise<DailyQuestionRef[]> {
     const { data, error } = await this.supabaseService.client
       .from('daily_questions')
-      .select('questions')
+      .select('questions, translations')
       .eq('question_date', dateStr)
       .maybeSingle();
 
@@ -122,16 +142,18 @@ export class DailyService implements OnModuleInit {
     }
 
     const raw = data.questions as Array<{ question_text: string; correct_answer: string; wrong_choices: string[]; explanation: string }>;
-    return this.buildQuestionRefs(raw);
+    const translations = (data.translations ?? []) as Array<{ el?: DailyQuestionTranslation }>;
+    return this.buildQuestionRefs(raw, translations);
   }
 
   private async saveForDate(
     dateStr: string,
     questions: Array<{ question_text: string; correct_answer: string; wrong_choices: string[]; explanation: string }>,
+    translations: Array<{ el?: DailyQuestionTranslation }> = [],
   ): Promise<void> {
     const { error } = await this.supabaseService.client
       .from('daily_questions')
-      .upsert({ question_date: dateStr, questions }, { onConflict: 'question_date' });
+      .upsert({ question_date: dateStr, questions, translations }, { onConflict: 'question_date' });
 
     if (error) {
       this.logger.error(`[saveForDate] Insert error: ${error.message}`);
