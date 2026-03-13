@@ -21,6 +21,7 @@ interface MatchPayload {
   competition: string;
   date: string;
   significance: string;
+  source_url?: string;
   event_year: number;
   fame_score: number;
   specificity_score?: number;
@@ -47,6 +48,7 @@ Return ONLY valid JSON. home_score and away_score must be the EXACT numbers you 
   "competition": "Competition Name",
   "date": "Day Month Year",
   "significance": "brief note about the match",
+  "source_url": "URL to verify the match and score (e.g. BBC Sport, official competition site)",
   "event_year": 2022,
   "fame_score": 9,
   "specificity_score": 2,
@@ -83,6 +85,7 @@ Return ONLY valid JSON. home_score and away_score must be EXACT numbers you know
       "competition": "Competition Name",
       "date": "Day Month Year",
       "significance": "brief note about the match",
+      "source_url": "URL to verify the match and score",
       "event_year": 2022,
       "fame_score": 9,
       "specificity_score": 2,
@@ -130,6 +133,7 @@ CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in questi
       fifty_fifty_applicable: true,
       explanation: result.explanation
         ?? `The final score was ${result.home_team} ${result.home_score}-${result.away_score} ${result.away_team}. ${result.significance || ''}`,
+      source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: null,
       meta: {
         home_team: result.home_team,

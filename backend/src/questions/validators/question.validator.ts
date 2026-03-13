@@ -31,7 +31,7 @@ export class QuestionValidator {
       return { valid: false, reason: `correct_answer too long (${question.correct_answer.length})` };
     }
 
-    if (question.fifty_fifty_applicable && question.fifty_fifty_hint) {
+    if (question.fifty_fifty_applicable && typeof question.fifty_fifty_hint === 'string' && question.fifty_fifty_hint.trim()) {
       const normCorrect = question.correct_answer.trim().toLowerCase();
       const normHint = question.fifty_fifty_hint.trim().toLowerCase();
       if (normCorrect === normHint) {

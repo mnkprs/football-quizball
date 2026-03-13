@@ -44,7 +44,7 @@ export class QuestionsService {
   async generateBoard(language: string = 'en'): Promise<GeneratedQuestion[]> {
     const tasks: Promise<GeneratedQuestion[]>[] = BOARD_CATEGORIES.map((category) =>
       this.generateBatch(category, language, {
-        questionCount: CATEGORY_BATCH_SIZES[category] ?? 3,
+        questionCount: CATEGORY_BATCH_SIZES[category] ?? 2,
       }),
     );
     const results = await Promise.allSettled(tasks);

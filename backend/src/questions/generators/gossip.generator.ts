@@ -19,6 +19,7 @@ interface GossipPayload {
   fifty_fifty_hint: string;
   wrong_choices?: string[];
   explanation: string;
+  source_url?: string;
   event_year: number;
   competition: string;
   fame_score: number;
@@ -40,8 +41,9 @@ Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
-  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Neymar' write 'Mbappé'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+  ${this.getFiftyFiftyHintInstruction()},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
   "explanation": "brief explanation (1-2 sentences)",
+  ${this.getSourceUrlInstruction()},
   "event_year": 2023,
   "competition": "Premier League",
   "fame_score": 8,
@@ -64,7 +66,7 @@ combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dime
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
 They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
-Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
+Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
@@ -87,6 +89,7 @@ ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${thi
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',
+      source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: null,
       difficulty_factors: {
         event_year: result.event_year ?? new Date().getFullYear(),

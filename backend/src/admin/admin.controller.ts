@@ -21,7 +21,7 @@ export class AdminController {
 
   /**
    * Get paginated questions by raw_score range.
-   * Example: GET /api/admin/pool-questions?min=0.2&max=0.3&page=1&limit=20&search=...&category=HISTORY&difficulty=EASY
+   * Example: GET /api/admin/pool-questions?min=0.2&max=0.3&page=1&limit=20&search=...&category=HISTORY&difficulty=EASY&generation_version=1.0.5
    */
   @Get('pool-questions')
   @UseGuards(AdminApiKeyGuard)
@@ -33,6 +33,7 @@ export class AdminController {
     @Query('search') search?: string,
     @Query('category') category?: string,
     @Query('difficulty') difficulty?: string,
+    @Query('generation_version') generationVersion?: string,
   ) {
     const min = parseFloat(minRaw ?? '0');
     const max = parseFloat(maxRaw ?? '0.1');
@@ -41,17 +42,20 @@ export class AdminController {
     const q = (search ?? '').trim() || undefined;
     const cat = (category ?? '').trim() || undefined;
     const diff = (difficulty ?? '').trim() || undefined;
-    return this.questionPoolService.getPoolQuestionsByRange(min, max, p, l, q, cat, diff);
+    const ver = (generationVersion ?? '').trim() || undefined;
+    return this.questionPoolService.getPoolQuestionsByRange(min, max, p, l, q, cat, diff, ver);
   }
 
   /**
    * List seed-pool sessions (runs) with timestamps and counts.
    * Example: GET /api/admin/seed-pool-sessions
+   *          GET /api/admin/seed-pool-sessions?generation_version=1.0.5
    */
   @Get('seed-pool-sessions')
   @UseGuards(AdminApiKeyGuard)
-  async getSeedPoolSessions() {
-    return this.questionPoolService.getSeedPoolSessions();
+  async getSeedPoolSessions(@Query('generation_version') generationVersion?: string) {
+    const ver = (generationVersion ?? '').trim() || undefined;
+    return this.questionPoolService.getSeedPoolSessions(ver);
   }
 
   /**
@@ -65,17 +69,29 @@ export class AdminController {
   }
 
   /**
+   * Get distinct generation_version values from question_pool (for filter dropdown).
+   * Example: GET /api/admin/pool-generation-versions
+   */
+  @Get('pool-generation-versions')
+  @UseGuards(AdminApiKeyGuard)
+  async getPoolGenerationVersions() {
+    return this.questionPoolService.getPoolGenerationVersions();
+  }
+
+  /**
    * Get raw score heatmap stats + seed pool stats for the admin dashboard.
    * - rawScoreStats: total rows, avg raw score per slot (from question_pool)
    * - seedPoolStats: unanswered/answered per slot (from get_seed_pool_stats RPC)
    * Example: GET /api/admin/pool-stats
+   *          GET /api/admin/pool-stats?generation_version=1.0.5
    */
   @Get('pool-stats')
   @UseGuards(AdminApiKeyGuard)
-  async getPoolStats() {
+  async getPoolStats(@Query('generation_version') generationVersion?: string) {
+    const version = (generationVersion ?? '').trim() || undefined;
     const [rawScoreStats, seedPoolStats] = await Promise.all([
-      this.questionPoolService.getPoolRawScoreStats(),
-      this.questionPoolService.getSeedPoolStats(),
+      this.questionPoolService.getPoolRawScoreStats(version),
+      this.questionPoolService.getSeedPoolStats(version),
     ]);
     return {
       ...rawScoreStats,
@@ -102,6 +118,52 @@ export class AdminController {
       results,
       totalAdded: results.reduce((sum, r) => sum + r.added, 0),
     };
+  }
+
+  /**
+   * Verify factual integrity of pool questions (LLM + web search).
+   * Requires ENABLE_INTEGRITY_VERIFICATION=true.
+   * Example: POST /api/admin/verify-pool-integrity?limit=100
+   *          POST /api/admin/verify-pool-integrity?limit=50&apply=true&category=GUESS_SCORE
+   *          POST /api/admin/verify-pool-integrity?version=1.0.5&apply=true
+   */
+  @Post('verify-pool-integrity')
+  @UseGuards(AdminApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  async verifyPoolIntegrity(
+    @Query('limit') limitRaw?: string,
+    @Query('category') category?: string,
+    @Query('version') version?: string,
+    @Query('apply') applyRaw?: string,
+  ) {
+    const limit = Math.min(1000, Math.max(1, parseInt(limitRaw ?? '100', 10) || 100));
+    const apply = applyRaw === 'true' || applyRaw === '1';
+    const cat = (category ?? '').trim().toUpperCase() || undefined;
+    const ver = (version ?? '').trim() || undefined;
+    return this.questionPoolService.verifyPoolIntegrity({
+      limit,
+      category: cat as import('../common/interfaces/question.interface').QuestionCategory | undefined,
+      version: ver,
+      apply,
+    });
+  }
+
+  /**
+   * Delete questions with generation_version other than the given version.
+   * Keeps only 1.0.4 by default.
+   * Example: POST /api/admin/delete-by-version?apply=true
+   *          POST /api/admin/delete-by-version?version=1.0.4&apply=true
+   */
+  @Post('delete-by-version')
+  @UseGuards(AdminApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  async deleteQuestionsByVersion(
+    @Query('version') versionRaw?: string,
+    @Query('apply') applyRaw?: string,
+  ) {
+    const version = versionRaw ?? GENERATION_VERSION;
+    const apply = applyRaw === 'true' || applyRaw === '1';
+    return this.questionPoolService.deleteQuestionsExceptVersion(version, !apply);
   }
 
   /**

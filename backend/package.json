@@ -10,6 +10,9 @@
   },
   "scripts": {
     "pool:seed": "ts-node -r tsconfig-paths/register scripts/seed-pool.ts",
+    "pool:verify-integrity": "ts-node -r tsconfig-paths/register scripts/verify-pool-integrity.ts",
+    "pool:delete-by-version": "ts-node -r tsconfig-paths/register scripts/delete-questions-by-version.ts",
+    "pool:delete-by-id": "ts-node -r tsconfig-paths/register scripts/delete-questions-by-id.ts",
     "blitz:seed": "ts-node -r tsconfig-paths/register scripts/seed-blitz-pool.ts",
     "db:find-duplicate-answers": "ts-node -r tsconfig-paths/register scripts/find-duplicate-questions.ts",
     "blitz:dedupe-wrong-choices": "ts-node -r tsconfig-paths/register scripts/dedupe-blitz-wrong-choices.ts",
@@ -36,6 +39,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@google/genai": "^1.45.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",

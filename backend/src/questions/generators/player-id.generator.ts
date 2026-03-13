@@ -28,6 +28,7 @@ interface PlayerIdPayload {
   wrong_player_name: string;
   wrong_choices?: string[];
   image_url: string | null;
+  source_url?: string;
   competition: string;
   event_year: number;
   fame_score: number;
@@ -54,6 +55,7 @@ Return ONLY a valid JSON object with these exact fields:
   "position": "Position",
   "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false, 'player')}
   "image_url": null,
+  ${this.getSourceUrlInstruction()},
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
   "event_year": 2022,
   "fame_score": 9,
@@ -62,6 +64,7 @@ Return ONLY a valid JSON object with these exact fields:
   "question_text": "Question prompt shown to the player",
   "explanation": "Brief explanation naming the player and career summary"
 }
+CRITICAL: The career array must be COMPLETE from the player's first professional club to their last. NEVER omit or truncate early clubs (e.g. Den Bosch, Heerenveen, youth clubs). Include every club in chronological order. Use source_url to verify the full career before returning.
 The career array must have at least 3 entries.
 combinational_thinking_score 1-10: 1 = single fact (iconic player with unique path), 5 = combines career path + era + league, 10 = multi-dimensional reasoning across many clubs/eras. All career data must be factually accurate.
 Set "is_loan": true for any spell where the player was on loan, otherwise false.
@@ -87,6 +90,7 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
   "position": "Position",
   "wrong_player_name": "A plausible wrong player",
   "image_url": null,
+  "source_url": "URL to verify the player and career",
   "competition": "most notable competition",
   "event_year": 2022,
   "fame_score": 8,
@@ -96,6 +100,7 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
   "explanation": "Short explanation"
 }
 Set "is_loan": true for any loan spell in the career path, otherwise false.
+CRITICAL: career must be COMPLETE from first professional club to last — never omit early clubs. Verify via source_url (Wikipedia, Transfermarkt).
 ${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} player-id questions in one batch. ${getRelativityConstraint('PLAYER_ID', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
@@ -123,6 +128,7 @@ ${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${
       fifty_fifty_hint: result.wrong_player_name || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation ?? `The player is ${result.player_name}. Career: ${careerText}`,
+      source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: result.image_url,
       meta: { career: result.career, nationality: result.nationality, position: result.position },
       difficulty_factors: {

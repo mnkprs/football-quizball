@@ -1,13 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import { jsonrepair } from 'jsonrepair';
 
-/** DeepSeek model. OpenAI-compatible API. */
-const DEEPSEEK_MODEL = 'deepseek-chat';
+/** Gemini model. Supports Google Search grounding for factual verification. */
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 /** Delay (ms) before retry when rate limited. */
 const RATE_LIMIT_RETRY_MS = 30_000;
+
+/** Delay (ms) before retry when service unavailable (503). */
+const SERVICE_UNAVAILABLE_RETRY_MS = 20_000;
 
 function isRateLimitError(err: unknown): boolean {
   const msg = String((err as Error)?.message ?? '');
@@ -21,56 +24,83 @@ function isRateLimitError(err: unknown): boolean {
   );
 }
 
+function isServiceUnavailableError(err: unknown): boolean {
+  const msg = String((err as Error)?.message ?? '');
+  return (
+    (err as { code?: number })?.code === 503 ||
+    (err as { status?: string })?.status === 'UNAVAILABLE' ||
+    msg.includes('503') ||
+    msg.includes('UNAVAILABLE') ||
+    msg.includes('high demand') ||
+    msg.includes('try again later')
+  );
+}
+
 function extractJson<T>(text: string): T {
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('No JSON found in LLM response');
-  const raw = jsonMatch[0];
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    const repaired = jsonrepair(raw);
-    return JSON.parse(repaired) as T;
+  const trimmed = text.trim();
+  if (!trimmed) throw new Error('No JSON found in LLM response (empty)');
+
+  // 1. Try markdown code block: ```json ... ``` or ``` ... ```
+  const codeBlockMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) {
+    const raw = codeBlockMatch[1].trim();
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      const repaired = jsonrepair(raw);
+      return JSON.parse(repaired) as T;
+    }
   }
+
+  // 2. Try JSON object { ... }
+  const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    const raw = jsonMatch[0];
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      const repaired = jsonrepair(raw);
+      return JSON.parse(repaired) as T;
+    }
+  }
+
+  throw new Error(`No JSON found in LLM response (got ${trimmed.length} chars, preview: ${trimmed.slice(0, 200)}...)`);
 }
 
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
-  private deepseekClient: OpenAI | null = null;
+  private readonly ai: GoogleGenAI | null = null;
 
   constructor(private configService: ConfigService) {
-    const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
 
-    if (deepseekKey) {
-      this.deepseekClient = new OpenAI({
-        apiKey: deepseekKey,
-        baseURL: 'https://api.deepseek.com',
-      });
-      this.logger.log(`LlmService ready — ${DEEPSEEK_MODEL}`);
+    if (apiKey) {
+      this.ai = new GoogleGenAI({ apiKey });
+      this.logger.log(`LlmService ready — ${GEMINI_MODEL} (Gemini)`);
     } else {
-      this.logger.warn('DEEPSEEK_API_KEY not set — LLM disabled');
+      this.logger.warn('GEMINI_API_KEY not set — LLM disabled');
     }
   }
 
   private get hasLlm(): boolean {
-    return !!this.deepseekClient;
+    return !!this.ai;
   }
 
   /**
    * Generates structured JSON using the LLM's knowledge.
-   * Web search (Tavily) has been removed; the model relies on its training data.
    */
   async generateStructuredJson<T>(
     systemPrompt: string,
     userPrompt: string,
     maxRetries = 3,
   ): Promise<T> {
-    return this.generateStructuredJsonPlain<T>(systemPrompt, userPrompt, maxRetries);
+    return this.generateStructuredJsonInternal<T>(systemPrompt, userPrompt, maxRetries, false);
   }
 
   /**
-   * Alias for generateStructuredJson for callers that used web search.
-   * Now uses plain LLM (no external search).
+   * Generates structured JSON with Google Search grounding for factual verification.
+   * Used by QuestionIntegrityService for GUESS_SCORE and other categories.
    */
   async generateStructuredJsonWithWebSearch<T>(
     systemPrompt: string,
@@ -78,70 +108,93 @@ export class LlmService {
     options?: { useWebSearch?: boolean; maxRetries?: number },
   ): Promise<T> {
     const maxRetries = options?.maxRetries ?? 3;
-    return this.generateStructuredJsonPlain<T>(systemPrompt, userPrompt, maxRetries);
+    const useWebSearch = options?.useWebSearch ?? false;
+    return this.generateStructuredJsonInternal<T>(systemPrompt, userPrompt, maxRetries, useWebSearch);
   }
 
-  /** Internal: plain LLM call (no tools). */
-  private async generateStructuredJsonPlain<T>(
+  /** Internal: LLM call with optional Google Search grounding. */
+  private async generateStructuredJsonInternal<T>(
     systemPrompt: string,
     userPrompt: string,
-    maxRetries = 3,
+    maxRetries: number,
+    useWebSearch: boolean,
   ): Promise<T> {
     if (!this.hasLlm) {
-      const err = new Error('No LLM configured — set DEEPSEEK_API_KEY');
-      this.logger.error(`[generateStructuredJsonPlain] Cannot call LLM — no API key`);
+      const err = new Error('No LLM configured — set GEMINI_API_KEY');
+      this.logger.error(`[generateStructuredJson] Cannot call LLM — no API key`);
       throw err;
     }
 
-    const promptSnippet = systemPrompt.slice(0, 120).replace(/\n/g, ' ');
-
     if (process.env.LOG_PROMPTS === '1' || process.env.LOG_PROMPTS === 'true') {
-      console.log('\n' + '─'.repeat(80) + '\n[LLM FULL PROMPT]\n' + '─'.repeat(80) + '\n' + systemPrompt + '\n\n' + userPrompt + '\n' + '─'.repeat(80) + '\n');
+      console.log(
+        '\n' + '─'.repeat(80) + '\n[LLM FULL PROMPT]\n' + '─'.repeat(80) + '\n' + systemPrompt + '\n\n' + userPrompt + '\n' + '─'.repeat(80) + '\n',
+      );
     }
 
+    const config = this.buildGeminiConfig(systemPrompt, useWebSearch);
+    return this.callWithRetry<T>(userPrompt, config, maxRetries);
+  }
+
+  private buildGeminiConfig(systemPrompt: string, useWebSearch: boolean) {
+    const config: {
+      systemInstruction?: string;
+      responseMimeType?: string;
+      temperature?: number;
+      topP?: number;
+      tools?: Array<{ googleSearch?: Record<string, never> }>;
+    } = {
+      systemInstruction: systemPrompt,
+      temperature: 0.9,
+      topP: 0.95,
+    };
+    if (useWebSearch) {
+      config.tools = [{ googleSearch: {} }];
+      // Gemini does not allow responseMimeType with tool use (google_search)
+    } else {
+      config.responseMimeType = 'application/json';
+    }
+    return config;
+  }
+
+  private async callWithRetry<T>(
+    userPrompt: string,
+    config: { systemInstruction?: string; responseMimeType?: string; temperature?: number; topP?: number; tools?: Array<{ googleSearch?: Record<string, never> }> },
+    maxRetries: number,
+  ): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const result = await this.deepseekClient!.chat.completions.create({
-          model: DEEPSEEK_MODEL,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          temperature: 0.9,
-          top_p: 0.95,
-          response_format: { type: 'json_object' },
+        const response = await this.ai!.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: userPrompt,
+          config,
         });
-
-        const text = result.choices?.[0]?.message?.content ?? '';
+        const text = response.text ?? '';
         return extractJson<T>(text);
       } catch (err) {
         lastError = err as Error;
-
-        if (isRateLimitError(err)) {
-          this.logger.warn(
-            `[generateStructuredJsonPlain] Rate limit — retrying in ${RATE_LIMIT_RETRY_MS / 1000}s (attempt ${attempt}/${maxRetries})`,
-          );
-          if (attempt < maxRetries) {
-            await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS));
-          } else {
-            throw lastError;
-          }
+        if (isRateLimitError(err) && attempt < maxRetries) {
+          this.logger.warn(`[generateStructuredJson] Rate limit — retrying in ${RATE_LIMIT_RETRY_MS / 1000}s`);
+          await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS));
           continue;
         }
-
-        this.logger.error(
-          `[generateStructuredJsonPlain] Attempt ${attempt}/${maxRetries} failed — Prompt: "${promptSnippet}..." — Error: ${lastError.message}`,
-        );
+        if (isServiceUnavailableError(err) && attempt < maxRetries) {
+          this.logger.warn(
+            `[generateStructuredJson] Service unavailable (503) — retrying in ${SERVICE_UNAVAILABLE_RETRY_MS / 1000}s`,
+          );
+          await new Promise((r) => setTimeout(r, SERVICE_UNAVAILABLE_RETRY_MS));
+          continue;
+        }
+        this.logger.error(`[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed — Error: ${lastError.message}`);
         if (attempt < maxRetries) {
           await new Promise((r) => setTimeout(r, 1000 * attempt));
+          continue;
         } else {
           throw lastError;
         }
       }
     }
-
     throw lastError || new Error('LLM generation failed after all retries');
   }
 
@@ -173,9 +226,9 @@ Preserve meaning, tone, and formatting. Do not translate proper nouns (player na
       const userPrompt = `Translate each item to Greek. Return JSON: { "items": [ { "question_text": "...", "explanation": "..." }, ... ] }\n${items}`;
 
       const result =
-        await this.generateStructuredJsonPlain<{
+        await this.generateStructuredJsonInternal<{
           items: Array<{ question_text: string; explanation: string }>;
-        }>(systemPrompt, userPrompt);
+        }>(systemPrompt, userPrompt, 3, false);
 
       const itemsResult = result?.items;
       if (

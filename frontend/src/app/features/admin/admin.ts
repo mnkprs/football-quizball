@@ -16,6 +16,8 @@ import {
   DuplicateAnswersResponse,
   SimilarQuestionsResponse,
   MigratePoolDifficultyResponse,
+  VerifyPoolIntegrityResponse,
+  DeleteByVersionResponse,
   ScoreThresholds,
 } from '../../core/admin-api.service';
 import { JsonPipe } from '@angular/common';
@@ -69,6 +71,25 @@ import { MatTabsModule } from '@angular/material/tabs';
           }
         </div>
 
+        <div class="admin-filters-bar">
+          <label class="admin-filter-label">
+            <span>Generation version</span>
+            <select
+              class="admin-filter-select admin-filter-select--version"
+              [value]="filterGenerationVersion()"
+              (change)="onFilterGenerationVersion($event)"
+            >
+              <option value="">All versions</option>
+              @for (v of generationVersions(); track v) {
+                <option [value]="v">{{ v === 'legacy' ? 'legacy (null)' : v }}</option>
+              }
+            </select>
+          </label>
+          @if (filterGenerationVersion()) {
+            <span class="admin-filter-active">Filtering by v{{ filterGenerationVersion() }}</span>
+          }
+        </div>
+
         <mat-tab-group class="admin-tabs" [(selectedIndex)]="activeTabIndex">
           <mat-tab label="Scripts">
         <div class="admin-section admin-scripts-section">
@@ -79,6 +100,10 @@ import { MatTabsModule } from '@angular/material/tabs';
               <span class="script-group-label">Actions</span>
               <div class="script-buttons">
                 <button (click)="runSeedPool()" [disabled]="scriptRunning()" class="script-btn">pool:seed</button>
+                <button (click)="runVerifyPoolIntegrity(false)" [disabled]="scriptRunning()" class="script-btn" title="Dry run: verify factual integrity (LLM + web search), no DB writes">pool:verify-integrity</button>
+                <button (click)="runVerifyPoolIntegrity(true)" [disabled]="scriptRunning()" class="script-btn script-btn--apply" title="Apply: fix wrong answers, delete hallucinated questions">pool:verify-integrity:apply</button>
+                <button (click)="runDeleteByVersion(false)" [disabled]="scriptRunning()" class="script-btn" title="Dry run: count questions to delete (keep only current version)">pool:delete-by-version</button>
+                <button (click)="runDeleteByVersion(true)" [disabled]="scriptRunning()" class="script-btn script-btn--apply" title="Apply: delete questions with other generation versions">pool:delete-by-version:apply</button>
                 <button (click)="runSeedBlitzPool()" [disabled]="scriptRunning()" class="script-btn">blitz:seed</button>
                 <button (click)="runCleanup()" [disabled]="scriptRunning()" class="script-btn">db:cleanup-pools</button>
                 <button (click)="runDedupeBlitz()" [disabled]="scriptRunning()" class="script-btn">blitz:dedupe-wrong-choices</button>
@@ -139,6 +164,46 @@ import { MatTabsModule } from '@angular/material/tabs';
               }
             </div>
           }
+          @if (verifyPoolIntegrityResult(); as vpi) {
+            <div class="script-result">
+              <h3>Verify Pool Integrity</h3>
+              <p>Scanned {{ vpi.scanned }} · fixed {{ vpi.fixed }} · failed {{ vpi.failed }} · deleted {{ vpi.deleted }}</p>
+              @if (vpi.corrections.length > 0) {
+                <div class="migrate-changes-list">
+                  <h4>Corrections</h4>
+                  @for (c of vpi.corrections; track c.id) {
+                    <div class="migrate-change-row">
+                      <span class="migrate-change-question" [title]="c.id">
+                        @if (c.fields?.length) {
+                          <span class="correction-fields">[{{ (c.fields ?? []).join(', ') }}]</span>
+                        }
+                        "{{ c.from }}" → "{{ c.to }}"
+                      </span>
+                    </div>
+                  }
+                </div>
+              }
+              @if (vpi.failures.length > 0) {
+                <div class="migrate-changes-list">
+                  <h4>Failures</h4>
+                  @for (f of vpi.failures; track f.id) {
+                    <div class="migrate-change-row">
+                      <span class="migrate-change-question" [title]="f.id">{{ f.question }} — {{ f.reason }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (deleteByVersionResult(); as dbv) {
+            <div class="script-result">
+              <h3>Delete by Version</h3>
+              <p>Deleted {{ dbv.deleted }} questions</p>
+              @if (dbv.wouldDelete != null && dbv.wouldDelete > 0) {
+                <p class="migrate-meta">Dry run: would delete {{ dbv.wouldDelete }} questions. Re-run with Apply to execute.</p>
+              }
+            </div>
+          }
         </div>
           </mat-tab>
 
@@ -186,6 +251,12 @@ import { MatTabsModule } from '@angular/material/tabs';
                     <span class="session-time">{{ formatTime(sess.created_at) }}</span>
                     <span class="session-count">{{ sess.total_added }} questions</span>
                     <span class="session-target">target: {{ sess.target }}</span>
+                    @if (sess.status) {
+                      <span class="session-status" [class.session-status--cancelled]="sess.status === 'cancelled'">{{ sess.status }}</span>
+                    }
+                    @if (sess.generation_version) {
+                      <span class="session-version">v{{ sess.generation_version }}</span>
+                    }
                   </button>
                 }
               </div>
@@ -212,6 +283,10 @@ import { MatTabsModule } from '@angular/material/tabs';
                     <ng-container matColumnDef="raw_score">
                       <th mat-header-cell *matHeaderCellDef>Raw</th>
                       <td mat-cell *matCellDef="let q" class="cell-avg">{{ q.raw_score.toFixed(3) }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="generation_version">
+                      <th mat-header-cell *matHeaderCellDef>Gen v</th>
+                      <td mat-cell *matCellDef="let q" class="cell-version">{{ q.generation_version ?? '—' }}</td>
                     </ng-container>
                     <ng-container matColumnDef="question_text">
                       <th mat-header-cell *matHeaderCellDef>Question</th>
@@ -251,6 +326,13 @@ import { MatTabsModule } from '@angular/material/tabs';
                         <div class="cell-count">
                           n={{ slot.count }}{{ slot.withRaw < slot.count ? ' (' + slot.withRaw + ' w/raw)' : '' }}
                         </div>
+                        @if (hasVersions(slot.generationVersions)) {
+                          <div class="cell-versions">
+                            @for (ver of formatVersions(slot.generationVersions); track ver) {
+                              <span class="version-tag">{{ ver }}</span>
+                            }
+                          </div>
+                        }
                       } @else {
                         —
                       }
@@ -421,6 +503,16 @@ import { MatTabsModule } from '@angular/material/tabs';
                   <option value="">All difficulties</option>
                   @for (d of stats()?.difficulties ?? []; track d) {
                     <option [value]="d">{{ d }}</option>
+                  }
+                </select>
+                <select
+                  class="admin-filter-select"
+                  [value]="filterGenerationVersion()"
+                  (change)="onFilterGenerationVersion($event)"
+                >
+                  <option value="">All versions</option>
+                  @for (v of generationVersions(); track v) {
+                    <option [value]="v">{{ v === 'legacy' ? 'legacy (null)' : v }}</option>
                   }
                 </select>
               </div>
@@ -643,6 +735,39 @@ import { MatTabsModule } from '@angular/material/tabs';
       border-color: #3f3f46;
     }
 
+    .admin-filters-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      background: #18181b;
+      border-radius: 8px;
+      border: 1px solid #27272a;
+    }
+
+    .admin-filter-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #a1a1aa;
+    }
+
+    .admin-filter-label span {
+      white-space: nowrap;
+    }
+
+    .admin-filter-select--version {
+      min-width: 10rem;
+    }
+
+    .admin-filter-active {
+      font-size: 0.8rem;
+      color: #71717a;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
     .admin-error {
       color: #ef4444;
       font-size: 0.875rem;
@@ -816,6 +941,8 @@ import { MatTabsModule } from '@angular/material/tabs';
     :host ::ng-deep .admin-questions-table .mat-column-difficulty { width: 8rem; max-width: 8rem; }
     :host ::ng-deep .admin-questions-table .mat-mdc-column-raw_score,
     :host ::ng-deep .admin-questions-table .mat-column-raw_score { width: 5.5rem; max-width: 5.5rem; }
+    :host ::ng-deep .admin-questions-table .mat-mdc-column-generation_version,
+    :host ::ng-deep .admin-questions-table .mat-column-generation_version { width: 6rem; max-width: 6rem; }
     :host ::ng-deep .admin-questions-table .mat-mdc-column-question_text,
     :host ::ng-deep .admin-questions-table .mat-column-question_text { min-width: 18rem; }
     :host ::ng-deep .admin-questions-table .mat-mdc-column-correct_answer,
@@ -990,6 +1117,44 @@ import { MatTabsModule } from '@angular/material/tabs';
       color: #71717a;
     }
 
+    .session-status {
+      font-size: 0.7rem;
+      color: #22c55e;
+      text-transform: uppercase;
+    }
+
+    .session-status--cancelled {
+      color: #f59e0b;
+    }
+
+    .session-version {
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: #a1a1aa;
+    }
+
+    .cell-versions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-top: 0.25rem;
+    }
+
+    .version-tag {
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: #71717a;
+      background: #27272a;
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+    }
+
+    .cell-version {
+      font-size: 0.8rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: #a1a1aa;
+    }
+
     .session-questions-wrap {
       margin-top: 1.5rem;
       padding-top: 1.5rem;
@@ -1156,12 +1321,14 @@ export class AdminComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   apiKeyInput = signal('');
   autoRefresh = signal(false);
+  filterGenerationVersion = signal('');
+  generationVersions = signal<string[]>([]);
   private refreshInterval: ReturnType<typeof setInterval> | null = null;
 
   seedPoolColumns = ['slot', 'unanswered', 'answered', 'total', 'drawable_unanswered', 'drawable_answered'];
   spreadColumns = ['slot', 'count', 'avg', 'min', 'max', 'std'];
   questionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'question_text', 'correct_answer'];
-  sessionQuestionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'question_text', 'correct_answer'];
+  sessionQuestionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'generation_version', 'question_text', 'correct_answer'];
 
   sessions = signal<SeedPoolSession[]>([]);
   sessionsLoading = signal(false);
@@ -1187,6 +1354,8 @@ export class AdminComponent implements OnInit, OnDestroy {
   duplicateAnswers = signal<DuplicateAnswersResponse | null>(null);
   similarQuestions = signal<SimilarQuestionsResponse | null>(null);
   migratePoolDifficultyResult = signal<MigratePoolDifficultyResponse | null>(null);
+  verifyPoolIntegrityResult = signal<VerifyPoolIntegrityResponse | null>(null);
+  deleteByVersionResult = signal<DeleteByVersionResponse | null>(null);
 
   activeTabIndex = 0;
   thresholdEasy = signal(0.30);
@@ -1306,6 +1475,7 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.admin.hasApiKey()) {
+      this.loadGenerationVersions();
       this.load();
       this.loadSessions();
       this.loadThresholds();
@@ -1342,9 +1512,29 @@ export class AdminComponent implements OnInit, OnDestroy {
     const key = this.apiKeyInput().trim();
     if (key) {
       this.admin.setApiKey(key);
+      this.loadGenerationVersions();
       this.load();
       this.loadSessions();
       this.loadThresholds();
+    }
+  }
+
+  onFilterGenerationVersion(e: Event): void {
+    const value = (e.target as HTMLSelectElement).value;
+    this.filterGenerationVersion.set(value);
+    this.load();
+    this.loadSessions();
+    if (this.selectedRange()) {
+      this.loadRangeQuestions();
+    }
+  }
+
+  async loadGenerationVersions(): Promise<void> {
+    try {
+      const versions = await firstValueFrom(this.admin.getPoolGenerationVersions());
+      this.generationVersions.set(versions);
+    } catch {
+      this.generationVersions.set([]);
     }
   }
 
@@ -1355,8 +1545,9 @@ export class AdminComponent implements OnInit, OnDestroy {
   async load(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
+    const version = this.filterGenerationVersion() || undefined;
     try {
-      const s = await firstValueFrom(this.admin.getPoolStats());
+      const s = await firstValueFrom(this.admin.getPoolStats({ generationVersion: version }));
       this.stats.set(s);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -1370,8 +1561,9 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   async loadSessions(): Promise<void> {
     this.sessionsLoading.set(true);
+    const version = this.filterGenerationVersion() || undefined;
     try {
-      const list = await firstValueFrom(this.admin.getSeedPoolSessions());
+      const list = await firstValueFrom(this.admin.getSeedPoolSessions({ generationVersion: version }));
       this.sessions.set(list);
     } catch {
       this.sessions.set([]);
@@ -1431,6 +1623,18 @@ export class AdminComponent implements OnInit, OnDestroy {
     const r = Math.round(Math.min(255, value * 510));
     const g = Math.round(Math.min(255, (1 - value) * 255));
     return `rgb(${r},${g},50)`;
+  }
+
+  /** Check if slot has generation version breakdown to show. */
+  hasVersions(versions: Record<string, number> | undefined): boolean {
+    return !!versions && Object.keys(versions).length > 0;
+  }
+
+  /** Format generationVersions to display strings like "v1.0.4: 12". */
+  formatVersions(versions: Record<string, number>): string[] {
+    return Object.entries(versions)
+      .sort(([, a], [, b]) => b - a)
+      .map(([ver, count]) => `v${ver}: ${count}`);
   }
 
   histogramBars(s: PoolRawScoreStats): { i: number; min: number; max: number; height: number; tooltip: string }[] {
@@ -1512,6 +1716,8 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.duplicateAnswers.set(null);
     this.similarQuestions.set(null);
     this.migratePoolDifficultyResult.set(null);
+    this.verifyPoolIntegrityResult.set(null);
+    this.deleteByVersionResult.set(null);
   }
 
   private setScriptResult(msg: string, isError = false): void {
@@ -1642,6 +1848,51 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
+  async runVerifyPoolIntegrity(apply: boolean): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.clearScriptResults();
+    try {
+      const res = await firstValueFrom(
+        this.admin.verifyPoolIntegrity({ limit: 100, apply }),
+      );
+      this.verifyPoolIntegrityResult.set(res);
+      const action = apply ? 'Applied' : 'Dry run';
+      this.setScriptResult(
+        `${action}: scanned ${res.scanned}, fixed ${res.fixed}, failed ${res.failed}${apply ? `, deleted ${res.deleted}` : ''}` +
+          (apply ? '' : ' — Re-run with Apply to fix/delete.'),
+      );
+      if (apply && (res.fixed > 0 || res.deleted > 0)) {
+        this.load();
+      }
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async runDeleteByVersion(apply: boolean): Promise<void> {
+    this.scriptRunning.set(true);
+    this.scriptMessage.set(null);
+    this.clearScriptResults();
+    try {
+      const res = await firstValueFrom(
+        this.admin.deleteQuestionsByVersion({ apply }),
+      );
+      this.deleteByVersionResult.set(res);
+      const action = apply ? 'Applied' : 'Dry run';
+      const count = apply ? res.deleted : (res.wouldDelete ?? 0);
+      this.setScriptResult(
+        `${action}: ${apply ? 'deleted' : 'would delete'} ${count} questions` +
+          (apply ? '' : ' — Re-run with Apply to execute.'),
+      );
+      if (apply && res.deleted > 0) {
+        this.load();
+      }
+    } catch (err) {
+      this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
   async runHeatmapDownload(): Promise<void> {
     this.scriptRunning.set(true);
     this.scriptMessage.set(null);
@@ -1673,6 +1924,7 @@ export class AdminComponent implements OnInit, OnDestroy {
           this.searchQuery() || undefined,
           this.filterCategory() || undefined,
           this.filterDifficulty() || undefined,
+          this.filterGenerationVersion() || undefined,
         ),
       );
       this.rangeQuestions.set(res.questions);

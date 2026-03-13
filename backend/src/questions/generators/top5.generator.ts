@@ -15,6 +15,7 @@ import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-g
 interface Top5Payload {
   question_text: string;
   top5: Top5Entry[];
+  source_url?: string;
   competition: string;
   event_year: number;
   fame_score: number;
@@ -54,6 +55,7 @@ Return ONLY valid JSON:
     {"name": "...", "stat": "..."},
     {"name": "...", "stat": "..."}
   ],
+  "source_url": "URL to verify the top 5 ranking (e.g. Transfermarkt, official stats)",
   "competition": "Competition or league name",
   "event_year": 2024,
   "fame_score": 7,
@@ -90,6 +92,7 @@ Return ONLY valid JSON:
         {"name": "...", "stat": "..."},
         {"name": "...", "stat": "..."}
       ],
+      "source_url": "URL to verify the top 5 ranking",
       "competition": "Competition or league name",
       "event_year": 2024,
       "fame_score": 5,
@@ -134,6 +137,7 @@ ${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${this
       fifty_fifty_hint: null,
       fifty_fifty_applicable: false,
       explanation: `The answers were: ${result.top5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ')}`,
+      source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: null,
       meta: { top5: result.top5 },
       difficulty_factors,

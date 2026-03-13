@@ -42,6 +42,21 @@ export abstract class BaseGenerator {
   }
 
   /**
+   * Returns the fifty_fifty_hint schema line. LLM proposes a plausible wrong answer.
+   * Explicit string requirement avoids LLMs returning objects/arrays.
+   */
+  protected getFiftyFiftyHintInstruction(): string {
+    return `"fifty_fifty_hint": "a plausible wrong answer you propose (different from correct_answer). Must be a string."`;
+  }
+
+  /**
+   * Returns the source_url schema line. LLM provides a URL to verify the answer.
+   */
+  protected getSourceUrlInstruction(): string {
+    return `"source_url": "URL to a page that verifies this answer (e.g. Wikipedia, Transfermarkt, official stats). Must be a string."`;
+  }
+
+  /**
    * Returns the `wrong_choices` JSON field snippet to embed in the prompt schema.
    * Returns an empty string when not in Blitz mode.
    *

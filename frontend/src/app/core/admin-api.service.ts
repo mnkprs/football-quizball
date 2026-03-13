@@ -10,6 +10,8 @@ export interface SlotRawStats {
   max: number;
   std: number;
   withRaw: number;
+  /** Count per generation_version in this slot. */
+  generationVersions?: Record<string, number>;
 }
 
 export interface SeedPoolStatsRow {
@@ -28,6 +30,7 @@ export interface PoolQuestionRow {
   raw_score: number;
   question_text: string;
   correct_answer: string;
+  generation_version?: string | null;
 }
 
 export interface PoolQuestionsResponse {
@@ -40,6 +43,8 @@ export interface SeedPoolSession {
   created_at: string;
   total_added: number;
   target: number;
+  status?: string;
+  generation_version?: string | null;
 }
 
 export interface ScoreThresholds {
@@ -78,16 +83,27 @@ export class AdminApiService {
     return !!this.apiKey;
   }
 
-  getPoolStats(apiKey?: string): Observable<PoolRawScoreStats> {
+  /** Get distinct generation_version values for filter dropdown. */
+  getPoolGenerationVersions(apiKey?: string): Observable<string[]> {
     const key = apiKey ?? this.apiKey;
     const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
-    return this.http.get<PoolRawScoreStats>(`${this.base}/api/admin/pool-stats`, { headers });
+    return this.http.get<string[]>(`${this.base}/api/admin/pool-generation-versions`, { headers });
   }
 
-  getSeedPoolSessions(apiKey?: string): Observable<SeedPoolSession[]> {
+  getPoolStats(options?: { generationVersion?: string }, apiKey?: string): Observable<PoolRawScoreStats> {
     const key = apiKey ?? this.apiKey;
     const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
-    return this.http.get<SeedPoolSession[]>(`${this.base}/api/admin/seed-pool-sessions`, { headers });
+    const params: Record<string, string> = {};
+    if (options?.generationVersion?.trim()) params['generation_version'] = options.generationVersion.trim();
+    return this.http.get<PoolRawScoreStats>(`${this.base}/api/admin/pool-stats`, { headers, params });
+  }
+
+  getSeedPoolSessions(options?: { generationVersion?: string }, apiKey?: string): Observable<SeedPoolSession[]> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    const params: Record<string, string> = {};
+    if (options?.generationVersion?.trim()) params['generation_version'] = options.generationVersion.trim();
+    return this.http.get<SeedPoolSession[]>(`${this.base}/api/admin/seed-pool-sessions`, { headers, params });
   }
 
   getSessionQuestions(sessionId: string, apiKey?: string): Observable<PoolQuestionRow[]> {
@@ -106,6 +122,7 @@ export class AdminApiService {
     search?: string,
     category?: string,
     difficulty?: string,
+    generationVersion?: string,
     apiKey?: string,
   ): Observable<PoolQuestionsResponse> {
     const key = apiKey ?? this.apiKey;
@@ -114,6 +131,7 @@ export class AdminApiService {
     if (search?.trim()) params['search'] = search.trim();
     if (category?.trim()) params['category'] = category.trim();
     if (difficulty?.trim()) params['difficulty'] = difficulty.trim();
+    if (generationVersion?.trim()) params['generation_version'] = generationVersion.trim();
     return this.http.get<PoolQuestionsResponse>(`${this.base}/api/admin/pool-questions`, {
       headers,
       params,
@@ -211,6 +229,42 @@ export class AdminApiService {
     });
   }
 
+  /** Verify factual integrity of pool questions (LLM + web search). Requires ENABLE_INTEGRITY_VERIFICATION=true. */
+  verifyPoolIntegrity(
+    options?: { limit?: number; category?: string; version?: string; apply?: boolean },
+    apiKey?: string,
+  ): Observable<VerifyPoolIntegrityResponse> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    const params: Record<string, string> = {};
+    if (options?.limit != null) params['limit'] = String(options.limit);
+    if (options?.category?.trim()) params['category'] = options.category.trim();
+    if (options?.version?.trim()) params['version'] = options.version.trim();
+    if (options?.apply) params['apply'] = 'true';
+    return this.http.post<VerifyPoolIntegrityResponse>(
+      `${this.base}/api/admin/verify-pool-integrity`,
+      null,
+      { headers, params },
+    );
+  }
+
+  /** Delete questions with generation_version other than the given version. Keeps only current version by default. */
+  deleteQuestionsByVersion(
+    options?: { version?: string; apply?: boolean },
+    apiKey?: string,
+  ): Observable<DeleteByVersionResponse> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    const params: Record<string, string> = {};
+    if (options?.version?.trim()) params['version'] = options.version.trim();
+    if (options?.apply) params['apply'] = 'true';
+    return this.http.post<DeleteByVersionResponse>(
+      `${this.base}/api/admin/delete-by-version`,
+      null,
+      { headers, params },
+    );
+  }
+
   /** Re-score question_pool and optionally apply difficulty/raw_score updates. Same as npm run pool:migrate-difficulty:apply. */
   migratePoolDifficulty(
     options?: { apply?: boolean; slot?: string; range?: string; locale?: string },
@@ -277,4 +331,18 @@ export interface DbStatsResponse {
   questions_v1: { total: number };
   blitz_question_pool: { total: number; unanswered: number };
   daily_questions: { rows: number };
+}
+
+export interface VerifyPoolIntegrityResponse {
+  scanned: number;
+  fixed: number;
+  failed: number;
+  deleted: number;
+  corrections: Array<{ id: string; from: string; to: string; fields?: string[] }>;
+  failures: Array<{ id: string; reason: string; question: string }>;
+}
+
+export interface DeleteByVersionResponse {
+  deleted: number;
+  wouldDelete?: number;
 }

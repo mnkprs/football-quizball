@@ -35,8 +35,9 @@ Return ONLY a valid JSON object:
     {
       "question_text": "the question",
       "correct_answer": "short answer",
-      "fifty_fifty_hint": "plausible wrong answer",
+      "fifty_fifty_hint": "plausible wrong answer (must be a string)",
       "explanation": "brief explanation",
+      "source_url": "URL to verify the answer (e.g. news article, official source)",
       "headline_index": 1
     }
   ]
@@ -51,6 +52,7 @@ Return ONLY a valid JSON object:
           correct_answer: string;
           fifty_fifty_hint: string;
           explanation: string;
+          source_url?: string;
           headline_index?: number;
         }>;
       }>(systemPrompt, userPrompt);
@@ -76,6 +78,7 @@ Return ONLY a valid JSON object:
       correct_answer: string;
       fifty_fifty_hint?: string;
       explanation?: string;
+      source_url?: string;
     },
     headlines: NewsHeadline[],
   ): GeneratedQuestion {
@@ -90,6 +93,7 @@ Return ONLY a valid JSON object:
       fifty_fifty_hint: q.fifty_fifty_hint?.trim() || null,
       fifty_fifty_applicable: true,
       explanation: q.explanation?.trim() || '',
+      source_url: typeof q.source_url === 'string' && q.source_url.trim() ? q.source_url.trim() : undefined,
       image_url: null,
       difficulty_factors: {
         event_year: new Date().getFullYear(),

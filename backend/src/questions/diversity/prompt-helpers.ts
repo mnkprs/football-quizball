@@ -39,7 +39,9 @@ ANTI-REPETITION RULES:
   return `
 ANTI-REPETITION RULES:
 - Vary topics and avoid repeating the same players, teams, or leagues.
-- Aim for moderate difficulty: use fame_score ${min}-${max}. Avoid both hyper-obscure (fame 1-3) and overly trivial (fame 9-10) facts.`;
+- Aim for moderate difficulty: use fame_score ${min}-${max}.
+ Avoid both hyper-obscure (fame 1-3) and overly trivial (fame 9-10) facts.
+ Avoid confirming facts from old articles or websites that may not be up to date.`;
 }
 
 /**

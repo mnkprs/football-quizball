@@ -20,6 +20,7 @@ interface GeographyPayload {
   fifty_fifty_hint: string;
   wrong_choices?: string[];
   explanation: string;
+  source_url?: string;
   event_year: number;
   competition: string;
   fame_score: number;
@@ -42,8 +43,9 @@ export class GeographyGenerator extends BaseGenerator {
         "question_text": "the question",
         "correct_answer": "the answer (short, 1-5 words)",
         "answer_type": "location(vary by question)",
-        "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Germany' write 'France'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+        ${this.getFiftyFiftyHintInstruction()},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
         "explanation": "brief explanation (1-2 sentences)",
+        ${this.getSourceUrlInstruction()},
         "event_year": 2022,
         "competition": "Competition or league name e.g. FIFA World Cup, Premier League",
         "fame_score": 9,
@@ -69,7 +71,7 @@ export class GeographyGenerator extends BaseGenerator {
 CRITICAL: Each question MUST use a DIFFERENT entity type and phrasing. Use exactly one of: (1) a city question, (2) a stadium question, (3) a country/nation question. Do NOT use "Which country hosted..." for more than one question. Vary: "Which city...", "In which country is...", "Which stadium...", "Which nationality...", etc.
 They should range from easy to hard while staying answerable in familiar contexts.
 ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
-Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
+Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
     ${getLeagueFameGuidanceForBatch('GEOGRAPHY', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
@@ -92,6 +94,7 @@ Return ONLY a valid JSON object with a "questions" array. Each item must include
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',
+      source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: null,
       difficulty_factors: {
         event_year: result.event_year ?? new Date().getFullYear(),

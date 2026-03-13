@@ -44,6 +44,8 @@ export interface GeneratedQuestion {
   fifty_fifty_applicable: boolean;
   explanation: string;
   image_url: string | null;
+  /** URL to verify the answer (e.g. Wikipedia, Transfermarkt, official stats). */
+  source_url?: string | null;
   meta?: Record<string, unknown>;
   source_question_text?: string;
   source_explanation?: string;

@@ -55,16 +55,16 @@ export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Diffic
 };
 
 /**
- * Batch size for LLM generation per category.
+ * Batch size for LLM generation per category (2 questions per level).
  */
 export const CATEGORY_BATCH_SIZES: Partial<Record<QuestionCategory, number>> = {
-  HISTORY: 3,
-  PLAYER_ID: 2,
-  HIGHER_OR_LOWER: 2,
-  GUESS_SCORE: 3,
-  TOP_5: 2,
-  GEOGRAPHY: 3,
-  GOSSIP: 2,
+  HISTORY: 1,
+  PLAYER_ID: 1,
+  HIGHER_OR_LOWER: 1,
+  GUESS_SCORE: 1,
+  TOP_5: 1,
+  GEOGRAPHY: 1,
+  GOSSIP: 1,
 };
 
 /**

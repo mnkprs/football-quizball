@@ -53,6 +53,8 @@ export interface SlotRawStats {
   max: number;
   std: number;
   withRaw: number;
+  /** Count per generation_version in this slot. */
+  generationVersions?: Record<string, number>;
 }
 
 export interface PoolRawScoreStats {
@@ -83,4 +85,5 @@ export interface PoolQuestionRow {
   raw_score: number;
   question_text: string;
   correct_answer: string;
+  generation_version?: string | null;
 }

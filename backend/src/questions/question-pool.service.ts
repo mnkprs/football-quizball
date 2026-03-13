@@ -181,6 +181,205 @@ export class QuestionPoolService {
   }
 
   /**
+   * Verifies factual integrity of existing pool questions via LLM + web search.
+   * Requires ENABLE_INTEGRITY_VERIFICATION=true.
+   * - Fixes questions with wrong answers (correctedAnswer / correctedTop5).
+   * - Deletes hallucinated questions (valid: false).
+   */
+  async verifyPoolIntegrity(options: {
+    limit?: number;
+    category?: QuestionCategory;
+    version?: string;
+    apply?: boolean;
+  }): Promise<{
+    scanned: number;
+    fixed: number;
+    failed: number;
+    deleted: number;
+    corrections: Array<{ id: string; from: string; to: string; fields?: string[] }>;
+    failures: Array<{ id: string; reason: string; question: string }>;
+  }> {
+    if (!this.questionIntegrity.isEnabled) {
+      throw new Error(
+        'ENABLE_INTEGRITY_VERIFICATION must be true. Set it in .env to run integrity verification.',
+      );
+    }
+
+    const THROTTLE_MS = 3000;
+    const limit = options.limit ?? 10_000;
+    const failures: Array<{ id: string; reason: string; question: string }> = [];
+    const corrections: Array<{ id: string; from: string; to: string; fields?: string[] }> = [];
+    let scanned = 0;
+
+    let query = this.supabaseService.client
+      .from('question_pool')
+      .select('id, category, difficulty, question')
+      .neq('category', 'NEWS')
+      .order('id', { ascending: true })
+      .limit(limit);
+
+    if (options.category) {
+      query = query.eq('category', options.category);
+    }
+    if (options.version?.trim()) {
+      query = query.eq('generation_version', options.version.trim());
+    }
+
+    const { data: rows, error } = await query;
+    if (error) {
+      throw new Error(`[verifyPoolIntegrity] Fetch error: ${error.message}`);
+    }
+
+    const poolRows = (rows ?? []) as Array<{ id: string; category: string; difficulty: string; question: GeneratedQuestion }>;
+
+    for (let i = 0; i < poolRows.length; i++) {
+      const row = poolRows[i];
+      const q: GeneratedQuestion = {
+        ...row.question,
+        category: row.category as QuestionCategory,
+        difficulty: row.difficulty as Difficulty,
+      };
+
+      const vr = await this.questionIntegrity.verify(q);
+      scanned += 1;
+
+      if (!vr.valid) {
+        failures.push({
+          id: row.id,
+          reason: vr.reason ?? 'Unknown',
+          question: q.question_text?.slice(0, 80) ?? '',
+        });
+        this.logger.warn(`[verifyPoolIntegrity] Failed: ${row.id} — ${vr.reason}`);
+      } else if (
+        vr.correctedAnswer ||
+        vr.correctedTop5 ||
+        vr.correctedQuestionText ||
+        vr.correctedExplanation ||
+        (vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0)
+      ) {
+        const from = q.correct_answer ?? '';
+        const to = vr.correctedAnswer ?? (vr.correctedTop5 ? vr.correctedTop5.map((e) => e.name).join(', ') : '');
+        const fields = [
+          from !== to && 'answer',
+          vr.correctedQuestionText && 'question_text',
+          vr.correctedExplanation && 'explanation',
+          vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0 && 'meta',
+        ].filter(Boolean) as string[];
+        corrections.push({ id: row.id, from, to, fields });
+        this.logger.log(`[verifyPoolIntegrity] Fix: ${row.id} — ${fields.join(', ')} (answer: "${from}" → "${to}")`);
+
+        if (options.apply) {
+          const baseMeta = { ...(q.meta ?? {}) };
+          const mergedMeta =
+            vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0
+              ? { ...baseMeta, ...vr.correctedMeta }
+              : baseMeta;
+          const finalMeta =
+            vr.correctedTop5 && row.category === 'TOP_5' ? { ...mergedMeta, top5: vr.correctedTop5 } : mergedMeta;
+          const hasMetaChange =
+            (vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0) || (vr.correctedTop5 && row.category === 'TOP_5');
+
+          const updatedQuestion: GeneratedQuestion = {
+            ...row.question,
+            ...(to && { correct_answer: to }),
+            ...(vr.correctedQuestionText && { question_text: vr.correctedQuestionText }),
+            ...(vr.correctedExplanation && { explanation: vr.correctedExplanation }),
+            ...(hasMetaChange && { meta: finalMeta }),
+          };
+          const { error: updErr } = await this.supabaseService.client
+            .from('question_pool')
+            .update({ question: updatedQuestion })
+            .eq('id', row.id);
+          if (updErr) {
+            this.logger.error(`[verifyPoolIntegrity] Update error ${row.id}: ${updErr.message}`);
+          }
+        }
+      }
+
+      if ((i + 1) % 5 === 0) {
+        await new Promise((r) => setTimeout(r, THROTTLE_MS));
+      }
+    }
+
+    let deleted = 0;
+    if (options.apply && failures.length > 0) {
+      const ids = failures.map((f) => f.id);
+      const BATCH_SIZE = 50;
+      for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+        const batch = ids.slice(i, i + BATCH_SIZE);
+        const { error: delErr } = await this.supabaseService.client
+          .from('question_pool')
+          .delete()
+          .in('id', batch);
+        if (delErr) {
+          this.logger.error(`[verifyPoolIntegrity] Delete error (batch ${i / BATCH_SIZE + 1}): ${delErr.message}`);
+          break;
+        }
+        deleted += batch.length;
+      }
+      if (deleted > 0) {
+        this.logger.log(`[verifyPoolIntegrity] Deleted ${deleted} hallucinated questions`);
+      }
+    }
+
+    if (options.apply && corrections.length > 0) {
+      this.logger.log(`[verifyPoolIntegrity] Fixed ${corrections.length} questions with wrong answers`);
+    }
+
+    return {
+      scanned,
+      fixed: corrections.length,
+      failed: failures.length,
+      deleted,
+      corrections,
+      failures,
+    };
+  }
+
+  /**
+   * Deletes questions with generation_version other than the given keepVersion.
+   * Use to purge old/legacy questions (e.g. keep only 1.0.4).
+   * @param keepVersion Only questions with this version are kept. All others (including NULL/legacy) are deleted.
+   * @param dryRun If true, returns count without deleting.
+   */
+  async deleteQuestionsExceptVersion(
+    keepVersion: string,
+    dryRun = false,
+  ): Promise<{ deleted: number; wouldDelete?: number }> {
+    const { data: toDelete, error: fetchErr } = await this.supabaseService.client
+      .from('question_pool')
+      .select('id')
+      .or(`generation_version.is.null,generation_version.neq."${keepVersion}"`);
+
+    if (fetchErr) {
+      throw new Error(`[deleteQuestionsExceptVersion] Fetch error: ${fetchErr.message}`);
+    }
+
+    const ids = (toDelete ?? []).map((r: { id: string }) => r.id);
+    if (ids.length === 0) {
+      this.logger.log(`[deleteQuestionsExceptVersion] No questions to delete (all are ${keepVersion})`);
+      return { deleted: 0, wouldDelete: 0 };
+    }
+
+    if (dryRun) {
+      this.logger.log(`[deleteQuestionsExceptVersion] DRY RUN: would delete ${ids.length} questions`);
+      return { deleted: 0, wouldDelete: ids.length };
+    }
+
+    const { error: delErr } = await this.supabaseService.client
+      .from('question_pool')
+      .delete()
+      .in('id', ids);
+
+    if (delErr) {
+      throw new Error(`[deleteQuestionsExceptVersion] Delete error: ${delErr.message}`);
+    }
+
+    this.logger.log(`[deleteQuestionsExceptVersion] Deleted ${ids.length} questions (kept only ${keepVersion})`);
+    return { deleted: ids.length };
+  }
+
+  /**
    * Returns unanswered question IDs to the pool (marks them available again).
    * Call when a game ends early to prevent create→peek→end abuse.
    */
@@ -239,33 +438,42 @@ export class QuestionPoolService {
     return this.withRefillLock(async () => {
       const results: { slot: string; added: number }[] = [];
       const allQuestionIds: string[] = [];
+      let completed = false;
 
-      for (const category of this.getLiveCategories()) {
-        this.logger.log(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
-        const { addedTotals, questionIds } = await this.seedCategoryPasses(category, passes);
-        const totalAdded = Object.values(addedTotals).reduce((sum, value) => sum + value, 0);
-        this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
-        allQuestionIds.push(...questionIds);
-        for (const [difficulty, added] of Object.entries(addedTotals) as Array<[Difficulty, number]>) {
-          const key = `${category}/${difficulty}`;
-          results.push({ slot: key, added });
+      try {
+        for (const category of this.getLiveCategories()) {
+          this.logger.log(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
+          const { addedTotals, questionIds } = await this.seedCategoryPasses(category, passes);
+          const totalAdded = Object.values(addedTotals).reduce((sum, value) => sum + value, 0);
+          this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
+          allQuestionIds.push(...questionIds);
+          for (const [difficulty, added] of Object.entries(addedTotals) as Array<[Difficulty, number]>) {
+            const key = `${category}/${difficulty}`;
+            results.push({ slot: key, added });
+          }
         }
+        completed = true;
+        return results;
+      } finally {
+        // Always store a session record so every run appears in the admin panel,
+        // even when 0 questions were added or run was cancelled/failed.
+        await this.storeSeedPoolSession(allQuestionIds, passes, completed ? 'completed' : 'cancelled');
       }
-
-      // Always store a session record so every run appears in the admin panel,
-      // even when 0 questions were added (e.g. pool already full, all duplicates).
-      await this.storeSeedPoolSession(allQuestionIds, passes);
-
-      return results;
     });
   }
 
   /** Persists a seed-pool session record for admin dashboard inspection. */
-  private async storeSeedPoolSession(questionIds: string[], target: number): Promise<void> {
+  private async storeSeedPoolSession(
+    questionIds: string[],
+    target: number,
+    status: 'completed' | 'cancelled' = 'completed',
+  ): Promise<void> {
     const { error } = await this.supabaseService.client.from('seed_pool_sessions').insert({
       question_ids: questionIds,
       total_added: questionIds.length,
       target,
+      status,
+      generation_version: GENERATION_VERSION,
     });
     if (error) {
       this.logger.warn(`[storeSeedPoolSession] Failed to store session: ${error.message}`);
@@ -520,18 +728,46 @@ export class QuestionPoolService {
     return filtered.map((q) => q.question_text);
   }
 
-  /** Filters questions by factual integrity (LLM verification). No-op when disabled. */
+  /** Filters questions by factual integrity (LLM verification). Applies corrections when answer is wrong but question is valid. */
   private async filterByIntegrity(questions: GeneratedQuestion[]): Promise<GeneratedQuestion[]> {
     if (!this.questionIntegrity.isEnabled || questions.length === 0) return questions;
 
     const results = await Promise.all(
       questions.map(async (q) => {
-        const { valid, reason } = await this.questionIntegrity.verify(q);
-        return { q, valid, reason };
+        const vr = await this.questionIntegrity.verify(q);
+        return { q, ...vr };
       }),
     );
 
-    const passed = results.filter((r) => r.valid).map((r) => r.q);
+    const passed = results.filter((r) => r.valid).map((r) => {
+      const { q, correctedAnswer, correctedTop5, correctedQuestionText, correctedExplanation, correctedMeta } = r;
+      const baseMeta = correctedMeta && Object.keys(correctedMeta).length > 0 ? { ...q.meta, ...correctedMeta } : q.meta;
+      const finalMeta = correctedTop5 && q.category === 'TOP_5' ? { ...baseMeta, top5: correctedTop5 } : baseMeta;
+      const top5Desc = correctedTop5 ? correctedTop5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ') : null;
+      const hasCorrection =
+        correctedAnswer || correctedTop5 || correctedQuestionText || correctedExplanation || correctedMeta;
+
+      if (!hasCorrection) return q;
+
+      let explanation = q.explanation;
+      if (correctedExplanation) {
+        explanation = correctedExplanation;
+      } else if (top5Desc) {
+        explanation = q.explanation?.replace(/^The answers were: .+$/s, `The answers were: ${top5Desc}`) ?? `The answers were: ${top5Desc}`;
+      }
+
+      const correctAnswer =
+        correctedAnswer ?? (correctedTop5 && q.category === 'TOP_5' ? correctedTop5.map((e) => e.name).join(', ') : undefined);
+      const hasMetaChange =
+        (correctedMeta && Object.keys(correctedMeta).length > 0) || (correctedTop5 && q.category === 'TOP_5');
+      return {
+        ...q,
+        ...(correctAnswer && { correct_answer: correctAnswer }),
+        ...(correctedQuestionText && { question_text: correctedQuestionText }),
+        ...(explanation !== q.explanation && { explanation }),
+        ...(hasMetaChange && { meta: finalMeta }),
+      };
+    });
     const rejected = results.filter((r) => !r.valid);
     if (rejected.length > 0) {
       this.logger.log(
@@ -1035,21 +1271,56 @@ export class QuestionPoolService {
   }
 
   /**
-   * Fetches question_pool raw_score data and returns stats for the admin dashboard.
+   * Returns distinct generation_version values from question_pool (plus 'legacy' for nulls).
    */
-  async getPoolRawScoreStats(): Promise<PoolRawScoreStats> {
+  async getPoolGenerationVersions(): Promise<string[]> {
+    const { data, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('generation_version')
+      .limit(10000);
+
+    if (error) throw new Error(`[getPoolGenerationVersions] Query error: ${error.message}`);
+
+    const versions = new Set<string>();
+    for (const row of (data ?? []) as { generation_version?: string | null }[]) {
+      const v = row.generation_version;
+      versions.add(v == null || v === '' ? 'legacy' : v);
+    }
+    return [...versions].sort((a, b) => (a === 'legacy' ? 1 : a.localeCompare(b)));
+  }
+
+  /**
+   * Fetches question_pool raw_score data and returns stats for the admin dashboard.
+   * @param generationVersion Optional filter: specific version (e.g. '1.0.5') or 'legacy' for null.
+   */
+  async getPoolRawScoreStats(generationVersion?: string): Promise<PoolRawScoreStats> {
     const PAGE_SIZE = 1000;
-    const rows: { category: string; difficulty: string; raw_score: number | null }[] = [];
+    const rows: { category: string; difficulty: string; raw_score: number | null; generation_version?: string | null }[] = [];
     let offset = 0;
 
     while (true) {
-      const { data, error } = await this.supabaseService.client
+      let query = this.supabaseService.client
         .from('question_pool')
-        .select('category, difficulty, raw_score')
+        .select('category, difficulty, raw_score, generation_version')
         .range(offset, offset + PAGE_SIZE - 1);
 
+      if (generationVersion?.trim()) {
+        if (generationVersion.trim() === 'legacy') {
+          query = query.is('generation_version', null);
+        } else {
+          query = query.eq('generation_version', generationVersion.trim());
+        }
+      }
+
+      const { data, error } = await query;
+
       if (error) throw new Error(`[getPoolRawScoreStats] Query error: ${error.message}`);
-      const batch = (data ?? []) as { category: string; difficulty: string; raw_score: number | null }[];
+      const batch = (data ?? []) as {
+        category: string;
+        difficulty: string;
+        raw_score: number | null;
+        generation_version?: string | null;
+      }[];
       rows.push(...batch);
       if (batch.length < PAGE_SIZE) break;
       offset += PAGE_SIZE;
@@ -1067,9 +1338,13 @@ export class QuestionPoolService {
     for (const row of rows) {
       const key = `${row.category}/${row.difficulty}`;
       if (!slotStats[key]) {
-        slotStats[key] = { count: 0, avg: 0, min: 1, max: 0, std: 0, withRaw: 0 };
+        slotStats[key] = { count: 0, avg: 0, min: 1, max: 0, std: 0, withRaw: 0, generationVersions: {} };
       }
       slotStats[key].count += 1;
+
+      const ver = row.generation_version ?? 'legacy';
+      if (!slotStats[key].generationVersions) slotStats[key].generationVersions = {};
+      slotStats[key].generationVersions![ver] = (slotStats[key].generationVersions![ver] ?? 0) + 1;
 
       if (row.raw_score != null && !Number.isNaN(row.raw_score)) {
         rawValues.push(row.raw_score);
@@ -1128,12 +1403,13 @@ export class QuestionPoolService {
     search?: string,
     category?: string,
     difficulty?: string,
+    generationVersion?: string,
   ): Promise<{ questions: PoolQuestionRow[]; total: number }> {
     const offset = (page - 1) * limit;
-    const useRpc = search || category || difficulty;
+    const useRpc = search || category || difficulty || generationVersion?.trim();
 
     if (useRpc) {
-      const { data, error } = await this.supabaseService.client.rpc('get_admin_pool_questions', {
+      const rpcParams: Record<string, unknown> = {
         p_min_raw: minRaw,
         p_max_raw: maxRaw,
         p_search: search ?? null,
@@ -1141,7 +1417,11 @@ export class QuestionPoolService {
         p_difficulty: difficulty ?? null,
         p_limit: limit,
         p_offset: offset,
-      });
+      };
+      if (generationVersion?.trim()) {
+        rpcParams.p_generation_version = generationVersion.trim();
+      }
+      const { data, error } = await this.supabaseService.client.rpc('get_admin_pool_questions', rpcParams);
 
       if (error) throw new Error(`[getPoolQuestionsByRange] RPC error: ${error.message}`);
 
@@ -1167,6 +1447,13 @@ export class QuestionPoolService {
 
     if (category) query = query.eq('category', category);
     if (difficulty) query = query.eq('difficulty', difficulty);
+    if (generationVersion?.trim()) {
+      if (generationVersion.trim() === 'legacy') {
+        query = query.is('generation_version', null);
+      } else {
+        query = query.eq('generation_version', generationVersion.trim());
+      }
+    }
 
     const { data, count, error } = await query
       .order('raw_score', { ascending: true })
@@ -1188,20 +1475,44 @@ export class QuestionPoolService {
 
   /**
    * Lists seed-pool sessions (runs) for admin dashboard.
+   * @param generationVersion Optional filter: specific version (e.g. '1.0.5') or 'legacy' for null.
    */
-  async getSeedPoolSessions(): Promise<{ id: string; created_at: string; total_added: number; target: number }[]> {
-    const { data, error } = await this.supabaseService.client
+  async getSeedPoolSessions(generationVersion?: string): Promise<
+    { id: string; created_at: string; total_added: number; target: number; status?: string; generation_version?: string | null }[]
+  > {
+    let query = this.supabaseService.client
       .from('seed_pool_sessions')
-      .select('id, created_at, total_added, target')
+      .select('id, created_at, total_added, target, status, generation_version')
       .order('created_at', { ascending: false });
 
+    if (generationVersion?.trim()) {
+      if (generationVersion.trim() === 'legacy') {
+        query = query.is('generation_version', null);
+      } else {
+        query = query.eq('generation_version', generationVersion.trim());
+      }
+    }
+
+    const { data, error } = await query;
+
     if (error) throw new Error(`[getSeedPoolSessions] Query error: ${error.message}`);
-    return (data ?? []).map((r: { id: string; created_at: string; total_added: number; target: number }) => ({
-      id: r.id,
-      created_at: r.created_at,
-      total_added: r.total_added ?? 0,
-      target: r.target ?? 0,
-    }));
+    return (data ?? []).map(
+      (r: {
+        id: string;
+        created_at: string;
+        total_added: number;
+        target: number;
+        status?: string;
+        generation_version?: string | null;
+      }) => ({
+        id: r.id,
+        created_at: r.created_at,
+        total_added: r.total_added ?? 0,
+        target: r.target ?? 0,
+        status: r.status ?? 'completed',
+        generation_version: r.generation_version ?? null,
+      }),
+    );
   }
 
   /**
@@ -1223,30 +1534,44 @@ export class QuestionPoolService {
 
     const { data, error } = await this.supabaseService.client
       .from('question_pool')
-      .select('id, category, difficulty, raw_score, question')
+      .select('id, category, difficulty, raw_score, generation_version, question')
       .in('id', ids);
 
     if (error) throw new Error(`[getSessionQuestions] Query error: ${error.message}`);
 
     const orderMap = new Map(ids.map((id, i) => [id, i]));
     return (data ?? [])
-      .map((r: { id: string; category: string; difficulty: string; raw_score: number; question: { question_text?: string; correct_answer?: string } }) => ({
-        id: r.id,
-        category: r.category,
-        difficulty: r.difficulty,
-        raw_score: r.raw_score ?? 0,
-        question_text: r.question?.question_text ?? '',
-        correct_answer: r.question?.correct_answer ?? '',
-      }))
+      .map(
+        (r: {
+          id: string;
+          category: string;
+          difficulty: string;
+          raw_score: number;
+          generation_version?: string | null;
+          question: { question_text?: string; correct_answer?: string };
+        }) => ({
+          id: r.id,
+          category: r.category,
+          difficulty: r.difficulty,
+          raw_score: r.raw_score ?? 0,
+          generation_version: r.generation_version ?? null,
+          question_text: r.question?.question_text ?? '',
+          correct_answer: r.question?.correct_answer ?? '',
+        }),
+      )
       .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
   }
 
   /**
    * Fetches seed pool stats from get_seed_pool_stats RPC.
    * Returns unanswered (used=false) and answered (used=true) per slot, plus drawable counts.
+   * @param generationVersion Optional filter: specific version (e.g. '1.0.5') or 'legacy' for null.
    */
-  async getSeedPoolStats(): Promise<SeedPoolStatsRow[]> {
-    const { data, error } = await this.supabaseService.client.rpc('get_seed_pool_stats');
+  async getSeedPoolStats(generationVersion?: string): Promise<SeedPoolStatsRow[]> {
+    const params = generationVersion?.trim()
+      ? { p_generation_version: generationVersion.trim() }
+      : {};
+    const { data, error } = await this.supabaseService.client.rpc('get_seed_pool_stats', params);
     if (error) throw new Error(`[getSeedPoolStats] RPC error: ${error.message}`);
     return (data ?? []) as SeedPoolStatsRow[];
   }

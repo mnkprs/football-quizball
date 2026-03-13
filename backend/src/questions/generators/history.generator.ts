@@ -20,6 +20,7 @@ interface HistoryPayload {
   fifty_fifty_hint: string;
   wrong_choices?: string[];
   explanation: string;
+  source_url?: string;
   event_year: number;
   competition: string;
   fame_score: number;
@@ -42,8 +43,9 @@ Return ONLY a valid JSON object with these exact fields:
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
   "answer_type": "name",
-  "fifty_fifty_hint": "a plausible but incorrect answer (different from correct_answer), e.g. if correct is 'Brazil' write 'Argentina'",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+  ${this.getFiftyFiftyHintInstruction()},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
   "explanation": "brief explanation of why this is correct (1-2 sentences)",
+  ${this.getSourceUrlInstruction()},
   "event_year": 2022,
   "competition": "Competition or league name e.g. FIFA World Cup, Premier League, UEFA Champions League",
   "fame_score": 9,
@@ -75,8 +77,9 @@ Return ONLY a valid JSON object:
       "question_text": "the question",
       "correct_answer": "the answer",
       "answer_type": "player name",
-      "fifty_fifty_hint": "a plausible but wrong answer",
+      "fifty_fifty_hint": "a plausible but wrong answer (must be a string)",
       "explanation": "brief explanation",
+      "source_url": "URL to verify the answer",
       "event_year": 2022,
       "competition": "UEFA Champions League",
       "fame_score": 9,
@@ -107,6 +110,7 @@ ${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en', opti
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',
+      source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: null,
       difficulty_factors: {
         event_year: result.event_year ?? new Date().getFullYear(),
