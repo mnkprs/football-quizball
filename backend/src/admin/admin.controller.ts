@@ -111,12 +111,14 @@ export class AdminController {
     const n = parseInt(String(target || '100').replace(/^--/, ''), 10);
     const count = Number.isNaN(n) ? 100 : Math.min(500, Math.max(1, n));
     this.logger.log(`[seed-pool] Request received: target=${count}`);
-    const results = await this.questionPoolService.seedPool(count, true);
+    const { results, sessionId, questionIds } = await this.questionPoolService.seedPool(count, true);
     return {
       target: count,
       generationVersion: GENERATION_VERSION,
       results,
       totalAdded: results.reduce((sum, r) => sum + r.added, 0),
+      sessionId,
+      questionIds,
     };
   }
 
@@ -126,6 +128,7 @@ export class AdminController {
    * Example: POST /api/admin/verify-pool-integrity?limit=100
    *          POST /api/admin/verify-pool-integrity?limit=50&apply=true&category=GUESS_SCORE
    *          POST /api/admin/verify-pool-integrity?version=1.0.5&apply=true
+   *          POST /api/admin/verify-pool-integrity with body { "questionIds": ["uuid1", ...] } to verify specific questions (e.g. from seed-pool)
    */
   @Post('verify-pool-integrity')
   @UseGuards(AdminApiKeyGuard)
@@ -135,16 +138,19 @@ export class AdminController {
     @Query('category') category?: string,
     @Query('version') version?: string,
     @Query('apply') applyRaw?: string,
+    @Body() body?: { questionIds?: string[] },
   ) {
     const limit = Math.min(1000, Math.max(1, parseInt(limitRaw ?? '100', 10) || 100));
     const apply = applyRaw === 'true' || applyRaw === '1';
     const cat = (category ?? '').trim().toUpperCase() || undefined;
     const ver = (version ?? '').trim() || undefined;
+    const questionIds = Array.isArray(body?.questionIds) ? body.questionIds.filter(Boolean) : undefined;
     return this.questionPoolService.verifyPoolIntegrity({
       limit,
       category: cat as import('../common/interfaces/question.interface').QuestionCategory | undefined,
       version: ver,
       apply,
+      questionIds,
     });
   }
 

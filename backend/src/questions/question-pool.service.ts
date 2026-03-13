@@ -191,6 +191,7 @@ export class QuestionPoolService {
     category?: QuestionCategory;
     version?: string;
     apply?: boolean;
+    questionIds?: string[];
   }): Promise<{
     scanned: number;
     fixed: number;
@@ -214,15 +215,19 @@ export class QuestionPoolService {
     let query = this.supabaseService.client
       .from('question_pool')
       .select('id, category, difficulty, question')
-      .neq('category', 'NEWS')
-      .order('id', { ascending: true })
-      .limit(limit);
+      .neq('category', 'NEWS');
 
-    if (options.category) {
-      query = query.eq('category', options.category);
-    }
-    if (options.version?.trim()) {
-      query = query.eq('generation_version', options.version.trim());
+    if (options.questionIds?.length) {
+      // Verify only the specified questions (e.g. from a seed-pool run)
+      query = query.in('id', options.questionIds);
+    } else {
+      query = query.order('id', { ascending: true }).limit(limit);
+      if (options.category) {
+        query = query.eq('category', options.category);
+      }
+      if (options.version?.trim()) {
+        query = query.eq('generation_version', options.version.trim());
+      }
     }
 
     const { data: rows, error } = await query;
@@ -429,10 +434,13 @@ export class QuestionPoolService {
    * @param count Number of passes per category (each pass adds a batch).
    * @param force Bypass refill lock (e.g. for CLI scripts).
    */
-  async seedPool(count: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }[]> {
+  async seedPool(
+    count: number,
+    force = false,
+  ): Promise<{ results: { slot: string; added: number }[]; sessionId: string | null; questionIds: string[] }> {
     if (!force && this.isRefilling) {
       this.logger.warn('[seedPool] Refill already in progress, skipping');
-      return [];
+      return { results: [], sessionId: null, questionIds: [] };
     }
     const passes = Math.min(500, Math.max(1, count));
     return this.withRefillLock(async () => {
@@ -453,31 +461,41 @@ export class QuestionPoolService {
           }
         }
         completed = true;
-        return results;
       } finally {
         // Always store a session record so every run appears in the admin panel,
         // even when 0 questions were added or run was cancelled/failed.
-        await this.storeSeedPoolSession(allQuestionIds, passes, completed ? 'completed' : 'cancelled');
+        const sessionId = await this.storeSeedPoolSession(
+          allQuestionIds,
+          passes,
+          completed ? 'completed' : 'cancelled',
+        );
+        return { results, sessionId, questionIds: allQuestionIds };
       }
     });
   }
 
-  /** Persists a seed-pool session record for admin dashboard inspection. */
+  /** Persists a seed-pool session record for admin dashboard inspection. Returns session id if insert succeeded. */
   private async storeSeedPoolSession(
     questionIds: string[],
     target: number,
     status: 'completed' | 'cancelled' = 'completed',
-  ): Promise<void> {
-    const { error } = await this.supabaseService.client.from('seed_pool_sessions').insert({
-      question_ids: questionIds,
-      total_added: questionIds.length,
-      target,
-      status,
-      generation_version: GENERATION_VERSION,
-    });
+  ): Promise<string | null> {
+    const { data, error } = await this.supabaseService.client
+      .from('seed_pool_sessions')
+      .insert({
+        question_ids: questionIds,
+        total_added: questionIds.length,
+        target,
+        status,
+        generation_version: GENERATION_VERSION,
+      })
+      .select('id')
+      .single();
     if (error) {
       this.logger.warn(`[storeSeedPoolSession] Failed to store session: ${error.message}`);
+      return null;
     }
+    return (data as { id: string })?.id ?? null;
   }
 
   /**

@@ -236,6 +236,18 @@ const TRANSLATIONS = {
     donateModalSupport: 'Support on Ko-fi',
     donateModalMaybeLater: 'Maybe later',
     navBuyMeACoffee: 'Buy me a coffee',
+    // News mode
+    btnNews: 'NEWS',
+    btnNewsHint: 'Latest football headlines • Daily updates',
+    newsDailyBadge: 'DAILY',
+    newsLatestHeadlines: 'Latest headlines',
+    // Mayhem mode
+    btnMayhem: 'MAYHEM',
+    btnMayhemHint: 'Extremely hard trivia • All around the world',
+    mayhemNewBadge: 'EXTREME',
+    mayhemSubtitle: 'Obscure world football trivia',
+    mayhemFinishedTitle: 'Mayhem Complete!',
+    mayhemFinishedSubtitle: 'You survived the hardest football trivia.',
   },
   el: {
     // Setup
@@ -470,6 +482,18 @@ const TRANSLATIONS = {
     donateModalSupport: 'Υποστήριξε στο Ko-fi',
     donateModalMaybeLater: 'Ίσως αργότερα',
     navBuyMeACoffee: 'Καφέ για μένα',
+    // News mode
+    btnNews: 'ΝΕΩΝ',
+    btnNewsHint: 'Τελευταία ποδοσφαιρικά νέα • Καθημερινές ενημερώσεις',
+    newsDailyBadge: 'ΚΑΘΗΜΕΡΙΝΟ',
+    newsLatestHeadlines: 'Τελευταία νέα',
+    // Mayhem mode
+    btnMayhem: 'MAYHEM',
+    btnMayhemHint: 'Εξαιρετικά δύσκολα τριβιά • Από όλο τον κόσμο',
+    mayhemNewBadge: 'EXTREME',
+    mayhemSubtitle: 'Δυσεύρετα ποδοσφαιρικά τριβιά',
+    mayhemFinishedTitle: 'Mayhem Ολοκληρώθηκε!',
+    mayhemFinishedSubtitle: 'Επέζησες από τα πιο δύσκολα ποδοσφαιρικά τριβιά.',
   },
 } as const;
 

@@ -267,6 +267,7 @@ export class AdminScriptsService {
     questions_v1: { total: number };
     blitz_question_pool: { total: number; unanswered: number };
     daily_questions: { rows: number };
+    mayhem_unanswered: number;
   }> {
     const { count: qpTotal } = await this.supabase.client
       .from('question_pool')
@@ -276,10 +277,9 @@ export class AdminScriptsService {
       .select('id', { count: 'exact', head: true })
       .eq('used', false);
     const { count: qpNews } = await this.supabase.client
-      .from('question_pool')
+      .from('news_questions')
       .select('id', { count: 'exact', head: true })
-      .eq('category', 'NEWS')
-      .eq('used', false);
+      .gt('expires_at', new Date().toISOString());
 
     const { count: v1Total } = await this.supabase.client
       .from('questions_v1')
@@ -297,6 +297,11 @@ export class AdminScriptsService {
       .from('daily_questions')
       .select('question_date', { count: 'exact', head: true });
 
+    const { count: mayhemCount } = await this.supabase.client
+      .from('mayhem_questions')
+      .select('id', { count: 'exact', head: true })
+      .gt('expires_at', new Date().toISOString());
+
     return {
       question_pool: {
         total: qpTotal ?? 0,
@@ -309,6 +314,7 @@ export class AdminScriptsService {
         unanswered: bqpUnanswered ?? 0,
       },
       daily_questions: { rows: dqCount ?? 0 },
+      mayhem_unanswered: mayhemCount ?? 0,
     };
   }
 

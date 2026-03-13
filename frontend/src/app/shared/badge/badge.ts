@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 
-export type BadgeVariant = 'lime' | 'blue' | 'white';
+export type BadgeVariant = 'lime' | 'blue' | 'white' | 'red';
 
 @Component({
   selector: 'app-badge',
@@ -43,6 +43,12 @@ export type BadgeVariant = 'lime' | 'blue' | 'white';
       background: rgba(255, 255, 255, 0.1);
       color: #ffffff;
       border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .badge--red {
+      background: #ef4444;
+      color: #ffffff;
+      border: 1px solid color-mix(in srgb, #ef4444 72%, #ffffff 28%);
     }
   `],
 })
