@@ -22,6 +22,7 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
           alt=""
           aria-hidden="true"
         />
+        <span class="mode-card-container__bg-overlay" aria-hidden="true"></span>
       }
       @if (backgroundIcon()) {
         <span class="mode-card-container__bg-icon material-icons">{{ backgroundIcon() }}</span>
@@ -88,10 +89,19 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
       min-height: 180px;
     }
 
+
     .mode-card-container__bg-image,
+    .mode-card-container__bg-overlay,
     .mode-card-container__bg-icon {
       position: absolute;
       pointer-events: none;
+    }
+
+    .mode-card-container__bg-overlay {
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(9, 12, 18, 0.02), rgba(9, 12, 18, 0.38) 40%, rgba(9, 12, 18, 0.82)),
+        linear-gradient(135deg, rgba(204, 255, 0, 0.08), rgba(255, 255, 255, 0.03));
     }
 
     .mode-card-container__bg-image {
@@ -99,7 +109,8 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
       width: 100%;
       height: 100%;
       object-fit: cover;
-      opacity: 0.42;
+      opacity: 0.74;
+      z-index: -1;
       transform: scale(1);
       transition: transform 0.7s ease;
     }

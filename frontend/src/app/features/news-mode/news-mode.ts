@@ -178,11 +178,11 @@ type NewsPhase = 'loading' | 'question' | 'result' | 'finished';
     :host.news-mode-host {
       display: flex;
       flex-direction: column;
-      min-height: 100%;
+      min-height: 100dvh;
     }
     .news-root {
-      min-height: 100%;
       flex: 1;
+      min-height: 100dvh;
     }
   `],
 })

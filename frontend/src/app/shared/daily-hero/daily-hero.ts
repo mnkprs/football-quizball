@@ -66,7 +66,8 @@ import { MatIconModule } from '@angular/material/icon';
       height: 100%;
       object-fit: cover;
       object-position: center;
-      opacity: 0.34;
+      opacity: 0.74;
+      z-index: -1;
       transform: scale(1);
       transition: transform 0.7s ease;
     }
