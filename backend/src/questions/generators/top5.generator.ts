@@ -41,8 +41,10 @@ export class Top5Generator extends BaseGenerator {
   }
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+    const webSearchInstruction = `
+Use search_web to verify the top 5 ranking before returning. Search for "[competition/context] top 5 [stat]" to confirm names and order.`;
     const systemPrompt = `You are a football statistics expert. Generate a "Name the Top 5" football quiz question.
-Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
 Return ONLY valid JSON:
 {
   "question_text": "Name the top 5 ...",
@@ -67,7 +69,7 @@ specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific seas
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('TOP_5', options?.slotIndex, options?.minorityScale);
     this.logConstraints('TOP_5', options?.slotIndex, constraints);
-    const userPrompt = `Generate a unique and interesting "Name the Top 5" football question. Make it varied — avoid repeating common rankings. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate a unique and interesting "Name the Top 5" football question. Use search_web to verify the ranking before returning. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<Top5Payload>(systemPrompt, userPrompt);
     return this.mapQuestion(result);
@@ -75,8 +77,10 @@ specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific seas
 
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
+    const webSearchInstruction = `
+For each question: use search_web to verify the top 5 ranking. Search "[competition/context] top 5 [stat]" to confirm names and order.`;
     const systemPrompt = `You are a football statistics expert. Generate ${questionCount} "Name the Top 5" football quiz questions.
-These questions are hard by nature, but they must still be findable because the competition context is familiar.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+These questions are hard by nature, but they must still be findable because the competition context is familiar.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
 Return ONLY valid JSON:
 {
   "questions": [
@@ -99,7 +103,7 @@ Return ONLY valid JSON:
 }
 Do not mention any answer name from the top5 array anywhere in question_text.
 ${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} Top 5 questions in one batch. ${getRelativityConstraint('TOP_5', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} Top 5 questions in one batch. Use search_web to verify each ranking before returning. ${getRelativityConstraint('TOP_5', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: Top5Payload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));

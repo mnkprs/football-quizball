@@ -6,8 +6,8 @@ import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { DailyApiService } from '../../core/daily-api.service';
 import { LanguageService } from '../../core/language.service';
-import { ThemeToggleComponent } from '../../shared/theme-toggle';
 import { PageHeaderComponent } from '../../shared/page-header/page-header';
+import { SettingsMenuComponent } from '../../shared/settings-menu/settings-menu';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
 import { DailyHeroComponent } from '../../shared/daily-hero/daily-hero';
@@ -17,8 +17,8 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
   selector: 'app-home',
   standalone: true,
   imports: [
-    ThemeToggleComponent,
     PageHeaderComponent,
+    SettingsMenuComponent,
     SectionHeaderComponent,
     ModeCardComponent,
     DailyHeroComponent,
@@ -32,32 +32,12 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
           [titlePart1]="lang.t().appTitlePart1"
           [titlePart2]="lang.t().appTitlePart2"
           [subtitle]="lang.t().appSubtitle"
-          emoji="⚽"
+          logo="/icons/quizball-unlimited-logo.png"
         >
           <div pageHeaderActions>
-            <button
-              type="button"
-              class="home-lang-toggle"
-              (click)="lang.toggle()"
-              [attr.aria-label]="lang.lang() === 'en' ? 'Switch to Greek' : 'Switch to English'"
-            >
-              {{ lang.lang() === 'en' ? '🇬🇷 EL' : '🇬🇧 EN' }}
-            </button>
-            <app-theme-toggle />
+            <app-settings-menu (signOut)="signOut()" />
           </div>
         </app-page-header>
-
-        <app-daily-hero
-          [title]="lang.t().btnDaily"
-          [badgeLabel]="lang.t().dailyChallenge"
-          [questionCount]="dailyCount() ?? '—'"
-          [resetsIn]="dailyResetsIn()"
-          [questionsLabel]="lang.t().dailyQuestionsLabel"
-          [resetsLabel]="lang.t().dailyResetsIn"
-          [playLabel]="lang.t().dailyPlay"
-          backgroundImage="/football-field.png"
-          (play)="goDaily()"
-        />
 
         @if (auth.isLoggedIn()) {
           <app-auth-card
@@ -71,6 +51,19 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
             (avatarError)="onAvatarError()"
           />
         }
+
+        <app-daily-hero
+          [title]="lang.t().btnDaily"
+          [badgeLabel]="lang.t().dailyChallenge"
+          [questionCount]="dailyCount() ?? '—'"
+          [resetsIn]="dailyResetsIn()"
+          [questionsLabel]="lang.t().dailyQuestionsLabel"
+          [resetsLabel]="lang.t().dailyResetsIn"
+          [playLabel]="lang.t().dailyPlay"
+          backgroundImage="/football-field.png"
+          (play)="goDaily()"
+        />
+
 
         <app-section-header
           [title]="lang.t().gameModes"
@@ -156,25 +149,6 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
       max-width: 24.375rem;
       width: 100%;
       padding-bottom: 7.5rem;
-    }
-
-    .home-lang-toggle {
-      padding: 0.5rem 0.8125rem;
-      font-size: 0.8125rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      border-radius: 9999px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--color-header-foreground);
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s, background-color 0.2s;
-    }
-
-    .home-lang-toggle:hover {
-      border-color: var(--color-accent);
-      color: var(--color-accent);
-      background: rgba(255, 255, 255, 0.1);
     }
 
     .home-modes {

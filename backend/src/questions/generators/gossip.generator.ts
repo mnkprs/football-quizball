@@ -32,9 +32,11 @@ export class GossipGenerator extends BaseGenerator {
   }
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+    const webSearchInstruction = `
+Use search_web to verify the gossip/controversy fact before returning. Search for the event or person to confirm the answer.`;
     const systemPrompt = `You are a football celebrity gossip expert. Generate a fun football gossip trivia question.
 Topics can include: famous transfer sagas, player controversies, WAG stories, celebrity footballer relationships, off-pitch incidents, feuds between players or managers, outrageous quotes, extravagant lifestyles.
-Keep it factual (real events) and entertaining.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+Keep it factual (real events) and entertaining.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
 Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
@@ -53,7 +55,7 @@ combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dime
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GOSSIP', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GOSSIP', options?.slotIndex, constraints);
-    const userPrompt = `Generate a unique football gossip trivia question about a real off-pitch event, controversy, or celebrity moment. Keep it fun and factual. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate a unique football gossip trivia question about a real off-pitch event, controversy, or celebrity moment. Use search_web to verify the fact before returning. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<GossipPayload>(systemPrompt, userPrompt);
     return this.mapQuestion(result, options?.forBlitz);
@@ -61,11 +63,13 @@ combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dime
 
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
+    const webSearchInstruction = `
+For each question: use search_web to verify the gossip/controversy fact before returning.`;
     const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
-They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} football gossip questions in one batch. Use search_web to verify each fact before returning. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: GossipPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));

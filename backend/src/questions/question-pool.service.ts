@@ -3,6 +3,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
 import { QuestionValidator } from './validators/question.validator';
+import { QuestionIntegrityService } from './validators/question-integrity.service';
 import {
   GeneratedQuestion,
   QuestionCategory,
@@ -52,6 +53,7 @@ export class QuestionPoolService {
     private llmService: LlmService,
     private questionsService: QuestionsService,
     private questionValidator: QuestionValidator,
+    private questionIntegrity: QuestionIntegrityService,
   ) {}
 
   /**
@@ -472,7 +474,7 @@ export class QuestionPoolService {
       if (offset + batchSize < count) {
         await new Promise((r) => setTimeout(r, BATCH_THROTTLE_MS));
       }
-      const batch = results
+      const validated = results
         .filter((r): r is PromiseFulfilledResult<GeneratedQuestion> => r.status === 'fulfilled')
         .map((r) => r.value)
         .filter((q) => {
@@ -483,6 +485,8 @@ export class QuestionPoolService {
           }
           return true;
         });
+
+      const batch = await this.filterByIntegrity(validated);
       candidates.push(...batch);
     }
 
@@ -514,6 +518,27 @@ export class QuestionPoolService {
     }
     this.logger.log(`[fillSlot] Inserted ${filtered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - filtered.length} duplicates skipped)`);
     return filtered.map((q) => q.question_text);
+  }
+
+  /** Filters questions by factual integrity (web search verification). No-op when disabled. */
+  private async filterByIntegrity(questions: GeneratedQuestion[]): Promise<GeneratedQuestion[]> {
+    if (!this.questionIntegrity.isEnabled || questions.length === 0) return questions;
+
+    const results = await Promise.all(
+      questions.map(async (q) => {
+        const { valid, reason } = await this.questionIntegrity.verify(q);
+        return { q, valid, reason };
+      }),
+    );
+
+    const passed = results.filter((r) => r.valid).map((r) => r.q);
+    const rejected = results.filter((r) => !r.valid);
+    if (rejected.length > 0) {
+      this.logger.log(
+        `[fillSlot] Integrity rejected ${rejected.length}: ${rejected.map((r) => r.reason).join('; ')}`,
+      );
+    }
+    return passed;
   }
 
   /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */
@@ -634,6 +659,7 @@ export class QuestionPoolService {
           );
           const validatorRejected = candidates.filter((q) => !this.questionValidator.validate(q).valid);
           let afterValidator = candidates.filter((q) => this.questionValidator.validate(q).valid);
+          afterValidator = await this.filterByIntegrity(afterValidator);
           accepted = afterValidator.filter((q) => {
             const key = `${q.question_text}|||${q.correct_answer}`;
             if (existingKeys.has(key)) return false;
@@ -749,7 +775,7 @@ export class QuestionPoolService {
           q.allowedDifficulties?.includes(difficulty),
       );
       const validatorRejected: Array<{ question: string; reason: string }> = [];
-      const afterValidator = candidates.filter((q) => {
+      let afterValidator = candidates.filter((q) => {
         const { valid, reason } = this.questionValidator.validate(q);
         if (!valid && reason) {
           validatorRejected.push({
@@ -759,6 +785,7 @@ export class QuestionPoolService {
         }
         return valid;
       });
+      afterValidator = await this.filterByIntegrity(afterValidator);
       if (validatorRejected.length > 0) {
         this.logger.warn(
           `[seedSlot] Validator rejected ${validatorRejected.length}: ` +
@@ -885,9 +912,9 @@ export class QuestionPoolService {
             q.difficulty === difficulty ||
             q.allowedDifficulties?.includes(difficulty),
         );
-        let accepted = candidates
-          .filter((q) => this.questionValidator.validate(q).valid)
-          .filter((q) => {
+        let afterValidator = candidates.filter((q) => this.questionValidator.validate(q).valid);
+        afterValidator = await this.filterByIntegrity(afterValidator);
+        let accepted = afterValidator.filter((q) => {
             const key = `${q.question_text}|||${q.correct_answer}`;
             if (existingKeys.has(key)) return false;
             existingKeys.add(key);

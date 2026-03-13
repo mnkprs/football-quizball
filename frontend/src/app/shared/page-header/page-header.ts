@@ -6,7 +6,9 @@ import { Component, input } from '@angular/core';
   template: `
     <header class="page-header">
       <div class="page-header__title-row">
-        @if (emoji()) {
+        @if (logo()) {
+          <img [src]="logo()" alt="" class="page-header__badge page-header__badge--logo" />
+        } @else if (emoji()) {
           <span class="page-header__badge">{{ emoji() }}</span>
         }
         <h1 class="page-header__title">
@@ -58,6 +60,11 @@ import { Component, input } from '@angular/core';
       border-radius: 0.875rem;
       border: 1px solid color-mix(in srgb, var(--color-accent) 72%, #000000 28%);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .page-header__badge--logo {
+      object-fit: contain;
+      padding: 0.25rem;
     }
 
     .page-header__title {
@@ -115,4 +122,5 @@ export class PageHeaderComponent {
   titlePart2 = input<string>();
   subtitle = input<string>();
   emoji = input<string>('⚽');
+  logo = input<string>();
 }

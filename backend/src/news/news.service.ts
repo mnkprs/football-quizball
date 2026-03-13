@@ -5,6 +5,7 @@ import { LlmService } from '../llm/llm.service';
 import { NewsFetcherService } from './news-fetcher.service';
 import { NewsQuestionGenerator } from './news-question.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
+import { QuestionIntegrityService } from '../questions/validators/question-integrity.service';
 import { GeneratedQuestion } from '../questions/question.types';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 
@@ -21,6 +22,7 @@ export class NewsService {
     private supabaseService: SupabaseService,
     private llmService: LlmService,
     private questionValidator: QuestionValidator,
+    private questionIntegrity: QuestionIntegrityService,
   ) {}
 
   /**
@@ -53,14 +55,30 @@ export class NewsService {
       const questions = await this.newsGenerator.generateFromHeadlines(headlines);
       const existingKeys = await this.getExistingQuestionKeys();
 
-      const rows = questions
+      let validQuestions = questions.filter((q) => {
+        const { valid, reason } = this.questionValidator.validate(q);
+        if (!valid) {
+          this.logger.debug(`[ingestNews] Rejected: ${reason}`);
+          skipped++;
+          return false;
+        }
+        return true;
+      });
+
+      if (this.questionIntegrity.isEnabled) {
+        const integrityResults = await Promise.all(
+          validQuestions.map(async (q) => ({ q, result: await this.questionIntegrity.verify(q) })),
+        );
+        validQuestions = integrityResults.filter((r) => r.result.valid).map((r) => r.q);
+        const rejected = integrityResults.filter((r) => !r.result.valid);
+        if (rejected.length > 0) {
+          skipped += rejected.length;
+          this.logger.log(`[ingestNews] Integrity rejected ${rejected.length} NEWS questions`);
+        }
+      }
+
+      const rows = validQuestions
         .filter((q) => {
-          const { valid, reason } = this.questionValidator.validate(q);
-          if (!valid) {
-            this.logger.debug(`[ingestNews] Rejected: ${reason}`);
-            skipped++;
-            return false;
-          }
           const key = `${q.question_text}|||${q.correct_answer}`;
           if (existingKeys.has(key)) {
             skipped++;

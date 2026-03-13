@@ -33,9 +33,11 @@ export class GeographyGenerator extends BaseGenerator {
   }
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+    const webSearchInstruction = `
+Use search_web to verify geography facts (city, country, stadium location, host nation) before returning.`;
     const systemPrompt = `You are a football geography expert. Generate a football-related geography question.
       VARY the question type: use cities, stadiums, nationalities, confederations, club locations — Topics: cities and their clubs, stadium locations, player nationalities, FIFA/UEFA confederations, host nations, club bases.
-      ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+      ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
       Return ONLY a valid JSON object with these exact fields:
       {
         "question_text": "the question",
@@ -56,7 +58,7 @@ export class GeographyGenerator extends BaseGenerator {
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GEOGRAPHY', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GEOGRAPHY', options?.slotIndex, constraints);
-    const userPrompt = `Generate a unique football geography trivia question. Make it interesting. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate a unique football geography trivia question. Use search_web to verify the geography fact before returning. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<GeographyPayload>(systemPrompt, userPrompt);
     return this.mapQuestion(result, options?.forBlitz);
@@ -64,13 +66,15 @@ export class GeographyGenerator extends BaseGenerator {
 
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
+    const webSearchInstruction = `
+For each question: use search_web to verify the geography fact (city, country, stadium, host nation) before returning.`;
     const systemPrompt = `You are a football geography expert. Generate ${questionCount} football geography questions.
 CRITICAL: Each question MUST use a DIFFERENT entity type and phrasing. Use exactly one of: (1) a city question, (2) a stadium question, (3) a country/nation question. Do NOT use "Which country hosted..." for more than one question. Vary: "Which city...", "In which country is...", "Which stadium...", "Which nationality...", etc.
 They should range from easy to hard while staying answerable in familiar contexts.
-${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}
+${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${webSearchInstruction}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
     ${getLeagueFameGuidanceForBatch('GEOGRAPHY', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} football geography questions in one batch. Use search_web to verify each geography fact before returning. ${getRelativityConstraint('GEOGRAPHY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: GeographyPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));

@@ -36,10 +36,11 @@ export class WebSearchService {
     }
 
     try {
+      // topic: 'general' (not 'news') — better for historical match scores, career paths, stats
       const response = await this.client.search(query, {
         maxResults: Math.min(maxResults, 10),
         searchDepth: 'basic',
-        topic: 'news',
+        topic: 'general',
         includeAnswer: false,
       });
 
@@ -49,7 +50,7 @@ export class WebSearchService {
         content: r.content ?? '',
       }));
 
-      this.logger.debug(`[search] "${query}" → ${results.length} results`);
+      this.logger.log(`[Tavily] search "${query}" → ${results.length} results`);
       return { query, results };
     } catch (err) {
       this.logger.error(`[search] Failed: ${(err as Error).message}`);

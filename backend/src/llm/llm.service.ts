@@ -7,8 +7,8 @@ import { WebSearchService } from '../web-search/web-search.service';
 /** DeepSeek model. OpenAI-compatible API. */
 const DEEPSEEK_MODEL = 'deepseek-chat';
 
-/** Max tool-call rounds to avoid infinite loops. */
-const MAX_TOOL_ROUNDS = 5;
+/** Max tool-call rounds before forcing final response. */
+const MAX_TOOL_ROUNDS = 8;
 
 /** Delay (ms) before retry when rate limited. */
 const RATE_LIMIT_RETRY_MS = 30_000;
@@ -18,13 +18,14 @@ const SEARCH_WEB_TOOL: OpenAI.Chat.Completions.ChatCompletionTool = {
   function: {
     name: 'search_web',
     description:
-      'Search the web for real-time information (e.g. player current club, transfer news, latest team). Use when you need up-to-date information that may not be in your training data.',
+      'Search the web to verify factual claims before returning them. Use for: match scores, player career/transfers, statistics, historical events. Only return facts that are explicitly confirmed in search results. Never guess — if search does not clearly confirm a fact, do not include it.',
     parameters: {
       type: 'object',
       properties: {
         query: {
           type: 'string',
-          description: "Search query (e.g. 'Player Name current club 2025')",
+          description:
+            "Search query (e.g. 'Team A vs Team B 2019 Champions League final score', 'Player Name career clubs')",
         },
       },
       required: ['query'],
@@ -205,6 +206,22 @@ export class LlmService {
       messages.push(msg as OpenAI.Chat.Completions.ChatCompletionAssistantMessageParam);
 
       const toolCalls = msg.tool_calls;
+      if (toolCalls?.length) {
+        const queries = toolCalls
+          .filter((tc) => 'function' in tc && tc.function?.name === 'search_web')
+          .map((tc) => {
+            const fn = 'function' in tc ? tc.function : null;
+            try {
+              const args = JSON.parse(typeof fn?.arguments === 'string' ? fn.arguments : '{}');
+              return args.query ?? '?';
+            } catch {
+              return '?';
+            }
+          });
+        if (queries.length) {
+          this.logger.log(`[LLM] web search requested: ${queries.join(' | ')}`);
+        }
+      }
       if (!toolCalls?.length) {
         const text = msg.content ?? '';
         if (text.trim()) return extractJson<T>(text);
@@ -228,6 +245,25 @@ export class LlmService {
           tool_call_id: tc.id,
           content,
         } as OpenAI.Chat.Completions.ChatCompletionToolMessageParam);
+      }
+
+      if (round === MAX_TOOL_ROUNDS - 1 && toolCalls?.length) {
+        this.logger.warn('[LLM] Max tool rounds reached — forcing final response');
+        const forced = await this.deepseekClient!.chat.completions.create({
+          model: DEEPSEEK_MODEL,
+          messages: [
+            ...messages,
+            {
+              role: 'user',
+              content:
+                'Return the final JSON now. Include ONLY items whose facts were explicitly confirmed in the search results. Omit any item you could not verify — do not guess. Output only valid JSON.',
+            },
+          ],
+          temperature: 0.7,
+          top_p: 0.95,
+        });
+        const text = forced.choices?.[0]?.message?.content ?? '';
+        if (text.trim()) return extractJson<T>(text);
       }
     }
 

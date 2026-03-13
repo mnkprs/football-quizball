@@ -97,9 +97,10 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
       break;
     }
     case 'GUESS_SCORE': {
-      constraints.push(`The match MUST be from ${pick(YEAR_RANGES, useIndex(0))}.`);
-      constraints.push(`The match MUST involve ${pick(COMPETITIONS, useIndex(1))}.`);
-      constraints.push(`The angle MUST be: ${pick(QUESTION_ANGLES.GUESS_SCORE, useIndex(2))}.`);
+      constraints.push(`Prefer match from ${pick(YEAR_RANGES, useIndex(0))} — but only if you can verify the score via search.`);
+      constraints.push(`Prefer ${pick(COMPETITIONS, useIndex(1))} — relax if no verified match fits.`);
+      constraints.push(`Prefer angle: ${pick(QUESTION_ANGLES.GUESS_SCORE, useIndex(2))}.`);
+      constraints.push(`If constraints cannot be satisfied with a verified match, relax them and pick any match whose score is explicitly confirmed in search.`);
       break;
     }
     case 'TOP_5': {
