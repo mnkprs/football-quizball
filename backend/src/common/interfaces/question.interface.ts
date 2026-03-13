@@ -6,7 +6,8 @@ export type QuestionCategory =
   | 'TOP_5'
   | 'GEOGRAPHY'
   | 'GOSSIP'
-  | 'NEWS';
+  | 'NEWS'
+  | 'MAYHEM';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 export type QuestionLocale = 'en' | 'el';
