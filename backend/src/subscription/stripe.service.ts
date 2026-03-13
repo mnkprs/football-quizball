@@ -1,17 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 
 @Injectable()
 export class StripeService {
-  private stripe: Stripe;
+  private stripe: Stripe | null = null;
   private webhookSecret: string;
   private priceId: string;
 
   constructor(private configService: ConfigService) {
-    this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY')!);
-    this.webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET')!;
-    this.priceId = this.configService.get<string>('STRIPE_PRICE_ID')!;
+    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+    this.webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET') ?? '';
+    this.priceId = this.configService.get<string>('STRIPE_PRICE_ID') ?? '';
+    if (secretKey) {
+      this.stripe = new Stripe(secretKey);
+    }
+  }
+
+  get isConfigured(): boolean {
+    return !!this.stripe;
+  }
+
+  private requireStripe(): Stripe {
+    if (!this.stripe) throw new HttpException('Stripe is not configured', 503);
+    return this.stripe;
   }
 
   async createCheckoutSession(
@@ -20,7 +32,7 @@ export class StripeService {
     successUrl: string,
     cancelUrl: string,
   ): Promise<string> {
-    const session = await this.stripe.checkout.sessions.create({
+    const session = await this.requireStripe().checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       customer_email: email,
@@ -34,7 +46,7 @@ export class StripeService {
   }
 
   async createPortalSession(customerId: string, returnUrl: string): Promise<string> {
-    const session = await this.stripe.billingPortal.sessions.create({
+    const session = await this.requireStripe().billingPortal.sessions.create({
       customer: customerId,
       return_url: returnUrl,
     });
@@ -42,6 +54,6 @@ export class StripeService {
   }
 
   constructWebhookEvent(rawBody: Buffer, sig: string): Stripe.Event {
-    return this.stripe.webhooks.constructEvent(rawBody, sig, this.webhookSecret);
+    return this.requireStripe().webhooks.constructEvent(rawBody, sig, this.webhookSecret);
   }
 }
