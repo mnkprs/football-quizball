@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { proGuard } from './guards/pro.guard';
 
 export const routes: Routes = [
   {
@@ -8,8 +9,10 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./features/home/home').then(m => m.HomeComponent) },
       { path: 'invite', loadComponent: () => import('./features/invite/invite').then(m => m.InviteComponent) },
-      { path: 'solo', loadComponent: () => import('./features/solo/solo').then(m => m.SoloComponent), canActivate: [authGuard] },
-      { path: 'blitz', loadComponent: () => import('./features/blitz/blitz').then(m => m.BlitzComponent), canActivate: [authGuard] },
+      { path: 'news', loadComponent: () => import('./features/news-mode/news-mode').then(m => m.NewsModeComponent) },
+      { path: 'mayhem', loadComponent: () => import('./features/mayhem-mode/mayhem-mode').then(m => m.MayhemModeComponent), canActivate: [authGuard] },
+      { path: 'solo', loadComponent: () => import('./features/solo/solo').then(m => m.SoloComponent), canActivate: [proGuard] },
+      { path: 'blitz', loadComponent: () => import('./features/blitz/blitz').then(m => m.BlitzComponent), canActivate: [proGuard] },
       { path: 'daily', loadComponent: () => import('./features/daily/daily').then(m => m.DailyComponent) },
       { path: 'leaderboard', loadComponent: () => import('./features/leaderboard/leaderboard').then(m => m.LeaderboardComponent) },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },

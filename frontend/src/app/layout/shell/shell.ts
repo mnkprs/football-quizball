@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { MatIconModule } from '@angular/material/icon';
 import { LanguageService } from '../../core/language.service';
 import { environment } from '../../../environments/environment';
+import { UpgradeModalComponent } from '../../shared/upgrade-modal/upgrade-modal';
 
 export interface NavTab {
   labelKey: 'navHome' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
@@ -19,9 +20,11 @@ export interface NavTab {
     RouterLink,
     RouterLinkActive,
     MatIconModule,
+    UpgradeModalComponent,
   ],
   template: `
     <div class="shell-layout">
+      <app-upgrade-modal />
       <main class="shell-main">
         <router-outlet />
       </main>

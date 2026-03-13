@@ -173,6 +173,26 @@ export class SupabaseService {
    *      WHERE id = p_user_id;
    *    $$;
    */
+  async getProStatus(userId: string): Promise<{ is_pro: boolean; trial_games_used: number; stripe_customer_id: string | null } | null> {
+    const { data } = await this.client
+      .from('profiles')
+      .select('is_pro, trial_games_used, stripe_customer_id')
+      .eq('id', userId)
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  async setProStatus(userId: string, isPro: boolean, customerId?: string, subscriptionId?: string): Promise<void> {
+    const update: Record<string, unknown> = { is_pro: isPro };
+    if (customerId !== undefined) update['stripe_customer_id'] = customerId;
+    if (subscriptionId !== undefined) update['stripe_subscription_id'] = subscriptionId;
+    await this.client.from('profiles').update(update).eq('id', userId);
+  }
+
+  async incrementTrialGames(userId: string): Promise<void> {
+    await this.client.rpc('increment_trial_games', { p_user_id: userId });
+  }
+
   async incrementGamesPlayed(userId: string, questionsAnswered: number, correctAnswers: number): Promise<void> {
     const { error } = await this.client.rpc('increment_stats', {
       p_user_id: userId,

@@ -52,6 +52,7 @@ export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Diffic
   GEOGRAPHY: ['EASY', 'MEDIUM', 'HARD'],
   GOSSIP: ['MEDIUM', 'MEDIUM'],
   NEWS: ['MEDIUM', 'MEDIUM'],
+  MAYHEM: ['HARD', 'HARD'],
 };
 
 /**

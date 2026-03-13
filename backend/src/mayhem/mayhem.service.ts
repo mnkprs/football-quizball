@@ -1,39 +1,39 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
-import { NewsFetcherService } from './news-fetcher.service';
-import { NewsQuestionGenerator } from './news-question.generator';
+import { MayhemQuestionGenerator } from './mayhem-question.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
 import { QuestionIntegrityService } from '../questions/validators/question-integrity.service';
-import { AnswerValidator } from '../questions/validators/answer.validator';
 import { GeneratedQuestion } from '../questions/question.types';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 
-const NEWS_POOL_TARGET = 10;
+const MAYHEM_POOL_TARGET = 20;
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 @Injectable()
-export class NewsService {
-  private readonly logger = new Logger(NewsService.name);
+export class MayhemService {
+  private readonly logger = new Logger(MayhemService.name);
   private isIngesting = false;
 
   constructor(
-    private newsFetcher: NewsFetcherService,
-    private newsGenerator: NewsQuestionGenerator,
+    private mayhemGenerator: MayhemQuestionGenerator,
     private supabaseService: SupabaseService,
     private llmService: LlmService,
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
-    private answerValidator: AnswerValidator,
   ) {}
 
-  /**
-   * Fetches headlines, generates questions, and inserts into question_pool.
-   * Skips if already ingesting or pool has enough NEWS questions.
-   */
-  async ingestNews(): Promise<{ added: number; skipped: number }> {
+  async ingestMayhem(): Promise<{ added: number; skipped: number }> {
     if (this.isIngesting) {
-      this.logger.warn('[ingestNews] Already ingesting, skipping');
+      this.logger.warn('[ingestMayhem] Already ingesting, skipping');
       return { added: 0, skipped: 0 };
     }
 
@@ -42,25 +42,24 @@ export class NewsService {
     let skipped = 0;
 
     try {
-      const current = await this.getNewsPoolCount();
-      if (current >= NEWS_POOL_TARGET) {
-        this.logger.log(`[ingestNews] Pool has ${current} NEWS questions, skipping`);
+      const current = await this.getMayhemPoolCount();
+      if (current >= MAYHEM_POOL_TARGET) {
+        this.logger.log(`[ingestMayhem] Pool has ${current} MAYHEM questions, skipping`);
         return { added: 0, skipped: 0 };
       }
 
-      const headlines = await this.newsFetcher.fetchHeadlines();
-      if (headlines.length === 0) {
-        this.logger.warn('[ingestNews] No headlines fetched');
+      const questions = await this.mayhemGenerator.generateBatch();
+      if (questions.length === 0) {
+        this.logger.warn('[ingestMayhem] No questions generated');
         return { added: 0, skipped: 0 };
       }
 
-      const questions = await this.newsGenerator.generateFromHeadlines(headlines);
       const existingKeys = await this.getExistingQuestionKeys();
 
       let validQuestions = questions.filter((q) => {
         const { valid, reason } = this.questionValidator.validate(q);
         if (!valid) {
-          this.logger.debug(`[ingestNews] Rejected: ${reason}`);
+          this.logger.debug(`[ingestMayhem] Rejected by validator: ${reason}`);
           skipped++;
           return false;
         }
@@ -75,7 +74,7 @@ export class NewsService {
         const rejected = integrityResults.filter((r) => !r.result.valid);
         if (rejected.length > 0) {
           skipped += rejected.length;
-          this.logger.log(`[ingestNews] Integrity rejected ${rejected.length} NEWS questions`);
+          this.logger.log(`[ingestMayhem] Integrity rejected ${rejected.length} MAYHEM questions`);
         }
       }
 
@@ -95,7 +94,7 @@ export class NewsService {
         }));
 
       if (rows.length === 0) {
-        this.logger.warn('[ingestNews] No valid questions to insert');
+        this.logger.warn('[ingestMayhem] No valid questions to insert');
         return { added: 0, skipped };
       }
 
@@ -108,7 +107,7 @@ export class NewsService {
       try {
         translations = await this.llmService.translateToGreek(translations);
       } catch (err) {
-        this.logger.warn(`[ingestNews] Greek translation failed, inserting without translations: ${(err as Error).message}`);
+        this.logger.warn(`[ingestMayhem] Greek translation failed, inserting without: ${(err as Error).message}`);
       }
 
       const rowsWithTranslations = rows.map((r, i) => ({
@@ -122,16 +121,16 @@ export class NewsService {
       }));
 
       const { error } = await this.supabaseService.client
-        .from('news_questions')
+        .from('mayhem_questions')
         .insert(rowsWithTranslations);
 
       if (error) {
-        this.logger.error(`[ingestNews] Insert error: ${error.message}`);
+        this.logger.error(`[ingestMayhem] Insert error: ${error.message}`);
         return { added: 0, skipped };
       }
 
       added = rows.length;
-      this.logger.log(`[ingestNews] Inserted ${added} NEWS questions (${skipped} skipped)`);
+      this.logger.log(`[ingestMayhem] Inserted ${added} MAYHEM questions (${skipped} skipped)`);
     } finally {
       this.isIngesting = false;
     }
@@ -139,23 +138,81 @@ export class NewsService {
     return { added, skipped };
   }
 
-  @Cron(CronExpression.EVERY_6_HOURS)
-  async scheduledIngest() {
-    this.logger.log('[CRON] News ingest (every 6h): checking pool, expiring old...');
-    await this.expireOldNews();
-    await this.ingestNews();
+  async getMayhemPoolCount(): Promise<number> {
+    const { count, error } = await this.supabaseService.client
+      .from('mayhem_questions')
+      .select('id', { count: 'exact', head: true })
+      .gt('expires_at', new Date().toISOString());
+
+    if (error) {
+      this.logger.error(`[getMayhemPoolCount] Error: ${error.message}`);
+      return 0;
+    }
+    return count ?? 0;
   }
 
-  /** Deletes NEWS questions older than 7 days. */
-  async expireOldNews(): Promise<number> {
-    const { data, error } = await this.supabaseService.client.rpc('expire_news_questions');
+  async getMayhemQuestions(
+    excludeIds: string[] = [],
+  ): Promise<Array<{ id: string; question_text: string; options: string[] }>> {
+    const { data, error } = await this.supabaseService.client
+      .from('mayhem_questions')
+      .select('id, question')
+      .gt('expires_at', new Date().toISOString())
+      .limit(50);
+
     if (error) {
-      this.logger.error(`[expireOldNews] Error: ${error.message}`);
+      this.logger.error(`[getMayhemQuestions] Error: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? [])
+      .filter((r: { id: string }) => !excludeIds.includes(r.id))
+      .map((r: { id: string; question: Record<string, unknown> }) => {
+        const q = r.question;
+        const correctAnswer = q['correct_answer'] as string;
+        const wrongChoices = (q['wrong_choices'] as string[]) ?? [];
+        const options = shuffleArray([correctAnswer, ...wrongChoices.slice(0, 3)]);
+        return {
+          id: r.id,
+          question_text: q['question_text'] as string,
+          options,
+        };
+      });
+  }
+
+  async checkMayhemAnswer(
+    questionId: string,
+    selectedAnswer: string,
+  ): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
+    const { data, error } = await this.supabaseService.client
+      .from('mayhem_questions')
+      .select('question')
+      .eq('id', questionId)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    const q = (data as { question: Record<string, string> }).question;
+    const correctAnswer = q['correct_answer'] ?? '';
+    const correct = selectedAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
+
+    return {
+      correct,
+      correct_answer: correctAnswer,
+      explanation: q['explanation'] ?? '',
+    };
+  }
+
+  async expireOldMayhem(): Promise<number> {
+    const { data, error } = await this.supabaseService.client.rpc('expire_mayhem_questions');
+    if (error) {
+      this.logger.error(`[expireOldMayhem] Error: ${error.message}`);
       return 0;
     }
     const deleted = (data as number) ?? 0;
     if (deleted > 0) {
-      this.logger.log(`[expireOldNews] Deleted ${deleted} NEWS questions older than 7 days`);
+      this.logger.log(`[expireOldMayhem] Deleted ${deleted} MAYHEM questions older than 30 days`);
     }
     return deleted;
   }
@@ -165,88 +222,21 @@ export class NewsService {
       id: q.id,
       question_text: q.question_text,
       correct_answer: q.correct_answer,
-      fifty_fifty_hint: q.fifty_fifty_hint,
-      fifty_fifty_applicable: q.fifty_fifty_applicable,
+      wrong_choices: q.wrong_choices ?? [],
+      fifty_fifty_hint: null,
+      fifty_fifty_applicable: false,
       explanation: q.explanation,
       image_url: q.image_url,
       category: q.category,
       difficulty: q.difficulty,
       points: q.points,
-      wrong_choices: q.wrong_choices,
-    };
-  }
-
-  private async getNewsPoolCount(): Promise<number> {
-    const { count, error } = await this.supabaseService.client
-      .from('news_questions')
-      .select('id', { count: 'exact', head: true })
-      .gt('expires_at', new Date().toISOString());
-
-    if (error) {
-      this.logger.error(`[getNewsPoolCount] Error: ${error.message}`);
-      return 0;
-    }
-    return count ?? 0;
-  }
-
-  /**
-   * Returns active news questions for the News mode (no correct_answer exposed).
-   * Client passes already-seen IDs to exclude.
-   */
-  async getNewsQuestions(excludeIds: string[] = []): Promise<Array<{ id: string; question_text: string; fifty_fifty_hint: string | null; source_url: string | null }>> {
-    const { data, error } = await this.supabaseService.client
-      .from('news_questions')
-      .select('id, question')
-      .gt('expires_at', new Date().toISOString())
-      .limit(30);
-
-    if (error) {
-      this.logger.error(`[getNewsQuestions] Error: ${error.message}`);
-      return [];
-    }
-
-    return (data ?? [])
-      .filter((r: { id: string }) => !excludeIds.includes(r.id))
-      .map((r: { id: string; question: Record<string, string | null> }) => ({
-        id: r.id,
-        question_text: r.question['question_text'] as string,
-        fifty_fifty_hint: (r.question['fifty_fifty_hint'] as string | null) ?? null,
-        source_url: (r.question['source_url'] as string | null) ?? null,
-      }));
-  }
-
-  /**
-   * Validates an answer for a news question.
-   * Returns null if question not found or expired.
-   */
-  async checkNewsAnswer(questionId: string, answer: string): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
-    const { data, error } = await this.supabaseService.client
-      .from('news_questions')
-      .select('question')
-      .eq('id', questionId)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle();
-
-    if (error || !data) return null;
-
-    const q = (data as { question: Record<string, string> }).question;
-    const mockQuestion = {
-      category: 'NEWS' as const,
-      correct_answer: q['correct_answer'],
-      question_text: q['question_text'],
-    } as import('../questions/question.types').GeneratedQuestion;
-
-    const correct = this.answerValidator.validate(mockQuestion, answer);
-    return {
-      correct,
-      correct_answer: q['correct_answer'],
-      explanation: q['explanation'] ?? '',
+      source_url: q.source_url ?? null,
     };
   }
 
   private async getExistingQuestionKeys(): Promise<Set<string>> {
     const { data, error } = await this.supabaseService.client
-      .from('news_questions')
+      .from('mayhem_questions')
       .select('question');
 
     if (error) {

@@ -9,6 +9,7 @@ export const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   GEOGRAPHY: 'Geography',
   GOSSIP: 'Gossip',
   NEWS: 'News',
+  MAYHEM: 'Mayhem',
 };
 
 export const CATEGORY_LABELS_EL: Record<QuestionCategory, string> = {
@@ -20,4 +21,5 @@ export const CATEGORY_LABELS_EL: Record<QuestionCategory, string> = {
   GEOGRAPHY: 'Γεωγραφία',
   GOSSIP: 'Gossip',
   NEWS: 'Νέα',
+  MAYHEM: 'Mayhem',
 };
