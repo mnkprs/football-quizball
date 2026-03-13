@@ -15,6 +15,8 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { NewsModule } from './news/news.module';
 import { DailyModule } from './daily/daily.module';
 import { ReportsModule } from './reports/reports.module';
+import { MayhemModule } from './mayhem/mayhem.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -34,6 +36,8 @@ import { ReportsModule } from './reports/reports.module';
     NewsModule,
     DailyModule,
     ReportsModule,
+    MayhemModule,
+    SubscriptionModule,
   ],
 })
 export class AppModule {}

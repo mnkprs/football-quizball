@@ -6,6 +6,7 @@ import { NewsFetcherService } from './news-fetcher.service';
 import { NewsQuestionGenerator } from './news-question.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
 import { QuestionIntegrityService } from '../questions/validators/question-integrity.service';
+import { AnswerValidator } from '../questions/validators/answer.validator';
 import { GeneratedQuestion } from '../questions/question.types';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 
@@ -23,6 +24,7 @@ export class NewsService {
     private llmService: LlmService,
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
+    private answerValidator: AnswerValidator,
   ) {}
 
   /**
@@ -88,9 +90,6 @@ export class NewsService {
           return true;
         })
         .map((q) => ({
-          category: 'NEWS',
-          difficulty: 'MEDIUM',
-          used: false,
           generation_version: GENERATION_VERSION,
           question: this.toPoolQuestion(q),
         }));
@@ -123,7 +122,7 @@ export class NewsService {
       }));
 
       const { error } = await this.supabaseService.client
-        .from('question_pool')
+        .from('news_questions')
         .insert(rowsWithTranslations);
 
       if (error) {
@@ -179,10 +178,9 @@ export class NewsService {
 
   private async getNewsPoolCount(): Promise<number> {
     const { count, error } = await this.supabaseService.client
-      .from('question_pool')
+      .from('news_questions')
       .select('id', { count: 'exact', head: true })
-      .eq('category', 'NEWS')
-      .eq('used', false);
+      .gt('expires_at', new Date().toISOString());
 
     if (error) {
       this.logger.error(`[getNewsPoolCount] Error: ${error.message}`);
@@ -191,11 +189,65 @@ export class NewsService {
     return count ?? 0;
   }
 
+  /**
+   * Returns active news questions for the News mode (no correct_answer exposed).
+   * Client passes already-seen IDs to exclude.
+   */
+  async getNewsQuestions(excludeIds: string[] = []): Promise<Array<{ id: string; question_text: string; fifty_fifty_hint: string | null; source_url: string | null }>> {
+    const { data, error } = await this.supabaseService.client
+      .from('news_questions')
+      .select('id, question')
+      .gt('expires_at', new Date().toISOString())
+      .limit(30);
+
+    if (error) {
+      this.logger.error(`[getNewsQuestions] Error: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? [])
+      .filter((r: { id: string }) => !excludeIds.includes(r.id))
+      .map((r: { id: string; question: Record<string, string | null> }) => ({
+        id: r.id,
+        question_text: r.question['question_text'] as string,
+        fifty_fifty_hint: (r.question['fifty_fifty_hint'] as string | null) ?? null,
+        source_url: (r.question['source_url'] as string | null) ?? null,
+      }));
+  }
+
+  /**
+   * Validates an answer for a news question.
+   * Returns null if question not found or expired.
+   */
+  async checkNewsAnswer(questionId: string, answer: string): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
+    const { data, error } = await this.supabaseService.client
+      .from('news_questions')
+      .select('question')
+      .eq('id', questionId)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    const q = (data as { question: Record<string, string> }).question;
+    const mockQuestion = {
+      category: 'NEWS' as const,
+      correct_answer: q['correct_answer'],
+      question_text: q['question_text'],
+    } as import('../questions/question.types').GeneratedQuestion;
+
+    const correct = this.answerValidator.validate(mockQuestion, answer);
+    return {
+      correct,
+      correct_answer: q['correct_answer'],
+      explanation: q['explanation'] ?? '',
+    };
+  }
+
   private async getExistingQuestionKeys(): Promise<Set<string>> {
     const { data, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('question')
-      .eq('category', 'NEWS');
+      .from('news_questions')
+      .select('question');
 
     if (error) {
       this.logger.error(`[getExistingQuestionKeys] Error: ${error.message}`);

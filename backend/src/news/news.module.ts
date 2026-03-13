@@ -7,9 +7,10 @@ import { NewsController } from './news.controller';
 import { LlmModule } from '../llm/llm.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { QuestionsModule } from '../questions/questions.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [ConfigModule, LlmModule, SupabaseModule, QuestionsModule],
+  imports: [ConfigModule, LlmModule, SupabaseModule, QuestionsModule, AuthModule],
   providers: [NewsFetcherService, NewsQuestionGenerator, NewsService],
   controllers: [NewsController],
   exports: [NewsService],
