@@ -43,10 +43,15 @@ export abstract class BaseGenerator {
 
   /**
    * Returns the fifty_fifty_hint schema line. LLM proposes a plausible wrong answer.
-   * Explicit string requirement avoids LLMs returning objects/arrays.
+   * Must be the SAME TYPE and FORMAT as correct_answer (e.g. player name → player name, country → country).
+   * NOT a description like "Italian defender or French midfielder" — must be an actual alternative answer.
+   * @param answerType Optional hint for the answer format (e.g. "player name", "country", "team", "year").
    */
-  protected getFiftyFiftyHintInstruction(): string {
-    return `"fifty_fifty_hint": "a plausible wrong answer you propose (different from correct_answer). Must be a string."`;
+  protected getFiftyFiftyHintInstruction(answerType?: string): string {
+    const typeHint = answerType
+      ? ` Must be another ${answerType} (same format as correct_answer), plausible in context.`
+      : ' Must be the same type/format as correct_answer — e.g. if answer is a name, hint is another name; if country, another country. NOT a description.';
+    return `"fifty_fifty_hint": "a plausible wrong answer (different from correct_answer).${typeHint} Must be a string."`;
   }
 
   /**

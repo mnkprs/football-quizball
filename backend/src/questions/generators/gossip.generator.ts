@@ -41,7 +41,7 @@ Return ONLY a valid JSON object with these exact fields:
 {
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
-  ${this.getFiftyFiftyHintInstruction()},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+  ${this.getFiftyFiftyHintInstruction('name or short phrase')},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
   "explanation": "brief explanation (1-2 sentences)",
   ${this.getSourceUrlInstruction()},
   "event_year": 2023,
@@ -67,6 +67,7 @@ combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dime
     const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
 They should be easy to answer in spirit and rely on recognizable off-pitch stories.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
+fifty_fifty_hint: Must be the SAME type as correct_answer (e.g. if answer is a person name, hint is another person name). NOT a description.
 ${getLeagueFameGuidanceForBatch('GOSSIP', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 

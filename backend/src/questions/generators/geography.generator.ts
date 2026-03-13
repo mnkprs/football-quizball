@@ -43,7 +43,7 @@ export class GeographyGenerator extends BaseGenerator {
         "question_text": "the question",
         "correct_answer": "the answer (short, 1-5 words)",
         "answer_type": "location(vary by question)",
-        ${this.getFiftyFiftyHintInstruction()},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+        ${this.getFiftyFiftyHintInstruction('location/country/city matching answer_type')},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
         "explanation": "brief explanation (1-2 sentences)",
         ${this.getSourceUrlInstruction()},
         "event_year": 2022,
@@ -72,6 +72,7 @@ CRITICAL: Each question MUST use a DIFFERENT entity type and phrasing. Use exact
 They should range from easy to hard while staying answerable in familiar contexts.
 ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
+fifty_fifty_hint: Must be the SAME type as correct_answer (e.g. if answer is a country, hint is another country; if city, another city). NOT a description.
     ${getLeagueFameGuidanceForBatch('GEOGRAPHY', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
 

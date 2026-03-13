@@ -43,7 +43,7 @@ Return ONLY a valid JSON object with these exact fields:
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
   "answer_type": "name",
-  ${this.getFiftyFiftyHintInstruction()},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+  ${this.getFiftyFiftyHintInstruction('name or short phrase matching answer_type')},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
   "explanation": "brief explanation of why this is correct (1-2 sentences)",
   ${this.getSourceUrlInstruction()},
   "event_year": 2022,
@@ -77,7 +77,7 @@ Return ONLY a valid JSON object:
       "question_text": "the question",
       "correct_answer": "the answer",
       "answer_type": "player name",
-      "fifty_fifty_hint": "a plausible but wrong answer (must be a string)",
+      "fifty_fifty_hint": "another player name (wrong answer, same format as correct_answer — NOT a description like 'Italian defender')",
       "explanation": "brief explanation",
       "source_url": "URL to verify the answer",
       "event_year": 2022,

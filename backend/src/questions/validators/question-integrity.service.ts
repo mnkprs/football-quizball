@@ -71,7 +71,7 @@ MOST IMPORTANT — When the QUESTION is valid (asks about something real) but so
   → correctedQuestionText: when the question text has wrong info (e.g. wrong date "17 March 2024" → "10 March 2024", wrong teams, wrong competition).
   → correctedExplanation: when the explanation has wrong facts (e.g. wrong score, wrong teams, wrong context).
   → correctedMeta: partial object with only fields to fix. Examples:
-    - GUESS_SCORE: { "home_team": "...", "away_team": "...", "date": "...", "competition": "..." } when match details are wrong
+    - GUESS_SCORE: when the score or match details are wrong, include ALL of: { "home_team": "...", "away_team": "...", "home_score": N, "away_score": N, "date": "...", "competition": "..." }. The correct_answer (X-Y format) must match home_score-away_score. ALWAYS also provide correctedQuestionText and correctedExplanation when fixing a GUESS_SCORE — they typically contain the wrong score/teams and must be updated to match the corrected data.
     - PLAYER_ID: { "career": [{ "club": "...", "from": "YYYY", "to": "YYYY" }] } when career path is wrong
     - HIGHER_OR_LOWER: { "player": "...", "real_value": N, "season": "..." } when stat/player is wrong
   → Do NOT reject (valid: false) when only the answer or context is wrong. Fix it instead.
@@ -93,17 +93,48 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
       );
 
       if (result.valid) {
+        let correctedAnswer: string | undefined =
+          result.correctedTop5 && question.category === 'TOP_5' && result.correctedTop5.length === 5
+            ? result.correctedTop5.map((e) => e.name).join(', ')
+            : result.correctedAnswer?.trim();
+
+        // GUESS_SCORE: derive correctedAnswer from correctedMeta when meta has home_score/away_score
+        let finalCorrectedMeta: Record<string, unknown> | undefined = result.correctedMeta;
+        if (question.category === 'GUESS_SCORE' && result.correctedMeta) {
+          const home = result.correctedMeta.home_score;
+          const away = result.correctedMeta.away_score;
+          if (typeof home === 'number' && typeof away === 'number') {
+            correctedAnswer = `${home}-${away}`;
+          }
+        }
+        // GUESS_SCORE: when correctedAnswer is "X-Y" but meta lacks home_score/away_score, add them for consistency
+        if (question.category === 'GUESS_SCORE' && correctedAnswer && /^\d{1,2}-\d{1,2}$/.test(correctedAnswer)) {
+          const [h, a] = correctedAnswer.split('-').map(Number);
+          const needsScores =
+            !finalCorrectedMeta ||
+            finalCorrectedMeta.home_score === undefined ||
+            finalCorrectedMeta.away_score === undefined;
+          if (needsScores) {
+            finalCorrectedMeta = { ...(finalCorrectedMeta ?? {}), home_score: h, away_score: a };
+          }
+        }
+
+        // GUESS_SCORE: reject empty correctedAnswer — never "fix" to empty
+        if (question.category === 'GUESS_SCORE' && correctedAnswer === '') {
+          this.logger.log(
+            `[integrity] Rejected: GUESS_SCORE correction would set empty answer. Provide correct score or reject.`,
+          );
+          return { valid: false, reason: 'Correction would set empty answer; provide correct score or reject' };
+        }
+
         const hasAnswerCorrection =
-          (result.correctedAnswer && result.correctedAnswer.trim() !== question.correct_answer?.trim()) ||
+          (correctedAnswer && correctedAnswer !== question.correct_answer?.trim()) ||
           (result.correctedTop5 && question.category === 'TOP_5' && result.correctedTop5.length === 5);
         const hasTextCorrection = result.correctedQuestionText?.trim() && result.correctedQuestionText.trim() !== question.question_text?.trim();
         const hasExplanationCorrection = result.correctedExplanation?.trim() && result.correctedExplanation.trim() !== question.explanation?.trim();
-        const hasMetaCorrection = result.correctedMeta && Object.keys(result.correctedMeta).length > 0;
+        const hasMetaCorrection = finalCorrectedMeta && Object.keys(finalCorrectedMeta).length > 0;
 
         if (hasAnswerCorrection || hasTextCorrection || hasExplanationCorrection || hasMetaCorrection) {
-          const correctedAnswer = result.correctedTop5 && question.category === 'TOP_5' && result.correctedTop5.length === 5
-            ? result.correctedTop5.map((e) => e.name).join(', ')
-            : result.correctedAnswer?.trim();
           this.logger.log(
             `[integrity] Corrections: ${hasAnswerCorrection ? `answer→${correctedAnswer}` : ''} ${hasTextCorrection ? 'question_text' : ''} ${hasExplanationCorrection ? 'explanation' : ''} ${hasMetaCorrection ? 'meta' : ''}`,
           );
@@ -113,7 +144,7 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
             ...(result.correctedTop5 && question.category === 'TOP_5' && { correctedTop5: result.correctedTop5 }),
             ...(hasTextCorrection && { correctedQuestionText: result.correctedQuestionText!.trim() }),
             ...(hasExplanationCorrection && { correctedExplanation: result.correctedExplanation!.trim() }),
-            ...(hasMetaCorrection && { correctedMeta: result.correctedMeta }),
+            ...(hasMetaCorrection && { correctedMeta: finalCorrectedMeta }),
           };
         }
         this.logger.debug(`[integrity] Verified: ${question.category} — ${question.correct_answer}`);
@@ -139,11 +170,23 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
     }
 
     if (question.category === 'GUESS_SCORE' && question.meta) {
-      const m = question.meta as { home_team?: string; away_team?: string; date?: string; competition?: string };
+      const m = question.meta as {
+        home_team?: string;
+        away_team?: string;
+        home_score?: number;
+        away_score?: number;
+        date?: string;
+        competition?: string;
+      };
       if (m.home_team || m.away_team) {
-        parts.push(`Match: ${m.home_team} vs ${m.away_team}${m.date ? ` (${m.date})` : ''}${m.competition ? ` — ${m.competition}` : ''}`);
+        parts.push(
+          `Match: ${m.home_team} vs ${m.away_team}${m.date ? ` (${m.date})` : ''}${m.competition ? ` — ${m.competition}` : ''}`,
+        );
       }
-      parts.push(`Claimed score: ${question.correct_answer}`);
+      if (m.home_score != null || m.away_score != null) {
+        parts.push(`Claimed scores in meta: home_score=${m.home_score}, away_score=${m.away_score}`);
+      }
+      parts.push(`Claimed answer (correct_answer): ${question.correct_answer}`);
     }
 
     if (question.category === 'HIGHER_OR_LOWER' && question.meta) {

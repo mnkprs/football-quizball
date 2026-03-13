@@ -35,7 +35,7 @@ Return ONLY a valid JSON object:
     {
       "question_text": "the question",
       "correct_answer": "short answer",
-      "fifty_fifty_hint": "plausible wrong answer (must be a string)",
+      "fifty_fifty_hint": "plausible wrong answer — SAME type as correct_answer (name→name, team→team, year→year). NOT a description.",
       "explanation": "brief explanation",
       "source_url": "URL to verify the answer (e.g. news article, official source)",
       "headline_index": 1
