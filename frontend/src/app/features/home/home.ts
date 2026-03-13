@@ -5,6 +5,7 @@ import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { DailyApiService } from '../../core/daily-api.service';
+import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
 import { PageHeaderComponent } from '../../shared/page-header/page-header';
 import { SettingsMenuComponent } from '../../shared/settings-menu/settings-menu';
@@ -82,13 +83,36 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
             [actionLabel]="lang.t().startMatch"
             (cardClick)="go2Player()"
           />
+          <app-mode-card
+            icon="newspaper"
+            iconBgColor="lime"
+            [title]="lang.t().btnNews"
+            [hint]="lang.t().btnNewsHint"
+            [badge]="lang.t().newsDailyBadge"
+            badgeColor="lime"
+            backgroundImage="/news-mode.png"
+            variant="accent"
+            (cardClick)="goNews()"
+          />
+          <app-mode-card
+            icon="local_fire_department"
+            iconBgColor="orange"
+            [title]="lang.t().btnMayhem"
+            [hint]="lang.t().btnMayhemHint"
+            [badge]="lang.t().mayhemNewBadge"
+            badgeColor="red"
+            backgroundImage="/mayhem-mode.png"
+            variant="accent"
+            [locked]="true"
+            (cardClick)="goMayhem()"
+          />
           @if (auth.isLoggedIn()) {
             <app-mode-card
               icon="emoji_events"
               iconBgColor="gold"
               [title]="lang.t().btnSolo"
-              [hint]="lang.t().soloStatsHint + ' ' + userElo() + ' · ' + lang.t().rankLabel + ' #' + eloRank()"
-              [badge]="lang.t().eloSystem"
+              [hint]="soloHint()"
+              [badge]="pro.isPro() ? 'PRO ✓' : lang.t().eloSystem"
               badgeColor="lime"
               [footerText]="lang.t().playersOnline"
               backgroundImage="/solo-mode.png"
@@ -99,8 +123,8 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
               icon="bolt"
               iconBgColor="blue"
               [title]="lang.t().btnBlitz"
-              [hint]="lang.t().blitzStatsHint + ' ' + blitzBest() + ' · ' + lang.t().rankLabel + ' #' + blitzRank()"
-              [badge]="lang.t().speedrun"
+              [hint]="blitzHint()"
+              [badge]="pro.isPro() ? 'PRO ✓' : lang.t().speedrun"
               badgeColor="blue"
               backgroundImage="/blitz-mode.png"
               variant="accent"
@@ -162,6 +186,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
 export class HomeComponent implements OnInit, OnDestroy {
   auth = inject(AuthService);
   lang = inject(LanguageService);
+  pro = inject(ProService);
   private router = inject(Router);
   private blitzApi = inject(BlitzApiService);
   private soloApi = inject(SoloApiService);
@@ -237,12 +262,37 @@ export class HomeComponent implements OnInit, OnDestroy {
     return r != null ? String(r) : '—';
   }
 
+  soloHint = computed(() => {
+    const t = this.lang.t();
+    if (this.pro.isPro()) {
+      return `${t.soloStatsHint} ${this.userElo()} · ${t.rankLabel} #${this.eloRank()}`;
+    }
+    const remaining = this.pro.trialRemaining();
+    if (remaining > 0) {
+      return `${t.soloStatsHint} ${this.userElo()} · ${remaining} free game${remaining === 1 ? '' : 's'} left`;
+    }
+    return `Subscribe for $1.99/mo to play ranked`;
+  });
+
+  blitzHint = computed(() => {
+    const t = this.lang.t();
+    if (this.pro.isPro()) {
+      return `${t.blitzStatsHint} ${this.blitzBest()} · ${t.rankLabel} #${this.blitzRank()}`;
+    }
+    const remaining = this.pro.trialRemaining();
+    if (remaining > 0) {
+      return `${t.blitzStatsHint} ${this.blitzBest()} · ${remaining} free game${remaining === 1 ? '' : 's'} left`;
+    }
+    return `Subscribe for $1.99/mo to play ranked`;
+  });
+
   private countdownInterval: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
         this.loadProfile();
+        this.pro.loadStatus();
       }
     });
     this.loadDailyMetadata();
@@ -297,16 +347,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   goSolo(): void {
-    if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/solo']);
-    } else {
-      this.router.navigate(['/login']);
-    }
+    this.router.navigate(['/solo']);
   }
 
   goBlitz(): void {
+    this.router.navigate(['/blitz']);
+  }
+
+  goNews(): void {
+    this.router.navigate(['/news']);
+  }
+
+  goMayhem(): void {
     if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/blitz']);
+      this.router.navigate(['/mayhem']);
     } else {
       this.router.navigate(['/login']);
     }

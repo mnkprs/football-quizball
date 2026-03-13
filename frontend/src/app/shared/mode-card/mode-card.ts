@@ -15,8 +15,14 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
       [backgroundIcon]="backgroundIcon()"
       [backgroundImage]="backgroundImage()"
       [ariaLabel]="title()"
-      (clicked)="cardClick.emit()"
+      (clicked)="!locked() && cardClick.emit()"
     >
+      @if (locked()) {
+        <div class="mode-card__locked-overlay">
+          <span class="material-icons mode-card__lock-icon">lock</span>
+          <span class="mode-card__lock-text">Available Soon</span>
+        </div>
+      }
       @if (sectionLabel()) {
         <div class="mode-card__section">
           <span class="mode-card__section-icon material-icons">{{ icon() }}</span>
@@ -29,6 +35,8 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
             class="mode-card__icon-wrap"
             [class.mode-card__icon-wrap--gold]="iconBgColor() === 'gold'"
             [class.mode-card__icon-wrap--blue]="iconBgColor() === 'blue'"
+            [class.mode-card__icon-wrap--lime]="iconBgColor() === 'lime'"
+            [class.mode-card__icon-wrap--orange]="iconBgColor() === 'orange'"
             [class.mode-card__icon-wrap--none]="!iconBgColor()"
           >
             <span class="material-icons mode-card__icon">{{ icon() }}</span>
@@ -125,6 +133,18 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
     .mode-card__icon-wrap--blue {
       background: #2196f3;
+    }
+
+    .mode-card__icon-wrap--lime {
+      background: var(--color-accent);
+    }
+
+    .mode-card__icon-wrap--lime .mode-card__icon {
+      color: #000000;
+    }
+
+    .mode-card__icon-wrap--orange {
+      background: #ff6b2b;
     }
 
     .mode-card__icon-wrap--none {
@@ -250,6 +270,35 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
     .mode-card__cta .material-icons {
       font-size: 1.25rem;
     }
+
+    .mode-card__locked-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(2px);
+      border-radius: inherit;
+      z-index: 10;
+    }
+
+    .mode-card__lock-icon {
+      font-size: 2.25rem;
+      color: #ffffff;
+      opacity: 0.9;
+    }
+
+    .mode-card__lock-text {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #ffffff;
+      opacity: 0.85;
+    }
   `],
 })
 export class ModeCardComponent {
@@ -257,14 +306,15 @@ export class ModeCardComponent {
   title = input.required<string>();
   hint = input.required<string>();
   badge = input<string>();
-  badgeColor = input<'lime' | 'blue'>('lime');
+  badgeColor = input<'lime' | 'blue' | 'red'>('lime');
   sectionLabel = input<string>();
   backgroundIcon = input<string>();
   backgroundImage = input<string>();
-  iconBgColor = input<'gold' | 'blue'>();
+  iconBgColor = input<'gold' | 'blue' | 'lime' | 'orange'>();
   footerText = input<string>();
   variant = input<ModeCardVariant>('outline');
   actionLabel = input<string>();
+  locked = input<boolean>(false);
 
   cardClick = output<void>();
 }
