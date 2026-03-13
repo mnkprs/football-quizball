@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface NewsQuestion {
   id: string;
@@ -19,6 +20,7 @@ export interface NewsAnswerResponse {
 export class NewsApiService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private base = `${environment.apiUrl}/api/news`;
 
   private headers(): HttpHeaders {
     const token = this.auth.accessToken();
@@ -27,10 +29,10 @@ export class NewsApiService {
 
   getQuestions(excludeIds: string[] = []) {
     const params = excludeIds.length ? `?excludeIds=${encodeURIComponent(excludeIds.join(','))}` : '';
-    return this.http.get<NewsQuestion[]>(`/api/news/mode/questions${params}`, { headers: this.headers() });
+    return this.http.get<NewsQuestion[]>(`${this.base}/mode/questions${params}`, { headers: this.headers() });
   }
 
   checkAnswer(questionId: string, answer: string) {
-    return this.http.post<NewsAnswerResponse>('/api/news/mode/answer', { questionId, answer }, { headers: this.headers() });
+    return this.http.post<NewsAnswerResponse>(`${this.base}/mode/answer`, { questionId, answer }, { headers: this.headers() });
   }
 }
