@@ -49,7 +49,10 @@ ANTI-REPETITION RULES:
  */
 export function getSingleAnswerInstruction(): string {
   return `
-IMPORTANT: Each question must ask for exactly ONE answer. Do NOT ask "which two", "name both", "list two", or similar — correct_answer must be a single value (one name, one country, one score, etc.).`;
+IMPORTANT: Each question must ask for exactly ONE answer. correct_answer must be a single value (one name, one country, one score, etc.).
+- Do NOT ask "which two", "name both", "list two", or similar.
+- Do NOT ask plural questions that expect multiple answers (e.g. "Which managers have won X with two clubs?" — the answer pool would be Chapman, Clough, Dalglish).
+- If a fact has multiple valid answers, rephrase to demand ONE: e.g. "Name one manager who won the English top-flight with two different clubs in the 20th century?" — then pick one of them as correct_answer.`;
 }
 
 /**
