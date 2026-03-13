@@ -43,11 +43,9 @@ export function parseSlotKey(slotKey: string): { category: QuestionCategory; dif
 
 /**
  * Target number of unanswered questions to keep per slot.
- * NEWS is refilled by news ingest cron, not pool refill.
+ * NEWS lives in news_questions table and is served via its own mode — excluded here.
  */
-export const POOL_TARGET: Partial<Record<string, number>> = {
-  'NEWS/MEDIUM': 10,
-};
+export const POOL_TARGET: Partial<Record<string, number>> = {};
 
 /** Default target when no slot-specific override exists. */
 export const DEFAULT_POOL_TARGET = 40;
@@ -71,15 +69,20 @@ export const SEED_PASS_DELAY_MS = 5000;
  * Builds the list of (category, difficulty, count) slots required for a full board.
  */
 export function buildDrawRequirements(): SlotRequirement[] {
-  return Object.entries(CATEGORY_DIFFICULTY_SLOTS).flatMap(([category, slots]) => {
-    const counts = new Map<Difficulty, number>();
-    for (const difficulty of slots) {
-      counts.set(difficulty, (counts.get(difficulty) ?? 0) + 1);
-    }
-    return Array.from(counts.entries()).map(([difficulty, count]) => ({
-      category: category as QuestionCategory,
-      difficulty,
-      count,
-    }));
-  });
+  return Object.entries(CATEGORY_DIFFICULTY_SLOTS)
+    .filter(
+      ([category]) =>
+        category !== 'NEWS' && category !== 'MAYHEM', // NEWS and MAYHEM are standalone modes, not for 2-player boards
+    )
+    .flatMap(([category, slots]) => {
+      const counts = new Map<Difficulty, number>();
+      for (const difficulty of slots) {
+        counts.set(difficulty, (counts.get(difficulty) ?? 0) + 1);
+      }
+      return Array.from(counts.entries()).map(([difficulty, count]) => ({
+        category: category as QuestionCategory,
+        difficulty,
+        count,
+      }));
+    });
 }
