@@ -48,7 +48,7 @@ export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Diffic
   PLAYER_ID: ['EASY', 'MEDIUM'],
   HIGHER_OR_LOWER: ['EASY', 'MEDIUM'],
   GUESS_SCORE: ['EASY', 'EASY', 'MEDIUM'],
-  TOP_5: ['MEDIUM', 'MEDIUM'],
+  TOP_5: ['HARD', 'HARD'],
   GEOGRAPHY: ['EASY', 'EASY', 'MEDIUM'],
   GOSSIP: ['EASY', 'MEDIUM'],
   NEWS: ['MEDIUM', 'MEDIUM'],
@@ -74,6 +74,6 @@ export const CATEGORY_BATCH_SIZES: Partial<Record<QuestionCategory, number>> = {
 export const CATEGORY_FIXED_DIFFICULTY: Partial<Record<QuestionCategory, Difficulty>> = {
   PLAYER_ID: 'MEDIUM',
   HIGHER_OR_LOWER: 'MEDIUM',
-  TOP_5: 'MEDIUM',
+  TOP_5: 'HARD',
   GOSSIP: 'MEDIUM',
 };
