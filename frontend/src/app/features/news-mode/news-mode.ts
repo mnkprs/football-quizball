@@ -13,7 +13,7 @@ type NewsPhase = 'loading' | 'question' | 'result' | 'finished';
   imports: [FormsModule],
   host: { class: 'news-mode-host' },
   template: `
-    <div class="news-root bg-background flex flex-col p-4">
+    <div class="news-root bg-background flex flex-col p-4 pb-28">
       <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
 
         <!-- Header -->

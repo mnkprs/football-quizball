@@ -128,7 +128,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
               badgeColor="blue"
               backgroundImage="/blitz-mode.png"
               variant="accent"
-              [locked]="true"
+              [locked]="false"
               (cardClick)="goBlitz()"
             />
           } @else {

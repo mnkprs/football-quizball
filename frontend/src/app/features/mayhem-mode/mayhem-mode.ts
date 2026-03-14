@@ -204,10 +204,10 @@ type MayhemPhase = 'loading' | 'question' | 'result' | 'finished';
     :host.mayhem-mode-host {
       display: flex;
       flex-direction: column;
-      min-height: 100%;
+      min-height: 100dvh;
     }
     .mayhem-root {
-      min-height: 100%;
+      min-height: 100dvh;
       flex: 1;
     }
   `],

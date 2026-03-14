@@ -296,6 +296,12 @@ import { MatTabsModule } from '@angular/material/tabs';
                       <th mat-header-cell *matHeaderCellDef>Answer</th>
                       <td mat-cell *matCellDef="let q" class="answer-text">{{ q.correct_answer }}</td>
                     </ng-container>
+                    <ng-container matColumnDef="question_id">
+                      <th mat-header-cell *matHeaderCellDef>ID</th>
+                      <td mat-cell *matCellDef="let q" class="cell-id">
+                        <button class="copy-id-btn" (click)="copyId(q.id)" title="{{ q.id }}">Copy ID</button>
+                      </td>
+                    </ng-container>
                     <tr mat-header-row *matHeaderRowDef="sessionQuestionsColumns"></tr>
                     <tr mat-row *matRowDef="let q; columns: sessionQuestionsColumns;"></tr>
                   </table>
@@ -1155,6 +1161,21 @@ import { MatTabsModule } from '@angular/material/tabs';
       color: #a1a1aa;
     }
 
+    .cell-id {
+      white-space: nowrap;
+    }
+
+    .copy-id-btn {
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 4px;
+      color: #a1a1aa;
+      cursor: pointer;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      &:hover { background: #3f3f46; color: #fff; }
+    }
+
     .session-questions-wrap {
       margin-top: 1.5rem;
       padding-top: 1.5rem;
@@ -1328,7 +1349,7 @@ export class AdminComponent implements OnInit, OnDestroy {
   seedPoolColumns = ['slot', 'unanswered', 'answered', 'total', 'drawable_unanswered', 'drawable_answered'];
   spreadColumns = ['slot', 'count', 'avg', 'min', 'max', 'std'];
   questionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'question_text', 'correct_answer'];
-  sessionQuestionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'generation_version', 'question_text', 'correct_answer'];
+  sessionQuestionsColumns = ['index', 'category', 'difficulty', 'raw_score', 'generation_version', 'question_text', 'correct_answer', 'question_id'];
 
   sessions = signal<SeedPoolSession[]>([]);
   sessionsLoading = signal(false);
@@ -1506,6 +1527,10 @@ export class AdminComponent implements OnInit, OnDestroy {
     } catch {
       return iso;
     }
+  }
+
+  copyId(id: string): void {
+    navigator.clipboard.writeText(id);
   }
 
   applyKey(): void {
