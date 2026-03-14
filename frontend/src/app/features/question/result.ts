@@ -41,6 +41,21 @@ import { LanguageService } from '../../core/language.service';
           }
         </div>
 
+        <!-- TOP_5 wrong guesses -->
+        @if (store.top5State()?.wrongGuesses?.length) {
+          <div class="bg-card rounded-2xl p-4 mb-6 border border-border">
+            <div class="text-muted-foreground text-sm mb-3">{{ lang.t().notInTop5Label }}</div>
+            <div class="space-y-1.5">
+              @for (wrong of store.top5State()!.wrongGuesses; track $index) {
+                <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-loss/10 border border-loss/50">
+                  <span class="text-loss text-sm font-medium">{{ wrong.name }}</span>
+                  <span class="text-loss text-xs ml-auto">{{ lang.t().notInTop5 }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
         <!-- Scores -->
         <div class="grid grid-cols-2 gap-4 mb-6">
           @for (player of players(); track $index) {

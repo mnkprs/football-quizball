@@ -361,9 +361,9 @@ export const GameStore = signalStore(
     continueToBoard(): void {
       const board = store.boardState();
       if (board?.status === 'FINISHED') {
-        patchState(store, { phase: 'finished', currentQuestion: null, currentQuestionId: null });
+        patchState(store, { phase: 'finished', currentQuestion: null, currentQuestionId: null, top5State: null });
       } else {
-        patchState(store, { phase: 'board', currentQuestion: null, currentQuestionId: null, lastResult: null, fiftyFiftyOptions: null });
+        patchState(store, { phase: 'board', currentQuestion: null, currentQuestionId: null, lastResult: null, fiftyFiftyOptions: null, top5State: null });
       }
     },
 
