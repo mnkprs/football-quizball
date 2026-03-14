@@ -69,7 +69,7 @@ export abstract class BaseGenerator {
    */
   protected wrongChoicesPromptBlock(forBlitz: boolean, label = 'answer'): string {
     return forBlitz
-      ? `\n  "wrong_choices": ["plausible wrong ${label} 1", "plausible wrong ${label} 2"],`
+      ? `\n  "wrong_choices": ["plausible wrong ${label} 1", "plausible wrong ${label} 2", "plausible wrong ${label} 3"],`
       : '';
   }
 
@@ -88,8 +88,8 @@ export abstract class BaseGenerator {
     const filtered = (wrongChoicesRaw as unknown[])
       .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
       .filter((s) => s.trim().toLowerCase() !== correctAnswer.trim().toLowerCase())
-      .slice(0, 2);
-    return filtered.length >= 2 ? filtered : undefined;
+      .slice(0, 3);
+    return filtered.length >= 3 ? filtered : undefined;
   }
 
   /**

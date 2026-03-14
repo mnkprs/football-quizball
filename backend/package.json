@@ -14,6 +14,7 @@
     "pool:delete-by-version": "ts-node -r tsconfig-paths/register scripts/delete-questions-by-version.ts",
     "pool:delete-by-id": "ts-node -r tsconfig-paths/register scripts/delete-questions-by-id.ts",
     "blitz:seed": "ts-node -r tsconfig-paths/register scripts/seed-blitz-pool.ts",
+    "blitz:patch-pool": "ts-node -r tsconfig-paths/register scripts/patch-blitz-pool.ts",
     "mayhem:seed": "ts-node -r tsconfig-paths/register scripts/seed-mayhem.ts",
     "mayhem:reset-translations": "ts-node -r tsconfig-paths/register scripts/reset-mayhem-translations.ts",
     "db:find-duplicate-answers": "ts-node -r tsconfig-paths/register scripts/find-duplicate-questions.ts",

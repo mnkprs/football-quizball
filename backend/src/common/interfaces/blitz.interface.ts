@@ -12,6 +12,7 @@ export interface BlitzSession {
   userId: string;
   username: string;
   questions: BlitzQuestion[];
+  drawnIds: string[];
   currentIndex: number;
   score: number;
   totalAnswered: number;

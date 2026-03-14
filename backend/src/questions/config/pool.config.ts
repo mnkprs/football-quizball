@@ -48,7 +48,7 @@ export function parseSlotKey(slotKey: string): { category: QuestionCategory; dif
 export const POOL_TARGET: Partial<Record<string, number>> = {};
 
 /** Default target when no slot-specific override exists. */
-export const DEFAULT_POOL_TARGET = 40;
+export const DEFAULT_POOL_TARGET = 20;
 
 /** Questions generated per LLM batch call. */
 export const GENERATION_BATCH_SIZE = 5;

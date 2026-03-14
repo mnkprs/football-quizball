@@ -103,7 +103,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
             badgeColor="red"
             backgroundImage="/mayhem-mode.png"
             variant="accent"
-            [locked]="true"
+            [locked]="false"
             (cardClick)="goMayhem()"
           />
           @if (auth.isLoggedIn()) {

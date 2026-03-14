@@ -14,16 +14,16 @@ interface BandSpec {
 }
 
 const BANDS: BandSpec[] = [
-  { category: 'HISTORY',   minScore: 10, maxScore: 35, target: 20 },
-  { category: 'HISTORY',   minScore: 40, maxScore: 65, target: 20 },
-  { category: 'HISTORY',   minScore: 70, maxScore: 95, target: 20 },
-  { category: 'GEOGRAPHY', minScore: 10, maxScore: 35, target: 20 },
-  { category: 'GEOGRAPHY', minScore: 40, maxScore: 65, target: 20 },
-  { category: 'GEOGRAPHY', minScore: 70, maxScore: 95, target: 20 },
-  { category: 'GOSSIP',    minScore: 10, maxScore: 35, target: 20 },
-  { category: 'GOSSIP',    minScore: 40, maxScore: 65, target: 20 },
-  { category: 'GOSSIP',    minScore: 70, maxScore: 95, target: 20 },
-  { category: 'PLAYER_ID', minScore: 50, maxScore: 95, target: 20 },
+  { category: 'HISTORY',   minScore: 10, maxScore: 35, target: 100 },
+  { category: 'HISTORY',   minScore: 40, maxScore: 65, target: 100 },
+  { category: 'HISTORY',   minScore: 70, maxScore: 95, target: 100 },
+  { category: 'GEOGRAPHY', minScore: 10, maxScore: 35, target: 100 },
+  { category: 'GEOGRAPHY', minScore: 40, maxScore: 65, target: 100 },
+  { category: 'GEOGRAPHY', minScore: 70, maxScore: 95, target: 100 },
+  { category: 'GOSSIP',    minScore: 10, maxScore: 35, target: 100 },
+  { category: 'GOSSIP',    minScore: 40, maxScore: 65, target: 100 },
+  { category: 'GOSSIP',    minScore: 70, maxScore: 95, target: 100 },
+  { category: 'PLAYER_ID', minScore: 50, maxScore: 95, target: 100 },
 ];
 
 const GENERATION_BATCH_SIZE = 5;
@@ -134,7 +134,7 @@ export class BlitzPoolSeederService {
           question: {
             question_text: q.question_text,
             correct_answer: q.correct_answer,
-            ...(q.wrong_choices?.length === 2 && { wrong_choices: q.wrong_choices }),
+            ...(q.wrong_choices?.length === 3 && { wrong_choices: q.wrong_choices }),
           },
         });
       }
@@ -194,8 +194,7 @@ export class BlitzPoolSeederService {
   private async getBandCounts(): Promise<Record<string, number>> {
     const { data, error } = await this.supabaseService.client
       .from('blitz_question_pool')
-      .select('category, difficulty_score')
-      .eq('used', false);
+      .select('category, difficulty_score');
 
     if (error) {
       this.logger.error(`[blitz-seeder] getBandCounts error: ${error.message}`);

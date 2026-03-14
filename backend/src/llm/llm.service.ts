@@ -1,10 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
+import { v2 } from '@google-cloud/translate';
 import { jsonrepair } from 'jsonrepair';
 
 /** Gemini model. Supports Google Search grounding for factual verification. */
 const GEMINI_MODEL = 'gemini-2.5-flash';
+
+/** DeepSeek model for question generation (OpenAI-compatible API). */
+const DEEPSEEK_MODEL = 'deepseek-chat';
 
 /** Delay (ms) before retry when rate limited. */
 const RATE_LIMIT_RETRY_MS = 30_000;
@@ -36,6 +41,8 @@ function isServiceUnavailableError(err: unknown): boolean {
   );
 }
 
+const LOG_LLM_VERBOSE = process.env.LOG_LLM_VERBOSE === '1' || process.env.LOG_LLM_VERBOSE === 'true';
+
 function extractJson<T>(text: string): T {
   const trimmed = text.trim();
   if (!trimmed) throw new Error('No JSON found in LLM response (empty)');
@@ -64,31 +71,84 @@ function extractJson<T>(text: string): T {
     }
   }
 
-  throw new Error(`No JSON found in LLM response (got ${trimmed.length} chars, preview: ${trimmed.slice(0, 200)}...)`);
+  // Verbose preview for debugging: full text if short, else first 600 chars
+  const previewLength = LOG_LLM_VERBOSE || trimmed.length <= 800 ? trimmed.length : 600;
+  const preview = trimmed.slice(0, previewLength) + (trimmed.length > previewLength ? '...' : '');
+  const err = new Error(
+    `No JSON found in LLM response (got ${trimmed.length} chars). Set LOG_LLM_VERBOSE=1 to see full response. Preview: ${preview}`,
+  );
+  (err as Error & { rawResponse?: string }).rawResponse = trimmed;
+  throw err;
 }
 
 @Injectable()
 export class LlmService {
   private readonly logger = new Logger(LlmService.name);
-  private readonly ai: GoogleGenAI | null = null;
+  private readonly gemini: GoogleGenAI | null = null;
+  private readonly deepseek: OpenAI | null = null;
+  private readonly googleTranslate: v2.Translate | null = null;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const vertexProject = this.configService.get<string>('GOOGLE_CLOUD_PROJECT');
+    const vertexLocation = this.configService.get<string>('GOOGLE_CLOUD_LOCATION') ?? 'us-central1';
+    const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
+    const translateKey = this.configService.get<string>('GOOGLE_TRANSLATE_API_KEY');
 
-    if (apiKey) {
-      this.ai = new GoogleGenAI({ apiKey });
-      this.logger.log(`LlmService ready — ${GEMINI_MODEL} (Gemini)`);
+    // Vertex AI when GOOGLE_CLOUD_PROJECT is set; else AI Studio with GEMINI_API_KEY
+    if (vertexProject) {
+      this.gemini = new GoogleGenAI({
+        vertexai: true,
+        project: vertexProject,
+        location: vertexLocation,
+      });
+      this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation})`);
+    } else if (geminiKey) {
+      this.gemini = new GoogleGenAI({ apiKey: geminiKey });
+      this.logger.log(`LlmService — Gemini ready (AI Studio)`);
     } else {
-      this.logger.warn('GEMINI_API_KEY not set — LLM disabled');
+      this.logger.warn('Gemini disabled — set GOOGLE_CLOUD_PROJECT for Vertex AI, or GEMINI_API_KEY for AI Studio');
+    }
+
+    if (deepseekKey) {
+      this.deepseek = new OpenAI({
+        apiKey: deepseekKey,
+        baseURL: 'https://api.deepseek.com/v1',
+      });
+      this.logger.log(`LlmService — DeepSeek ready (generation)`);
+    } else {
+      this.logger.debug('DEEPSEEK_API_KEY not set — using Gemini for generation');
+    }
+
+    if (translateKey || vertexProject) {
+      if (translateKey) {      
+        this.googleTranslate = new v2.Translate(
+          translateKey ? { key: translateKey } : { projectId: vertexProject! },
+        );
+      }
+      this.logger.log(`LlmService — Google Translate ready`);
+    } else {
+      this.logger.debug('GOOGLE_TRANSLATE_API_KEY / GOOGLE_CLOUD_PROJECT not set — using LLM for translation');
     }
   }
 
-  private get hasLlm(): boolean {
-    return !!this.ai;
+  /** True if we can generate (DeepSeek or Gemini). */
+  private get hasGenerationLlm(): boolean {
+    return !!this.deepseek || !!this.gemini;
+  }
+
+  /** True if we can run integrity (Gemini with web search). */
+  private get hasIntegrityLlm(): boolean {
+    return !!this.gemini;
+  }
+
+  /** True if we can translate (Google Translate or Gemini). */
+  private get hasTranslation(): boolean {
+    return !!this.googleTranslate || !!this.gemini;
   }
 
   /**
-   * Generates structured JSON using the LLM's knowledge.
+   * Generates structured JSON. Uses DeepSeek when configured, else Gemini.
    */
   async generateStructuredJson<T>(
     systemPrompt: string,
@@ -100,7 +160,7 @@ export class LlmService {
 
   /**
    * Generates structured JSON with Google Search grounding for factual verification.
-   * Used by QuestionIntegrityService for GUESS_SCORE and other categories.
+   * Always uses Gemini (DeepSeek has no web search). Used by QuestionIntegrityService.
    */
   async generateStructuredJsonWithWebSearch<T>(
     systemPrompt: string,
@@ -119,10 +179,15 @@ export class LlmService {
     maxRetries: number,
     useWebSearch: boolean,
   ): Promise<T> {
-    if (!this.hasLlm) {
-      const err = new Error('No LLM configured — set GEMINI_API_KEY');
-      this.logger.error(`[generateStructuredJson] Cannot call LLM — no API key`);
-      throw err;
+    if (useWebSearch) {
+      if (!this.hasIntegrityLlm) {
+        throw new Error('Integrity requires Gemini — set GOOGLE_CLOUD_PROJECT (Vertex) or GEMINI_API_KEY (AI Studio)');
+      }
+      return this.callGeminiWithRetry<T>(userPrompt, systemPrompt, useWebSearch, maxRetries);
+    }
+
+    if (!this.hasGenerationLlm) {
+      throw new Error('No LLM configured — set DEEPSEEK_API_KEY or GEMINI_API_KEY');
     }
 
     if (process.env.LOG_PROMPTS === '1' || process.env.LOG_PROMPTS === 'true') {
@@ -131,8 +196,10 @@ export class LlmService {
       );
     }
 
-    const config = this.buildGeminiConfig(systemPrompt, useWebSearch);
-    return this.callWithRetry<T>(userPrompt, config, maxRetries);
+    if (this.deepseek) {
+      return this.callDeepSeekWithRetry<T>(systemPrompt, userPrompt, maxRetries);
+    }
+    return this.callGeminiWithRetry<T>(userPrompt, systemPrompt, false, maxRetries);
   }
 
   private buildGeminiConfig(systemPrompt: string, useWebSearch: boolean) {
@@ -142,30 +209,86 @@ export class LlmService {
       temperature?: number;
       topP?: number;
       tools?: Array<{ googleSearch?: Record<string, never> }>;
+      thinkingConfig?: { thinkingBudget: number };
     } = {
       systemInstruction: systemPrompt,
-      temperature: 0.9,
-      topP: 0.95,
+      // Disable thinking tokens — not needed for generation or validation, billed separately.
+      thinkingConfig: { thinkingBudget: 0 },
     };
     if (useWebSearch) {
+      // Validation: low temperature for deterministic fact-checking.
+      config.temperature = 0.1;
       config.tools = [{ googleSearch: {} }];
-      // Gemini does not allow responseMimeType with tool use (google_search)
     } else {
+      // Generation fallback: keep creative temperature.
+      config.temperature = 0.9;
+      config.topP = 0.95;
       config.responseMimeType = 'application/json';
     }
     return config;
   }
 
-  private async callWithRetry<T>(
+  private async callDeepSeekWithRetry<T>(
+    systemPrompt: string,
     userPrompt: string,
-    config: { systemInstruction?: string; responseMimeType?: string; temperature?: number; topP?: number; tools?: Array<{ googleSearch?: Record<string, never> }> },
     maxRetries: number,
   ): Promise<T> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const response = await this.ai!.models.generateContent({
+        const completion = await this.deepseek!.chat.completions.create({
+          model: DEEPSEEK_MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.9,
+          response_format: { type: 'json_object' },
+        });
+        const text = completion.choices[0]?.message?.content ?? '';
+        return extractJson<T>(text);
+      } catch (err) {
+        lastError = err as Error;
+        const rawResponse = (err as Error & { rawResponse?: string }).rawResponse;
+        if (LOG_LLM_VERBOSE && rawResponse) {
+          this.logger.error(`[generateStructuredJson] Raw DeepSeek response:\n${rawResponse}`);
+        }
+        if (isRateLimitError(err) && attempt < maxRetries) {
+          this.logger.warn(`[generateStructuredJson] Rate limit — retrying in ${RATE_LIMIT_RETRY_MS / 1000}s`);
+          await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS));
+          continue;
+        }
+        if (isServiceUnavailableError(err) && attempt < maxRetries) {
+          this.logger.warn(
+            `[generateStructuredJson] Service unavailable — retrying in ${SERVICE_UNAVAILABLE_RETRY_MS / 1000}s`,
+          );
+          await new Promise((r) => setTimeout(r, SERVICE_UNAVAILABLE_RETRY_MS));
+          continue;
+        }
+        this.logger.error(`[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed — ${lastError.message}`);
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, 1000 * attempt));
+          continue;
+        }
+        throw lastError;
+      }
+    }
+    throw lastError || new Error('LLM generation failed after all retries');
+  }
+
+  private async callGeminiWithRetry<T>(
+    userPrompt: string,
+    systemPrompt: string,
+    useWebSearch: boolean,
+    maxRetries: number,
+  ): Promise<T> {
+    const config = this.buildGeminiConfig(systemPrompt, useWebSearch);
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await this.gemini!.models.generateContent({
           model: GEMINI_MODEL,
           contents: userPrompt,
           config,
@@ -174,6 +297,10 @@ export class LlmService {
         return extractJson<T>(text);
       } catch (err) {
         lastError = err as Error;
+        const rawResponse = (err as Error & { rawResponse?: string }).rawResponse;
+        if (LOG_LLM_VERBOSE && rawResponse) {
+          this.logger.error(`[generateStructuredJson] Raw Gemini response:\n${rawResponse}`);
+        }
         if (isRateLimitError(err) && attempt < maxRetries) {
           this.logger.warn(`[generateStructuredJson] Rate limit — retrying in ${RATE_LIMIT_RETRY_MS / 1000}s`);
           await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS));
@@ -186,75 +313,114 @@ export class LlmService {
           await new Promise((r) => setTimeout(r, SERVICE_UNAVAILABLE_RETRY_MS));
           continue;
         }
-        this.logger.error(`[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed — Error: ${lastError.message}`);
+        this.logger.error(`[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed — ${lastError.message}`);
         if (attempt < maxRetries) {
           await new Promise((r) => setTimeout(r, 1000 * attempt));
           continue;
-        } else {
-          throw lastError;
         }
+        throw lastError;
       }
     }
     throw lastError || new Error('LLM generation failed after all retries');
   }
 
   /**
-   * Translates display strings to Greek. Answers (correct_answer, fifty_fifty_hint) stay in English.
-   * Batches in chunks of 5 to avoid token limits.
+   * Translates question strings to Greek. Uses Google Translate when configured, else Gemini.
+   * Translates question_text, explanation, correct_answer, and wrong_choices when provided.
    */
   async translateToGreek(
-    strings: { question_text: string; explanation: string }[],
-  ): Promise<{ question_text: string; explanation: string }[]> {
-    if (!this.hasLlm || strings.length === 0) return strings;
+    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
+  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
+    if (strings.length === 0) return strings;
 
+    if (this.googleTranslate) {
+      return this.translateWithGoogle(strings);
+    }
+
+    if (!this.gemini) {
+      this.logger.warn('[translateToGreek] No translation provider — returning originals');
+      return strings;
+    }
+
+    return this.translateWithLlm(strings);
+  }
+
+  /** Google Cloud Translation API (v2 Basic). */
+  private async translateWithGoogle(
+    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
+  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
+    const flat: string[] = strings.flatMap((s) => [
+      s.question_text,
+      s.explanation,
+      ...(s.correct_answer ? [s.correct_answer] : []),
+      ...(s.wrong_choices ?? []),
+    ]);
+    try {
+      const [translations] = await this.googleTranslate!.translate(flat, 'el');
+      const arr = Array.isArray(translations) ? translations : [translations];
+      let idx = 0;
+      return strings.map((s) => {
+        const question_text = arr[idx++] ?? s.question_text;
+        const explanation = arr[idx++] ?? s.explanation;
+        const correct_answer = s.correct_answer ? (arr[idx++] ?? s.correct_answer) : undefined;
+        const wrong_choices = s.wrong_choices?.map(() => arr[idx++] ?? '');
+        return { question_text, explanation, correct_answer, wrong_choices };
+      });
+    } catch (err) {
+      this.logger.warn(`[translateToGreek] Google Translate failed — ${(err as Error).message}. Falling back to LLM.`);
+      if (this.gemini) return this.translateWithLlm(strings);
+      return strings;
+    }
+  }
+
+  /** LLM-based translation (Gemini). Batches in chunks of 5. */
+  private async translateWithLlm(
+    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
+  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
     const BATCH_SIZE = 5;
-    const results: { question_text: string; explanation: string }[] = [];
+    const results: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[] = [];
 
     for (let i = 0; i < strings.length; i += BATCH_SIZE) {
       const batch = strings.slice(i, i + BATCH_SIZE);
+      const hasAnswers = batch.some((s) => s.correct_answer || s.wrong_choices?.length);
 
-      const systemPrompt = `You are a professional translator. Translate the following English strings to Greek (Ελληνικά).
-Return ONLY a valid JSON object with key "items": an array of objects. Each object must have "question_text" and "explanation" keys with the Greek translation.
-Preserve meaning, tone, and formatting. Do not translate proper nouns (player names, team names, etc.) unless they have a standard Greek form.`;
+      const systemPrompt = `You are a professional translator. Translate the following English football quiz strings to Greek (Ελληνικά).
+Return ONLY a valid JSON object with key "items": an array of objects with the translated fields.
+Preserve meaning, tone, and formatting. Do not translate proper nouns (player names, team names, competition names) unless they have a well-known Greek form.`;
 
       const items = batch
-        .map(
-          (s, j) =>
-            `[${j}] question_text: "${s.question_text}" | explanation: "${s.explanation}"`,
-        )
+        .map((s, j) => {
+          const parts = [`[${j}] question_text: "${s.question_text}"`, `explanation: "${s.explanation}"`];
+          if (s.correct_answer) parts.push(`correct_answer: "${s.correct_answer}"`);
+          if (s.wrong_choices?.length) parts.push(`wrong_choices: ${JSON.stringify(s.wrong_choices)}`);
+          return parts.join(' | ');
+        })
         .join('\n');
-      const userPrompt = `Translate each item to Greek. Return JSON: { "items": [ { "question_text": "...", "explanation": "..." }, ... ] }\n${items}`;
 
-      const result =
-        await this.generateStructuredJsonInternal<{
-          items: Array<{ question_text: string; explanation: string }>;
-        }>(systemPrompt, userPrompt, 3, false);
+      const fieldsDesc = hasAnswers
+        ? '"question_text", "explanation", "correct_answer", "wrong_choices" (array)'
+        : '"question_text", "explanation"';
+      const userPrompt = `Translate each item to Greek. Return JSON: { "items": [ { ${fieldsDesc} }, ... ] }\n${items}`;
+
+      const result = await this.callGeminiWithRetry<{
+        items: Array<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }>;
+      }>(userPrompt, systemPrompt, false, 3);
 
       const itemsResult = result?.items;
-      if (
-        !Array.isArray(itemsResult) ||
-        itemsResult.length !== batch.length
-      ) {
-        this.logger.warn(
-          `[translateToGreek] Batch ${i / BATCH_SIZE + 1} invalid, using originals`,
-        );
+      if (!Array.isArray(itemsResult) || itemsResult.length !== batch.length) {
+        this.logger.warn(`[translateToGreek] Batch ${i / BATCH_SIZE + 1} invalid, using originals`);
         results.push(...batch);
       } else {
         results.push(
           ...itemsResult.map((r, j) => ({
-            question_text:
-              typeof r?.question_text === 'string'
-                ? r.question_text
-                : batch[j].question_text,
-            explanation:
-              typeof r?.explanation === 'string'
-                ? r.explanation
-                : batch[j].explanation,
+            question_text: typeof r?.question_text === 'string' ? r.question_text : batch[j].question_text,
+            explanation: typeof r?.explanation === 'string' ? r.explanation : batch[j].explanation,
+            correct_answer: typeof r?.correct_answer === 'string' ? r.correct_answer : batch[j].correct_answer,
+            wrong_choices: Array.isArray(r?.wrong_choices) ? r.wrong_choices : batch[j].wrong_choices,
           })),
         );
       }
     }
-
     return results;
   }
 }

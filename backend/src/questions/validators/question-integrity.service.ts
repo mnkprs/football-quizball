@@ -155,9 +155,51 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
       this.logger.log(`[integrity] Rejected: ${reason}`);
       return { valid: false, reason };
     } catch (err) {
+      const rawResponse = (err as Error & { rawResponse?: string }).rawResponse;
+      if (rawResponse && this.looksLikeValidProse(rawResponse)) {
+        this.logger.debug(
+          `[integrity] LLM returned prose instead of JSON but indicated valid — accepting (${question.category})`,
+        );
+        return { valid: true };
+      }
       this.logger.warn(`[integrity] Verification failed (rejecting): ${(err as Error).message}`);
       return { valid: false, reason: `Verification error: ${(err as Error).message}` };
     }
+  }
+
+  /**
+   * When Gemini returns prose instead of JSON (common with Google Search), try to infer validity.
+   * Only accepts when text clearly states the question/answer are correct; rejects on any doubt.
+   */
+  private looksLikeValidProse(text: string): boolean {
+    const lower = text.toLowerCase().trim();
+    // Reject if we see clear negative indicators
+    const negativePhrases = [
+      'incorrect',
+      'wrong',
+      'invalid',
+      'hallucinated',
+      'made-up',
+      'does not exist',
+      'cannot verify',
+      'cannot confirm',
+      'unable to verify',
+      'reject',
+      'rejected',
+    ];
+    if (negativePhrases.some((p) => lower.includes(p))) return false;
+    // Accept only when text explicitly states correctness (Gemini often returns prose with web search)
+    const validPhrases = [
+      'the trivia question and answer are correct',
+      'the question and answer are correct',
+      'both question and answer are correct',
+      'question and answer are both correct',
+      'the question is correct',
+      'the answer is correct',
+      'verified as correct',
+      'is factually correct',
+    ];
+    return validPhrases.some((p) => lower.includes(p));
   }
 
   private buildVerificationContext(question: GeneratedQuestion): string {

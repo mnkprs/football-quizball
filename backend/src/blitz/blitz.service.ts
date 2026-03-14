@@ -5,8 +5,7 @@ import { BlitzSession, BlitzQuestion, BlitzQuestionRef, BlitzAnswerResult } from
 
 const SESSION_TTL = 3600; // 1h
 const BLITZ_DURATION_MS = 60_000;
-const DRAW_COUNT = 50;   // enough for session + distractor pool
-const SESSION_SIZE = 25;
+const DRAW_COUNT = 70;   // enough for the fastest possible 60s session
 
 @Injectable()
 export class BlitzService {
@@ -43,7 +42,17 @@ export class BlitzService {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('User profile not found');
 
-    const questions = await this.drawBlitzQuestions(language);
+    // Check if user has seen ≥95% of the pool — reset if so
+    const [totalCount, seenCount] = await Promise.all([
+      this.supabaseService.countBlitzPool(),
+      this.supabaseService.countUserSeenBlitz(userId),
+    ]);
+    if (totalCount > 0 && seenCount / totalCount >= 0.95) {
+      await this.supabaseService.client.rpc('reset_blitz_seen_for_user', { p_user_id: userId });
+      this.logger.log(`[blitz] Reset seen pool for ${userId} (exhausted ${seenCount}/${totalCount})`);
+    }
+
+    const questions = await this.drawBlitzQuestions(userId, language);
     if (questions.length === 0) {
       throw new NotFoundException('Not enough questions in pool for Blitz mode. Please try again later.');
     }
@@ -54,6 +63,7 @@ export class BlitzService {
       userId,
       username: profile.username,
       questions,
+      drawnIds: questions.map((q) => q.poolRowId),
       currentIndex: 0,
       score: 0,
       totalAnswered: 0,
@@ -100,6 +110,14 @@ export class BlitzService {
 
     if (timeUp && !session.saved) {
       session.saved = true;
+      // Mark only answered questions as seen
+      const answeredIds = session.drawnIds.slice(0, session.totalAnswered);
+      if (answeredIds.length > 0) {
+        await this.supabaseService.client.rpc('mark_blitz_questions_seen', {
+          p_user_id: userId,
+          p_question_ids: answeredIds,
+        });
+      }
       await this.supabaseService.upsertMaxBlitzScore(userId, session.score, session.totalAnswered);
       this.logger.log(`[blitz] Saved score for ${session.username}: ${session.score}/${session.totalAnswered}`);
     }
@@ -125,6 +143,13 @@ export class BlitzService {
 
     if (!session.saved) {
       session.saved = true;
+      const answeredIds = session.drawnIds.slice(0, session.totalAnswered);
+      if (answeredIds.length > 0) {
+        await this.supabaseService.client.rpc('mark_blitz_questions_seen', {
+          p_user_id: userId,
+          p_question_ids: answeredIds,
+        });
+      }
       await this.supabaseService.upsertMaxBlitzScore(userId, session.score, session.totalAnswered);
     }
 
@@ -145,10 +170,11 @@ export class BlitzService {
     return stats ?? { bestScore: 0, totalGames: 0, rank: null };
   }
 
-  private async drawBlitzQuestions(language: string = 'en'): Promise<BlitzQuestion[]> {
-    const { data, error } = await this.supabaseService.client.rpc('draw_blitz_questions_v2', {
-      p_count: DRAW_COUNT,
-    });
+  private async drawBlitzQuestions(userId: string, language: string = 'en'): Promise<BlitzQuestion[]> {
+    const { data, error } = await this.supabaseService.client.rpc(
+      'draw_blitz_questions_for_user',
+      { p_user_id: userId, p_count: DRAW_COUNT },
+    );
 
     if (error) {
       this.logger.error(`[blitz] Pool draw error: ${error.message}`);
@@ -163,12 +189,11 @@ export class BlitzService {
       translations?: { el?: { question_text?: string } };
     }>;
 
-    const sessionRows = rows.slice(0, SESSION_SIZE);
-    const distractorPool = rows.slice(SESSION_SIZE);
-
-    return sessionRows.map((row) => {
+    // All rows serve as both session questions and distractor pool for each other
+    return rows.map((row) => {
       const correctAnswer = row.question.correct_answer;
-      const choices = this.buildChoices(correctAnswer, row.question.wrong_choices, row.category, distractorPool);
+      const otherRows = rows.filter((r) => r.id !== row.id);
+      const choices = this.buildChoices(correctAnswer, row.question.wrong_choices, row.category, otherRows);
       const useEl = language === 'el' && row.translations?.el?.question_text;
       const questionText = useEl ? row.translations!.el!.question_text! : row.question.question_text;
       return {
@@ -208,7 +233,7 @@ export class BlitzService {
     return 'HARD';
   }
 
-  /** Build 3 choices: correct + 2 wrong. Prefer LLM wrong_choices when present, else pick from pool. */
+  /** Build 4 choices: correct + 3 wrong. Prefer LLM wrong_choices when present, else pick from pool. */
   private buildChoices(
     correct: string,
     wrongChoices: string[] | undefined,
@@ -222,15 +247,10 @@ export class BlitzService {
             .filter((s) => s.trim().toLowerCase() !== normCorrect)
             .map((s) => s.trim())
             .filter(Boolean),
-        ).slice(0, 2)
+        ).slice(0, 3)
       : [];
-    const distractors = fromLlm.length >= 2 ? fromLlm : this.pickChoicesFromPool(correct, category, pool);
-    const choices = [correct, ...distractors.slice(0, 2)];
-    for (let i = choices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [choices[i], choices[j]] = [choices[j], choices[i]];
-    }
-    return choices;
+    const distractors = fromLlm.length >= 3 ? fromLlm : this.pickChoicesFromPool(correct, category, pool);
+    return this.shuffle([correct, ...distractors.slice(0, 3)]);
   }
 
   private pickChoicesFromPool(
@@ -246,14 +266,13 @@ export class BlitzService {
       (r) => r.category !== category && r.question.correct_answer.toLowerCase() !== correct.toLowerCase(),
     );
 
-    // Shuffle to avoid order bias — otherwise the first few answers in the pool
-    // (e.g. Giovanni Simeone) get picked as distractors for almost every question
+    // Shuffle to avoid order bias
     const candidates = this.shuffle([...sameCat, ...others]);
     const distractors: string[] = [];
     const seen = new Set<string>([correct.toLowerCase()]);
 
     for (const c of candidates) {
-      if (distractors.length >= 2) break;
+      if (distractors.length >= 3) break;
       const ans = c.question.correct_answer;
       if (!seen.has(ans.toLowerCase())) {
         seen.add(ans.toLowerCase());
@@ -264,13 +283,13 @@ export class BlitzService {
     // Fallback: pad with generic football answers if pool was too small
     const fallbacks = ['FC Barcelona', 'Real Madrid', 'Manchester United', 'Liverpool', 'Bayern Munich', 'Juventus'];
     for (const f of fallbacks) {
-      if (distractors.length >= 2) break;
+      if (distractors.length >= 3) break;
       if (!seen.has(f.toLowerCase())) {
         seen.add(f.toLowerCase());
         distractors.push(f);
       }
     }
 
-    return distractors.slice(0, 2);
+    return distractors.slice(0, 3);
   }
 }

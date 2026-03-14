@@ -104,6 +104,21 @@ export class SupabaseService {
     return data ?? [];
   }
 
+  async countBlitzPool(): Promise<number> {
+    const { count } = await this.client
+      .from('blitz_question_pool')
+      .select('*', { count: 'exact', head: true });
+    return count ?? 0;
+  }
+
+  async countUserSeenBlitz(userId: string): Promise<number> {
+    const { count } = await this.client
+      .from('blitz_user_seen_questions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    return count ?? 0;
+  }
+
   /** Update profile max_blitz_score only if this session is a new high score.
    *  Uses a conditional UPDATE to avoid a read-before-write race condition. */
   async upsertMaxBlitzScore(userId: string, score: number, totalAnswered: number): Promise<void> {
