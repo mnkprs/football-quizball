@@ -38,6 +38,6 @@ import { LlmModule } from '../llm/llm.module';
     GossipGenerator,
     MigratePoolDifficultyService,
   ],
-  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator, QuestionIntegrityService, ThresholdConfigService, MigratePoolDifficultyService],
+  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator, QuestionIntegrityService, ThresholdConfigService, MigratePoolDifficultyService, DifficultyScorer],
 })
 export class QuestionsModule {}

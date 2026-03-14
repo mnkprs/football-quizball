@@ -96,8 +96,8 @@ Return ONLY a valid JSON object:
         fame_score: 2,
         category: 'MAYHEM',
         answer_type: 'mixed',
-        specificity_score: 9,
-        combinational_thinking_score: 8,
+        specificity_score: 10,
+        combinational_thinking_score: 10,
       },
     };
   }

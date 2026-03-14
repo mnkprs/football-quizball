@@ -4,6 +4,7 @@ import { LlmService } from '../llm/llm.service';
 import { MayhemQuestionGenerator } from './mayhem-question.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
 import { QuestionIntegrityService } from '../questions/validators/question-integrity.service';
+import { DifficultyScorer } from '../questions/difficulty-scorer.service';
 import { GeneratedQuestion } from '../questions/question.types';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 
@@ -29,6 +30,7 @@ export class MayhemService {
     private llmService: LlmService,
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
+    private difficultyScorer: DifficultyScorer,
   ) {}
 
   async ingestMayhem(): Promise<{ added: number; skipped: number }> {
@@ -112,6 +114,7 @@ export class MayhemService {
         .map((q) => ({
           generation_version: GENERATION_VERSION,
           question: this.toPoolQuestion(q),
+          raw_score: q.difficulty_factors ? this.difficultyScorer.score(q.difficulty_factors).raw : null,
         }));
 
       if (rows.length === 0) {
