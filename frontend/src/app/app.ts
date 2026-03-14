@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
+import { SwUpdate } from '@angular/service-worker';
 import { DonateModalComponent } from './shared/donate-modal/donate-modal';
 import { DonateModalService } from './core/donate-modal.service';
 import { GoogleAdsService } from './core/google-ads.service';
@@ -34,6 +35,7 @@ export class App implements OnInit, OnDestroy {
   donateService = inject(DonateModalService);
   private router = inject(Router);
   private googleAds = inject(GoogleAdsService);
+  private swUpdate = inject(SwUpdate, { optional: true });
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
 
   isAdminRoute = signal(false);
@@ -46,6 +48,14 @@ export class App implements OnInit, OnDestroy {
         this.isAdminRoute.set(e.urlAfterRedirects.startsWith('/admin'));
         this.googleAds.pageView(e.urlAfterRedirects);
       });
+
+    if (this.swUpdate?.isEnabled) {
+      this.swUpdate.versionUpdates
+        .pipe(filter(e => e.type === 'VERSION_READY'))
+        .subscribe(() => {
+          this.swUpdate!.activateUpdate().then(() => location.reload());
+        });
+    }
   }
 
   ngOnDestroy(): void {
