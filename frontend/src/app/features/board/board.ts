@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
+import { GAME_STORE_TOKEN } from '../../core/game-store.token';
 import { LanguageService } from '../../core/language.service';
 import { ThemeToggleComponent } from '../../shared/theme-toggle';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
@@ -136,7 +137,7 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
   `,
 })
 export class BoardComponent {
-  store = inject(GameStore);
+  store = inject(GAME_STORE_TOKEN, { optional: true }) ?? inject(GameStore);
   lang = inject(LanguageService);
   players = this.store.players;
   currentPlayer = this.store.currentPlayer;
@@ -169,7 +170,7 @@ export class BoardComponent {
     const board = this.store.boardState();
     if (!board) return [];
     const t = this.lang.t();
-    return board.categories.map((cat, i) => {
+    return board.categories.map((cat: { key: string; label: string }, i: number) => {
       const style = this.categoryStyle[cat.key] ?? { rowCls: 'bg-slate-700', circleCls: 'bg-slate-600 border-slate-500', icon: '❓' };
       const labelKey = this.categoryLabelKey[cat.key];
       const label = labelKey ? (t[labelKey] as string) : cat.label;
