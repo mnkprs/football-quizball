@@ -29,7 +29,6 @@ import { Component, input } from '@angular/core';
           @if (titlePart2()) {
             <h1 class="page-header__title">
               <span class="page-header__title-part1">{{ titlePart1() }}</span>
-              <br />
               <span class="page-header__title-part2">{{ titlePart2() }}</span>
             </h1>
           } @else {
@@ -129,8 +128,8 @@ import { Component, input } from '@angular/core';
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
       flex: 1;
     }
 
@@ -142,7 +141,7 @@ import { Component, input } from '@angular/core';
       height: 3.5rem;
       background: var(--color-accent);
       border-radius: 1.125rem;
-      border: 2px solid color-mix(in srgb, var(--color-accent) 60%, #ffffff 40%);
+      border: 2px solid #e8ff80;
       box-shadow:
         0 0 0 1px rgba(204,255,0,0.3),
         0 4px 20px rgba(204,255,0,0.25),
@@ -162,23 +161,24 @@ import { Component, input } from '@angular/core';
 
     .page-header__title {
       margin: 0;
-      line-height: 1;
+      line-height: 1.1;
       font-style: normal;
       text-align: center;
     }
 
     .page-header__title-part1 {
       display: block;
-      font-size: 0.9375rem;
+      font-size: 0.875rem;
       font-weight: 700;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.75);
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 0.25rem;
     }
 
     .page-header__title-part2 {
       display: block;
-      font-size: 2.125rem;
+      font-size: 1.875rem;
       font-weight: 900;
       letter-spacing: -0.02em;
       text-transform: uppercase;
@@ -201,9 +201,9 @@ import { Component, input } from '@angular/core';
     }
 
     .page-header__subtitle-pill {
-      font-size: 0.6875rem;
+      font-size: 0.625rem;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: rgba(255,255,255,0.6);
       white-space: nowrap;
@@ -211,8 +211,8 @@ import { Component, input } from '@angular/core';
 
     .page-header__pitch-lines {
       width: 100%;
-      max-width: 18rem;
-      height: 18px;
+      max-width: 16rem;
+      height: 16px;
       flex-shrink: 0;
     }
   `],
