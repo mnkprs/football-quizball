@@ -62,44 +62,16 @@ import { ResultsComponent } from '../results/results';
         }
 
         @case ('opponent-turn') {
-          <div class="flex flex-col items-center justify-center min-h-screen p-6 gap-4">
-            <button (click)="goBack()" class="fixed top-4 left-4 text-muted-foreground hover:text-foreground text-sm font-medium">← Back</button>
-            <!-- Read-only board overlay -->
-            <div class="w-full">
-              <div class="text-center mb-4">
-                <div class="inline-flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2">
-                  <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
-                  <span class="text-sm text-foreground">Waiting for <strong>{{ store.opponentUsername() }}</strong></span>
-                </div>
-                @if (store.gameView()?.turnDeadline) {
-                  <p class="text-xs text-muted-foreground mt-2">Deadline: {{ formatDeadline(store.gameView()!.turnDeadline!) }}</p>
-                }
+          <div class="relative">
+            <app-board />
+            <div class="absolute inset-0 bg-background/75 backdrop-blur-[2px] flex flex-col items-center justify-center z-20 gap-3 pointer-events-none">
+              <div class="inline-flex items-center gap-2 bg-card border border-border rounded-full px-5 py-2.5 shadow-lg">
+                <div class="w-2 h-2 rounded-full bg-accent animate-pulse shrink-0"></div>
+                <span class="text-sm font-semibold text-foreground">Waiting for <strong>{{ store.opponentUsername() }}</strong></span>
               </div>
-
-              <!-- Scores -->
-              <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-card border border-border rounded-2xl p-4 text-center">
-                  <div class="text-xs font-bold opacity-70 mb-1">🔵 {{ store.gameView()?.hostUsername }}</div>
-                  <div class="text-3xl font-black text-foreground">{{ store.gameView()?.playerScores?.host ?? 0 }}</div>
-                </div>
-                <div class="bg-card border border-accent rounded-2xl p-4 text-center ring-2 ring-accent/20">
-                  <div class="text-xs font-bold opacity-70 mb-1">🔴 {{ store.gameView()?.guestUsername ?? '...' }}</div>
-                  <div class="text-3xl font-black text-foreground">{{ store.gameView()?.playerScores?.guest ?? 0 }}</div>
-                </div>
-              </div>
-
-              <!-- Board (read-only) -->
-              <div class="flex flex-col gap-2 opacity-60">
-                @for (row of store.gameView()?.board ?? []; track $index) {
-                  <div class="flex gap-2">
-                    @for (cell of row; track cell.question_id) {
-                      <div [class]="'flex-1 rounded-xl h-12 flex items-center justify-center text-xs font-bold ' + (cell.answered ? 'bg-muted/50 text-muted-foreground' : 'bg-card border border-border text-foreground')">
-                        {{ cell.answered ? '✕' : cell.points }}
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
+              @if (store.gameView()?.turnDeadline) {
+                <p class="text-xs text-muted-foreground">Deadline: {{ formatDeadline(store.gameView()!.turnDeadline!) }}</p>
+              }
             </div>
           </div>
         }
