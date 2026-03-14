@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GameStore } from '../../core/game.store';
+import { GAME_STORE_TOKEN } from '../../core/game-store.token';
 import { LanguageService } from '../../core/language.service';
 import { SetupComponent } from '../setup/setup';
 import { LoadingComponent } from '../setup/loading';
@@ -13,6 +14,7 @@ import { ResultsComponent } from '../results/results';
 @Component({
   selector: 'app-game',
   standalone: true,
+  providers: [{ provide: GAME_STORE_TOKEN, useExisting: GameStore }],
   imports: [
     CommonModule,
     SetupComponent,

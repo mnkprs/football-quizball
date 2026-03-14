@@ -1,6 +1,7 @@
 import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
+import { GAME_STORE_TOKEN } from '../../core/game-store.token';
 import { LanguageService } from '../../core/language.service';
 
 @Component({
@@ -94,7 +95,7 @@ import { LanguageService } from '../../core/language.service';
   `,
 })
 export class ResultComponent {
-  store = inject(GameStore);
+  store = inject(GAME_STORE_TOKEN, { optional: true }) ?? inject(GameStore);
   lang = inject(LanguageService);
   result = this.store.lastResult;
   players = this.store.players;

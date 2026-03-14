@@ -28,5 +28,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
+  },
+  "dependencies": {
+    "@angular/core": "^21.2.4"
   }
 }

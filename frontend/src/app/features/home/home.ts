@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
@@ -18,6 +19,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
   selector: 'app-home',
   standalone: true,
   imports: [
+    CommonModule,
     PageHeaderComponent,
     SettingsMenuComponent,
     SectionHeaderComponent,
@@ -81,8 +83,24 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
             [hint]="lang.t().btn2PlayerHint"
             variant="primary"
             [actionLabel]="lang.t().startMatch"
-            (cardClick)="go2Player()"
+            (cardClick)="toggle2PlayerExpanded()"
           />
+          @if (twoPlayerExpanded()) {
+            <div class="flex gap-3 -mt-2 px-1">
+              <button
+                (click)="go2Player()"
+                class="flex-1 py-3 rounded-2xl bg-card border-2 border-border text-foreground font-bold text-sm hover:border-accent hover:text-accent active:scale-95 transition"
+              >
+                🏠 Local
+              </button>
+              <button
+                (click)="goOnline()"
+                class="flex-1 py-3 rounded-2xl bg-card border-2 border-border text-foreground font-bold text-sm hover:border-accent hover:text-accent active:scale-95 transition"
+              >
+                🌐 Online
+              </button>
+            </div>
+          }
           <app-mode-card
             icon="newspaper"
             iconBgColor="lime"
@@ -194,6 +212,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private soloApi = inject(SoloApiService);
   private dailyApi = inject(DailyApiService);
 
+  twoPlayerExpanded = signal(false);
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   avatarLoadFailed = signal(false);
@@ -344,8 +363,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  toggle2PlayerExpanded(): void {
+    this.twoPlayerExpanded.update((v) => !v);
+  }
+
   go2Player(): void {
+    this.twoPlayerExpanded.set(false);
     this.router.navigate(['/game']);
+  }
+
+  goOnline(): void {
+    this.twoPlayerExpanded.set(false);
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/online-game']);
+    } else {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/online-game' } });
+    }
   }
 
   goSolo(): void {
