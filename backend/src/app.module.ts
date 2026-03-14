@@ -17,6 +17,7 @@ import { DailyModule } from './daily/daily.module';
 import { ReportsModule } from './reports/reports.module';
 import { MayhemModule } from './mayhem/mayhem.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { OnlineGameModule } from './online-game/online-game.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     ReportsModule,
     MayhemModule,
     SubscriptionModule,
+    OnlineGameModule,
   ],
 })
 export class AppModule {}

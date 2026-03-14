@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameStore } from '../../core/game.store';
+import { GAME_STORE_TOKEN } from '../../core/game-store.token';
 import { LanguageService } from '../../core/language.service';
 import { ThemeToggleComponent } from '../../shared/theme-toggle';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
@@ -136,7 +137,7 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
   `,
 })
 export class BoardComponent {
-  store = inject(GameStore);
+  store = inject(GAME_STORE_TOKEN, { optional: true }) ?? inject(GameStore);
   lang = inject(LanguageService);
   players = this.store.players;
   currentPlayer = this.store.currentPlayer;

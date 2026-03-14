@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { GameStore } from '../../core/game.store';
+import { GAME_STORE_TOKEN } from '../../core/game-store.token';
 import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 
@@ -393,7 +394,7 @@ import { LanguageService } from '../../core/language.service';
   `,
 })
 export class QuestionComponent implements OnDestroy {
-  store = inject(GameStore);
+  store = inject(GAME_STORE_TOKEN, { optional: true }) ?? inject(GameStore);
   gameApi = inject(GameApiService);
   lang = inject(LanguageService);
   answer = '';

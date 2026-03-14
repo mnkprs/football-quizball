@@ -47,6 +47,11 @@ export class AuthService {
     if (error) throw error;
   }
 
+  /** Expose the Supabase client for Realtime subscriptions (e.g. online game updates). */
+  get supabaseClient(): SupabaseClient {
+    return this.supabase;
+  }
+
   async signOut(): Promise<void> {
     await this.supabase.auth.signOut();
   }
