@@ -3,6 +3,7 @@
  * Bump when difficulty scoring, diversity, prompts, or answer-type modifiers change.
  *
  * Version history (from git commit dates):
+ * - 1.1.0 (2026-03-14): Easier questions — higher fame, HISTORY exponential date scoring, no HARD board slots
  * - 1.0.0 (2026-03-12): Current — bias toward easier questions, difficulty criteria, DB-backed answer type modifiers
  * - 0.9.1 (6c5cc07): Bias toward easier questions
  * - 0.9.0 (00e2d61): DB-backed answer type modifiers
@@ -14,4 +15,4 @@
  *
  * Legacy backfill: migration 20260326120000 maps created_at to versions using these commit dates.
  */
-export const GENERATION_VERSION = '1.0.6b';
+export const GENERATION_VERSION = '1.1.0';

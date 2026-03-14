@@ -47,7 +47,7 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
 
   if (useEntityInjection) {
     const entityType = entityTypeForCategory(category);
-    const scale = minorityScale ?? (category === 'GUESS_SCORE' ? randomInRange(65, 95) : randomInRange(25, 85));
+    const scale = minorityScale ?? (category === 'GUESS_SCORE' ? randomInRange(75, 95) : randomInRange(55, 90));
     const angles = QUESTION_ANGLES[category] ?? [];
     const angle = angles.length ? pick(angles as readonly string[], useIndex(1)) : null;
 

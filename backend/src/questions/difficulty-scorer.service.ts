@@ -36,8 +36,13 @@ import {
   DATE_SCORE_SLOPE_PER_YEAR,
   DATE_SCORE_RECENT_HISTORY_CAP,
   DATE_AGE_DECAY_START_YEARS,
-  DATE_SCORE_DECAY_PER_YEAR,
-  DATE_SCORE_OLD_FLOOR,
+  DATE_SCORE_OLD_BASE,
+  DATE_SCORE_OLD_EXP_SCALE,
+  DATE_SCORE_OLD_EXP_POWER,
+  DATE_SCORE_OLD_MAX_ADD,
+  DATE_SCORE_CEILING,
+  CATEGORY_DATE_WEIGHTS,
+  CATEGORY_FAMILIARITY_WEIGHTS,
   SPECIFICITY_OVERRIDES,
   SPECIFICITY_FLOORS,
   SPECIFICITY_DEFAULT,
@@ -58,10 +63,8 @@ function computeDateScore(event_year: number): number {
   if (age <= DATE_AGE_RECENT_YEARS) return DATE_SCORE_RECENT;
   if (age <= DATE_AGE_DECAY_START_YEARS) return computeRecentHistoricalScore(age);
   const yearsOver30 = age - DATE_AGE_DECAY_START_YEARS;
-  return Math.max(
-    DATE_SCORE_RECENT_HISTORY_CAP - yearsOver30 * DATE_SCORE_DECAY_PER_YEAR,
-    DATE_SCORE_OLD_FLOOR,
-  );
+  const t = Math.pow(yearsOver30 / DATE_SCORE_OLD_EXP_SCALE, DATE_SCORE_OLD_EXP_POWER);
+  return Math.min(DATE_SCORE_CEILING, DATE_SCORE_OLD_BASE + t * DATE_SCORE_OLD_MAX_ADD);
 }
 
 function computeRecentHistoricalScore(age: number): number {
@@ -145,10 +148,13 @@ function computeRawScore(
   const categoryMod = CATEGORY_MODIFIERS[factors.category] ?? 0;
   const multiAnswerBonus = CATEGORY_MULTI_ANSWER_BONUSES[factors.category] ?? 0;
 
+  const dateWeight = CATEGORY_DATE_WEIGHTS[factors.category] ?? WEIGHT_DATE;
+  const familiarityWeight = CATEGORY_FAMILIARITY_WEIGHTS[factors.category] ?? WEIGHT_FAMILIARITY;
+
   return (
     RAW_SCORE_OFFSET +
-    WEIGHT_DATE * dateScore +
-    WEIGHT_FAMILIARITY * familiarityScore +
+    dateWeight * dateScore +
+    familiarityWeight * familiarityScore +
     WEIGHT_FAME * fameScoreNormalized +
     specificityModifier +
     combinationalMod +

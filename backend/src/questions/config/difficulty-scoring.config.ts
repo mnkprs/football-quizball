@@ -1,5 +1,17 @@
 import type { QuestionCategory } from '../../common/interfaces/question.interface';
 
+// ─── Category-specific weight overrides ─────────────────────────────────────
+
+/** Date weight overrides per category (falls back to WEIGHT_DATE). */
+export const CATEGORY_DATE_WEIGHTS: Partial<Record<QuestionCategory, number>> = {
+  HISTORY: 0.30,
+};
+
+/** Familiarity weight overrides per category (falls back to WEIGHT_FAMILIARITY). */
+export const CATEGORY_FAMILIARITY_WEIGHTS: Partial<Record<QuestionCategory, number>> = {
+  HISTORY: 0.10,
+};
+
 /**
  * Difficulty scoring configuration.
  * All magic numbers used by DifficultyScorer are defined here with clear semantics.
@@ -9,10 +21,10 @@ import type { QuestionCategory } from '../../common/interfaces/question.interfac
 // Raw score is 0–1. Higher = harder. Thresholds determine EASY/MEDIUM/HARD.
 
 /** Raw score below this → EASY */
-export const RAW_THRESHOLD_EASY = 0.30;
+export const RAW_THRESHOLD_EASY = 0.26;
 
 /** Raw score below this → MEDIUM (above → HARD) */
-export const RAW_THRESHOLD_MEDIUM = 0.48;
+export const RAW_THRESHOLD_MEDIUM = 0.44;
 
 /** Distance from threshold within which a question can be used in the adjacent easier level. */
 export const BOUNDARY_TOLERANCE = 0.08;
@@ -79,14 +91,23 @@ export const DATE_SCORE_SLOPE_PER_YEAR = 0.025;
 /** Capped score for ages 15–30 (recent history). */
 export const DATE_SCORE_RECENT_HISTORY_CAP = 0.58;
 
-/** Age at which "old history" decay begins. */
+/** Age at which "old history" exponential growth begins. */
 export const DATE_AGE_DECAY_START_YEARS = 30;
 
-/** Decay per year for very old events (age > 30). */
-export const DATE_SCORE_DECAY_PER_YEAR = 0.008;
+/** Base score at age 30 (start of old-event exponential curve). */
+export const DATE_SCORE_OLD_BASE = 0.58;
 
-/** Floor for very old events (prevents going too low). */
-export const DATE_SCORE_OLD_FLOOR = 0.32;
+/** Scale divisor for old-event exponential: (age-30)/scale in the exponent. */
+export const DATE_SCORE_OLD_EXP_SCALE = 50;
+
+/** Steepness of exponential curve for old events. */
+export const DATE_SCORE_OLD_EXP_POWER = 1.5;
+
+/** Max additional contribution from exponential curve (caps total at DATE_SCORE_CEILING). */
+export const DATE_SCORE_OLD_MAX_ADD = 0.37;
+
+/** Hard ceiling for date score (very old events max out here). */
+export const DATE_SCORE_CEILING = 0.95;
 
 // ─── Specificity overrides per category ────────────────────────────────────
 // LLM provides specificity_score 1–10. Some categories override or clamp.

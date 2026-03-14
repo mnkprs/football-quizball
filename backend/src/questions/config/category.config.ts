@@ -44,13 +44,13 @@ export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [
  * Used to build the board layout and pool requirements.
  */
 export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Difficulty[]> = {
-  HISTORY: ['EASY', 'MEDIUM', 'HARD'],
-  PLAYER_ID: ['MEDIUM', 'MEDIUM'],
-  HIGHER_OR_LOWER: ['MEDIUM', 'MEDIUM'],
-  GUESS_SCORE: ['EASY', 'MEDIUM', 'HARD'],
-  TOP_5: ['HARD', 'HARD'],
-  GEOGRAPHY: ['EASY', 'MEDIUM', 'HARD'],
-  GOSSIP: ['MEDIUM', 'MEDIUM'],
+  HISTORY: ['EASY', 'EASY', 'MEDIUM'],
+  PLAYER_ID: ['EASY', 'MEDIUM'],
+  HIGHER_OR_LOWER: ['EASY', 'MEDIUM'],
+  GUESS_SCORE: ['EASY', 'EASY', 'MEDIUM'],
+  TOP_5: ['MEDIUM', 'MEDIUM'],
+  GEOGRAPHY: ['EASY', 'EASY', 'MEDIUM'],
+  GOSSIP: ['EASY', 'MEDIUM'],
   NEWS: ['MEDIUM', 'MEDIUM'],
   MAYHEM: ['HARD', 'HARD'],
 };
@@ -74,6 +74,6 @@ export const CATEGORY_BATCH_SIZES: Partial<Record<QuestionCategory, number>> = {
 export const CATEGORY_FIXED_DIFFICULTY: Partial<Record<QuestionCategory, Difficulty>> = {
   PLAYER_ID: 'MEDIUM',
   HIGHER_OR_LOWER: 'MEDIUM',
-  TOP_5: 'HARD',
+  TOP_5: 'MEDIUM',
   GOSSIP: 'MEDIUM',
 };
