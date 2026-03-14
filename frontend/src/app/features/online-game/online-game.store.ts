@@ -89,6 +89,10 @@ export const OnlineGameStore = signalStore(
       if (!view) return null;
       return view.playerMeta[view.myRole];
     }),
+    // Stubs for BoardComponent compatibility (offline-only stats)
+    currentStreak: computed(() => [0, 0] as [number, number]),
+    totalAnswered: computed(() => [0, 0] as [number, number]),
+    accuracy: computed(() => [0, 0] as [number, number]),
     // Adapter computed for Board/Question/Result component compatibility
     boardState: computed(() => {
       const view = store.gameView();
