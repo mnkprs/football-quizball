@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
@@ -103,6 +103,7 @@ export class QuestionPoolService {
   async drawBoard(
     language: string = 'en',
     excludeNewsQuestionIds?: string[],
+    allowLlmFallback: boolean = true,
   ): Promise<DrawBoardResult> {
     // For non-English, generate all questions live (pool is English-only)
     if (language !== 'en') {
@@ -126,11 +127,15 @@ export class QuestionPoolService {
         .map(([cat, diffs]) => `${cat}: ${diffs.join(', ')}`)
         .join('; ');
       this.logger.warn(
-        `[drawBoard] Pool missing ${missingByCategory.size} slot(s) — falling back to LLM: ${missingList}. ` +
+        `[drawBoard] Pool missing ${missingByCategory.size} slot(s) — ${allowLlmFallback ? 'falling back to LLM' : 'no LLM fallback'}: ${missingList}. ` +
           'Seed via POST /api/admin/seed-pool?target=5 to avoid LLM calls.',
       );
+
+      if (!allowLlmFallback) {
+        throw new ServiceUnavailableException('POOL_MISSING_SLOTS');
+      }
     }
-    for (const [category, difficulties] of missingByCategory.entries()) {
+    for (const [category] of missingByCategory.entries()) {
       if (category === 'NEWS') {
         this.logger.warn(`[drawBoard] NEWS pool empty — run POST /api/news/ingest to populate`);
       }

@@ -355,6 +355,16 @@ export const OnlineGameStore = signalStore(
         }
       },
 
+      async leaveQueue(): Promise<void> {
+        const gameId = store.gameId();
+        if (!gameId) return;
+        try {
+          await firstValueFrom(api.abandonGame(gameId));
+        } catch {
+          // ignore — navigate back regardless
+        }
+      },
+
       resetStore(): void {
         if (channel) {
           auth.supabaseClient.removeChannel(channel);

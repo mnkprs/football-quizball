@@ -63,7 +63,7 @@ export class OnlineGameService {
   // ── Board drawing ───────────────────────────────────────────────────────────
 
   private async drawBoard(language: 'en' | 'el'): Promise<{ boardState: OnlineBoardState; poolQuestionIds: string[] }> {
-    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard(language, []);
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard(language, [], false);
 
     const usedIds = new Set<string>();
     const cells: OnlineBoardCell[][] = CATEGORIES_ORDER.map((category) => {

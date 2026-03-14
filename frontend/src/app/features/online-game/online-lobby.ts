@@ -153,7 +153,9 @@ export class OnlineLobbyComponent implements OnInit {
       this.router.navigate(['/online-game', game.id]);
     } catch (err: unknown) {
       const msg = (err as { error?: { message?: string } })?.error?.message;
-      this.error.set(msg === 'MAX_ONLINE_GAMES_REACHED' ? 'You already have 2 active games.' : 'Failed to create game.');
+      if (msg === 'MAX_ONLINE_GAMES_REACHED') this.error.set('You already have 2 active games.');
+      else if (msg === 'POOL_MISSING_SLOTS') this.error.set('Question pool is being refreshed. Please try again in a moment.');
+      else this.error.set('Failed to create game.');
     } finally {
       this.loading.set(false);
     }
@@ -167,7 +169,9 @@ export class OnlineLobbyComponent implements OnInit {
       this.router.navigate(['/online-game', game.id]);
     } catch (err: unknown) {
       const msg = (err as { error?: { message?: string } })?.error?.message;
-      this.error.set(msg === 'MAX_ONLINE_GAMES_REACHED' ? 'You already have 2 active games.' : 'Failed to join queue.');
+      if (msg === 'MAX_ONLINE_GAMES_REACHED') this.error.set('You already have 2 active games.');
+      else if (msg === 'POOL_MISSING_SLOTS') this.error.set('Question pool is being refreshed. Please try again in a moment.');
+      else this.error.set('Failed to join queue.');
     } finally {
       this.loading.set(false);
     }
@@ -184,6 +188,8 @@ export class OnlineLobbyComponent implements OnInit {
       const body = (err as { error?: { message?: string } })?.error;
       if (body?.message === 'MAX_ONLINE_GAMES_REACHED') {
         this.error.set('You already have 2 active games.');
+      } else if (body?.message === 'POOL_MISSING_SLOTS') {
+        this.error.set('Question pool is being refreshed. Please try again in a moment.');
       } else if (body?.message?.includes('not found')) {
         this.error.set('Invite code not found. Check and try again.');
       } else {

@@ -45,12 +45,12 @@ export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [
  */
 export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Difficulty[]> = {
   HISTORY: ['EASY', 'MEDIUM', 'HARD'],
-  PLAYER_ID: ['EASY', 'MEDIUM'],
-  HIGHER_OR_LOWER: ['EASY', 'MEDIUM'],
+  PLAYER_ID: ['MEDIUM', 'MEDIUM'],
+  HIGHER_OR_LOWER: ['MEDIUM', 'MEDIUM'],
   GUESS_SCORE: ['EASY', 'MEDIUM', 'HARD'],
   TOP_5: ['HARD', 'HARD'],
   GEOGRAPHY: ['EASY', 'MEDIUM', 'HARD'],
-  GOSSIP: ['EASY', 'MEDIUM'],
+  GOSSIP: ['MEDIUM', 'MEDIUM'],
   NEWS: ['MEDIUM', 'MEDIUM'],
   MAYHEM: ['HARD', 'HARD'],
 };
