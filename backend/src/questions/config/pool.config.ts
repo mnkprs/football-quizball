@@ -65,6 +65,9 @@ export const BATCH_THROTTLE_MS = 20000;
 /** Delay between seed passes (ms). */
 export const SEED_PASS_DELAY_MS = 5000;
 
+/** Throttle delay (ms) between difficulty slots within a category after insertion. */
+export const INTER_DIFFICULTY_THROTTLE_MS = 5000;
+
 /**
  * Builds the list of (category, difficulty, count) slots required for a full board.
  */

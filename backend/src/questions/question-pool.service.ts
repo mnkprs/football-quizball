@@ -21,6 +21,7 @@ import {
   MAX_CATEGORY_BATCH_ATTEMPTS,
   BATCH_THROTTLE_MS,
   SEED_PASS_DELAY_MS,
+  INTER_DIFFICULTY_THROTTLE_MS,
   DUPLICATE_RETRY_ATTEMPTS,
 } from './config/pool.config';
 import { RAW_THRESHOLD_EASY, RAW_THRESHOLD_MEDIUM } from './config/difficulty-scoring.config';
@@ -454,6 +455,7 @@ export class QuestionPoolService {
           const { addedTotals, questionIds } = await this.seedCategoryPasses(category, passes);
           const totalAdded = Object.values(addedTotals).reduce((sum, value) => sum + value, 0);
           this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
+          await new Promise((resolve) => setTimeout(resolve, 5000)); // inter-category throttle
           allQuestionIds.push(...questionIds);
           for (const [difficulty, added] of Object.entries(addedTotals) as Array<[Difficulty, number]>) {
             const key = `${category}/${difficulty}`;
@@ -898,7 +900,7 @@ export class QuestionPoolService {
 
     for (let pass = 0; pass < passes; pass += 1) {
       this.logger.log(`[seedPool] ${category} pass ${pass + 1}/${passes}`);
-      for (const difficulty of uniqueDifficulties) {
+      await Promise.all(uniqueDifficulties.map(async (difficulty) => {
         let accepted: GeneratedQuestion[] = [];
         let attempt = 0;
 
@@ -976,8 +978,8 @@ export class QuestionPoolService {
           );
         }
 
-        await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
-      }
+        await new Promise((resolve) => setTimeout(resolve, INTER_DIFFICULTY_THROTTLE_MS));
+      }));
 
       if (pass + 1 < passes) {
         await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));

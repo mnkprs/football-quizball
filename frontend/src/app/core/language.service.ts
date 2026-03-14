@@ -12,7 +12,7 @@ const TRANSLATIONS = {
     player1Placeholder: 'Player 1 name...',
     player2Placeholder: 'Player 2 name...',
     kickOff: 'Kick Off! ⚽',
-    howToPlay: '8 categories · Up to 3 difficulties · 1 lifeline each',
+    howToPlay: '7 categories · Up to 3 difficulties · 2 lifelines each',
     failedToStart: 'Failed to start game. Please try again.',
     // Board
     turn: 'Turn',
@@ -478,22 +478,22 @@ const TRANSLATIONS = {
     profileBackToLeaderboard: 'Πίσω στην Κατάταξη',
     // Donate modal
     donateModalTitle: 'Σου αρέσει το παιχνίδι;',
-    donateModalMessage: 'Αν το απολαμβάνεις, σκέψου να υποστηρίξεις τον δημιουργό με έναν καφέ. Κάθε βοήθεια μετράει!',
+    donateModalMessage: 'Αν το απολαμβάνεις, σκέψου να υποστηρίξεις τον δημιουργό με έναν φρεντάκι. Κάθε βοήθεια μετράει!',
     donateModalSupport: 'Υποστήριξε στο Ko-fi',
     donateModalMaybeLater: 'Ίσως αργότερα',
-    navBuyMeACoffee: 'Καφέ για μένα',
+    navBuyMeACoffee: 'Φιλοδωρηματάκι για Φρέντο Εσπρέσσο' ,
     // News mode
-    btnNews: 'ΝΕΩΝ',
+    btnNews: 'NEA',
     btnNewsHint: 'Τελευταία ποδοσφαιρικά νέα • Καθημερινές ενημερώσεις',
     newsDailyBadge: 'ΚΑΘΗΜΕΡΙΝΟ',
     newsLatestHeadlines: 'Τελευταία νέα',
     // Mayhem mode
     btnMayhem: 'MAYHEM',
-    btnMayhemHint: 'Εξαιρετικά δύσκολα τριβιά • Από όλο τον κόσμο',
+    btnMayhemHint: 'Εξαιρετικά δύσκολες ερωτήσεις • Από όλο τον κόσμο',
     mayhemNewBadge: 'EXTREME',
-    mayhemSubtitle: 'Δυσεύρετα ποδοσφαιρικά τριβιά',
+    mayhemSubtitle: 'Εξαιρετικά δύσκολες ερωτήσεις',
     mayhemFinishedTitle: 'Mayhem Ολοκληρώθηκε!',
-    mayhemFinishedSubtitle: 'Επέζησες από τα πιο δύσκολα ποδοσφαιρικά τριβιά.',
+    mayhemFinishedSubtitle: 'Επέζησες από τα πιο δύσκολα ποδοσφαιρικά quiz.',
   },
 } as const;
 
