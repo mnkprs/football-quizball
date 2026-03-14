@@ -44,12 +44,12 @@ export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [
  * Used to build the board layout and pool requirements.
  */
 export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Difficulty[]> = {
-  HISTORY: ['EASY', 'EASY', 'MEDIUM'],
+  HISTORY: ['EASY', 'MEDIUM', 'HARD'],
   PLAYER_ID: ['EASY', 'MEDIUM'],
   HIGHER_OR_LOWER: ['EASY', 'MEDIUM'],
-  GUESS_SCORE: ['EASY', 'EASY', 'MEDIUM'],
+  GUESS_SCORE: ['EASY', 'MEDIUM', 'HARD'],
   TOP_5: ['HARD', 'HARD'],
-  GEOGRAPHY: ['EASY', 'EASY', 'MEDIUM'],
+  GEOGRAPHY: ['EASY', 'MEDIUM', 'HARD'],
   GOSSIP: ['EASY', 'MEDIUM'],
   NEWS: ['MEDIUM', 'MEDIUM'],
   MAYHEM: ['HARD', 'HARD'],
