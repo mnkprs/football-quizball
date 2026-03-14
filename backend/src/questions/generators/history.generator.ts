@@ -4,6 +4,7 @@ import { GeneratedQuestion } from '../question.types';
 import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
+  getAvoidQuestionsInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
   getSingleAnswerInstruction,
@@ -89,7 +90,7 @@ Return ONLY a valid JSON object:
   ]
 }
 ${getLeagueFameGuidanceForBatch('HISTORY', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} football history questions in one batch. ${getRelativityConstraint('HISTORY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} football history questions in one batch. ${getRelativityConstraint('HISTORY', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: HistoryPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));

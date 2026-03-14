@@ -4,6 +4,7 @@ import { GeneratedQuestion, DifficultyFactors } from '../question.types';
 import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
+  getAvoidQuestionsInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
   getSingleAnswerInstruction,
@@ -97,7 +98,7 @@ Return ONLY valid JSON. home_score and away_score must be EXACT numbers you know
 }
 ${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}
 CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the score when Liverpool hosted Barcelona in the 2019 Champions League semi-final second leg?" NOT "where Liverpool overturned a 3-0 first-leg deficit?".${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} guess-the-score questions. Only include matches whose exact score you are confident about. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}`;
+    const userPrompt = `Generate ${questionCount} guess-the-score questions. Only include matches whose exact score you are confident about. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: MatchPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));

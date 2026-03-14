@@ -11,6 +11,7 @@ import {
   type DifficultyScoreRanges,
 } from '../config/difficulty-prompts.config';
 import { RAW_THRESHOLD_EASY, RAW_THRESHOLD_MEDIUM } from '../config/difficulty-scoring.config';
+import { CATEGORY_FIXED_DIFFICULTY, CATEGORY_DIFFICULTY_SLOTS } from '../config/category.config';
 
 function formatRanges(ranges: DifficultyScoreRanges): string {
   const parts = [
@@ -96,29 +97,46 @@ const GREEK_LOCALE_HINT = 'For Greek audience, Greek Super League and Greek Cup 
 
 const BATCH_GUIDANCE_TEMPLATES: Partial<Record<QuestionCategory, string>> = {
   HISTORY:
-    'Produce 3 questions ordered by answerability. AIM FOR MODERATE DIFFICULTY: avoid trivia most casual fans know immediately except for EASY. Tier 1 leagues only.',
+    'AIM FOR MODERATE DIFFICULTY: avoid trivia most casual fans know immediately except for EASY. Tier 1 leagues only.',
   GEOGRAPHY:
-    'Produce 3 questions ordered by answerability. AIM FOR MODERATE DIFFICULTY: avoid overly obvious geography. Tier 1 leagues only.',
+    'AIM FOR MODERATE DIFFICULTY: avoid overly obvious geography. Tier 1 leagues only.',
   GUESS_SCORE:
-    'Produce 3 questions ordered by answerability. Prefer matches from the last decade (2015+). Avoid both obscure and overly iconic matches. All should be findable.',
+    'Prefer matches from the last decade (2015+). Avoid both obscure and overly iconic matches. All should be findable.',
   PLAYER_ID:
-    'Produce 2 questions: Tier 1-2 competitions. Prefer recognizable but not trivial players.',
+    'Tier 1-2 competitions. Prefer recognizable but not trivial players.',
   HIGHER_OR_LOWER:
-    'Produce 2 questions: Tier 1-2 competitions. Prefer stats that require some knowledge.',
+    'Tier 1-2 competitions. Prefer stats that require some knowledge.',
   TOP_5:
-    'Produce 2 HARD questions but keep them findable: Tier 1 competitions, high-recognition context.',
+    'Multi-dimensional rankings. Keep findable: Tier 1 competitions only.',
   GOSSIP:
-    'Produce 2 questions: use recognizable gossip contexts. Avoid trivial tabloid headlines.',
+    'Use recognizable gossip contexts. Avoid trivial tabloid headlines.',
 };
 
+function buildSlotGuidance(category: QuestionCategory): string {
+  // Fixed-difficulty categories: all questions must target that difficulty
+  const fixedDiff = CATEGORY_FIXED_DIFFICULTY[category];
+  if (fixedDiff) {
+    const ranges = DEFAULT_DIFFICULTY_RANGES[fixedDiff];
+    return ` All questions must be ${fixedDiff}: use ${formatRanges(ranges)}.`;
+  }
+  // Dynamic categories: per-slot guidance derived from CATEGORY_DIFFICULTY_SLOTS
+  const slots = CATEGORY_DIFFICULTY_SLOTS[category] as readonly Difficulty[] | undefined;
+  if (!slots?.length) {
+    const fallback = CATEGORY_DEFAULT_RANGES[category] ?? DEFAULT_DIFFICULTY_RANGES.MEDIUM;
+    return ` Use ${formatRanges(fallback)}.`;
+  }
+  return (
+    ' ' +
+    (slots as Difficulty[])
+      .map((diff, i) => `Q${i + 1} ${diff} (${formatRanges(DEFAULT_DIFFICULTY_RANGES[diff])})`)
+      .join(', ') +
+    '.'
+  );
+}
+
 function buildLeagueFameGuidance(category: QuestionCategory): string {
-  const ranges = CATEGORY_DEFAULT_RANGES[category] ?? DEFAULT_DIFFICULTY_RANGES.MEDIUM;
   const template = BATCH_GUIDANCE_TEMPLATES[category] ?? '';
-  const slots =
-    category === 'HISTORY' || category === 'GEOGRAPHY' || category === 'GUESS_SCORE'
-      ? ` Q1 EASY (${formatRanges(DEFAULT_DIFFICULTY_RANGES.EASY)}), Q2 MEDIUM (${formatRanges(DEFAULT_DIFFICULTY_RANGES.MEDIUM)}), Q3 HARD (${formatRanges(DEFAULT_DIFFICULTY_RANGES.HARD)}).`
-      : ` Use ${formatRanges(ranges)}.`;
-  return `${template}${slots}`;
+  return `${template}${buildSlotGuidance(category)}`;
 }
 
 function buildDifficultyCriteria(): string {
@@ -170,4 +188,14 @@ export function getAvoidInstruction(avoidAnswers: string[] | undefined): string 
   const sample = avoidAnswers.slice(0, 25).join(', ');
   const suffix = avoidAnswers.length > 25 ? ` (and ${avoidAnswers.length - 25} more)` : '';
   return `\n\nDO NOT generate questions with any of these answers — pick something entirely different: ${sample}${suffix}`;
+}
+
+/**
+ * Returns an instruction to avoid generating questions similar to those already in the pool.
+ * Pass a random sample of existing question texts (not all — 20-25 is enough).
+ */
+export function getAvoidQuestionsInstruction(avoidQuestions: string[] | undefined): string {
+  if (!avoidQuestions?.length) return '';
+  const sample = avoidQuestions.slice(0, 25).map((q) => `"${q.slice(0, 90)}"`).join(', ');
+  return `\n\nDO NOT generate questions similar to these already in the pool — pick entirely different topics, angles, and facts: ${sample}`;
 }

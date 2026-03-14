@@ -9,6 +9,7 @@ export {
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
   getAvoidInstruction,
+  getAvoidQuestionsInstruction,
   getFactualAccuracyInstruction,
 } from './diversity/prompt-helpers';
 export {

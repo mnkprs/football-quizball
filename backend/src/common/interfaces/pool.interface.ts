@@ -87,3 +87,5 @@ export interface PoolQuestionRow {
   correct_answer: string;
   generation_version?: string | null;
 }
+
+export interface NearDuplicateRow { id: string; similarity: number; }

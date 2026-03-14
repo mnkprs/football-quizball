@@ -38,6 +38,7 @@ import type {
   SlotRawStats,
   CleanupResultRow,
   ExistingQuestionRow,
+  NearDuplicateRow,
 } from '../common/interfaces/pool.interface';
 
 const DRAW_REQUIREMENTS = buildDrawRequirements();
@@ -738,14 +739,20 @@ export class QuestionPoolService {
       return [];
     }
 
+    const semanticFiltered = await this.semanticDedup(filtered, category);
+    if (semanticFiltered.length === 0) {
+      this.logger.warn(`[fillSlot] All ${filtered.length} questions removed by semantic dedup for ${category}/${difficulty}`);
+      return [];
+    }
+
     try {
-      await this.persistQuestionsToPool(category, filtered, difficulty);
+      await this.persistQuestionsToPool(category, semanticFiltered, difficulty);
     } catch (err) {
       this.logger.error(`[fillSlot] ${(err as Error).message}`);
       return [];
     }
-    this.logger.log(`[fillSlot] Inserted ${filtered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - filtered.length} duplicates skipped)`);
-    return filtered.map((q) => q.question_text);
+    this.logger.log(`[fillSlot] Inserted ${semanticFiltered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - semanticFiltered.length} duplicates/near-dups skipped)`);
+    return semanticFiltered.map((q) => q.question_text);
   }
 
   /** Filters questions by factual integrity (LLM verification). Applies corrections when answer is wrong but question is valid. */
@@ -797,12 +804,14 @@ export class QuestionPoolService {
     return passed;
   }
 
-  /** Returns a Set of "question_text|||correct_answer" keys already in the pool for a category. */
+  /** Returns a Set of "question_text|||correct_answer" keys for the most recent 200 pool rows in a category. */
   private async getExistingQuestionKeys(category: QuestionCategory): Promise<Set<string>> {
     const { data, error } = await this.supabaseService.client
       .from('question_pool')
       .select('question->question_text, question->correct_answer')
-      .eq('category', category);
+      .eq('category', category)
+      .order('created_at', { ascending: false })
+      .limit(200);
 
     if (error) {
       this.logger.error(`[getExistingQuestionKeys] Query error: ${error.message}`);
@@ -812,6 +821,32 @@ export class QuestionPoolService {
     return new Set(
       (data as ExistingQuestionRow[]).map((r) => `${r.question_text}|||${r.correct_answer}`),
     );
+  }
+
+  /**
+   * Returns up to 25 randomly sampled question texts from the pool for a category.
+   * Used to nudge the LLM away from topics already covered without blowing token budget.
+   */
+  private async getPoolSampleTexts(category: QuestionCategory, limit = 25): Promise<string[]> {
+    const { data, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('question->question_text')
+      .eq('category', category)
+      .limit(limit * 10) // over-fetch then shuffle client-side (avoids expensive ORDER BY RANDOM())
+      .order('created_at', { ascending: false });
+
+    if (error || !data?.length) return [];
+
+    const texts = (data as { question_text: string }[])
+      .map((r) => r.question_text)
+      .filter(Boolean);
+
+    // Fisher-Yates shuffle then slice for random sample
+    for (let i = texts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [texts[i], texts[j]] = [texts[j], texts[i]];
+    }
+    return texts.slice(0, limit);
   }
 
   private async getPoolCounts(): Promise<Record<string, number>> {
@@ -896,6 +931,7 @@ export class QuestionPoolService {
     const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
     const questionIds: string[] = [];
     const existingKeys = await this.getExistingQuestionKeys(category);
+    const avoidQuestions = await this.getPoolSampleTexts(category);
     const uniqueDifficulties = [...new Set(CATEGORY_DIFFICULTY_SLOTS[category])] as Difficulty[];
 
     for (let pass = 0; pass < passes; pass += 1) {
@@ -908,6 +944,7 @@ export class QuestionPoolService {
           const batch = await this.questionsService.generateBatch(category, 'en', {
             questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
             targetDifficulty: difficulty,
+            avoidQuestions,
           });
           const candidates = batch.filter(
             (q) =>
@@ -916,6 +953,7 @@ export class QuestionPoolService {
           const validatorRejected = candidates.filter((q) => !this.questionValidator.validate(q).valid);
           let afterValidator = candidates.filter((q) => this.questionValidator.validate(q).valid);
           afterValidator = await this.filterByIntegrity(afterValidator);
+          afterValidator = await this.semanticDedup(afterValidator, category);
           accepted = afterValidator.filter((q) => {
             const key = `${q.question_text}|||${q.correct_answer}`;
             if (existingKeys.has(key)) return false;
@@ -1014,6 +1052,7 @@ export class QuestionPoolService {
     targetCount: number,
   ): Promise<{ added: number; questionIds: string[] }> {
     const existingKeys = await this.getExistingQuestionKeys(category);
+    const avoidQuestions = await this.getPoolSampleTexts(category);
     const questionIds: string[] = [];
     let added = 0;
     let pass = 0;
@@ -1024,6 +1063,7 @@ export class QuestionPoolService {
       const batch = await this.questionsService.generateBatch(category, 'en', {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
         targetDifficulty: difficulty,
+        avoidQuestions,
       });
       const candidates = batch.filter(
         (q) =>
@@ -1042,6 +1082,7 @@ export class QuestionPoolService {
         return valid;
       });
       afterValidator = await this.filterByIntegrity(afterValidator);
+      afterValidator = await this.semanticDedup(afterValidator, category);
       if (validatorRejected.length > 0) {
         this.logger.warn(
           `[seedSlot] Validator rejected ${validatorRejected.length}: ` +
@@ -1144,6 +1185,7 @@ export class QuestionPoolService {
   ): Promise<Record<Difficulty, number>> {
     const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
     const existingKeys = await this.getExistingQuestionKeys(category);
+    const avoidQuestions = await this.getPoolSampleTexts(category);
     let attempts = 0;
 
     while (this.hasRemainingNeeds(needs) && attempts < MAX_CATEGORY_BATCH_ATTEMPTS) {
@@ -1161,6 +1203,7 @@ export class QuestionPoolService {
         const batch = await this.questionsService.generateBatch(category, 'en', {
           questionCount: batchSize,
           targetDifficulty: difficulty,
+          avoidQuestions,
         });
 
         const candidates = batch.filter(
@@ -1170,6 +1213,7 @@ export class QuestionPoolService {
         );
         let afterValidator = candidates.filter((q) => this.questionValidator.validate(q).valid);
         afterValidator = await this.filterByIntegrity(afterValidator);
+        afterValidator = await this.semanticDedup(afterValidator, category);
         let accepted = afterValidator.filter((q) => {
             const key = `${q.question_text}|||${q.correct_answer}`;
             if (existingKeys.has(key)) return false;
@@ -1218,6 +1262,43 @@ export class QuestionPoolService {
     difficultyOverride?: Difficulty,
   ): Promise<void> {
     await this.persistQuestionsToPool(category, questions, difficultyOverride);
+  }
+
+  private async isNearDuplicate(embedding: number[], category: QuestionCategory): Promise<boolean> {
+    const { data, error } = await this.supabaseService.client.rpc('find_near_duplicate_in_pool', {
+      query_embedding: `[${embedding.join(',')}]`,
+      p_category: category,
+    });
+    if (error) {
+      this.logger.warn(`[isNearDuplicate] RPC error — ${error.message}`);
+      return false;
+    }
+    return Array.isArray(data) && data.length > 0;
+  }
+
+  private async semanticDedup(
+    candidates: GeneratedQuestion[],
+    category: QuestionCategory,
+  ): Promise<GeneratedQuestion[]> {
+    const texts = candidates.map((q) => q.question_text);
+    const embeddings = await this.llmService.embedTexts(texts);
+
+    const results: GeneratedQuestion[] = [];
+    for (let i = 0; i < candidates.length; i++) {
+      const emb = embeddings[i];
+      if (!emb) {
+        results.push(candidates[i]);
+        continue;
+      }
+      const isDup = await this.isNearDuplicate(emb, category);
+      if (isDup) {
+        this.logger.log(`[semanticDedup] Near-duplicate skipped: "${candidates[i].question_text?.slice(0, 60)}"`);
+      } else {
+        (candidates[i] as GeneratedQuestion & { _embedding?: number[] })._embedding = emb;
+        results.push(candidates[i]);
+      }
+    }
+    return results;
   }
 
   /**
@@ -1271,6 +1352,7 @@ export class QuestionPoolService {
           allowedDifficulties: undefined,
         },
         raw_score: q.raw_score ?? null,
+        embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,
         translations: {
           el: {
             question_text: translations[i]?.question_text ?? q.question_text,
