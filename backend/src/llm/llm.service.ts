@@ -90,6 +90,7 @@ export class LlmService {
 
   constructor(private configService: ConfigService) {
     const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const vertexKey = this.configService.get<string>('VERTEX_AI_KEY');
     const vertexProject = this.configService.get<string>('GOOGLE_CLOUD_PROJECT');
     const vertexLocation = this.configService.get<string>('GOOGLE_CLOUD_LOCATION') ?? 'us-central1';
     const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
@@ -103,11 +104,15 @@ export class LlmService {
         location: vertexLocation,
       });
       this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation})`);
+    } else if (vertexKey) {
+      // Vertex AI with API key only (no project — uses key-based auth)
+      this.gemini = new GoogleGenAI({ vertexai: true, apiKey: vertexKey });
+      this.logger.log(`LlmService — Gemini ready via Vertex AI (API key)`);
     } else if (geminiKey) {
       this.gemini = new GoogleGenAI({ apiKey: geminiKey });
       this.logger.log(`LlmService — Gemini ready (AI Studio)`);
     } else {
-      this.logger.warn('Gemini disabled — set GOOGLE_CLOUD_PROJECT for Vertex AI, or GEMINI_API_KEY for AI Studio');
+      this.logger.warn('Gemini disabled — set GOOGLE_CLOUD_PROJECT (+ optional VERTEX_AI_KEY) for Vertex AI, VERTEX_AI_KEY alone, or GEMINI_API_KEY for AI Studio');
     }
 
     if (deepseekKey) {
@@ -322,6 +327,26 @@ export class LlmService {
       }
     }
     throw lastError || new Error('LLM generation failed after all retries');
+  }
+
+  /** Embeds an array of texts using text-embedding-004. Returns parallel array of float vectors. */
+  async embedTexts(texts: string[]): Promise<Array<number[] | null>> {
+    if (!this.gemini || texts.length === 0) return texts.map(() => null);
+    return Promise.all(
+      texts.map(async (text) => {
+        try {
+          const response = await this.gemini!.models.embedContent({
+            model: 'text-embedding-004',
+            contents: text,
+            config: { taskType: 'SEMANTIC_SIMILARITY' },
+          });
+          return response.embeddings?.[0]?.values ?? null;
+        } catch (err) {
+          this.logger.warn(`[embedTexts] Failed for text snippet — ${(err as Error).message}`);
+          return null;
+        }
+      }),
+    );
   }
 
   /**
