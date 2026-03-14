@@ -1332,9 +1332,9 @@ export class QuestionPoolService {
         }
       }
 
-      const { data, error } = await query;
+      const { data, error } = await this.withRetry(() => query);
 
-      if (error) throw new Error(`[getPoolRawScoreStats] Query error: ${error.message}`);
+      if (error) throw new Error(`[getPoolRawScoreStats] Query error: ${(error as { message?: string })?.message}`);
       const batch = (data ?? []) as {
         category: string;
         difficulty: string;
@@ -1513,9 +1513,9 @@ export class QuestionPoolService {
       }
     }
 
-    const { data, error } = await query;
+    const { data, error } = await this.withRetry(() => query);
 
-    if (error) throw new Error(`[getSeedPoolSessions] Query error: ${error.message}`);
+    if (error) throw new Error(`[getSeedPoolSessions] Query error: ${(error as { message?: string })?.message}`);
     return (data ?? []).map(
       (r: {
         id: string;
@@ -1591,8 +1591,30 @@ export class QuestionPoolService {
     const params = generationVersion?.trim()
       ? { p_generation_version: generationVersion.trim() }
       : {};
-    const { data, error } = await this.supabaseService.client.rpc('get_seed_pool_stats', params);
+    const { data, error } = await this.withRetry(() =>
+      this.supabaseService.client.rpc('get_seed_pool_stats', params),
+    );
     if (error) throw new Error(`[getSeedPoolStats] RPC error: ${error.message}`);
     return (data ?? []) as SeedPoolStatsRow[];
+  }
+
+  /**
+   * Retries a Supabase call up to 3 times with exponential backoff when a transient
+   * "fetch failed" error occurs (e.g. after connection pool exhaustion from seeding).
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private async withRetry(fn: () => PromiseLike<any>, maxAttempts = 3): Promise<any> {
+    let lastResult: { data: unknown; error: unknown } = { data: null, error: null };
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      lastResult = await fn();
+      const err = lastResult.error as { message?: string } | null;
+      if (!err?.message?.includes('fetch failed')) break;
+      if (attempt < maxAttempts) {
+        const delay = attempt * 1500;
+        this.logger.warn(`[withRetry] fetch failed (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms...`);
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+    return lastResult;
   }
 }
