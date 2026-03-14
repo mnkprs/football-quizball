@@ -20,9 +20,9 @@ export class MayhemController {
 
   @Get('mode/questions')
   @UseGuards(AuthGuard)
-  async getMayhemQuestions(@Query('excludeIds') excludeIds?: string) {
+  async getMayhemQuestions(@Query('excludeIds') excludeIds?: string, @Query('lang') lang?: string) {
     const ids = excludeIds ? excludeIds.split(',').filter(Boolean) : [];
-    return this.mayhemService.getMayhemQuestions(ids);
+    return this.mayhemService.getMayhemQuestions(ids, lang ?? 'en');
   }
 
   @Post('mode/answer')

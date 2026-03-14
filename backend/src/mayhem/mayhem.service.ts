@@ -38,16 +38,37 @@ export class MayhemService {
     }
 
     this.isIngesting = true;
-    let added = 0;
-    let skipped = 0;
-
     try {
       const current = await this.getMayhemPoolCount();
       if (current >= MAYHEM_POOL_TARGET) {
         this.logger.log(`[ingestMayhem] Pool has ${current} MAYHEM questions, skipping`);
         return { added: 0, skipped: 0 };
       }
+      return await this.runIngestBatch();
+    } finally {
+      this.isIngesting = false;
+    }
+  }
 
+  /** Force one generation pass regardless of current pool size. Used by seed script. */
+  async forceIngestBatch(): Promise<{ added: number; skipped: number }> {
+    if (this.isIngesting) {
+      this.logger.warn('[forceIngestBatch] Already ingesting, skipping');
+      return { added: 0, skipped: 0 };
+    }
+    this.isIngesting = true;
+    try {
+      return await this.runIngestBatch();
+    } finally {
+      this.isIngesting = false;
+    }
+  }
+
+  private async runIngestBatch(): Promise<{ added: number; skipped: number }> {
+    let added = 0;
+    let skipped = 0;
+
+    try {
       const questions = await this.mayhemGenerator.generateBatch();
       if (questions.length === 0) {
         this.logger.warn('[ingestMayhem] No questions generated');
@@ -98,27 +119,59 @@ export class MayhemService {
         return { added: 0, skipped };
       }
 
-      type PoolQuestion = { question_text: string; explanation?: string };
+      type PoolQuestion = {
+        question_text: string;
+        explanation?: string;
+        correct_answer?: string;
+        wrong_choices?: string[];
+      };
       const toPoolQ = (q: unknown) => q as PoolQuestion;
-      let translations: Array<{ question_text: string; explanation: string }> = rows.map((r) => ({
-        question_text: toPoolQ(r.question).question_text,
-        explanation: toPoolQ(r.question).explanation ?? '',
-      }));
+
+      // Pack all 5 translatable strings per question into the flat translateToGreek batch:
+      //   slot 5i+0 → question_text / explanation
+      //   slot 5i+1 → correct_answer (question_text slot)
+      //   slot 5i+2 → wrong_choices[0]
+      //   slot 5i+3 → wrong_choices[1]
+      //   slot 5i+4 → wrong_choices[2]
+      const flat: Array<{ question_text: string; explanation: string }> = rows.flatMap((r) => {
+        const q = toPoolQ(r.question);
+        const wc = q.wrong_choices ?? ['', '', ''];
+        return [
+          { question_text: q.question_text, explanation: q.explanation ?? '' },
+          { question_text: q.correct_answer ?? '', explanation: '' },
+          { question_text: wc[0] ?? '', explanation: '' },
+          { question_text: wc[1] ?? '', explanation: '' },
+          { question_text: wc[2] ?? '', explanation: '' },
+        ];
+      });
+
+      let translated = flat;
       try {
-        translations = await this.llmService.translateToGreek(translations);
+        translated = await this.llmService.translateToGreek(flat);
       } catch (err) {
         this.logger.warn(`[ingestMayhem] Greek translation failed, inserting without: ${(err as Error).message}`);
       }
 
-      const rowsWithTranslations = rows.map((r, i) => ({
-        ...r,
-        translations: {
-          el: {
-            question_text: translations[i]?.question_text ?? toPoolQ(r.question).question_text,
-            explanation: translations[i]?.explanation ?? toPoolQ(r.question).explanation ?? '',
+      const rowsWithTranslations = rows.map((r, i) => {
+        const q = toPoolQ(r.question);
+        const wc = q.wrong_choices ?? ['', '', ''];
+        const base = i * 5;
+        return {
+          ...r,
+          translations: {
+            el: {
+              question_text: translated[base]?.question_text ?? q.question_text,
+              explanation: translated[base]?.explanation ?? q.explanation ?? '',
+              correct_answer: translated[base + 1]?.question_text ?? q.correct_answer ?? '',
+              wrong_choices: [
+                translated[base + 2]?.question_text ?? wc[0] ?? '',
+                translated[base + 3]?.question_text ?? wc[1] ?? '',
+                translated[base + 4]?.question_text ?? wc[2] ?? '',
+              ],
+            },
           },
-        },
-      }));
+        };
+      });
 
       const { error } = await this.supabaseService.client
         .from('mayhem_questions')
@@ -131,8 +184,8 @@ export class MayhemService {
 
       added = rows.length;
       this.logger.log(`[ingestMayhem] Inserted ${added} MAYHEM questions (${skipped} skipped)`);
-    } finally {
-      this.isIngesting = false;
+    } catch (err) {
+      this.logger.error(`[runIngestBatch] Unexpected error: ${(err as Error).message}`);
     }
 
     return { added, skipped };
@@ -153,10 +206,11 @@ export class MayhemService {
 
   async getMayhemQuestions(
     excludeIds: string[] = [],
+    lang = 'en',
   ): Promise<Array<{ id: string; question_text: string; options: string[] }>> {
     const { data, error } = await this.supabaseService.client
       .from('mayhem_questions')
-      .select('id, question')
+      .select('id, question, translations')
       .gt('expires_at', new Date().toISOString())
       .limit(50);
 
@@ -167,14 +221,18 @@ export class MayhemService {
 
     return (data ?? [])
       .filter((r: { id: string }) => !excludeIds.includes(r.id))
-      .map((r: { id: string; question: Record<string, unknown> }) => {
+      .map((r: { id: string; question: Record<string, unknown>; translations?: Record<string, unknown> }) => {
         const q = r.question;
-        const correctAnswer = q['correct_answer'] as string;
-        const wrongChoices = (q['wrong_choices'] as string[]) ?? [];
+        const t = lang !== 'en' ? (r.translations?.[lang] as Record<string, unknown> | undefined) : undefined;
+
+        const questionText = (t?.['question_text'] as string | undefined) ?? q['question_text'] as string;
+        const correctAnswer = (t?.['correct_answer'] as string | undefined) ?? q['correct_answer'] as string;
+        const wrongChoices = (t?.['wrong_choices'] as string[] | undefined) ?? (q['wrong_choices'] as string[]) ?? [];
+
         const options = shuffleArray([correctAnswer, ...wrongChoices.slice(0, 3)]);
         return {
           id: r.id,
-          question_text: q['question_text'] as string,
+          question_text: questionText,
           options,
         };
       });
@@ -219,17 +277,12 @@ export class MayhemService {
 
   private toPoolQuestion(q: GeneratedQuestion): object {
     return {
-      id: q.id,
       question_text: q.question_text,
       correct_answer: q.correct_answer,
       wrong_choices: q.wrong_choices ?? [],
-      fifty_fifty_hint: null,
-      fifty_fifty_applicable: false,
       explanation: q.explanation,
-      image_url: q.image_url,
       category: q.category,
       difficulty: q.difficulty,
-      points: q.points,
       source_url: q.source_url ?? null,
     };
   }

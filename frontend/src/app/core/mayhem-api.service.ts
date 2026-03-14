@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { LanguageService } from './language.service';
 
 export interface MayhemQuestion {
   id: string;
@@ -18,6 +19,7 @@ export interface MayhemAnswerResponse {
 export class MayhemApiService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private lang = inject(LanguageService);
 
   private headers(): HttpHeaders {
     const token = this.auth.accessToken();
@@ -25,8 +27,9 @@ export class MayhemApiService {
   }
 
   getQuestions(excludeIds: string[] = []) {
-    const params = excludeIds.length ? `?excludeIds=${encodeURIComponent(excludeIds.join(','))}` : '';
-    return this.http.get<MayhemQuestion[]>(`/api/mayhem/mode/questions${params}`, { headers: this.headers() });
+    const parts: string[] = [`lang=${this.lang.lang()}`];
+    if (excludeIds.length) parts.push(`excludeIds=${encodeURIComponent(excludeIds.join(','))}`);
+    return this.http.get<MayhemQuestion[]>(`/api/mayhem/mode/questions?${parts.join('&')}`, { headers: this.headers() });
   }
 
   checkAnswer(questionId: string, selectedAnswer: string) {
