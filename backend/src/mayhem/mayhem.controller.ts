@@ -27,8 +27,8 @@ export class MayhemController {
 
   @Post('mode/answer')
   @UseGuards(AuthGuard)
-  async checkAnswer(@Body() body: { questionId: string; selectedAnswer: string }) {
-    const result = await this.mayhemService.checkMayhemAnswer(body.questionId, body.selectedAnswer);
+  async checkAnswer(@Body() body: { questionId: string; selectedAnswer: string; lang?: string }) {
+    const result = await this.mayhemService.checkMayhemAnswer(body.questionId, body.selectedAnswer, body.lang ?? 'en');
     if (!result) throw new NotFoundException('Question not found or expired');
     return result;
   }

@@ -241,24 +241,27 @@ export class MayhemService {
   async checkMayhemAnswer(
     questionId: string,
     selectedAnswer: string,
+    lang = 'en',
   ): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
     const { data, error } = await this.supabaseService.client
       .from('mayhem_questions')
-      .select('question')
+      .select('question, translations')
       .eq('id', questionId)
       .gt('expires_at', new Date().toISOString())
       .maybeSingle();
 
     if (error || !data) return null;
 
-    const q = (data as { question: Record<string, string> }).question;
-    const correctAnswer = q['correct_answer'] ?? '';
+    const q = (data as { question: Record<string, string>; translations?: Record<string, Record<string, string>> }).question;
+    const t = lang !== 'en' ? (data as { translations?: Record<string, Record<string, string>> }).translations?.[lang] : undefined;
+
+    const correctAnswer = t?.['correct_answer'] ?? q['correct_answer'] ?? '';
     const correct = selectedAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
 
     return {
       correct,
       correct_answer: correctAnswer,
-      explanation: q['explanation'] ?? '',
+      explanation: t?.['explanation'] ?? q['explanation'] ?? '',
     };
   }
 

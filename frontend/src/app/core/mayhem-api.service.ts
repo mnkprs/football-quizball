@@ -35,6 +35,6 @@ export class MayhemApiService {
   }
 
   checkAnswer(questionId: string, selectedAnswer: string) {
-    return this.http.post<MayhemAnswerResponse>(`${this.base}/mode/answer`, { questionId, selectedAnswer }, { headers: this.headers() });
+    return this.http.post<MayhemAnswerResponse>(`${this.base}/mode/answer`, { questionId, selectedAnswer, lang: this.lang.lang() }, { headers: this.headers() });
   }
 }
