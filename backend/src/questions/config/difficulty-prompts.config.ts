@@ -64,6 +64,15 @@ export const CATEGORY_DIFFICULTY_OVERRIDES: Partial<
         'Not top-of-mind, less obvious matches. Do NOT use universally iconic matches (fame 8-10) like Germany 7-1 Brazil or Liverpool 4-0 Barcelona.',
     },
   },
+  TOP_5: {
+    HARD: {
+      fame_score: [4, 7],
+      specificity_score: [4, 5],
+      combinational_thinking_score: [5, 10],
+      extraInstructions:
+        'Multi-dimensional rankings requiring recall of many specific facts. Keep findable: use Tier 1 competitions only.',
+    },
+  },
   HISTORY: {
     EASY: {
       fame_score: [7, 9],
@@ -80,11 +89,11 @@ export const CATEGORY_DIFFICULTY_OVERRIDES: Partial<
         'Mix recent and older events (2010-2022). Avoid universally iconic moments (fame 9-10).',
     },
     HARD: {
-      fame_score: [4, 6],
+      fame_score: [3, 5],
       specificity_score: [4, 5],
-      combinational_thinking_score: [5, 10],
+      combinational_thinking_score: [6, 10],
       extraInstructions:
-        'Niche facts, older events (pre-2015). Avoid universally iconic moments (fame 8-10).',
+        'Niche, non-obvious facts — obscure records, lesser-known finals, forgotten players or events (pre-2012). Avoid universally iconic moments (fame 6-10). Require genuine football knowledge to answer.',
     },
   },
   GEOGRAPHY: {
@@ -101,9 +110,11 @@ export const CATEGORY_DIFFICULTY_OVERRIDES: Partial<
       extraInstructions: 'Mix well-known and lesser-known geography facts.',
     },
     HARD: {
-      fame_score: [5, 7],
+      fame_score: [2, 4],
       specificity_score: [4, 5],
-      combinational_thinking_score: [5, 10],
+      combinational_thinking_score: [6, 10],
+      extraInstructions:
+        'Very niche geography — obscure club locations, lesser-known national team stadiums, regional league geography. Avoid widely known facts (fame 5-10). Require specific football geography knowledge.',
     },
   },
 };

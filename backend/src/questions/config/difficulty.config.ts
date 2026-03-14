@@ -10,9 +10,9 @@ export const CURRENT_YEAR = new Date().getFullYear();
 export const CATEGORY_MODIFIERS: Record<QuestionCategory, number> = {
   GOSSIP: -0.08,
   HIGHER_OR_LOWER: 0.06,
-  GEOGRAPHY: 0,
+  GEOGRAPHY: 0.03,
   PLAYER_ID: 0.02,
-  HISTORY: 0.02,
+  HISTORY: 0.04,
   TOP_5: 0.12,
   GUESS_SCORE: 0.04,
   NEWS: -0.05,
