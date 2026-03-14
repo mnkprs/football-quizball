@@ -424,7 +424,7 @@ export class QuestionComponent implements OnDestroy {
     const board = this.store.boardState();
     const qId = this.store.currentQuestionId();
     if (!board || !qId) return this.question()?.points ?? 0;
-    const cell = board.board.flat().find((c) => c.question_id === qId);
+    const cell = board.board.flat().find((c: { question_id: string; points: number }) => c.question_id === qId);
     return cell?.points ?? this.question()?.points ?? 0;
   });
 

@@ -170,7 +170,7 @@ export class BoardComponent {
     const board = this.store.boardState();
     if (!board) return [];
     const t = this.lang.t();
-    return board.categories.map((cat, i) => {
+    return board.categories.map((cat: { key: string; label: string }, i: number) => {
       const style = this.categoryStyle[cat.key] ?? { rowCls: 'bg-slate-700', circleCls: 'bg-slate-600 border-slate-500', icon: '❓' };
       const labelKey = this.categoryLabelKey[cat.key];
       const label = labelKey ? (t[labelKey] as string) : cat.label;
