@@ -113,7 +113,15 @@ ${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${
       throw new Error('Invalid LLM response: missing player_name or career');
     }
 
-    const careerText = result.career
+    // Filter out any non-object elements (LLM garbage strings that sometimes leak into arrays)
+    const career = result.career.filter(
+      (c): c is CareerEntry => typeof c === 'object' && c !== null && typeof (c as CareerEntry).club === 'string',
+    );
+    if (career.length < 1) {
+      throw new Error('Invalid LLM response: career array has no valid entries after filtering');
+    }
+
+    const careerText = career
       .map((c) => `${c.club}${c.is_loan ? ' [Loan]' : ''} (${c.from}–${c.to})`)
       .join(' → ');
 
@@ -130,7 +138,7 @@ ${getLeagueFameGuidanceForBatch('PLAYER_ID', language === 'el' ? 'el' : 'en')}${
       explanation: result.explanation ?? `The player is ${result.player_name}. Career: ${careerText}`,
       source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: result.image_url,
-      meta: { career: result.career, nationality: result.nationality, position: result.position },
+      meta: { career, nationality: result.nationality, position: result.position },
       difficulty_factors: {
         event_year: result.event_year ?? new Date().getFullYear(),
         competition: result.competition ?? 'Unknown',
