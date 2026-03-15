@@ -193,7 +193,6 @@ import { environment } from '../../../environments/environment';
       position: relative;
       display: flex;
       align-items: center;
-      justify-content: center;
       gap: 0.75rem;
       padding: 0.5rem 1rem 0.75rem;
       background: linear-gradient(180deg, transparent, rgba(0,0,0,0.4));
@@ -214,7 +213,7 @@ import { environment } from '../../../environments/environment';
       letter-spacing: 0.08em;
       color: rgba(255,255,255,0.35);
       position: absolute;
-      bottom: 0.5rem;
+      bottom: 2.5rem;
       right: 0.75rem;
     }
 

@@ -55,6 +55,7 @@ export class App implements OnInit, OnDestroy {
         .subscribe(() => {
           this.swUpdate!.activateUpdate().then(() => location.reload());
         });
+      this.swUpdate.checkForUpdate();
     }
   }
 

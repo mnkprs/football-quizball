@@ -3,7 +3,7 @@
   "outputDirectory": "frontend/dist/football-quizball-frontend/browser",
   "headers": [
     {
-      "source": "/index.html",
+      "source": "/(index.html|ngsw.json|ngsw-worker.js|manifest.webmanifest)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
