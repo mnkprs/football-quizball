@@ -58,7 +58,7 @@ import { Component, input } from '@angular/core';
       position: relative;
       margin: -1rem -1rem 1rem -1rem;
       border-radius: 1rem 1rem 0 0;
-      overflow: hidden;
+      overflow: clip;
       min-height: 11rem;
       display: flex;
       flex-direction: column;
@@ -91,7 +91,6 @@ import { Component, input } from '@angular/core';
     /* Top bar */
     .page-header__topbar {
       position: relative;
-      z-index: 2;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -124,7 +123,6 @@ import { Component, input } from '@angular/core';
     /* Center: logo + title */
     .page-header__center {
       position: relative;
-      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -191,7 +189,6 @@ import { Component, input } from '@angular/core';
     /* Bottom accent strip */
     .page-header__strip {
       position: relative;
-      z-index: 2;
       display: flex;
       align-items: center;
       justify-content: center;

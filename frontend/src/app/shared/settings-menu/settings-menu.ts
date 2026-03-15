@@ -138,7 +138,7 @@ import { MatIconModule } from '@angular/material/icon';
     .settings-overlay {
       position: fixed;
       inset: 0;
-      z-index: 100;
+      z-index: 1000;
       background: rgba(0, 0, 0, 0.5);
       animation: fadeIn 0.2s ease;
     }
@@ -150,7 +150,7 @@ import { MatIconModule } from '@angular/material/icon';
       bottom: 0;
       width: min(20rem, 100%);
       max-width: 100%;
-      z-index: 101;
+      z-index: 1001;
       background: var(--color-card, #1a1a1a);
       box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
       display: flex;
