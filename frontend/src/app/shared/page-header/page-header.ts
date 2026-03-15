@@ -1,4 +1,5 @@
 import { Component, input } from '@angular/core';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-page-header',
@@ -43,6 +44,7 @@ import { Component, input } from '@angular/core';
         @if (subtitle()) {
           <span class="page-header__subtitle-pill">{{ subtitle() }}</span>
         }
+        <span class="page-header__version">v{{ version }}</span>
         <!-- Decorative pitch lines SVG -->
         <svg class="page-header__pitch-lines" viewBox="0 0 300 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <line x1="0" y1="9" x2="300" y2="9" stroke="rgba(204,255,0,0.18)" stroke-width="1"/>
@@ -206,6 +208,16 @@ import { Component, input } from '@angular/core';
       white-space: nowrap;
     }
 
+    .page-header__version {
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.35);
+      position: absolute;
+      bottom: 0.5rem;
+      right: 0.75rem;
+    }
+
     .page-header__pitch-lines {
       width: 100%;
       max-width: 18rem;
@@ -215,6 +227,7 @@ import { Component, input } from '@angular/core';
   `],
 })
 export class PageHeaderComponent {
+  readonly version = environment.appVersion;
   title = input.required<string>();
   titlePart1 = input<string>();
   titlePart2 = input<string>();
