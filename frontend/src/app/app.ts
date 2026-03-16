@@ -18,6 +18,14 @@ import { PosthogService } from './core/posthog.service';
         <app-donate-modal />
       }
     </div>
+
+    @if (showSplash()) {
+      <div class="splash-overlay" [class.fading]="splashFading()">
+        <img src="/icons/quizball-unlimited-logo.png" alt="QuizBall" class="splash-logo" />
+        <p class="splash-title">QuizBall</p>
+        <p class="splash-tagline">Football. Quiz. Glory.</p>
+      </div>
+    }
   `,
   styles: [`
     .app-container {
@@ -30,6 +38,49 @@ import { PosthogService } from './core/posthog.service';
       max-width: none;
       margin: 0;
     }
+    .splash-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--mat-sys-surface);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+      transition: opacity 0.6s ease-out;
+    }
+    .splash-overlay.fading {
+      opacity: 0;
+    }
+    .splash-logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+      margin-bottom: 1.25rem;
+      animation: splashScaleIn 0.4s ease-out both;
+    }
+    .splash-title {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--color-accent);
+      margin: 0 0 0.375rem;
+      animation: splashFadeUp 0.4s 0.1s ease-out both;
+    }
+    .splash-tagline {
+      font-size: 0.875rem;
+      color: var(--mat-sys-on-surface-variant, #9ca3af);
+      margin: 0;
+      animation: splashFadeUp 0.4s 0.2s ease-out both;
+    }
+    @keyframes splashScaleIn {
+      from { opacity: 0; transform: scale(0.8); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes splashFadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   `],
 })
 export class App implements OnInit, OnDestroy {
@@ -40,6 +91,9 @@ export class App implements OnInit, OnDestroy {
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
   private posthog = inject(PosthogService);
   isAdminRoute = signal(false);
+
+  showSplash = signal(true);
+  splashFading = signal(false);
 
   ngOnInit(): void {
     this.isAdminRoute.set(this.router.url.startsWith('/admin'));
@@ -58,9 +112,24 @@ export class App implements OnInit, OnDestroy {
         });
       this.swUpdate.checkForUpdate();
     }
+
+    // Splash: show 2s, then fade 0.6s, then check onboarding
+    setTimeout(() => {
+      this.splashFading.set(true);
+      setTimeout(() => {
+        this.showSplash.set(false);
+        this.checkOnboarding();
+      }, 600);
+    }, 2000);
   }
 
   ngOnDestroy(): void {
     this.navSub?.unsubscribe();
+  }
+
+  private checkOnboarding(): void {
+    if (!localStorage.getItem('onboarding_done')) {
+      this.router.navigate(['/onboarding']);
+    }
   }
 }
