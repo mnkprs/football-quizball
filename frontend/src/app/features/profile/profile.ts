@@ -4,10 +4,12 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
+import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
+import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
+import { getEloTier } from '../../core/elo-tier';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
 
 @Component({
   selector: 'app-profile',
@@ -19,9 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         <div class="profile-guest">
           <div class="profile-guest-icon">👤</div>
           <h1 class="profile-guest-title">{{ lang.t().profileTitle }}</h1>
-          <p class="profile-guest-text">
-            {{ lang.t().profileGuestText }}
-          </p>
+          <p class="profile-guest-text">{{ lang.t().profileGuestText }}</p>
           <button mat-flat-button color="primary" class="profile-guest-btn" (click)="goToLogin()">
             <span class="material-icons">login</span>
             {{ lang.t().profileSignIn }}
@@ -37,8 +37,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           <div class="profile-content">
             <!-- Avatar & name -->
             <div class="profile-header">
-              <div class="profile-avatar">
+              <div class="profile-avatar" [style.border]="rankTier().borderStyle" [title]="rankTier().label + ' tier'">
                 {{ initials() }}
+              </div>
+              <div class="rank-tier-badge" [style.color]="rankTier().color">
+                {{ rankTier().label }}
               </div>
               <h1 class="profile-name">{{ displayName() }}</h1>
               @if (isOwnProfile()) {
@@ -74,6 +77,46 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
                 <span class="profile-stat-hint">{{ lang.t().profileSoloQuestions }}</span>
               </div>
             </div>
+
+            <!-- Achievements -->
+            @if (achievements().length > 0) {
+              <div class="profile-section">
+                <h2 class="profile-section-title">Achievements</h2>
+                <div class="achievements-grid">
+                  @for (a of achievements(); track a.id) {
+                    <div class="achievement-badge" [class.achievement-badge--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
+                      <span class="achievement-icon">{{ a.icon }}</span>
+                      <span class="achievement-name">{{ a.name }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Match History -->
+            @if (matchHistory().length > 0) {
+              <div class="profile-section">
+                <h2 class="profile-section-title">Match History</h2>
+                <div class="match-history-list">
+                  @for (match of matchHistory(); track match.id) {
+                    <div class="match-entry" [class.match-entry--win]="match.winner_id === currentUserId()" [class.match-entry--loss]="match.winner_id !== null && match.winner_id !== currentUserId()">
+                      <div class="match-result-icon">
+                        {{ match.winner_id === null ? '🤝' : match.winner_id === currentUserId() ? '✅' : '❌' }}
+                      </div>
+                      <div class="match-info">
+                        <div class="match-vs">
+                          {{ match.player1_username }} vs {{ match.player2_username }}
+                        </div>
+                        <div class="match-meta">
+                          {{ match.player1_score }} – {{ match.player2_score }} · {{ formatDate(match.played_at) }}
+                        </div>
+                      </div>
+                      <div class="match-mode-badge">{{ match.match_mode }}</div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
 
             <!-- Quick links -->
             <div class="profile-actions">
@@ -180,8 +223,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 1rem;
+      margin: 0 auto 0.5rem;
       text-transform: uppercase;
+    }
+
+    .rank-tier-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
     }
 
     .profile-name {
@@ -230,6 +281,117 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     .profile-stat-hint {
       font-size: 0.6875rem;
       color: var(--mat-sys-on-surface-variant);
+    }
+
+    .profile-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .profile-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--mat-sys-on-surface);
+      margin: 0;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .achievement-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.625rem 0.25rem;
+      border-radius: 0.75rem;
+      background: var(--mat-sys-surface-container-low, rgba(0,0,0,0.03));
+      border: 1px solid var(--mat-sys-outline-variant, rgba(0,0,0,0.08));
+      cursor: default;
+    }
+
+    .achievement-badge--locked {
+      opacity: 0.35;
+      filter: grayscale(1);
+    }
+
+    .achievement-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .achievement-name {
+      font-size: 0.5625rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--mat-sys-on-surface);
+      line-height: 1.2;
+    }
+
+    .match-history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .match-entry {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      background: var(--mat-sys-surface-container-low, rgba(0,0,0,0.03));
+      border: 1px solid var(--mat-sys-outline-variant, rgba(0,0,0,0.08));
+    }
+
+    .match-entry--win {
+      border-color: rgba(34, 197, 94, 0.4);
+      background: rgba(34, 197, 94, 0.05);
+    }
+
+    .match-entry--loss {
+      border-color: rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.04);
+    }
+
+    .match-result-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    .match-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .match-vs {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--mat-sys-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .match-meta {
+      font-size: 0.6875rem;
+      color: var(--mat-sys-on-surface-variant);
+    }
+
+    .match-mode-badge {
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--mat-sys-surface-container-highest, rgba(0,0,0,0.07));
+      color: var(--mat-sys-on-surface-variant);
+      flex-shrink: 0;
     }
 
     .profile-actions {
@@ -290,9 +452,13 @@ export class ProfileComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private soloApi = inject(SoloApiService);
+  private achievementsApi = inject(AchievementsApiService);
+  private matchHistoryApi = inject(MatchHistoryApiService);
 
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
+  achievements = signal<Achievement[]>([]);
+  matchHistory = signal<MatchHistoryEntry[]>([]);
   loading = signal(true);
 
   /** User ID from route (when viewing another user) or current user. */
@@ -302,6 +468,8 @@ export class ProfileComponent implements OnInit {
     const uid = this.userId();
     return !uid || uid === this.auth.user()?.id;
   });
+
+  currentUserId = computed(() => this.auth.user()?.id ?? null);
 
   displayName = computed(() => {
     const p = this.profile();
@@ -327,9 +495,10 @@ export class ProfileComponent implements OnInit {
     return Math.round((p.correct_answers / p.questions_answered) * 100);
   });
 
+  rankTier = computed(() => getEloTier(this.profile()?.elo ?? 1000));
+
   ngOnInit(): void {
     this.userId.set(this.route.snapshot.paramMap.get('userId'));
-
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
         this.loadProfile();
@@ -348,18 +517,24 @@ export class ProfileComponent implements OnInit {
     }
     this.loading.set(true);
     try {
-      const profileRes = await firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({
-        profile: null,
-        blitz_stats: null,
-      }));
+      const [profileRes, achievementsRes, matchHistoryRes] = await Promise.all([
+        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null })),
+        firstValueFrom(this.achievementsApi.getForUser(userId)).catch(() => [] as Achievement[]),
+        firstValueFrom(this.matchHistoryApi.getHistory(userId)).catch(() => [] as MatchHistoryEntry[]),
+      ]);
       this.profile.set(profileRes?.profile ?? null);
       this.blitzStats.set(profileRes?.blitz_stats ?? { bestScore: 0, totalGames: 0, rank: null });
+      this.achievements.set(achievementsRes);
+      this.matchHistory.set(matchHistoryRes);
     } catch {
       this.profile.set(null);
-      this.blitzStats.set(null);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   async signOut(): Promise<void> {

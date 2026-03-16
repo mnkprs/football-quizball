@@ -8,9 +8,10 @@ import { CacheModule } from '../cache/cache.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { QuestionsModule } from '../questions/questions.module';
 import { LlmModule } from '../llm/llm.module';
+import { AchievementsModule } from '../achievements/achievements.module';
 
 @Module({
-  imports: [AuthModule, CacheModule, SupabaseModule, QuestionsModule, LlmModule],
+  imports: [AuthModule, CacheModule, SupabaseModule, QuestionsModule, LlmModule, AchievementsModule],
   controllers: [SoloController],
   providers: [SoloService, EloService, SoloQuestionGenerator],
 })

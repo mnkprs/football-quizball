@@ -19,6 +19,8 @@ import { ReportsModule } from './reports/reports.module';
 import { MayhemModule } from './mayhem/mayhem.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { OnlineGameModule } from './online-game/online-game.module';
+import { AchievementsModule } from './achievements/achievements.module';
+import { MatchHistoryModule } from './match-history/match-history.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { OnlineGameModule } from './online-game/online-game.module';
     MayhemModule,
     SubscriptionModule,
     OnlineGameModule,
+    AchievementsModule,
+    MatchHistoryModule,
   ],
 })
 export class AppModule {}

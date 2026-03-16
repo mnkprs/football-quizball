@@ -8,6 +8,7 @@ import {
   LeaderboardEntry,
   BlitzLeaderboardEntry,
 } from '../../core/leaderboard-api.service';
+import { MayhemApiService, MayhemLeaderboardEntry, MayhemMeEntry } from '../../core/mayhem-api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -141,6 +142,58 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         } @else {
           <mat-card class="leaderboard-empty">
             <mat-card-content>{{ lang.t().lbNoBlitz }}</mat-card-content>
+          </mat-card>
+        }
+      </section>
+
+      <section class="leaderboard-section">
+        <h2 class="leaderboard-section-title">🔥 Mayhem</h2>
+        @if (mayhemEntries().length > 0) {
+          <div class="leaderboard-list">
+            @for (entry of mayhemEntries(); track entry.user_id; let i = $index) {
+              <a [routerLink]="['/profile', entry.user_id]" class="leaderboard-card-link">
+                <mat-card class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.user_id)">
+                  <mat-card-content class="leaderboard-card-content">
+                    <div class="leaderboard-rank" [class.leaderboard-rank--top]="i < 3">
+                      {{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) }}
+                    </div>
+                    <div class="leaderboard-info">
+                      <div class="leaderboard-name">
+                        {{ entry.username }}
+                        @if (isCurrentUser(entry.user_id)) { <span class="leaderboard-you">{{ lang.t().lbYou }}</span> }
+                      </div>
+                      <div class="leaderboard-meta">{{ entry.games_played }} games</div>
+                    </div>
+                    <div class="leaderboard-score">
+                      <span class="leaderboard-score-value">{{ entry.current_elo }}</span>
+                      <span class="leaderboard-score-label">{{ lang.t().profileElo }}</span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </a>
+            }
+          </div>
+          @if (showMayhemMeBelow()) {
+            <div class="leaderboard-you-separator">{{ lang.t().lbYourRank }}</div>
+            <a [routerLink]="['/profile', mayhemMeEntry()!.user_id]" class="leaderboard-card-link">
+              <mat-card class="leaderboard-card leaderboard-card--you">
+                <mat-card-content class="leaderboard-card-content">
+                  <div class="leaderboard-rank">#{{ mayhemMeEntry()!.rank }}</div>
+                  <div class="leaderboard-info">
+                    <div class="leaderboard-name">{{ mayhemMeEntry()!.username }} <span class="leaderboard-you">{{ lang.t().lbYou }}</span></div>
+                    <div class="leaderboard-meta">{{ mayhemMeEntry()!.games_played }} games</div>
+                  </div>
+                  <div class="leaderboard-score">
+                    <span class="leaderboard-score-value">{{ mayhemMeEntry()!.current_elo }}</span>
+                    <span class="leaderboard-score-label">{{ lang.t().profileElo }}</span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </a>
+          }
+        } @else {
+          <mat-card class="leaderboard-empty">
+            <mat-card-content>No Mayhem players yet</mat-card-content>
           </mat-card>
         }
       </section>
@@ -298,13 +351,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class LeaderboardComponent implements OnInit {
   private leaderboardApi = inject(LeaderboardApiService);
+  private mayhemApi = inject(MayhemApiService);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
   entries = signal<LeaderboardEntry[]>([]);
   blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
+  mayhemEntries = signal<MayhemLeaderboardEntry[]>([]);
   soloMeEntry = signal<(LeaderboardEntry & { rank: number }) | null>(null);
   blitzMeEntry = signal<(BlitzLeaderboardEntry & { rank: number }) | null>(null);
+  mayhemMeEntry = signal<MayhemMeEntry | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
 
@@ -318,7 +374,7 @@ export class LeaderboardComponent implements OnInit {
     try {
       await this.auth.sessionReady;
       const isLoggedIn = this.auth.isLoggedIn();
-      const [leaderboardRes, meRes] = await Promise.all([
+      const [leaderboardRes, meRes, mayhemRes, mayhemMeRes] = await Promise.all([
         firstValueFrom(this.leaderboardApi.getLeaderboard()),
         isLoggedIn
           ? firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries()).catch(() => ({
@@ -326,11 +382,17 @@ export class LeaderboardComponent implements OnInit {
               blitzMe: null,
             }))
           : Promise.resolve({ soloMe: null, blitzMe: null }),
+        firstValueFrom(this.mayhemApi.getLeaderboard()).catch(() => [] as MayhemLeaderboardEntry[]),
+        isLoggedIn
+          ? firstValueFrom(this.mayhemApi.getMyLeaderboardEntry()).catch(() => null)
+          : Promise.resolve(null),
       ]);
       this.entries.set(leaderboardRes.solo);
       this.blitzEntries.set(leaderboardRes.blitz);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.blitzMeEntry.set(meRes.blitzMe ?? null);
+      this.mayhemEntries.set(mayhemRes);
+      this.mayhemMeEntry.set(mayhemMeRes);
     } catch (err: any) {
       this.error.set(this.lang.t().lbLoadFailed);
     } finally {
@@ -352,6 +414,12 @@ export class LeaderboardComponent implements OnInit {
     const me = this.blitzMeEntry();
     if (!me) return false;
     return !this.blitzEntries().some((entry) => entry.user_id === me.user_id);
+  }
+
+  showMayhemMeBelow(): boolean {
+    const me = this.mayhemMeEntry();
+    if (!me) return false;
+    return !this.mayhemEntries().some((e) => e.user_id === me.user_id);
   }
 
   accuracy(entry: LeaderboardEntry): number {

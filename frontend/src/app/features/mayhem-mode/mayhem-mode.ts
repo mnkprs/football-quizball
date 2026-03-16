@@ -2,7 +2,8 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LanguageService } from '../../core/language.service';
-import { MayhemApiService, MayhemQuestion, MayhemAnswerResponse } from '../../core/mayhem-api.service';
+import { MayhemApiService, MayhemQuestion, MayhemAnswerResponse, MayhemSessionResponse } from '../../core/mayhem-api.service';
+import { AuthService } from '../../core/auth.service';
 
 type MayhemPhase = 'loading' | 'question' | 'result' | 'finished';
 
@@ -176,6 +177,20 @@ type MayhemPhase = 'loading' | 'question' | 'result' | 'finished';
                 <span class="text-muted-foreground">Accuracy</span>
                 <span class="font-bold" style="color: #ff6b2b;">{{ accuracy() }}%</span>
               </div>
+              @if (eloChange() !== 0) {
+                <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+                  <span class="text-muted-foreground">ELO Change</span>
+                  <span class="font-bold" [style.color]="eloChange() > 0 ? '#22c55e' : '#ef4444'">
+                    {{ eloChange() > 0 ? '+' : '' }}{{ eloChange() }}
+                  </span>
+                </div>
+              }
+              @if (currentElo() !== null) {
+                <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+                  <span class="text-muted-foreground">Mayhem ELO</span>
+                  <span class="font-bold" style="color: #ff6b2b;">{{ currentElo() }}</span>
+                </div>
+              }
             </div>
             <button
               (click)="goHome()"
@@ -216,6 +231,7 @@ export class MayhemModeComponent implements OnInit {
   lang = inject(LanguageService);
   private router = inject(Router);
   private mayhemApi = inject(MayhemApiService);
+  private auth = inject(AuthService);
 
   phase = signal<MayhemPhase>('loading');
   questions = signal<MayhemQuestion[]>([]);
@@ -224,6 +240,9 @@ export class MayhemModeComponent implements OnInit {
   submitting = signal(false);
   lastResult = signal<MayhemAnswerResponse | null>(null);
   correctCount = signal(0);
+  private sessionId = signal<string | null>(null);
+  eloChange = signal<number>(0);
+  currentElo = signal<number | null>(null);
 
   total = computed(() => this.questions().length);
   currentQuestion = computed(() => this.questions()[this.currentIndex()] ?? null);
@@ -236,11 +255,19 @@ export class MayhemModeComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadQuestions();
+    this.loadQuestionsAndSession();
   }
 
-  private async loadQuestions(): Promise<void> {
+  private async loadQuestionsAndSession(): Promise<void> {
     try {
+      // Start ELO session if logged in
+      if (this.auth.isLoggedIn()) {
+        const session = await firstValueFrom(this.mayhemApi.startSession(this.lang.lang())).catch(() => null);
+        if (session) {
+          this.sessionId.set(session.session_id);
+          this.currentElo.set(session.user_elo);
+        }
+      }
       const qs = await firstValueFrom(this.mayhemApi.getQuestions());
       this.questions.set(qs ?? []);
       this.phase.set('question');
@@ -257,9 +284,20 @@ export class MayhemModeComponent implements OnInit {
     this.selectedOption.set(option);
     this.submitting.set(true);
     try {
-      const result = await firstValueFrom(this.mayhemApi.checkAnswer(q.id, option));
-      if (result.correct) this.correctCount.update(v => v + 1);
-      this.lastResult.set(result);
+      const sid = this.sessionId();
+      if (sid) {
+        // Session-based: submit through ELO system
+        const result = await firstValueFrom(this.mayhemApi.submitSessionAnswer(sid, q.id, option));
+        if (result.correct) this.correctCount.update(v => v + 1);
+        this.currentElo.set(result.current_elo);
+        this.eloChange.update(v => v + result.elo_change);
+        this.lastResult.set({ correct: result.correct, correct_answer: result.correct_answer, explanation: result.explanation });
+      } else {
+        // Fallback: stateless answer check
+        const result = await firstValueFrom(this.mayhemApi.checkAnswer(q.id, option));
+        if (result.correct) this.correctCount.update(v => v + 1);
+        this.lastResult.set(result);
+      }
       this.phase.set('result');
     } catch {
       this.lastResult.set({ correct: false, correct_answer: '—', explanation: 'Could not verify answer.' });
@@ -290,11 +328,21 @@ export class MayhemModeComponent implements OnInit {
     this.phase.set('question');
   }
 
-  finish(): void {
+  async finish(): Promise<void> {
+    const sid = this.sessionId();
+    if (sid) {
+      await firstValueFrom(this.mayhemApi.endSession(sid)).catch(() => {});
+      this.sessionId.set(null);
+    }
     this.phase.set('finished');
   }
 
   goHome(): void {
+    const sid = this.sessionId();
+    if (sid) {
+      firstValueFrom(this.mayhemApi.endSession(sid)).catch(() => {});
+      this.sessionId.set(null);
+    }
     this.router.navigate(['/']);
   }
 }

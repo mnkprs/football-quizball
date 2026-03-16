@@ -6,6 +6,7 @@ import { EloService } from './elo.service';
 import { SoloQuestionGenerator } from './solo-question.generator';
 import { SoloSession, SoloAnswerResult, TIME_LIMITS } from './solo.types';
 import { AnswerValidator } from '../questions/validators/answer.validator';
+import { AchievementsService } from '../achievements/achievements.service';
 
 const SESSION_TTL = 7200; // 2h
 
@@ -20,6 +21,7 @@ export class SoloService {
     private eloService: EloService,
     private generator: SoloQuestionGenerator,
     private answerValidator: AnswerValidator,
+    private achievementsService: AchievementsService,
   ) {}
 
   private sessionKey(id: string) { return `solo:${id}`; }
@@ -171,6 +173,19 @@ export class SoloService {
     // Increment games_played
     await this.supabaseService.incrementGamesPlayed(userId, session.questionsAnswered, session.correctAnswers);
     this.cacheService.del(this.sessionKey(sessionId));
+
+    // Fire-and-forget achievement check
+    this.supabaseService.getProfile(userId).then(profile => {
+      if (!profile) return;
+      const accuracy = session.questionsAnswered > 0
+        ? Math.round((session.correctAnswers / session.questionsAnswered) * 100)
+        : 0;
+      this.achievementsService.checkAndAward(userId, {
+        currentElo: session.currentElo,
+        soloGamesPlayed: profile.games_played,
+        soloAccuracy: accuracy,
+      }).catch(() => {});
+    }).catch(() => {});
 
     return {
       questions_answered: session.questionsAnswered,

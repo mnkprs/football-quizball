@@ -229,4 +229,111 @@ export class SupabaseService {
       }).eq('id', userId);
     }
   }
+
+  // --- Mayhem Mode Stats ---
+
+  async getMayhemStats(userId: string): Promise<{
+    current_elo: number; max_elo: number; best_session_score: number;
+    games_played: number; questions_answered: number; correct_answers: number;
+  } | null> {
+    const { data } = await this.client
+      .from('user_mode_stats')
+      .select('current_elo, max_elo, best_session_score, games_played, questions_answered, correct_answers')
+      .eq('user_id', userId)
+      .eq('mode', 'mayhem')
+      .maybeSingle();
+    return data ?? null;
+  }
+
+  async upsertMayhemStats(userId: string, stats: {
+    current_elo: number; max_elo: number; best_session_score: number;
+    games_played_increment: number; questions_increment: number; correct_increment: number;
+  }): Promise<void> {
+    // Read current stats first to compute cumulative values
+    const current = await this.getMayhemStats(userId);
+    const newRow = {
+      user_id: userId,
+      mode: 'mayhem',
+      current_elo: stats.current_elo,
+      max_elo: Math.max(stats.max_elo, current?.max_elo ?? 0),
+      best_session_score: Math.max(stats.best_session_score, current?.best_session_score ?? 0),
+      games_played: (current?.games_played ?? 0) + stats.games_played_increment,
+      questions_answered: (current?.questions_answered ?? 0) + stats.questions_increment,
+      correct_answers: (current?.correct_answers ?? 0) + stats.correct_increment,
+      updated_at: new Date().toISOString(),
+    };
+    await this.client.from('user_mode_stats').upsert(newRow, { onConflict: 'user_id,mode' });
+  }
+
+  async getMayhemLeaderboard(limit: number): Promise<Array<{
+    user_id: string; username: string; current_elo: number; max_elo: number; games_played: number;
+  }>> {
+    const { data } = await this.client.rpc('get_mayhem_leaderboard', { p_limit: limit });
+    return data ?? [];
+  }
+
+  async getMayhemRank(userId: string): Promise<number> {
+    const { data } = await this.client.rpc('get_mayhem_rank', { p_user_id: userId });
+    return (data as number) ?? 1;
+  }
+
+  // --- Achievements ---
+
+  async getAchievements(userId: string): Promise<Array<{
+    id: string; name: string; description: string; icon: string; category: string; earned_at: string | null;
+  }>> {
+    // Get all achievements + which ones the user has earned
+    const [allRes, earnedRes] = await Promise.all([
+      this.client.from('achievements').select('id, name, description, icon, category'),
+      this.client.from('user_achievements').select('achievement_id, earned_at').eq('user_id', userId),
+    ]);
+    const earned = new Map((earnedRes.data ?? []).map((e: { achievement_id: string; earned_at: string }) => [e.achievement_id, e.earned_at]));
+    return (allRes.data ?? []).map((a: { id: string; name: string; description: string; icon: string; category: string }) => ({
+      ...a,
+      earned_at: earned.get(a.id) ?? null,
+    }));
+  }
+
+  async awardAchievement(userId: string, achievementId: string): Promise<boolean> {
+    const { error } = await this.client
+      .from('user_achievements')
+      .insert({ user_id: userId, achievement_id: achievementId })
+      .select();
+    // Duplicate key = already earned, that's fine
+    return !error;
+  }
+
+  async getUserAchievementIds(userId: string): Promise<Set<string>> {
+    const { data } = await this.client
+      .from('user_achievements')
+      .select('achievement_id')
+      .eq('user_id', userId);
+    return new Set((data ?? []).map((r: { achievement_id: string }) => r.achievement_id));
+  }
+
+  // --- Match History ---
+
+  async saveMatchResult(match: {
+    player1_id: string; player2_id: string | null;
+    player1_username: string; player2_username: string;
+    winner_id: string | null; player1_score: number; player2_score: number;
+    match_mode: 'local' | 'online';
+  }): Promise<void> {
+    await this.client.from('match_history').insert(match);
+  }
+
+  async getMatchHistory(userId: string, limit = 20): Promise<Array<{
+    id: string; player1_id: string | null; player2_id: string | null;
+    player1_username: string; player2_username: string;
+    winner_id: string | null; player1_score: number; player2_score: number;
+    match_mode: string; played_at: string;
+  }>> {
+    const { data } = await this.client
+      .from('match_history')
+      .select('id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at')
+      .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+      .order('played_at', { ascending: false })
+      .limit(limit);
+    return data ?? [];
+  }
 }
