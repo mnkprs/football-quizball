@@ -46,10 +46,10 @@ import { ThemeService } from '../../core/theme.service';
         <!-- Auth buttons (logged out) -->
         @if (!auth.isLoggedIn()) {
           <a routerLink="/login" class="top-nav__btn top-nav__btn--outline">
-            {{ lang.t().signIn ?? 'Login' }}
+            {{ lang.t().profileSignIn }}
           </a>
           <a routerLink="/login" [queryParams]="{mode:'register'}" class="top-nav__btn top-nav__btn--green">
-            {{ lang.t().profileSignIn ?? 'Register' }}
+            Register
           </a>
         } @else {
           <!-- Logged in: avatar -->
@@ -133,7 +133,8 @@ import { ThemeService } from '../../core/theme.service';
       width: 100%;
       max-width: 28rem;
       height: 3.5rem;
-      background: #1a6ef7;
+      background: var(--color-header);
+      border-bottom: 1px solid rgba(204, 255, 0, 0.12);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -216,14 +217,14 @@ import { ThemeService } from '../../core/theme.service';
     }
 
     .top-nav__btn--green {
-      background: #22c55e;
+      background: var(--color-accent);
       border: 2px solid transparent;
-      color: #ffffff;
+      color: var(--color-accent-foreground);
       margin-left: 0.375rem;
     }
 
     .top-nav__btn--green:hover {
-      background: #16a34a;
+      background: var(--color-accent-light);
     }
 
     .top-nav__avatar {
@@ -353,8 +354,8 @@ import { ThemeService } from '../../core/theme.service';
       width: 3rem;
       height: 3rem;
       border-radius: 50%;
-      background: #1a6ef7;
-      color: #fff;
+      background: var(--color-accent);
+      color: var(--color-accent-foreground);
       font-size: 0.875rem;
       font-weight: 700;
       display: flex;
@@ -453,8 +454,8 @@ import { ThemeService } from '../../core/theme.service';
     }
 
     .tsp__pill-btn:hover {
-      border-color: #1a6ef7;
-      background: rgba(26,110,247,0.15);
+      border-color: var(--color-accent);
+      background: rgba(204,255,0,0.1);
     }
 
     .tsp__sign-out {
