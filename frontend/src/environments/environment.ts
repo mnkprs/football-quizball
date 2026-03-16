@@ -7,7 +7,7 @@
  */
 export const environment = {
   production: false,
-  appVersion: '1.6.0-dev',
+  appVersion: '1.7.0-dev',
   apiUrl: 'http://localhost:3001',
   /** Admin API key for /admin dashboard. Set in .env or environment.ts for local dev. */
   adminApiKey: 'Manos1995' as string | undefined,

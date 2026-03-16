@@ -4,18 +4,23 @@ import { filter } from 'rxjs';
 import { SwUpdate } from '@angular/service-worker';
 import { DonateModalComponent } from './shared/donate-modal/donate-modal';
 import { DonateModalService } from './core/donate-modal.service';
+import { AuthModalComponent } from './shared/auth-modal/auth-modal';
+import { AuthModalService } from './core/auth-modal.service';
 import { GoogleAdsService } from './core/google-ads.service';
 import { PosthogService } from './core/posthog.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent],
   template: `
     <div class="app-container" [class.app-container--full]="isAdminRoute()">
       <router-outlet />
       @if (donateService.showModal()) {
         <app-donate-modal />
+      }
+      @if (authModal.isOpen()) {
+        <app-auth-modal />
       }
     </div>
 
@@ -85,6 +90,7 @@ import { PosthogService } from './core/posthog.service';
 })
 export class App implements OnInit, OnDestroy {
   donateService = inject(DonateModalService);
+  authModal = inject(AuthModalService);
   private router = inject(Router);
   private googleAds = inject(GoogleAdsService);
   private swUpdate = inject(SwUpdate, { optional: true });

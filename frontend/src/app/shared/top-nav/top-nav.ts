@@ -1,6 +1,7 @@
 import { Component, inject, computed, signal, HostListener } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeService } from '../../core/theme.service';
 
@@ -27,12 +28,12 @@ import { ThemeService } from '../../core/theme.service';
 
         <!-- Auth buttons (logged out) -->
         @if (!auth.isLoggedIn()) {
-          <a routerLink="/login" class="top-nav__btn top-nav__btn--outline">
+          <button type="button" class="top-nav__btn top-nav__btn--outline" (click)="openAuth()">
             {{ lang.t().profileSignIn }}
-          </a>
-          <a routerLink="/login" [queryParams]="{mode:'register'}" class="top-nav__btn top-nav__btn--green">
+          </button>
+          <button type="button" class="top-nav__btn top-nav__btn--green" (click)="openAuth()">
             Register
-          </a>
+          </button>
         } @else {
           <!-- Logged in: avatar -->
           <a routerLink="/profile" class="top-nav__avatar pressable" [attr.aria-label]="'Profile'">
@@ -115,9 +116,9 @@ import { ThemeService } from '../../core/theme.service';
       width: 100%;
       max-width: 28rem;
       height: 3.5rem;
-      background-image: url('/header-banner-bg.jpg');
-      background-size: cover;
-      background-position: center 30%;
+      // background-image: url('/header-banner-bg.jpg');
+      // background-size: cover;
+      // background-position: center 30%;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -480,6 +481,7 @@ export class TopNavComponent {
   auth = inject(AuthService);
   lang = inject(LanguageService);
   theme = inject(ThemeService);
+  private authModal = inject(AuthModalService);
   private router = inject(Router);
 
   settingsOpen = signal(false);
@@ -508,6 +510,7 @@ export class TopNavComponent {
     return name.slice(0, 2).toUpperCase();
   });
 
+  openAuth(): void { this.authModal.open(); }
   toggleSettings(): void { this.settingsOpen.update(v => !v); }
   closeSettings(): void { this.settingsOpen.set(false); }
 

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -24,7 +24,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
     AuthCardComponent,
   ],
   template: `
-    <div class="home-page">
+    <div class="home-page" #homePage>
       <div class="home-content">
 @if (auth.isLoggedIn()) {
           <app-auth-card
@@ -172,6 +172,10 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
       align-items: center;
       justify-content: flex-start;
       padding: 1rem;
+      padding-top: 5.5rem;
+      background-image: url(/header-banner-bg.jpg);
+      background-size: 110%;
+      background-position: 50% 50%;
     }
 
     .home-content {
@@ -188,7 +192,9 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
     }
   `],
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('homePage') homePage!: ElementRef<HTMLDivElement>;
+
   auth = inject(AuthService);
   lang = inject(LanguageService);
   pro = inject(ProService);
@@ -294,6 +300,30 @@ export class HomeComponent implements OnInit, OnDestroy {
   });
 
   private countdownInterval: ReturnType<typeof setInterval> | null = null;
+  private rafId: number | null = null;
+  private animStart: number | null = null;
+
+  ngAfterViewInit(): void {
+    const el = this.homePage.nativeElement;
+    const PERIOD = 18000; // ms for one full cycle
+
+    const animate = (timestamp: number) => {
+      if (this.animStart === null) this.animStart = timestamp;
+      const t = (timestamp - this.animStart) / PERIOD;
+
+      // Two independent sine waves for organic non-repeating movement
+      const x = 50 + 8 * Math.sin(t * Math.PI * 2);
+      const y = 50 + 6 * Math.sin(t * Math.PI * 2 * 1.37 + 1.1);
+      const size = 110 + 2 * Math.sin(t * Math.PI * 2 * 0.71);
+
+      el.style.backgroundPosition = `${x}% ${y}%`;
+      el.style.backgroundSize = `${size}%`;
+
+      this.rafId = requestAnimationFrame(animate);
+    };
+
+    this.rafId = requestAnimationFrame(animate);
+  }
 
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
@@ -309,6 +339,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
+    }
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
     }
   }
 

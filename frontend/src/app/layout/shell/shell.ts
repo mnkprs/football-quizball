@@ -28,7 +28,7 @@ export interface NavTab {
     <div class="shell-layout">
       <app-top-nav />
       <app-upgrade-modal />
-      <main class="shell-main">
+      <main class="shell-main" [class.shell-main--no-top-pad]="isHome()">
         <router-outlet />
       </main>
       <nav class="bottom-nav">
@@ -90,6 +90,10 @@ export interface NavTab {
       padding-top: 3.5rem;
       padding-bottom: calc(5rem + env(safe-area-inset-bottom));
       overflow-y: auto;
+    }
+
+    .shell-main--no-top-pad {
+      padding-top: initial;
     }
 
     .bottom-nav {
@@ -214,6 +218,10 @@ export class ShellComponent {
     { labelKey: 'navRank', icon: 'leaderboard', href: '/leaderboard', match: '/leaderboard' },
     { labelKey: 'navProfile', icon: 'person', href: '/profile', match: '/profile' },
   ];
+
+  isHome(): boolean {
+    return this.router.url.split('?')[0] === '/';
+  }
 
   isActive(tab: NavTab): boolean {
     const url = this.router.url.split('?')[0];
