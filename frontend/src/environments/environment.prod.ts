@@ -7,7 +7,7 @@
  */
 export const environment = {
   production: true,
-  appVersion: '1.5.0',
+  appVersion: '1.6.0',
   apiUrl: 'https://football-quizball-production.up.railway.app',
   /** Frontend URL for OAuth redirects. Update to your production domain (e.g. Vercel, Netlify). */
   appUrl: 'https://football-quizball.vercel.app',
