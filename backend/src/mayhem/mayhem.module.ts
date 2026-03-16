@@ -8,11 +8,11 @@ import { LlmModule } from '../llm/llm.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { QuestionsModule } from '../questions/questions.module';
 import { AuthModule } from '../auth/auth.module';
-import { CacheModule } from '../cache/cache.module';
+import { SessionStoreModule } from '../session/session-store.module';
 import { EloService } from '../solo/elo.service';
 
 @Module({
-  imports: [ConfigModule, LlmModule, SupabaseModule, QuestionsModule, AuthModule, CacheModule],
+  imports: [ConfigModule, LlmModule, SupabaseModule, QuestionsModule, AuthModule, SessionStoreModule],
   providers: [MayhemQuestionGenerator, MayhemService, MayhemSessionService, EloService],
   controllers: [MayhemController],
   exports: [MayhemService, MayhemSessionService],

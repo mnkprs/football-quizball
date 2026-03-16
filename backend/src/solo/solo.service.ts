@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
-import { CacheService } from '../cache/cache.service';
+import { SessionStoreService } from '../session/session-store.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { EloService } from './elo.service';
@@ -15,7 +15,7 @@ export class SoloService {
   private readonly logger = new Logger(SoloService.name);
 
   constructor(
-    private cacheService: CacheService,
+    private sessionStore: SessionStoreService,
     private supabaseService: SupabaseService,
     private questionPoolService: QuestionPoolService,
     private eloService: EloService,
@@ -26,8 +26,8 @@ export class SoloService {
 
   private sessionKey(id: string) { return `solo:${id}`; }
 
-  private getSession(sessionId: string): SoloSession {
-    const session = this.cacheService.get<SoloSession>(this.sessionKey(sessionId));
+  private async getSession(sessionId: string): Promise<SoloSession> {
+    const session = await this.sessionStore.get<SoloSession>(this.sessionKey(sessionId));
     if (!session) throw new NotFoundException('Solo session not found or expired');
     return session;
   }
@@ -51,7 +51,7 @@ export class SoloService {
       drawnQuestionIds: [],
       createdAt: new Date(),
     };
-    this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
     return { session_id: sessionId, user_elo: profile.elo };
   }
 
@@ -65,7 +65,7 @@ export class SoloService {
     questions_answered: number;
     current_elo: number;
   }> {
-    const session = this.getSession(sessionId);
+    const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
 
     const difficulty = this.eloService.getDifficultyForElo(session.currentElo);
@@ -75,7 +75,7 @@ export class SoloService {
     session.currentQuestion = question;
     session.drawnQuestionIds.push(question.id);
     session.servedAt = now;
-    this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
     return {
       question_id: question.id,
@@ -90,7 +90,7 @@ export class SoloService {
   }
 
   async submitAnswer(sessionId: string, userId: string, answer: string): Promise<SoloAnswerResult> {
-    const session = this.getSession(sessionId);
+    const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
 
     const question = session.currentQuestion;
@@ -103,7 +103,6 @@ export class SoloService {
 
     let correct = false;
     if (!timedOut) {
-      // Use the existing answer validator logic — create a fake GeneratedQuestion
       correct = this.answerValidator.validate(
         { correct_answer: question.correct_answer, category: question.category } as any,
         answer,
@@ -120,7 +119,7 @@ export class SoloService {
     session.eloChanges.push(eloChange);
     session.currentQuestion = null;
     session.servedAt = null;
-    this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
     // Persist ELO change to Supabase
     await this.supabaseService.updateElo(userId, eloAfter);
@@ -159,7 +158,7 @@ export class SoloService {
     elo_end: number;
     elo_delta: number;
   }> {
-    const session = this.getSession(sessionId);
+    const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
 
     // Return drawn questions to pool so they can be reused in future sessions
@@ -172,7 +171,7 @@ export class SoloService {
 
     // Increment games_played
     await this.supabaseService.incrementGamesPlayed(userId, session.questionsAnswered, session.correctAnswers);
-    this.cacheService.del(this.sessionKey(sessionId));
+    await this.sessionStore.del(this.sessionKey(sessionId));
 
     // Fire-and-forget achievement check
     this.supabaseService.getProfile(userId).then(profile => {

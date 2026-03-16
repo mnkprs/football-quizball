@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { CacheService } from '../cache/cache.service';
+import { SessionStoreService } from '../session/session-store.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BlitzSession, BlitzQuestion, BlitzQuestionRef, BlitzAnswerResult } from './blitz.types';
 
@@ -12,14 +12,14 @@ export class BlitzService {
   private readonly logger = new Logger(BlitzService.name);
 
   constructor(
-    private cacheService: CacheService,
+    private sessionStore: SessionStoreService,
     private supabaseService: SupabaseService,
   ) {}
 
   private sessionKey(id: string) { return `blitz:${id}`; }
 
-  private getSession(sessionId: string): BlitzSession {
-    const session = this.cacheService.get<BlitzSession>(this.sessionKey(sessionId));
+  private async getSession(sessionId: string): Promise<BlitzSession> {
+    const session = await this.sessionStore.get<BlitzSession>(this.sessionKey(sessionId));
     if (!session) throw new NotFoundException('Blitz session not found or expired');
     return session;
   }
@@ -70,7 +70,7 @@ export class BlitzService {
       startTime: Date.now(),
       saved: false,
     };
-    this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
     return {
       session_id: sessionId,
@@ -84,7 +84,7 @@ export class BlitzService {
     userId: string,
     answer: string,
   ): Promise<BlitzAnswerResult> {
-    const session = this.getSession(sessionId);
+    const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
 
     const elapsed = Date.now() - session.startTime;
@@ -122,7 +122,7 @@ export class BlitzService {
       this.logger.log(`[blitz] Saved score for ${session.username}: ${session.score}/${session.totalAnswered}`);
     }
 
-    this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
     return {
       correct,
@@ -138,7 +138,7 @@ export class BlitzService {
     score: number;
     total_answered: number;
   }> {
-    const session = this.getSession(sessionId);
+    const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
 
     if (!session.saved) {
@@ -153,7 +153,7 @@ export class BlitzService {
       await this.supabaseService.upsertMaxBlitzScore(userId, session.score, session.totalAnswered);
     }
 
-    this.cacheService.del(this.sessionKey(sessionId));
+    await this.sessionStore.del(this.sessionKey(sessionId));
     return { score: session.score, total_answered: session.totalAnswered };
   }
 

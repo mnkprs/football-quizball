@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { CacheService } from '../cache/cache.service';
+import { SessionStoreService } from '../session/session-store.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
 import type { Difficulty } from '../questions/question.types';
@@ -32,15 +32,15 @@ export class MayhemSessionService {
   private readonly logger = new Logger(MayhemSessionService.name);
 
   constructor(
-    private cacheService: CacheService,
+    private sessionStore: SessionStoreService,
     private supabaseService: SupabaseService,
     private eloService: EloService,
   ) {}
 
   private sessionKey(id: string) { return `mayhem:${id}`; }
 
-  private getSession(sessionId: string): MayhemSession {
-    const session = this.cacheService.get<MayhemSession>(this.sessionKey(sessionId));
+  private async getSession(sessionId: string): Promise<MayhemSession> {
+    const session = await this.sessionStore.get<MayhemSession>(this.sessionKey(sessionId));
     if (!session) throw new NotFoundException('Mayhem session not found or expired');
     return session;
   }
@@ -62,7 +62,7 @@ export class MayhemSessionService {
       correctAnswers: 0,
       createdAt: new Date(),
     };
-    this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
     return { session_id: sessionId, user_elo: userElo };
   }
 
@@ -84,7 +84,7 @@ export class MayhemSessionService {
     correct_answers: number;
     current_elo: number;
   }> {
-    const session = this.getSession(sessionId);
+    const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
 
     // Fetch the question to verify answer
@@ -119,7 +119,7 @@ export class MayhemSessionService {
     if (correct) session.correctAnswers += 1;
     session.currentQuestion = null;
     session.servedAt = null;
-    this.cacheService.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
     return {
       correct,
@@ -142,7 +142,7 @@ export class MayhemSessionService {
     elo_end: number;
     elo_delta: number;
   }> {
-    const session = this.getSession(sessionId);
+    const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
 
     // Persist stats to DB
@@ -155,7 +155,7 @@ export class MayhemSessionService {
       correct_increment: session.correctAnswers,
     });
 
-    this.cacheService.del(this.sessionKey(sessionId));
+    await this.sessionStore.del(this.sessionKey(sessionId));
 
     return {
       questions_answered: session.questionsAnswered,
