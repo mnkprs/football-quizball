@@ -30,6 +30,10 @@
     "concurrently": "^9.0.0"
   },
   "dependencies": {
-    "@angular/core": "^21.2.4"
+    "@angular/common": "^21.2.4",
+    "@angular/core": "^21.2.4",
+    "@angular/forms": "^21.2.4",
+    "@angular/router": "^21.2.4",
+    "rxjs": "^7.8.2"
   }
 }

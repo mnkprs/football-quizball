@@ -11,30 +11,36 @@ import { LanguageService } from '../../core/language.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="min-h-screen flex flex-col p-4">
+    <div class="question-page min-h-screen flex flex-col p-4">
       @if (store.loading()) {
         <div class="flex-1 flex items-center justify-center">
-          <div class="text-5xl animate-spin-slow">⚽</div>
+          <div class="question-loader">
+            <img src="/icons/quizball-unlimited-logo.png" alt="" class="w-10 h-10 object-contain" />
+          </div>
         </div>
       } @else if (question()) {
         <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
-          <!-- Header -->
-          <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center gap-3">
-              <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
-                    [class]="difficultyBadgeClass()">
-                {{ question()?.difficulty }}
-              </span>
-              <span class="text-muted-foreground text-sm">{{ categoryLabel() }}</span>
-            </div>
-            <div class="text-accent font-black text-2xl">
-              {{ currentPoints() }} pt{{ currentPoints() !== 1 ? 's' : '' }}
+          <!-- Header Card -->
+          <div class="question-header-card rounded-xl p-3 mb-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="question-difficulty-badge px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider"
+                      [class]="difficultyBadgeClass()">
+                  {{ question()?.difficulty }}
+                </span>
+                <span class="text-muted-foreground text-xs font-medium">{{ categoryLabel() }}</span>
+              </div>
+              <div class="question-points text-xl font-black">
+                {{ currentPoints() }}<span class="text-sm font-bold opacity-70 ml-0.5">pts</span>
+              </div>
             </div>
           </div>
 
           <!-- Current player indicator -->
-          <div class="text-center mb-4 text-muted-foreground text-sm">
-            🎮 {{ store.currentPlayer()?.name }}{{ lang.t().yourTurn }}
+          <div class="question-player-indicator flex items-center justify-center gap-2 mb-4">
+            <span [class]="'question-player-dot ' + playerDotClass()"></span>
+            <span class="text-foreground text-sm font-semibold">{{ store.currentPlayer()?.name }}</span>
+            <span class="text-muted-foreground text-xs">{{ lang.t().yourTurn }}</span>
           </div>
 
           <!-- English answers hint (shown only in Greek mode) -->
@@ -159,20 +165,22 @@ import { LanguageService } from '../../core/language.service';
     <!-- Higher or Lower template -->
     <ng-template #holTemplate>
       <div class="flex flex-col">
-        <div class="bg-card rounded-2xl p-8 mb-8 border border-border text-center min-h-[140px] flex items-center justify-center">
-          <p class="text-foreground text-xl leading-relaxed">{{ question()?.question_text }}</p>
+        <div class="question-card bg-card rounded-xl p-6 mb-6 border border-border text-center min-h-[120px] flex items-center justify-center">
+          <p class="text-foreground text-lg leading-relaxed">{{ question()?.question_text }}</p>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-2 gap-3">
           <button
             (click)="submitHol('higher')"
-            class="py-6 rounded-2xl bg-green-600 hover:bg-green-500 text-white font-black text-2xl active:scale-95 transition"
+            class="hol-btn hol-btn--higher py-5 rounded-xl text-white font-black text-xl active:scale-95 transition flex flex-col items-center justify-center gap-1"
           >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
             {{ lang.t().higher }}
           </button>
           <button
             (click)="submitHol('lower')"
-            class="py-6 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black text-2xl active:scale-95 transition"
+            class="hol-btn hol-btn--lower py-5 rounded-xl text-white font-black text-xl active:scale-95 transition flex flex-col items-center justify-center gap-1"
           >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
             {{ lang.t().lower }}
           </button>
         </div>
@@ -392,6 +400,90 @@ import { LanguageService } from '../../core/language.service';
     </ng-template>
   `,
 })
+  styles: [`
+    .question-page {
+      background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 97%, #000 3%) 100%);
+    }
+
+    .question-loader {
+      width: 4rem;
+      height: 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-accent);
+      border-radius: 1rem;
+      box-shadow: 0 0 24px rgba(204, 255, 0, 0.3);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    .question-header-card {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .question-points {
+      color: var(--color-accent);
+      text-shadow: 0 0 12px rgba(204, 255, 0, 0.3);
+    }
+
+    .question-player-indicator {
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .question-player-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+    }
+
+    .question-player-dot--p1 {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+    }
+
+    .question-player-dot--p2 {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+    }
+
+    .question-card {
+      box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .hol-btn {
+      box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .hol-btn--higher {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+
+    .hol-btn--higher:hover {
+      background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+    }
+
+    .hol-btn--lower {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .hol-btn--lower:hover {
+      background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    }
+  `],
+})
 export class QuestionComponent implements OnDestroy {
   store = inject(GameStore);
   gameApi = inject(GameApiService);
@@ -451,6 +543,11 @@ export class QuestionComponent implements OnDestroy {
     if (diff === 'MEDIUM') return 'bg-yellow-900/50 text-yellow-400 border border-yellow-700';
     return 'bg-loss/10 text-loss border border-loss/50';
   });
+
+  playerDotClass(): string {
+    const idx = this.store.boardState()?.currentPlayerIndex ?? 0;
+    return idx === 0 ? 'question-player-dot--p1' : 'question-player-dot--p2';
+  }
 
   async submit(): Promise<void> {
     if (!this.answer.trim()) return;
