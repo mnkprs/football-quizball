@@ -4,6 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { LanguageService } from '../../core/language.service';
 import { environment } from '../../../environments/environment';
 import { UpgradeModalComponent } from '../../shared/upgrade-modal/upgrade-modal';
+import { TopNavComponent } from '../../shared/top-nav/top-nav';
 
 export interface NavTab {
   labelKey: 'navHome' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
@@ -21,9 +22,11 @@ export interface NavTab {
     RouterLinkActive,
     MatIconModule,
     UpgradeModalComponent,
+    TopNavComponent,
   ],
   template: `
     <div class="shell-layout">
+      <app-top-nav />
       <app-upgrade-modal />
       <main class="shell-main">
         <router-outlet />
@@ -84,6 +87,7 @@ export interface NavTab {
       min-height: 0;
       display: flex;
       flex-direction: column;
+      padding-top: 3.5rem;
       padding-bottom: calc(5rem + env(safe-area-inset-bottom));
       overflow-y: auto;
     }
