@@ -21,7 +21,11 @@ import { Component, input, output } from '@angular/core';
         </div>
         <div class="auth-card__info">
           <p class="auth-card__name">{{ displayName() }}</p>
-          <p class="auth-card__stats">{{ statsText() }}</p>
+          @if (statsLoading()) {
+            <div class="auth-card__stats-skeleton"></div>
+          } @else {
+            <p class="auth-card__stats">{{ statsText() }}</p>
+          }
         </div>
         <button type="button" class="auth-card__sign-out" (click)="signOut.emit()" [attr.aria-label]="signOutLabel()">
           {{ signOutLabel() }}
@@ -94,6 +98,20 @@ import { Component, input, output } from '@angular/core';
       margin: 0;
     }
 
+    .auth-card__stats-skeleton {
+      height: 0.8125rem;
+      width: 12rem;
+      border-radius: 0.25rem;
+      background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     .auth-card__sign-out {
       padding: 0.625rem 0.875rem;
       font-size: 0.8125rem;
@@ -120,6 +138,7 @@ export class AuthCardComponent {
   displayName = input.required<string>();
   initials = input.required<string>();
   statsText = input.required<string>();
+  statsLoading = input(false);
   signOutLabel = input<string>('Sign out');
 
   signOut = output<void>();

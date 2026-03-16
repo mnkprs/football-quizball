@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from './cache/cache.module';
@@ -23,6 +24,16 @@ import { OnlineGameModule } from './online-game/online-game.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        level: process.env['NODE_ENV'] === 'production' ? 'info' : 'debug',
+        transport: process.env['NODE_ENV'] !== 'production'
+          ? { target: 'pino-pretty', options: { colorize: true } }
+          : undefined,
+        autoLogging: { ignore: (req: any) => req.url === '/api/health' },
+        redact: ['req.headers.authorization'],
+      },
+    }),
     SupabaseModule,
     CacheModule,
     LlmModule,

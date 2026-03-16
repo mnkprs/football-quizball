@@ -5,6 +5,7 @@ import { SwUpdate } from '@angular/service-worker';
 import { DonateModalComponent } from './shared/donate-modal/donate-modal';
 import { DonateModalService } from './core/donate-modal.service';
 import { GoogleAdsService } from './core/google-ads.service';
+import { PosthogService } from './core/posthog.service';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +38,7 @@ export class App implements OnInit, OnDestroy {
   private googleAds = inject(GoogleAdsService);
   private swUpdate = inject(SwUpdate, { optional: true });
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
-
+  private posthog = inject(PosthogService);
   isAdminRoute = signal(false);
 
   ngOnInit(): void {

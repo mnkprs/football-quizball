@@ -1,4 +1,5 @@
 import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
@@ -504,6 +505,12 @@ export class QuestionPoolService {
       return null;
     }
     return (data as { id: string })?.id ?? null;
+  }
+
+  @Cron('*/15 * * * *')
+  async scheduledRefill(): Promise<void> {
+    this.logger.log('[cron] Proactive pool refill check');
+    await this.refillIfNeeded();
   }
 
   /**

@@ -22,6 +22,7 @@
     "@angular/service-worker": "^20.0.0",
     "@ngrx/signals": "^20.1.0",
     "@supabase/supabase-js": "^2.98.0",
+    "posthog-js": "^1.360.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"

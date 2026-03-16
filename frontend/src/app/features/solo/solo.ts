@@ -8,6 +8,7 @@ import { DonateModalService } from '../../core/donate-modal.service';
 import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
+import { PosthogService } from '../../core/posthog.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
 
@@ -108,7 +109,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
                 [disabled]="!answer.trim() || submitting()"
                 class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
               >
-                {{ lang.t().submit }}
+                {{ submitting() ? '...' : lang.t().submit }}
               </button>
             </div>
 
@@ -177,9 +178,10 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
               </button>
               <button
                 (click)="endSession()"
-                class="py-4 px-6 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable"
+                [disabled]="loading()"
+                class="py-4 px-6 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition disabled:opacity-50 pressable"
               >
-                {{ lang.t().soloEnd }}
+                {{ loading() ? '...' : lang.t().soloEnd }}
               </button>
             </div>
           </div>
@@ -255,6 +257,7 @@ export class SoloComponent implements OnDestroy {
   private router = inject(Router);
   private donateModal = inject(DonateModalService);
   private gameApi = inject(GameApiService);
+  private posthog = inject(PosthogService);
   lang = inject(LanguageService);
 
   phase = signal<SoloPhase>('idle');
@@ -319,6 +322,7 @@ export class SoloComponent implements OnDestroy {
       this.sessionId.set(res.session_id);
       this.startElo.set(res.user_elo);
       this.currentElo.set(res.user_elo);
+      this.posthog.track('game_mode_started', { mode: 'solo', starting_elo: res.user_elo });
       await this.loadNextQuestion();
     } catch (err: any) {
       this.error.set(err?.error?.message ?? 'Failed to start session');
@@ -388,6 +392,12 @@ export class SoloComponent implements OnDestroy {
       this.correctAnswers.set(result.correct_answers);
       this.questionsAnswered.set(result.questions_answered);
       this.currentElo.set(result.elo_after);
+      this.posthog.track('question_answered', {
+        correct: result.correct,
+        elo_change: result.elo_change,
+        difficulty: this.currentQuestion()?.difficulty,
+        timed_out: result.timed_out,
+      });
       this.phase.set('result');
     } catch (err: any) {
       this.error.set('Failed to submit answer');
@@ -408,6 +418,11 @@ export class SoloComponent implements OnDestroy {
       await firstValueFrom(this.api.endSession(sid));
     } catch { /* ignore */ }
     this.loading.set(false);
+    this.posthog.track('session_ended', {
+      total_questions: this.questionsAnswered(),
+      final_elo: this.currentElo(),
+      accuracy: this.accuracy(),
+    });
     this.phase.set('finished');
   }
 

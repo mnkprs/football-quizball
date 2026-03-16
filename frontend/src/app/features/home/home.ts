@@ -49,6 +49,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
             [displayName]="displayName()"
             [initials]="initials()"
             [statsText]="authStatsText()"
+            [statsLoading]="profileLoading()"
             [signOutLabel]="lang.t().signOut"
             (signOut)="signOut()"
             (avatarError)="onAvatarError()"
@@ -213,6 +214,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private dailyApi = inject(DailyApiService);
 
   twoPlayerExpanded = signal(false);
+  profileLoading = signal(false);
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   avatarLoadFailed = signal(false);
@@ -342,6 +344,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private async loadProfile(): Promise<void> {
     const userId = this.auth.user()?.id;
     if (!userId) return;
+    this.profileLoading.set(true);
     try {
       const [profileRes, blitzRes] = await Promise.all([
         firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null })),
@@ -352,6 +355,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     } catch {
       this.profile.set(null);
       this.blitzStats.set(null);
+    } finally {
+      this.profileLoading.set(false);
     }
   }
 

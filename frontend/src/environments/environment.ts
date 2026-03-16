@@ -24,4 +24,7 @@ export const environment = {
   adSenseClientId: '',
   /** AdSense ad slot ID (numeric). Required if adSenseClientId is set. */
   adSenseSlotId: '',
+  /** PostHog project API key. Leave empty to disable analytics. */
+  posthogKey: 'phc_F8tJ3RTBgYPfc3CCJGX3AEF7s49qiu6p7JeJTPYs0Fn',
+  posthogHost: 'https://us.i.posthog.com',
 };

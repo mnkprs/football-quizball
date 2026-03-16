@@ -25,4 +25,7 @@ export const environment = {
   adSenseSlotId: '9966834671',
   /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
   adminApiKey: undefined as string | undefined,
+  /** PostHog project API key. Set in environment.prod.ts or build pipeline. */
+  posthogKey: 'phc_F8tJ3RTBgYPfc3CCJGX3AEF7s49qiu6p7JeJTPYs0Fn',
+  posthogHost: 'https://us.i.posthog.com',
 };
