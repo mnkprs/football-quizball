@@ -8,8 +8,6 @@ import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { DailyApiService } from '../../core/daily-api.service';
 import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
-import { PageHeaderComponent } from '../../shared/page-header/page-header';
-import { SettingsMenuComponent } from '../../shared/settings-menu/settings-menu';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
 import { DailyHeroComponent } from '../../shared/daily-hero/daily-hero';
@@ -20,8 +18,6 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
   standalone: true,
   imports: [
     CommonModule,
-    PageHeaderComponent,
-    SettingsMenuComponent,
     SectionHeaderComponent,
     ModeCardComponent,
     DailyHeroComponent,
@@ -30,19 +26,7 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
   template: `
     <div class="home-page">
       <div class="home-content">
-        <app-page-header
-          [title]="lang.t().appTitle"
-          [titlePart1]="lang.t().appTitlePart1"
-          [titlePart2]="lang.t().appTitlePart2"
-          [subtitle]="lang.t().appSubtitle"
-          logo="/icons/quizball-unlimited-logo.png"
-        >
-          <div pageHeaderActions>
-            <app-settings-menu (signOut)="signOut()" />
-          </div>
-        </app-page-header>
-
-        @if (auth.isLoggedIn()) {
+@if (auth.isLoggedIn()) {
           <app-auth-card
             [avatarUrl]="avatarUrl()"
             [avatarLoadFailed]="avatarLoadFailed()"

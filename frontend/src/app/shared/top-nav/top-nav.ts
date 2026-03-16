@@ -17,24 +17,6 @@ import { ThemeService } from '../../core/theme.service';
 
       <!-- Right side -->
       <div class="top-nav__right">
-        <!-- Icon buttons -->
-        <button class="top-nav__icon-btn" aria-label="Rewards" (click)="goInvite()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 12 20 22 4 22 4 12"/>
-            <rect x="2" y="7" width="20" height="5"/>
-            <line x1="12" y1="22" x2="12" y2="7"/>
-            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-          </svg>
-        </button>
-
-        <button class="top-nav__icon-btn" aria-label="Search" (click)="goLeaderboard()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-        </button>
-
         <!-- Settings trigger -->
         <button class="top-nav__icon-btn" aria-label="Settings" (click)="toggleSettings()">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -133,8 +115,9 @@ import { ThemeService } from '../../core/theme.service';
       width: 100%;
       max-width: 28rem;
       height: 3.5rem;
-      background: var(--color-header);
-      border-bottom: 1px solid rgba(204, 255, 0, 0.12);
+      background-image: url('/header-banner-bg.jpg');
+      background-size: cover;
+      background-position: center 30%;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -142,11 +125,21 @@ import { ThemeService } from '../../core/theme.service';
       z-index: 50;
     }
 
+    .top-nav::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: none;
+    }
+
     .top-nav__logo {
       display: flex;
       align-items: center;
       text-decoration: none;
       flex-shrink: 0;
+      position: relative;
+      z-index: 1;
     }
 
     .top-nav__logo-img {
@@ -159,6 +152,8 @@ import { ThemeService } from '../../core/theme.service';
       display: flex;
       align-items: center;
       gap: 0.125rem;
+      position: relative;
+      z-index: 1;
     }
 
     .top-nav__icon-btn {
@@ -515,9 +510,6 @@ export class TopNavComponent {
 
   toggleSettings(): void { this.settingsOpen.update(v => !v); }
   closeSettings(): void { this.settingsOpen.set(false); }
-
-  goInvite(): void { this.router.navigate(['/invite']); }
-  goLeaderboard(): void { this.router.navigate(['/leaderboard']); }
 
   async signOut(): Promise<void> {
     this.closeSettings();
