@@ -1,23 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
-import { setupFileLogging } from './logger.util';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import helmet from 'helmet';
 
-setupFileLogging();
-
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create(AppModule, { rawBody: true, bufferLogs: true });
+  app.useLogger(app.get(Logger));
 
   app.use(helmet());
 
-  const allowedOrigins = process.env.CORS_ORIGIN
-    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  const allowedOrigins = process.env['CORS_ORIGIN']
+    ? process.env['CORS_ORIGIN'].split(',').map((o) => o.trim())
     : [
         'http://localhost:4200',
         'http://localhost:4300',
-        ...(process.env.NODE_ENV === 'production' ? ['https://football-quizball.vercel.app'] : []),
+        ...(process.env['NODE_ENV'] === 'production' ? ['https://football-quizball.vercel.app'] : []),
       ];
 
   app.enableCors({
@@ -38,7 +37,7 @@ async function bootstrap() {
     res.json({ status: 'ok' }),
   );
 
-  const port = process.env.PORT ?? 3000;
+  const port = process.env['PORT'] ?? 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`Unlimited Quizball backend running on port ${port}`);
 }
