@@ -111,6 +111,34 @@ export class OnlineGameService {
     return data as Record<string, unknown>;
   }
 
+  private async saveMatchHistoryIfFinished(
+    row: Record<string, unknown>,
+    newStatus: string,
+    finalScores: { host: number; guest: number },
+  ): Promise<void> {
+    if (newStatus !== 'finished') return;
+    const hostId = row['host_id'] as string;
+    const guestId = row['guest_id'] as string | null;
+    try {
+      const usernames = await this.getUsernames(hostId, guestId);
+      const winnerId =
+        finalScores.host > finalScores.guest ? hostId :
+        finalScores.guest > finalScores.host ? (guestId ?? null) : null;
+      await this.supabaseService.saveMatchResult({
+        player1_id: hostId,
+        player2_id: guestId,
+        player1_username: usernames.host,
+        player2_username: usernames.guest ?? 'Guest',
+        winner_id: winnerId,
+        player1_score: finalScores.host,
+        player2_score: finalScores.guest,
+        match_mode: 'online',
+      });
+    } catch (err) {
+      this.logger.error(`[saveMatchHistoryIfFinished] Failed for game ${row['id']}: ${err}`);
+    }
+  }
+
   private async getUsernames(hostId: string, guestId: string | null): Promise<{ host: string; guest: string | null }> {
     const hostProfile = await this.supabaseService.getProfile(hostId);
     const host = hostProfile?.username ?? 'Host';
@@ -396,6 +424,8 @@ export class OnlineGameService {
       })
       .eq('id', gameId);
 
+    await this.saveMatchHistoryIfFinished(row, newStatus, scores);
+
     return answerResult;
   }
 
@@ -538,6 +568,8 @@ export class OnlineGameService {
         })
         .eq('id', gameId);
 
+      await this.saveMatchHistoryIfFinished(row, newStatus, scores);
+
       return {
         matched,
         position,
@@ -624,6 +656,8 @@ export class OnlineGameService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', gameId);
+
+    await this.saveMatchHistoryIfFinished(row, newStatus, scores);
 
     return {
       matched: false,
@@ -751,5 +785,10 @@ export class OnlineGameService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', gameId);
+
+    if (newStatus === 'finished') {
+      const rawScores = row['player_scores'] as [number, number];
+      await this.saveMatchHistoryIfFinished(row, newStatus, { host: rawScores[0], guest: rawScores[1] });
+    }
   }
 }

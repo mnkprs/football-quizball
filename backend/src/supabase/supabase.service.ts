@@ -322,6 +322,14 @@ export class SupabaseService {
     await this.client.from('match_history').insert(match);
   }
 
+  async updateUsername(userId: string, username: string): Promise<void> {
+    const { error } = await this.client
+      .from('profiles')
+      .update({ username, username_set: true })
+      .eq('id', userId);
+    if (error) throw error;
+  }
+
   async getMatchHistory(userId: string, limit = 20): Promise<Array<{
     id: string; player1_id: string | null; player2_id: string | null;
     player1_username: string; player2_username: string;

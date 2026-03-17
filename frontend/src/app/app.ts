@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, effect } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { SwUpdate } from '@angular/service-worker';
@@ -6,13 +6,16 @@ import { DonateModalComponent } from './shared/donate-modal/donate-modal';
 import { DonateModalService } from './core/donate-modal.service';
 import { AuthModalComponent } from './shared/auth-modal/auth-modal';
 import { AuthModalService } from './core/auth-modal.service';
+import { UsernameModalComponent } from './shared/username-modal/username-modal';
+import { UsernameModalService } from './core/username-modal.service';
+import { AuthService } from './core/auth.service';
 import { GoogleAdsService } from './core/google-ads.service';
 import { PosthogService } from './core/posthog.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent],
   template: `
     <div class="app-container" [class.app-container--full]="isAdminRoute()">
       <router-outlet />
@@ -21,6 +24,9 @@ import { PosthogService } from './core/posthog.service';
       }
       @if (authModal.isOpen()) {
         <app-auth-modal />
+      }
+      @if (usernameModal.isOpen()) {
+        <app-username-modal />
       }
     </div>
 
@@ -91,6 +97,8 @@ import { PosthogService } from './core/posthog.service';
 export class App implements OnInit, OnDestroy {
   donateService = inject(DonateModalService);
   authModal = inject(AuthModalService);
+  usernameModal = inject(UsernameModalService);
+  private auth = inject(AuthService);
   private router = inject(Router);
   private googleAds = inject(GoogleAdsService);
   private swUpdate = inject(SwUpdate, { optional: true });
@@ -100,6 +108,30 @@ export class App implements OnInit, OnDestroy {
 
   showSplash = signal(true);
   splashFading = signal(false);
+
+  constructor() {
+    effect(() => {
+      const user = this.auth.user();
+      if (user) {
+        this.checkUsernameSetup(user.id);
+      } else {
+        this.usernameModal.close();
+      }
+    });
+  }
+
+  private async checkUsernameSetup(userId: string): Promise<void> {
+    try {
+      const isSet = await this.auth.fetchUsernameSet(userId);
+      if (!isSet) {
+        this.usernameModal.open();
+      } else {
+        this.usernameModal.close();
+      }
+    } catch {
+      // Silently ignore — don't block the user
+    }
+  }
 
   ngOnInit(): void {
     this.isAdminRoute.set(this.router.url.startsWith('/admin'));

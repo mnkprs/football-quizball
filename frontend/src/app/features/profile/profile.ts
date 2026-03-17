@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, ViewChild, ElementRef } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
@@ -35,10 +35,45 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           </div>
         } @else {
           <div class="profile-content">
+            <!-- Hidden file input for avatar upload (always mounted so ViewChild resolves) -->
+            <input
+              #avatarInput
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style="display:none"
+              (change)="onAvatarFileChange($event)"
+            />
+
             <!-- Avatar & name -->
             <div class="profile-header">
-              <div class="profile-avatar" [style.border]="rankTier().borderStyle" [title]="rankTier().label + ' tier'">
-                {{ initials() }}
+              <div
+                class="profile-avatar-wrap"
+                [class.profile-avatar-wrap--clickable]="isOwnProfile()"
+                [title]="isOwnProfile() ? 'Change avatar' : rankTier().label + ' tier'"
+                (click)="triggerAvatarUpload()"
+              >
+                <div class="profile-avatar" [style.border]="rankTier().borderStyle">
+                  @if (avatarUrl()) {
+                    <img class="profile-avatar-img" [src]="avatarUrl()!" alt="avatar" />
+                  } @else {
+                    {{ initials() }}
+                  }
+                </div>
+                @if (isOwnProfile()) {
+                  <div class="profile-avatar-upload-icon" [class.uploading]="avatarUploading()">
+                    @if (avatarUploading()) {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                      </svg>
+                    } @else {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                    }
+                  </div>
+                }
               </div>
               <div class="rank-tier-badge" [style.color]="rankTier().color">
                 {{ rankTier().label }}
@@ -111,7 +146,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
                           {{ match.player1_score }} – {{ match.player2_score }} · {{ formatDate(match.played_at) }}
                         </div>
                       </div>
-                      <div class="match-mode-badge">{{ match.match_mode }}</div>
+                      <div class="match-mode-badge" [class.match-mode-badge--online]="match.match_mode === 'online'">{{ matchModeLabel(match.match_mode) }}</div>
                     </div>
                   }
                 </div>
@@ -212,9 +247,24 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       border-bottom: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12));
     }
 
-    .profile-avatar {
+    .profile-avatar-wrap {
+      position: relative;
       width: 4.5rem;
       height: 4.5rem;
+      margin: 0 auto 0.5rem;
+    }
+
+    .profile-avatar-wrap--clickable {
+      cursor: pointer;
+    }
+
+    .profile-avatar-wrap--clickable:hover .profile-avatar-upload-icon {
+      opacity: 1;
+    }
+
+    .profile-avatar {
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--mat-sys-primary) 0%, color-mix(in srgb, var(--mat-sys-primary) 70%, #000) 100%);
       color: var(--mat-sys-on-primary);
@@ -223,8 +273,44 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 0.5rem;
       text-transform: uppercase;
+      overflow: hidden;
+    }
+
+    .profile-avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .profile-avatar-upload-icon {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      background: var(--mat-sys-surface-container-highest, #333);
+      border: 2px solid var(--mat-sys-surface, #121212);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--mat-sys-on-surface-variant);
+      opacity: 0.85;
+      transition: opacity 0.15s;
+    }
+
+    .profile-avatar-upload-icon.uploading {
+      opacity: 1;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spin {
+      animation: spin 0.9s linear infinite;
     }
 
     .rank-tier-badge {
@@ -394,6 +480,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
       flex-shrink: 0;
     }
 
+    .match-mode-badge--online {
+      background: rgba(34, 197, 94, 0.12);
+      color: #22c55e;
+    }
+
     .profile-actions {
       display: flex;
       flex-direction: column;
@@ -447,6 +538,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   `],
 })
 export class ProfileComponent implements OnInit {
+  @ViewChild('avatarInput') avatarInput?: ElementRef<HTMLInputElement>;
   auth = inject(AuthService);
   lang = inject(LanguageService);
   private router = inject(Router);
@@ -460,6 +552,8 @@ export class ProfileComponent implements OnInit {
   achievements = signal<Achievement[]>([]);
   matchHistory = signal<MatchHistoryEntry[]>([]);
   loading = signal(true);
+  avatarUrl = signal<string | null>(null);
+  avatarUploading = signal(false);
 
   /** User ID from route (when viewing another user) or current user. */
   userId = signal<string | null>(null);
@@ -517,20 +611,49 @@ export class ProfileComponent implements OnInit {
     }
     this.loading.set(true);
     try {
-      const [profileRes, achievementsRes, matchHistoryRes] = await Promise.all([
+      const [profileRes, achievementsRes, matchHistoryRes, avatarUrl] = await Promise.all([
         firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null })),
         firstValueFrom(this.achievementsApi.getForUser(userId)).catch(() => [] as Achievement[]),
         firstValueFrom(this.matchHistoryApi.getHistory(userId)).catch(() => [] as MatchHistoryEntry[]),
+        this.auth.fetchAvatarUrl(userId).catch(() => null),
       ]);
       this.profile.set(profileRes?.profile ?? null);
       this.blitzStats.set(profileRes?.blitz_stats ?? { bestScore: 0, totalGames: 0, rank: null });
       this.achievements.set(achievementsRes);
       this.matchHistory.set(matchHistoryRes);
+      this.avatarUrl.set(avatarUrl);
     } catch {
       this.profile.set(null);
     } finally {
       this.loading.set(false);
     }
+  }
+
+  triggerAvatarUpload(): void {
+    if (!this.isOwnProfile()) return;
+    this.avatarInput?.nativeElement.click();
+  }
+
+  async onAvatarFileChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const userId = this.auth.user()?.id;
+    if (!userId) return;
+    this.avatarUploading.set(true);
+    try {
+      const url = await this.auth.uploadAvatar(userId, file);
+      this.avatarUrl.set(url);
+    } catch {
+      // silently ignore upload errors
+    } finally {
+      this.avatarUploading.set(false);
+      input.value = '';
+    }
+  }
+
+  matchModeLabel(mode: string): string {
+    return mode === 'online' ? 'Online' : 'Local';
   }
 
   formatDate(dateStr: string): string {

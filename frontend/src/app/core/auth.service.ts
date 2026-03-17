@@ -35,6 +35,29 @@ export class AuthService {
     });
   }
 
+  async signUpWithEmail(email: string, password: string): Promise<void> {
+    const { error } = await this.supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    if (error) throw error;
+  }
+
+  async signInWithEmail(email: string, password: string): Promise<void> {
+    const { error } = await this.supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  }
+
+  async fetchUsernameSet(userId: string): Promise<boolean> {
+    const { data } = await this.supabase
+      .from('profiles')
+      .select('username_set')
+      .eq('id', userId)
+      .single();
+    return (data as { username_set?: boolean } | null)?.username_set ?? false;
+  }
+
   async signInWithGoogle(): Promise<void> {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await this.supabase.auth.signInWithOAuth({
@@ -45,6 +68,28 @@ export class AuthService {
       },
     });
     if (error) throw error;
+  }
+
+  async fetchAvatarUrl(userId: string): Promise<string | null> {
+    const { data } = await this.supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', userId)
+      .single();
+    return (data as { avatar_url?: string } | null)?.avatar_url ?? null;
+  }
+
+  async uploadAvatar(userId: string, file: File): Promise<string> {
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const path = `${userId}/avatar.${ext}`;
+    const { error } = await this.supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type });
+    if (error) throw error;
+    const { data } = this.supabase.storage.from('avatars').getPublicUrl(path);
+    const url = `${data.publicUrl}?t=${Date.now()}`;
+    await this.supabase.from('profiles').update({ avatar_url: url }).eq('id', userId);
+    return url;
   }
 
   /** Expose the Supabase client for Realtime subscriptions (e.g. online game updates). */
