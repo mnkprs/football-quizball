@@ -236,11 +236,16 @@ export class ResultsComponent implements OnInit {
 
   playerCardClass(idx: number): string {
     const ps = this.store.players();
-    if (!ps || ps.length < 2) return 'bg-card border-border';
+    if (!ps || ps.length < 2) return 'finals-player-card--p1';
     const isWinner = ps[idx].score > ps[1 - idx].score;
-    return isWinner
-      ? 'bg-accent/10 border-accent'
-      : 'bg-card border-border';
+    const baseClass = idx === 0 ? 'finals-player-card--p1' : 'finals-player-card--p2';
+    return isWinner ? `${baseClass} winner` : baseClass;
+  }
+
+  isWinner(idx: number): boolean {
+    const ps = this.store.players();
+    if (!ps || ps.length < 2) return false;
+    return ps[idx].score > ps[1 - idx].score;
   }
 
   categoryBreakdown = computed(() => {
