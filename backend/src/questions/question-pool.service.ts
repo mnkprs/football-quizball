@@ -271,7 +271,7 @@ export class QuestionPoolService {
         (vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0)
       ) {
         const from = q.correct_answer ?? '';
-        const to = vr.correctedAnswer ?? (vr.correctedTop5 ? vr.correctedTop5.map((e) => e.name).join(', ') : '');
+        const to = vr.correctedAnswer ?? (vr.correctedTop5 ? vr.correctedTop5.map((e) => e.name).join(', ') : from);
         const fields = [
           from !== to && 'answer',
           vr.correctedQuestionText && 'question_text',
