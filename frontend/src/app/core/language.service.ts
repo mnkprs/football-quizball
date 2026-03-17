@@ -230,6 +230,8 @@ const TRANSLATIONS = {
     profileSoloQuestions: 'Solo questions',
     profileViewLeaderboard: 'View Leaderboard',
     profileBackToLeaderboard: 'Back to Leaderboard',
+    matchHistory: 'Match History',
+    achievements: 'Achievements',
     // Donate modal
     donateModalTitle: 'Enjoying the game?',
     donateModalMessage: 'If you\'re having fun, consider supporting the creator with a coffee. Every bit helps!',
@@ -476,6 +478,8 @@ const TRANSLATIONS = {
     profileSoloQuestions: 'ερωτήσεις Solo',
     profileViewLeaderboard: 'Προβολή Κατάταξης',
     profileBackToLeaderboard: 'Πίσω στην Κατάταξη',
+    matchHistory: 'Ιστορικό Αγώνων',
+    achievements: 'Επιτεύγματα',
     // Donate modal
     donateModalTitle: 'Σου αρέσει το παιχνίδι;',
     donateModalMessage: 'Αν το απολαμβάνεις, σκέψου να υποστηρίξεις τον δημιουργό με έναν φρεντάκι. Κάθε βοήθεια μετράει!',
