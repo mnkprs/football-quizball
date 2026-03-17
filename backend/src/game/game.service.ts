@@ -105,7 +105,7 @@ export class GameService {
       id: gameId,
       players,
       currentPlayerIndex: 0,
-      questions,
+      questions: questions.map((q) => { const { _embedding, ...rest } = q as typeof q & { _embedding?: unknown }; void _embedding; return rest as typeof q; }),
       board,
       status: 'ACTIVE',
       createdAt: new Date(),

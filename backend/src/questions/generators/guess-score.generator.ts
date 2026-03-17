@@ -60,7 +60,8 @@ Return ONLY valid JSON. home_score and away_score must be the EXACT numbers you 
 fame_score is 1-10: 10 = universally iconic, 8-9 = well-known match most fans recall. Prefer 8-10 for relevant questions.
 specificity_score is 1-5: Prefer 1-2 (famous finals, widely recallable matches). Avoid 4-5 (obscure).
 combinational_thinking_score 1-10: 1 = single match recall, 5 = combines teams+competition+context, 10 = multi-dimensional reasoning.
-CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the score when Germany met Brazil in the 2014 World Cup semi-final?" NOT "where Germany defeated Brazil 7-1?".${this.langInstruction(language)}`;
+CRITICAL: Do NOT mention the final score anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the final score when Liverpool hosted Barcelona in the 2019 Champions League semi-final second leg?" NOT "where Liverpool completed the comeback".
+AVOID OVERUSED MATCHES: Do NOT generate questions about: Germany vs Brazil 2014 World Cup semi-final (7-1), Barcelona vs PSG 6-1 2017, Liverpool vs Borussia Dortmund 4-3 2016. These are already in the pool.${this.langInstruction(language)}`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GUESS_SCORE', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GUESS_SCORE', options?.slotIndex, constraints);
@@ -97,7 +98,8 @@ Return ONLY valid JSON. home_score and away_score must be EXACT numbers you know
   ]
 }
 ${getLeagueFameGuidanceForBatch('GUESS_SCORE', language === 'el' ? 'el' : 'en', options?.targetDifficulty)}
-CRITICAL: Do NOT mention the final score (e.g. 7-1, 4-0, 3-0) anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the score when Liverpool hosted Barcelona in the 2019 Champions League semi-final second leg?" NOT "where Liverpool overturned a 3-0 first-leg deficit?".${this.langInstruction(language)}`;
+CRITICAL: Do NOT mention the final score anywhere in question_text. Describe the match context (teams, competition, significance) without revealing the score. Example: "What was the final score when Liverpool hosted Barcelona in the 2019 Champions League semi-final second leg?" NOT "where Liverpool overturned a 3-0 deficit".
+AVOID OVERUSED MATCHES: Do NOT generate questions about: Germany vs Brazil 2014 World Cup semi-final (7-1), Barcelona vs PSG 6-1 2017, Liverpool vs Borussia Dortmund 4-3 2016. These are already in the pool.${this.langInstruction(language)}`;
     const userPrompt = `Generate ${questionCount} guess-the-score questions. Only include matches whose exact score you are confident about. ${getRelativityConstraint('GUESS_SCORE', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: MatchPayload[] }>(systemPrompt, userPrompt);

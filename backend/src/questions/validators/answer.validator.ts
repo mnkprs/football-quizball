@@ -75,8 +75,8 @@ export class AnswerValidator {
     if (parts.length > 1) {
       const firstName = parts[0];
       const lastName = parts[parts.length - 1];
-      if (firstName === normalSubmitted && firstName.length > 3) return true;
-      if (lastName === normalSubmitted && lastName.length > 3) return true;
+      if (firstName === normalSubmitted && firstName.length >= 3) return true;
+      if (lastName === normalSubmitted && lastName.length >= 3) return true;
       if (Levenshtein.get(firstName, normalSubmitted) <= 1 && firstName.length > 4) return true;
       if (Levenshtein.get(lastName, normalSubmitted) <= 1 && lastName.length > 4) return true;
     }
@@ -150,10 +150,10 @@ export class AnswerValidator {
       if (normalFull === normalSubmitted) return i;
 
       // Last name only (must be > 3 chars to avoid false positives)
-      if (lastName === normalSubmitted && lastName.length > 3) return i;
+      if (lastName === normalSubmitted && lastName.length >= 3) return i;
 
       // First word only (mono-name like "Pelé", or team shorthand like "Inter" for "Inter Milan")
-      if (firstName === normalSubmitted && firstName.length > 3) return i;
+      if (firstName === normalSubmitted && firstName.length >= 3) return i;
 
       // Accept a safe multi-word prefix like "sir alex" for "Sir Alex Ferguson"
       if (this.isMultiWordPrefixMatch(normalFull, normalSubmitted)) return i;

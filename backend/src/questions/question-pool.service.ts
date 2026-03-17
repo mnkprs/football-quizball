@@ -600,13 +600,14 @@ export class QuestionPoolService {
     const rows = (data ?? []) as DrawBoardRow[];
 
     const questions = rows.map((row) => {
-      const q = row.question;
+      const { _embedding, ...q } = row.question as GeneratedQuestion & { _embedding?: unknown };
+      void _embedding;
       const tr = row.translations?.el;
       const useEl = false; // English board, no Greek
       return {
         ...q,
         difficulty: row.difficulty as Difficulty,
-        points: this.resolvePoints(q, row.difficulty as Difficulty),
+        points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
         source_question_text: q.question_text,
         source_explanation: q.explanation,
         translations: tr?.question_text
@@ -670,14 +671,15 @@ export class QuestionPoolService {
     const rows = (data ?? []) as DrawQuestionsRow[];
 
     return rows.map((row) => {
-      const q = row.question;
+      const { _embedding, ...q } = row.question as GeneratedQuestion & { _embedding?: unknown };
+      void _embedding;
       const tr = row.translations?.el;
       const useEl = language === 'el' && tr?.question_text;
 
       return {
         ...q,
         difficulty: row.difficulty as Difficulty,
-        points: this.resolvePoints(q, row.difficulty as Difficulty),
+        points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
         source_question_text: q.question_text,
         source_explanation: q.explanation,
         translations: tr?.question_text

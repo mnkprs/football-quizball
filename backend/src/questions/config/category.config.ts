@@ -36,7 +36,6 @@ export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [
   'GOSSIP',
   'HIGHER_OR_LOWER',
   'GUESS_SCORE',
-  'TOP_5',
 ];
 
 /**

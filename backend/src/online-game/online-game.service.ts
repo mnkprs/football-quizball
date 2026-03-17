@@ -84,7 +84,9 @@ export class OnlineGameService {
     });
 
     const questionsRecord = questions.reduce((acc: Record<string, unknown>[], q: GeneratedQuestion) => {
-      acc.push(q as unknown as Record<string, unknown>);
+      const { _embedding, ...rest } = q as GeneratedQuestion & { _embedding?: unknown };
+      void _embedding;
+      acc.push(rest as unknown as Record<string, unknown>);
       return acc;
     }, []);
 

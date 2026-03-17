@@ -119,12 +119,12 @@ export class SoloService {
     session.eloChanges.push(eloChange);
     session.currentQuestion = null;
     session.servedAt = null;
-    await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
-    // Persist ELO change to Supabase
-    await this.supabaseService.updateElo(userId, eloAfter);
-    try {
-      await this.supabaseService.insertEloHistory({
+    // Run all three writes in parallel — they are independent of each other
+    await Promise.all([
+      this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL),
+      this.supabaseService.updateElo(userId, eloAfter),
+      this.supabaseService.insertEloHistory({
         user_id: userId,
         elo_before: eloBefore,
         elo_after: eloAfter,
@@ -132,11 +132,10 @@ export class SoloService {
         question_difficulty: question.difficulty,
         correct,
         timed_out: timedOut,
-      });
-    } catch (err) {
-      // ELO already committed — log and continue. TODO: move to DB-side transaction (stored procedure).
-      this.logger.warn(`[submitAnswer] ELO history insert failed for user ${userId}: ${(err as Error).message}`);
-    }
+      }).catch((err: Error) => {
+        this.logger.warn(`[submitAnswer] ELO history insert failed for user ${userId}: ${err.message}`);
+      }),
+    ]);
 
     return {
       correct,

@@ -113,6 +113,10 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
               </button>
             </div>
 
+            @if (error()) {
+              <p class="text-loss text-sm mt-3 text-center">{{ error() }}</p>
+            }
+
             <!-- Report problem -->
             <div class="mt-auto pt-6">
               <button

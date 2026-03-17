@@ -34,7 +34,10 @@ export function getAntiConvergenceInstruction(category?: string): string {
   if (category === 'GUESS_SCORE') {
     return `
 ANTI-REPETITION RULES:
-- Vary the type of match (finals, league classics, tournament shocks) to avoid repetition.`;
+- Vary the type of match (finals, league classics, tournament shocks, group stage surprises) to avoid repetition.
+- Vary the era: mix matches from the 1990s, 2000s, 2010s, and 2020s.
+- Vary the competition: mix World Cup, Euros, Champions League, domestic leagues, Copa America.
+- Avoid the most iconic/overused matches — these are already in the pool and must NOT be regenerated.`;
   }
   const [min, max] = ANTI_CONVERGENCE_FAME_RANGE;
   return `
