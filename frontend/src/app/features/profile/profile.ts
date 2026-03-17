@@ -70,8 +70,40 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
           </div>
 
           <!-- Avatar -->
-          <div class="rank-banner__avatar-wrap">
-            <div class="rank-banner__avatar">{{ initials() }}</div>
+          <input
+            #avatarInput
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style="display:none"
+            (change)="onAvatarFileChange($event)"
+          />
+          <div
+            class="rank-banner__avatar-wrap"
+            [class.rank-banner__avatar-wrap--clickable]="isOwnProfile()"
+            (click)="triggerAvatarUpload()"
+          >
+            <div class="rank-banner__avatar">
+              @if (avatarUrl()) {
+                <img class="rank-banner__avatar-img" [src]="avatarUrl()!" alt="avatar" />
+              } @else {
+                {{ initials() }}
+              }
+            </div>
+            @if (isOwnProfile()) {
+              <div class="rank-banner__avatar-upload" [class.uploading]="avatarUploading()">
+                @if (avatarUploading()) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                } @else {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                }
+              </div>
+            }
           </div>
 
           <!-- Name + meta -->
@@ -362,6 +394,43 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         0 0 16px rgba(0,0,0,0.4);
     }
 
+    .rank-banner__avatar-wrap--clickable {
+      cursor: pointer;
+    }
+
+    .rank-banner__avatar-wrap--clickable:hover .rank-banner__avatar-upload {
+      opacity: 1;
+    }
+
+    .rank-banner__avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .rank-banner__avatar-upload {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 1.375rem;
+      height: 1.375rem;
+      border-radius: 50%;
+      background: #1a1a1a;
+      border: 2px solid #0d0d0d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.7);
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+
+    .rank-banner__avatar-upload.uploading { opacity: 1; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.9s linear infinite; }
+
     /* Challenger gets extra glow on avatar */
     .rank-banner--challenger .rank-banner__avatar,
     .rank-banner--diamond .rank-banner__avatar {
@@ -646,6 +715,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   `],
 })
 export class ProfileComponent implements OnInit {
+  @ViewChild('avatarInput') avatarInput?: ElementRef<HTMLInputElement>;
+
   auth = inject(AuthService);
   lang = inject(LanguageService);
   private router = inject(Router);
@@ -659,6 +730,8 @@ export class ProfileComponent implements OnInit {
   achievements = signal<Achievement[]>([]);
   matchHistory = signal<MatchHistoryEntry[]>([]);
   loading = signal(true);
+  avatarUrl = signal<string | null>(null);
+  avatarUploading = signal(false);
 
   userId = signal<string | null>(null);
 
@@ -710,19 +783,44 @@ export class ProfileComponent implements OnInit {
     if (!userId) { this.loading.set(false); return; }
     this.loading.set(true);
     try {
-      const [profileRes, achievementsRes, matchHistoryRes] = await Promise.all([
+      const [profileRes, achievementsRes, matchHistoryRes, avatarUrl] = await Promise.all([
         firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null })),
         firstValueFrom(this.achievementsApi.getForUser(userId)).catch(() => [] as Achievement[]),
         firstValueFrom(this.matchHistoryApi.getHistory(userId)).catch(() => [] as MatchHistoryEntry[]),
+        this.auth.fetchAvatarUrl(userId).catch(() => null),
       ]);
       this.profile.set(profileRes?.profile ?? null);
       this.blitzStats.set(profileRes?.blitz_stats ?? { bestScore: 0, totalGames: 0, rank: null });
       this.achievements.set(achievementsRes);
       this.matchHistory.set(matchHistoryRes);
+      this.avatarUrl.set(avatarUrl);
     } catch {
       this.profile.set(null);
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  triggerAvatarUpload(): void {
+    if (!this.isOwnProfile()) return;
+    this.avatarInput?.nativeElement.click();
+  }
+
+  async onAvatarFileChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const userId = this.auth.user()?.id;
+    if (!userId) return;
+    this.avatarUploading.set(true);
+    try {
+      const url = await this.auth.uploadAvatar(userId, file);
+      this.avatarUrl.set(url);
+    } catch {
+      // silently ignore
+    } finally {
+      this.avatarUploading.set(false);
+      input.value = '';
     }
   }
 
