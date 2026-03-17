@@ -141,7 +141,6 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
       }
     </div>
   `,
-})
   styles: [`
     .board-page {
       background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 97%, #000 3%) 100%);

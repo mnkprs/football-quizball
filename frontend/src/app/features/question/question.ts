@@ -399,7 +399,6 @@ import { LanguageService } from '../../core/language.service';
       </div>
     </ng-template>
   `,
-})
   styles: [`
     .question-page {
       background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 97%, #000 3%) 100%);
