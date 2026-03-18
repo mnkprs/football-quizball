@@ -44,7 +44,7 @@ import type {
 
 const DRAW_REQUIREMENTS = buildDrawRequirements();
 
-const REFILL_ADVISORY_LOCK_KEY = 987654321n;
+const REFILL_ADVISORY_LOCK_KEY = 987654321;
 
 @Injectable()
 export class QuestionPoolService {
