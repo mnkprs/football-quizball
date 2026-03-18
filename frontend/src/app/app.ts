@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, effect } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, effect, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { SwUpdate } from '@angular/service-worker';
@@ -11,88 +11,15 @@ import { UsernameModalService } from './core/username-modal.service';
 import { AuthService } from './core/auth.service';
 import { GoogleAdsService } from './core/google-ads.service';
 import { PosthogService } from './core/posthog.service';
+import { ToastComponent } from './shared/toast/toast';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent],
-  template: `
-    <div class="app-container" [class.app-container--full]="isAdminRoute()">
-      <router-outlet />
-      @if (donateService.showModal()) {
-        <app-donate-modal />
-      }
-      @if (authModal.isOpen()) {
-        <app-auth-modal />
-      }
-      @if (usernameModal.isOpen()) {
-        <app-username-modal />
-      }
-    </div>
-
-    @if (showSplash()) {
-      <div class="splash-overlay" [class.fading]="splashFading()">
-        <img src="/icons/quizball-unlimited-logo.png" alt="QuizBall" class="splash-logo" />
-        <p class="splash-title">QuizBall</p>
-        <p class="splash-tagline">Football. Quiz. Glory.</p>
-      </div>
-    }
-  `,
-  styles: [`
-    .app-container {
-      min-height: 100dvh;
-      max-width: 28rem;
-      margin: 0 auto;
-      background: var(--mat-sys-surface);
-    }
-    .app-container--full {
-      max-width: none;
-      margin: 0;
-    }
-    .splash-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: var(--mat-sys-surface);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      opacity: 1;
-      transition: opacity 0.6s ease-out;
-    }
-    .splash-overlay.fading {
-      opacity: 0;
-    }
-    .splash-logo {
-      width: 96px;
-      height: 96px;
-      border-radius: 22px;
-      margin-bottom: 1.25rem;
-      animation: splashScaleIn 0.4s ease-out both;
-    }
-    .splash-title {
-      font-size: 2rem;
-      font-weight: 900;
-      color: var(--color-accent);
-      margin: 0 0 0.375rem;
-      animation: splashFadeUp 0.4s 0.1s ease-out both;
-    }
-    .splash-tagline {
-      font-size: 0.875rem;
-      color: var(--mat-sys-on-surface-variant, #9ca3af);
-      margin: 0;
-      animation: splashFadeUp 0.4s 0.2s ease-out both;
-    }
-    @keyframes splashScaleIn {
-      from { opacity: 0; transform: scale(0.8); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-    @keyframes splashFadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-  `],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, ToastComponent],
+  templateUrl: './app.html',
+  styleUrl: './app.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App implements OnInit, OnDestroy {
   donateService = inject(DonateModalService);

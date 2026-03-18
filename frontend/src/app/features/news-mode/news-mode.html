@@ -1,0 +1,160 @@
+<div class="news-root bg-background flex flex-col p-4 pb-28">
+  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6 pt-2">
+      <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">← Back</button>
+      <div class="text-center">
+        <div class="text-accent font-black text-lg">NEWS MODE</div>
+        <div class="text-muted-foreground text-xs">{{ lang.t().newsLatestHeadlines }}</div>
+      </div>
+      <div class="text-right">
+        @if (phase() !== 'loading' && total() > 0) {
+          <div class="text-foreground font-semibold">{{ currentIndex() + 1 }}/{{ total() }}</div>
+          <div class="text-muted-foreground text-xs">questions</div>
+        }
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    @if (phase() === 'loading') {
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-5xl" style="animation: spin 1s linear infinite;">⚽</div>
+      </div>
+    }
+
+    <!-- QUESTION -->
+    @if (phase() === 'question' && currentQuestion()) {
+      <div class="flex flex-col flex-1">
+        <!-- Progress bar -->
+        <div class="w-full h-1.5 bg-muted rounded-full mb-6 overflow-hidden">
+          <div
+            class="h-full bg-accent rounded-full transition-all duration-300"
+            [style.width]="progressPercent() + '%'"
+          ></div>
+        </div>
+
+        <div class="bg-card rounded-2xl p-6 mb-6 border border-border min-h-[140px] flex items-center">
+          <p class="text-foreground text-xl leading-relaxed">{{ currentQuestion()!.question_text }}</p>
+        </div>
+
+        <div class="flex gap-3">
+          <input
+            [(ngModel)]="answer"
+            (keydown.enter)="submitAnswer()"
+            placeholder="Your answer..."
+            class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+          />
+          <button
+            (click)="submitAnswer()"
+            [disabled]="!answer.trim() || submitting()"
+            class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
+          >
+            {{ lang.t().submit }}
+          </button>
+        </div>
+
+        @if (currentQuestion()!.fifty_fifty_hint) {
+          <p class="text-muted-foreground text-xs mt-3 text-center">
+            Hint: it's either "{{ currentQuestion()!.fifty_fifty_hint }}" or the correct answer
+          </p>
+        }
+      </div>
+    }
+
+    <!-- RESULT -->
+    @if (phase() === 'result' && lastResult()) {
+      <div class="flex flex-col flex-1">
+        <div class="rounded-2xl p-6 mb-6 border text-center"
+             [class]="lastResult()!.correct ? 'bg-win/10 border-win/50' : 'bg-loss/10 border-loss/50'">
+          <div class="text-4xl mb-2">{{ lastResult()!.correct ? '✅' : '❌' }}</div>
+          <div class="text-xl font-black text-foreground mb-1">
+            {{ lastResult()!.correct ? lang.t().soloCorrect : lang.t().soloWrong }}
+          </div>
+          @if (!lastResult()!.correct) {
+            <div class="text-foreground text-sm mt-1">
+              {{ lang.t().soloAnswerLabel }} <span class="font-semibold">{{ lastResult()!.correct_answer }}</span>
+            </div>
+          }
+          @if (lastResult()!.explanation) {
+            <div class="text-muted-foreground text-sm mt-2">{{ lastResult()!.explanation }}</div>
+          }
+          @if (currentQuestion()!.source_url) {
+            <a [href]="currentQuestion()!.source_url" target="_blank" rel="noopener"
+               class="inline-block text-accent text-xs mt-3 underline">
+              Source →
+            </a>
+          }
+        </div>
+
+        <div class="bg-card rounded-2xl p-4 mb-6 border border-border flex items-center justify-between">
+          <span class="text-muted-foreground text-sm">Score</span>
+          <span class="font-black text-2xl text-accent">{{ correctCount() }} / {{ currentIndex() + 1 }}</span>
+        </div>
+
+        <div class="flex gap-3 mt-auto">
+          @if (hasMore()) {
+            <button
+              (click)="nextQuestion()"
+              class="flex-1 py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light active:scale-95 transition pressable"
+            >
+              Next Question
+            </button>
+          } @else {
+            <button
+              (click)="finish()"
+              class="flex-1 py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light active:scale-95 transition pressable"
+            >
+              See Results
+            </button>
+          }
+          <button
+            (click)="goHome()"
+            class="py-4 px-6 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable"
+          >
+            Exit
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- FINISHED -->
+    @if (phase() === 'finished') {
+      <div class="flex-1 flex flex-col items-center justify-center">
+        <div class="text-5xl mb-4">📰</div>
+        <h2 class="text-2xl font-black text-foreground mb-2">Session Complete!</h2>
+        <p class="text-muted-foreground text-center mb-8">You answered all available news questions.</p>
+        <div class="w-full max-w-xs space-y-3 mb-8">
+          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+            <span class="text-muted-foreground">Questions</span>
+            <span class="text-foreground font-bold">{{ total() }}</span>
+          </div>
+          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+            <span class="text-muted-foreground">Correct</span>
+            <span class="text-win font-bold">{{ correctCount() }}</span>
+          </div>
+          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+            <span class="text-muted-foreground">Accuracy</span>
+            <span class="text-accent font-bold">{{ accuracy() }}%</span>
+          </div>
+        </div>
+        <button
+          (click)="goHome()"
+          class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-xl hover:bg-accent-light active:scale-95 transition pressable"
+        >
+          Back to Home
+        </button>
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (phase() === 'question' && total() === 0) {
+      <div class="flex-1 flex flex-col items-center justify-center text-center">
+        <div class="text-5xl mb-4">📭</div>
+        <h2 class="text-xl font-black text-foreground mb-2">No questions available</h2>
+        <p class="text-muted-foreground mb-8">Check back later — news questions refresh every 6 hours.</p>
+        <button (click)="goHome()" class="py-3 px-8 rounded-xl bg-accent text-accent-foreground font-bold">Back to Home</button>
+      </div>
+    }
+  </div>
+</div>

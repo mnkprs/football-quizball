@@ -1,0 +1,13 @@
+<div class="confirm-backdrop" (click)="cancel.emit()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()">
+    <p class="confirm-message">{{ message() }}</p>
+    <div class="confirm-actions">
+      <button type="button" class="confirm-btn confirm-cancel" (click)="cancel.emit()">
+        {{ cancelLabel() }}
+      </button>
+      <button type="button" class="confirm-btn confirm-ok" (click)="confirm.emit()">
+        {{ confirmLabel() }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -134,6 +135,12 @@ export class OnlineGameService {
         player2_score: finalScores.guest,
         match_mode: 'online',
       });
+      this.logger.log(JSON.stringify({
+        event: 'game_finished',
+        gameId: row['id'],
+        winnerId,
+        scores: finalScores,
+      }));
     } catch (err) {
       this.logger.error(`[saveMatchHistoryIfFinished] Failed for game ${row['id']}: ${err}`);
     }
@@ -239,6 +246,7 @@ export class OnlineGameService {
       .single();
 
     if (error || !data) throw new BadRequestException('Failed to create online game');
+    this.logger.log(JSON.stringify({ event: 'game_created', gameId: (data as Record<string,unknown>)['id'], userId, language }));
     const { host, guest } = await this.getUsernames(userId, null);
     return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
   }
@@ -322,6 +330,7 @@ export class OnlineGameService {
       .select()
       .single();
     if (error || !data) throw new BadRequestException('Failed to join game');
+    this.logger.log(JSON.stringify({ event: 'game_joined', gameId: row['id'], userId, via: 'invite_code' }));
     const { host, guest } = await this.getUsernames(row['host_id'] as string, userId);
     return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
   }
@@ -383,7 +392,7 @@ export class OnlineGameService {
       throw new BadRequestException('2x multiplier already used this game');
     }
     const doubleApplied = !!dto.useDouble && !myMeta.doubleUsed;
-    const correct = this.answerValidator.validate(question, dto.answer);
+    const correct = await this.answerValidator.validateAsync(question, dto.answer);
     const basePoints = correct ? cell.points : 0;
     const pointsAwarded = correct && doubleApplied ? basePoints * 2 : basePoints;
 
@@ -410,19 +419,30 @@ export class OnlineGameService {
       double_used: doubleApplied && correct,
     };
 
-    await this.supabaseService.client
-      .from('online_games')
-      .update({
-        board_state: boardState,
-        player_scores: [scores.host, scores.guest],
-        player_meta: playerMeta,
-        current_player_id: allAnswered ? null : opponentId,
-        status: newStatus,
-        turn_deadline: allAnswered ? null : this.deadlineFromNow(),
-        last_result: answerResult,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', gameId);
+    const turnClaimed = await this.supabaseService.claimOnlineTurn({
+      game_id: gameId,
+      user_id: userId,
+      board_state: boardState,
+      player_scores: [scores.host, scores.guest],
+      player_meta: playerMeta,
+      new_player_id: allAnswered ? null : (opponentId as string),
+      new_status: newStatus,
+      turn_deadline: allAnswered ? null : this.deadlineFromNow(),
+      last_result: answerResult,
+    });
+
+    if (!turnClaimed) {
+      throw new ConflictException('Turn already taken');
+    }
+
+    this.logger.log(JSON.stringify({
+      event: 'answer_submitted',
+      gameId,
+      userId,
+      correct,
+      pointsAwarded,
+      newStatus,
+    }));
 
     await this.saveMatchHistoryIfFinished(row, newStatus, scores);
 

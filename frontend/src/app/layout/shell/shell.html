@@ -1,0 +1,46 @@
+<div class="shell-layout">
+  <app-top-nav />
+  <app-upgrade-modal />
+  <main class="shell-main" [class.shell-main--no-top-pad]="isHome()">
+    <router-outlet />
+  </main>
+  <nav class="bottom-nav">
+    <div class="bottom-nav__pill">
+      @for (tab of leftTabs; track tab.href) {
+        <a
+          [routerLink]="tab.href"
+          routerLinkActive="bottom-nav__tab--active"
+          [routerLinkActiveOptions]="{ exact: tab.match === '/' }"
+          class="bottom-nav__tab pressable"
+        >
+          <span class="material-icons">{{ tab.icon }}</span>
+          <span class="bottom-nav__label">{{ lang.t()[tab.labelKey] }}</span>
+        </a>
+      }
+      @if (buyMeACoffeeUrl) {
+        <a
+          [href]="buyMeACoffeeUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="bottom-nav__coffee pressable"
+          [attr.aria-label]="lang.t().navBuyMeACoffee"
+        >
+          <span class="bottom-nav__coffee-badge">
+            <span class="material-icons bottom-nav__coffee-icon">local_cafe</span>
+          </span>
+        </a>
+      }
+      @for (tab of rightTabs; track tab.href) {
+        <a
+          [routerLink]="tab.href"
+          routerLinkActive="bottom-nav__tab--active"
+          [routerLinkActiveOptions]="{ exact: tab.match === '/' }"
+          class="bottom-nav__tab pressable"
+        >
+          <span class="material-icons">{{ tab.icon }}</span>
+          <span class="bottom-nav__label">{{ lang.t()[tab.labelKey] }}</span>
+        </a>
+      }
+    </div>
+  </nav>
+</div>

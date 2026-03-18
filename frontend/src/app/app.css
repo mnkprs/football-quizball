@@ -1,0 +1,53 @@
+.app-container {
+  min-height: 100dvh;
+  max-width: 28rem;
+  margin: 0 auto;
+  background: var(--mat-sys-surface);
+}
+.app-container--full {
+  max-width: none;
+  margin: 0;
+}
+.splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--mat-sys-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.6s ease-out;
+}
+.splash-overlay.fading {
+  opacity: 0;
+}
+.splash-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  margin-bottom: 1.25rem;
+  animation: splashScaleIn 0.4s ease-out both;
+}
+.splash-title {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--color-accent);
+  margin: 0 0 0.375rem;
+  animation: splashFadeUp 0.4s 0.1s ease-out both;
+}
+.splash-tagline {
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant, #9ca3af);
+  margin: 0;
+  animation: splashFadeUp 0.4s 0.2s ease-out both;
+}
+@keyframes splashScaleIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes splashFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

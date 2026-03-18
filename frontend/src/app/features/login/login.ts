@@ -1,12 +1,13 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthModalService } from '../../core/auth-modal.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
-  template: ``,
+  templateUrl: './login.html',
 })
 export class LoginComponent implements OnInit {
   private authModal = inject(AuthModalService);

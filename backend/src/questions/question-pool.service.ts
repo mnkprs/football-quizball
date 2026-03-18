@@ -44,12 +44,11 @@ import type {
 
 const DRAW_REQUIREMENTS = buildDrawRequirements();
 
+const REFILL_ADVISORY_LOCK_KEY = 987654321n;
+
 @Injectable()
 export class QuestionPoolService {
   private readonly logger = new Logger(QuestionPoolService.name);
-  private isRefilling = false;
-  /** Serializes seed + refill so they never run concurrently (prevents double/triple inserts). */
-  private refillLock: Promise<void> = Promise.resolve();
 
   constructor(
     private supabaseService: SupabaseService,
@@ -159,11 +158,12 @@ export class QuestionPoolService {
 
   /**
    * Draws one question for Solo mode. Tries categories in SOLO_DRAW_CATEGORY_ORDER.
+   * @param excludeIds Optional list of question IDs to exclude (user question history).
    * @returns The drawn question or null if pool is empty for all categories.
    */
-  async drawOneForSolo(difficulty: Difficulty, language: string = 'en'): Promise<GeneratedQuestion | null> {
+  async drawOneForSolo(difficulty: Difficulty, language: string = 'en', excludeIds: string[] = []): Promise<GeneratedQuestion | null> {
     for (const category of SOLO_DRAW_CATEGORY_ORDER) {
-      const drawn = await this.drawSlot(category, difficulty, 1, language);
+      const drawn = await this.drawSlot(category, difficulty, 1, language, excludeIds.length > 0 ? excludeIds : undefined);
       if (drawn.length > 0) return drawn[0];
     }
     return null;
@@ -424,10 +424,6 @@ export class QuestionPoolService {
   async seedSlot(slotKey: string, count: number, force = false): Promise<{ slot: string; added: number; questions?: string[] }> {
     const { category, difficulty } = parseSlotKey(slotKey);
 
-    if (!force && this.isRefilling) {
-      throw new Error('Refill already in progress');
-    }
-
     const toAdd = Math.min(500, Math.max(1, count));
     return this.withRefillLock(async () => {
       const key = `${category}/${difficulty}`;
@@ -446,15 +442,12 @@ export class QuestionPoolService {
     count: number,
     force = false,
   ): Promise<{ results: { slot: string; added: number }[]; sessionId: string | null; questionIds: string[] }> {
-    if (!force && this.isRefilling) {
-      this.logger.warn('[seedPool] Refill already in progress, skipping');
-      return { results: [], sessionId: null, questionIds: [] };
-    }
     const passes = Math.min(500, Math.max(1, count));
     return this.withRefillLock(async () => {
       const results: { slot: string; added: number }[] = [];
       const allQuestionIds: string[] = [];
       let completed = false;
+      this.logger.log(JSON.stringify({ event: 'seed_pool_start', passes }));
 
       try {
         for (const category of this.getLiveCategories()) {
@@ -470,6 +463,7 @@ export class QuestionPoolService {
           }
         }
         completed = true;
+        this.logger.log(JSON.stringify({ event: 'seed_pool_end', questionsAdded: allQuestionIds.length }));
       } finally {
         // Always store a session record so every run appears in the admin panel,
         // even when 0 questions were added or run was cancelled/failed.
@@ -517,8 +511,6 @@ export class QuestionPoolService {
    * Refills pool slots that are below target. Runs in background, no-op if already refilling.
    */
   async refillIfNeeded(): Promise<void> {
-    if (this.isRefilling) return;
-
     const counts = await this.getPoolCounts();
 
     this.logger.log(`[refill] Pool counts (unanswered per slot): ${JSON.stringify(counts)}`);
@@ -542,7 +534,7 @@ export class QuestionPoolService {
       return;
     }
 
-    this.isRefilling = true;
+    this.logger.log(JSON.stringify({ event: 'pool_refill_start', categories: needsByCategory.size }));
     await this.withRefillLock(async () => {
       const sorted = [...needsByCategory.entries()].sort((a, b) => {
         const totalA = Object.values(a[1]).reduce<number>((s, value) => s + (value ?? 0), 0);
@@ -553,23 +545,24 @@ export class QuestionPoolService {
       for (const [category, needs] of sorted) {
         await this.fillCategoryUntilSatisfied(category, { ...needs });
       }
-    }).finally(() => {
-      this.isRefilling = false;
+      this.logger.log(JSON.stringify({ event: 'pool_refill_end' }));
+    }).catch((err: Error) => {
+      this.logger.warn(`[refillIfNeeded] ${err.message}`);
     });
   }
 
-  /** Runs fn with exclusive lock; prevents seed + refill from running concurrently. */
+  /** Runs fn with an exclusive DB-level advisory lock, shared across all replicas. */
   private async withRefillLock<T>(fn: () => Promise<T>): Promise<T> {
-    const prev = this.refillLock;
-    let resolve: () => void;
-    this.refillLock = new Promise<void>((r) => {
-      resolve = r;
-    });
-    await prev;
+    const { data: locked } = await this.supabaseService.client
+      .rpc('try_advisory_lock', { lock_key: REFILL_ADVISORY_LOCK_KEY });
+    if (!locked) {
+      throw new Error('Pool refill already running on another instance — skipping');
+    }
     try {
       return await fn();
     } finally {
-      resolve!();
+      await this.supabaseService.client
+        .rpc('advisory_unlock', { lock_key: REFILL_ADVISORY_LOCK_KEY });
     }
   }
 
@@ -651,15 +644,15 @@ export class QuestionPoolService {
     difficulty: Difficulty,
     count: number,
     language: string = 'en',
-    excludeNewsQuestionIds?: string[],
+    excludeQuestionIds?: string[],
   ): Promise<GeneratedQuestion[]> {
     const rpcParams: Record<string, unknown> = {
       p_category: category,
       p_difficulty: difficulty,
       p_count: count,
     };
-    if (category === 'NEWS' && excludeNewsQuestionIds?.length) {
-      rpcParams.p_exclude_ids = excludeNewsQuestionIds;
+    if (excludeQuestionIds?.length) {
+      rpcParams.p_exclude_ids = excludeQuestionIds;
     }
     const { data, error } = await this.supabaseService.client.rpc('draw_questions', rpcParams);
 
@@ -1364,6 +1357,7 @@ export class QuestionPoolService {
           points: resolveQuestionPoints(q.category, difficulty),
           raw_score: undefined,
           allowedDifficulties: undefined,
+          _embedding: undefined,
         },
         raw_score: q.raw_score ?? null,
         embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,

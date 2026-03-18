@@ -1,0 +1,25 @@
+<div class="donate-backdrop" (click)="onDismiss()">
+  <div class="donate-dialog" (click)="$event.stopPropagation()">
+    <div class="donate-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.333 2.586 2.333l8.039-.001c2.49 0 4.582-2.003 4.582-2.003s2.849-1.985 2.849-2.209c0-.224-.224-1.985-.224-1.985s-.224-.45.449-.45h2.735s.673 0 .9.673c.225.673.224 2.209.224 2.209s.011.505.314.786c.303.281.976.112.976.112s3.062-.562 3.533-4.073c.472-3.512-.328-5.477-.328-5.477s-.449-.9-1.348-1.348-2.694-.9-2.694-.9z"/>
+      </svg>
+    </div>
+    <h3 class="donate-title">{{ lang.t().donateModalTitle }}</h3>
+    <p class="donate-message">{{ lang.t().donateModalMessage }}</p>
+    <div class="donate-actions">
+      <a
+        [href]="donateService.supportUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="donate-btn donate-primary"
+        (click)="onSupport()"
+      >
+        {{ lang.t().donateModalSupport }}
+      </a>
+      <button type="button" class="donate-btn donate-secondary" (click)="onDismiss()">
+        {{ lang.t().donateModalMaybeLater }}
+      </button>
+    </div>
+  </div>
+</div>

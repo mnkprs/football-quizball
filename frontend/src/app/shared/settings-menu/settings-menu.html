@@ -1,0 +1,86 @@
+<div class="settings-trigger">
+  <button
+    type="button"
+    class="settings-trigger__btn"
+    (click)="toggle()"
+    [attr.aria-label]="t().settingsTitle"
+    [attr.aria-expanded]="open()"
+  >
+    <span class="material-icons settings-trigger__icon">settings</span>
+  </button>
+  @if (open()) {
+    <div class="settings-overlay" (click)="close()" role="presentation"></div>
+    <div class="settings-panel" role="dialog" [attr.aria-label]="t().settingsTitle">
+      <div class="settings-panel__header">
+        <h2 class="settings-panel__title">{{ t().settingsTitle }}</h2>
+      </div>
+      @if (auth.isLoggedIn()) {
+        <div class="settings-panel__profile">
+          <div class="settings-panel__avatar-wrap">
+            @if (avatarUrl() && !avatarLoadFailed()) {
+              <img
+                [src]="avatarUrl()"
+                [alt]="displayName() + ' avatar'"
+                class="settings-panel__avatar"
+                referrerpolicy="no-referrer"
+                (error)="avatarLoadFailed.set(true)"
+              />
+            } @else {
+              <div class="settings-panel__avatar settings-panel__avatar-fallback">
+                {{ initials() }}
+              </div>
+            }
+          </div>
+          <div class="settings-panel__profile-info">
+            <p class="settings-panel__name">{{ displayName() }}</p>
+            <p class="settings-panel__email">{{ userEmail() }}</p>
+          </div>
+        </div>
+      }
+      <div class="settings-panel__cards">
+        <div class="settings-card">
+          <span class="material-icons settings-card__icon">palette</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">{{ t().settingsAppearance }}</span>
+            <span class="settings-card__desc">{{ t().settingsDarkMode }}</span>
+          </div>
+          <button
+            type="button"
+            class="settings-card__toggle"
+            [class.settings-card__toggle--on]="theme.isDark()"
+            (click)="theme.toggle()"
+            [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+          >
+            <span class="settings-card__toggle-thumb"></span>
+          </button>
+        </div>
+        <div class="settings-card">
+          <span class="material-icons settings-card__icon">language</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">{{ t().settingsLanguage }}</span>
+            <span class="settings-card__desc">{{ lang.lang() === 'en' ? 'English' : 'Ελληνικά' }}</span>
+          </div>
+          <button
+            type="button"
+            class="settings-card__action"
+            (click)="lang.toggle()"
+            [attr.aria-label]="lang.lang() === 'en' ? 'Switch to Greek' : 'Switch to English'"
+          >
+            {{ lang.lang() === 'en' ? '🇬🇷 EL' : '🇬🇧 EN' }}
+          </button>
+        </div>
+      </div>
+      @if (auth.isLoggedIn()) {
+        <button
+          type="button"
+          class="settings-panel__sign-out"
+          (click)="onSignOut()"
+          [attr.aria-label]="t().signOut"
+        >
+          <span class="material-icons settings-panel__sign-out-icon">logout</span>
+          {{ t().signOut }}
+        </button>
+      }
+    </div>
+  }
+</div>

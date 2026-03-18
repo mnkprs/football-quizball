@@ -1,0 +1,28 @@
+<div class="auth-card">
+  <div class="auth-card__content">
+    <div class="auth-card__avatar-wrap">
+      @if (avatarUrl() && !avatarLoadFailed()) {
+        <img
+          [src]="avatarUrl()"
+          [alt]="displayName() + ' avatar'"
+          class="auth-card__avatar"
+          referrerpolicy="no-referrer"
+          (error)="avatarError.emit()"
+        />
+      } @else {
+        <div class="auth-card__avatar auth-card__avatar-fallback">{{ initials() }}</div>
+      }
+    </div>
+    <div class="auth-card__info">
+      <p class="auth-card__name">{{ displayName() }}</p>
+      @if (statsLoading()) {
+        <div class="auth-card__stats-skeleton"></div>
+      } @else {
+        <p class="auth-card__stats">{{ statsText() }}</p>
+      }
+    </div>
+    <button type="button" class="auth-card__sign-out" (click)="signOut.emit()" [attr.aria-label]="signOutLabel()">
+      {{ signOutLabel() }}
+    </button>
+  </div>
+</div>

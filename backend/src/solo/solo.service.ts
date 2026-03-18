@@ -37,6 +37,7 @@ export class SoloService {
     if (!profile) throw new NotFoundException('User profile not found');
 
     const sessionId = crypto.randomUUID();
+    this.logger.log(JSON.stringify({ event: 'session_start', userId, userElo: profile.elo, language }));
     const session: SoloSession = {
       id: sessionId,
       userId,
@@ -69,13 +70,17 @@ export class SoloService {
     if (session.userId !== userId) throw new ForbiddenException();
 
     const difficulty = this.eloService.getDifficultyForElo(session.currentElo);
-    const question = await this.generator.generate(difficulty, session.currentElo, session.language);
+    const seenIds = await this.supabaseService.getSeenQuestionIds(userId).catch(() => [] as string[]);
+    const question = await this.generator.generate(difficulty, session.currentElo, session.language, seenIds);
     const now = new Date();
 
     session.currentQuestion = question;
     session.drawnQuestionIds.push(question.id);
     session.servedAt = now;
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
+
+    // Fire-and-forget: record this question as seen for user dedup
+    this.supabaseService.recordSeenQuestion(userId, question.id).catch(() => {});
 
     return {
       question_id: question.id,
@@ -103,7 +108,7 @@ export class SoloService {
 
     let correct = false;
     if (!timedOut) {
-      correct = this.answerValidator.validate(
+      correct = await this.answerValidator.validateAsync(
         { correct_answer: question.correct_answer, category: question.category } as any,
         answer,
       );
@@ -120,22 +125,28 @@ export class SoloService {
     session.currentQuestion = null;
     session.servedAt = null;
 
-    // Run all three writes in parallel — they are independent of each other
+    // Atomic DB write: updates elo + inserts history in a single transaction
     await Promise.all([
       this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL),
-      this.supabaseService.updateElo(userId, eloAfter),
-      this.supabaseService.insertEloHistory({
+      this.supabaseService.commitSoloAnswer({
         user_id: userId,
         elo_before: eloBefore,
         elo_after: eloAfter,
         elo_change: eloChange,
-        question_difficulty: question.difficulty,
+        difficulty: question.difficulty,
         correct,
         timed_out: timedOut,
-      }).catch((err: Error) => {
-        this.logger.warn(`[submitAnswer] ELO history insert failed for user ${userId}: ${err.message}`);
       }),
     ]);
+    this.logger.log(JSON.stringify({
+      event: 'answer_submitted',
+      userId,
+      correct,
+      timedOut,
+      difficulty: question.difficulty,
+      elo_change: eloChange,
+      elo_after: eloAfter,
+    }));
 
     return {
       correct,
@@ -184,6 +195,16 @@ export class SoloService {
         soloAccuracy: accuracy,
       }).catch(() => {});
     }).catch(() => {});
+
+    this.logger.log(JSON.stringify({
+      event: 'session_end',
+      userId,
+      questionsAnswered: session.questionsAnswered,
+      correctAnswers: session.correctAnswers,
+      elo_start: session.userElo,
+      elo_end: session.currentElo,
+      elo_delta: session.currentElo - session.userElo,
+    }));
 
     return {
       questions_answered: session.questionsAnswered,

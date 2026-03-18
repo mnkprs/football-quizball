@@ -1,0 +1,92 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 1rem 1rem 0.5rem 0.5rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-header {
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 2.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0.25rem 0 0;
+}
+
+.modal-price {
+  color: #facc15;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0.25rem 0 0;
+}
+
+.modal-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #d1d5db;
+  font-size: 0.95rem;
+}
+
+.modal-trial-note {
+  color: #f87171;
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0;
+}
+
+.btn-subscribe {
+  background: #facc15;
+  color: #000;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.875rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-subscribe:hover {
+  background: #fde047;
+}
+
+.btn-close {
+  background: transparent;
+  color: #6b7280;
+  border: none;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-close:hover {
+  color: #9ca3af;
+}

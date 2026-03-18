@@ -1,0 +1,5 @@
+@for (toast of toastService.toasts(); track toast.id) {
+  <div class="toast" [class]="'toast--' + toast.type">
+    {{ toast.message }}
+  </div>
+}

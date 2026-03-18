@@ -1,0 +1,48 @@
+<header class="page-header">
+  <!-- Stadium background image -->
+  <div class="page-header__bg"></div>
+  <!-- Dark overlay with subtle vignette -->
+  <div class="page-header__overlay"></div>
+
+  <!-- Top bar: actions row -->
+  <div class="page-header__topbar">
+    <div class="page-header__topbar-spacer"></div>
+    <div class="page-header__actions">
+      <ng-content select="[pageHeaderActions]" />
+    </div>
+  </div>
+
+  <!-- Center content: logo + title -->
+  <div class="page-header__center">
+    @if (logo()) {
+      <div class="page-header__logo-wrap">
+        <img [src]="logo()" alt="Quizball logo" class="page-header__logo" />
+      </div>
+    }
+    <div class="page-header__title-block">
+      @if (titlePart2()) {
+        <h1 class="page-header__title">
+          <span class="page-header__title-part1">{{ titlePart1() }}</span>
+          <span class="page-header__title-part2">{{ titlePart2() }}</span>
+        </h1>
+      } @else {
+        <h1 class="page-header__title">{{ title() }}</h1>
+      }
+    </div>
+  </div>
+
+  <!-- Accent bottom strip -->
+  <div class="page-header__strip">
+    @if (subtitle()) {
+      <span class="page-header__subtitle-pill">{{ subtitle() }}</span>
+    }
+    <span class="page-header__version">v{{ version }}</span>
+    <!-- Decorative pitch lines SVG -->
+    <svg class="page-header__pitch-lines" viewBox="0 0 300 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <line x1="0" y1="9" x2="300" y2="9" stroke="rgba(204,255,0,0.18)" stroke-width="1"/>
+      <rect x="100" y="1" width="100" height="16" rx="1" stroke="rgba(204,255,0,0.22)" stroke-width="1" fill="none"/>
+      <circle cx="150" cy="9" r="5" stroke="rgba(204,255,0,0.28)" stroke-width="1" fill="none"/>
+      <line x1="150" y1="1" x2="150" y2="17" stroke="rgba(204,255,0,0.18)" stroke-width="1"/>
+    </svg>
+  </div>
+</header>

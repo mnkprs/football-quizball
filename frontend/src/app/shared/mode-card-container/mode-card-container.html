@@ -1,0 +1,21 @@
+<button
+  type="button"
+  class="mode-card-container mode-card-container--{{ variant() }} pressable"
+  (click)="clicked.emit()"
+  [attr.aria-label]="ariaLabel()"
+>
+  @if (backgroundImage(); as imagePath) {
+    <img
+      class="mode-card-container__bg-image"
+      [class.mode-card-container__bg-image--with-icon]="!!backgroundIcon()"
+      [src]="imagePath"
+      alt=""
+      aria-hidden="true"
+    />
+    <span class="mode-card-container__bg-overlay" aria-hidden="true"></span>
+  }
+  @if (backgroundIcon()) {
+    <span class="mode-card-container__bg-icon material-icons">{{ backgroundIcon() }}</span>
+  }
+  <ng-content />
+</button>

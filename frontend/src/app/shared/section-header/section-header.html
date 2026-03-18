@@ -1,0 +1,8 @@
+<div class="section-header">
+  <h2 class="section-header__title">{{ title() }}</h2>
+  @if (actionLabel() && actionHref()) {
+    <a [routerLink]="actionHref()!" class="section-header__action pressable" [attr.aria-label]="actionLabel() + ' ' + title()">
+      {{ actionLabel() }}
+    </a>
+  }
+</div>

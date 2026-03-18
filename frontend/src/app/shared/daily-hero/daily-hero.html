@@ -1,0 +1,31 @@
+<div class="daily-hero">
+  @if (backgroundImage(); as imagePath) {
+    <img
+      class="daily-hero__bg-image"
+      [src]="imagePath"
+      alt=""
+      aria-hidden="true"
+    />
+    <span class="daily-hero__bg-overlay" aria-hidden="true"></span>
+  }
+  <div class="daily-hero__content">
+    @if (badgeLabel()) {
+      <span class="daily-hero__badge">{{ badgeLabel() }}</span>
+    }
+    <div class="daily-hero__text">
+      <h2 class="daily-hero__title">{{ title() }}</h2>
+      <p class="daily-hero__meta">
+        <span class="material-icons daily-hero__meta-icon">schedule</span>
+        {{ questionCount() }} {{ questionsLabel() }} · {{ resetsLabel() }} {{ resetsIn() }}
+      </p>
+    </div>
+  </div>
+  <button
+    type="button"
+    class="daily-hero__play pressable"
+    (click)="play.emit()"
+    [attr.aria-label]="playLabel() + ' ' + title()"
+  >
+    <span class="material-icons">play_arrow</span>
+  </button>
+</div>

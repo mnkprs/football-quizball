@@ -1,0 +1,110 @@
+<div class="daily-root bg-background flex flex-col p-4">
+  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6 pt-2">
+      <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().dailyBackBtn }}</button>
+      <div class="text-accent font-black text-xl">📅 {{ lang.t().dailyTitle }}</div>
+      <div class="w-16"></div>
+    </div>
+
+    <!-- IDLE / LOADING phase -->
+    @if (phase() === 'idle' || phase() === 'loading') {
+      <div class="flex-1 flex flex-col items-center justify-center">
+        <div class="text-6xl mb-6">📅</div>
+        <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().dailyTitle }}</h2>
+        <p class="text-muted-foreground text-center mb-2">{{ lang.t().dailySubtitle }}</p>
+        <p class="text-muted-foreground text-sm text-center mb-8 max-w-xs">
+          {{ lang.t().dailySameQuestions }}
+        </p>
+        <button
+          (click)="startQuiz()"
+          [disabled]="phase() === 'loading'"
+          class="daily-start-btn"
+        >
+          {{ phase() === 'loading' ? lang.t().dailyLoading : lang.t().dailyStart }}
+        </button>
+        @if (error()) {
+          <p class="text-loss text-sm mt-4">{{ error() }}</p>
+        }
+      </div>
+    }
+
+    <!-- PLAYING phase -->
+    @if (phase() === 'playing') {
+      <div class="flex flex-col flex-1 relative">
+        <!-- Progress -->
+        <div class="flex items-center justify-between mb-5">
+          <div class="text-muted-foreground text-sm">
+            {{ lang.t().dailyQuestionOf }} {{ currentIndex() + 1 }} of {{ questions().length }}
+          </div>
+          <div class="text-accent font-black text-xl">{{ score() }}/{{ questions().length }}</div>
+        </div>
+
+        <!-- Question -->
+        @if (currentQuestion(); as q) {
+          <div class="bg-card rounded-2xl p-5 mb-5 border border-border min-h-[110px] flex items-center">
+            <p class="text-foreground text-lg leading-relaxed">{{ translatedText(q, 'question_text') }}</p>
+          </div>
+
+          <!-- Choices -->
+          <div class="flex flex-col gap-3">
+            @for (choice of q.choices; track choice) {
+              <button
+                (click)="selectChoice(choice)"
+                [disabled]="showFlash()"
+                [class]="choiceClass(choice)"
+              >
+                {{ choice }}
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Result flash overlay -->
+        @if (showFlash()) {
+          <div
+            (click)="dismissFlash()"
+            class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl z-10 cursor-pointer backdrop-blur-xl"
+            [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
+          >
+            <div class="text-5xl mb-3 shrink-0">{{ flashCorrect() ? '✅' : '❌' }}</div>
+            <div class="text-white font-black text-2xl mb-2 shrink-0">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
+            @if (!flashCorrect()) {
+              <div class="text-white/90 text-sm text-center px-6 mb-3 shrink-0">{{ lang.t().correctAnswer }}: {{ flashAnswer() }}</div>
+            }
+            @if (currentQuestion(); as q) {
+              <div class="text-white text-sm text-center px-6 max-w-md max-h-[40vh] overflow-y-auto leading-relaxed break-words overscroll-contain">
+                {{ translatedText(q, 'explanation') }}
+              </div>
+            }
+            @if (!flashCorrect()) {
+              <div class="text-white/70 text-xs mt-4 shrink-0">{{ lang.t().tapToContinue }}</div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- FINISHED phase -->
+    @if (phase() === 'finished') {
+      <div class="flex-1 flex flex-col items-center justify-center">
+        <div class="text-5xl mb-4">🏆</div>
+        <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().dailyAllDone }}</h2>
+        <div class="text-6xl font-black text-accent mb-2 tabular-nums">{{ score() }}/{{ questions().length }}</div>
+        <p class="text-muted-foreground mb-8">{{ accuracy() }}% {{ lang.t().dailyCorrectPct }}</p>
+
+        <button
+          (click)="resetToIdle()"
+          class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light transition mb-3 pressable"
+        >
+          {{ lang.t().playAgain }}
+        </button>
+        <button (click)="goHome()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
+          {{ lang.t().navHome }}
+        </button>
+      </div>
+    }
+
+  </div>
+</div>

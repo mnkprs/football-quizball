@@ -1,0 +1,42 @@
+<div class="um-backdrop" aria-hidden="true"></div>
+
+<div class="um-card" role="dialog" aria-modal="true" aria-label="Choose your username">
+  <div class="um-icon">⚽</div>
+  <h2 class="um-title">Choose Your Username</h2>
+  <p class="um-subtitle">Pick a unique name to identify you on the leaderboard</p>
+
+  <form (ngSubmit)="submit()" class="um-form">
+    <div class="um-field">
+      <input
+        type="text"
+        class="um-input"
+        [class.um-input--error]="fieldError()"
+        [(ngModel)]="username"
+        name="username"
+        placeholder="e.g. FootballFan99"
+        minlength="3"
+        maxlength="20"
+        autocomplete="username"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        (input)="onInput()"
+      />
+      <p class="um-hint" [class.um-hint--error]="fieldError()">
+        {{ fieldError() ?? '3–20 characters, letters, numbers, underscores only' }}
+      </p>
+    </div>
+
+    @if (serverError()) {
+      <p class="um-error">{{ serverError() }}</p>
+    }
+
+    <button type="submit" class="um-btn" [disabled]="loading() || !isValid()">
+      @if (loading()) {
+        <span>Saving…</span>
+      } @else {
+        <span>Save Username</span>
+      }
+    </button>
+  </form>
+</div>

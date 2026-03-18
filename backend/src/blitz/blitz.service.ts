@@ -71,6 +71,7 @@ export class BlitzService {
       saved: false,
     };
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
+    this.logger.log(JSON.stringify({ event: 'blitz_session_start', userId, questionCount: questions.length }));
 
     return {
       session_id: sessionId,
@@ -154,6 +155,7 @@ export class BlitzService {
     }
 
     await this.sessionStore.del(this.sessionKey(sessionId));
+    this.logger.log(JSON.stringify({ event: 'blitz_session_end', userId, score: session.score, totalAnswered: session.totalAnswered }));
     return { score: session.score, total_answered: session.totalAnswered };
   }
 

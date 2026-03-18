@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GameStore } from '../../core/game.store';
@@ -14,6 +14,7 @@ import { ResultsComponent } from '../results/results';
 @Component({
   selector: 'app-game',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{ provide: GAME_STORE_TOKEN, useExisting: GameStore }],
   imports: [
     CommonModule,
@@ -24,27 +25,7 @@ import { ResultsComponent } from '../results/results';
     ResultComponent,
     ResultsComponent,
   ],
-  template: `
-    <div class="relative min-h-screen bg-background max-w-md mx-auto">
-      @if (store.phase() !== 'loading' && store.phase() !== 'finished') {
-        <button
-          (click)="goBack()"
-          class="fixed top-4 left-4 z-20 py-2 px-3 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition text-sm font-medium"
-        >
-          {{ lang.t().backToHome }}
-        </button>
-      }
-      @switch (store.phase()) {
-        @case ('setup') { <app-setup /> }
-        @case ('loading') { <app-loading /> }
-        @case ('board') { <app-board /> }
-        @case ('question') { <app-question /> }
-        @case ('result') { <app-result /> }
-        @case ('finished') { <app-results /> }
-        @default { <app-setup /> }
-      }
-    </div>
-  `,
+  templateUrl: './game.html',
 })
 export class GameComponent implements OnInit {
   store = inject(GameStore);

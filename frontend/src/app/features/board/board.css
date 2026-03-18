@@ -1,0 +1,155 @@
+.board-page {
+  background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 97%, #000 3%) 100%);
+}
+
+.board-header-badge {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.board-header-logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  border-radius: 0.5rem;
+  box-shadow: 0 0 8px rgba(204, 255, 0, 0.3);
+}
+
+.board-score-card {
+  border: 1px solid transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.board-score-card--p1 {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.board-score-card--p1.active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.2) 100%);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow:
+    0 0 0 2px rgba(59, 130, 246, 0.2),
+    0 4px 16px rgba(59, 130, 246, 0.25);
+}
+
+.board-score-card--p2 {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.board-score-card--p2.active {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow:
+    0 0 0 2px rgba(239, 68, 68, 0.2),
+    0 4px 16px rgba(239, 68, 68, 0.25);
+}
+
+.board-player-name {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.board-player-name--p1 { color: #60a5fa; }
+.board-player-name--p2 { color: #f87171; }
+
+.board-score {
+  color: var(--color-foreground);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.board-pill {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-muted-foreground);
+  font-weight: 600;
+}
+
+.board-stat-pill {
+  background: rgba(204, 255, 0, 0.1);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.board-double-btn {
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+}
+
+.board-double-btn:hover {
+  background: rgba(204, 255, 0, 0.1);
+}
+
+.board-turn-center {
+  min-width: 4.5rem;
+}
+
+.board-turn-label {
+  font-size: 0.625rem;
+}
+
+.board-turn-name {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.board-turn-name--p1 {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.board-turn-name--p2 {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.board-end-btn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted-foreground);
+}
+
+.board-end-btn:hover {
+  border-color: var(--color-loss);
+  color: var(--color-loss);
+}
+
+.board-category-row {
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.board-category-icon {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.board-question-circle {
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.board-question-circle:not(:disabled):hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.board-question-circle:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.board-question-circle:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

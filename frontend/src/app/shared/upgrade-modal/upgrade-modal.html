@@ -1,0 +1,29 @@
+@if (pro.showUpgradeModal()) {
+  <div class="modal-backdrop" (click)="close()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-icon">⚡</span>
+        <h2 class="modal-title">QuizBall Pro</h2>
+        <p class="modal-price">$1.99 / month</p>
+      </div>
+
+      <ul class="modal-features">
+        <li>🏆 Solo ELO Ranked Ladder</li>
+        <li>⚡ Blitz Speed Ladder</li>
+        <li>📊 Full stats & history</li>
+        <li>Unlimited ranked games</li>
+      </ul>
+
+      @if (pro.trialGamesUsed() > 0) {
+        <p class="modal-trial-note">
+          You've used all {{ pro.trialGamesUsed() }} of your 5 free trial games.
+        </p>
+      }
+
+      <button class="btn-subscribe" (click)="subscribe()">
+        Subscribe with Stripe
+      </button>
+      <button class="btn-close" (click)="close()">Maybe later</button>
+    </div>
+  </div>
+}

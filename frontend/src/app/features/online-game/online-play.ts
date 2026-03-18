@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OnlineGameStore } from './online-game.store';
@@ -16,78 +16,8 @@ import { ResultsComponent } from '../results/results';
     OnlineGameStore,
     { provide: GAME_STORE_TOKEN, useExisting: OnlineGameStore },
   ],
-  template: `
-    <div class="relative min-h-screen bg-background max-w-md mx-auto">
-      @switch (store.phase()) {
-        @case ('waiting') {
-          <div class="flex flex-col items-center justify-center min-h-screen p-6 gap-6">
-            <button (click)="goBack()" class="fixed top-4 left-4 text-muted-foreground hover:text-foreground text-sm font-medium">← Back</button>
-            <div class="text-center">
-              <div class="text-4xl mb-4">🔗</div>
-              <h2 class="text-2xl font-black text-foreground mb-2">Waiting for opponent</h2>
-              <p class="text-muted-foreground text-sm mb-6">Share your invite code with a friend</p>
-              <div class="flex items-center gap-3 bg-card border border-border rounded-2xl px-6 py-4 justify-center mb-4">
-                <span class="text-3xl font-black text-accent tracking-[0.3em] font-mono">{{ store.gameView()?.inviteCode }}</span>
-                <button (click)="copyCode()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ copied() ? '✓ Copied' : '📋 Copy' }}</button>
-              </div>
-              @if (shareUrl()) {
-                <button (click)="shareLink()" class="w-full py-3 rounded-xl border border-border text-muted-foreground text-sm hover:border-accent hover:text-accent transition mb-3">
-                  🔗 Share Link
-                </button>
-              }
-              <p class="text-muted-foreground text-xs">Or ask them to visit <strong>/join/{{ store.gameView()?.inviteCode }}</strong></p>
-            </div>
-          </div>
-        }
-
-        @case ('queued') {
-          <div class="flex flex-col items-center justify-center min-h-screen p-6 gap-4">
-            <div class="text-5xl animate-spin-slow">⚽</div>
-            <h2 class="text-2xl font-black text-foreground">Finding opponent...</h2>
-            <p class="text-muted-foreground text-sm">We'll notify you when someone joins</p>
-            <button (click)="leaveQueue()" class="mt-4 px-6 py-2.5 rounded-full border-2 border-border text-muted-foreground text-sm font-medium hover:border-loss/60 hover:text-loss transition">Leave Queue</button>
-          </div>
-        }
-
-        @case ('board') {
-          <app-board />
-        }
-
-        @case ('question') {
-          <app-question />
-        }
-
-        @case ('result') {
-          <app-result />
-        }
-
-        @case ('opponent-turn') {
-          <div class="relative">
-            <app-board />
-            <div class="absolute inset-0 bg-background/75 backdrop-blur-[2px] flex flex-col items-center justify-center z-20 gap-3 pointer-events-none">
-              <div class="inline-flex items-center gap-2 bg-card border border-border rounded-full px-5 py-2.5 shadow-lg">
-                <div class="w-2 h-2 rounded-full bg-accent animate-pulse shrink-0"></div>
-                <span class="text-sm font-semibold text-foreground">Waiting for <strong>{{ store.opponentUsername() }}</strong></span>
-              </div>
-              @if (store.gameView()?.turnDeadline) {
-                <p class="text-xs text-muted-foreground">Deadline: {{ formatDeadline(store.gameView()!.turnDeadline!) }}</p>
-              }
-            </div>
-          </div>
-        }
-
-        @case ('finished') {
-          <app-results />
-        }
-
-        @default {
-          <div class="flex items-center justify-center min-h-screen">
-            <div class="text-5xl animate-spin-slow">⚽</div>
-          </div>
-        }
-      }
-    </div>
-  `,
+  templateUrl: './online-play.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OnlinePlayComponent implements OnInit, OnDestroy {
   store = inject(OnlineGameStore);

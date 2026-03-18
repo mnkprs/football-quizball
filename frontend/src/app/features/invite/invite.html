@@ -1,0 +1,52 @@
+<div class="invite-page">
+  <div class="invite-content">
+    <div class="invite-hero">
+      <div class="invite-emoji">🤝</div>
+      <h1 class="invite-title">{{ lang.t().inviteTitle }}</h1>
+      <p class="invite-subtitle">
+        {{ lang.t().inviteSubtitle }}
+      </p>
+    </div>
+
+    <div class="invite-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        class="invite-btn invite-btn-primary"
+        (click)="copyLink()"
+      >
+        <span class="material-icons">content_copy</span>
+        {{ copied() ? lang.t().inviteCopied : lang.t().inviteCopy }}
+      </button>
+
+      @if (canShare()) {
+        <button
+          mat-stroked-button
+          class="invite-btn"
+          (click)="share()"
+        >
+          <span class="material-icons">share</span>
+          {{ lang.t().inviteShare }}
+        </button>
+      }
+    </div>
+
+    <!-- <div class="invite-steps">
+      <h3 class="invite-steps-title">{{ lang.t().inviteHowItWorks }}</h3>
+      <ol class="invite-steps-list">
+        <li>
+          <span class="invite-step-num">1</span>
+          <span>{{ lang.t().inviteStep1 }}</span>
+        </li>
+        <li>
+          <span class="invite-step-num">2</span>
+          <span>{{ lang.t().inviteStep2 }}</span>
+        </li>
+        <li>
+          <span class="invite-step-num">3</span>
+          <span>{{ lang.t().inviteStep3 }}</span>
+        </li>
+      </ol>
+    </div> -->
+  </div>
+</div>

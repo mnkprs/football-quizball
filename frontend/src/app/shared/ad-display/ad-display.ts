@@ -1,4 +1,4 @@
-import { Component, inject, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, AfterViewInit, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { environment } from '../../../environments/environment';
 
@@ -16,29 +16,9 @@ declare global {
   selector: 'app-ad-display',
   standalone: true,
   imports: [],
-  template: `
-    @if (enabled) {
-      <div class="ad-container">
-        <ins
-          #adSlot
-          class="adsbygoogle"
-          [attr.data-ad-client]="adClient"
-          [attr.data-ad-slot]="adSlotId"
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-          style="display: block; min-height: 100px;"
-        ></ins>
-      </div>
-    }
-  `,
-  styles: [`
-    .ad-container {
-      margin: 1rem 0;
-      min-height: 100px;
-      display: flex;
-      justify-content: center;
-    }
-  `],
+  templateUrl: './ad-display.html',
+  styleUrl: './ad-display.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdDisplayComponent implements AfterViewInit {
   private readonly doc = inject(DOCUMENT);

@@ -19,9 +19,9 @@ export class SoloQuestionGenerator {
     private questionPoolService: QuestionPoolService,
   ) {}
 
-  async generate(difficulty: Difficulty, elo: number = 1000, language: string = 'en'): Promise<SoloQuestion> {
+  async generate(difficulty: Difficulty, elo: number = 1000, language: string = 'en', excludeIds: string[] = []): Promise<SoloQuestion> {
     // Use pool first — no LLM call when questions exist in DB
-    const fromPool = await this.questionPoolService.drawOneForSolo(difficulty, language);
+    const fromPool = await this.questionPoolService.drawOneForSolo(difficulty, language, excludeIds);
     if (fromPool) {
       this.logger.debug(`[generate] Using pool question ${fromPool.id} (${fromPool.category}/${difficulty})`);
       return {

@@ -1,0 +1,191 @@
+<div class="profile-page">
+
+  <!-- Guest state -->
+  @if (!auth.isLoggedIn()) {
+    <div class="profile-guest">
+      <div class="profile-guest-icon">
+        <span class="material-icons" style="font-size:2.5rem;opacity:.5">person</span>
+      </div>
+      <h1 class="profile-guest-title">{{ lang.t().profileTitle }}</h1>
+      <p class="profile-guest-text">{{ lang.t().profileGuestText }}</p>
+      <button mat-flat-button color="primary" class="profile-guest-btn" (click)="goToLogin()">
+        <span class="material-icons">login</span>
+        {{ lang.t().profileSignIn }}
+      </button>
+    </div>
+
+  } @else if (loading()) {
+    <div class="profile-loading">
+      <mat-spinner diameter="36"></mat-spinner>
+    </div>
+
+  } @else {
+    <!-- ─── RANK BANNER ─────────────────────────────────── -->
+    <div
+      class="rank-banner"
+      [class]="'rank-banner rank-banner--' + rankTier().tier"
+      [style.--tier-color]="rankTier().color"
+      [style.--tier-glow]="rankTier().glow"
+      [style.--border-w]="rankTier().borderWidth + 'px'"
+    >
+      <!-- Decorative pitch-line pattern in bg -->
+      <div class="rank-banner__bg-pattern" aria-hidden="true">
+        <svg viewBox="0 0 360 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <circle cx="180" cy="60" r="42" stroke="currentColor" stroke-width="1" opacity="0.12"/>
+          <line x1="180" y1="0" x2="180" y2="120" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+          <line x1="0" y1="60" x2="360" y2="60" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+          <rect x="4" y="20" width="60" height="80" rx="2" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+          <rect x="296" y="20" width="60" height="80" rx="2" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+        </svg>
+      </div>
+
+      <!-- Back button (viewing other user) -->
+      @if (!isOwnProfile()) {
+        <a routerLink="/leaderboard" class="rank-banner__back">
+          <span class="material-icons">arrow_back</span>
+        </a>
+      }
+
+      <!-- Rank label top-right -->
+      <div class="rank-banner__tier-label">
+        {{ rankTier().label }}
+      </div>
+
+      <!-- Avatar -->
+      <input
+        #avatarInput
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        style="display:none"
+        (change)="onAvatarFileChange($event)"
+      />
+      <div
+        class="rank-banner__avatar-wrap"
+        [class.rank-banner__avatar-wrap--clickable]="isOwnProfile()"
+        (click)="triggerAvatarUpload()"
+      >
+        <div class="rank-banner__avatar">
+          @if (avatarUrl()) {
+            <img class="rank-banner__avatar-img" [src]="avatarUrl()!" alt="avatar" />
+          } @else {
+            {{ initials() }}
+          }
+        </div>
+        @if (isOwnProfile()) {
+          <div class="rank-banner__avatar-upload" [class.uploading]="avatarUploading()">
+            @if (avatarUploading()) {
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            } @else {
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Name + meta -->
+      <div class="rank-banner__info">
+        <h1 class="rank-banner__name">{{ displayName() }}</h1>
+        <div class="rank-banner__meta">
+          <span class="rank-banner__elo">{{ profile()?.elo ?? 1000 }} ELO</span>
+          <span class="rank-banner__separator">·</span>
+          <span class="rank-banner__rank">Rank #{{ profile()?.rank ?? '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Quick stats row inside banner -->
+      <div class="rank-banner__stats">
+        <div class="rank-banner__stat">
+          <span class="rank-banner__stat-val">{{ profile()?.games_played ?? 0 }}</span>
+          <span class="rank-banner__stat-lbl">Games</span>
+        </div>
+        <div class="rank-banner__stat-divider"></div>
+        <div class="rank-banner__stat">
+          <span class="rank-banner__stat-val">{{ accuracy() }}%</span>
+          <span class="rank-banner__stat-lbl">Accuracy</span>
+        </div>
+        <div class="rank-banner__stat-divider"></div>
+        <div class="rank-banner__stat">
+          <span class="rank-banner__stat-val">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
+          <span class="rank-banner__stat-lbl">Peak ELO</span>
+        </div>
+        @if (blitzStats()?.bestScore) {
+          <div class="rank-banner__stat-divider"></div>
+          <div class="rank-banner__stat">
+            <span class="rank-banner__stat-val">{{ blitzStats()?.bestScore }}</span>
+            <span class="rank-banner__stat-lbl">Blitz</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- ─── MATCH HISTORY ───────────────────────────────── -->
+    @if (matchHistory().length > 0) {
+      <section class="profile-section">
+        <h2 class="profile-section-title">{{ lang.t().matchHistory }}</h2>
+        <div class="match-list">
+          @for (match of matchHistory(); track match.id) {
+            <div class="match-row" [class.match-row--win]="match.winner_id === currentUserId()" [class.match-row--loss]="match.winner_id !== null && match.winner_id !== currentUserId()">
+              <!-- result indicator -->
+              <div class="match-row__result">
+                @if (match.winner_id === null) {
+                  <span class="match-row__result-label match-row__result-label--draw">D</span>
+                } @else if (match.winner_id === currentUserId()) {
+                  <span class="match-row__result-label match-row__result-label--win">W</span>
+                } @else {
+                  <span class="match-row__result-label match-row__result-label--loss">L</span>
+                }
+              </div>
+              <!-- names & score -->
+              <div class="match-row__body">
+                <div class="match-row__vs">
+                  <span class="match-row__p1">{{ match.player1_username }}</span>
+                  <span class="match-row__score">{{ match.player1_score }} – {{ match.player2_score }}</span>
+                  <span class="match-row__p2">{{ match.player2_username }}</span>
+                </div>
+                <div class="match-row__footer">
+                  <span class="match-row__mode">{{ match.match_mode }}</span>
+                  <span class="match-row__date">{{ formatDate(match.played_at) }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ─── ACHIEVEMENTS ───────────────────────────────── -->
+    @if (achievements().length > 0) {
+      <section class="profile-section">
+        <h2 class="profile-section-title">{{ lang.t().achievements }}</h2>
+        <div class="achievements-grid">
+          @for (a of achievements(); track a.id) {
+            <div class="achievement-card" [class.achievement-card--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
+              <span class="achievement-card__icon">{{ a.icon }}</span>
+              <span class="achievement-card__name">{{ a.name }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ─── ACTIONS ────────────────────────────────────── -->
+    <div class="profile-actions">
+      <a routerLink="/leaderboard" class="profile-action-link">
+        <span class="material-icons">leaderboard</span>
+        {{ lang.t().profileViewLeaderboard }}
+      </a>
+      @if (isOwnProfile()) {
+        <button mat-stroked-button class="profile-signout" (click)="signOut()">
+          <span class="material-icons">logout</span>
+          {{ lang.t().signOut }}
+        </button>
+      }
+    </div>
+  }
+</div>

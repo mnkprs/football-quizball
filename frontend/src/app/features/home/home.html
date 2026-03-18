@@ -1,0 +1,139 @@
+<div class="home-page" #homePage>
+  <div class="home-content">
+@if (auth.isLoggedIn()) {
+      <app-auth-card
+        [avatarUrl]="avatarUrl()"
+        [avatarLoadFailed]="avatarLoadFailed()"
+        [displayName]="displayName()"
+        [initials]="initials()"
+        [statsText]="authStatsText()"
+        [statsLoading]="profileLoading()"
+        [signOutLabel]="lang.t().signOut"
+        (signOut)="signOut()"
+        (avatarError)="onAvatarError()"
+      />
+    }
+
+    <app-daily-hero
+      [title]="lang.t().btnDaily"
+      [badgeLabel]="lang.t().dailyChallenge"
+      [questionCount]="dailyCount() ?? '—'"
+      [resetsIn]="dailyResetsIn()"
+      [questionsLabel]="lang.t().dailyQuestionsLabel"
+      [resetsLabel]="lang.t().dailyResetsIn"
+      [playLabel]="lang.t().dailyPlay"
+      backgroundImage="/football-field.png"
+      (play)="goDaily()"
+    />
+
+
+    <app-section-header
+      [title]="lang.t().gameModes"
+      [actionLabel]="lang.t().viewAll"
+      actionHref="/leaderboard"
+    />
+
+    <div class="home-modes">
+      <app-mode-card
+        icon="group"
+        [sectionLabel]="lang.t().localMultiplayer"
+        backgroundIcon="group"
+        [title]="hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player"
+        [hint]="lang.t().btn2PlayerHint"
+        variant="primary"
+        [actionLabel]="lang.t().startMatch"
+        (cardClick)="toggle2PlayerExpanded()"
+      />
+      @if (twoPlayerExpanded()) {
+        <div class="flex gap-3 -mt-2 px-1">
+          <button
+            (click)="go2Player()"
+            class="flex-1 py-3 rounded-2xl bg-card border-2 border-border text-foreground font-bold text-sm hover:border-accent hover:text-accent active:scale-95 transition"
+          >
+            🏠 Local
+          </button>
+          <button
+            (click)="goOnline()"
+            class="flex-1 py-3 rounded-2xl bg-card border-2 border-border text-foreground font-bold text-sm hover:border-accent hover:text-accent active:scale-95 transition"
+          >
+            🌐 Online
+          </button>
+        </div>
+      }
+      <app-mode-card
+        icon="newspaper"
+        iconBgColor="lime"
+        [title]="lang.t().btnNews"
+        [hint]="lang.t().btnNewsHint"
+        [badge]="lang.t().newsDailyBadge"
+        badgeColor="lime"
+        backgroundImage="/news-mode.png"
+        variant="accent"
+        (cardClick)="goNews()"
+      />
+      <app-mode-card
+        icon="local_fire_department"
+        iconBgColor="orange"
+        [title]="lang.t().btnMayhem"
+        [hint]="lang.t().btnMayhemHint"
+        [badge]="lang.t().mayhemNewBadge"
+        badgeColor="red"
+        backgroundImage="/mayhem-mode.png"
+        variant="accent"
+        [locked]="false"
+        (cardClick)="goMayhem()"
+      />
+      @if (auth.isLoggedIn()) {
+        <app-mode-card
+          icon="emoji_events"
+          iconBgColor="gold"
+          [title]="lang.t().btnSolo"
+          [hint]="soloHint()"
+          [badge]="pro.isPro() ? 'PRO ✓' : lang.t().eloSystem"
+          badgeColor="lime"
+          [footerText]="lang.t().playersOnline"
+          backgroundImage="/solo-mode.png"
+          variant="accent"
+          (cardClick)="goSolo()"
+        />
+        <app-mode-card
+          icon="bolt"
+          iconBgColor="blue"
+          [title]="lang.t().btnBlitz"
+          [hint]="blitzHint()"
+          [badge]="pro.isPro() ? 'PRO ✓' : lang.t().speedrun"
+          badgeColor="blue"
+          backgroundImage="/blitz-mode.png"
+          variant="accent"
+          [locked]="false"
+          (cardClick)="goBlitz()"
+        />
+      } @else {
+        <app-mode-card
+          icon="emoji_events"
+          iconBgColor="gold"
+          [title]="lang.t().btnSolo"
+          [hint]="lang.t().btnSoloDesc + ' · ' + lang.t().loginRequired"
+          [badge]="lang.t().eloSystem"
+          badgeColor="lime"
+          [footerText]="lang.t().playersOnline"
+          backgroundImage="/solo-mode.png"
+          variant="outline"
+          (cardClick)="goSolo()"
+        />
+        <app-mode-card
+          icon="bolt"
+          iconBgColor="blue"
+          [title]="lang.t().btnBlitz"
+          [hint]="lang.t().btnBlitzDesc + ' · ' + lang.t().loginRequired"
+          [badge]="lang.t().speedrun"
+          badgeColor="blue"
+          backgroundImage="/blitz-mode.png"
+          variant="outline"
+          [locked]="true"
+          (cardClick)="goBlitz()"
+        />
+      }
+    </div>
+  </div>
+</div>

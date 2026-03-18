@@ -1,94 +1,12 @@
-import { Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-confirm-modal',
   standalone: true,
   imports: [],
-  template: `
-    <div class="confirm-backdrop" (click)="cancel.emit()">
-      <div class="confirm-dialog" (click)="$event.stopPropagation()">
-        <p class="confirm-message">{{ message() }}</p>
-        <div class="confirm-actions">
-          <button type="button" class="confirm-btn confirm-cancel" (click)="cancel.emit()">
-            {{ cancelLabel() }}
-          </button>
-          <button type="button" class="confirm-btn confirm-ok" (click)="confirm.emit()">
-            {{ confirmLabel() }}
-          </button>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .confirm-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      background: var(--color-surface-overlay, rgba(0, 0, 0, 0.5));
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .confirm-dialog {
-      width: 100%;
-      max-width: min(20rem, calc(100vw - 2rem));
-      background: var(--color-card);
-      border-radius: 1rem;
-      padding: 1.5rem;
-      border: 1px solid var(--color-border);
-      box-shadow: var(--shadow-card, 0 4px 24px rgba(0, 0, 0, 0.3));
-    }
-
-    .confirm-message {
-      margin: 0 0 1.5rem 0;
-      font-size: 1rem;
-      font-weight: 500;
-      color: var(--color-foreground);
-      line-height: 1.5;
-    }
-
-    .confirm-actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: flex-end;
-    }
-
-    .confirm-btn {
-      padding: 0.625rem 1.25rem;
-      border-radius: 0.5rem;
-      font-size: 0.9375rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: opacity 0.2s, transform 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .confirm-btn:active {
-      transform: scale(0.97);
-    }
-
-    .confirm-cancel {
-      background: var(--color-muted);
-      color: var(--color-foreground);
-    }
-
-    .confirm-cancel:hover {
-      opacity: 0.9;
-    }
-
-    .confirm-ok {
-      background: var(--color-accent);
-      color: var(--color-accent-foreground);
-    }
-
-    .confirm-ok:hover {
-      opacity: 0.9;
-    }
-  `],
+  templateUrl: './confirm-modal.html',
+  styleUrl: './confirm-modal.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmModalComponent {
   message = input.required<string>();

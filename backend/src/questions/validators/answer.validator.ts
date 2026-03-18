@@ -1,9 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as Levenshtein from 'fast-levenshtein';
 import { GeneratedQuestion, Top5Entry } from '../question.types';
+import { LlmService } from '../../llm/llm.service';
+
+const JUDGE_MIN_SCORE = 0.4;
+const JUDGE_MAX_SCORE = 0.75;
+const JUDGE_TIMEOUT_MS = 2000;
+
+/** Categories where deterministic rules are sufficient — skip LLM judge. */
+const SKIP_JUDGE_CATEGORIES = new Set(['HIGHER_OR_LOWER', 'GUESS_SCORE', 'PLAYER_ID', 'TOP_5']);
 
 @Injectable()
 export class AnswerValidator {
+  private readonly logger = new Logger(AnswerValidator.name);
+
+  constructor(private llmService: LlmService) {}
+
   validate(question: GeneratedQuestion, submittedAnswer: string): boolean {
     switch (question.category) {
       case 'HIGHER_OR_LOWER':
@@ -129,6 +141,55 @@ export class AnswerValidator {
     if (submittedParts.length < 2) return false;
     if (submitted.length < 6) return false;
     return full.startsWith(`${submitted} `);
+  }
+
+  /**
+   * Returns fuzzy similarity score 0–1 between correct and submitted answers.
+   * Used to decide whether to invoke the LLM judge.
+   */
+  private fuzzyScore(correct: string, submitted: string): number {
+    const a = this.normalize(correct);
+    const b = this.normalize(submitted);
+    if (a === b) return 1;
+    if (!a || !b) return 0;
+    const maxLen = Math.max(a.length, b.length);
+    const dist = Levenshtein.get(a, b);
+    return 1 - dist / maxLen;
+  }
+
+  /** Calls LLM to judge if submitted is an acceptable alternative for correct. Times out after JUDGE_TIMEOUT_MS. */
+  private async validateWithJudge(question: GeneratedQuestion, correct: string, submitted: string): Promise<boolean> {
+    const systemPrompt = 'You are an answer validation judge for a football quiz. Reply with only "yes" or "no".';
+    const userPrompt = `Question: ${question.question_text}\nCorrect answer: ${correct}\nUser submitted: ${submitted}\nIs the submitted answer an acceptable alternative for the correct answer?`;
+
+    const judgePromise = this.llmService.generateStructuredJson<{ answer: string }>(
+      systemPrompt,
+      `${userPrompt}\nReturn JSON: {"answer": "yes"} or {"answer": "no"}`,
+      1,
+    ).then(r => r.answer?.toLowerCase().trim() === 'yes').catch(() => false);
+
+    const timeoutPromise = new Promise<false>(resolve => setTimeout(() => resolve(false), JUDGE_TIMEOUT_MS));
+    return Promise.race([judgePromise, timeoutPromise]);
+  }
+
+  /**
+   * Async validate: uses LLM judge for borderline fuzzy matches on text-answer categories.
+   * Falls back to synchronous validate if not applicable.
+   */
+  async validateAsync(question: GeneratedQuestion, submittedAnswer: string): Promise<boolean> {
+    // Sync result first
+    const syncResult = this.validate(question, submittedAnswer);
+    if (syncResult) return true;
+
+    // Skip LLM judge for deterministic categories
+    if (SKIP_JUDGE_CATEGORIES.has(question.category)) return false;
+
+    // Only invoke judge if fuzzy score is in the borderline range
+    const score = this.fuzzyScore(question.correct_answer, submittedAnswer);
+    if (score < JUDGE_MIN_SCORE || score >= JUDGE_MAX_SCORE) return false;
+
+    this.logger.debug(`[validateAsync] Invoking LLM judge (score=${score.toFixed(2)}) for "${submittedAnswer}" vs "${question.correct_answer}"`);
+    return this.validateWithJudge(question, question.correct_answer, submittedAnswer);
   }
 
   /**

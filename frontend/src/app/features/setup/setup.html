@@ -1,0 +1,91 @@
+<div class="setup-page min-h-screen flex items-center justify-center p-4 bg-background">
+  <!-- Theme toggle fixed top-right -->
+  <div class="fixed top-4 right-4 z-10">
+    <app-theme-toggle />
+  </div>
+
+  <div class="w-full max-w-md">
+    <!-- Logo / Title -->
+    <div class="text-center mb-8">
+      <!-- Language switcher -->
+      <div class="flex justify-end mb-4">
+        <button
+          (click)="lang.toggle()"
+          class="px-3 py-1.5 rounded-full text-xs font-bold border border-border/50 text-muted-foreground hover:border-accent hover:text-accent transition pressable bg-card/50 backdrop-blur-sm"
+        >
+          {{ lang.lang() === 'en' ? 'EL' : 'EN' }}
+        </button>
+      </div>
+      <!-- Premium Logo Badge -->
+      <div class="setup-logo-badge mx-auto mb-5">
+        <img src="/icons/quizball-unlimited-logo.png" alt="QuizBall" class="w-12 h-12 object-contain" />
+      </div>
+      <h1 class="text-4xl font-black text-foreground tracking-tight">
+        <span class="text-muted-foreground/80">Quiz</span><span class="text-accent">Ball</span>
+      </h1>
+      <p class="text-muted-foreground mt-2 text-sm font-medium tracking-wide uppercase">{{ lang.t().subtitle }}</p>
+    </div>
+
+    <!-- Player Name Inputs -->
+    <div class="setup-card bg-card rounded-2xl p-6 shadow-card border border-border/50">
+      <h2 class="text-base font-bold text-foreground mb-5 text-center uppercase tracking-wider">{{ lang.t().enterNames }}</h2>
+
+      <div class="space-y-5 mb-6">
+        <!-- Player 1 Input -->
+        <div class="setup-player-input">
+          <label class="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+            <span class="setup-player-dot setup-player-dot--p1"></span>
+            Player 1
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="player1Name"
+            [placeholder]="lang.t().player1Placeholder"
+            maxlength="20"
+            class="w-full px-4 py-3.5 rounded-xl bg-background border-2 border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition font-medium"
+          />
+        </div>
+
+        <!-- Divider -->
+        <div class="setup-divider">
+          <span class="setup-divider-text">VS</span>
+        </div>
+
+        <!-- Player 2 Input -->
+        <div class="setup-player-input">
+          <label class="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+            <span class="setup-player-dot setup-player-dot--p2"></span>
+            Player 2
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="player2Name"
+            [placeholder]="lang.t().player2Placeholder"
+            maxlength="20"
+            class="w-full px-4 py-3.5 rounded-xl bg-background border-2 border-border/50 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition font-medium"
+          />
+        </div>
+      </div>
+
+      @if (store.error()) {
+        <div class="mb-4 p-3 bg-loss/10 border border-loss/50 rounded-xl text-loss text-sm text-center font-medium">
+          {{ store.error() }}
+        </div>
+      }
+
+      <button
+        (click)="startGame()"
+        [disabled]="!canStart()"
+        class="setup-kickoff-btn w-full py-4 rounded-xl font-bold text-base uppercase tracking-wider transition-all duration-200 pressable
+               disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {{ lang.t().kickOff }}
+      </button>
+    </div>
+
+    <!-- How to play -->
+    <div class="mt-5 text-center text-muted-foreground/70 text-xs font-medium">
+      {{ lang.t().howToPlay }}
+    </div>
+  </div>
+</div>

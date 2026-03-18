@@ -344,4 +344,70 @@ export class SupabaseService {
       .limit(limit);
     return data ?? [];
   }
+
+  /** Atomically updates ELO and inserts history in a single DB transaction. */
+  async commitSoloAnswer(params: {
+    user_id: string;
+    elo_before: number;
+    elo_after: number;
+    elo_change: number;
+    difficulty: string;
+    correct: boolean;
+    timed_out: boolean;
+  }): Promise<void> {
+    const { error } = await this.client.rpc('commit_solo_answer', {
+      p_user_id: params.user_id,
+      p_elo_before: params.elo_before,
+      p_elo_after: params.elo_after,
+      p_elo_change: params.elo_change,
+      p_difficulty: params.difficulty,
+      p_correct: params.correct,
+      p_timed_out: params.timed_out,
+    });
+    if (error) throw new Error(`commitSoloAnswer RPC failed: ${error.message}`);
+  }
+
+  /** Atomically claims the current online turn via DB-level WHERE guard. Returns false if turn was stolen. */
+  async claimOnlineTurn(params: {
+    game_id: string;
+    user_id: string;
+    board_state: unknown;
+    player_scores: [number, number];
+    player_meta: unknown;
+    new_player_id: string | null;
+    new_status: string;
+    turn_deadline: string | null;
+    last_result: unknown;
+  }): Promise<boolean> {
+    const { data, error } = await this.client.rpc('claim_online_turn', {
+      p_game_id: params.game_id,
+      p_user_id: params.user_id,
+      p_board_state: params.board_state,
+      p_player_scores: params.player_scores,
+      p_player_meta: params.player_meta,
+      p_new_player_id: params.new_player_id,
+      p_new_status: params.new_status,
+      p_turn_deadline: params.turn_deadline,
+      p_last_result: params.last_result,
+    });
+    if (error) throw new Error(`claimOnlineTurn RPC failed: ${error.message}`);
+    return data as boolean;
+  }
+
+  /** Returns question IDs the user has seen in the last 30 days (solo mode dedup). */
+  async getSeenQuestionIds(userId: string): Promise<string[]> {
+    const { data } = await this.client
+      .from('user_question_history')
+      .select('question_id')
+      .eq('user_id', userId)
+      .gte('seen_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    return (data ?? []).map((r: { question_id: string }) => r.question_id);
+  }
+
+  /** Records that a user has seen a question (fire-and-forget safe). */
+  async recordSeenQuestion(userId: string, questionId: string): Promise<void> {
+    await this.client
+      .from('user_question_history')
+      .upsert({ user_id: userId, question_id: questionId, seen_at: new Date().toISOString() }, { onConflict: 'user_id,question_id' });
+  }
 }
