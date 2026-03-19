@@ -28,7 +28,7 @@ import {
 } from './config/pool.config';
 import { RAW_THRESHOLD_EASY, RAW_THRESHOLD_MEDIUM } from './config/difficulty-scoring.config';
 import { GENERATION_VERSION } from './config/generation-version.config';
-import { LIVE_CATEGORIES, SOLO_DRAW_CATEGORY_ORDER } from './config/category.config';
+import { LIVE_CATEGORIES, SOLO_DRAW_CATEGORY_ORDER, DUEL_CATEGORIES } from './config/category.config';
 import type {
   DrawBoardResult,
   DrawBoardRow,
@@ -171,9 +171,43 @@ export class QuestionPoolService {
   }
 
   /**
-   * Removes invalid and duplicate questions from the pool via RPC.
-   * Call via POST /api/admin/cleanup-questions.
+   * Draws N free-form questions for Duel mode from DUEL_CATEGORIES.
+   * Distributes evenly across categories and difficulties (EASY/MEDIUM/HARD).
+   * @param n Total number of questions to draw (default 30 for a buffer)
    */
+  async drawForDuel(language: string = 'en', n: number = 30, excludeIds: string[] = []): Promise<GeneratedQuestion[]> {
+    const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
+    const results: GeneratedQuestion[] = [];
+    const exclude = new Set(excludeIds);
+
+    // Round-robin through category × difficulty combos until we have n questions
+    const slots: Array<[QuestionCategory, Difficulty]> = [];
+    for (let i = 0; i < n; i++) {
+      const cat = DUEL_CATEGORIES[i % DUEL_CATEGORIES.length];
+      const diff = difficulties[Math.floor(i / DUEL_CATEGORIES.length) % difficulties.length];
+      slots.push([cat, diff]);
+    }
+
+    // Fetch each slot (parallelise in groups of 5 to avoid hammering DB)
+    for (let i = 0; i < slots.length; i += 5) {
+      const batch = slots.slice(i, i + 5);
+      const fetched = await Promise.all(
+        batch.map(([cat, diff]) =>
+          this.drawSlot(cat, diff, 1, language, exclude.size > 0 ? [...exclude] : undefined),
+        ),
+      );
+      for (const drawn of fetched) {
+        if (drawn.length > 0) {
+          results.push(drawn[0]);
+          exclude.add(drawn[0].id);
+        }
+      }
+    }
+
+    return results;
+  }
+
+  /**
   async cleanupPool(): Promise<{ deletedInvalid: number; deletedDuplicates: number }> {
     const { data, error } = await this.supabaseService.client.rpc('cleanup_question_pool');
     if (error) {

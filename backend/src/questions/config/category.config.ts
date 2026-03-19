@@ -27,6 +27,17 @@ export const BOARD_CATEGORIES: QuestionCategory[] = [
 ];
 
 /**
+ * Free-form categories used in Duel mode (no MC, no complex multi-step types).
+ */
+export const DUEL_CATEGORIES: QuestionCategory[] = [
+  'HISTORY',
+  'PLAYER_ID',
+  'GEOGRAPHY',
+  'GOSSIP',
+  'GUESS_SCORE',
+];
+
+/**
  * Categories tried in order when drawing a single Solo question.
  */
 export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [

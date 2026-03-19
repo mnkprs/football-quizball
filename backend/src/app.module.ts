@@ -20,6 +20,7 @@ import { MayhemModule } from './mayhem/mayhem.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { OnlineGameModule } from './online-game/online-game.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { DuelModule } from './duel/duel.module';
 import { MatchHistoryModule } from './match-history/match-history.module';
 import { ProfileModule } from './profile/profile.module';
 
@@ -55,6 +56,7 @@ import { ProfileModule } from './profile/profile.module';
     SubscriptionModule,
     OnlineGameModule,
     AchievementsModule,
+    DuelModule,
     MatchHistoryModule,
     ProfileModule,
   ],

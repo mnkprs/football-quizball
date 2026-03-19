@@ -258,6 +258,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  goDuel(): void {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/duel']);
+    } else {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/duel' } });
+    }
+  }
+
   goDaily(): void {
     this.router.navigate(['/daily']);
   }

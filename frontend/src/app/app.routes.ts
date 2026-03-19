@@ -23,6 +23,8 @@ export const routes: Routes = [
   { path: 'online-game', canActivate: [authGuard], loadComponent: () => import('./features/online-game/online-lobby').then(m => m.OnlineLobbyComponent) },
   { path: 'online-game/:id', canActivate: [authGuard], loadComponent: () => import('./features/online-game/online-play').then(m => m.OnlinePlayComponent) },
   { path: 'join/:code', loadComponent: () => import('./features/online-game/join-invite').then(m => m.JoinInviteComponent) },
+  { path: 'duel', canActivate: [authGuard], loadComponent: () => import('./features/duel/duel-lobby').then(m => m.DuelLobbyComponent) },
+  { path: 'duel/:id', canActivate: [authGuard], loadComponent: () => import('./features/duel/duel-play').then(m => m.DuelPlayComponent) },
   { path: 'login', loadComponent: () => import('./features/login/login').then(m => m.LoginComponent) },
   { path: 'admin', loadComponent: () => import('./features/admin/admin').then(m => m.AdminComponent) },
   { path: 'onboarding', loadComponent: () => import('./features/onboarding/onboarding').then(m => m.OnboardingComponent) },
