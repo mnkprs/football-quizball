@@ -11,6 +11,7 @@ import {
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
   getFactualAccuracyInstruction,
+  getSquadPlayerInstruction,
 } from '../diversity-hints';
 import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
@@ -39,7 +40,7 @@ export class HigherOrLowerGenerator extends BaseGenerator {
     const systemPrompt = `You are a football statistics expert. Create a "Higher or Lower" question.
 The question shows a player's stat with a WRONG value, and the player must guess if the real value is Higher or Lower.
 The "shown_value" should be plausibly wrong (within 20-30% of real value, either above or below).
-Pick any interesting football statistic — any era, any league.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+Pick any interesting football statistic — any era, any well-known league. The player does NOT have to be a superstar; interesting stats from dependable squad players or journeymen work well.${getSquadPlayerInstruction()}${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY valid JSON:
 {
   "player": "Player Full Name",
@@ -70,7 +71,8 @@ combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+s
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football statistics expert. Create ${questionCount} "Higher or Lower" questions.
-Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.
+Choose a variety of players — not just superstars. Squad players, journeymen, and cult heroes with interesting stats are ideal.${getSquadPlayerInstruction()}${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY valid JSON:
 {
   "questions": [

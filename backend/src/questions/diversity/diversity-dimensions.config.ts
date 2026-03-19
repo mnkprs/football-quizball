@@ -13,12 +13,25 @@ export const YEAR_RANGES = [
 ] as const;
 
 export const NATIONALITIES = [
-  'Brazilian', 'Argentine', 'French', 'German', 'Spanish', 'Italian',
-  'African (any nation)', 'Asian (any nation)', 'Eastern European',
-  'Scandinavian', 'Dutch or Belgian', 'Portuguese', 'Greek',
-  'Croatian or Serbian', 'Mexican or Central American',
-  'Colombian or Venezuelan', 'Uruguayan or Paraguayan',
-  'Scottish or Irish', 'Turkish', 'Polish or Czech',
+  // South American
+  'Brazilian', 'Argentine', 'Uruguayan', 'Colombian', 'Chilean', 'Ecuadorian',
+  'Paraguayan', 'Peruvian', 'Venezuelan', 'Bolivian',
+  // European (major)
+  'French', 'German', 'Spanish', 'Italian', 'Portuguese', 'Dutch', 'Belgian',
+  // European (underrepresented but real Tier-1 presence)
+  'Croatian', 'Serbian', 'Romanian', 'Ukrainian', 'Bulgarian', 'Slovak', 'Slovenian',
+  'Bosnian', 'Czech', 'Polish', 'Greek', 'Turkish', 'Albanian', 'Hungarian',
+  // Nordic
+  'Swedish', 'Norwegian', 'Danish', 'Finnish', 'Icelandic',
+  // British Isles
+  'Scottish', 'Welsh', 'Northern Irish', 'Republic of Ireland',
+  // African (specific, all with Tier-1 league presence)
+  'Nigerian', 'Senegalese', 'Moroccan', 'Cameroonian', 'Ivorian', 'Ghanaian',
+  'Egyptian', 'Algerian', 'Malian', 'Congolese', 'South African', 'Tunisian',
+  // Americas (non-South American)
+  'Mexican', 'Costa Rican', 'Honduran', 'Jamaican',
+  // Other
+  'Japanese', 'South Korean', 'Australian', 'American',
 ] as const;
 
 export const COMPETITIONS = [
@@ -42,6 +55,44 @@ export const COMPETITIONS = [
   'lesser-known European league (Turkish Süper Lig, Scottish Premiership, Greek Super League)',
   'FIFA Club World Cup',
   'UEFA Super Cup',
+  'Scandinavian league (Swedish Allsvenskan, Norwegian Eliteserien, Danish Superliga)',
+  'Eastern European league (Ukrainian Premier League, Romanian Liga I, Polish Ekstraklasa)',
+  'MLS (Major League Soccer)',
+  'Liga MX (Mexican football)',
+  'CONCACAF Champions Cup',
+  'Africa Cup of Nations (AFCON)',
+] as const;
+
+/**
+ * Roles a player might occupy that are NOT the famous star of the team.
+ * Used to force the LLM to think about squad depth, not just superstars.
+ */
+export const SQUAD_ROLES = [
+  'backup goalkeeper who made 10 or more appearances in a season',
+  'regular squad player with 20–35 appearances but not a first-choice starter',
+  'cult hero substitute who scored an important goal coming off the bench',
+  'defensive midfielder known more for their work rate than goals',
+  'right-back or left-back who played a full season without being in the headline news',
+  'journeyman striker who played for 6 or more clubs across different countries',
+  'centre-back who was solid and dependable but rarely the most talked-about player',
+  'winger who had one famous season and then faded from the spotlight',
+  'young player who made 5–15 first-team appearances before a big-money move',
+  'winter transfer arrival who played 18 months at a club and left quietly',
+  'one-club servant who spent 8 or more years at a mid-table club without winning a major trophy',
+  'penalty specialist who was brought on specifically for shootouts',
+  'captain of a national team that reached a notable tournament stage but was not a superstar',
+  'player who spent most of their career as second-choice behind a more famous player',
+] as const;
+
+/**
+ * Players so commonly used by LLMs in football trivia that they should be actively avoided
+ * in favour of lesser-known players. Used in anti-convergence instructions.
+ */
+export const FAMOUS_PLAYERS_TO_AVOID = [
+  'Messi', 'Ronaldo', 'Pelé', 'Maradona', 'Zidane', 'Beckham', 'Ronaldinho',
+  'Ronaldo (R9)', 'Neymar', 'Mbappé', 'Suárez', 'Ibrahimović', 'Thierry Henry',
+  'Rooney', 'van Nistelrooy', 'Gerrard', 'Lampard', 'Xavi', 'Iniesta', 'Pirlo',
+  'Buffon', 'Casillas', 'Drogba', 'Robben', 'Ribéry', 'Müller', 'Benzema',
 ] as const;
 
 export const POSITIONS = [

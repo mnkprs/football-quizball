@@ -7,7 +7,6 @@ import {
   DEFAULT_DIFFICULTY_RANGES,
   CATEGORY_DIFFICULTY_OVERRIDES,
   CATEGORY_DEFAULT_RANGES,
-  ANTI_CONVERGENCE_FAME_RANGE,
   type DifficultyScoreRanges,
 } from '../config/difficulty-prompts.config';
 import { RAW_THRESHOLD_EASY, RAW_THRESHOLD_MEDIUM } from '../config/difficulty-scoring.config';
@@ -31,21 +30,27 @@ function formatRanges(ranges: DifficultyScoreRanges): string {
  * GUESS_SCORE uses a softer version to reduce obscurity.
  */
 export function getAntiConvergenceInstruction(category?: string): string {
+  const avoidPlayers =
+    'Messi, Ronaldo, Pelé, Maradona, Zidane, Beckham, Ronaldinho, Neymar, Mbappé, Ibrahimović, ' +
+    'Thierry Henry, Rooney, Gerrard, Lampard, Xavi, Iniesta, Pirlo, Buffon, Casillas, Drogba';
+
   if (category === 'GUESS_SCORE') {
     return `
 ANTI-REPETITION RULES:
 - Vary the type of match (finals, league classics, tournament shocks, group stage surprises) to avoid repetition.
 - Vary the era: mix matches from the 1990s, 2000s, 2010s, and 2020s.
 - Vary the competition: mix World Cup, Euros, Champions League, domestic leagues, Copa America.
-- Avoid the most iconic/overused matches — these are already in the pool and must NOT be regenerated.`;
+- Avoid the most iconic/overused matches — these are already in the pool and must NOT be regenerated.
+- NEVER use these overused scorelines: Germany 7-1 Brazil, Liverpool 4-0 Barcelona, Barcelona 6-1 PSG, or any result that dominated global headlines for weeks.`;
   }
-  const [min, max] = ANTI_CONVERGENCE_FAME_RANGE;
   return `
 ANTI-REPETITION RULES:
 - Vary topics and avoid repeating the same players, teams, or leagues.
-- Aim for moderate difficulty: use fame_score ${min}-${max}.
- Avoid both hyper-obscure (fame 1-3) and overly trivial (fame 9-10) facts.
- Avoid confirming facts from old articles or websites that may not be up to date.`;
+- NEVER default to these overused players — they already dominate the pool: ${avoidPlayers}.
+- Do NOT pick the first player or match that comes to mind for a given context.
+  Think of the 10th-most-famous fact and use that instead.
+- Aim for players and events that football fans of a specific league or era would know,
+  without them being universally famous worldwide.`;
 }
 
 /**
@@ -201,4 +206,24 @@ export function getAvoidQuestionsInstruction(avoidQuestions: string[] | undefine
   if (!avoidQuestions?.length) return '';
   const sample = avoidQuestions.slice(0, 25).map((q) => `"${q.slice(0, 90)}"`).join(', ');
   return `\n\nDO NOT generate questions similar to these already in the pool — pick entirely different topics, angles, and facts: ${sample}`;
+}
+
+/**
+ * Instruction for player-centric generators (PLAYER_ID, HIGHER_OR_LOWER) to target
+ * squad members and non-stars rather than universally famous players.
+ *
+ * The LLM has a strong default bias toward globally famous players. This instruction
+ * actively counteracts that by describing what kind of player is desired.
+ */
+export function getSquadPlayerInstruction(): string {
+  return `
+PLAYER DIVERSITY RULE (strictly enforced):
+- Do NOT default to globally famous superstars. The question pool is already full of questions about the most famous players.
+- Think about players who were SOLID PROFESSIONALS but not household names worldwide:
+  squad regulars, backup goalkeepers, dependable midfielders, cult heroes at one club,
+  players famous in one country but not globally, journeymen who played for 5+ clubs.
+- A valid player is someone that fans of their specific league or era would recognise,
+  even if they would NOT appear in a generic "greatest footballers" list.
+- Before picking a player, mentally ask: "Would this player appear in the top 50 results if I searched
+  for famous footballers?" If yes, choose a different player.`;
 }

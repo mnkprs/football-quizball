@@ -11,6 +11,7 @@ export {
   getAvoidInstruction,
   getAvoidQuestionsInstruction,
   getFactualAccuracyInstruction,
+  getSquadPlayerInstruction,
 } from './diversity/prompt-helpers';
 export {
   minorityScaleForDifficulty,

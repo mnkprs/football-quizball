@@ -10,6 +10,8 @@ import {
   GEOGRAPHY_QUESTION_PATTERNS,
   GOSSIP_TOPICS,
   QUESTION_ANGLES,
+  SQUAD_ROLES,
+  FAMOUS_PLAYERS_TO_AVOID,
 } from './diversity-dimensions.config';
 
 function randomInRange(min: number, max: number): number {
@@ -34,44 +36,85 @@ function entityTypeForCategory(category: string): string {
   }
 }
 
+/** Returns a short sample of famous players to avoid, for embedding in constraints. */
+function famousPlayersAvoidText(): string {
+  const sample = (FAMOUS_PLAYERS_TO_AVOID as readonly string[]).slice(0, 12).join(', ');
+  return `NOT any of: ${sample} (or similarly universally famous players)`;
+}
+
 /**
  * Builds 2–4 diversity constraints for a category.
- * 70% entity injection + angle, 30% traditional dimension constraints.
+ *
+ * Three paths are used to maximise variety across multiple seed-pool runs:
+ *  - Path A (40%): squad-role + nationality + competition anchor — forces non-star player targeting
+ *  - Path B (30%): squad-role + season-moment anchor — focuses on a specific career moment type
+ *  - Path C (30%): traditional dimension constraints (year/position/angle)
+ *
+ * The previous "obscurity level X/100" numeric scale has been replaced with qualitative role
+ * descriptions because LLMs interpret numeric scales relative to their biased training distribution,
+ * reliably landing on famous players even at low obscurity values.
  */
 export function pickConstraints(category: string, slotIndex?: number, minorityScale?: number): string[] {
   const constraints: string[] = [];
   const useIndex = (offset: number) =>
     slotIndex !== undefined ? (slotIndex + offset) % 100 : undefined;
 
-  const useEntityInjection = Math.random() < 0.7;
+  const rand = Math.random();
+  const useSquadRoleNationalityAnchor = rand < 0.40;
+  const useSquadRoleMomentAnchor = rand < 0.70; // covers 0.40–0.70
 
-  if (useEntityInjection) {
+  // Path A: squad-role + nationality + competition anchor (player-centric categories)
+  if (useSquadRoleNationalityAnchor && ['PLAYER_ID', 'HIGHER_OR_LOWER', 'HISTORY', 'GOSSIP'].includes(category)) {
+    const role = pick(SQUAD_ROLES, useIndex(0));
+    const nationality = pick(NATIONALITIES, useIndex(1));
+    const competition = pick(COMPETITIONS, useIndex(2));
     const entityType = entityTypeForCategory(category);
-    const scale = minorityScale ?? (category === 'GUESS_SCORE' ? randomInRange(75, 95) : randomInRange(55, 90));
+    const avoidText = famousPlayersAvoidText();
+
+    if (category === 'PLAYER_ID') {
+      constraints.push(
+        `Pick a ${nationality} footballer who served as a "${role}" — ${avoidText}. ` +
+        `The player MUST have appeared in ${competition} or a comparable Tier-1 context. ` +
+        `Think beyond the first names that come to mind — choose someone fans of that league would recognise but who rarely appears in trivia.`,
+      );
+    } else if (category === 'HIGHER_OR_LOWER') {
+      constraints.push(
+        `The stat MUST belong to a ${nationality} footballer playing as a "${role}". ` +
+        `${avoidText}. Use a stat from ${competition} or equivalent.`,
+      );
+    } else {
+      constraints.push(
+        `Focus on a ${nationality} football ${entityType} in the role of "${role}". ${avoidText}.`,
+      );
+      constraints.push(`The context MUST relate to ${competition}.`);
+    }
+
     const angles = QUESTION_ANGLES[category] ?? [];
-    const angle = angles.length ? pick(angles as readonly string[], useIndex(1)) : null;
-
-    const obscureHint = category === 'GUESS_SCORE'
-      ? 'Pick a well-known match involving this entity.'
-      : 'Before writing the question, mentally recall 2 unusual or lesser-known facts about this entity, then use the most interesting one.';
-    let entityConstraint = `Pick a football ${entityType} at obscurity level ${scale}/100 (where 1 = extremely obscure/niche, 100 = universally famous worldwide). The question MUST specifically involve this entity. ${obscureHint}`;
-    if (angle) {
-      entityConstraint += ` The specific angle MUST be: ${angle}.`;
+    if (angles.length) {
+      constraints.push(`The angle MUST be: ${pick(angles as readonly string[], useIndex(3))}.`);
     }
-    constraints.push(entityConstraint);
-
-    if (Math.random() < 0.6) {
-      const addYear = Math.random() < 0.5;
-      if (addYear) {
-        constraints.push(`Choose a specific year that is historically significant for this entity and focus on an event from that year.`);
-      } else {
-        constraints.push(`The context MUST relate to ${pick(COMPETITIONS, useIndex(2))}.`);
-      }
-    }
-
     return constraints;
   }
 
+  // Path B: squad-role + season-moment anchor (all player-centric categories)
+  if (useSquadRoleMomentAnchor && ['PLAYER_ID', 'HIGHER_OR_LOWER', 'HISTORY', 'GOSSIP'].includes(category)) {
+    const role = pick(SQUAD_ROLES, useIndex(0));
+    const avoidText = famousPlayersAvoidText();
+    const competition = pick(COMPETITIONS, useIndex(2));
+
+    constraints.push(
+      `Think of a football ${entityTypeForCategory(category)} who was a "${role}" — someone known within their league or club but not a global superstar. ${avoidText}.`,
+    );
+    constraints.push(`The question MUST relate to ${competition} or a comparable well-known competition.`);
+
+    const angles = QUESTION_ANGLES[category] ?? [];
+    if (angles.length) {
+      constraints.push(`The specific angle MUST be: ${pick(angles as readonly string[], useIndex(1))}.`);
+    }
+    return constraints;
+  }
+
+  // Path C: traditional dimension-based constraints (original logic, kept for variety)
   switch (category) {
     case 'HISTORY': {
       constraints.push(`The question MUST be about events from ${pick(YEAR_RANGES, useIndex(0))}.`);
@@ -83,6 +126,7 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
       constraints.push(`The player MUST be ${pick(NATIONALITIES, useIndex(0))}.`);
       constraints.push(`The player MUST be a ${pick(POSITIONS, useIndex(1))}.`);
       constraints.push(`The angle MUST be: ${pick(QUESTION_ANGLES.PLAYER_ID, useIndex(2))}.`);
+      constraints.push(`${famousPlayersAvoidText()}.`);
       break;
     }
     case 'HIGHER_OR_LOWER': {

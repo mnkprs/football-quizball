@@ -37,7 +37,8 @@ export class HistoryGenerator extends BaseGenerator {
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football trivia expert. Generate an interesting football history question on any topic.
-Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+Topics can include: World Cup history, club history, famous matches, records, trophies, historic moments.
+Seek variety — avoid defaulting to the same iconic moments and players every time. Football history spans 150+ years and hundreds of countries; explore beyond the most-cited events.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 CRITICAL: Do NOT mention the correct_answer anywhere in question_text. The question must not give away the answer.
 Return ONLY a valid JSON object with these exact fields:
 {
@@ -69,7 +70,7 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football trivia expert. Generate ${questionCount} interesting football history questions on real events.
-The questions must be factual, answerable, and clearly distinct.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+The questions must be factual, answerable, and clearly distinct. Seek variety across eras, competitions, and types of events — football history spans 150+ years and hundreds of countries; avoid always returning to the same iconic moments.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 CRITICAL: Do NOT mention the correct_answer anywhere in question_text. The question must not give away the answer.
 Return ONLY a valid JSON object:
 {

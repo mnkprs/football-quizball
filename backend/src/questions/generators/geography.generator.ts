@@ -38,6 +38,7 @@ export class GeographyGenerator extends BaseGenerator {
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `As a renowned football geographer, craft a realistic football-related geography question.
       VARY the question type: use cities, stadiums, nationalities, confederations, club locations — Topics: cities and their clubs, stadium locations, player nationalities, FIFA/UEFA confederations, host nations, club bases.
+      Draw from the full breadth of world football geography — not just the most-discussed leagues or nations. Consider clubs and players from all confederations.
       ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
       Return ONLY a valid JSON object with these exact fields:
       {

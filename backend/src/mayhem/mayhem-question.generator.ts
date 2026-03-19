@@ -4,6 +4,68 @@ import { GeneratedQuestion } from '../questions/question.types';
 
 const MAYHEM_BATCH_SIZE = 10;
 
+/**
+ * Era anchors — rotating across these ensures consecutive mayhem passes cover different history.
+ */
+const MAYHEM_ERA_SEEDS = [
+  '1950s and 1960s football (pre-Pele era records, early World Cups)',
+  '1970s football (World Cups, European Cups, continental champions)',
+  '1980s football (records, transfers, club history)',
+  '1990s football (World Cups, Champions League era, record transfers)',
+  '2000s football (early 2000s records, transfers, World Cups 2002/2006)',
+  '2010s football (2010-2019 era, obscure records and stats)',
+  'all-time historical records (goals, caps, trophies across any era)',
+] as const;
+
+/**
+ * Regional/continental anchors — so each pass explores a different part of world football.
+ */
+const MAYHEM_REGION_SEEDS = [
+  'African football (CAF, AFCON records, African clubs, African players in European leagues)',
+  'Asian and Oceanian football (AFC, OFC, J-League records, South Korean football, Asian Cup)',
+  'South American football (CONMEBOL history, Libertadores records, Copa América obscure facts)',
+  'CONCACAF football (Mexican league history, Central American and Caribbean football, Gold Cup)',
+  'Eastern European football (Polish, Romanian, Ukrainian, Bulgarian, Czech, Slovak league history)',
+  'Nordic and Balkan football (Scandinavian leagues, Balkan cups, lesser-known European nations)',
+  'non-top-5 European leagues (Scottish, Turkish, Greek, Portuguese, Dutch, Belgian league history)',
+] as const;
+
+/**
+ * Stat/topic type anchors — diversifies the TYPE of question within each batch.
+ */
+const MAYHEM_TOPIC_SEEDS = [
+  'exact transfer fees, loan deals, and record signings for specific clubs or seasons',
+  'international caps, debut ages, and retirement ages for players from specific nations',
+  'domestic cup records: most wins, top scorers, consecutive finals appearances',
+  'red cards, suspensions, and disciplinary records in tournaments or seasons',
+  'goalkeeping records: clean sheets, saves, penalty saves in specific competitions',
+  'own goals, penalty misses, and famous errors in high-stakes matches',
+  'managerial records: youngest, oldest, shortest tenures, most trophies in a single league',
+  'stadium capacities, attendances, and record crowd figures at specific grounds',
+] as const;
+
+function pickRandom<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/**
+ * Builds a random diversity anchor for a mayhem batch.
+ * By randomising era, region, and topic type, consecutive mayhem seed runs
+ * diverge across different parts of football knowledge instead of converging
+ * on the same "obscure records" territory.
+ */
+function buildMayhemDiversityAnchor(): string {
+  const era = pickRandom(MAYHEM_ERA_SEEDS);
+  const region = pickRandom(MAYHEM_REGION_SEEDS);
+  const topic = pickRandom(MAYHEM_TOPIC_SEEDS);
+  return `
+DIVERSITY ANCHOR FOR THIS BATCH (mandatory — use to spread questions across different territory):
+- Era focus: ${era}
+- Regional focus: ${region}
+- Topic/stat focus: ${topic}
+Distribute questions across ALL THREE anchors. Do NOT put more than 3 questions in any single anchor. Mix era, region, and topic combinations across the ${MAYHEM_BATCH_SIZE} questions so this batch covers different territory from a previous run.`;
+}
+
 @Injectable()
 export class MayhemQuestionGenerator {
   private readonly logger = new Logger(MayhemQuestionGenerator.name);
@@ -11,6 +73,8 @@ export class MayhemQuestionGenerator {
   constructor(private llmService: LlmService) {}
 
   async generateBatch(): Promise<GeneratedQuestion[]> {
+    const diversityAnchor = buildMayhemDiversityAnchor();
+
     const systemPrompt = `You are an elite football trivia expert specializing in EXTREMELY hard, obscure football knowledge from around the world.
 
 Generate ${MAYHEM_BATCH_SIZE} multiple-choice football trivia questions that are genuinely difficult — designed to challenge even hardcore football fans.
@@ -23,7 +87,7 @@ REQUIREMENTS:
 - The correct answer must be SHORT: 1-5 words (exact number, name, year, club, country).
 - Provide exactly 3 wrong choices: plausible but incorrect, same type/format as correct answer (name→name, year→year, number→number). Make them deceptive — similar enough to confuse.
 - No 50/50 hint needed.
-
+${diversityAnchor}
 Return ONLY a valid JSON object:
 {
   "questions": [
@@ -37,7 +101,7 @@ Return ONLY a valid JSON object:
   ]
 }`;
 
-    const userPrompt = `Generate ${MAYHEM_BATCH_SIZE} extremely hard, obscure football trivia questions with multiple choice answers. Return JSON only.`;
+    const userPrompt = `Generate ${MAYHEM_BATCH_SIZE} extremely hard, obscure football trivia questions with multiple choice answers. Follow the DIVERSITY ANCHOR above to distribute questions across different eras, regions, and topics. Return JSON only.`;
 
     try {
       const result = await this.llmService.generateStructuredJson<{

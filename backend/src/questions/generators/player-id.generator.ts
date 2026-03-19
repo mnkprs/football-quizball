@@ -11,6 +11,7 @@ import {
   getRelativityConstraint,
   getLeagueFameGuidanceForBatch,
   getFactualAccuracyInstruction,
+  getSquadPlayerInstruction,
 } from '../diversity-hints';
 import { BaseGenerator, GeneratorOptions, GeneratorBatchOptions } from './base-generator';
 
@@ -47,7 +48,7 @@ export class PlayerIdGenerator extends BaseGenerator {
 
   async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
-Pick any interesting footballer — legendary, retired, or current, from any era or league.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+Pick a professional footballer who had a real career but is NOT a universally famous superstar — think squad players, backup goalkeepers, journeymen, cult heroes, dependable pros. Any era, any well-known league.${getSquadPlayerInstruction()}${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with these exact fields:
 {
   "player_name": "Full Name",
@@ -82,7 +83,8 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
 
   async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
-    const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
+    const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.
+Each player must be a real professional footballer who is NOT a universally famous superstar — target squad players, journeymen, backup roles, cult heroes at specific clubs. Any well-known league or era.${getSquadPlayerInstruction()}${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each question must include:
 {
   "player_name": "Full Name",
