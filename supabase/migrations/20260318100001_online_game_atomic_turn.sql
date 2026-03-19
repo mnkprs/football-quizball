@@ -18,7 +18,7 @@ BEGIN
   UPDATE online_games
   SET
     board_state       = p_board_state,
-    player_scores     = p_player_scores,
+    player_scores     = to_jsonb(p_player_scores),
     player_meta       = p_player_meta,
     current_player_id = p_new_player_id,
     status            = p_new_status,
