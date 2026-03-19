@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Provider } from '@nestjs/common';
 import { MayhemService } from './mayhem.service';
 import { MayhemQuestionGenerator } from './mayhem-question.generator';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -44,7 +45,7 @@ function makeQuestion(text = 'Q?', answer = 'A') {
 async function buildModule(
   supabase: object,
   generator: object,
-  extraProviders: object[] = [],
+  extraProviders: Provider[] = [],
 ): Promise<TestingModule> {
   return Test.createTestingModule({
     providers: [

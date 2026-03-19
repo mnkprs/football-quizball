@@ -207,7 +207,6 @@ export class QuestionPoolService {
     return results;
   }
 
-  /**
   async cleanupPool(): Promise<{ deletedInvalid: number; deletedDuplicates: number }> {
     const { data, error } = await this.supabaseService.client.rpc('cleanup_question_pool');
     if (error) {
