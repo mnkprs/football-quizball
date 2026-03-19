@@ -13,7 +13,7 @@
   }
   @if (sectionLabel()) {
     <div class="mode-card__section">
-      <span class="mode-card__section-icon material-icons">{{ icon() }}</span>
+      <span class="mode-card__section-icon" [ngClass]="iconClass()">{{ icon() }}</span>
       <span class="mode-card__section-text">{{ sectionLabel() }}</span>
     </div>
     <h3 class="mode-card__title">{{ title() }}</h3>
@@ -25,9 +25,10 @@
         [class.mode-card__icon-wrap--blue]="iconBgColor() === 'blue'"
         [class.mode-card__icon-wrap--lime]="iconBgColor() === 'lime'"
         [class.mode-card__icon-wrap--orange]="iconBgColor() === 'orange'"
+        [class.mode-card__icon-wrap--red]="iconBgColor() === 'red'"
         [class.mode-card__icon-wrap--none]="!iconBgColor()"
       >
-        <span class="material-icons mode-card__icon">{{ icon() }}</span>
+        <span class="mode-card__icon" [ngClass]="iconClass()">{{ icon() }}</span>
       </span>
       <div class="mode-card__title-row">
         <h3 class="mode-card__title">{{ title() }}</h3>
@@ -50,5 +51,10 @@
   }
   @if (actionLabel() && variant() === 'primary') {
     <span class="mode-card__cta mode-card__cta--pill">{{ actionLabel() }}</span>
+  }
+  @if (actionLabel() && variant() === 'accent') {
+    <div class="mode-card__cta mode-card__cta--link">
+      {{ actionLabel() }} <span class="material-icons">arrow_forward</span>
+    </div>
   }
 </app-mode-card-container>

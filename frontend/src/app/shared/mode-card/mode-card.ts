@@ -2,19 +2,21 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { MatIconModule } from '@angular/material/icon';
 import { BadgeComponent } from '../badge/badge';
 import { ModeCardContainerComponent } from '../mode-card-container/mode-card-container';
+import { NgClass } from '@angular/common';
 
 export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
 @Component({
   selector: 'app-mode-card',
   standalone: true,
-  imports: [MatIconModule, BadgeComponent, ModeCardContainerComponent],
+  imports: [MatIconModule, BadgeComponent, ModeCardContainerComponent, NgClass],
   templateUrl: './mode-card.html',
   styleUrl: './mode-card.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModeCardComponent {
   icon = input.required<string>();
+  iconClass = input<string>('material-icons');
   title = input.required<string>();
   hint = input.required<string>();
   badge = input<string>();
@@ -22,7 +24,7 @@ export class ModeCardComponent {
   sectionLabel = input<string>();
   backgroundIcon = input<string>();
   backgroundImage = input<string>();
-  iconBgColor = input<'gold' | 'blue' | 'lime' | 'orange'>();
+  iconBgColor = input<'gold' | 'blue' | 'lime' | 'orange' |  'red'>();
   footerText = input<string>();
   variant = input<ModeCardVariant>('outline');
   actionLabel = input<string>();

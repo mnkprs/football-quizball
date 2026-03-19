@@ -84,14 +84,16 @@
         (cardClick)="goMayhem()"
       />
       <app-mode-card
-        icon="sports_kabaddi"
+        icon="swords"
+        iconClass="material-symbols-outlined"
         iconBgColor="red"
         title="Duel"
-        hint="1v1 · Type answers · First to 5 wins"
-        badge="H2H"
+        hint="1v1 High-Stakes Face-off • Winner takes all"
+        badge="1V1"
         badgeColor="red"
-        backgroundImage="/duel-mode.png"
+        backgroundImage="/duel_mode.png"
         variant="accent"
+        actionLabel="Challenge Now"
         (cardClick)="goDuel()"
       />
       @if (auth.isLoggedIn()) {

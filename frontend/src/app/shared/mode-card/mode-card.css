@@ -79,6 +79,10 @@
   background: #ff6b2b;
 }
 
+.mode-card__icon-wrap--red {
+  background: #e53935;
+}
+
 .mode-card__icon-wrap--none {
   background: transparent;
 }
@@ -197,6 +201,18 @@
   border-radius: 0.75rem;
   border: none;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+}
+
+.mode-card__cta--link {
+  color: #ffffff;
+  opacity: 0.92;
+  margin-top: 0.875rem;
+  font-size: 0.8125rem;
+}
+
+.mode-card__cta--link .material-icons {
+  font-size: 1rem;
+  vertical-align: middle;
 }
 
 .mode-card__cta .material-icons {
