@@ -72,7 +72,17 @@
       "Bash(ls /Users/instashop/Projects/football-quizball/backend/tsconfig*.json)",
       "Bash(ssh:*)",
       "Bash(grep:*)",
-      "Bash(for range:*)"
+      "Bash(for range:*)",
+      "Bash(node -e \"\nconst { CATEGORY_FIXED_DIFFICULTY, CATEGORY_DIFFICULTY_SLOTS } = require\\('./dist/questions/config/category.config'\\);\nconsole.log\\('FIXED:', JSON.stringify\\(CATEGORY_FIXED_DIFFICULTY\\)\\);\nconsole.log\\('SLOTS:', JSON.stringify\\(CATEGORY_DIFFICULTY_SLOTS\\)\\);\n\" 2>/dev/null || node --require ts-node/register -e \"\nimport { CATEGORY_FIXED_DIFFICULTY, CATEGORY_DIFFICULTY_SLOTS } from './src/questions/config/category.config';\n\" 2>&1 | head -5)",
+      "Bash(find /Users/instashop/Projects -name \"*.sql\" -type f -exec grep -l \"question_pool\" {} \\\\; 2>/dev/null | xargs grep -l \"CREATE TABLE\" | head -5)",
+      "Bash(/tmp/extract_table_info.txt:*)",
+      "Read(//tmp/**)",
+      "Bash(find /Users/instashop/Projects/football-quizball/supabase/migrations -name \"*.sql\" -exec grep -l \"question_pool\" {} \\\\; | head -5)",
+      "Bash(ls -la /Users/instashop/Projects/football-quizball/supabase/migrations/*blitz* | head -10)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "mcp__plugin_claude-mem_mcp-search__smart_outline",
+      "Read(//Users/instashop/Projects/football-quizball/frontend/**)"
     ]
   },
   "enableAllProjectMcpServers": true,

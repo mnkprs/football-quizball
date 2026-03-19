@@ -24,6 +24,7 @@ import {
   SEED_PASS_DELAY_MS,
   INTER_DIFFICULTY_THROTTLE_MS,
   DUPLICATE_RETRY_ATTEMPTS,
+  INTEGRITY_INTER_CALL_DELAY_MS,
 } from './config/pool.config';
 import { RAW_THRESHOLD_EASY, RAW_THRESHOLD_MEDIUM } from './config/difficulty-scoring.config';
 import { GENERATION_VERSION } from './config/generation-version.config';
@@ -510,6 +511,7 @@ export class QuestionPoolService {
 
   @Cron('*/15 * * * *')
   async scheduledRefill(): Promise<void> {
+    if (process.env.DISABLE_POOL_CRON === '1') return;
     this.logger.log('[cron] Proactive pool refill check');
     await this.refillIfNeeded();
   }
@@ -521,6 +523,7 @@ export class QuestionPoolService {
    */
   @Cron('0 3 * * 0')
   async reverifyActiveCareerQuestions(): Promise<void> {
+    if (process.env.DISABLE_POOL_CRON === '1') return;
     if (!this.questionIntegrity.isEnabled) return;
 
     this.logger.log('[cron] Re-verifying active-career PLAYER_ID questions');
@@ -809,51 +812,61 @@ export class QuestionPoolService {
     return semanticFiltered.map((q) => q.question_text);
   }
 
-  /** Filters questions by factual integrity (LLM verification). Applies corrections when answer is wrong but question is valid. */
+  /**
+   * Filters questions by factual integrity (LLM verification). Applies corrections when answer
+   * is wrong but question is valid. Processes sequentially to avoid concurrent Gemini calls
+   * that trigger 429 rate-limit errors.
+   */
   private async filterByIntegrity(questions: GeneratedQuestion[]): Promise<GeneratedQuestion[]> {
     if (!this.questionIntegrity.isEnabled || questions.length === 0) return questions;
 
-    const results = await Promise.all(
-      questions.map(async (q) => {
-        const vr = await this.questionIntegrity.verify(q);
-        return { q, ...vr };
-      }),
-    );
+    const passed: GeneratedQuestion[] = [];
+    const rejectedReasons: string[] = [];
 
-    const passed = results.filter((r) => r.valid).map((r) => {
-      const { q, correctedAnswer, correctedTop5, correctedQuestionText, correctedExplanation, correctedMeta } = r;
-      const baseMeta = correctedMeta && Object.keys(correctedMeta).length > 0 ? { ...q.meta, ...correctedMeta } : q.meta;
-      const finalMeta = correctedTop5 && q.category === 'TOP_5' ? { ...baseMeta, top5: correctedTop5 } : baseMeta;
-      const top5Desc = correctedTop5 ? correctedTop5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ') : null;
-      const hasCorrection =
-        correctedAnswer || correctedTop5 || correctedQuestionText || correctedExplanation || correctedMeta;
+    for (let idx = 0; idx < questions.length; idx++) {
+      const q = questions[idx];
+      const vr = await this.questionIntegrity.verify(q);
 
-      if (!hasCorrection) return q;
+      if (!vr.valid) {
+        rejectedReasons.push(vr.reason ?? 'unknown');
+      } else {
+        const { correctedAnswer, correctedTop5, correctedQuestionText, correctedExplanation, correctedMeta } = vr;
+        const baseMeta = correctedMeta && Object.keys(correctedMeta).length > 0 ? { ...q.meta, ...correctedMeta } : q.meta;
+        const finalMeta = correctedTop5 && q.category === 'TOP_5' ? { ...baseMeta, top5: correctedTop5 } : baseMeta;
+        const top5Desc = correctedTop5 ? correctedTop5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ') : null;
+        const hasCorrection = correctedAnswer || correctedTop5 || correctedQuestionText || correctedExplanation || correctedMeta;
 
-      let explanation = q.explanation;
-      if (correctedExplanation) {
-        explanation = correctedExplanation;
-      } else if (top5Desc) {
-        explanation = q.explanation?.replace(/^The answers were: .+$/s, `The answers were: ${top5Desc}`) ?? `The answers were: ${top5Desc}`;
+        if (!hasCorrection) {
+          passed.push(q);
+        } else {
+          let explanation = q.explanation;
+          if (correctedExplanation) {
+            explanation = correctedExplanation;
+          } else if (top5Desc) {
+            explanation = q.explanation?.replace(/^The answers were: .+$/s, `The answers were: ${top5Desc}`) ?? `The answers were: ${top5Desc}`;
+          }
+          const correctAnswer =
+            correctedAnswer ?? (correctedTop5 && q.category === 'TOP_5' ? correctedTop5.map((e) => e.name).join(', ') : undefined);
+          const hasMetaChange =
+            (correctedMeta && Object.keys(correctedMeta).length > 0) || (correctedTop5 && q.category === 'TOP_5');
+          passed.push({
+            ...q,
+            ...(correctAnswer && { correct_answer: correctAnswer }),
+            ...(correctedQuestionText && { question_text: correctedQuestionText }),
+            ...(explanation !== q.explanation && { explanation }),
+            ...(hasMetaChange && { meta: finalMeta }),
+          });
+        }
       }
 
-      const correctAnswer =
-        correctedAnswer ?? (correctedTop5 && q.category === 'TOP_5' ? correctedTop5.map((e) => e.name).join(', ') : undefined);
-      const hasMetaChange =
-        (correctedMeta && Object.keys(correctedMeta).length > 0) || (correctedTop5 && q.category === 'TOP_5');
-      return {
-        ...q,
-        ...(correctAnswer && { correct_answer: correctAnswer }),
-        ...(correctedQuestionText && { question_text: correctedQuestionText }),
-        ...(explanation !== q.explanation && { explanation }),
-        ...(hasMetaChange && { meta: finalMeta }),
-      };
-    });
-    const rejected = results.filter((r) => !r.valid);
-    if (rejected.length > 0) {
-      this.logger.log(
-        `[fillSlot] Integrity rejected ${rejected.length}: ${rejected.map((r) => r.reason).join('; ')}`,
-      );
+      // Throttle between sequential Gemini integrity calls to avoid 429s.
+      if (idx < questions.length - 1) {
+        await new Promise((r) => setTimeout(r, INTEGRITY_INTER_CALL_DELAY_MS));
+      }
+    }
+
+    if (rejectedReasons.length > 0) {
+      this.logger.log(`[fillSlot] Integrity rejected ${rejectedReasons.length}: ${rejectedReasons.join('; ')}`);
     }
     return passed;
   }

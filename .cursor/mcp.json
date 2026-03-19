@@ -22,8 +22,15 @@
         "stitch": {
             "url": "https://stitch.googleapis.com/mcp",
             "headers": {
-              "X-Goog-Api-Key": "AQ.Ab8RN6JpcRi7sLE7N_L08sS55HXMoufC4KfDNMcATKGb7iXSMg"
+                "X-Goog-Api-Key": "AQ.Ab8RN6JpcRi7sLE7N_L08sS55HXMoufC4KfDNMcATKGb7iXSMg"
             }
+        },
+        "railway": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@railway/mcp-server"
+            ]
         }
     }
   }

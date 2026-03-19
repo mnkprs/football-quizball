@@ -90,15 +90,22 @@ export class MayhemService {
       });
 
       if (this.questionIntegrity.isEnabled) {
-        const integrityResults = await Promise.all(
-          validQuestions.map(async (q) => ({ q, result: await this.questionIntegrity.verify(q) })),
-        );
-        validQuestions = integrityResults.filter((r) => r.result.valid).map((r) => r.q);
-        const rejected = integrityResults.filter((r) => !r.result.valid);
-        if (rejected.length > 0) {
-          skipped += rejected.length;
-          this.logger.log(`[ingestMayhem] Integrity rejected ${rejected.length} MAYHEM questions`);
+        const passed: typeof validQuestions = [];
+        let integrityRejected = 0;
+        for (const q of validQuestions) {
+          const result = await this.questionIntegrity.verify(q);
+          if (result.valid) {
+            passed.push(q);
+          } else {
+            integrityRejected++;
+            skipped++;
+          }
+          await new Promise((r) => setTimeout(r, 2000));
         }
+        if (integrityRejected > 0) {
+          this.logger.log(`[ingestMayhem] Integrity rejected ${integrityRejected} MAYHEM questions`);
+        }
+        validQuestions = passed;
       }
 
       const rows = validQuestions

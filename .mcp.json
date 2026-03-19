@@ -16,6 +16,13 @@
         "--header",
         "Authorization: Bearer ${V0_API_KEY}"
       ]
+    },
+    "railway": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@railway/mcp-server"
+      ]
     }
   }
 }

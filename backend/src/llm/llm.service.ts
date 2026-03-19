@@ -89,15 +89,13 @@ export class LlmService {
   private readonly googleTranslate: v2.Translate | null = null;
 
   constructor(private configService: ConfigService) {
-    const geminiKey = this.configService.get<string>('GEMINI_API_KEY');
     const vertexKey = this.configService.get<string>('VERTEX_AI_KEY');
     const vertexProject = this.configService.get<string>('GOOGLE_CLOUD_PROJECT');
     const vertexLocation = this.configService.get<string>('GOOGLE_CLOUD_LOCATION') ?? 'us-central1';
     const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
     const translateKey = this.configService.get<string>('GOOGLE_TRANSLATE_API_KEY');
 
-    // VERTEX_AI_KEY takes priority — works without ADC (no service account needed).
-    // Fall back to GOOGLE_CLOUD_PROJECT + ADC, then AI Studio with GEMINI_API_KEY.
+    // Vertex AI only. VERTEX_AI_KEY takes priority (no ADC needed); falls back to ADC via GOOGLE_CLOUD_PROJECT.
     if (vertexKey) {
       this.gemini = new GoogleGenAI({ vertexai: true, apiKey: vertexKey });
       this.logger.log(`LlmService — Gemini ready via Vertex AI (API key)`);
@@ -108,11 +106,8 @@ export class LlmService {
         location: vertexLocation,
       });
       this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation}) [ADC auth]`);
-    } else if (geminiKey) {
-      this.gemini = new GoogleGenAI({ apiKey: geminiKey });
-      this.logger.log(`LlmService — Gemini ready (AI Studio)`);
     } else {
-      this.logger.warn('Gemini disabled — set GOOGLE_CLOUD_PROJECT (+ optional VERTEX_AI_KEY) for Vertex AI, VERTEX_AI_KEY alone, or GEMINI_API_KEY for AI Studio');
+      this.logger.warn('Gemini disabled — set VERTEX_AI_KEY or GOOGLE_CLOUD_PROJECT to enable Vertex AI');
     }
 
     if (deepseekKey) {
@@ -186,13 +181,13 @@ export class LlmService {
   ): Promise<T> {
     if (useWebSearch) {
       if (!this.hasIntegrityLlm) {
-        throw new Error('Integrity requires Gemini — set GOOGLE_CLOUD_PROJECT (Vertex) or GEMINI_API_KEY (AI Studio)');
+        throw new Error('Integrity requires Gemini via Vertex AI — set VERTEX_AI_KEY or GOOGLE_CLOUD_PROJECT');
       }
       return this.callGeminiWithRetry<T>(userPrompt, systemPrompt, useWebSearch, maxRetries);
     }
 
     if (!this.hasGenerationLlm) {
-      throw new Error('No LLM configured — set DEEPSEEK_API_KEY or GEMINI_API_KEY');
+      throw new Error('No LLM configured — set DEEPSEEK_API_KEY for generation and/or VERTEX_AI_KEY / GOOGLE_CLOUD_PROJECT for Vertex AI');
     }
 
     if (process.env.LOG_PROMPTS === '1' || process.env.LOG_PROMPTS === 'true') {
@@ -260,8 +255,9 @@ export class LlmService {
           this.logger.error(`[generateStructuredJson] Raw DeepSeek response:\n${rawResponse}`);
         }
         if (isRateLimitError(err) && attempt < maxRetries) {
-          this.logger.warn(`[generateStructuredJson] Rate limit — retrying in ${RATE_LIMIT_RETRY_MS / 1000}s`);
-          await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS));
+          const delay = RATE_LIMIT_RETRY_MS * attempt;
+          this.logger.warn(`[generateStructuredJson] Rate limit (attempt ${attempt}/${maxRetries}) — retrying in ${delay / 1000}s`);
+          await new Promise((r) => setTimeout(r, delay));
           continue;
         }
         if (isServiceUnavailableError(err) && attempt < maxRetries) {
@@ -307,8 +303,9 @@ export class LlmService {
           this.logger.error(`[generateStructuredJson] Raw Gemini response:\n${rawResponse}`);
         }
         if (isRateLimitError(err) && attempt < maxRetries) {
-          this.logger.warn(`[generateStructuredJson] Rate limit — retrying in ${RATE_LIMIT_RETRY_MS / 1000}s`);
-          await new Promise((r) => setTimeout(r, RATE_LIMIT_RETRY_MS));
+          const delay = RATE_LIMIT_RETRY_MS * attempt;
+          this.logger.warn(`[generateStructuredJson] Rate limit (attempt ${attempt}/${maxRetries}) — retrying in ${delay / 1000}s`);
+          await new Promise((r) => setTimeout(r, delay));
           continue;
         }
         if (isServiceUnavailableError(err) && attempt < maxRetries) {
@@ -329,24 +326,42 @@ export class LlmService {
     throw lastError || new Error('LLM generation failed after all retries');
   }
 
-  /** Embeds an array of texts using text-embedding-004. Returns parallel array of float vectors. */
+  /**
+   * Embeds an array of texts using text-embedding-004.
+   * Processed sequentially (not in parallel) to avoid 429 rate-limit errors.
+   * Returns a parallel array of float vectors; nulls indicate failed items.
+   */
   async embedTexts(texts: string[]): Promise<Array<number[] | null>> {
     if (!this.gemini || texts.length === 0) return texts.map(() => null);
-    return Promise.all(
-      texts.map(async (text) => {
-        try {
-          const response = await this.gemini!.models.embedContent({
-            model: 'text-embedding-004',
-            contents: text,
-            config: { taskType: 'SEMANTIC_SIMILARITY' },
-          });
-          return response.embeddings?.[0]?.values ?? null;
-        } catch (err) {
-          this.logger.warn(`[embedTexts] Failed for text snippet — ${(err as Error).message}`);
-          return null;
+    const results: Array<number[] | null> = [];
+    for (const text of texts) {
+      results.push(await this.embedSingleWithRetry(text));
+    }
+    return results;
+  }
+
+  /** Single embedding call with exponential backoff on 429. */
+  private async embedSingleWithRetry(text: string, maxRetries = 3): Promise<number[] | null> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await this.gemini!.models.embedContent({
+          model: 'text-embedding-004',
+          contents: text,
+          config: { taskType: 'SEMANTIC_SIMILARITY' },
+        });
+        return response.embeddings?.[0]?.values ?? null;
+      } catch (err) {
+        if (isRateLimitError(err) && attempt < maxRetries) {
+          const delay = RATE_LIMIT_RETRY_MS * attempt;
+          this.logger.warn(`[embedTexts] Rate limit (attempt ${attempt}/${maxRetries}) — retrying in ${delay / 1000}s`);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
         }
-      }),
-    );
+        this.logger.warn(`[embedTexts] Failed for text snippet — ${(err as Error).message}`);
+        return null;
+      }
+    }
+    return null;
   }
 
   /**
