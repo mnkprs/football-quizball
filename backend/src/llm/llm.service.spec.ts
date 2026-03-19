@@ -169,10 +169,13 @@ describe('LlmService — retry & backoff', () => {
     const mockCreate = jest.fn().mockRejectedValue(new Error('permanent failure'));
     injectMockDeepSeek(service, mockCreate);
 
-    const resultPromise = service.generateStructuredJson('sys', 'usr', 2);
+    // Wrap promise immediately to prevent unhandled rejection before assertion runs.
+    const assertion = expect(
+      service.generateStructuredJson('sys', 'usr', 2),
+    ).rejects.toThrow('permanent failure');
     await jest.advanceTimersByTimeAsync(60_000);
+    await assertion;
 
-    await expect(resultPromise).rejects.toThrow('permanent failure');
     expect(mockCreate).toHaveBeenCalledTimes(2);
   });
 
