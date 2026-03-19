@@ -96,21 +96,18 @@ export class LlmService {
     const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
     const translateKey = this.configService.get<string>('GOOGLE_TRANSLATE_API_KEY');
 
-    // Vertex AI when GOOGLE_CLOUD_PROJECT is set; else AI Studio with GEMINI_API_KEY
-    if (vertexProject) {
-      // Pass VERTEX_AI_KEY (or GEMINI_API_KEY as fallback) so Railway doesn't need ADC.
-      const authKey = vertexKey || geminiKey;
+    // VERTEX_AI_KEY takes priority — works without ADC (no service account needed).
+    // Fall back to GOOGLE_CLOUD_PROJECT + ADC, then AI Studio with GEMINI_API_KEY.
+    if (vertexKey) {
+      this.gemini = new GoogleGenAI({ vertexai: true, apiKey: vertexKey });
+      this.logger.log(`LlmService — Gemini ready via Vertex AI (API key)`);
+    } else if (vertexProject) {
       this.gemini = new GoogleGenAI({
         vertexai: true,
         project: vertexProject,
         location: vertexLocation,
-        ...(authKey ? { apiKey: authKey } : {}),
       });
-      this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation})${authKey ? ' [API key auth]' : ' [ADC auth]'}`);
-    } else if (vertexKey) {
-      // Vertex AI with API key only (no project — uses key-based auth)
-      this.gemini = new GoogleGenAI({ vertexai: true, apiKey: vertexKey });
-      this.logger.log(`LlmService — Gemini ready via Vertex AI (API key)`);
+      this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation}) [ADC auth]`);
     } else if (geminiKey) {
       this.gemini = new GoogleGenAI({ apiKey: geminiKey });
       this.logger.log(`LlmService — Gemini ready (AI Studio)`);
