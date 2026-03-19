@@ -318,6 +318,7 @@ export class QuestionPoolService {
     if (options.apply && failures.length > 0) {
       const ids = failures.map((f) => f.id);
       const BATCH_SIZE = 50;
+      const deleteErrors: string[] = [];
       for (let i = 0; i < ids.length; i += BATCH_SIZE) {
         const batch = ids.slice(i, i + BATCH_SIZE);
         const { error: delErr } = await this.supabaseService.client
@@ -326,12 +327,16 @@ export class QuestionPoolService {
           .in('id', batch);
         if (delErr) {
           this.logger.error(`[verifyPoolIntegrity] Delete error (batch ${i / BATCH_SIZE + 1}): ${delErr.message}`);
-          break;
+          deleteErrors.push(delErr.message);
+          continue;
         }
         deleted += batch.length;
       }
       if (deleted > 0) {
         this.logger.log(`[verifyPoolIntegrity] Deleted ${deleted} hallucinated questions`);
+      }
+      if (deleteErrors.length > 0) {
+        this.logger.warn(`[verifyPoolIntegrity] ${deleteErrors.length} delete batch(es) failed — some hallucinated questions may remain`);
       }
     }
 
@@ -425,12 +430,13 @@ export class QuestionPoolService {
     const { category, difficulty } = parseSlotKey(slotKey);
 
     const toAdd = Math.min(500, Math.max(1, count));
-    return this.withRefillLock(async () => {
+    const run = async () => {
       const key = `${category}/${difficulty}`;
       this.logger.log(`[seedSlot] ${key}: adding ${toAdd} questions (batch logic)`);
       const { added, questionIds } = await this.seedSlotPasses(category, difficulty, toAdd);
       return { slot: key, added, questions: questionIds };
-    });
+    };
+    return force ? run() : this.withRefillLock(run);
   }
 
   /**
@@ -443,7 +449,7 @@ export class QuestionPoolService {
     force = false,
   ): Promise<{ results: { slot: string; added: number }[]; sessionId: string | null; questionIds: string[] }> {
     const passes = Math.min(500, Math.max(1, count));
-    return this.withRefillLock(async () => {
+    const runSeedPool = async () => {
       const results: { slot: string; added: number }[] = [];
       const allQuestionIds: string[] = [];
       let completed = false;
@@ -474,7 +480,8 @@ export class QuestionPoolService {
         );
         return { results, sessionId, questionIds: allQuestionIds };
       }
-    });
+    };
+    return force ? runSeedPool() : this.withRefillLock(runSeedPool);
   }
 
   /** Persists a seed-pool session record for admin dashboard inspection. Returns session id if insert succeeded. */
@@ -978,12 +985,16 @@ export class QuestionPoolService {
     const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
     const questionIds: string[] = [];
     const existingKeys = await this.getExistingQuestionKeys(category);
-    const avoidQuestions = await this.getPoolSampleTexts(category);
     const uniqueDifficulties = [...new Set(CATEGORY_DIFFICULTY_SLOTS[category])] as Difficulty[];
 
     for (let pass = 0; pass < passes; pass += 1) {
+      // Refresh avoid list each pass so questions added in previous passes are excluded
+      const avoidQuestions = await this.getPoolSampleTexts(category);
       this.logger.log(`[seedPool] ${category} pass ${pass + 1}/${passes}`);
-      await Promise.all(uniqueDifficulties.map(async (difficulty) => {
+      // Sequential to avoid race conditions on shared existingKeys and addedTotals
+      for (const difficulty of uniqueDifficulties) {
+        // eslint-disable-next-line no-await-in-loop
+        await (async () => {
         let accepted: GeneratedQuestion[] = [];
         let attempt = 0;
 
@@ -1064,7 +1075,8 @@ export class QuestionPoolService {
         }
 
         await new Promise((resolve) => setTimeout(resolve, INTER_DIFFICULTY_THROTTLE_MS));
-      }));
+        })();
+      }
 
       if (pass + 1 < passes) {
         await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
@@ -1328,7 +1340,13 @@ export class QuestionPoolService {
     category: QuestionCategory,
   ): Promise<GeneratedQuestion[]> {
     const texts = candidates.map((q) => q.question_text);
-    const embeddings = await this.llmService.embedTexts(texts);
+    let embeddings: (number[] | null)[];
+    try {
+      embeddings = await this.llmService.embedTexts(texts);
+    } catch (err) {
+      this.logger.warn(`[semanticDedup] embedTexts failed — skipping semantic dedup: ${(err as Error).message}`);
+      return candidates;
+    }
 
     const results: GeneratedQuestion[] = [];
     for (let i = 0; i < candidates.length; i++) {

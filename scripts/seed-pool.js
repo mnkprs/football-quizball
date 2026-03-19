@@ -43,7 +43,7 @@ async function main() {
 
   if (data.questionIds?.length > 0) {
     console.log(`\nVerifying integrity of ${data.questionIds.length} generated questions...`);
-    const verifyRes = await fetch(`${baseUrl}/api/admin/verify-pool-integrity`, {
+    const verifyRes = await fetch(`${baseUrl}/api/admin/verify-pool-integrity?apply=true`, {
       method: 'POST',
       headers: headers(),
       body: JSON.stringify({ questionIds: data.questionIds }),
