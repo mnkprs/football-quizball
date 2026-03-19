@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, effect, OnDestroy } from '@angular
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
+import { GameQuestionComponent, QuestionData } from '../../shared/game-question/game-question';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { DonateModalService } from '../../core/donate-modal.service';
