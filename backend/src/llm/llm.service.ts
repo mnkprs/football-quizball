@@ -98,12 +98,15 @@ export class LlmService {
 
     // Vertex AI when GOOGLE_CLOUD_PROJECT is set; else AI Studio with GEMINI_API_KEY
     if (vertexProject) {
+      // Pass VERTEX_AI_KEY (or GEMINI_API_KEY as fallback) so Railway doesn't need ADC.
+      const authKey = vertexKey || geminiKey;
       this.gemini = new GoogleGenAI({
         vertexai: true,
         project: vertexProject,
         location: vertexLocation,
+        ...(authKey ? { apiKey: authKey } : {}),
       });
-      this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation})`);
+      this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation})${authKey ? ' [API key auth]' : ' [ADC auth]'}`);
     } else if (vertexKey) {
       // Vertex AI with API key only (no project — uses key-based auth)
       this.gemini = new GoogleGenAI({ vertexai: true, apiKey: vertexKey });
