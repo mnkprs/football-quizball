@@ -118,6 +118,8 @@ ${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${this
       throw new Error('Invalid LLM response: question_text leaks a top5 answer');
     }
 
+    const top5 = this.sortTop5ByStatValue(result.top5);
+
     const difficulty_factors: DifficultyFactors = {
       event_year: result.event_year ?? new Date().getFullYear(),
       competition: result.competition ?? 'Unknown',
@@ -134,14 +136,30 @@ ${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${this
       difficulty: 'EASY',
       points: 1,
       question_text: result.question_text,
-      correct_answer: result.top5.map((e) => e.name).join(', '),
+      correct_answer: top5.map((e) => e.name).join(', '),
       fifty_fifty_hint: null,
       fifty_fifty_applicable: false,
-      explanation: `The answers were: ${result.top5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ')}`,
+      explanation: `The answers were: ${top5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ')}`,
       source_url: typeof result.source_url === 'string' && result.source_url.trim() ? result.source_url.trim() : undefined,
       image_url: null,
-      meta: { top5: result.top5 },
+      meta: { top5 },
       difficulty_factors,
     };
+  }
+
+  /** Extracts the leading numeric value from a stat string (e.g. "3085 points" → 3085). */
+  private extractStatNumber(stat: string): number | null {
+    const match = stat.replace(/,/g, '').match(/^[\d]+(?:\.\d+)?/);
+    return match ? parseFloat(match[0]) : null;
+  }
+
+  /**
+   * Sorts top5 entries in descending order by their numeric stat value.
+   * If any entry lacks a numeric stat, the original LLM order is preserved.
+   */
+  private sortTop5ByStatValue(top5: Top5Entry[]): Top5Entry[] {
+    const numbers = top5.map((e) => this.extractStatNumber(e.stat));
+    if (numbers.some((n) => n === null)) return top5;
+    return [...top5].sort((a, b) => this.extractStatNumber(b.stat)! - this.extractStatNumber(a.stat)!);
   }
 }

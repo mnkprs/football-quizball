@@ -508,6 +508,46 @@ export class QuestionPoolService {
   }
 
   /**
+   * Weekly re-verification of PLAYER_ID questions whose last career entry is still "Present".
+   * These go stale when players transfer. Runs every Sunday at 03:00.
+   * No-op when ENABLE_INTEGRITY_VERIFICATION is not set.
+   */
+  @Cron('0 3 * * 0')
+  async reverifyActiveCareerQuestions(): Promise<void> {
+    if (!this.questionIntegrity.isEnabled) return;
+
+    this.logger.log('[cron] Re-verifying active-career PLAYER_ID questions');
+
+    const { data: rows, error } = await this.supabaseService.client
+      .from('question_pool')
+      .select('id, category, difficulty, question')
+      .eq('category', 'PLAYER_ID');
+
+    if (error) {
+      this.logger.error(`[cron] reverifyActiveCareer fetch error: ${error.message}`);
+      return;
+    }
+
+    // Only re-check questions where the last career entry is still "Present" — these can go stale
+    const activeRows = (rows ?? []).filter((row) => {
+      const career = row.question?.meta?.career as Array<{ to: string }> | undefined;
+      return Array.isArray(career) && career.length > 0 && career[career.length - 1]?.to === 'Present';
+    });
+
+    if (activeRows.length === 0) {
+      this.logger.log('[cron] reverifyActiveCareer: no active-career questions found');
+      return;
+    }
+
+    this.logger.log(`[cron] reverifyActiveCareer: checking ${activeRows.length} questions`);
+    const ids = activeRows.map((r) => r.id);
+    const result = await this.verifyPoolIntegrity({ questionIds: ids, apply: true });
+    this.logger.log(
+      `[cron] reverifyActiveCareer done — scanned: ${result.scanned}, fixed: ${result.fixed}, deleted: ${result.deleted}`,
+    );
+  }
+
+  /**
    * Refills pool slots that are below target. Runs in background, no-op if already refilling.
    */
   async refillIfNeeded(): Promise<void> {

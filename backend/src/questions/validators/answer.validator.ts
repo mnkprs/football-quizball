@@ -102,14 +102,25 @@ export class AnswerValidator {
 
     if (normalCorrect === normalSubmitted) return true;
 
-    // Accept last name only
     const correctParts = normalCorrect.split(' ');
     const lastName = correctParts[correctParts.length - 1];
+    const firstName = correctParts[0];
+
+    // Accept last name only
     if (lastName === normalSubmitted) return true;
 
     // Accept first name only (for mono-name players like "Ronaldinho", "Mbappe")
-    const firstName = correctParts[0];
     if (firstName === normalSubmitted && firstName.length > 3) return true;
+
+    // Accept compound last name (e.g. "ten hag" for "Erik ten Hag", "de bruyne" for "Kevin de Bruyne")
+    if (correctParts.length >= 3) {
+      for (let start = 1; start < correctParts.length; start++) {
+        const suffix = correctParts.slice(start).join(' ');
+        if (suffix.length < 4) continue;
+        if (suffix === normalSubmitted) return true;
+        if (Levenshtein.get(suffix, normalSubmitted) <= 1 && suffix.length >= 6) return true;
+      }
+    }
 
     // Fuzzy on the full name
     const distance = Levenshtein.get(normalCorrect, normalSubmitted);
@@ -218,6 +229,18 @@ export class AnswerValidator {
 
       // Accept a safe multi-word prefix like "sir alex" for "Sir Alex Ferguson"
       if (this.isMultiWordPrefixMatch(normalFull, normalSubmitted)) return i;
+
+      // Accept compound last name (e.g. "ten hag" for "Erik ten Hag")
+      if (parts.length >= 3) {
+        let compoundMatch = false;
+        for (let start = 1; start < parts.length; start++) {
+          const suffix = parts.slice(start).join(' ');
+          if (suffix.length < 4) continue;
+          if (suffix === normalSubmitted) { compoundMatch = true; break; }
+          if (Levenshtein.get(suffix, normalSubmitted) <= 1 && suffix.length >= 6) { compoundMatch = true; break; }
+        }
+        if (compoundMatch) return i;
+      }
 
       // Fuzzy on full name
       const dist = Levenshtein.get(normalFull, normalSubmitted);

@@ -72,13 +72,14 @@ MOST IMPORTANT — When the QUESTION is valid (asks about something real) but so
   → correctedExplanation: when the explanation has wrong facts (e.g. wrong score, wrong teams, wrong context).
   → correctedMeta: partial object with only fields to fix. Examples:
     - GUESS_SCORE: when the score or match details are wrong, include ALL of: { "home_team": "...", "away_team": "...", "home_score": N, "away_score": N, "date": "...", "competition": "..." }. The correct_answer (X-Y format) must match home_score-away_score. ALWAYS also provide correctedQuestionText and correctedExplanation when fixing a GUESS_SCORE — they typically contain the wrong score/teams and must be updated to match the corrected data.
-    - PLAYER_ID: { "career": [{ "club": "...", "from": "YYYY", "to": "YYYY" }] } when career path is wrong
+    - PLAYER_ID: ALWAYS search Transfermarkt or Wikipedia for the player's CURRENT club and full career. The question generator may have stale training data — web search is the source of truth. If the career array is outdated (e.g. last entry shows "Real Madrid" but player now plays for "AC Milan") OR incomplete (missing early clubs, wrong dates), return { "career": [{ "club": "...", "from": "YYYY", "to": "YYYY or Present" }] } with the complete, up-to-date career.
     - HIGHER_OR_LOWER: { "player": "...", "real_value": N, "season": "..." } when stat/player is wrong
   → Do NOT reject (valid: false) when only the answer or context is wrong. Fix it instead.
 
 REJECT (valid: false) ONLY when the QUESTION itself is invalid:
 - The question is hallucinated: non-existent event, made-up match, wrong context.
-- For PLAYER_ID: the career path is incomplete (missing early clubs) or has wrong clubs/dates. Search for the player's full career and verify each club and date. Reject if any club is missing or dates are wrong.
+- For PLAYER_ID: the career has fundamentally wrong/hallucinated clubs (clubs the player never played for, or the player doesn't exist).
+  IMPORTANT: Do NOT reject for an outdated career (e.g. player transferred since the question was generated). Instead return correctedMeta with the complete, up-to-date career array including any new clubs.
 Set "reason" to explain.
 
 ACCEPT (valid: true, no correction) when both question and answer are correct.`;
@@ -207,7 +208,8 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
 
     if (question.category === 'PLAYER_ID' && question.meta?.career) {
       const career = question.meta.career as Array<{ club: string; from: string; to: string }>;
-      parts.push(`Career path (must be complete from first club): ${career.map((c) => `${c.club} (${c.from}–${c.to})`).join(' → ')}`);
+      parts.push(`Career path as stored (may be outdated due to stale LLM training data — verify via web search): ${career.map((c) => `${c.club} (${c.from}–${c.to})`).join(' → ')}`);
+      parts.push(`IMPORTANT: Search Transfermarkt/Wikipedia for "${question.correct_answer}" right now to check their CURRENT club. If the stored career is missing clubs or has wrong end dates, return correctedMeta with the full up-to-date career.`);
       if (question.source_url) parts.push(`Source URL: ${question.source_url}`);
     }
 
