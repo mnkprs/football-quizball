@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsIn, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsIn, MaxLength, IsInt, Min } from 'class-validator';
 import { GeneratedQuestion } from '../questions/question.types';
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
@@ -22,6 +22,8 @@ export class DuelAnswerDto {
   answer: string;
 
   /** Must match the game's current_question_index — prevents stale submissions */
+  @IsInt()
+  @Min(0)
   questionIndex: number;
 }
 
