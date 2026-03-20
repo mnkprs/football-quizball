@@ -1,34 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import NodeCache from 'node-cache';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class CacheService {
-  private cache: NodeCache;
+  constructor(private redisService: RedisService) {}
 
-  constructor() {
-    this.cache = new NodeCache({ stdTTL: 3600, checkperiod: 600 });
+  async get<T>(key: string): Promise<T | undefined> {
+    return this.redisService.get<T>(key);
   }
 
-  get<T>(key: string): T | undefined {
-    return this.cache.get<T>(key);
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    return this.redisService.set(key, value, ttl);
   }
 
-  set<T>(key: string, value: T, ttl?: number): boolean {
-    if (ttl !== undefined) {
-      return this.cache.set(key, value, ttl);
-    }
-    return this.cache.set(key, value);
+  async del(key: string): Promise<void> {
+    return this.redisService.del(key);
   }
 
-  del(key: string): number {
-    return this.cache.del(key);
+  async has(key: string): Promise<boolean> {
+    return this.redisService.has(key);
   }
 
-  has(key: string): boolean {
-    return this.cache.has(key);
-  }
-
-  flush(): void {
-    this.cache.flushAll();
+  async flush(): Promise<void> {
+    return this.redisService.flush();
   }
 }

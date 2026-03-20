@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { RedisService } from '../redis/redis.service';
+
+const RANK_TTL = 60;        // 60s — stale rank is fine
+const LEADERBOARD_TTL = 60; // 60s — leaderboard refreshes every minute
 
 @Injectable()
 export class SupabaseService {
   readonly client: SupabaseClient;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private redisService: RedisService,
+  ) {
     const url = this.configService.get<string>('SUPABASE_URL')!;
     const key = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')!;
     this.client = createClient(url, key, {
@@ -44,21 +51,27 @@ export class SupabaseService {
     return Math.max(profile.elo, maxFromHistory);
   }
 
-  /** Returns 1-based rank by ELO (1 = highest). Counts both profiles and dummy_users. */
+  /** Returns 1-based rank by ELO (1 = highest). Cached 60s per user. */
   async getSoloRank(userId: string): Promise<number | null> {
+    const cacheKey = `rank:solo:${userId}`;
+    const cached = await this.redisService.get<number>(cacheKey);
+    if (cached !== undefined) return cached;
+
     const profile = await this.getProfile(userId);
     if (!profile) return null;
     const [profilesRes, dummiesRes] = await Promise.all([
       this.client.from('profiles').select('id', { count: 'exact', head: true }).gt('elo', profile.elo),
       this.client.from('dummy_users').select('id', { count: 'exact', head: true }).gt('elo', profile.elo),
     ]);
-    const pCount = profilesRes.count ?? 0;
-    const dCount = dummiesRes.count ?? 0;
-    return pCount + dCount + 1;
+    const rank = (profilesRes.count ?? 0) + (dummiesRes.count ?? 0) + 1;
+    await this.redisService.set(cacheKey, rank, RANK_TTL);
+    return rank;
   }
 
   async updateElo(userId: string, newElo: number): Promise<void> {
     await this.client.from('profiles').update({ elo: newElo }).eq('id', userId);
+    // Invalidate cached rank so next read is fresh
+    await this.redisService.del(`rank:solo:${userId}`);
   }
 
   async insertEloHistory(entry: {
@@ -74,15 +87,22 @@ export class SupabaseService {
   }
 
   async getLeaderboard(limit: number): Promise<Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>> {
+    const cacheKey = `leaderboard:solo:${limit}`;
+    const cached = await this.redisService.get<Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>>(cacheKey);
+    if (cached) return cached;
+
+    // Fetch top-N from each table (DB-sorted), then merge and re-rank
+    const cols = 'id, username, elo, games_played, questions_answered, correct_answers';
     const [profilesRes, dummyRes] = await Promise.all([
-      this.client.from('profiles').select('id, username, elo, games_played, questions_answered, correct_answers'),
-      this.client.from('dummy_users').select('id, username, elo, games_played, questions_answered, correct_answers'),
+      this.client.from('profiles').select(cols).order('elo', { ascending: false }).limit(limit),
+      this.client.from('dummy_users').select(cols).order('elo', { ascending: false }).limit(limit),
     ]);
-    const profiles = (profilesRes.data ?? []) as Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>;
-    const dummies = (dummyRes.data ?? []) as Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>;
-    const combined = [...profiles, ...dummies]
+    type Row = { id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number };
+    const combined = [...(profilesRes.data ?? []) as Row[], ...(dummyRes.data ?? []) as Row[]]
       .sort((a, b) => b.elo - a.elo)
       .slice(0, limit);
+
+    await this.redisService.set(cacheKey, combined, LEADERBOARD_TTL);
     return combined;
   }
 

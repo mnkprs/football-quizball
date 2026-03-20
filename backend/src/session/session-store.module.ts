@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { SessionStoreService } from './session-store.service';
-import { SupabaseModule } from '../supabase/supabase.module';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
-  imports: [SupabaseModule],
+  imports: [RedisModule],
   providers: [SessionStoreService],
   exports: [SessionStoreService],
 })

@@ -1,8 +1,9 @@
 import type {
   QuestionCategory,
-  QuestionLocale,
   Difficulty,
 } from '../../common/interfaces/question.interface';
+import { RELATIVE_CONTEXTS } from './diversity-relative.config';
+import { FAMOUS_PLAYERS_TO_AVOID } from './diversity-dimensions.config';
 import {
   DEFAULT_DIFFICULTY_RANGES,
   CATEGORY_DIFFICULTY_OVERRIDES,
@@ -30,9 +31,7 @@ function formatRanges(ranges: DifficultyScoreRanges): string {
  * GUESS_SCORE uses a softer version to reduce obscurity.
  */
 export function getAntiConvergenceInstruction(category?: string): string {
-  const avoidPlayers =
-    'Messi, Ronaldo, Pelé, Maradona, Zidane, Beckham, Ronaldinho, Neymar, Mbappé, Ibrahimović, ' +
-    'Thierry Henry, Rooney, Gerrard, Lampard, Xavi, Iniesta, Pirlo, Buffon, Casillas, Drogba';
+  const avoidPlayers = (FAMOUS_PLAYERS_TO_AVOID as readonly string[]).join(', ');
 
   if (category === 'GUESS_SCORE') {
     return `
@@ -86,22 +85,23 @@ QUESTION WRITING RULES (strictly enforced):
 
 /**
  * Batch relativity: questions share context type, not a common object.
+ * Includes per-category context hints from RELATIVE_CONTEXTS.
  */
 export function getRelativityConstraint(
   category: QuestionCategory,
   questionCount: number,
-  locale: QuestionLocale = 'en',
 ): string {
-  return [
-    `The ${questionCount} questions MUST share a common context type, not a common object.`,
-    'Relativity is about event type, setting, or situation. Do NOT anchor the batch around the same player, team, or league.',
-    'Vary the specific teams, leagues, players, or countries inside that shared context to create contrast.',
-  ]
-    .filter(Boolean)
-    .join(' ');
+  const contexts = RELATIVE_CONTEXTS[category];
+  const contextHint = contexts?.length
+    ? ` Shared context type should be one of: ${contexts.join(' / ')}.`
+    : '';
+  return (
+    `The ${questionCount} questions MUST share a common context type, not a common object.` +
+    ' Relativity is about event type, setting, or situation. Do NOT anchor the batch around the same player, team, or league.' +
+    ' Vary the specific teams, leagues, players, or countries inside that shared context to create contrast.' +
+    contextHint
+  );
 }
-
-const GREEK_LOCALE_HINT = 'For Greek audience, Greek Super League and Greek Cup are Tier 1 (same as Premier League, World Cup).';
 
 const BATCH_GUIDANCE_TEMPLATES: Partial<Record<QuestionCategory, string>> = {
   HISTORY:
@@ -160,7 +160,7 @@ DIFFICULTY CRITERIA (your scores drive raw difficulty; use them to hit target ba
 - specificity_score: 1 = easiest, 5+ = hardest. Use ${e.specificity_score[0]}-${e.specificity_score[1]} for EASY, ${m.specificity_score[0]}-${m.specificity_score[1]} for MEDIUM, ${h.specificity_score[0]}-${h.specificity_score[1]} for HARD.
 - combinational_thinking_score: 1 = easiest, 10 = hardest. Use ${eComb[0]}-${eComb[1]} for EASY, ${mComb[0]}-${mComb[1]} for MEDIUM, ${hComb[0]}+ for HARD.
 - event_year: Recent (last 5 years) = easier. Older = harder.
-- competition: Tier 1 (World Cup, Premier League, Champions League, Greek Super League, Greek Cup) = easier. Tier 2-3 = harder.
+- competition: Tier 1 (World Cup, Premier League, Champions League, La Liga, Serie A, Bundesliga) = easier. Tier 2-3 = harder.
 - answer_type: "team", "name", "country" tend easier; "score", "number", "year" tend harder.
 Target bands: EASY raw < ${RAW_THRESHOLD_EASY}, MEDIUM ${RAW_THRESHOLD_EASY}-${RAW_THRESHOLD_MEDIUM}, HARD > ${RAW_THRESHOLD_MEDIUM}. Prefer questions that require some football knowledge.`;
 }
@@ -179,12 +179,11 @@ function getTargetDifficultyOverride(category: QuestionCategory, targetDifficult
  */
 export function getLeagueFameGuidanceForBatch(
   category: QuestionCategory,
-  locale: QuestionLocale = 'en',
   targetDifficulty?: Difficulty,
 ): string {
   const override = getTargetDifficultyOverride(category, targetDifficulty);
   const guidance = override ?? buildLeagueFameGuidance(category);
-  const parts = [buildDifficultyCriteria().trim(), guidance, GREEK_LOCALE_HINT].filter(Boolean);
+  const parts = [buildDifficultyCriteria().trim(), guidance].filter(Boolean);
   return parts.join(' ');
 }
 

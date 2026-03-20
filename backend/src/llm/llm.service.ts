@@ -4,6 +4,8 @@ import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 import { v2 } from '@google-cloud/translate';
 import { jsonrepair } from 'jsonrepair';
+import { createHash } from 'crypto';
+import { RedisService } from '../redis/redis.service';
 
 /** Gemini model. Supports Google Search grounding for factual verification. */
 const GEMINI_MODEL = 'gemini-2.5-flash';
@@ -88,7 +90,10 @@ export class LlmService {
   private readonly deepseek: OpenAI | null = null;
   private readonly googleTranslate: v2.Translate | null = null;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private redisService: RedisService,
+  ) {
     const vertexKey = this.configService.get<string>('VERTEX_AI_KEY');
     const vertexProject = this.configService.get<string>('GOOGLE_CLOUD_PROJECT');
     const vertexLocation = this.configService.get<string>('GOOGLE_CLOUD_LOCATION') ?? 'us-central1';
@@ -439,12 +444,49 @@ export class LlmService {
   /**
    * Translates question strings to Greek. Uses Google Translate when configured, else Gemini.
    * Translates question_text, explanation, correct_answer, and wrong_choices when provided.
+   * Results are cached in Redis for 7 days to avoid redundant API calls for the same question.
    */
   async translateToGreek(
     strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
   ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
     if (strings.length === 0) return strings;
 
+    type TranslationItem = { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] };
+    const TRANSLATION_TTL = 7 * 24 * 3600; // 7 days
+
+    // Check cache for each item individually
+    const cacheKeys = strings.map((s) =>
+      `translation:el:${createHash('sha256').update(JSON.stringify(s)).digest('hex')}`,
+    );
+    const cachedResults: (TranslationItem | null)[] = await Promise.all(
+      cacheKeys.map((k) => this.redisService.get<TranslationItem>(k).then((v) => v ?? null)),
+    );
+
+    const uncachedIndices: number[] = [];
+    for (let i = 0; i < strings.length; i++) {
+      if (cachedResults[i] === null) uncachedIndices.push(i);
+    }
+
+    if (uncachedIndices.length > 0) {
+      const uncachedStrings = uncachedIndices.map((i) => strings[i]);
+      const translated = await this.translateStrings(uncachedStrings);
+      await Promise.all(
+        uncachedIndices.map((origIdx, j) =>
+          this.redisService.set(cacheKeys[origIdx], translated[j], TRANSLATION_TTL),
+        ),
+      );
+      for (let j = 0; j < uncachedIndices.length; j++) {
+        cachedResults[uncachedIndices[j]] = translated[j];
+      }
+    }
+
+    return cachedResults.map((r, i) => r ?? strings[i]);
+  }
+
+  /** Internal: calls the actual translation provider (Google Translate or LLM). */
+  private async translateStrings(
+    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
+  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
     if (this.googleTranslate) {
       return this.translateWithGoogle(strings);
     }

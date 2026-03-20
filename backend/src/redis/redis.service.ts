@@ -1,0 +1,64 @@
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Redis from 'ioredis';
+
+@Injectable()
+export class RedisService implements OnModuleDestroy {
+  private readonly logger = new Logger(RedisService.name);
+  readonly client: Redis;
+
+  constructor(private configService: ConfigService) {
+    const url = this.configService.get<string>('REDIS_URL') ?? 'redis://localhost:6379';
+    this.client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 3 });
+    this.client.on('error', (err) => this.logger.error(`Redis error: ${err.message}`));
+    this.client.on('connect', () => this.logger.log('Redis connected'));
+  }
+
+  async onModuleDestroy() {
+    await this.client.quit();
+  }
+
+  async get<T>(key: string): Promise<T | undefined> {
+    const raw = await this.client.get(key);
+    if (raw === null) return undefined;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return raw as unknown as T;
+    }
+  }
+
+  async set<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
+    const serialized = JSON.stringify(value);
+    if (ttlSeconds !== undefined) {
+      await this.client.set(key, serialized, 'EX', ttlSeconds);
+    } else {
+      await this.client.set(key, serialized);
+    }
+  }
+
+  async del(key: string): Promise<void> {
+    await this.client.del(key);
+  }
+
+  async has(key: string): Promise<boolean> {
+    return (await this.client.exists(key)) > 0;
+  }
+
+  async flush(): Promise<void> {
+    await this.client.flushdb();
+  }
+
+  /**
+   * Acquires a distributed lock using SET NX EX.
+   * Returns true if the lock was acquired, false if already held.
+   */
+  async acquireLock(lockKey: string, ttlSeconds: number): Promise<boolean> {
+    const result = await this.client.set(lockKey, '1', 'EX', ttlSeconds, 'NX');
+    return result === 'OK';
+  }
+
+  async releaseLock(lockKey: string): Promise<void> {
+    await this.client.del(lockKey);
+  }
+}

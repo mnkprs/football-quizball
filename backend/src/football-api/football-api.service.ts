@@ -23,7 +23,7 @@ export class FootballApiService {
 
   private async sportsDbGet<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
     const cacheKey = `sportsdb:${endpoint}:${JSON.stringify(params || {})}`;
-    const cached = this.cacheService.get<T>(cacheKey);
+    const cached = await this.cacheService.get<T>(cacheKey);
     if (cached) return cached;
 
     let lastError: Error | null = null;
@@ -31,7 +31,7 @@ export class FootballApiService {
       try {
         const url = `${this.sportsDbBase}/${endpoint}`;
         const response = await axios.get<T>(url, { params, timeout: 10000 });
-        this.cacheService.set(cacheKey, response.data, 7200);
+        await this.cacheService.set(cacheKey, response.data, 7200);
         return response.data;
       } catch (err: any) {
         lastError = err as Error;
@@ -56,7 +56,7 @@ export class FootballApiService {
     }
 
     const cacheKey = `apifootball:${endpoint}:${JSON.stringify(params || {})}`;
-    const cached = this.cacheService.get<T>(cacheKey);
+    const cached = await this.cacheService.get<T>(cacheKey);
     if (cached) return cached;
 
     try {
@@ -65,7 +65,7 @@ export class FootballApiService {
         headers: { 'x-apisports-key': this.apiFootballKey },
         timeout: 10000,
       });
-      this.cacheService.set(cacheKey, response.data, 3600);
+      await this.cacheService.set(cacheKey, response.data, 3600);
       return response.data;
     } catch (err) {
       this.logger.error(`API-Football error: ${(err as Error).message}`);
@@ -164,7 +164,7 @@ export class FootballApiService {
    */
   async getWikipediaBadge(wikiTitle: string): Promise<string | null> {
     const cacheKey = `wiki:badge:${wikiTitle}`;
-    const cached = this.cacheService.get<string | null>(cacheKey);
+    const cached = await this.cacheService.get<string | null>(cacheKey);
     if (cached !== undefined) return cached;
 
     try {
@@ -175,11 +175,11 @@ export class FootballApiService {
         headers: { 'User-Agent': 'UnlimitedQuizball/1.0 (educational quiz app; contact@quizball.app)' },
       });
       const src = response.data?.thumbnail?.source ?? null;
-      this.cacheService.set(cacheKey, src, 86400); // cache 24h
+      await this.cacheService.set(cacheKey, src, 86400); // cache 24h
       return src;
     } catch (err) {
       this.logger.warn(`Wikipedia badge lookup failed for "${wikiTitle}": ${(err as Error).message}`);
-      this.cacheService.set(cacheKey, null, 3600);
+      await this.cacheService.set(cacheKey, null, 3600);
       return null;
     }
   }

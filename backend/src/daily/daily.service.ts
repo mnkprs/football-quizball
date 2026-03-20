@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { TodayGenerator } from './today.generator';
+import { RedisService } from '../redis/redis.service';
 import type { DailyQuestionRef, DailyQuestionTranslation } from '../common/interfaces/daily.interface';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class DailyService implements OnModuleInit {
     private supabaseService: SupabaseService,
     private todayGenerator: TodayGenerator,
     private llmService: LlmService,
+    private redisService: RedisService,
   ) {}
 
   onModuleInit() {
@@ -51,8 +53,14 @@ export class DailyService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async pregenerateTodayCron() {
-    this.logger.log('[CRON] Daily pre-generate (1AM): running...');
-    return this.pregenerateToday();
+    const acquired = await this.redisService.acquireLock('lock:cron:daily-pregenerate', 600);
+    if (!acquired) return;
+    try {
+      this.logger.log('[CRON] Daily pre-generate (1AM): running...');
+      return this.pregenerateToday();
+    } finally {
+      await this.redisService.releaseLock('lock:cron:daily-pregenerate');
+    }
   }
 
   async pregenerateToday(): Promise<void> {

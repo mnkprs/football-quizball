@@ -3,6 +3,9 @@
  * Bump when difficulty scoring, diversity, prompts, or answer-type modifiers change.
  *
  * Version history (from git commit dates):
+ * - 3.0.0 (2026-03-20): Bug fixes (double date-weight, NEWS throw), unified FAMOUS_PLAYERS_TO_AVOID,
+ *   GOSSIP year clamp to last 2 years, RELATIVE_CONTEXTS wired into batch relativity,
+ *   GUESS_SCORE/TOP_5 Path A/B diversity anchors, Greek locale gate removed
  * - 1.1.0 (2026-03-14): Easier questions — higher fame, HISTORY exponential date scoring, no HARD board slots
  * - 1.0.0 (2026-03-12): Current — bias toward easier questions, difficulty criteria, DB-backed answer type modifiers
  * - 0.9.1 (6c5cc07): Bias toward easier questions
@@ -15,4 +18,4 @@
  *
  * Legacy backfill: migration 20260326120000 maps created_at to versions using these commit dates.
  */
-export const GENERATION_VERSION = '1.3.0';
+export const GENERATION_VERSION = '3.0.0';

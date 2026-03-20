@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from 'nestjs-throttler-storage-redis';
 import { ScheduleModule } from '@nestjs/schedule';
+import { RedisModule } from './redis/redis.module';
+import { RedisService } from './redis/redis.service';
 import { CacheModule } from './cache/cache.module';
 import { LlmModule } from './llm/llm.module';
 import { FootballApiModule } from './football-api/football-api.module';
@@ -29,8 +32,16 @@ import { ProfileModule } from './profile/profile.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    RedisModule,
     ScheduleModule.forRoot(),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
+    ThrottlerModule.forRootAsync({
+      imports: [RedisModule],
+      inject: [RedisService],
+      useFactory: (redisService: RedisService) => ({
+        throttlers: [{ ttl: 60000, limit: 60 }],
+        storage: new ThrottlerStorageRedisService(redisService.client),
+      }),
+    }),
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env['NODE_ENV'] === 'production' ? 'info' : 'debug',

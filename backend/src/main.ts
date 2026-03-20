@@ -4,6 +4,8 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import helmet from 'helmet';
+import cluster from 'cluster';
+import os from 'os';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true, bufferLogs: true });
@@ -41,4 +43,23 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   console.log(`Unlimited Quizball backend running on port ${port}`);
 }
-bootstrap();
+
+// Cluster mode: use all CPU cores in production (Railway provides multi-core instances).
+// Cron jobs and distributed locks are Redis-backed, so running on multiple workers is safe.
+// Disable with DISABLE_CLUSTER=1 for local dev or single-core environments.
+const isClustered =
+  process.env['NODE_ENV'] === 'production' &&
+  process.env['DISABLE_CLUSTER'] !== '1' &&
+  cluster.isPrimary;
+
+if (isClustered) {
+  const numWorkers = os.cpus().length;
+  console.log(`Primary ${process.pid} starting ${numWorkers} workers`);
+  for (let i = 0; i < numWorkers; i++) cluster.fork();
+  cluster.on('exit', (worker) => {
+    console.warn(`Worker ${worker.process.pid} died — restarting`);
+    cluster.fork();
+  });
+} else {
+  bootstrap();
+}

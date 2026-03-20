@@ -12,6 +12,7 @@ import {
   QUESTION_ANGLES,
   SQUAD_ROLES,
   FAMOUS_PLAYERS_TO_AVOID,
+  SEASON_PHASES,
 } from './diversity-dimensions.config';
 
 function randomInRange(min: number, max: number): number {
@@ -64,7 +65,7 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
   const useSquadRoleMomentAnchor = rand < 0.70; // covers 0.40–0.70
 
   // Path A: squad-role + nationality + competition anchor (player-centric categories)
-  if (useSquadRoleNationalityAnchor && ['PLAYER_ID', 'HIGHER_OR_LOWER', 'HISTORY', 'GOSSIP'].includes(category)) {
+  if (useSquadRoleNationalityAnchor && ['PLAYER_ID', 'HIGHER_OR_LOWER', 'HISTORY', 'GOSSIP', 'GUESS_SCORE', 'TOP_5'].includes(category)) {
     const role = pick(SQUAD_ROLES, useIndex(0));
     const nationality = pick(NATIONALITIES, useIndex(1));
     const competition = pick(COMPETITIONS, useIndex(2));
@@ -82,6 +83,17 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
         `The stat MUST belong to a ${nationality} footballer playing as a "${role}". ` +
         `${avoidText}. Use a stat from ${competition} or equivalent.`,
       );
+    } else if (category === 'GUESS_SCORE') {
+      const decades = ['1990s', '2000s', '2010s', '2020s'] as const;
+      const decade = pick(decades, useIndex(0));
+      constraints.push(
+        `Pick a match from ${competition} during the ${decade}. ` +
+        `Avoid iconic overused scorelines — focus on a result that is specific but not instantly universally known.`,
+      );
+    } else if (category === 'TOP_5') {
+      const statType = pick(STAT_TYPES, useIndex(1));
+      constraints.push(`The ranking MUST involve ${nationality} players. Stat type: ${statType}.`);
+      constraints.push(`The context MUST relate to ${competition} or a comparable Tier-1 competition.`);
     } else {
       constraints.push(
         `Focus on a ${nationality} football ${entityType} in the role of "${role}". ${avoidText}.`,
@@ -97,15 +109,24 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
   }
 
   // Path B: squad-role + season-moment anchor (all player-centric categories)
-  if (useSquadRoleMomentAnchor && ['PLAYER_ID', 'HIGHER_OR_LOWER', 'HISTORY', 'GOSSIP'].includes(category)) {
+  if (useSquadRoleMomentAnchor && ['PLAYER_ID', 'HIGHER_OR_LOWER', 'HISTORY', 'GOSSIP', 'GUESS_SCORE', 'TOP_5'].includes(category)) {
     const role = pick(SQUAD_ROLES, useIndex(0));
     const avoidText = famousPlayersAvoidText();
     const competition = pick(COMPETITIONS, useIndex(2));
 
-    constraints.push(
-      `Think of a football ${entityTypeForCategory(category)} who was a "${role}" — someone known within their league or club but not a global superstar. ${avoidText}.`,
-    );
-    constraints.push(`The question MUST relate to ${competition} or a comparable well-known competition.`);
+    if (category === 'GUESS_SCORE') {
+      const seasonPhase = pick(SEASON_PHASES, useIndex(1));
+      constraints.push(`The match MUST occur ${seasonPhase}.`);
+      constraints.push(`The question MUST relate to ${competition} or a comparable well-known competition.`);
+    } else if (category === 'TOP_5') {
+      const yearRange = pick(['1990s', '2000s', '2010s', '2020s'] as const, useIndex(1));
+      constraints.push(`The ranking MUST come from ${competition} during the ${yearRange}.`);
+    } else {
+      constraints.push(
+        `Think of a football ${entityTypeForCategory(category)} who was a "${role}" — someone known within their league or club but not a global superstar. ${avoidText}.`,
+      );
+      constraints.push(`The question MUST relate to ${competition} or a comparable well-known competition.`);
+    }
 
     const angles = QUESTION_ANGLES[category] ?? [];
     if (angles.length) {
@@ -166,7 +187,9 @@ export function pickConstraints(category: string, slotIndex?: number, minoritySc
       break;
     }
     case 'GOSSIP': {
-      constraints.push(`The story MUST be from ${pick(YEAR_RANGES, useIndex(0))}.`);
+      const currentYear = new Date().getFullYear();
+      const recentYears = [`${currentYear}`, `${currentYear - 1}`] as const;
+      constraints.push(`The story MUST be from ${pick(recentYears, useIndex(0))}.`);
       constraints.push(`The topic MUST be a ${pick(GOSSIP_TOPICS, useIndex(1))}.`);
       constraints.push(`The angle MUST be: ${pick(QUESTION_ANGLES.GOSSIP, useIndex(2))}.`);
       break;

@@ -103,8 +103,8 @@ Return ONLY valid JSON:
   ]
 }
 Do not mention any answer name from the top5 array anywhere in question_text.
-${getLeagueFameGuidanceForBatch('TOP_5', language === 'el' ? 'el' : 'en')}${this.langInstruction(language)}`;
-    const userPrompt = `Generate ${questionCount} Top 5 questions in one batch. ${getRelativityConstraint('TOP_5', questionCount, language === 'el' ? 'el' : 'en')}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
+${getLeagueFameGuidanceForBatch('TOP_5')}${this.langInstruction(language)}`;
+    const userPrompt = `Generate ${questionCount} Top 5 questions in one batch. ${getRelativityConstraint('TOP_5', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: Top5Payload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));

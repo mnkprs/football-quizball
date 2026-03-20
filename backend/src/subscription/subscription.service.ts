@@ -1,14 +1,26 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
+import { RedisService } from '../redis/redis.service';
 import Stripe from 'stripe';
 
 @Injectable()
 export class SubscriptionService {
   private readonly logger = new Logger(SubscriptionService.name);
 
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(
+    private supabaseService: SupabaseService,
+    private redisService: RedisService,
+  ) {}
 
   async handleWebhookEvent(event: Stripe.Event): Promise<void> {
+    // Idempotency: skip if we've already processed this event (protects against multi-instance delivery)
+    const eventKey = `stripe:event:${event.id}`;
+    const alreadyProcessed = await this.redisService.acquireLock(eventKey, 86400); // 24h
+    if (!alreadyProcessed) {
+      this.logger.log(`Stripe event ${event.id} already processed, skipping`);
+      return;
+    }
+
     switch (event.type) {
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {

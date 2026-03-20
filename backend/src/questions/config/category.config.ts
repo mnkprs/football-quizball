@@ -51,7 +51,7 @@ export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [
 
 /**
  * Number of questions per difficulty slot for each category.
- * Used to build the board layout and pool requirements.
+   * Used to build the board layout and pool requirements.
  */
 export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Difficulty[]> = {
   HISTORY: ['EASY', 'MEDIUM', 'HARD'],

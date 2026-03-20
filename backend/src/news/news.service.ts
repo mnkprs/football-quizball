@@ -9,6 +9,7 @@ import { QuestionIntegrityService } from '../questions/validators/question-integ
 import { AnswerValidator } from '../questions/validators/answer.validator';
 import { GeneratedQuestion } from '../questions/question.types';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
+import { RedisService } from '../redis/redis.service';
 
 const NEWS_POOL_TARGET = 10;
 
@@ -25,6 +26,7 @@ export class NewsService {
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
     private answerValidator: AnswerValidator,
+    private redisService: RedisService,
   ) {}
 
   /**
@@ -141,9 +143,15 @@ export class NewsService {
 
   @Cron(CronExpression.EVERY_6_HOURS)
   async scheduledIngest() {
-    this.logger.log('[CRON] News ingest (every 6h): checking pool, expiring old...');
-    await this.expireOldNews();
-    await this.ingestNews();
+    const acquired = await this.redisService.acquireLock('lock:cron:news-ingest', 600);
+    if (!acquired) return;
+    try {
+      this.logger.log('[CRON] News ingest (every 6h): checking pool, expiring old...');
+      await this.expireOldNews();
+      await this.ingestNews();
+    } finally {
+      await this.redisService.releaseLock('lock:cron:news-ingest');
+    }
   }
 
   /** Deletes NEWS questions older than 7 days. */
