@@ -10,6 +10,7 @@ import { AuthService } from '../../core/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './battle-royale-lobby.html',
+  styleUrl: './battle-royale-lobby.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BattleRoyaleLobbyComponent {

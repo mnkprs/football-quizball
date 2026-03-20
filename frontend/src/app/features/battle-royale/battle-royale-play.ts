@@ -16,6 +16,7 @@ import { BattleRoyaleStore } from './battle-royale.store';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './battle-royale-play.html',
+  styleUrl: './battle-royale-play.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
