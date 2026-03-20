@@ -21,3 +21,4 @@ supabase/.temp/
 
 # Seed-pool handoff (written by pool:seed, read by pool:verify-integrity --from-last-seed)
 .seed-pool-last-ids.json
+.mcp.json
