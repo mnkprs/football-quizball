@@ -62,6 +62,7 @@ export interface BRPublicView {
   inviteCode: string | null;
   hostId: string;
   isHost: boolean;
+  isPrivate: boolean;
   myUserId: string;
   questionCount: number;
   players: BRPlayerEntry[];
@@ -88,6 +89,7 @@ export interface BRRoomRow {
   invite_code: string | null;
   host_id: string;
   status: 'waiting' | 'active' | 'finished';
+  is_private: boolean;
   questions: BlitzQuestion[];
   question_count: number;
   started_at: string | null;

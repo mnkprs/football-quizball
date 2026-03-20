@@ -32,7 +32,7 @@ export class BattleRoyaleService {
 
   // ── Create room ─────────────────────────────────────────────────────────────
 
-  async createRoom(hostId: string, hostUsername: string, language = 'en'): Promise<{ roomId: string; inviteCode: string }> {
+  async createRoom(hostId: string, hostUsername: string, language = 'en', isPrivate = true): Promise<{ roomId: string; inviteCode: string }> {
     const questions = await this.blitzService.drawForRoom(language, QUESTION_COUNT);
     if (questions.length === 0) {
       throw new BadRequestException('No questions available in the pool');
@@ -49,6 +49,7 @@ export class BattleRoyaleService {
         questions,
         question_count: questions.length,
         language,
+        is_private: isPrivate,
       })
       .select()
       .single<BRRoomRow>();
@@ -81,11 +82,12 @@ export class BattleRoyaleService {
   // ── Join queue (find or create waiting room) ────────────────────────────────
 
   async joinQueue(userId: string, username: string, language = 'en'): Promise<{ roomId: string; isHost: boolean }> {
-    // Look for an open waiting room
+    // Look for an open waiting public room
     const { data: rooms } = await this.supabaseService.client
       .from('battle_royale_rooms')
       .select('id, host_id')
       .eq('status', 'waiting')
+      .eq('is_private', false)
       .eq('language', language)
       .limit(5);
 
@@ -116,8 +118,8 @@ export class BattleRoyaleService {
       }
     }
 
-    // No suitable room found — create one
-    const { roomId } = await this.createRoom(userId, username, language);
+    // No suitable room found — create a public one
+    const { roomId } = await this.createRoom(userId, username, language, false);
     return { roomId, isHost: true };
   }
 
@@ -165,6 +167,7 @@ export class BattleRoyaleService {
       inviteCode: room.invite_code,
       hostId: room.host_id,
       isHost: room.host_id === requestingUserId,
+      isPrivate: room.is_private,
       myUserId: requestingUserId,
       questionCount: room.question_count,
       players: playerEntries,

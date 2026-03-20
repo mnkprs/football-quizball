@@ -19,7 +19,7 @@ export interface BRPublicQuestion {
   choices: string[];
   category: string;
   difficulty: string;
-  meta?: { career?: BRCareerEntry[] };
+  meta: { career: BRCareerEntry[] };
 }
 
 export interface BRPlayerEntry {
@@ -37,6 +37,7 @@ export interface BRPublicView {
   inviteCode: string | null;
   hostId: string;
   isHost: boolean;
+  isPrivate: boolean;
   myUserId: string;
   questionCount: number;
   players: BRPlayerEntry[];
