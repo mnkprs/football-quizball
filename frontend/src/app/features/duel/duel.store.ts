@@ -225,7 +225,7 @@ export const DuelStore = signalStore(
 
         patchState(store, { submitting: true, error: null });
         try {
-          const result = await firstValueFrom(api.submitAnswer(gameId, answer, qIndex));
+          const result = await firstValueFrom(api.submitAnswer(gameId, answer));
           patchState(store, { submitting: false, lastAnswerResult: result });
 
           if (result.correct && !result.lostRace) {

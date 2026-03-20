@@ -96,10 +96,10 @@ export class DuelApiService {
     return this.http.post<DuelPublicView>(`${this.base}/${gameId}/ready`, {}, { headers: this.headers() });
   }
 
-  submitAnswer(gameId: string, answer: string, questionIndex: number): Observable<DuelAnswerResult> {
+  submitAnswer(gameId: string, answer: string): Observable<DuelAnswerResult> {
     return this.http.post<DuelAnswerResult>(
       `${this.base}/${gameId}/answer`,
-      { answer, questionIndex },
+      { answer },
       { headers: this.headers() },
     );
   }
