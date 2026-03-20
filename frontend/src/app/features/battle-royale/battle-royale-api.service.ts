@@ -44,6 +44,8 @@ export interface BRAnswerResult {
   myScore: number;
   nextQuestion: BRPublicQuestion | null;
   finished: boolean;
+  pointsAwarded: number;
+  timeBonus: number;
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────

@@ -17,7 +17,7 @@ export interface BRState {
   roomView: BRPublicView | null;
   myUserId: string | null;
   phase: BRPhase;
-  lastAnswer: { correct: boolean; correctAnswer: string } | null;
+  lastAnswer: { correct: boolean; correctAnswer: string; pointsAwarded: number; timeBonus: number } | null;
   currentQuestion: BRPublicQuestion | null;
   myScore: number;
   myIndex: number;
@@ -166,7 +166,7 @@ export const BattleRoyaleStore = signalStore(
             submitting: false,
             myScore: result.myScore,
             myIndex: result.finished ? questionIndex + 1 : (result.nextQuestion?.index ?? questionIndex + 1),
-            lastAnswer: { correct: result.correct, correctAnswer: result.correct_answer },
+            lastAnswer: { correct: result.correct, correctAnswer: result.correct_answer, pointsAwarded: result.pointsAwarded, timeBonus: result.timeBonus },
             currentQuestion: result.nextQuestion,
             phase: result.finished ? 'finished' : 'answered',
           });

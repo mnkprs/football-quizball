@@ -69,6 +69,8 @@ export interface BRAnswerResult {
   myScore: number;
   nextQuestion: BRPublicQuestion | null;
   finished: boolean;
+  pointsAwarded: number;
+  timeBonus: number;
 }
 
 // ── DB row shapes ─────────────────────────────────────────────────────────────
@@ -94,6 +96,7 @@ export interface BRPlayerRow {
   username: string;
   score: number;
   current_question_index: number;
+  question_started_at: string | null;
   finished_at: string | null;
   created_at: string;
   updated_at: string;

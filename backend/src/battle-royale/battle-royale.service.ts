@@ -195,6 +195,12 @@ export class BattleRoyaleService {
 
     if (updateErr) throw new BadRequestException('Could not start room');
 
+    // Set question_started_at for all players so the first question timer begins
+    await this.supabaseService.client
+      .from('battle_royale_players')
+      .update({ question_started_at: new Date().toISOString() })
+      .eq('room_id', roomId);
+
     // Schedule auto-finish
     setTimeout(() => this.autoFinishRoom(roomId), ROOM_TIMEOUT_MS);
   }
@@ -238,13 +244,20 @@ export class BattleRoyaleService {
 
     const normalise = (s: string) => s.toLowerCase().trim();
     const correct = normalise(answer) === normalise(question.correct_answer);
-    const newScore = player.score + (correct ? POINTS_PER_CORRECT : 0);
     const newIndex = questionIndex + 1;
     const isLastQuestion = newIndex >= room.question_count;
+
+    const secondsTaken = player.question_started_at
+      ? (Date.now() - new Date(player.question_started_at).getTime()) / 1000
+      : 30;
+    const timeBonus = correct ? Math.max(0, Math.round(50 * (1 - secondsTaken / 30))) : 0;
+    const pointsAwarded = correct ? POINTS_PER_CORRECT + timeBonus : 0;
+    const newScore = player.score + pointsAwarded;
 
     const playerUpdate: Partial<BRPlayerRow> = {
       score: newScore,
       current_question_index: newIndex,
+      question_started_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     } as unknown as Partial<BRPlayerRow>;
 
@@ -270,6 +283,8 @@ export class BattleRoyaleService {
         myScore: player.score,
         nextQuestion: null,
         finished: !!player.finished_at,
+        pointsAwarded: 0,
+        timeBonus: 0,
       };
     }
 
@@ -289,6 +304,8 @@ export class BattleRoyaleService {
       myScore: newScore,
       nextQuestion,
       finished: isLastQuestion,
+      pointsAwarded,
+      timeBonus,
     };
   }
 

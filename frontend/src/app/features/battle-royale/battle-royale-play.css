@@ -248,6 +248,13 @@
   border: 1px solid rgba(179, 38, 30, 0.3);
 }
 
+.br-play__speed-bonus {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-left: 0.25rem;
+}
+
 /* ── Choices ── */
 .br-play__choices {
   display: flex;

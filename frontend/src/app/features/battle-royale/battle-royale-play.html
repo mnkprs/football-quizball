@@ -79,7 +79,11 @@
                  [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
                  [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct">
               @if (store.lastAnswer()?.correct) {
-                <span class="material-icons">check_circle</span> Correct! +100
+                <span class="material-icons">check_circle</span>
+                Correct! +{{ store.lastAnswer()?.pointsAwarded }}
+                @if ((store.lastAnswer()?.timeBonus ?? 0) > 0) {
+                  <span class="br-play__speed-bonus">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
+                }
               } @else {
                 <span class="material-icons">cancel</span>
                 Correct: {{ store.lastAnswer()?.correctAnswer }}
