@@ -176,10 +176,17 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .mode-card__section-icon {
   font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.mode-card__section app-badge {
+  flex-shrink: 0;
 }
 
 .mode-card__section-text {
@@ -187,6 +194,9 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mode-card__cta {
