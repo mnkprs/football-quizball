@@ -82,7 +82,9 @@
       "Bash(ls:*)",
       "Bash(find:*)",
       "mcp__plugin_claude-mem_mcp-search__smart_outline",
-      "Read(//Users/instashop/Projects/football-quizball/frontend/**)"
+      "Read(//Users/instashop/Projects/football-quizball/frontend/**)",
+      "Bash(npm view:*)",
+      "Skill(update-config)"
     ]
   },
   "enableAllProjectMcpServers": true,

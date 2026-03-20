@@ -27,12 +27,20 @@ export class BRAnswerDto {
 
 // ── Public question (choices exposed, correct_answer stripped) ────────────────
 
+export interface BRCareerEntry {
+  club: string;
+  from: string;
+  to: string;
+  is_loan: boolean;
+}
+
 export interface BRPublicQuestion {
   index: number;
   question_text: string;
   choices: string[];
   category: string;
   difficulty: string;
+  meta?: { career?: BRCareerEntry[] };
 }
 
 // ── Player view ───────────────────────────────────────────────────────────────

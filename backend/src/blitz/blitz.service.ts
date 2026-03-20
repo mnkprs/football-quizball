@@ -189,7 +189,7 @@ export class BlitzService {
       id: string;
       category: string;
       difficulty_score: number;
-      question: { question_text: string; correct_answer: string; wrong_choices?: string[] };
+      question: { question_text: string; correct_answer: string; wrong_choices?: string[]; meta?: Record<string, unknown> };
       translations?: { el?: { question_text?: string } };
     };
     const rows = (data ?? []) as PoolRow[];
@@ -206,6 +206,7 @@ export class BlitzService {
         choices,
         category: row.category,
         difficulty: this.scoreToLabel(row.difficulty_score),
+        meta: row.question.meta,
       };
     });
   }

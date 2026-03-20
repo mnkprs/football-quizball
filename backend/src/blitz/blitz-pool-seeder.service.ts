@@ -135,6 +135,7 @@ export class BlitzPoolSeederService {
             question_text: q.question_text,
             correct_answer: q.correct_answer,
             ...(q.wrong_choices?.length === 3 && { wrong_choices: q.wrong_choices }),
+            ...(band.category === 'PLAYER_ID' && q.meta && { meta: q.meta }),
           },
         });
       }

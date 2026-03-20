@@ -71,7 +71,23 @@
       @if (store.currentQuestion(); as q) {
         <div class="br-play__question-panel">
           <p class="br-play__q-index">Q{{ q.index + 1 }} / {{ store.roomView()?.questionCount }}</p>
-          <h2 class="br-play__q-text">{{ q.question_text }}</h2>
+
+          @if (q.category === 'PLAYER_ID' && q.meta?.career?.length) {
+            <p class="br-play__q-label">Who is this player?</p>
+            <div class="br-play__career-path">
+              @for (stop of q.meta.career; track stop.club; let last = $last) {
+                <div class="br-play__career-stop">
+                  <span class="br-play__career-club">{{ stop.club }}{{ stop.is_loan ? ' *' : '' }}</span>
+                  <span class="br-play__career-years">{{ stop.from }}–{{ stop.to }}</span>
+                </div>
+                @if (!last) {
+                  <span class="material-icons br-play__career-arrow">arrow_downward</span>
+                }
+              }
+            </div>
+          } @else {
+            <h2 class="br-play__q-text">{{ q.question_text }}</h2>
+          }
 
           <!-- Answer flash overlay -->
           @if (store.phase() === 'answered') {

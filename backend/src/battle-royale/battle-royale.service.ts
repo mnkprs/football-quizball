@@ -349,6 +349,7 @@ export class BattleRoyaleService {
       choices: q.choices,
       category: q.category,
       difficulty: q.difficulty,
+      meta: q.meta as BRPublicQuestion['meta'],
     };
   }
 

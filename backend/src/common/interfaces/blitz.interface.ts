@@ -5,6 +5,7 @@ export interface BlitzQuestion {
   choices: string[];
   category: string;
   difficulty: string;
+  meta?: Record<string, unknown>;
 }
 
 export interface BlitzSession {

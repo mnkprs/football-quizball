@@ -6,12 +6,20 @@ import { AuthService } from '../../core/auth.service';
 
 // ── Types (mirror backend battle-royale.types.ts) ─────────────────────────────
 
+export interface BRCareerEntry {
+  club: string;
+  from: string;
+  to: string;
+  is_loan: boolean;
+}
+
 export interface BRPublicQuestion {
   index: number;
   question_text: string;
   choices: string[];
   category: string;
   difficulty: string;
+  meta?: { career?: BRCareerEntry[] };
 }
 
 export interface BRPlayerEntry {
