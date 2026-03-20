@@ -59,17 +59,20 @@ export const MAX_CATEGORY_BATCH_ATTEMPTS = 20;
 /** Max retries when a batch is rejected entirely due to duplicates (re-run LLM). */
 export const DUPLICATE_RETRY_ATTEMPTS = 3;
 
-/** Throttle delay (ms) between batches to stay under LLM rate limits. */
-export const BATCH_THROTTLE_MS = 20000;
+/** Throttle delay (ms) between duplicate-retry batch attempts. Reduced from 20s — avoids hammering the LLM on retries. */
+export const BATCH_THROTTLE_MS = 2000;
 
-/** Delay between seed passes (ms). */
-export const SEED_PASS_DELAY_MS = 5000;
+/** Delay between seed passes (ms). Removed — no longer needed. */
+export const SEED_PASS_DELAY_MS = 0;
 
-/** Throttle delay (ms) between difficulty slots within a category after insertion. */
-export const INTER_DIFFICULTY_THROTTLE_MS = 5000;
+/** Throttle delay (ms) between difficulty slots within a category. Removed — difficulties stay sequential by design; no artificial sleep needed. */
+export const INTER_DIFFICULTY_THROTTLE_MS = 0;
 
-/** Delay (ms) between sequential integrity-verification calls inside filterByIntegrity. */
-export const INTEGRITY_INTER_CALL_DELAY_MS = 2000;
+/** Delay (ms) between sequential integrity-verification calls. Removed — LLM API calls take 3-5s each, making an extra sleep redundant. */
+export const INTEGRITY_INTER_CALL_DELAY_MS = 0;
+
+/** Max number of categories to seed in parallel. Reduce to 1 if Vertex AI returns 429 rate-limit errors. */
+export const SEED_CATEGORY_CONCURRENCY = 3;
 
 /**
  * Builds the list of (category, difficulty, count) slots required for a full board.

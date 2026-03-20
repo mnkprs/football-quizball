@@ -1,6 +1,9 @@
 #!/usr/bin/env npx ts-node
 /* eslint-disable no-undef */
 /**
+ * @deprecated Greek language support has been removed from this app.
+ *   This script is no longer used and should not be run.
+ *
  * Populate Greek translations for existing questions in any question table.
  *
  * Usage:

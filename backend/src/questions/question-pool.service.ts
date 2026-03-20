@@ -22,10 +22,8 @@ import {
   GENERATION_BATCH_SIZE,
   MAX_CATEGORY_BATCH_ATTEMPTS,
   BATCH_THROTTLE_MS,
-  SEED_PASS_DELAY_MS,
-  INTER_DIFFICULTY_THROTTLE_MS,
   DUPLICATE_RETRY_ATTEMPTS,
-  INTEGRITY_INTER_CALL_DELAY_MS,
+  SEED_CATEGORY_CONCURRENCY,
 } from './config/pool.config';
 import { RAW_THRESHOLD_EASY, RAW_THRESHOLD_MEDIUM } from './config/difficulty-scoring.config';
 import { GENERATION_VERSION } from './config/generation-version.config';
@@ -62,66 +60,14 @@ export class QuestionPoolService {
   ) {}
 
   /**
-   * Draws a full board from the pool only. No live generation.
-   * Use for Greek mode where pool has pre-translated questions.
-   * @throws Error if any non-NEWS slot is insufficient (seed pool first).
-   */
-  async drawBoardFromPoolOnly(
-    language: string = 'en',
-    excludeNewsQuestionIds?: string[],
-  ): Promise<DrawBoardResult> {
-    const board: GeneratedQuestion[] = [];
-    const poolIds: string[] = [];
-    for (const slot of DRAW_REQUIREMENTS) {
-      const drawn = await this.drawSlot(
-        slot.category,
-        slot.difficulty,
-        slot.count,
-        language,
-        undefined, // NEWS recycled through games (no exclusion of used questions)
-      );
-      if (drawn.length < slot.count) {
-        if (slot.category === 'NEWS') {
-          this.logger.warn(`[drawBoardFromPoolOnly] NEWS pool empty for Greek — skipping NEWS slot`);
-        } else {
-          const missing = slot.count - drawn.length;
-          throw new Error(
-            `Pool insufficient for Greek: ${slot.category}/${slot.difficulty} has ${drawn.length}, need ${slot.count}. ` +
-              `Missing ${missing}. Seed the pool first (e.g. POST /api/admin/seed-pool?target=5).`,
-          );
-        }
-      }
-      for (const q of drawn) {
-        board.push(q);
-        poolIds.push(q.id);
-      }
-    }
-    return { questions: board, poolQuestionIds: poolIds };
-  }
-
-  /**
-   * Draws a full board for a game. English: pool first, live fallback for missing slots.
-   * Non-English: generates all questions live (pool is English-only).
+   * Draws a full board for a game. Draws from the pool, with LLM fallback for missing slots.
    */
   async drawBoard(
     language: string = 'en',
     excludeNewsQuestionIds?: string[],
     allowLlmFallback: boolean = true,
   ): Promise<DrawBoardResult> {
-    // For non-English, generate all questions live (pool is English-only)
-    if (language !== 'en') {
-      const categories = this.getLiveCategories();
-      const fallbackResults = await Promise.all(
-        categories.map((category) => {
-          const slots = CATEGORY_DIFFICULTY_SLOTS[category].filter((difficulty) => difficulty !== undefined);
-          return this.generateCategoryFallback(category, [...slots], language);
-        }),
-      );
-      const board = fallbackResults.flat();
-      return { questions: board, poolQuestionIds: [] };
-    }
-
-    // English: single RPC to draw full board, then fallback for any missing slots
+    // Draw from pool, then fallback to LLM for any missing slots
     const { questions: poolQuestions, poolIds, missingByCategory } = await this.drawBoardFromDb();
     const board: GeneratedQuestion[] = [...poolQuestions];
 
@@ -495,16 +441,26 @@ export class QuestionPoolService {
       this.logger.log(JSON.stringify({ event: 'seed_pool_start', passes }));
 
       try {
-        for (const category of this.getLiveCategories()) {
-          this.logger.log(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
-          const { addedTotals, questionIds } = await this.seedCategoryPasses(category, passes);
-          const totalAdded = Object.values(addedTotals).reduce((sum, value) => sum + value, 0);
-          this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
-          await new Promise((resolve) => setTimeout(resolve, 5000)); // inter-category throttle
-          allQuestionIds.push(...questionIds);
-          for (const [difficulty, added] of Object.entries(addedTotals) as Array<[Difficulty, number]>) {
-            const key = `${category}/${difficulty}`;
-            results.push({ slot: key, added });
+        const categories = this.getLiveCategories();
+        // Process categories in parallel batches of SEED_CATEGORY_CONCURRENCY.
+        // Each category has its own isolated existingKeys Set (loaded per-category from DB),
+        // so there is no shared state between parallel category tasks.
+        for (let i = 0; i < categories.length; i += SEED_CATEGORY_CONCURRENCY) {
+          const batch = categories.slice(i, i + SEED_CATEGORY_CONCURRENCY);
+          const batchResults = await Promise.all(
+            batch.map(async (category) => {
+              this.logger.log(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
+              const { addedTotals, questionIds } = await this.seedCategoryPasses(category, passes);
+              const totalAdded = Object.values(addedTotals).reduce((sum, value) => sum + value, 0);
+              this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
+              return { category, addedTotals, questionIds };
+            }),
+          );
+          for (const { category, addedTotals, questionIds } of batchResults) {
+            allQuestionIds.push(...questionIds);
+            for (const [difficulty, added] of Object.entries(addedTotals) as Array<[Difficulty, number]>) {
+              results.push({ slot: `${category}/${difficulty}`, added });
+            }
           }
         }
         completed = true;
@@ -694,24 +650,12 @@ export class QuestionPoolService {
     const questions = rows.map((row) => {
       const { _embedding, ...q } = row.question as GeneratedQuestion & { _embedding?: unknown };
       void _embedding;
-      const tr = row.translations?.el;
-      const useEl = false; // English board, no Greek
       return {
         ...q,
         difficulty: row.difficulty as Difficulty,
         points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
         source_question_text: q.question_text,
         source_explanation: q.explanation,
-        translations: tr?.question_text
-          ? {
-              el: {
-                question_text: tr.question_text,
-                explanation: tr.explanation ?? q.explanation,
-              },
-            }
-          : undefined,
-        question_text: useEl ? tr!.question_text! : q.question_text,
-        explanation: useEl && tr?.explanation ? tr.explanation : q.explanation,
       } as GeneratedQuestion;
     });
 
@@ -780,27 +724,13 @@ export class QuestionPoolService {
     return rows.map((row) => {
       const { _embedding, ...q } = row.question as GeneratedQuestion & { _embedding?: unknown };
       void _embedding;
-      const tr = row.translations?.el;
-      const useEl = language === 'el' && tr?.question_text;
-
       return {
         ...q,
         difficulty: row.difficulty as Difficulty,
         points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
         source_question_text: q.question_text,
         source_explanation: q.explanation,
-        translations: tr?.question_text
-          ? {
-              el: {
-                question_text: tr.question_text,
-                explanation: tr.explanation ?? q.explanation,
-              },
-            }
-          : undefined,
-        question_text: useEl ? tr!.question_text! : q.question_text,
-        explanation: useEl && tr?.explanation ? tr.explanation : q.explanation,
-        ...(useEl && { fromPoolTranslation: true }),
-      } as GeneratedQuestion & { fromPoolTranslation?: boolean };
+      } as GeneratedQuestion;
     });
   }
 
@@ -922,11 +852,6 @@ export class QuestionPoolService {
             ...(sourceUrl && { source_url: sourceUrl }),
           });
         }
-      }
-
-      // Throttle between sequential Gemini integrity calls to avoid 429s.
-      if (idx < questions.length - 1) {
-        await new Promise((r) => setTimeout(r, INTEGRITY_INTER_CALL_DELAY_MS));
       }
     }
 
@@ -1152,12 +1077,7 @@ export class QuestionPoolService {
           );
         }
 
-        await new Promise((resolve) => setTimeout(resolve, INTER_DIFFICULTY_THROTTLE_MS));
         })();
-      }
-
-      if (pass + 1 < passes) {
-        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
       }
     }
 
@@ -1169,9 +1089,6 @@ export class QuestionPoolService {
         const { added, questionIds: retryIds } = await this.seedSlotPasses(category, difficulty, 1);
         addedTotals[difficulty] += added;
         questionIds.push(...retryIds);
-        if (added > 0) {
-          await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
-        }
       }
     }
 
@@ -1253,7 +1170,6 @@ export class QuestionPoolService {
           `[seedSlot] ${category}/${difficulty} pass ${pass}: no accepted questions ` +
             `(batch=${batch.length}, diff_mismatch=${diffRej}, validator_rej=${valRej}${dupHint})`,
         );
-        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
         continue;
       }
 
@@ -1268,10 +1184,6 @@ export class QuestionPoolService {
       this.logger.log(
         `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'} (total: ${added}/${targetCount})`,
       );
-
-      if (added < targetCount) {
-        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
-      }
     }
 
     return { added, questionIds };
@@ -1384,10 +1296,6 @@ export class QuestionPoolService {
 
         await new Promise((r) => setTimeout(r, BATCH_THROTTLE_MS));
       }
-
-      if (anyAccepted && this.hasRemainingNeeds(needs)) {
-        await new Promise((resolve) => setTimeout(resolve, SEED_PASS_DELAY_MS));
-      }
     }
 
     return addedTotals;
@@ -1445,8 +1353,7 @@ export class QuestionPoolService {
   }
 
   /**
-   * Translate questions to Greek and insert them into the pool.
-   * If translation fails, falls back to inserting with English text.
+   * Inserts questions into the pool. No translation — pool is English-only.
    * Throws if the DB insert fails.
    *
    * @param difficultyOverride Force a specific difficulty on the row (used by seedSlot).
@@ -1459,21 +1366,7 @@ export class QuestionPoolService {
   ): Promise<void> {
     if (questions.length === 0) return;
 
-    let translations: Array<{ question_text: string; explanation: string }> = questions.map((q) => ({
-      question_text: q.question_text,
-      explanation: q.explanation ?? '',
-    }));
-    try {
-      translations = await this.llmService.translateToGreek(
-        questions.map((q) => ({ question_text: q.question_text, explanation: q.explanation ?? '' })),
-      );
-    } catch (err) {
-      this.logger.warn(
-        `[persistQuestionsToPool] Greek translation failed, inserting without translations: ${(err as Error).message}`,
-      );
-    }
-
-    const rows = questions.map((q, i) => {
+    const rows = questions.map((q) => {
       const difficulty = difficultyOverride ?? q.difficulty;
       let allowedDifficulties = q.allowedDifficulties ?? [difficulty];
       // When forcing a question into a slot (difficultyOverride), ensure it can be drawn for that slot.
@@ -1497,12 +1390,6 @@ export class QuestionPoolService {
         },
         raw_score: q.raw_score ?? null,
         embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,
-        translations: {
-          el: {
-            question_text: translations[i]?.question_text ?? q.question_text,
-            explanation: translations[i]?.explanation ?? q.explanation ?? '',
-          },
-        },
       };
     });
 
