@@ -59,7 +59,7 @@
     "ioredis": "^5.10.1",
     "jsonrepair": "^3.13.2",
     "nestjs-pino": "^4.6.1",
-    "nestjs-throttler-storage-redis": "^0.5.1",
+    "@nest-lab/throttler-storage-redis": "^1.2.0",
     "node-cache": "^5.1.2",
     "openai": "^6.27.0",
     "pino-http": "^10.5.0",
