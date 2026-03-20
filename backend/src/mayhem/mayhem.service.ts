@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { MayhemQuestionGenerator } from './mayhem-question.generator';
+import { MayhemStatGuessGenerator } from './mayhem-stat-guess.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
 import { QuestionIntegrityService } from '../questions/validators/question-integrity.service';
 import { DifficultyScorer } from '../questions/difficulty-scorer.service';
@@ -26,6 +27,7 @@ export class MayhemService {
 
   constructor(
     private mayhemGenerator: MayhemQuestionGenerator,
+    private mayhemStatGuessGenerator: MayhemStatGuessGenerator,
     private supabaseService: SupabaseService,
     private llmService: LlmService,
     private questionValidator: QuestionValidator,
@@ -71,7 +73,11 @@ export class MayhemService {
     let skipped = 0;
 
     try {
-      const questions = await this.mayhemGenerator.generateBatch();
+      const [mcQuestions, statGuessQuestions] = await Promise.all([
+        this.mayhemGenerator.generateBatch(),
+        this.mayhemStatGuessGenerator.generateBatch(),
+      ]);
+      const questions = [...mcQuestions, ...statGuessQuestions];
       if (questions.length === 0) {
         this.logger.warn('[ingestMayhem] No questions generated');
         return { added: 0, skipped: 0 };

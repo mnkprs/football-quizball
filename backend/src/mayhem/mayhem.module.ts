@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MayhemQuestionGenerator } from './mayhem-question.generator';
+import { MayhemStatGuessGenerator } from './mayhem-stat-guess.generator';
 import { MayhemService } from './mayhem.service';
 import { MayhemSessionService } from './mayhem-session.service';
 import { MayhemController } from './mayhem.controller';
@@ -13,7 +14,7 @@ import { EloService } from '../solo/elo.service';
 
 @Module({
   imports: [ConfigModule, LlmModule, SupabaseModule, QuestionsModule, AuthModule, SessionStoreModule],
-  providers: [MayhemQuestionGenerator, MayhemService, MayhemSessionService, EloService],
+  providers: [MayhemQuestionGenerator, MayhemStatGuessGenerator, MayhemService, MayhemSessionService, EloService],
   controllers: [MayhemController],
   exports: [MayhemService, MayhemSessionService],
 })
