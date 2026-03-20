@@ -364,8 +364,8 @@ export class GameService {
     if (correct) {
       session.players[dto.playerIndex].score += points_awarded;
     }
-    // Only consume 2x when answer is correct; if wrong, override can still apply it
-    if (correct && doubleApplied) {
+    // Consume 2x as soon as it is armed and submitted — correct or not
+    if (doubleApplied) {
       session.players[dto.playerIndex].doubleUsed = true;
     }
     if (doubleApplied) {
@@ -567,7 +567,8 @@ export class GameService {
       if (allFilled) {
         session.players[dto.playerIndex].score += points_awarded;
       }
-      if (doubleApplied && allFilled) {
+      // Consume 2x when the Top 5 question ends (win or fail) — not only on perfect solve
+      if (doubleApplied) {
         session.players[dto.playerIndex].doubleUsed = true;
       }
 

@@ -397,7 +397,7 @@ export class OnlineGameService {
     const pointsAwarded = correct && doubleApplied ? basePoints * 2 : basePoints;
 
     if (correct) scores[myRole] += pointsAwarded;
-    if (correct && doubleApplied) myMeta.doubleUsed = true;
+    if (doubleApplied) myMeta.doubleUsed = true; // Consume on submit, not only on correct
     if (doubleApplied) cell.double_armed = true;
 
     cell.answered = true;
@@ -564,7 +564,7 @@ export class OnlineGameService {
       const pointsAwarded = allFilled && doubleApplied ? basePoints * 2 : basePoints;
 
       if (allFilled) scores[myRole] += pointsAwarded;
-      if (doubleApplied && allFilled) myMeta.doubleUsed = true;
+      if (doubleApplied) myMeta.doubleUsed = true; // Consume when Top 5 ends, win or fail
 
       cell.answered = true;
       cell.answered_by = myRole;
