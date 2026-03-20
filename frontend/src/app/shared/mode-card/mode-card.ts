@@ -20,11 +20,11 @@ export class ModeCardComponent {
   title = input.required<string>();
   hint = input.required<string>();
   badge = input<string>();
-  badgeColor = input<'lime' | 'blue' | 'red'>('lime');
+  badgeColor = input<'lime' | 'blue' | 'red' | 'purple' | 'gold'>('lime');
   sectionLabel = input<string>();
   backgroundIcon = input<string>();
   backgroundImage = input<string>();
-  iconBgColor = input<'gold' | 'blue' | 'lime' | 'orange' |  'red'>();
+  iconBgColor = input<'gold' | 'blue' | 'lime' | 'orange' |  'red' | 'purple'>();
   footerText = input<string>();
   variant = input<ModeCardVariant>('outline');
   actionLabel = input<string>();

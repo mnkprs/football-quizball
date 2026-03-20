@@ -167,8 +167,15 @@
 .mode-card__section {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 0.625rem;
+}
+
+.mode-card__section-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .mode-card__section-icon {
@@ -203,6 +210,11 @@
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
 }
 
+.mode-card__cta--pill-accent {
+  background: var(--color-accent);
+  color: #000000;
+}
+
 .mode-card__cta--link {
   color: #ffffff;
   opacity: 0.92;
@@ -213,6 +225,11 @@
 .mode-card__cta--link .material-icons {
   font-size: 1rem;
   vertical-align: middle;
+}
+
+.mode-card__icon.material-symbols-outlined,
+.mode-card__section-icon.material-symbols-outlined {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
 .mode-card__cta .material-icons {

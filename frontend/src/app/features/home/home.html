@@ -97,15 +97,16 @@
         (cardClick)="goDuel()"
       />
       <app-mode-card
-        icon="public"
-        iconBgColor="purple"
+        icon="groups_3"
+        iconClass="material-symbols-outlined"
+        sectionLabel="8-Player High-Speed Clash"
         title="Battle Royale"
-        hint="Up to 20 players • Same questions • Live leaderboard"
-        badge="LIVE"
-        badgeColor="purple"
+        hint="Compete for speed and correctness in real-time."
+        badge="8P"
+        badgeColor="lime"
         backgroundImage="/battle_royale_mode.png"
         variant="accent"
-        actionLabel="Join Now"
+        actionLabel="Join Battle"
         (cardClick)="goBattleRoyale()"
       />
       @if (auth.isLoggedIn()) {

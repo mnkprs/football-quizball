@@ -13,8 +13,13 @@
   }
   @if (sectionLabel()) {
     <div class="mode-card__section">
-      <span class="mode-card__section-icon" [ngClass]="iconClass()">{{ icon() }}</span>
-      <span class="mode-card__section-text">{{ sectionLabel() }}</span>
+      <div class="mode-card__section-left">
+        <span class="mode-card__section-icon" [ngClass]="iconClass()">{{ icon() }}</span>
+        <span class="mode-card__section-text">{{ sectionLabel() }}</span>
+      </div>
+      @if (badge(); as badgeText) {
+        <app-badge [label]="badgeText" [variant]="badgeColor()" />
+      }
     </div>
     <h3 class="mode-card__title">{{ title() }}</h3>
   } @else {
@@ -52,7 +57,10 @@
   @if (actionLabel() && variant() === 'primary') {
     <span class="mode-card__cta mode-card__cta--pill">{{ actionLabel() }}</span>
   }
-  @if (actionLabel() && variant() === 'accent') {
+  @if (actionLabel() && variant() === 'accent' && sectionLabel()) {
+    <span class="mode-card__cta mode-card__cta--pill mode-card__cta--pill-accent">{{ actionLabel() }}</span>
+  }
+  @if (actionLabel() && variant() === 'accent' && !sectionLabel()) {
     <div class="mode-card__cta mode-card__cta--link">
       {{ actionLabel() }} <span class="material-icons">arrow_forward</span>
     </div>
