@@ -106,7 +106,14 @@
             <p class="text-2xl font-black text-foreground">{{ store.opponentScore() }}</p>
           </div>
         </div>
-        <div class="text-xs text-muted-foreground">First to 5</div>
+        <div class="text-right">
+          <div
+            class="text-2xl font-black tabular-nums transition-colors"
+            [ngClass]="timerColor()"
+            [class.animate-pulse]="timerUrgent()"
+          >{{ timeLeft() }}</div>
+          <p class="text-[10px] text-muted-foreground">secs</p>
+        </div>
       </div>
 
       <!-- Flash: opponent got it -->
@@ -140,7 +147,7 @@
             <input
               [ngModel]="answer()"
               (ngModelChange)="answer.set($event)"
-              [disabled]="store.submitting() || store.phase() === 'answered'"
+              [disabled]="store.submitting() || store.phase() === 'answered' || timeLeft() === 0"
               placeholder="Type your answer..."
               class="flex-1 px-4 py-3 rounded-xl bg-card border text-foreground placeholder:text-muted-foreground focus:outline-none transition"
               [class]="wrongFeedback() ? 'border-red-400 focus:border-red-400' : 'border-border focus:border-accent'"
@@ -148,12 +155,15 @@
             />
             <button
               (click)="submitAnswer()"
-              [disabled]="!answer().trim() || store.submitting() || store.phase() === 'answered'"
+              [disabled]="!answer().trim() || store.submitting() || store.phase() === 'answered' || timeLeft() === 0"
               class="px-5 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light transition disabled:opacity-40"
             >
               {{ store.submitting() ? '...' : '→' }}
             </button>
           </div>
+          @if (timeLeft() === 0 && store.phase() === 'active') {
+            <p class="text-red-400 text-xs font-bold text-center">⏰ Time's up! Waiting for opponent...</p>
+          }
           @if (wrongFeedback()) {
             <p class="text-red-400 text-xs font-bold text-center">✗ Wrong answer — try again!</p>
           }

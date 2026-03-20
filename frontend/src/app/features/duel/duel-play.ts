@@ -4,6 +4,7 @@ import {
   OnInit,
   OnDestroy,
   signal,
+  computed,
   ChangeDetectionStrategy,
   effect,
 } from '@angular/core';
@@ -11,6 +12,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DuelStore } from './duel.store';
+
+const QUESTION_TIME = 30;
 
 @Component({
   selector: 'app-duel-play',
@@ -27,22 +30,45 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
 
   answer = signal('');
   copied = signal(false);
-  /** Feedback shown below the input after a wrong submission */
   wrongFeedback = signal(false);
-  /** Brief "Opponent got it!" flash */
   opponentFlash = signal(false);
-  /** Brief "You got it!" flash */
   myFlash = signal(false);
+  timeLeft = signal(QUESTION_TIME);
+
+  timerColor = computed(() => {
+    const t = this.timeLeft();
+    if (t <= 5) return 'text-red-400';
+    if (t <= 10) return 'text-orange-400';
+    return 'text-accent';
+  });
+
+  timerUrgent = computed(() => this.timeLeft() <= 5);
 
   private opponentFlashTimer: ReturnType<typeof setTimeout> | null = null;
   private myFlashTimer: ReturnType<typeof setTimeout> | null = null;
+  private timerInterval: ReturnType<typeof setInterval> | null = null;
+  private lastQIndex: number | null = null;
 
   constructor() {
-    // When the question index advances (opponent answered), show flash
     effect(() => {
       const phase = this.store.phase();
       if (phase === 'opponent-answered') {
         this.showOpponentFlash();
+      }
+    });
+
+    // Start/reset timer when question changes, stop when not active
+    effect(() => {
+      const phase = this.store.phase();
+      const qIndex = this.store.currentQuestionIndex();
+
+      if (phase === 'active') {
+        if (this.lastQIndex !== qIndex) {
+          this.lastQIndex = qIndex;
+          this.resetTimer();
+        }
+      } else {
+        this.stopTimer();
       }
     });
   }
@@ -58,6 +84,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
     this.store.unsubscribeRealtime();
     if (this.opponentFlashTimer) clearTimeout(this.opponentFlashTimer);
     if (this.myFlashTimer) clearTimeout(this.myFlashTimer);
+    this.stopTimer();
   }
 
   async markReady(): Promise<void> {
@@ -132,6 +159,27 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       case 'MEDIUM': return 'text-yellow-400';
       case 'HARD': return 'text-red-400';
       default: return 'text-muted-foreground';
+    }
+  }
+
+  private resetTimer(): void {
+    this.stopTimer();
+    this.timeLeft.set(QUESTION_TIME);
+    this.timerInterval = setInterval(() => {
+      const t = this.timeLeft();
+      if (t <= 1) {
+        this.timeLeft.set(0);
+        this.stopTimer();
+      } else {
+        this.timeLeft.update(v => v - 1);
+      }
+    }, 1000);
+  }
+
+  private stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
     }
   }
 
