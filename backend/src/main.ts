@@ -53,7 +53,8 @@ const isClustered =
   cluster.isPrimary;
 
 if (isClustered) {
-  const numWorkers = os.cpus().length;
+  const maxWorkers = parseInt(process.env['MAX_WORKERS'] ?? '2', 10);
+  const numWorkers = Math.min(os.cpus().length, maxWorkers);
   console.log(`Primary ${process.pid} starting ${numWorkers} workers`);
   for (let i = 0; i < numWorkers; i++) cluster.fork();
   cluster.on('exit', (worker) => {
