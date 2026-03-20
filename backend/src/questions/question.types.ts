@@ -3,6 +3,7 @@
  * New code should import from common/interfaces and questions/config directly.
  */
 import {
+  BoardCategory,
   QuestionCategory,
   Difficulty,
   QuestionLocale,
@@ -23,10 +24,9 @@ import {
   DIFFICULTY_POINTS,
   resolveQuestionPoints,
   CATEGORY_LABELS,
-  CATEGORY_LABELS_EL,
 } from './config';
 
-export type { QuestionCategory, Difficulty, QuestionLocale, QuestionTranslation, AnswerType, DifficultyFactors, GeneratedQuestion, BoardCell, Top5Entry, Top5Progress };
+export type { BoardCategory, QuestionCategory, Difficulty, QuestionLocale, QuestionTranslation, AnswerType, DifficultyFactors, GeneratedQuestion, BoardCell, Top5Entry, Top5Progress };
 
 export {
   LEAGUE_FAMILIARITY_TIERS,
@@ -37,5 +37,4 @@ export {
   DIFFICULTY_POINTS,
   resolveQuestionPoints,
   CATEGORY_LABELS,
-  CATEGORY_LABELS_EL,
 };

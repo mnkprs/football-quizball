@@ -7,7 +7,7 @@ import {
   CATEGORY_DIFFICULTY_SLOTS,
   resolveQuestionPoints,
 } from './config';
-import { BOARD_CATEGORIES } from './config/category.config';
+import { LIVE_CATEGORIES } from './config/category.config';
 import { minorityScaleForDifficulty } from './diversity-hints';
 import { AnswerTypeModifierService } from './answer-type-modifier.service';
 import { DifficultyScorer } from './difficulty-scorer.service';
@@ -38,11 +38,11 @@ export class QuestionsService {
   ) {}
 
   /**
-   * Generates a full board (one question per slot) for all BOARD_CATEGORIES.
+   * Generates a full board (one question per slot) for all LIVE_CATEGORIES.
    * Matches generated questions to slots by category and difficulty.
    */
   async generateBoard(language: string = 'en'): Promise<GeneratedQuestion[]> {
-    const tasks: Promise<GeneratedQuestion[]>[] = BOARD_CATEGORIES.map((category) =>
+    const tasks: Promise<GeneratedQuestion[]>[] = LIVE_CATEGORIES.map((category) =>
       this.generateBatch(category, language, {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? 2,
       }),
@@ -63,7 +63,7 @@ export class QuestionsService {
     const board: GeneratedQuestion[] = [];
     const usedIndices = new Set<number>();
 
-    for (const category of BOARD_CATEGORIES) {
+    for (const category of LIVE_CATEGORIES) {
       const slots = CATEGORY_DIFFICULTY_SLOTS[category];
       for (const difficulty of slots) {
         const matchIdx = scored.findIndex(

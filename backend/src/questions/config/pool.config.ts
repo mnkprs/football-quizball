@@ -79,10 +79,6 @@ export const SEED_CATEGORY_CONCURRENCY = 3;
  */
 export function buildDrawRequirements(): SlotRequirement[] {
   return Object.entries(CATEGORY_DIFFICULTY_SLOTS)
-    .filter(
-      ([category]) =>
-        category !== 'NEWS' && category !== 'MAYHEM', // NEWS and MAYHEM are standalone modes, not for 2-player boards
-    )
     .flatMap(([category, slots]) => {
       const counts = new Map<Difficulty, number>();
       for (const difficulty of slots) {

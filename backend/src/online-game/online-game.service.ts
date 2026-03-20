@@ -74,7 +74,7 @@ export class OnlineGameService {
 
     const usedIds = new Set<string>();
     const cells: OnlineBoardCell[][] = CATEGORIES_ORDER.map((category) => {
-      const slots = CATEGORY_DIFFICULTY_SLOTS[category] ?? ['EASY', 'MEDIUM', 'HARD'];
+      const slots = CATEGORY_DIFFICULTY_SLOTS[category];
       return slots.map((difficulty) => {
         const question = questions.find(
           (q: GeneratedQuestion) => q.category === category && q.difficulty === difficulty && !usedIds.has(q.id),

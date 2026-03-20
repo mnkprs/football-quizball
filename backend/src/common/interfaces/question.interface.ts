@@ -1,13 +1,15 @@
-export type QuestionCategory =
+/** Categories that have a pool of questions and appear on the game board. */
+export type BoardCategory =
   | 'HISTORY'
   | 'PLAYER_ID'
   | 'HIGHER_OR_LOWER'
   | 'GUESS_SCORE'
   | 'TOP_5'
   | 'GEOGRAPHY'
-  | 'GOSSIP'
-  | 'NEWS'
-  | 'MAYHEM';
+  | 'GOSSIP';
+
+/** All question categories, including standalone modes that don't use the shared pool. */
+export type QuestionCategory = BoardCategory | 'NEWS' | 'MAYHEM';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 export type QuestionLocale = 'en' | 'el';

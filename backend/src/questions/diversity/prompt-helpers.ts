@@ -128,7 +128,7 @@ function buildSlotGuidance(category: QuestionCategory): string {
     return ` All questions must be ${fixedDiff}: use ${formatRanges(ranges)}.`;
   }
   // Dynamic categories: per-slot guidance derived from CATEGORY_DIFFICULTY_SLOTS
-  const slots = CATEGORY_DIFFICULTY_SLOTS[category] as readonly Difficulty[] | undefined;
+  const slots = (CATEGORY_DIFFICULTY_SLOTS as Partial<Record<QuestionCategory, readonly Difficulty[]>>)[category];
   if (!slots?.length) {
     const fallback = CATEGORY_DEFAULT_RANGES[category] ?? DEFAULT_DIFFICULTY_RANGES.MEDIUM;
     return ` Use ${formatRanges(fallback)}.`;

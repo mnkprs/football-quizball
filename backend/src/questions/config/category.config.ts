@@ -1,22 +1,9 @@
-import type { QuestionCategory, Difficulty } from '../../common/interfaces/question.interface';
+import type { QuestionCategory, BoardCategory, Difficulty } from '../../common/interfaces/question.interface';
 
 /**
  * Categories that support live generation (excludes NEWS, which is ingested).
  */
-export const LIVE_CATEGORIES: QuestionCategory[] = [
-  'HISTORY',
-  'PLAYER_ID',
-  'HIGHER_OR_LOWER',
-  'GUESS_SCORE',
-  'TOP_5',
-  'GEOGRAPHY',
-  'GOSSIP',
-];
-
-/**
- * Categories used when assembling a full board (for generateBoard).
- */
-export const BOARD_CATEGORIES: QuestionCategory[] = [
+export const LIVE_CATEGORIES: BoardCategory[] = [
   'HISTORY',
   'PLAYER_ID',
   'HIGHER_OR_LOWER',
@@ -53,7 +40,7 @@ export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [
  * Number of questions per difficulty slot for each category.
    * Used to build the board layout and pool requirements.
  */
-export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Difficulty[]> = {
+export const CATEGORY_DIFFICULTY_SLOTS: Record<BoardCategory, readonly Difficulty[]> = {
   HISTORY: ['EASY', 'MEDIUM', 'HARD'],
   PLAYER_ID: ['MEDIUM', 'MEDIUM'],
   HIGHER_OR_LOWER: ['MEDIUM', 'MEDIUM'],
@@ -61,8 +48,6 @@ export const CATEGORY_DIFFICULTY_SLOTS: Record<QuestionCategory, readonly Diffic
   TOP_5: ['HARD', 'HARD'],
   GEOGRAPHY: ['EASY', 'MEDIUM', 'HARD'],
   GOSSIP: ['MEDIUM', 'MEDIUM'],
-  NEWS: ['MEDIUM', 'MEDIUM'],
-  MAYHEM: ['HARD', 'HARD'],
 };
 
 /**

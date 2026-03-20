@@ -7,6 +7,7 @@ import { QuestionValidator } from './validators/question.validator';
 import { QuestionIntegrityService } from './validators/question-integrity.service';
 import { RedisService } from '../redis/redis.service';
 import {
+  BoardCategory,
   GeneratedQuestion,
   QuestionCategory,
   Difficulty,
@@ -936,7 +937,7 @@ export class QuestionPoolService {
     return resolveQuestionPoints(q.category, difficulty);
   }
 
-  private getLiveCategories(): QuestionCategory[] {
+  private getLiveCategories(): BoardCategory[] {
     return LIVE_CATEGORIES;
   }
 
@@ -971,7 +972,7 @@ export class QuestionPoolService {
   }
 
   private buildNeedMapForCategory(
-    category: QuestionCategory,
+    category: BoardCategory,
     count: number,
   ): Partial<Record<Difficulty, number>> {
     const needs: Partial<Record<Difficulty, number>> = {};
@@ -982,7 +983,7 @@ export class QuestionPoolService {
   }
 
   private async seedCategoryPasses(
-    category: QuestionCategory,
+    category: BoardCategory,
     passes: number,
   ): Promise<{ addedTotals: Record<Difficulty, number>; questionIds: string[] }> {
     const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };

@@ -26,7 +26,6 @@ import {
 import { Top5Entry, Top5Progress } from '../questions/question.types';
 
 const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'GOSSIP'] as const;
-const DIFFICULTIES_ORDER = ['EASY', 'MEDIUM', 'HARD'] as const;
 
 @Injectable()
 export class GameService {
@@ -64,7 +63,7 @@ export class GameService {
     // Build board grid: varies by category (GOSSIP has 2 MEDIUM slots, others have 3)
     const usedQuestionIds = new Set<string>();
     const board = CATEGORIES_ORDER.map((category) => {
-      const slots = CATEGORY_DIFFICULTY_SLOTS[category] ?? DIFFICULTIES_ORDER;
+      const slots = CATEGORY_DIFFICULTY_SLOTS[category];
       return slots.map((difficulty) => {
         const question = questions.find(
           (q) => q.category === category && q.difficulty === difficulty && !usedQuestionIds.has(q.id),
