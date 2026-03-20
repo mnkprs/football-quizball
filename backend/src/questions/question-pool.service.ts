@@ -268,9 +268,13 @@ export class QuestionPoolService {
 
         if (options.apply) {
           const baseMeta = { ...(q.meta ?? {}) };
-          const mergedMeta =
+          const sanitizedCorrectedMeta =
             vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0
-              ? { ...baseMeta, ...vr.correctedMeta }
+              ? this.sanitizeCorrectedMeta(vr.correctedMeta, row.category)
+              : vr.correctedMeta;
+          const mergedMeta =
+            sanitizedCorrectedMeta && Object.keys(sanitizedCorrectedMeta).length > 0
+              ? { ...baseMeta, ...sanitizedCorrectedMeta }
               : baseMeta;
           const finalMeta =
             vr.correctedTop5 && row.category === 'TOP_5' ? { ...mergedMeta, top5: vr.correctedTop5 } : mergedMeta;
@@ -812,6 +816,23 @@ export class QuestionPoolService {
    * is wrong but question is valid. Processes sequentially to avoid concurrent Gemini calls
    * that trigger 429 rate-limit errors.
    */
+  /**
+   * Strips LLM hallucination where correctedMeta is wrapped in a category-named key
+   * e.g. { "PLAYER_ID": { "career": [...] } } → { "career": [...] }
+   */
+  private sanitizeCorrectedMeta(correctedMeta: Record<string, unknown>, category: string): Record<string, unknown> {
+    const keys = Object.keys(correctedMeta);
+    if (
+      keys.length === 1 &&
+      keys[0] === category &&
+      typeof correctedMeta[category] === 'object' &&
+      correctedMeta[category] !== null
+    ) {
+      return correctedMeta[category] as Record<string, unknown>;
+    }
+    return correctedMeta;
+  }
+
   private async filterByIntegrity(questions: GeneratedQuestion[]): Promise<GeneratedQuestion[]> {
     if (!this.questionIntegrity.isEnabled || questions.length === 0) return questions;
 
@@ -826,7 +847,8 @@ export class QuestionPoolService {
         rejectedReasons.push(vr.reason ?? 'unknown');
       } else {
         const { correctedAnswer, correctedTop5, correctedQuestionText, correctedExplanation, correctedMeta, sourceUrl } = vr;
-        const baseMeta = correctedMeta && Object.keys(correctedMeta).length > 0 ? { ...q.meta, ...correctedMeta } : q.meta;
+        const sanitizedMeta = correctedMeta && Object.keys(correctedMeta).length > 0 ? this.sanitizeCorrectedMeta(correctedMeta, q.category) : correctedMeta;
+        const baseMeta = sanitizedMeta && Object.keys(sanitizedMeta).length > 0 ? { ...q.meta, ...sanitizedMeta } : q.meta;
         const finalMeta = correctedTop5 && q.category === 'TOP_5' ? { ...baseMeta, top5: correctedTop5 } : baseMeta;
         const top5Desc = correctedTop5 ? correctedTop5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ') : null;
         const hasCorrection = correctedAnswer || correctedTop5 || correctedQuestionText || correctedExplanation || correctedMeta;
