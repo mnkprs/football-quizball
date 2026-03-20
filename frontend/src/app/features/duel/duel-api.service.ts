@@ -107,4 +107,12 @@ export class DuelApiService {
   abandonGame(gameId: string): Observable<{ ok: boolean }> {
     return this.http.post<{ ok: boolean }>(`${this.base}/${gameId}/abandon`, {}, { headers: this.headers() });
   }
+
+  timeoutQuestion(gameId: string, questionIndex: number): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(
+      `${this.base}/${gameId}/timeout`,
+      { questionIndex },
+      { headers: this.headers() },
+    );
+  }
 }

@@ -84,6 +84,12 @@ export interface DuelGameSummary {
   updatedAt: string;
 }
 
+export class DuelTimeoutDto {
+  @IsInt()
+  @Min(0)
+  questionIndex: number;
+}
+
 /** Raw DB row shape */
 export interface DuelGameRow {
   id: string;
@@ -100,6 +106,7 @@ export interface DuelGameRow {
   question_results: DuelQuestionResult[];
   pool_question_ids: string[];
   language: string;
+  question_started_at: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -11,7 +11,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/auth.guard';
 import { DuelService } from './duel.service';
-import { CreateDuelDto, JoinDuelByCodeDto, DuelAnswerDto } from './duel.types';
+import { CreateDuelDto, JoinDuelByCodeDto, DuelAnswerDto, DuelTimeoutDto } from './duel.types';
 
 @Controller('api/duel')
 export class DuelController {
@@ -88,6 +88,17 @@ export class DuelController {
     @Body() dto: DuelAnswerDto,
   ) {
     return this.service.submitAnswer(req.user.id, id, dto);
+  }
+
+  /** POST /api/duel/:id/timeout — Skip current question when client timer expires */
+  @UseGuards(AuthGuard)
+  @Post(':id/timeout')
+  timeoutQuestion(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+    @Body() dto: DuelTimeoutDto,
+  ) {
+    return this.service.timeoutQuestion(req.user.id, id, dto.questionIndex);
   }
 
   /** POST /api/duel/:id/abandon — Forfeit the duel */

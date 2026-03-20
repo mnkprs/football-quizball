@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from './cache/cache.module';
 import { LlmModule } from './llm/llm.module';
 import { FootballApiModule } from './football-api/football-api.module';
@@ -28,6 +29,7 @@ import { ProfileModule } from './profile/profile.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     LoggerModule.forRoot({
       pinoHttp: {

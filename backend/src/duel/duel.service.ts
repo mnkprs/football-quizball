@@ -26,6 +26,8 @@ import {
 const WIN_TARGET = 5;
 /** Questions pre-drawn at creation to avoid mid-game latency */
 const PREFETCH_COUNT = 30;
+/** Game ends after this many questions regardless of score (AFK safety valve) */
+export const MAX_QUESTIONS = 10;
 
 function generateInviteCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -106,6 +108,26 @@ export class DuelService {
   }
 
   async joinQueue(userId: string, language: 'en' | 'el'): Promise<DuelPublicView> {
+    // Singleton guard: if the user is already waiting in queue or in an active duel,
+    // return that existing game instead of creating a second one.
+    const { data: existing } = await this.supabaseService.client
+      .from('duel_games')
+      .select('*')
+      .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
+      .in('status', ['waiting', 'active'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (existing) {
+      const row = existing as DuelGameRow;
+      const [hostUsername, guestUsername] = await Promise.all([
+        this.getUsername(row.host_id),
+        row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
+      ]);
+      return this.toPublicView(row, userId, hostUsername, guestUsername);
+    }
+
     // Look for an open waiting game created by someone else in the same language
     const { data: candidates } = await this.supabaseService.client
       .from('duel_games')
@@ -217,7 +239,7 @@ export class DuelService {
       .from('duel_games')
       .update({
         ...patch,
-        ...(shouldActivate ? { status: 'active' } : {}),
+        ...(shouldActivate ? { status: 'active', question_started_at: new Date().toISOString() } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq('id', gameId)
@@ -266,7 +288,7 @@ export class DuelService {
     };
 
     const nextIndex = row.current_question_index + 1;
-    const gameFinished = newScores[role] >= WIN_TARGET;
+    const gameFinished = newScores[role] >= WIN_TARGET || nextIndex >= MAX_QUESTIONS;
 
     const questionResult: DuelQuestionResult = {
       index: row.current_question_index,
@@ -284,6 +306,7 @@ export class DuelService {
         current_question_index: nextIndex,
         scores: newScores,
         question_results: [...row.question_results, questionResult],
+        question_started_at: gameFinished ? null : new Date().toISOString(),
         ...(gameFinished ? { status: 'finished' } : {}),
         updated_at: new Date().toISOString(),
       })
@@ -325,6 +348,48 @@ export class DuelService {
       .eq('id', gameId);
 
     return { ok: true };
+  }
+
+  // ── Question timeout ──────────────────────────────────────────────────────
+
+  /** Called by controller when the 30s client timer expires. Idempotent — safe to call from both players. */
+  async timeoutQuestion(userId: string, gameId: string, questionIndex: number): Promise<{ ok: boolean }> {
+    const row = await this.fetchGame(gameId, userId);
+    if (row.status !== 'active') return { ok: false };
+    if (row.current_question_index !== questionIndex) return { ok: true }; // already advanced
+    await this.advanceTimedOutQuestion(row);
+    return { ok: true };
+  }
+
+  /** Atomically advance a question that has timed out. CAS-safe — called by both the timeout endpoint and the cron. */
+  async advanceTimedOutQuestion(row: DuelGameRow): Promise<void> {
+    const nextIndex = row.current_question_index + 1;
+    const gameFinished = nextIndex >= MAX_QUESTIONS;
+    const question = row.questions[row.current_question_index];
+
+    const timedOutResult: DuelQuestionResult = {
+      index: row.current_question_index,
+      winner: null,
+      question_text: question?.question_text ?? '',
+      correct_answer: question?.correct_answer ?? '',
+    };
+
+    const { error } = await this.supabaseService.client
+      .from('duel_games')
+      .update({
+        current_question_index: nextIndex,
+        current_question_answered_by: null,
+        question_results: [...row.question_results, timedOutResult],
+        question_started_at: gameFinished ? null : new Date().toISOString(),
+        ...(gameFinished ? { status: 'finished' } : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', row.id)
+      .eq('current_question_index', row.current_question_index); // CAS: no-op if already advanced
+
+    if (error) {
+      this.logger.warn(`Failed to advance timed-out question for game ${row.id}: ${error.message}`);
+    }
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

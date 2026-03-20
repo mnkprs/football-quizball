@@ -162,7 +162,7 @@
             </button>
           </div>
           @if (timeLeft() === 0 && store.phase() === 'active') {
-            <p class="text-red-400 text-xs font-bold text-center">⏰ Time's up! Waiting for opponent...</p>
+            <p class="text-red-400 text-xs font-bold text-center">⏰ Time's up! Skipping question...</p>
           }
           @if (wrongFeedback()) {
             <p class="text-red-400 text-xs font-bold text-center">✗ Wrong answer — try again!</p>
@@ -218,6 +218,8 @@
                   <p class="text-sm text-foreground font-medium flex-1 leading-snug">{{ result.question_text }}</p>
                   @if (result.winner === store.gameView()?.myRole) {
                     <span class="text-green-400 text-xs font-bold shrink-0">+1 You</span>
+                  } @else if (result.winner === null) {
+                    <span class="text-muted-foreground text-xs font-bold shrink-0">⏰ Skipped</span>
                   } @else {
                     <span class="text-red-400 text-xs font-bold shrink-0">Opponent</span>
                   }

@@ -165,11 +165,14 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   private resetTimer(): void {
     this.stopTimer();
     this.timeLeft.set(QUESTION_TIME);
+    const qIndex = this.store.currentQuestionIndex();
     this.timerInterval = setInterval(() => {
       const t = this.timeLeft();
       if (t <= 1) {
         this.timeLeft.set(0);
         this.stopTimer();
+        // Notify server — advances question for both players. CAS-safe if called by both.
+        void this.store.timeoutQuestion(qIndex);
       } else {
         this.timeLeft.update(v => v - 1);
       }

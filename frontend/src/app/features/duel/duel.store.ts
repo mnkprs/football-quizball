@@ -257,6 +257,18 @@ export const DuelStore = signalStore(
         }
       },
 
+      /** Called when the 30s client timer reaches zero. Fires-and-forgets — server cron is the fallback. */
+      async timeoutQuestion(questionIndex: number): Promise<void> {
+        const gameId = store.gameId();
+        if (!gameId) return;
+        try {
+          await firstValueFrom(api.timeoutQuestion(gameId, questionIndex));
+          // State update arrives via Realtime subscription
+        } catch {
+          // silent — cron will advance if the request fails
+        }
+      },
+
       reset(): void {
         if (channel) {
           auth.supabaseClient.removeChannel(channel);
