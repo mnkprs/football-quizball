@@ -1,17 +1,29 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 @Injectable()
-export class RedisService implements OnModuleDestroy {
+export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   readonly client: Redis;
 
   constructor(private configService: ConfigService) {
     const url = this.configService.get<string>('REDIS_URL') ?? 'redis://localhost:6379';
-    this.client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 3 });
+    // No lazyConnect — eager connect at startup so TLS handshake (Upstash) happens once,
+    // not on the first real request. maxRetriesPerRequest: null lets ioredis retry indefinitely
+    // on connection errors rather than failing commands immediately.
+    this.client = new Redis(url, { maxRetriesPerRequest: 3 });
     this.client.on('error', (err) => this.logger.error(`Redis error: ${err.message}`));
     this.client.on('connect', () => this.logger.log('Redis connected'));
+  }
+
+  async onModuleInit() {
+    try {
+      await this.client.ping();
+      this.logger.log('Redis ping OK');
+    } catch (err) {
+      this.logger.error(`Redis ping failed: ${(err as Error).message}`);
+    }
   }
 
   async onModuleDestroy() {

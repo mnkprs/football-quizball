@@ -21,7 +21,7 @@ export class DuelTimeoutService {
 
   /** Runs every 15 seconds. Finds active duels whose current question has been open for >30s
    *  and advances them. Handles the AFK case where neither player's browser calls the timeout endpoint. */
-  @Cron('*/15 * * * * *')
+  @Cron('*/30 * * * * *')
   async advanceTimedOutQuestions(): Promise<void> {
     const acquired = await this.redisService.acquireLock('lock:cron:duel-timeout', 10);
     if (!acquired) return;
