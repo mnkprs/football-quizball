@@ -37,3 +37,15 @@
   color: #ffffff;
   border: 1px solid color-mix(in srgb, #ef4444 72%, #ffffff 28%);
 }
+
+.badge--gold {
+  background: #e6a800;
+  color: #000000;
+  border: 1px solid color-mix(in srgb, #e6a800 72%, #000000 28%);
+}
+
+.badge--purple {
+  background: #9c27b0;
+  color: #ffffff;
+  border: 1px solid color-mix(in srgb, #9c27b0 72%, #ffffff 28%);
+}

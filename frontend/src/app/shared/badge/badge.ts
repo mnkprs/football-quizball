@@ -1,6 +1,6 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 
-export type BadgeVariant = 'lime' | 'blue' | 'white' | 'red';
+export type BadgeVariant = 'lime' | 'blue' | 'white' | 'red' | 'gold' | 'purple';
 
 @Component({
   selector: 'app-badge',
