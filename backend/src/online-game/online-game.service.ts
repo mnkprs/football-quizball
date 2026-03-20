@@ -5,11 +5,13 @@ import {
   BadRequestException,
   ForbiddenException,
   ConflictException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
+import { RedisService } from '../redis/redis.service';
 import {
   CATEGORY_LABELS,
   DIFFICULTY_POINTS,
@@ -48,6 +50,7 @@ export class OnlineGameService {
     private supabaseService: SupabaseService,
     private questionPoolService: QuestionPoolService,
     private answerValidator: AnswerValidator,
+    private redisService: RedisService,
   ) {}
 
   // ── Premium enforcement ─────────────────────────────────────────────────────
@@ -64,7 +67,10 @@ export class OnlineGameService {
   // ── Board drawing ───────────────────────────────────────────────────────────
 
   private async drawBoard(language: 'en' | 'el'): Promise<{ boardState: OnlineBoardState; poolQuestionIds: string[] }> {
-    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard(language, [], false);
+    // allowLlmFallback=true: when a slot collision is detected (same question eligible for
+    // two difficulty tiers drawn by the same RPC call), fall back to a live-generated question
+    // for the missing slot rather than throwing a 503 and forcing the player to retry.
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard(language, [], true);
 
     const usedIds = new Set<string>();
     const cells: OnlineBoardCell[][] = CATEGORIES_ORDER.map((category) => {
@@ -90,6 +96,16 @@ export class OnlineGameService {
       acc.push(rest as unknown as Record<string, unknown>);
       return acc;
     }, []);
+
+    // Safety guard: if any cell ended up without a question (draw_board returned a duplicate
+    // for two slots and the dedup in drawBoardFromDb didn't surface it via missingByCategory),
+    // refuse to create a broken game rather than silently producing an unanswerable cell.
+    const brokenCell = cells.flat().find((c) => !c.question_id);
+    if (brokenCell) {
+      throw new ServiceUnavailableException(
+        `POOL_MISSING_SLOTS: no question available for ${brokenCell.category}/${brokenCell.difficulty}`,
+      );
+    }
 
     const boardState: OnlineBoardState = {
       cells,
@@ -767,19 +783,25 @@ export class OnlineGameService {
 
   @Cron('0 * * * *') // every hour
   async processExpiredTurns(): Promise<void> {
-    const { data: expired } = await this.supabaseService.client
-      .from('online_games')
-      .select('id')
-      .eq('status', 'active')
-      .lt('turn_deadline', new Date().toISOString());
+    const acquired = await this.redisService.acquireLock('lock:cron:expired-turns', 300);
+    if (!acquired) return;
+    try {
+      const { data: expired } = await this.supabaseService.client
+        .from('online_games')
+        .select('id')
+        .eq('status', 'active')
+        .lt('turn_deadline', new Date().toISOString());
 
-    if (!expired || expired.length === 0) return;
-    this.logger.log(`[processExpiredTurns] Processing ${expired.length} expired turns`);
+      if (!expired || expired.length === 0) return;
+      this.logger.log(`[processExpiredTurns] Processing ${expired.length} expired turns`);
 
-    for (const game of expired as { id: string }[]) {
-      await this.processTurnExpiry(game.id).catch((err: Error) =>
-        this.logger.error(`[processExpiredTurns] Failed for game ${game.id}: ${err.message}`),
-      );
+      for (const game of expired as { id: string }[]) {
+        await this.processTurnExpiry(game.id).catch((err: Error) =>
+          this.logger.error(`[processExpiredTurns] Failed for game ${game.id}: ${err.message}`),
+        );
+      }
+    } finally {
+      await this.redisService.releaseLock('lock:cron:expired-turns');
     }
   }
 

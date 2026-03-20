@@ -5,6 +5,7 @@ import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
 import { QuestionValidator } from './validators/question.validator';
 import { QuestionIntegrityService } from './validators/question-integrity.service';
+import { RedisService } from '../redis/redis.service';
 import {
   GeneratedQuestion,
   QuestionCategory,
@@ -57,6 +58,7 @@ export class QuestionPoolService {
     private questionsService: QuestionsService,
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
+    private redisService: RedisService,
   ) {}
 
   /**
@@ -548,8 +550,14 @@ export class QuestionPoolService {
   @Cron('*/15 * * * *')
   async scheduledRefill(): Promise<void> {
     if (process.env.DISABLE_POOL_CRON === '1') return;
-    this.logger.log('[cron] Proactive pool refill check');
-    await this.refillIfNeeded();
+    const acquired = await this.redisService.acquireLock('lock:cron:pool-refill', 600);
+    if (!acquired) return;
+    try {
+      this.logger.log('[cron] Proactive pool refill check');
+      await this.refillIfNeeded();
+    } finally {
+      await this.redisService.releaseLock('lock:cron:pool-refill');
+    }
   }
 
   /**
@@ -557,40 +565,45 @@ export class QuestionPoolService {
    * These go stale when players transfer. Runs every Sunday at 03:00.
    * No-op when ENABLE_INTEGRITY_VERIFICATION is not set.
    */
-  @Cron('0 3 * * 0')
   async reverifyActiveCareerQuestions(): Promise<void> {
     if (process.env.DISABLE_POOL_CRON === '1') return;
     if (!this.questionIntegrity.isEnabled) return;
 
-    this.logger.log('[cron] Re-verifying active-career PLAYER_ID questions');
+    const acquired = await this.redisService.acquireLock('lock:cron:reverify-careers', 1800);
+    if (!acquired) return;
+    try {
+      this.logger.log('[cron] Re-verifying active-career PLAYER_ID questions');
 
-    const { data: rows, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('id, category, difficulty, question')
-      .eq('category', 'PLAYER_ID');
+      const { data: rows, error } = await this.supabaseService.client
+        .from('question_pool')
+        .select('id, category, difficulty, question')
+        .eq('category', 'PLAYER_ID');
 
-    if (error) {
-      this.logger.error(`[cron] reverifyActiveCareer fetch error: ${error.message}`);
-      return;
+      if (error) {
+        this.logger.error(`[cron] reverifyActiveCareer fetch error: ${error.message}`);
+        return;
+      }
+
+      // Only re-check questions where the last career entry is still "Present" — these can go stale
+      const activeRows = (rows ?? []).filter((row) => {
+        const career = row.question?.meta?.career as Array<{ to: string }> | undefined;
+        return Array.isArray(career) && career.length > 0 && career[career.length - 1]?.to === 'Present';
+      });
+
+      if (activeRows.length === 0) {
+        this.logger.log('[cron] reverifyActiveCareer: no active-career questions found');
+        return;
+      }
+
+      this.logger.log(`[cron] reverifyActiveCareer: checking ${activeRows.length} questions`);
+      const ids = activeRows.map((r) => r.id);
+      const result = await this.verifyPoolIntegrity({ questionIds: ids, apply: true });
+      this.logger.log(
+        `[cron] reverifyActiveCareer done — scanned: ${result.scanned}, fixed: ${result.fixed}, deleted: ${result.deleted}`,
+      );
+    } finally {
+      await this.redisService.releaseLock('lock:cron:reverify-careers');
     }
-
-    // Only re-check questions where the last career entry is still "Present" — these can go stale
-    const activeRows = (rows ?? []).filter((row) => {
-      const career = row.question?.meta?.career as Array<{ to: string }> | undefined;
-      return Array.isArray(career) && career.length > 0 && career[career.length - 1]?.to === 'Present';
-    });
-
-    if (activeRows.length === 0) {
-      this.logger.log('[cron] reverifyActiveCareer: no active-career questions found');
-      return;
-    }
-
-    this.logger.log(`[cron] reverifyActiveCareer: checking ${activeRows.length} questions`);
-    const ids = activeRows.map((r) => r.id);
-    const result = await this.verifyPoolIntegrity({ questionIds: ids, apply: true });
-    this.logger.log(
-      `[cron] reverifyActiveCareer done — scanned: ${result.scanned}, fixed: ${result.fixed}, deleted: ${result.deleted}`,
-    );
   }
 
   /**
@@ -704,9 +717,24 @@ export class QuestionPoolService {
 
     const poolIds = questions.map((q) => q.id);
 
-    // Count drawn per slot and compute missing
+    // Count drawn per slot and compute missing.
+    // Deduplicate by question ID first: when allowed_difficulties lets the same row satisfy
+    // multiple slots (e.g. HISTORY/EASY question drawn for both EASY and MEDIUM), the RPC
+    // returns the same row twice with different s.diff values. Only the first occurrence should
+    // count toward drawnBySlot so that missingByCategory correctly surfaces the gap instead of
+    // silently producing a cell with question_id: ''.
+    const seenRowIds = new Set<string>();
     const drawnBySlot = new Map<string, number>();
     for (const row of rows) {
+      const rowId = row.id?.toString() ?? '';
+      if (seenRowIds.has(rowId)) {
+        this.logger.warn(
+          `[drawBoardFromDb] Question ${rowId} returned for multiple slots (allowed_difficulties overlap). ` +
+            `Slot ${row.category}/${row.difficulty} will be treated as missing.`,
+        );
+        continue;
+      }
+      seenRowIds.add(rowId);
       const key = `${row.category}/${row.difficulty}`;
       drawnBySlot.set(key, (drawnBySlot.get(key) ?? 0) + 1);
     }
