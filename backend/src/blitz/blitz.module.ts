@@ -12,6 +12,6 @@ import { LlmModule } from '../llm/llm.module';
   imports: [AuthModule, SessionStoreModule, SupabaseModule, QuestionsModule, LlmModule],
   controllers: [BlitzController],
   providers: [BlitzService, BlitzPoolSeederService],
-  exports: [BlitzPoolSeederService],
+  exports: [BlitzService, BlitzPoolSeederService],
 })
 export class BlitzModule {}

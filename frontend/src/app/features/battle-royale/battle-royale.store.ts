@@ -1,0 +1,234 @@
+import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
+import { inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { RealtimeChannel } from '@supabase/supabase-js';
+import { AuthService } from '../../core/auth.service';
+import { BattleRoyaleApiService, BRPublicView, BRPublicQuestion, BRPlayerEntry } from './battle-royale-api.service';
+
+export type BRPhase =
+  | 'lobby'       // not yet in a room
+  | 'waiting'     // in room, waiting for host to start
+  | 'active'      // answering questions
+  | 'answered'    // just submitted — brief flash, waiting for next question state
+  | 'finished';   // all done
+
+export interface BRState {
+  roomId: string | null;
+  roomView: BRPublicView | null;
+  myUserId: string | null;
+  phase: BRPhase;
+  lastAnswer: { correct: boolean; correctAnswer: string } | null;
+  currentQuestion: BRPublicQuestion | null;
+  myScore: number;
+  myIndex: number;
+  players: BRPlayerEntry[];
+  submitting: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: BRState = {
+  roomId: null,
+  roomView: null,
+  myUserId: null,
+  phase: 'lobby',
+  lastAnswer: null,
+  currentQuestion: null,
+  myScore: 0,
+  myIndex: 0,
+  players: [],
+  submitting: false,
+  loading: false,
+  error: null,
+};
+
+function derivePhase(view: BRPublicView): BRPhase {
+  if (view.status === 'finished') return 'finished';
+  if (view.status === 'active') return 'active';
+  return 'waiting';
+}
+
+export const BattleRoyaleStore = signalStore(
+  { providedIn: 'root' },
+  withState(initialState),
+  withMethods((store, api = inject(BattleRoyaleApiService), auth = inject(AuthService)) => {
+    let roomChannel: RealtimeChannel | null = null;
+    let playersChannel: RealtimeChannel | null = null;
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+    async function refreshRoom(roomId: string): Promise<void> {
+      try {
+        const view = await firstValueFrom(api.getRoom(roomId));
+        const phase = store.phase();
+        // Don't override 'answered' phase from a background refresh
+        const newPhase = phase === 'answered' ? 'answered' : derivePhase(view);
+        patchState(store, {
+          roomView: view,
+          phase: newPhase,
+          currentQuestion: view.currentQuestion,
+          players: view.players,
+          myIndex: view.myCurrentIndex,
+        });
+      } catch {
+        // silent
+      }
+    }
+
+    return {
+      async createRoom(language?: 'en' | 'el'): Promise<string | null> {
+        patchState(store, { loading: true, error: null });
+        try {
+          const { roomId } = await firstValueFrom(api.createRoom(language));
+          patchState(store, {
+            roomId,
+            myUserId: auth.user()?.id ?? null,
+            phase: 'waiting',
+            loading: false,
+          });
+          return roomId;
+        } catch {
+          patchState(store, { loading: false, error: 'Could not create room' });
+          return null;
+        }
+      },
+
+      async joinByCode(inviteCode: string): Promise<string | null> {
+        patchState(store, { loading: true, error: null });
+        try {
+          const { roomId } = await firstValueFrom(api.joinByCode(inviteCode));
+          patchState(store, {
+            roomId,
+            myUserId: auth.user()?.id ?? null,
+            phase: 'waiting',
+            loading: false,
+          });
+          return roomId;
+        } catch {
+          patchState(store, { loading: false, error: 'Room not found or not accepting players' });
+          return null;
+        }
+      },
+
+      async joinQueue(): Promise<string | null> {
+        patchState(store, { loading: true, error: null });
+        try {
+          const { roomId } = await firstValueFrom(api.joinQueue());
+          patchState(store, {
+            roomId,
+            myUserId: auth.user()?.id ?? null,
+            phase: 'waiting',
+            loading: false,
+          });
+          return roomId;
+        } catch {
+          patchState(store, { loading: false, error: 'Could not find a room' });
+          return null;
+        }
+      },
+
+      async loadRoom(roomId: string): Promise<void> {
+        const myUserId = auth.user()?.id ?? null;
+        patchState(store, { loading: true, roomId, myUserId, error: null });
+        try {
+          const view = await firstValueFrom(api.getRoom(roomId));
+          patchState(store, {
+            roomView: view,
+            phase: derivePhase(view),
+            currentQuestion: view.currentQuestion,
+            players: view.players,
+            myIndex: view.myCurrentIndex,
+            loading: false,
+          });
+        } catch {
+          patchState(store, { loading: false, error: 'Failed to load room' });
+        }
+      },
+
+      async startRoom(): Promise<void> {
+        const roomId = store.roomId();
+        if (!roomId) return;
+        try {
+          await firstValueFrom(api.startRoom(roomId));
+        } catch {
+          patchState(store, { error: 'Could not start the game' });
+        }
+      },
+
+      async submitAnswer(answer: string): Promise<void> {
+        const roomId = store.roomId();
+        const questionIndex = store.myIndex();
+        if (!roomId || store.submitting()) return;
+
+        patchState(store, { submitting: true, lastAnswer: null });
+        try {
+          const result = await firstValueFrom(api.submitAnswer(roomId, questionIndex, answer));
+          patchState(store, {
+            submitting: false,
+            myScore: result.myScore,
+            myIndex: result.finished ? questionIndex + 1 : (result.nextQuestion?.index ?? questionIndex + 1),
+            lastAnswer: { correct: result.correct, correctAnswer: result.correct_answer },
+            currentQuestion: result.nextQuestion,
+            phase: result.finished ? 'finished' : 'answered',
+          });
+
+          if (!result.finished) {
+            // Clear the 'answered' flash after 1.5s and go back to 'active'
+            setTimeout(() => {
+              if (store.phase() === 'answered') {
+                patchState(store, { phase: 'active', lastAnswer: null });
+              }
+            }, 1500);
+          }
+        } catch {
+          patchState(store, { submitting: false, error: 'Failed to submit answer' });
+        }
+      },
+
+      subscribeRealtime(roomId: string): void {
+        const client = auth.supabaseClient;
+
+        // Subscribe to room status changes (active, finished)
+        roomChannel = client
+          .channel(`br_room:${roomId}`)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'battle_royale_rooms', filter: `id=eq.${roomId}` },
+            () => { refreshRoom(roomId); },
+          )
+          .subscribe();
+
+        // Subscribe to player score/progress changes for live leaderboard
+        playersChannel = client
+          .channel(`br_players:${roomId}`)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'battle_royale_players', filter: `room_id=eq.${roomId}` },
+            () => { refreshRoom(roomId); },
+          )
+          .subscribe();
+
+        // Fallback polling every 5s
+        pollTimer = setInterval(() => { refreshRoom(roomId); }, 5_000);
+      },
+
+      unsubscribeRealtime(): void {
+        if (roomChannel) {
+          auth.supabaseClient.removeChannel(roomChannel);
+          roomChannel = null;
+        }
+        if (playersChannel) {
+          auth.supabaseClient.removeChannel(playersChannel);
+          playersChannel = null;
+        }
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      },
+
+      reset(): void {
+        patchState(store, initialState);
+      },
+    };
+  }),
+);

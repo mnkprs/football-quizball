@@ -172,6 +172,44 @@ export class BlitzService {
     return stats ?? { bestScore: 0, totalGames: 0, rank: null };
   }
 
+  /**
+   * Draw N random Blitz-style questions (4 choices, MC) for a Battle Royale room.
+   * Uses the draw_blitz_questions_random RPC — no per-user seen tracking.
+   */
+  async drawForRoom(language: string = 'en', n: number = 20): Promise<BlitzQuestion[]> {
+    const { data, error } = await this.supabaseService.client.rpc(
+      'draw_blitz_questions_random',
+      { p_count: n, p_language: language },
+    );
+    if (error) {
+      this.logger.error(`[battle-royale] Pool draw error: ${error.message}`);
+      return [];
+    }
+    type PoolRow = {
+      id: string;
+      category: string;
+      difficulty_score: number;
+      question: { question_text: string; correct_answer: string; wrong_choices?: string[] };
+      translations?: { el?: { question_text?: string } };
+    };
+    const rows = (data ?? []) as PoolRow[];
+    return rows.map((row) => {
+      const correctAnswer = row.question.correct_answer;
+      const otherRows = rows.filter((r) => r.id !== row.id);
+      const choices = this.buildChoices(correctAnswer, row.question.wrong_choices, row.category, otherRows);
+      const useEl = language === 'el' && row.translations?.el?.question_text;
+      const questionText = useEl ? row.translations!.el!.question_text! : row.question.question_text;
+      return {
+        poolRowId: row.id,
+        question_text: questionText,
+        correct_answer: correctAnswer,
+        choices,
+        category: row.category,
+        difficulty: this.scoreToLabel(row.difficulty_score),
+      };
+    });
+  }
+
   private async drawBlitzQuestions(userId: string, language: string = 'en'): Promise<BlitzQuestion[]> {
     const { data, error } = await this.supabaseService.client.rpc(
       'draw_blitz_questions_for_user',

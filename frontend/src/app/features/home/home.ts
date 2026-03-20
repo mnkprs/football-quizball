@@ -266,6 +266,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  goBattleRoyale(): void {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/battle-royale']);
+    } else {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
+    }
+  }
+
   goDaily(): void {
     this.router.navigate(['/daily']);
   }

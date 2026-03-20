@@ -1,0 +1,167 @@
+<div class="br-play">
+
+  <!-- ── LOADING ───────────────────────────────────────────────────────────── -->
+  @if (store.loading()) {
+    <div class="br-play__loading">
+      <span class="material-icons spinning">sync</span>
+      <p>Loading room…</p>
+    </div>
+  }
+
+  <!-- ── WAITING (pre-start lobby) ─────────────────────────────────────────── -->
+  @else if (store.phase() === 'waiting') {
+    <div class="br-play__waiting">
+      <div class="br-play__waiting-header">
+        <span class="material-icons br-play__waiting-icon">hourglass_empty</span>
+        <h2>Waiting for host to start</h2>
+      </div>
+
+      <div class="br-play__room-code">
+        <p class="br-play__room-code-label">Invite code</p>
+        <p class="br-play__room-code-value">{{ store.roomView()?.inviteCode }}</p>
+        <p class="br-play__room-code-hint">Share this code so others can join</p>
+      </div>
+
+      <!-- Player list -->
+      <div class="br-play__player-list">
+        <p class="br-play__player-list-label">{{ store.players().length }} player(s) joined</p>
+        @for (player of store.players(); track player.userId) {
+          <div class="br-play__player-row">
+            <span class="material-icons">person</span>
+            <span>{{ player.username }}</span>
+            @if (player.userId === store.roomView()?.hostId) {
+              <span class="br-play__host-badge">HOST</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Only host sees Start button -->
+      @if (store.roomView()?.isHost) {
+        <button
+          class="br-play__start-btn"
+          (click)="startGame()"
+          [disabled]="store.submitting()"
+        >
+          <span class="material-icons">play_arrow</span>
+          Start Game
+        </button>
+      } @else {
+        <p class="br-play__waiting-hint">Waiting for the host to start the game…</p>
+      }
+    </div>
+  }
+
+  <!-- ── ACTIVE / ANSWERED ──────────────────────────────────────────────────── -->
+  @else if (store.phase() === 'active' || store.phase() === 'answered') {
+    <div class="br-play__game">
+
+      <!-- Header: progress + score -->
+      <div class="br-play__game-header">
+        <div class="br-play__progress">
+          <div class="br-play__progress-bar" [style.width.%]="progress"></div>
+        </div>
+        <div class="br-play__score-pill">
+          <span class="material-icons">star</span>
+          {{ store.myScore() }}
+        </div>
+      </div>
+
+      <!-- Question + choices -->
+      @if (store.currentQuestion(); as q) {
+        <div class="br-play__question-panel">
+          <p class="br-play__q-index">Q{{ q.index + 1 }} / {{ store.roomView()?.questionCount }}</p>
+          <h2 class="br-play__q-text">{{ q.question_text }}</h2>
+
+          <!-- Answer flash overlay -->
+          @if (store.phase() === 'answered') {
+            <div class="br-play__answer-flash"
+                 [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
+                 [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct">
+              @if (store.lastAnswer()?.correct) {
+                <span class="material-icons">check_circle</span> Correct! +100
+              } @else {
+                <span class="material-icons">cancel</span>
+                Correct: {{ store.lastAnswer()?.correctAnswer }}
+              }
+            </div>
+          }
+
+          <div class="br-play__choices">
+            @for (choice of q.choices; track choice) {
+              <button
+                class="br-play__choice-btn"
+                [class.br-play__choice-btn--selected]="selectedChoice() === choice"
+                [class.br-play__choice-btn--correct]="store.phase() === 'answered' && store.lastAnswer()?.correct && selectedChoice() === choice"
+                [class.br-play__choice-btn--wrong]="store.phase() === 'answered' && !store.lastAnswer()?.correct && selectedChoice() === choice"
+                [disabled]="store.submitting() || store.phase() === 'answered'"
+                (click)="selectAndSubmit(choice)"
+              >
+                {{ choice }}
+              </button>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="br-play__between-questions">
+          <span class="material-icons spinning">sync</span>
+          <p>Loading next question…</p>
+        </div>
+      }
+
+      <!-- Live leaderboard sidebar -->
+      <div class="br-play__leaderboard">
+        <h3 class="br-play__lb-title">
+          <span class="material-icons">leaderboard</span> Live Scores
+        </h3>
+        @for (player of store.players(); track player.userId; let i = $index) {
+          <div class="br-play__lb-row"
+               [class.br-play__lb-row--me]="player.userId === store.myUserId()">
+            <span class="br-play__lb-rank">#{{ i + 1 }}</span>
+            <span class="br-play__lb-name">{{ player.username }}</span>
+            <span class="br-play__lb-score">{{ player.score }}</span>
+            @if (player.finished) {
+              <span class="material-icons br-play__lb-done">done_all</span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── FINISHED ───────────────────────────────────────────────────────────── -->
+  @else if (store.phase() === 'finished') {
+    <div class="br-play__results">
+      <div class="br-play__results-header">
+        <span class="material-icons br-play__trophy">emoji_events</span>
+        <h2>Game Over!</h2>
+      </div>
+
+      <div class="br-play__final-leaderboard">
+        @for (player of store.players(); track player.userId; let i = $index) {
+          <div class="br-play__result-row"
+               [class.br-play__result-row--winner]="i === 0"
+               [class.br-play__result-row--me]="player.userId === store.myUserId()">
+            <span class="br-play__result-rank">
+              @if (i === 0) { 🥇 }
+              @else if (i === 1) { 🥈 }
+              @else if (i === 2) { 🥉 }
+              @else { #{{ i + 1 }} }
+            </span>
+            <span class="br-play__result-name">{{ player.username }}</span>
+            <span class="br-play__result-score">{{ player.score }} pts</span>
+          </div>
+        }
+      </div>
+
+      <button class="br-play__home-btn" (click)="goHome()">
+        <span class="material-icons">home</span>
+        Back to Home
+      </button>
+    </div>
+  }
+
+  @if (store.error()) {
+    <div class="br-play__error">{{ store.error() }}</div>
+  }
+</div>

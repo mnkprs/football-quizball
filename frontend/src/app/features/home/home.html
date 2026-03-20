@@ -96,6 +96,18 @@
         actionLabel="Challenge Now"
         (cardClick)="goDuel()"
       />
+      <app-mode-card
+        icon="public"
+        iconBgColor="purple"
+        title="Battle Royale"
+        hint="Up to 20 players • Same questions • Live leaderboard"
+        badge="LIVE"
+        badgeColor="purple"
+        backgroundImage="/battle_royale_mode.png"
+        variant="accent"
+        actionLabel="Join Now"
+        (cardClick)="goBattleRoyale()"
+      />
       @if (auth.isLoggedIn()) {
         <app-mode-card
           icon="emoji_events"

@@ -21,6 +21,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { OnlineGameModule } from './online-game/online-game.module';
 import { AchievementsModule } from './achievements/achievements.module';
 import { DuelModule } from './duel/duel.module';
+import { BattleRoyaleModule } from './battle-royale/battle-royale.module';
 import { MatchHistoryModule } from './match-history/match-history.module';
 import { ProfileModule } from './profile/profile.module';
 
@@ -57,6 +58,7 @@ import { ProfileModule } from './profile/profile.module';
     OnlineGameModule,
     AchievementsModule,
     DuelModule,
+    BattleRoyaleModule,
     MatchHistoryModule,
     ProfileModule,
   ],

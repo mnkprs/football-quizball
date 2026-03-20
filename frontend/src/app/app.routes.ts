@@ -25,6 +25,8 @@ export const routes: Routes = [
   { path: 'join/:code', loadComponent: () => import('./features/online-game/join-invite').then(m => m.JoinInviteComponent) },
   { path: 'duel', canActivate: [authGuard], loadComponent: () => import('./features/duel/duel-lobby').then(m => m.DuelLobbyComponent) },
   { path: 'duel/:id', canActivate: [authGuard], loadComponent: () => import('./features/duel/duel-play').then(m => m.DuelPlayComponent) },
+  { path: 'battle-royale', canActivate: [authGuard], loadComponent: () => import('./features/battle-royale/battle-royale-lobby').then(m => m.BattleRoyaleLobbyComponent) },
+  { path: 'battle-royale/:id', canActivate: [authGuard], loadComponent: () => import('./features/battle-royale/battle-royale-play').then(m => m.BattleRoyalePlayComponent) },
   { path: 'login', loadComponent: () => import('./features/login/login').then(m => m.LoginComponent) },
   { path: 'admin', loadComponent: () => import('./features/admin/admin').then(m => m.AdminComponent) },
   { path: 'onboarding', loadComponent: () => import('./features/onboarding/onboarding').then(m => m.OnboardingComponent) },
