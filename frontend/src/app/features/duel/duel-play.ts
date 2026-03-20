@@ -199,6 +199,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
     if (this.myFlashTimer) clearTimeout(this.myFlashTimer);
     this.myFlashTimer = setTimeout(() => {
       this.myFlash.set(false);
+      this.store.clearAnsweredPhase();
     }, 2000);
   }
 }
