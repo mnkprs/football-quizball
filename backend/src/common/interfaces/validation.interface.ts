@@ -11,4 +11,6 @@ export interface ValidationResult {
   correctedExplanation?: string;
   /** Partial meta corrections (e.g. home_team, away_team, date, career). Only include fields that need fixing. */
   correctedMeta?: Record<string, unknown>;
+  /** Verified source URL extracted from the web search grounding result. Replaces any LLM-generated source_url. */
+  sourceUrl?: string;
 }

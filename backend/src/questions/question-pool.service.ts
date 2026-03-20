@@ -302,7 +302,8 @@ export class QuestionPoolService {
         vr.correctedTop5 ||
         vr.correctedQuestionText ||
         vr.correctedExplanation ||
-        (vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0)
+        (vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0) ||
+        vr.sourceUrl
       ) {
         const from = q.correct_answer ?? '';
         const to = vr.correctedAnswer ?? (vr.correctedTop5 ? vr.correctedTop5.map((e) => e.name).join(', ') : from);
@@ -311,6 +312,7 @@ export class QuestionPoolService {
           vr.correctedQuestionText && 'question_text',
           vr.correctedExplanation && 'explanation',
           vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0 && 'meta',
+          vr.sourceUrl && 'source_url',
         ].filter(Boolean) as string[];
         corrections.push({ id: row.id, from, to, fields });
         this.logger.log(`[verifyPoolIntegrity] Fix: ${row.id} — ${fields.join(', ')} (answer: "${from}" → "${to}")`);
@@ -332,6 +334,7 @@ export class QuestionPoolService {
             ...(vr.correctedQuestionText && { question_text: vr.correctedQuestionText }),
             ...(vr.correctedExplanation && { explanation: vr.correctedExplanation }),
             ...(hasMetaChange && { meta: finalMeta }),
+            ...(vr.sourceUrl && { source_url: vr.sourceUrl }),
           };
           const { error: updErr } = await this.supabaseService.client
             .from('question_pool')
@@ -863,13 +866,13 @@ export class QuestionPoolService {
       if (!vr.valid) {
         rejectedReasons.push(vr.reason ?? 'unknown');
       } else {
-        const { correctedAnswer, correctedTop5, correctedQuestionText, correctedExplanation, correctedMeta } = vr;
+        const { correctedAnswer, correctedTop5, correctedQuestionText, correctedExplanation, correctedMeta, sourceUrl } = vr;
         const baseMeta = correctedMeta && Object.keys(correctedMeta).length > 0 ? { ...q.meta, ...correctedMeta } : q.meta;
         const finalMeta = correctedTop5 && q.category === 'TOP_5' ? { ...baseMeta, top5: correctedTop5 } : baseMeta;
         const top5Desc = correctedTop5 ? correctedTop5.map((e, i) => `${i + 1}. ${e.name} (${e.stat})`).join(', ') : null;
         const hasCorrection = correctedAnswer || correctedTop5 || correctedQuestionText || correctedExplanation || correctedMeta;
 
-        if (!hasCorrection) {
+        if (!hasCorrection && !sourceUrl) {
           passed.push(q);
         } else {
           let explanation = q.explanation;
@@ -888,6 +891,7 @@ export class QuestionPoolService {
             ...(correctedQuestionText && { question_text: correctedQuestionText }),
             ...(explanation !== q.explanation && { explanation }),
             ...(hasMetaChange && { meta: finalMeta }),
+            ...(sourceUrl && { source_url: sourceUrl }),
           });
         }
       }

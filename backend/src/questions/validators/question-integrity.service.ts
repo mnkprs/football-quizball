@@ -87,10 +87,10 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
     const userPrompt = `Verify this trivia from sources with highly accurate, integrated, and validated football (soccer) data. Search Wikipedia, Transfermarkt, or FBref to confirm the answer is factually correct.\n\nQuestion: ${question.question_text}\nAnswer: ${question.correct_answer}${context}\n\nRespond with ONLY the JSON object, nothing else. `;
 
     try {
-      const result = await this.llmService.generateStructuredJsonWithWebSearch<IntegrityCheckPayload>(
+      const { data: result, sourceUrl } = await this.llmService.generateStructuredJsonWithWebSearchMeta<IntegrityCheckPayload>(
         systemPrompt,
         userPrompt,
-        { useWebSearch: true, maxRetries: 1 },
+        { maxRetries: 1 },
       );
 
       if (result.valid) {
@@ -137,7 +137,7 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
 
         if (hasAnswerCorrection || hasTextCorrection || hasExplanationCorrection || hasMetaCorrection) {
           this.logger.log(
-            `[integrity] Corrections: ${hasAnswerCorrection ? `answer→${correctedAnswer}` : ''} ${hasTextCorrection ? 'question_text' : ''} ${hasExplanationCorrection ? 'explanation' : ''} ${hasMetaCorrection ? 'meta' : ''}`,
+            `[integrity] Corrections: ${hasAnswerCorrection ? `answer→${correctedAnswer}` : ''} ${hasTextCorrection ? 'question_text' : ''} ${hasExplanationCorrection ? 'explanation' : ''} ${hasMetaCorrection ? 'meta' : ''}${sourceUrl ? ' source_url' : ''}`,
           );
           return {
             valid: true,
@@ -146,10 +146,11 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
             ...(hasTextCorrection && { correctedQuestionText: result.correctedQuestionText!.trim() }),
             ...(hasExplanationCorrection && { correctedExplanation: result.correctedExplanation!.trim() }),
             ...(hasMetaCorrection && { correctedMeta: finalCorrectedMeta }),
+            ...(sourceUrl && { sourceUrl }),
           };
         }
         this.logger.debug(`[integrity] Verified: ${question.category} — ${question.correct_answer}`);
-        return { valid: true };
+        return { valid: true, ...(sourceUrl && { sourceUrl }) };
       }
 
       const reason = result.reason ?? 'Factual verification failed';

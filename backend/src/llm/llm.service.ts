@@ -172,6 +172,22 @@ export class LlmService {
     return this.generateStructuredJsonInternal<T>(systemPrompt, userPrompt, maxRetries, useWebSearch);
   }
 
+  /**
+   * Like generateStructuredJsonWithWebSearch, but also returns the first grounding URL
+   * found in Gemini's web search metadata. The URL is the real source of truth — it should
+   * replace any LLM-generated source_url on the question.
+   */
+  async generateStructuredJsonWithWebSearchMeta<T>(
+    systemPrompt: string,
+    userPrompt: string,
+    options?: { maxRetries?: number },
+  ): Promise<{ data: T; sourceUrl?: string }> {
+    if (!this.hasIntegrityLlm) {
+      throw new Error('Integrity requires Gemini via Vertex AI — set VERTEX_AI_KEY or GOOGLE_CLOUD_PROJECT');
+    }
+    return this.callGeminiWithRetryAndMetadata<T>(userPrompt, systemPrompt, options?.maxRetries ?? 3);
+  }
+
   /** Internal: LLM call with optional Google Search grounding. */
   private async generateStructuredJsonInternal<T>(
     systemPrompt: string,
@@ -296,6 +312,62 @@ export class LlmService {
         });
         const text = response.text ?? '';
         return extractJson<T>(text);
+      } catch (err) {
+        lastError = err as Error;
+        const rawResponse = (err as Error & { rawResponse?: string }).rawResponse;
+        if (LOG_LLM_VERBOSE && rawResponse) {
+          this.logger.error(`[generateStructuredJson] Raw Gemini response:\n${rawResponse}`);
+        }
+        if (isRateLimitError(err) && attempt < maxRetries) {
+          const delay = RATE_LIMIT_RETRY_MS * attempt;
+          this.logger.warn(`[generateStructuredJson] Rate limit (attempt ${attempt}/${maxRetries}) — retrying in ${delay / 1000}s`);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
+        if (isServiceUnavailableError(err) && attempt < maxRetries) {
+          this.logger.warn(
+            `[generateStructuredJson] Service unavailable (503) — retrying in ${SERVICE_UNAVAILABLE_RETRY_MS / 1000}s`,
+          );
+          await new Promise((r) => setTimeout(r, SERVICE_UNAVAILABLE_RETRY_MS));
+          continue;
+        }
+        this.logger.error(`[generateStructuredJson] Attempt ${attempt}/${maxRetries} failed — ${lastError.message}`);
+        if (attempt < maxRetries) {
+          await new Promise((r) => setTimeout(r, 1000 * attempt));
+          continue;
+        }
+        throw lastError;
+      }
+    }
+    throw lastError || new Error('LLM generation failed after all retries');
+  }
+
+  /**
+   * Like callGeminiWithRetry but also extracts the first grounding web URI from the response
+   * metadata. Used for integrity verification where the web search URL is the real source.
+   */
+  private async callGeminiWithRetryAndMetadata<T>(
+    userPrompt: string,
+    systemPrompt: string,
+    maxRetries: number,
+  ): Promise<{ data: T; sourceUrl?: string }> {
+    const config = this.buildGeminiConfig(systemPrompt, true);
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await this.gemini!.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: userPrompt,
+          config,
+        });
+        const text = response.text ?? '';
+        const data = extractJson<T>(text);
+        const sourceUrl =
+          response.candidates?.[0]?.groundingMetadata?.groundingChunks
+            ?.find((c) => c.web?.uri)
+            ?.web?.uri ?? undefined;
+        return { data, sourceUrl };
       } catch (err) {
         lastError = err as Error;
         const rawResponse = (err as Error & { rawResponse?: string }).rawResponse;
