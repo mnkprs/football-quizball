@@ -278,7 +278,9 @@ export class DuelService {
     const { data: claimed, error: claimError } = await this.supabaseService.client
       .from('duel_games')
       .update({
-        current_question_answered_by: role,
+        // Reset answered_by to null in the same atomic write so the next question
+        // is immediately claimable — eliminates the fire-and-forget TOCTOU window.
+        current_question_answered_by: null,
         current_question_index: nextIndex,
         scores: newScores,
         question_results: [...row.question_results, questionResult],
@@ -295,13 +297,6 @@ export class DuelService {
       // Another player claimed it first (race condition — both were correct simultaneously)
       return { correct: true, lostRace: true };
     }
-
-    // We won the race — reset answered_by for the next question (non-critical, fire and forget)
-    void this.supabaseService.client
-      .from('duel_games')
-      .update({ current_question_answered_by: null })
-      .eq('id', gameId)
-      .eq('current_question_index', nextIndex);
 
     const gameWinner: 'host' | 'guest' | 'draw' | undefined = gameFinished ? role : undefined;
 

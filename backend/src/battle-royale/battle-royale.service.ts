@@ -252,11 +252,26 @@ export class BattleRoyaleService {
       (playerUpdate as unknown as Record<string, string>).finished_at = new Date().toISOString();
     }
 
-    await this.supabaseService.client
+    // CAS: only update if current_question_index still matches what we read.
+    // Prevents a duplicate simultaneous request from double-scoring.
+    const { data: casResult } = await this.supabaseService.client
       .from('battle_royale_players')
       .update(playerUpdate)
       .eq('room_id', roomId)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .eq('current_question_index', questionIndex)  // CAS guard
+      .select('id');
+
+    if (!casResult || casResult.length === 0) {
+      // Duplicate submission — index already advanced, return idempotent result
+      return {
+        correct,
+        correct_answer: question.correct_answer,
+        myScore: player.score,
+        nextQuestion: null,
+        finished: !!player.finished_at,
+      };
+    }
 
     // Check if all players are done
     if (isLastQuestion) {
