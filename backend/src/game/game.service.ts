@@ -196,9 +196,11 @@ export class GameService {
     // Switch turns
     session.currentPlayerIndex = dto.playerIndex === 0 ? 1 : 0;
 
-    // Check if game is finished
+    // Check if game is finished (all answered or mathematical win)
     const allAnswered = session.board.flat().every((c) => c.answered);
-    if (allAnswered) session.status = 'FINISHED';
+    if (allAnswered || this.isMathematicallyWon(session)) {
+      await this.finishSession(session);
+    }
 
     session.updatedAt = new Date();
     await this.cacheService.set(`game:${session.id}`, session, 86400);
@@ -396,7 +398,9 @@ export class GameService {
       session.currentPlayerIndex = dto.playerIndex === 0 ? 1 : 0;
 
       const allAnswered = session.board.flat().every((c) => c.answered);
-      if (allAnswered) session.status = 'FINISHED';
+      if (allAnswered || this.isMathematicallyWon(session)) {
+        await this.finishSession(session);
+      }
 
       session.updatedAt = new Date();
       await this.cacheService.set(`game:${session.id}`, session, 86400);
@@ -462,7 +466,9 @@ export class GameService {
 
     session.currentPlayerIndex = dto.playerIndex === 0 ? 1 : 0;
     const allAnswered = session.board.flat().every((c) => c.answered);
-    if (allAnswered) session.status = 'FINISHED';
+    if (allAnswered || this.isMathematicallyWon(session)) {
+      await this.finishSession(session);
+    }
 
     session.updatedAt = new Date();
     await this.cacheService.set(`game:${session.id}`, session, 86400);
@@ -485,10 +491,28 @@ export class GameService {
     };
   }
 
-  async endGame(gameId: string): Promise<GameSession> {
-    const session = await this.getGame(gameId);
+  /** Returns true if one player's lead is insurmountable: even if the trailing player
+   *  answered every remaining question correctly (plus used their double once), they
+   *  cannot overtake the leader. */
+  private isMathematicallyWon(session: GameSession): boolean {
+    const unanswered = session.board.flat().filter((c) => !c.answered);
+    if (unanswered.length === 0) return false;
 
-    // Return unanswered pool questions so they can appear in future matches (prevents create→peek→end abuse)
+    const totalRemaining = unanswered.reduce((sum, c) => sum + c.points, 0);
+    const maxCellPoints = Math.max(...unanswered.map((c) => c.points));
+
+    for (let i = 0; i < 2; i++) {
+      const j = 1 - i;
+      const lead = session.players[i].score - session.players[j].score;
+      const doubleBonus = session.players[j].doubleUsed ? 0 : maxCellPoints;
+      if (lead > totalRemaining + doubleBonus) return true;
+    }
+    return false;
+  }
+
+  /** Marks the session as FINISHED and returns unanswered pool questions back to the pool. */
+  private async finishSession(session: GameSession): Promise<void> {
+    session.status = 'FINISHED';
     const poolIds = session.poolQuestionIds ?? [];
     if (poolIds.length > 0) {
       const unansweredIds = session.board
@@ -497,13 +521,17 @@ export class GameService {
         .map((c) => c.question_id)
         .filter((id) => id && poolIds.includes(id));
       if (unansweredIds.length > 0) {
+        this.logger.log(`[finishSession] Returning ${unansweredIds.length} unanswered questions to pool`);
         await this.questionPoolService.returnUnansweredToPool(unansweredIds).catch((err) =>
-          this.logger.error(`[endGame] Failed to return questions to pool: ${(err as Error).message}`),
+          this.logger.error(`[finishSession] Failed to return questions to pool: ${(err as Error).message}`),
         );
       }
     }
+  }
 
-    session.status = 'FINISHED';
+  async endGame(gameId: string): Promise<GameSession> {
+    const session = await this.getGame(gameId);
+    await this.finishSession(session);
     session.updatedAt = new Date();
     await this.cacheService.set(`game:${session.id}`, session, 86400);
     return session;

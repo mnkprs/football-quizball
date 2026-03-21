@@ -176,9 +176,6 @@ export const GameStore = signalStore(
           totalAnswered: ta as [number, number],
           currentStreak: cs as [number, number],
         });
-        if (updatedBoard.status === 'FINISHED') {
-          patchState(store, { phase: 'finished' });
-        }
         return result;
       } catch (err) {
         patchState(store, { loading: false, error: 'Failed to submit answer' });
@@ -239,9 +236,6 @@ export const GameStore = signalStore(
             totalAnswered: ta as [number, number],
             currentStreak: cs as [number, number],
           });
-          if (updatedBoard.status === 'FINISHED') {
-            patchState(store, { phase: 'finished' });
-          }
         } else {
           patchState(store, { top5State });
         }
