@@ -10,7 +10,7 @@ import { GeneratedQuestion } from '../questions/question.types';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 import { RedisService } from '../redis/redis.service';
 
-const NEWS_POOL_TARGET = 10;
+const USER_QUEUE_MAX = 20;
 
 @Injectable()
 export class NewsService {
@@ -28,8 +28,8 @@ export class NewsService {
   ) {}
 
   /**
-   * Fetches headlines, generates questions, and inserts into question_pool.
-   * Skips if already ingesting or pool has enough NEWS questions.
+   * Fetches headlines, generates questions, and inserts into news_questions.
+   * Always runs — no early-exit pool-size guard.
    */
   async ingestNews(): Promise<{ added: number; skipped: number }> {
     if (this.isIngesting) {
@@ -42,12 +42,6 @@ export class NewsService {
     let skipped = 0;
 
     try {
-      const current = await this.getNewsPoolCount();
-      if (current >= NEWS_POOL_TARGET) {
-        this.logger.log(`[ingestNews] Pool has ${current} NEWS questions, skipping`);
-        return { added: 0, skipped: 0 };
-      }
-
       const headlines = await this.newsFetcher.fetchHeadlines();
       if (headlines.length === 0) {
         this.logger.warn('[ingestNews] No headlines fetched');
@@ -122,7 +116,7 @@ export class NewsService {
     const acquired = await this.redisService.acquireLock('lock:cron:news-ingest', 600);
     if (!acquired) return;
     try {
-      this.logger.log('[CRON] News ingest (every 6h): checking pool, expiring old...');
+      this.logger.log('[CRON] News ingest (every 6h): expiring old, then ingesting...');
       await this.expireOldNews();
       await this.ingestNews();
     } finally {
@@ -160,8 +154,19 @@ export class NewsService {
     };
   }
 
-  async getMetadata(): Promise<{ count: number; updatesAt: string }> {
-    const count = await this.getNewsPoolCount();
+  async getMetadata(userId?: string): Promise<{ count: number; updatesAt: string }> {
+    let count: number;
+    if (userId) {
+      const { count: userCount, error } = await this.supabaseService.client
+        .from('user_news_progress')
+        .select('question_id', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .is('answered_at', null);
+      count = error ? 0 : (userCount ?? 0);
+    } else {
+      count = await this.getNewsPoolCount();
+    }
+
     const now = new Date();
     const nextHour = (Math.floor(now.getUTCHours() / 6) + 1) * 6;
     const updatesAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), nextHour));
@@ -182,36 +187,85 @@ export class NewsService {
   }
 
   /**
-   * Returns active news questions for the News mode (no correct_answer exposed).
-   * Client passes already-seen IDs to exclude.
+   * Returns assigned unanswered news questions for the user.
+   * Assigns new questions (up to USER_QUEUE_MAX) if the user has capacity.
    */
-  async getNewsQuestions(excludeIds: string[] = []): Promise<Array<{ id: string; question_text: string; fifty_fifty_hint: string | null; source_url: string | null }>> {
-    const { data, error } = await this.supabaseService.client
-      .from('news_questions')
-      .select('id, question')
-      .gt('expires_at', new Date().toISOString())
-      .limit(30);
+  async getNewsQuestions(userId: string): Promise<Array<{ id: string; question_text: string; fifty_fifty_hint: string | null; source_url: string | null }>> {
+    // Fetch current assignment state for this user
+    const { data: progress, error: progressError } = await this.supabaseService.client
+      .from('user_news_progress')
+      .select('question_id, answered_at')
+      .eq('user_id', userId);
 
-    if (error) {
-      this.logger.error(`[getNewsQuestions] Error: ${error.message}`);
+    if (progressError) {
+      this.logger.error(`[getNewsQuestions] Progress fetch error: ${progressError.message}`);
       return [];
     }
 
-    return (data ?? [])
-      .filter((r: { id: string }) => !excludeIds.includes(r.id))
-      .map((r: { id: string; question: Record<string, string | null> }) => ({
-        id: r.id,
-        question_text: r.question['question_text'] as string,
-        fifty_fifty_hint: (r.question['fifty_fifty_hint'] as string | null) ?? null,
-        source_url: (r.question['source_url'] as string | null) ?? null,
-      }));
+    const allAssigned = progress ?? [];
+    const assignedIds = allAssigned.map((r: { question_id: string }) => r.question_id);
+    const unansweredIds = allAssigned
+      .filter((r: { answered_at: string | null }) => !r.answered_at)
+      .map((r: { question_id: string }) => r.question_id);
+
+    const capacity = USER_QUEUE_MAX - unansweredIds.length;
+
+    // Assign new questions if user has capacity
+    if (capacity > 0) {
+      let query = this.supabaseService.client
+        .from('news_questions')
+        .select('id')
+        .gt('expires_at', new Date().toISOString())
+        .limit(capacity);
+
+      if (assignedIds.length > 0) {
+        query = query.not('id', 'in', `(${assignedIds.join(',')})`);
+      }
+
+      const { data: newQs } = await query;
+      if (newQs && newQs.length > 0) {
+        const insertRows = (newQs as Array<{ id: string }>).map((q) => ({
+          user_id: userId,
+          question_id: q.id,
+        }));
+        const { error: insertError } = await this.supabaseService.client
+          .from('user_news_progress')
+          .insert(insertRows);
+        if (insertError) {
+          this.logger.error(`[getNewsQuestions] Assignment insert error: ${insertError.message}`);
+        } else {
+          unansweredIds.push(...(newQs as Array<{ id: string }>).map((q) => q.id));
+        }
+      }
+    }
+
+    if (unansweredIds.length === 0) return [];
+
+    // Fetch question details for unanswered assigned questions
+    const { data, error } = await this.supabaseService.client
+      .from('news_questions')
+      .select('id, question')
+      .in('id', unansweredIds)
+      .gt('expires_at', new Date().toISOString());
+
+    if (error) {
+      this.logger.error(`[getNewsQuestions] Question fetch error: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? []).map((r: { id: string; question: Record<string, string | null> }) => ({
+      id: r.id,
+      question_text: r.question['question_text'] as string,
+      fifty_fifty_hint: (r.question['fifty_fifty_hint'] as string | null) ?? null,
+      source_url: (r.question['source_url'] as string | null) ?? null,
+    }));
   }
 
   /**
-   * Validates an answer for a news question.
+   * Validates an answer for a news question and marks it as answered.
    * Returns null if question not found or expired.
    */
-  async checkNewsAnswer(questionId: string, answer: string): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
+  async checkNewsAnswer(userId: string, questionId: string, answer: string): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
     const { data, error } = await this.supabaseService.client
       .from('news_questions')
       .select('question')
@@ -229,6 +283,14 @@ export class NewsService {
     } as import('../questions/question.types').GeneratedQuestion;
 
     const correct = this.answerValidator.validate(mockQuestion, answer);
+
+    // Mark as answered in user progress
+    await this.supabaseService.client
+      .from('user_news_progress')
+      .update({ answered_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('question_id', questionId);
+
     return {
       correct,
       correct_answer: q['correct_answer'],

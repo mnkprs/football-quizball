@@ -34,12 +34,11 @@ export class NewsApiService {
   }
 
   getMetadata(): Observable<NewsMetadata> {
-    return this.http.get<NewsMetadata>(`${this.base}/metadata`);
+    return this.http.get<NewsMetadata>(`${this.base}/metadata`, { headers: this.headers() });
   }
 
-  getQuestions(excludeIds: string[] = []) {
-    const params = excludeIds.length ? `?excludeIds=${encodeURIComponent(excludeIds.join(','))}` : '';
-    return this.http.get<NewsQuestion[]>(`${this.base}/mode/questions${params}`, { headers: this.headers() });
+  getQuestions(): Observable<NewsQuestion[]> {
+    return this.http.get<NewsQuestion[]>(`${this.base}/mode/questions`, { headers: this.headers() });
   }
 
   checkAnswer(questionId: string, answer: string) {

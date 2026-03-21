@@ -149,9 +149,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loadProfile();
         this.pro.loadStatus();
       }
+      this.loadNewsMetadata();
     });
     this.loadDailyMetadata();
-    this.loadNewsMetadata();
     this.countdownInterval = setInterval(() => this.countdownTick.update((v) => v + 1), 1000);
     this.handleProRedirect();
   }
