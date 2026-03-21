@@ -28,7 +28,7 @@
 }
 
 .mode-card-container--primary {
-  background: #10b981;
+  background: #4dff00;
   border-color: color-mix(in srgb, #10b981 72%, #000000 28%);
   color: #ffffff;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);

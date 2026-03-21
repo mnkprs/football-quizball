@@ -166,6 +166,7 @@
 }
 
 .rank-banner__avatar {
+  position: relative;
   width: 4.5rem;
   height: 4.5rem;
   border-radius: 50%;
