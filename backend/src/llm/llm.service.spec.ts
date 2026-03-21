@@ -6,9 +6,6 @@ import { LlmService } from './llm.service';
 
 jest.mock('@google/genai', () => ({ GoogleGenAI: jest.fn() }));
 jest.mock('openai', () => ({ __esModule: true, default: jest.fn() }));
-jest.mock('@google-cloud/translate', () => ({
-  v2: { Translate: jest.fn().mockImplementation(() => ({ translate: jest.fn() })) },
-}));
 
 // ─── Helper: build service with empty ConfigService (no real SDKs initialised) ─
 

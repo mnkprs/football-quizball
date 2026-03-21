@@ -11,23 +11,17 @@ export interface SlotRequirement {
   count: number;
 }
 
-export interface PoolTranslation {
-  el?: { question_text?: string; explanation?: string };
-}
-
 export interface DrawBoardRow {
   id: string;
   question: GeneratedQuestion;
   difficulty: string;
   category: string;
-  translations?: PoolTranslation;
 }
 
 export interface DrawQuestionsRow {
   question: GeneratedQuestion;
   difficulty: string;
   category: string;
-  translations?: PoolTranslation;
 }
 
 export interface PoolStatsRow {

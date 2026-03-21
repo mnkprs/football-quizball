@@ -3,7 +3,6 @@ import { Provider } from '@nestjs/common';
 import { MayhemService } from './mayhem.service';
 import { MayhemQuestionGenerator } from './mayhem-question.generator';
 import { SupabaseService } from '../supabase/supabase.service';
-import { LlmService } from '../llm/llm.service';
 import { QuestionValidator } from '../questions/validators/question.validator';
 import { QuestionIntegrityService } from '../questions/validators/question-integrity.service';
 import { DifficultyScorer } from '../questions/difficulty-scorer.service';
@@ -52,10 +51,6 @@ async function buildModule(
       MayhemService,
       { provide: MayhemQuestionGenerator, useValue: generator },
       { provide: SupabaseService, useValue: supabase },
-      {
-        provide: LlmService,
-        useValue: { translateToGreek: jest.fn().mockImplementation((s: object[]) => Promise.resolve(s)) },
-      },
       { provide: QuestionValidator, useValue: { validate: jest.fn().mockReturnValue({ valid: true }) } },
       { provide: QuestionIntegrityService, useValue: { isEnabled: false } },
       { provide: DifficultyScorer, useValue: { score: jest.fn().mockReturnValue({ raw: 50 }) } },
@@ -110,7 +105,7 @@ describe('MayhemService — ingestMayhem', () => {
   });
 });
 
-// ─── getMayhemQuestions — language handling ───────────────────────────────────
+// ─── getMayhemQuestions ───────────────────────────────────────────────────────
 
 describe('MayhemService — getMayhemQuestions', () => {
   const dbRow = {
@@ -119,13 +114,6 @@ describe('MayhemService — getMayhemQuestions', () => {
       question_text: 'English Q?',
       correct_answer: 'English A',
       wrong_choices: ['W1', 'W2', 'W3'],
-    },
-    translations: {
-      el: {
-        question_text: 'Greek Q?',
-        correct_answer: 'Greek A',
-        wrong_choices: ['GW1', 'GW2', 'GW3'],
-      },
     },
   };
 
@@ -140,31 +128,21 @@ describe('MayhemService — getMayhemQuestions', () => {
     return { client: chain };
   }
 
-  it('returns English text by default (lang = "en")', async () => {
+  it('returns question text and options', async () => {
     const module = await buildModule(makeSupabaseWith([dbRow]), buildGenerator());
     const service = module.get<MayhemService>(MayhemService);
 
-    const result = await service.getMayhemQuestions([], 'en');
+    const result = await service.getMayhemQuestions([]);
 
     expect(result[0].question_text).toBe('English Q?');
     expect(result[0].options).toContain('English A');
-  });
-
-  it('returns translated text when lang = "el"', async () => {
-    const module = await buildModule(makeSupabaseWith([dbRow]), buildGenerator());
-    const service = module.get<MayhemService>(MayhemService);
-
-    const result = await service.getMayhemQuestions([], 'el');
-
-    expect(result[0].question_text).toBe('Greek Q?');
-    expect(result[0].options).toContain('Greek A');
   });
 
   it('excludes rows whose id is in excludeIds', async () => {
     const module = await buildModule(makeSupabaseWith([dbRow]), buildGenerator());
     const service = module.get<MayhemService>(MayhemService);
 
-    const result = await service.getMayhemQuestions(['q1'], 'en');
+    const result = await service.getMayhemQuestions(['q1']);
 
     expect(result).toHaveLength(0);
   });
@@ -175,7 +153,6 @@ describe('MayhemService — getMayhemQuestions', () => {
 describe('MayhemService — checkMayhemAnswer', () => {
   const dbAnswer = {
     question: { correct_answer: 'Lionel Messi', explanation: 'He scored the most.' },
-    translations: { el: { correct_answer: 'Λιονέλ Μέσι', explanation: 'Greek expl.' } },
   };
 
   function makeSupabaseWith(row: object | null) {
@@ -218,11 +195,4 @@ describe('MayhemService — checkMayhemAnswer', () => {
     expect(result).toBeNull();
   });
 
-  it('uses translated answer when lang = "el"', async () => {
-    const module = await buildModule(makeSupabaseWith(dbAnswer), buildGenerator());
-    const service = module.get<MayhemService>(MayhemService);
-    const result = await service.checkMayhemAnswer('q1', 'Λιονέλ Μέσι', 'el');
-    expect(result?.correct).toBe(true);
-    expect(result?.correct_answer).toBe('Λιονέλ Μέσι');
-  });
 });

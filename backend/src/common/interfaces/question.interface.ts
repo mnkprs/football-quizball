@@ -12,12 +12,6 @@ export type BoardCategory =
 export type QuestionCategory = BoardCategory | 'NEWS' | 'MAYHEM';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
-export type QuestionLocale = 'en' | 'el';
-
-export interface QuestionTranslation {
-  question_text: string;
-  explanation: string;
-}
 
 /** @deprecated Use string for free-form answer types. Kept for backward compatibility. */
 export type AnswerType = 'name' | 'team' | 'number' | 'score' | 'year' | 'country';
@@ -52,7 +46,6 @@ export interface GeneratedQuestion {
   meta?: Record<string, unknown>;
   source_question_text?: string;
   source_explanation?: string;
-  translations?: Partial<Record<QuestionLocale, QuestionTranslation>>;
   difficulty_factors?: DifficultyFactors;
 }
 

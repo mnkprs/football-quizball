@@ -2,9 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
-import { v2 } from '@google-cloud/translate';
 import { jsonrepair } from 'jsonrepair';
-import { createHash } from 'crypto';
 import { RedisService } from '../redis/redis.service';
 
 /** Gemini model. Supports Google Search grounding for factual verification. */
@@ -88,7 +86,6 @@ export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private readonly gemini: GoogleGenAI | null = null;
   private readonly deepseek: OpenAI | null = null;
-  private readonly googleTranslate: v2.Translate | null = null;
 
   constructor(
     private configService: ConfigService,
@@ -98,7 +95,6 @@ export class LlmService {
     const vertexProject = this.configService.get<string>('GOOGLE_CLOUD_PROJECT');
     const vertexLocation = this.configService.get<string>('GOOGLE_CLOUD_LOCATION') ?? 'us-central1';
     const deepseekKey = this.configService.get<string>('DEEPSEEK_API_KEY');
-    const translateKey = this.configService.get<string>('GOOGLE_TRANSLATE_API_KEY');
 
     // Vertex AI only. VERTEX_AI_KEY takes priority (no ADC needed); falls back to ADC via GOOGLE_CLOUD_PROJECT.
     if (vertexKey) {
@@ -123,17 +119,6 @@ export class LlmService {
       this.logger.log(`LlmService — DeepSeek ready (generation)`);
     } else {
       this.logger.debug('DEEPSEEK_API_KEY not set — using Gemini for generation');
-    }
-
-    if (translateKey || vertexProject) {
-      if (translateKey) {      
-        this.googleTranslate = new v2.Translate(
-          translateKey ? { key: translateKey } : { projectId: vertexProject! },
-        );
-      }
-      this.logger.log(`LlmService — Google Translate ready`);
-    } else {
-      this.logger.debug('GOOGLE_TRANSLATE_API_KEY / GOOGLE_CLOUD_PROJECT not set — using LLM for translation');
     }
   }
 
@@ -439,142 +424,5 @@ export class LlmService {
       }
     }
     return null;
-  }
-
-  /**
-   * Translates question strings to Greek. Uses Google Translate when configured, else Gemini.
-   * Translates question_text, explanation, correct_answer, and wrong_choices when provided.
-   * Results are cached in Redis for 7 days to avoid redundant API calls for the same question.
-   */
-  async translateToGreek(
-    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
-  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
-    if (strings.length === 0) return strings;
-
-    type TranslationItem = { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] };
-    const TRANSLATION_TTL = 7 * 24 * 3600; // 7 days
-
-    // Check cache for each item individually
-    const cacheKeys = strings.map((s) =>
-      `translation:el:${createHash('sha256').update(JSON.stringify(s)).digest('hex')}`,
-    );
-    const cachedResults: (TranslationItem | null)[] = await Promise.all(
-      cacheKeys.map((k) => this.redisService.get<TranslationItem>(k).then((v) => v ?? null)),
-    );
-
-    const uncachedIndices: number[] = [];
-    for (let i = 0; i < strings.length; i++) {
-      if (cachedResults[i] === null) uncachedIndices.push(i);
-    }
-
-    if (uncachedIndices.length > 0) {
-      const uncachedStrings = uncachedIndices.map((i) => strings[i]);
-      const translated = await this.translateStrings(uncachedStrings);
-      await Promise.all(
-        uncachedIndices.map((origIdx, j) =>
-          this.redisService.set(cacheKeys[origIdx], translated[j], TRANSLATION_TTL),
-        ),
-      );
-      for (let j = 0; j < uncachedIndices.length; j++) {
-        cachedResults[uncachedIndices[j]] = translated[j];
-      }
-    }
-
-    return cachedResults.map((r, i) => r ?? strings[i]);
-  }
-
-  /** Internal: calls the actual translation provider (Google Translate or LLM). */
-  private async translateStrings(
-    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
-  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
-    if (this.googleTranslate) {
-      return this.translateWithGoogle(strings);
-    }
-
-    if (!this.gemini) {
-      this.logger.warn('[translateToGreek] No translation provider — returning originals');
-      return strings;
-    }
-
-    return this.translateWithLlm(strings);
-  }
-
-  /** Google Cloud Translation API (v2 Basic). */
-  private async translateWithGoogle(
-    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
-  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
-    const flat: string[] = strings.flatMap((s) => [
-      s.question_text,
-      s.explanation,
-      ...(s.correct_answer ? [s.correct_answer] : []),
-      ...(s.wrong_choices ?? []),
-    ]);
-    try {
-      const [translations] = await this.googleTranslate!.translate(flat, 'el');
-      const arr = Array.isArray(translations) ? translations : [translations];
-      let idx = 0;
-      return strings.map((s) => {
-        const question_text = arr[idx++] ?? s.question_text;
-        const explanation = arr[idx++] ?? s.explanation;
-        const correct_answer = s.correct_answer ? (arr[idx++] ?? s.correct_answer) : undefined;
-        const wrong_choices = s.wrong_choices?.map(() => arr[idx++] ?? '');
-        return { question_text, explanation, correct_answer, wrong_choices };
-      });
-    } catch (err) {
-      this.logger.warn(`[translateToGreek] Google Translate failed — ${(err as Error).message}. Falling back to LLM.`);
-      if (this.gemini) return this.translateWithLlm(strings);
-      return strings;
-    }
-  }
-
-  /** LLM-based translation (Gemini). Batches in chunks of 5. */
-  private async translateWithLlm(
-    strings: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[],
-  ): Promise<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[]> {
-    const BATCH_SIZE = 5;
-    const results: { question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }[] = [];
-
-    for (let i = 0; i < strings.length; i += BATCH_SIZE) {
-      const batch = strings.slice(i, i + BATCH_SIZE);
-      const hasAnswers = batch.some((s) => s.correct_answer || s.wrong_choices?.length);
-
-      const systemPrompt = `You are a professional translator. Translate the following English football quiz strings to Greek (Ελληνικά).
-Return ONLY a valid JSON object with key "items": an array of objects with the translated fields.
-Preserve meaning, tone, and formatting. Do not translate proper nouns (player names, team names, competition names) unless they have a well-known Greek form.`;
-
-      const items = batch
-        .map((s, j) => {
-          const parts = [`[${j}] question_text: "${s.question_text}"`, `explanation: "${s.explanation}"`];
-          if (s.correct_answer) parts.push(`correct_answer: "${s.correct_answer}"`);
-          if (s.wrong_choices?.length) parts.push(`wrong_choices: ${JSON.stringify(s.wrong_choices)}`);
-          return parts.join(' | ');
-        })
-        .join('\n');
-
-      const fieldsDesc = hasAnswers
-        ? '"question_text", "explanation", "correct_answer", "wrong_choices" (array)'
-        : '"question_text", "explanation"';
-      const userPrompt = `Translate each item to Greek. Return JSON: { "items": [ { ${fieldsDesc} }, ... ] }\n${items}`;
-
-      const result = await this.callGeminiWithRetry<{
-        items: Array<{ question_text: string; explanation: string; correct_answer?: string; wrong_choices?: string[] }>;
-      }>(userPrompt, systemPrompt, false, 3);
-
-      const itemsResult = result?.items;
-      if (!Array.isArray(itemsResult) || itemsResult.length !== batch.length) {
-        this.logger.warn(`[translateToGreek] Batch ${i / BATCH_SIZE + 1} invalid, using originals`);
-        results.push(...batch);
-      } else {
-        results.push(
-          ...itemsResult.map((r, j) => ({
-            question_text: typeof r?.question_text === 'string' ? r.question_text : batch[j].question_text,
-            explanation: typeof r?.explanation === 'string' ? r.explanation : batch[j].explanation,
-            correct_answer: typeof r?.correct_answer === 'string' ? r.correct_answer : batch[j].correct_answer,
-            wrong_choices: Array.isArray(r?.wrong_choices) ? r.wrong_choices : batch[j].wrong_choices,
-          })),
-        );
-      }
-    }
-    return results;
   }
 }

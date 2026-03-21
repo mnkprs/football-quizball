@@ -379,7 +379,7 @@ export class OnlineGameService {
     const boardState = row['board_state'] as OnlineBoardState;
     const question = this.findQuestion(boardState, questionId);
     if (!question) throw new NotFoundException('Question not found');
-    const { correct_answer, fifty_fifty_hint, difficulty_factors, source_question_text, source_explanation, translations, ...safe } = question as GeneratedQuestion & { difficulty_factors?: unknown; source_question_text?: string; source_explanation?: string; translations?: unknown };
+    const { correct_answer, fifty_fifty_hint, difficulty_factors, source_question_text, source_explanation, ...safe } = question as GeneratedQuestion & { difficulty_factors?: unknown; source_question_text?: string; source_explanation?: string };
     return { ...safe, correct_answer: '', fifty_fifty_hint: null } as unknown as Omit<GeneratedQuestion, 'correct_answer' | 'fifty_fifty_hint'>;
   }
 

@@ -30,13 +30,6 @@
         <span class="text-muted-foreground text-xs">{{ lang.t().yourTurn }}</span>
       </div>
 
-      <!-- English answers hint (shown only in Greek mode) -->
-      @if (lang.t().answersInEnglish) {
-        <div class="text-center mb-3 text-xs text-accent/70">
-          {{ lang.t().answersInEnglish }}
-        </div>
-      }
-
       <!-- Question renderer by category -->
       @switch (question()?.category) {
         @case ('HIGHER_OR_LOWER') {

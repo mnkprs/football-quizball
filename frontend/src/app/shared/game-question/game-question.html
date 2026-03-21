@@ -41,11 +41,6 @@
     </div>
   }
 
-  <!-- English answers hint -->
-  @if (lang.t().answersInEnglish && needsEnglishHint()) {
-    <div class="gq__hint">{{ lang.t().answersInEnglish }}</div>
-  }
-
   <!-- Question content - category-specific rendering -->
   <div class="gq__body">
     @switch (questionCategory()) {

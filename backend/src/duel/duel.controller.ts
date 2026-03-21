@@ -49,13 +49,11 @@ export class DuelController {
   @Post('queue')
   async joinQueue(
     @Request() req: DuelRequest,
-    @Query('language') language?: string,
   ) {
     if (!req.proStatus?.is_pro) {
       await this.supabaseService.incrementDuelTrial(req.user.id);
     }
-    const lang = language === 'el' ? 'el' : 'en';
-    return this.service.joinQueue(req.user.id, lang);
+    return this.service.joinQueue(req.user.id, 'en');
   }
 
   /** POST /api/duel/join — Join a duel by invite code */

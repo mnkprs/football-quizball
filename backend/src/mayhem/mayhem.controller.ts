@@ -23,15 +23,15 @@ export class MayhemController {
 
   @Get('mode/questions')
   @UseGuards(AuthGuard)
-  async getMayhemQuestions(@Query('excludeIds') excludeIds?: string, @Query('lang') lang?: string) {
+  async getMayhemQuestions(@Query('excludeIds') excludeIds?: string) {
     const ids = excludeIds ? excludeIds.split(',').filter(Boolean) : [];
-    return this.mayhemService.getMayhemQuestions(ids, lang ?? 'en');
+    return this.mayhemService.getMayhemQuestions(ids);
   }
 
   @Post('mode/answer')
   @UseGuards(AuthGuard)
-  async checkAnswer(@Body() body: { questionId: string; selectedAnswer: string; lang?: string }) {
-    const result = await this.mayhemService.checkMayhemAnswer(body.questionId, body.selectedAnswer, body.lang ?? 'en');
+  async checkAnswer(@Body() body: { questionId: string; selectedAnswer: string }) {
+    const result = await this.mayhemService.checkMayhemAnswer(body.questionId, body.selectedAnswer);
     if (!result) throw new NotFoundException('Question not found or expired');
     return result;
   }
@@ -42,9 +42,8 @@ export class MayhemController {
   @UseGuards(AuthGuard)
   async startSession(
     @Request() req: { user: { sub: string } },
-    @Body() body: { language?: string },
   ) {
-    return this.mayhemSessionService.startSession(req.user.sub, body.language ?? 'en');
+    return this.mayhemSessionService.startSession(req.user.sub);
   }
 
   @Post('session/:id/answer')
@@ -52,10 +51,10 @@ export class MayhemController {
   async submitAnswer(
     @Request() req: { user: { sub: string } },
     @Param('id') sessionId: string,
-    @Body() body: { questionId: string; selectedAnswer: string; lang?: string },
+    @Body() body: { questionId: string; selectedAnswer: string },
   ) {
     return this.mayhemSessionService.submitAnswer(
-      sessionId, req.user.sub, body.questionId, body.selectedAnswer, body.lang ?? 'en',
+      sessionId, req.user.sub, body.questionId, body.selectedAnswer,
     );
   }
 

@@ -47,9 +47,8 @@ export class OnlineGameController {
   /** POST /api/online-games/queue — Join the random matchmaking queue */
   @UseGuards(AuthGuard)
   @Post('queue')
-  joinQueue(@Request() req: { user: { id: string } }, @Query('language') language?: string) {
-    const lang = language === 'el' ? 'el' : 'en';
-    return this.service.joinQueue(req.user.id, lang);
+  joinQueue(@Request() req: { user: { id: string } }) {
+    return this.service.joinQueue(req.user.id, 'en');
   }
 
   /** GET /api/online-games/preview/:code — Public preview of an invite link (no auth) */

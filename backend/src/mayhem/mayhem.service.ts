@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
-import { LlmService } from '../llm/llm.service';
 import { MayhemQuestionGenerator } from './mayhem-question.generator';
 import { MayhemStatGuessGenerator } from './mayhem-stat-guess.generator';
 import { QuestionValidator } from '../questions/validators/question.validator';
@@ -29,7 +28,6 @@ export class MayhemService {
     private mayhemGenerator: MayhemQuestionGenerator,
     private mayhemStatGuessGenerator: MayhemStatGuessGenerator,
     private supabaseService: SupabaseService,
-    private llmService: LlmService,
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
     private difficultyScorer: DifficultyScorer,
@@ -135,63 +133,9 @@ export class MayhemService {
         return { added: 0, skipped };
       }
 
-      type PoolQuestion = {
-        question_text: string;
-        explanation?: string;
-        correct_answer?: string;
-        wrong_choices?: string[];
-      };
-      const toPoolQ = (q: unknown) => q as PoolQuestion;
-
-      // Pack all 5 translatable strings per question into the flat translateToGreek batch:
-      //   slot 5i+0 → question_text / explanation
-      //   slot 5i+1 → correct_answer (question_text slot)
-      //   slot 5i+2 → wrong_choices[0]
-      //   slot 5i+3 → wrong_choices[1]
-      //   slot 5i+4 → wrong_choices[2]
-      const flat: Array<{ question_text: string; explanation: string }> = rows.flatMap((r) => {
-        const q = toPoolQ(r.question);
-        const wc = q.wrong_choices ?? ['', '', ''];
-        return [
-          { question_text: q.question_text, explanation: q.explanation ?? '' },
-          { question_text: q.correct_answer ?? '', explanation: '' },
-          { question_text: wc[0] ?? '', explanation: '' },
-          { question_text: wc[1] ?? '', explanation: '' },
-          { question_text: wc[2] ?? '', explanation: '' },
-        ];
-      });
-
-      let translated = flat;
-      try {
-        translated = await this.llmService.translateToGreek(flat);
-      } catch (err) {
-        this.logger.warn(`[ingestMayhem] Greek translation failed, inserting without: ${(err as Error).message}`);
-      }
-
-      const rowsWithTranslations = rows.map((r, i) => {
-        const q = toPoolQ(r.question);
-        const wc = q.wrong_choices ?? ['', '', ''];
-        const base = i * 5;
-        return {
-          ...r,
-          translations: {
-            el: {
-              question_text: translated[base]?.question_text ?? q.question_text,
-              explanation: translated[base]?.explanation ?? q.explanation ?? '',
-              correct_answer: translated[base + 1]?.question_text ?? q.correct_answer ?? '',
-              wrong_choices: [
-                translated[base + 2]?.question_text ?? wc[0] ?? '',
-                translated[base + 3]?.question_text ?? wc[1] ?? '',
-                translated[base + 4]?.question_text ?? wc[2] ?? '',
-              ],
-            },
-          },
-        };
-      });
-
       const { error } = await this.supabaseService.client
         .from('mayhem_questions')
-        .insert(rowsWithTranslations);
+        .insert(rows);
 
       if (error) {
         this.logger.error(`[ingestMayhem] Insert error: ${error.message}`);
@@ -222,11 +166,10 @@ export class MayhemService {
 
   async getMayhemQuestions(
     excludeIds: string[] = [],
-    lang = 'en',
   ): Promise<Array<{ id: string; question_text: string; options: string[] }>> {
     const { data, error } = await this.supabaseService.client
       .from('mayhem_questions')
-      .select('id, question, translations')
+      .select('id, question')
       .gt('expires_at', new Date().toISOString())
       .limit(50);
 
@@ -237,18 +180,14 @@ export class MayhemService {
 
     return (data ?? [])
       .filter((r: { id: string }) => !excludeIds.includes(r.id))
-      .map((r: { id: string; question: Record<string, unknown>; translations?: Record<string, unknown> }) => {
+      .map((r: { id: string; question: Record<string, unknown> }) => {
         const q = r.question;
-        const t = lang !== 'en' ? (r.translations?.[lang] as Record<string, unknown> | undefined) : undefined;
-
-        const questionText = (t?.['question_text'] as string | undefined) ?? q['question_text'] as string;
-        const correctAnswer = (t?.['correct_answer'] as string | undefined) ?? q['correct_answer'] as string;
-        const wrongChoices = (t?.['wrong_choices'] as string[] | undefined) ?? (q['wrong_choices'] as string[]) ?? [];
-
+        const correctAnswer = q['correct_answer'] as string;
+        const wrongChoices = (q['wrong_choices'] as string[]) ?? [];
         const options = shuffleArray([correctAnswer, ...wrongChoices.slice(0, 3)]);
         return {
           id: r.id,
-          question_text: questionText,
+          question_text: q['question_text'] as string,
           options,
         };
       });
@@ -257,21 +196,18 @@ export class MayhemService {
   async checkMayhemAnswer(
     questionId: string,
     selectedAnswer: string,
-    lang = 'en',
   ): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
     const { data, error } = await this.supabaseService.client
       .from('mayhem_questions')
-      .select('question, translations')
+      .select('question')
       .eq('id', questionId)
       .gt('expires_at', new Date().toISOString())
       .maybeSingle();
 
     if (error || !data) return null;
 
-    const q = (data as { question: Record<string, string>; translations?: Record<string, Record<string, string>> }).question;
-    const t = lang !== 'en' ? (data as { translations?: Record<string, Record<string, string>> }).translations?.[lang] : undefined;
-
-    const correctAnswer = t?.['correct_answer'] ?? q['correct_answer'] ?? '';
+    const q = (data as { question: Record<string, string> }).question;
+    const correctAnswer = q['correct_answer'] ?? '';
     const correct = selectedAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
 
     return {

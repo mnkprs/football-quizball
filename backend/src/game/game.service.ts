@@ -177,7 +177,6 @@ export class GameService {
       difficulty_factors,
       source_question_text,
       source_explanation,
-      translations,
       ...safeQuestion
     } = question;
     return { ...safeQuestion, correct_answer: '', fifty_fifty_hint: null } as GeneratedQuestion;

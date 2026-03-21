@@ -12,9 +12,8 @@ export class BlitzController {
 
   @Post('session')
   @UseGuards(AuthGuard)
-  async startSession(@Req() req: any, @Body() body?: { language?: string }) {
-    const language = body?.language ?? 'en';
-    return this.blitzService.startSession(req.user.id, language);
+  async startSession(@Req() req: any) {
+    return this.blitzService.startSession(req.user.id);
   }
 
   @Post('session/:id/answer')

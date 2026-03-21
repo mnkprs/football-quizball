@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
-import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from '../questions/questions.service';
 import { QuestionCategory } from '../questions/question.types';
 
@@ -45,7 +44,6 @@ export class BlitzPoolSeederService {
 
   constructor(
     private supabaseService: SupabaseService,
-    private llmService: LlmService,
     private questionsService: QuestionsService,
   ) {}
 
@@ -143,28 +141,9 @@ export class BlitzPoolSeederService {
 
     if (rows.length === 0) return 0;
 
-    let translations: Array<{ question_text: string; explanation: string }> = rows.map((r) => ({
-      question_text: (r.question as { question_text: string }).question_text,
-      explanation: '',
-    }));
-    try {
-      translations = await this.llmService.translateToGreek(translations);
-    } catch (err) {
-      this.logger.warn(`[blitz-seeder] Greek translation failed, inserting without translations: ${(err as Error).message}`);
-    }
-
-    const rowsWithTranslations = rows.map((r, i) => ({
-      ...r,
-      translations: {
-        el: {
-          question_text: translations[i]?.question_text ?? (r.question as { question_text: string }).question_text,
-        },
-      },
-    }));
-
     const { error } = await this.supabaseService.client
       .from('blitz_question_pool')
-      .insert(rowsWithTranslations);
+      .insert(rows);
 
     if (error) {
       this.logger.error(`[blitz-seeder] Insert error for ${band.category}/${band.minScore}-${band.maxScore}: ${error.message}`);

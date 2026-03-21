@@ -34,7 +34,7 @@ export class BlitzService {
     };
   }
 
-  async startSession(userId: string, language: string = 'en'): Promise<{
+  async startSession(userId: string): Promise<{
     session_id: string;
     time_limit: number;
     first_question: BlitzQuestionRef;
@@ -52,7 +52,7 @@ export class BlitzService {
       this.logger.log(`[blitz] Reset seen pool for ${userId} (exhausted ${seenCount}/${totalCount})`);
     }
 
-    const questions = await this.drawBlitzQuestions(userId, language);
+    const questions = await this.drawBlitzQuestions(userId);
     if (questions.length === 0) {
       throw new NotFoundException('Not enough questions in pool for Blitz mode. Please try again later.');
     }
@@ -176,10 +176,10 @@ export class BlitzService {
    * Draw N random Blitz-style questions (4 choices, MC) for a Battle Royale room.
    * Uses the draw_blitz_questions_random RPC — no per-user seen tracking.
    */
-  async drawForRoom(language: string = 'en', n: number = 20): Promise<BlitzQuestion[]> {
+  async drawForRoom(n: number = 20): Promise<BlitzQuestion[]> {
     const { data, error } = await this.supabaseService.client.rpc(
       'draw_blitz_questions_random',
-      { p_count: n, p_language: language },
+      { p_count: n, p_language: 'en' },
     );
     if (error) {
       this.logger.error(`[battle-royale] Pool draw error: ${error.message}`);
@@ -190,18 +190,15 @@ export class BlitzService {
       category: string;
       difficulty_score: number;
       question: { question_text: string; correct_answer: string; wrong_choices?: string[]; meta?: Record<string, unknown> };
-      translations?: { el?: { question_text?: string } };
     };
     const rows = (data ?? []) as PoolRow[];
     return rows.map((row) => {
       const correctAnswer = row.question.correct_answer;
       const otherRows = rows.filter((r) => r.id !== row.id);
       const choices = this.buildChoices(correctAnswer, row.question.wrong_choices, row.category, otherRows);
-      const useEl = language === 'el' && row.translations?.el?.question_text;
-      const questionText = useEl ? row.translations!.el!.question_text! : row.question.question_text;
       return {
         poolRowId: row.id,
-        question_text: questionText,
+        question_text: row.question.question_text,
         correct_answer: correctAnswer,
         choices,
         category: row.category,
@@ -211,7 +208,7 @@ export class BlitzService {
     });
   }
 
-  private async drawBlitzQuestions(userId: string, language: string = 'en'): Promise<BlitzQuestion[]> {
+  private async drawBlitzQuestions(userId: string): Promise<BlitzQuestion[]> {
     const { data, error } = await this.supabaseService.client.rpc(
       'draw_blitz_questions_for_user',
       { p_user_id: userId, p_count: DRAW_COUNT },
@@ -227,7 +224,6 @@ export class BlitzService {
       category: string;
       difficulty_score: number;
       question: { question_text: string; correct_answer: string; wrong_choices?: string[] };
-      translations?: { el?: { question_text?: string } };
     }>;
 
     // All rows serve as both session questions and distractor pool for each other
@@ -235,11 +231,9 @@ export class BlitzService {
       const correctAnswer = row.question.correct_answer;
       const otherRows = rows.filter((r) => r.id !== row.id);
       const choices = this.buildChoices(correctAnswer, row.question.wrong_choices, row.category, otherRows);
-      const useEl = language === 'el' && row.translations?.el?.question_text;
-      const questionText = useEl ? row.translations!.el!.question_text! : row.question.question_text;
       return {
         poolRowId: row.id,
-        question_text: questionText,
+        question_text: row.question.question_text,
         correct_answer: correctAnswer,
         choices,
         category: row.category,

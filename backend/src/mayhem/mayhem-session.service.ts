@@ -19,7 +19,6 @@ interface MayhemSession {
   userId: string;
   userElo: number;
   currentElo: number;
-  language: string;
   currentQuestion: MayhemQuestion | null;
   servedAt: Date | null;
   questionsAnswered: number;
@@ -45,7 +44,7 @@ export class MayhemSessionService {
     return session;
   }
 
-  async startSession(userId: string, language = 'en'): Promise<{ session_id: string; user_elo: number }> {
+  async startSession(userId: string): Promise<{ session_id: string; user_elo: number }> {
     const stats = await this.supabaseService.getMayhemStats(userId);
     const userElo = stats?.current_elo ?? 1000;
 
@@ -55,7 +54,6 @@ export class MayhemSessionService {
       userId,
       userElo,
       currentElo: userElo,
-      language,
       currentQuestion: null,
       servedAt: null,
       questionsAnswered: 0,
@@ -71,7 +69,6 @@ export class MayhemSessionService {
     userId: string,
     questionId: string,
     selectedAnswer: string,
-    lang = 'en',
   ): Promise<{
     correct: boolean;
     timed_out: boolean;
@@ -90,18 +87,16 @@ export class MayhemSessionService {
     // Fetch the question to verify answer
     const { data, error } = await (this.supabaseService.client as any)
       .from('mayhem_questions')
-      .select('question, translations')
+      .select('question')
       .eq('id', questionId)
       .gt('expires_at', new Date().toISOString())
       .maybeSingle();
 
     if (error || !data) throw new NotFoundException('Question not found or expired');
 
-    const q = (data as { question: Record<string, string>; translations?: Record<string, Record<string, string>> }).question;
-    const t = lang !== 'en' ? (data as { translations?: Record<string, Record<string, string>> }).translations?.[lang] : undefined;
-
-    const correctAnswer = t?.['correct_answer'] ?? q['correct_answer'] ?? '';
-    const explanation = t?.['explanation'] ?? q['explanation'] ?? '';
+    const q = (data as { question: Record<string, string> }).question;
+    const correctAnswer = q['correct_answer'] ?? '';
+    const explanation = q['explanation'] ?? '';
     const rawDifficulty = (q['difficulty'] as string | undefined)?.toUpperCase();
     const difficulty: Difficulty = (rawDifficulty === 'EASY' || rawDifficulty === 'MEDIUM' || rawDifficulty === 'HARD')
       ? rawDifficulty
