@@ -10,20 +10,30 @@ import {
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/auth.guard';
+import { DuelProGuard } from '../auth/duel-pro.guard';
+import { SupabaseService } from '../supabase/supabase.service';
 import { DuelService } from './duel.service';
 import { CreateDuelDto, JoinDuelByCodeDto, DuelAnswerDto, DuelTimeoutDto } from './duel.types';
 
+type DuelRequest = { user: { id: string }; proStatus?: { is_pro: boolean; trial_duel_used: number } };
+
 @Controller('api/duel')
 export class DuelController {
-  constructor(private readonly service: DuelService) {}
+  constructor(
+    private readonly service: DuelService,
+    private readonly supabaseService: SupabaseService,
+  ) {}
 
   /** POST /api/duel — Create a new duel (host), generates invite code */
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, DuelProGuard)
   @Post()
-  createGame(
-    @Request() req: { user: { id: string } },
+  async createGame(
+    @Request() req: DuelRequest,
     @Body() dto: CreateDuelDto,
   ) {
+    if (!req.proStatus?.is_pro) {
+      await this.supabaseService.incrementDuelTrial(req.user.id);
+    }
     return this.service.createGame(req.user.id, dto);
   }
 
@@ -35,23 +45,29 @@ export class DuelController {
   }
 
   /** POST /api/duel/queue — Join random matchmaking queue */
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, DuelProGuard)
   @Post('queue')
-  joinQueue(
-    @Request() req: { user: { id: string } },
+  async joinQueue(
+    @Request() req: DuelRequest,
     @Query('language') language?: string,
   ) {
+    if (!req.proStatus?.is_pro) {
+      await this.supabaseService.incrementDuelTrial(req.user.id);
+    }
     const lang = language === 'el' ? 'el' : 'en';
     return this.service.joinQueue(req.user.id, lang);
   }
 
   /** POST /api/duel/join — Join a duel by invite code */
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, DuelProGuard)
   @Post('join')
-  joinByCode(
-    @Request() req: { user: { id: string } },
+  async joinByCode(
+    @Request() req: DuelRequest,
     @Body() dto: JoinDuelByCodeDto,
   ) {
+    if (!req.proStatus?.is_pro) {
+      await this.supabaseService.incrementDuelTrial(req.user.id);
+    }
     return this.service.joinByCode(req.user.id, dto);
   }
 

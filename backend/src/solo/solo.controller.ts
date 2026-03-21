@@ -1,6 +1,5 @@
 import { Controller, Post, Get, Param, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
-import { ProGuard } from '../auth/pro.guard';
 import { SoloService } from './solo.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { SubmitAnswerDto } from '../common/dto/submit-answer.dto';
@@ -14,14 +13,10 @@ export class SoloController {
   ) {}
 
   @Post('session')
-  @UseGuards(AuthGuard, ProGuard)
-  async startSession(@Req() req: AuthenticatedRequest & { proStatus?: { is_pro: boolean } }, @Body() body?: { language?: string }) {
+  @UseGuards(AuthGuard)
+  async startSession(@Req() req: AuthenticatedRequest, @Body() body?: { language?: string }) {
     const language = body?.language ?? 'en';
-    const session = await this.soloService.startSession(req.user.id, language);
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementTrialGames(req.user.id);
-    }
-    return session;
+    return this.soloService.startSession(req.user.id, language);
   }
 
   @Get('session/:id/next')

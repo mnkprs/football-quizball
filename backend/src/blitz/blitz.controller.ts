@@ -1,6 +1,5 @@
 import { Controller, Post, Get, Param, Body, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
-import { ProGuard } from '../auth/pro.guard';
 import { BlitzService } from './blitz.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
@@ -12,14 +11,10 @@ export class BlitzController {
   ) {}
 
   @Post('session')
-  @UseGuards(AuthGuard, ProGuard)
+  @UseGuards(AuthGuard)
   async startSession(@Req() req: any, @Body() body?: { language?: string }) {
     const language = body?.language ?? 'en';
-    const session = await this.blitzService.startSession(req.user.id, language);
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementTrialGames(req.user.id);
-    }
-    return session;
+    return this.blitzService.startSession(req.user.id, language);
   }
 
   @Post('session/:id/answer')

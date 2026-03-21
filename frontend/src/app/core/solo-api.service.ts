@@ -18,6 +18,12 @@ export interface NextQuestionResponse {
   time_limit: number;
   questions_answered: number;
   current_elo: number;
+  // Optional category-specific fields
+  options?: string[];
+  image_url?: string;
+  career_path?: { club: string; from: string; to: string; is_loan?: boolean }[];
+  match_meta?: { competition: string; date: string; home_team: string; away_team: string };
+  fifty_fifty_hint?: string;
 }
 
 export interface AnswerResponse {

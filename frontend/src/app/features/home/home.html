@@ -88,12 +88,13 @@
         iconClass="material-symbols-outlined"
         iconBgColor="red"
         title="Duel"
-        hint="1v1 High-Stakes Face-off • Winner takes all"
+        [hint]="auth.isLoggedIn() ? (pro.isPro() ? '1v1 High-Stakes Face-off • Winner takes all' : pro.trialDuelRemaining() > 0 ? '1v1 High-Stakes Face-off • ' + pro.trialDuelRemaining() + ' free duel' + (pro.trialDuelRemaining() === 1 ? '' : 's') + ' left' : 'Subscribe to play ranked duels') : '1v1 High-Stakes Face-off • Login required'"
         badge="1V1"
         badgeColor="red"
         backgroundImage="/duel_mode.png"
         variant="accent"
         actionLabel="Challenge Now"
+        [proLocked]="auth.isLoggedIn() ? !pro.isPro() : true"
         (cardClick)="goDuel()"
       />
       <app-mode-card
@@ -101,67 +102,40 @@
         iconClass="material-symbols-outlined"
         sectionLabel="8-Player High-Speed Clash"
         title="Battle Royale"
-        hint="Compete for speed and correctness in real-time."
+        [hint]="auth.isLoggedIn() ? (pro.isPro() ? 'Compete for speed and correctness in real-time.' : pro.trialBattleRoyaleRemaining() > 0 ? 'Compete for speed and correctness • ' + pro.trialBattleRoyaleRemaining() + ' free game left' : 'Subscribe to play Battle Royale') : 'Compete for speed and correctness • Login required'"
         badge="8P"
         badgeColor="lime"
         backgroundImage="/royale.png"
         variant="accent"
         actionLabel="Join Battle"
+        [proLocked]="auth.isLoggedIn() ? !pro.isPro() : true"
         (cardClick)="goBattleRoyale()"
       />
-      @if (auth.isLoggedIn()) {
-        <app-mode-card
-          icon="emoji_events"
-          iconBgColor="gold"
-          [title]="lang.t().btnSolo"
-          [hint]="soloHint()"
-          [badge]="pro.isPro() ? 'PRO ✓' : lang.t().eloSystem"
-          badgeColor="lime"
-          [footerText]="lang.t().playersOnline"
-          backgroundImage="/solo-mode.png"
-          variant="accent"
-          [proLocked]="!pro.isPro() && pro.trialRemaining() === 0"
-          (cardClick)="goSolo()"
-        />
-        <app-mode-card
-          icon="bolt"
-          iconBgColor="blue"
-          [title]="lang.t().btnBlitz"
-          [hint]="blitzHint()"
-          [badge]="pro.isPro() ? 'PRO ✓' : lang.t().speedrun"
-          badgeColor="blue"
-          backgroundImage="/blitz-mode.png"
-          variant="accent"
-          [proLocked]="!pro.isPro() && pro.trialRemaining() === 0"
-          (cardClick)="goBlitz()"
-        />
-      } @else {
-        <app-mode-card
-          icon="emoji_events"
-          iconBgColor="gold"
-          [title]="lang.t().btnSolo"
-          [hint]="lang.t().btnSoloDesc + ' · ' + lang.t().loginRequired"
-          [badge]="lang.t().eloSystem"
-          badgeColor="lime"
-          [footerText]="lang.t().playersOnline"
-          backgroundImage="/solo-mode.png"
-          variant="accent"
-          [proLocked]="true"
-          (cardClick)="goSolo()"
-        />
-        <app-mode-card
-          icon="bolt"
-          iconBgColor="blue"
-          [title]="lang.t().btnBlitz"
-          [hint]="lang.t().btnBlitzDesc + ' · ' + lang.t().loginRequired"
-          [badge]="lang.t().speedrun"
-          badgeColor="blue"
-          backgroundImage="/blitz-mode.png"
-          variant="accent"
-          [proLocked]="true"
-          (cardClick)="goBlitz()"
-        />
-      }
+      <app-mode-card
+        icon="emoji_events"
+        iconBgColor="gold"
+        [title]="lang.t().btnSolo"
+        [hint]="soloHint()"
+        [badge]="lang.t().eloSystem"
+        badgeColor="lime"
+        [footerText]="lang.t().playersOnline"
+        backgroundImage="/solo-mode.png"
+        variant="accent"
+        [locked]="!auth.isLoggedIn()"
+        (cardClick)="goSolo()"
+      />
+      <app-mode-card
+        icon="bolt"
+        iconBgColor="blue"
+        [title]="lang.t().btnBlitz"
+        [hint]="blitzHint()"
+        [badge]="lang.t().speedrun"
+        badgeColor="blue"
+        backgroundImage="/blitz-mode.png"
+        variant="accent"
+        [locked]="!auth.isLoggedIn()"
+        (cardClick)="goBlitz()"
+      />
     </div>
   </div>
 </div>

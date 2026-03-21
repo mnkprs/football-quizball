@@ -208,10 +208,10 @@ export class SupabaseService {
    *      WHERE id = p_user_id;
    *    $$;
    */
-  async getProStatus(userId: string): Promise<{ is_pro: boolean; trial_games_used: number; stripe_customer_id: string | null } | null> {
+  async getProStatus(userId: string): Promise<{ is_pro: boolean; trial_games_used: number; trial_battle_royale_used: number; trial_duel_used: number; stripe_customer_id: string | null } | null> {
     const { data } = await this.client
       .from('profiles')
-      .select('is_pro, trial_games_used, stripe_customer_id')
+      .select('is_pro, trial_games_used, trial_battle_royale_used, trial_duel_used, stripe_customer_id')
       .eq('id', userId)
       .maybeSingle();
     return data ?? null;
@@ -226,6 +226,14 @@ export class SupabaseService {
 
   async incrementTrialGames(userId: string): Promise<void> {
     await this.client.rpc('increment_trial_games', { p_user_id: userId });
+  }
+
+  async incrementBattleRoyaleTrial(userId: string): Promise<void> {
+    await this.client.rpc('increment_trial_battle_royale', { p_user_id: userId });
+  }
+
+  async incrementDuelTrial(userId: string): Promise<void> {
+    await this.client.rpc('increment_trial_duel', { p_user_id: userId });
   }
 
   async incrementGamesPlayed(userId: string, questionsAnswered: number, correctAnswers: number): Promise<void> {

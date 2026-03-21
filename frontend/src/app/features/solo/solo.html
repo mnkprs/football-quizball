@@ -49,65 +49,22 @@
 
     <!-- QUESTION phase -->
     @if (phase() === 'question' && currentQuestion()) {
-      <div class="flex flex-col flex-1">
-        <!-- Difficulty + timer row -->
-        <div class="flex items-center justify-between mb-4">
-          <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
-                [class]="difficultyBadgeClass()">
-            {{ difficultyLabel() }}
-          </span>
-          <!-- Timer -->
-          <div class="flex items-center gap-2">
-            <div class="text-sm font-bold" [class]="timeLeft() <= 10 ? 'text-loss' : 'text-foreground'">
-              {{ timeLeft() }}s
-            </div>
-            <div class="w-24 h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all duration-1000"
-                [class]="timeLeft() <= 10 ? 'bg-loss' : 'bg-accent'"
-                [style.width]="timerPercent() + '%'"
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Question -->
-        <div class="bg-card rounded-2xl p-6 mb-6 border border-border min-h-[140px] flex items-center">
-          <p class="text-foreground text-xl leading-relaxed">{{ currentQuestion()?.question_text }}</p>
-        </div>
-
-        <!-- Answer input -->
-        <div class="flex gap-3">
-          <input
-            [(ngModel)]="answer"
-            (keydown.enter)="submitAnswer()"
-            [placeholder]="lang.t().soloYourAnswer"
-            class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-          />
-          <button
-            (click)="submitAnswer()"
-            [disabled]="!answer.trim() || submitting()"
-            class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
-          >
-            {{ submitting() ? '...' : lang.t().submit }}
-          </button>
-        </div>
-
-        @if (error()) {
-          <p class="text-loss text-sm mt-3 text-center">{{ error() }}</p>
-        }
-
-        <!-- Report problem -->
-        <div class="mt-auto pt-6">
-          <button
-            (click)="reportQuestion()"
-            [disabled]="reportDisabled()"
-            class="w-full py-2 rounded-xl border border-border text-muted-foreground text-sm hover:bg-muted hover:border-border transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
-          >
-            {{ reportDisabled() ? lang.t().reportCooldown : lang.t().reportProblem }}
-          </button>
-        </div>
-      </div>
+      <app-game-question
+        mode="solo"
+        [question]="questionData()"
+        [timeLeft]="timeLeft()"
+        [totalTime]="totalTimeLimit()"
+        [showPoints]="false"
+        [submitting]="submitting()"
+        [reportDisabled]="reportDisabled()"
+        (answerSubmitted)="submitAnswer($event)"
+        (optionSelected)="submitAnswer($event)"
+        (holAnswered)="submitAnswer($event)"
+        (reportClicked)="reportQuestion()"
+      />
+      @if (error()) {
+        <p class="text-loss text-sm mt-2 text-center">{{ error() }}</p>
+      }
     }
 
     <!-- RESULT phase -->

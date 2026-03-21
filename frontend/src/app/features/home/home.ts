@@ -112,26 +112,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   soloHint = computed(() => {
     const t = this.lang.t();
-    if (this.pro.isPro()) {
-      return `${t.soloStatsHint} ${this.userElo()} · ${t.rankLabel} #${this.eloRank()}`;
-    }
-    const remaining = this.pro.trialRemaining();
-    if (remaining > 0) {
-      return `${t.soloStatsHint} ${this.userElo()} · ${remaining} free game${remaining === 1 ? '' : 's'} left`;
-    }
-    return `Subscribe for $1.99/mo to play ranked`;
+    if (!this.auth.isLoggedIn()) return `${t.btnSoloDesc} · ${t.loginRequired}`;
+    return `${t.soloStatsHint} ${this.userElo()} · ${t.rankLabel} #${this.eloRank()}`;
   });
 
   blitzHint = computed(() => {
     const t = this.lang.t();
-    if (this.pro.isPro()) {
-      return `${t.blitzStatsHint} ${this.blitzBest()} · ${t.rankLabel} #${this.blitzRank()}`;
-    }
-    const remaining = this.pro.trialRemaining();
-    if (remaining > 0) {
-      return `${t.blitzStatsHint} ${this.blitzBest()} · ${remaining} free game${remaining === 1 ? '' : 's'} left`;
-    }
-    return `Subscribe for $1.99/mo to play ranked`;
+    if (!this.auth.isLoggedIn()) return `${t.btnBlitzDesc} · ${t.loginRequired}`;
+    return `${t.blitzStatsHint} ${this.blitzBest()} · ${t.rankLabel} #${this.blitzRank()}`;
   });
 
   private countdownInterval: ReturnType<typeof setInterval> | null = null;
@@ -154,10 +142,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       el.style.backgroundPosition = `${x}% ${y}%`;
       el.style.backgroundSize = `${size}%`;
 
-      this.rafId = requestAnimationFrame(animate);
+      // this.rafId = requestAnimationFrame(animate);
     };
 
-    this.rafId = requestAnimationFrame(animate);
+    // this.rafId = requestAnimationFrame(animate);
   }
 
   ngOnInit(): void {

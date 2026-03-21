@@ -12,7 +12,10 @@ export class ProService {
 
   readonly isPro = signal(false);
   readonly trialGamesUsed = signal(0);
-  readonly trialRemaining = computed(() => Math.max(0, 5 - this.trialGamesUsed()));
+  readonly trialBattleRoyaleUsed = signal(0);
+  readonly trialDuelUsed = signal(0);
+  readonly trialBattleRoyaleRemaining = computed(() => Math.max(0, 1 - this.trialBattleRoyaleUsed()));
+  readonly trialDuelRemaining = computed(() => Math.max(0, 2 - this.trialDuelUsed()));
   readonly showUpgradeModal = signal(false);
 
   private loaded = false;
@@ -31,13 +34,15 @@ export class ProService {
     if (!this.auth.isLoggedIn()) return;
     try {
       const status = await firstValueFrom(
-        this.http.get<{ is_pro: boolean; trial_games_used: number }>(
+        this.http.get<{ is_pro: boolean; trial_games_used: number; trial_battle_royale_used: number; trial_duel_used: number }>(
           `${this.base}/status`,
           { headers: this.headers() },
         ),
       );
       this.isPro.set(status.is_pro);
       this.trialGamesUsed.set(status.trial_games_used);
+      this.trialBattleRoyaleUsed.set(status.trial_battle_royale_used ?? 0);
+      this.trialDuelUsed.set(status.trial_duel_used ?? 0);
       this.loaded = true;
     } catch {
       // Non-fatal: defaults stay false/0

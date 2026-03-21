@@ -1,0 +1,339 @@
+<div class="gq" [class]="'gq--' + mode()" [style.--mode-color]="modeColor()">
+
+  <!-- Header bar: mode badge, difficulty, points, optional timer -->
+  <div class="gq__header">
+    <div class="gq__header-left">
+      <span class="gq__mode-badge">{{ modeBadgeLabel() }}</span>
+      @if (question()?.difficulty) {
+        <span class="gq__difficulty" [class]="difficultyClass()">
+          {{ question()?.difficulty }}
+        </span>
+      }
+    </div>
+    <div class="gq__header-right">
+      @if (showPoints() && question()?.points) {
+        <span class="gq__points">{{ question()?.points }}<small>pts</small></span>
+      }
+      @if (timeLeft() !== null && timeLeft()! >= 0) {
+        <div class="gq__timer" [class.gq__timer--low]="timeLeft()! <= 10">
+          <span class="gq__timer-value">{{ timeLeft() }}s</span>
+          <div class="gq__timer-bar">
+            <div class="gq__timer-fill" [style.width]="timerPercent() + '%'"></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Player turn indicator (multiplayer only) -->
+  @if (currentPlayer() && is2Player()) {
+    <div class="gq__player-indicator">
+      <span class="gq__player-dot" [class]="'gq__player-dot--p' + (currentPlayer()!.index + 1)"></span>
+      <span class="gq__player-name">{{ currentPlayer()!.name }}</span>
+      <span class="gq__player-turn">{{ lang.t().yourTurn }}</span>
+    </div>
+  }
+
+  <!-- Progress bar -->
+  @if (progressPercent() !== null) {
+    <div class="gq__progress">
+      <div class="gq__progress-fill" [style.width]="progressPercent() + '%'"></div>
+    </div>
+  }
+
+  <!-- English answers hint -->
+  @if (lang.t().answersInEnglish && needsEnglishHint()) {
+    <div class="gq__hint">{{ lang.t().answersInEnglish }}</div>
+  }
+
+  <!-- Question content - category-specific rendering -->
+  <div class="gq__body">
+    @switch (questionCategory()) {
+      @case ('HIGHER_OR_LOWER') {
+        <ng-container *ngTemplateOutlet="holTemplate"></ng-container>
+      }
+      @case ('LOGO_QUIZ') {
+        <ng-container *ngTemplateOutlet="logoTemplate"></ng-container>
+      }
+      @case ('PLAYER_ID') {
+        <ng-container *ngTemplateOutlet="playerIdTemplate"></ng-container>
+      }
+      @case ('GUESS_SCORE') {
+        <ng-container *ngTemplateOutlet="guessScoreTemplate"></ng-container>
+      }
+      @case ('TOP_5') {
+        <ng-container *ngTemplateOutlet="top5Template"></ng-container>
+      }
+      @default {
+        @if (question()?.options?.length) {
+          <ng-container *ngTemplateOutlet="multipleChoiceTemplate"></ng-container>
+        } @else {
+          <ng-container *ngTemplateOutlet="textInputTemplate"></ng-container>
+        }
+      }
+    }
+  </div>
+
+  <!-- 2x Armed indicator -->
+  @if (doubleArmed()) {
+    <div class="gq__double-armed">
+      <span>2x ARMED</span>
+    </div>
+  }
+
+  <!-- 50-50 lifeline -->
+  @if (showLifeline() && !fiftyFiftyOptions()) {
+    <button class="gq__lifeline-btn" (click)="onUseLifeline()">
+      Use 50-50 (reduces to 1 pt)
+    </button>
+  }
+  @if (fiftyFiftyOptions()?.length) {
+    <div class="gq__fifty-fifty">
+      <div class="gq__fifty-fifty-label">50-50 - Pick one (1 pt if correct)</div>
+      <div class="gq__fifty-fifty-options">
+        @for (opt of fiftyFiftyOptions(); track opt) {
+          <button class="gq__fifty-fifty-btn" (click)="onSelectFiftyFifty(opt)">{{ opt }}</button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Report problem button -->
+  @if (showReportButton()) {
+    <button class="gq__report-btn" (click)="onReport()" [disabled]="reportDisabled()">
+      {{ reportDisabled() ? lang.t().reportCooldown : lang.t().reportProblem }}
+    </button>
+  }
+</div>
+
+<!-- ─── TEMPLATES ─────────────────────────────────────────────── -->
+
+<!-- Text input (default for CLASSIC without options) -->
+<ng-template #textInputTemplate>
+  <div class="gq__question-card">
+    <p class="gq__question-text">{{ question()?.question_text }}</p>
+  </div>
+  @if (!fiftyFiftyOptions()?.length) {
+    <div class="gq__input-row">
+      <input
+        type="text"
+        class="gq__input"
+        [(ngModel)]="textAnswer"
+        (keydown.enter)="submitTextAnswer()"
+        [placeholder]="lang.t().typeAnswer"
+      />
+      <button class="gq__submit-btn" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim()">
+        {{ lang.t().submit }}
+      </button>
+    </div>
+  }
+</ng-template>
+
+<!-- Multiple choice -->
+<ng-template #multipleChoiceTemplate>
+  <div class="gq__question-card">
+    <p class="gq__question-text">{{ question()?.question_text }}</p>
+  </div>
+  <div class="gq__options">
+    @for (option of question()?.options; track option) {
+      <button
+        class="gq__option-btn"
+        (click)="selectOption(option)"
+        [disabled]="submitting()"
+      >
+        {{ option }}
+      </button>
+    }
+  </div>
+</ng-template>
+
+<!-- Higher or Lower -->
+<ng-template #holTemplate>
+  <div class="gq__question-card gq__question-card--centered">
+    <p class="gq__question-text">{{ question()?.question_text }}</p>
+  </div>
+  <div class="gq__hol-buttons">
+    <button class="gq__hol-btn gq__hol-btn--higher" (click)="submitHol('higher')">
+      <svg class="gq__hol-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
+      {{ lang.t().higher }}
+    </button>
+    <button class="gq__hol-btn gq__hol-btn--lower" (click)="submitHol('lower')">
+      <svg class="gq__hol-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+      {{ lang.t().lower }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Logo Quiz -->
+<ng-template #logoTemplate>
+  <div class="gq__question-card gq__question-card--logo">
+    <p class="gq__question-subtext">{{ question()?.question_text }}</p>
+    @if (question()?.image_url) {
+      <img [src]="question()?.image_url" alt="Logo" class="gq__logo-image" />
+    }
+  </div>
+  <div class="gq__input-row">
+    <input
+      type="text"
+      class="gq__input"
+      [(ngModel)]="textAnswer"
+      (keydown.enter)="submitTextAnswer()"
+      [placeholder]="lang.t().clubName"
+    />
+    <button class="gq__submit-btn" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim()">
+      {{ lang.t().submit }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Player ID (career path) -->
+<ng-template #playerIdTemplate>
+  <div class="gq__question-card">
+    <p class="gq__question-subtext">{{ question()?.question_text }}</p>
+    @if (question()?.career_path?.length) {
+      <div class="gq__career-path">
+        @for (entry of question()?.career_path; track $index; let last = $last) {
+          <div class="gq__career-entry">
+            <div class="gq__career-dot"></div>
+            <span class="gq__career-club">{{ entry.club }}</span>
+            @if (entry.is_loan) {
+              <span class="gq__career-loan">{{ lang.t().loanSpell }}</span>
+            }
+            <span class="gq__career-years">{{ entry.from }} - {{ entry.to }}</span>
+          </div>
+          @if (!last) {
+            <div class="gq__career-line"></div>
+          }
+        }
+      </div>
+    }
+  </div>
+  @if (!fiftyFiftyOptions()?.length) {
+    <div class="gq__input-row">
+      <input
+        type="text"
+        class="gq__input"
+        [(ngModel)]="textAnswer"
+        (keydown.enter)="submitTextAnswer()"
+        [placeholder]="lang.t().playerName"
+      />
+      <button class="gq__submit-btn" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim()">
+        {{ lang.t().submit }}
+      </button>
+    </div>
+  }
+</ng-template>
+
+<!-- Guess Score -->
+<ng-template #guessScoreTemplate>
+  <div class="gq__question-card">
+    @if (question()?.match_meta) {
+      <div class="gq__match-meta">
+        <div class="gq__match-competition">{{ question()?.match_meta?.competition }} - {{ question()?.match_meta?.date }}</div>
+        <div class="gq__match-teams">
+          <div class="gq__match-team">
+            <span class="gq__match-team-name">{{ question()?.match_meta?.home_team }}</span>
+            <span class="gq__match-team-label">{{ lang.t().home }}</span>
+          </div>
+          <span class="gq__match-vs">vs</span>
+          <div class="gq__match-team">
+            <span class="gq__match-team-name">{{ question()?.match_meta?.away_team }}</span>
+            <span class="gq__match-team-label">{{ lang.t().away }}</span>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <p class="gq__question-text">{{ question()?.question_text }}</p>
+    }
+  </div>
+  @if (!fiftyFiftyOptions()?.length) {
+    <div class="gq__input-row">
+      <input
+        type="text"
+        class="gq__input"
+        [(ngModel)]="textAnswer"
+        (keydown.enter)="submitTextAnswer()"
+        [placeholder]="lang.t().scorePlaceholder"
+      />
+      <button class="gq__submit-btn" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim()">
+        {{ lang.t().submit }}
+      </button>
+    </div>
+  }
+</ng-template>
+
+<!-- Top 5 -->
+<ng-template #top5Template>
+  <div class="gq__question-card">
+    <p class="gq__question-text">{{ question()?.question_text }}</p>
+  </div>
+
+  @if (top5State()) {
+    <!-- Lives -->
+    <div class="gq__top5-lives">
+      <span>{{ top5State()!.filledCount }}{{ lang.t().found }}</span>
+      <div class="gq__top5-hearts">
+        <span>{{ lang.t().lives }}</span>
+        @for (i of [0, 1]; track i) {
+          <span class="gq__top5-heart" [class.gq__top5-heart--lost]="top5State()!.wrongCount > i">&#10084;</span>
+        }
+      </div>
+    </div>
+
+    <!-- Slots -->
+    <div class="gq__top5-slots">
+      @for (slot of top5State()!.filledSlots; track $index) {
+        <div class="gq__top5-slot" [class.gq__top5-slot--filled]="slot">
+          <span class="gq__top5-rank">{{ $index + 1 }}</span>
+          @if (slot) {
+            <span class="gq__top5-name">{{ slot.name }}</span>
+            <span class="gq__top5-stat">({{ slot.stat }})</span>
+          } @else {
+            <span class="gq__top5-empty">???</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Wrong guesses -->
+    @if (top5State()!.wrongGuesses.length) {
+      <div class="gq__top5-wrong">
+        <span class="gq__top5-wrong-label">{{ lang.t().notInTop5Label }}</span>
+        @for (wrong of top5State()!.wrongGuesses; track $index) {
+          <div class="gq__top5-wrong-item">
+            <span>{{ wrong.name }}</span>
+            <span>{{ lang.t().notInTop5 }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Stop early button (4/5) -->
+    @if (!top5State()!.complete && top5State()!.filledCount === 4) {
+      <button class="gq__top5-stop-btn" (click)="onStopTop5Early()">{{ lang.t().stopEarly }}</button>
+    }
+
+    <!-- Input or complete state -->
+    @if (!top5State()!.complete) {
+      <div class="gq__input-row">
+        <input
+          type="text"
+          class="gq__input"
+          [(ngModel)]="top5Answer"
+          (keydown.enter)="submitTop5Guess()"
+          [placeholder]="lang.t().typePlayer"
+        />
+        <button class="gq__submit-btn" (click)="submitTop5Guess()" [disabled]="!top5Answer.trim()">
+          {{ lang.t().guess }}
+        </button>
+      </div>
+      @if (top5State()!.wrongCount === 1) {
+        <p class="gq__top5-warning">{{ lang.t().oneWrong }}</p>
+      }
+    } @else {
+      <div class="gq__top5-result" [class.gq__top5-result--won]="top5State()!.won">
+        <p>{{ top5State()!.filledCount === 5 ? lang.t().allFound : top5State()!.won ? lang.t().stoppedEarly : lang.t().questionLost }}</p>
+      </div>
+    }
+  }
+</ng-template>

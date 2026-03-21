@@ -21,6 +21,8 @@ export class SubscriptionController {
     return {
       is_pro: status?.is_pro ?? false,
       trial_games_used: status?.trial_games_used ?? 0,
+      trial_battle_royale_used: status?.trial_battle_royale_used ?? 0,
+      trial_duel_used: status?.trial_duel_used ?? 0,
     };
   }
 

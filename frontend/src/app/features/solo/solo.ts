@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetection
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
+import { GameQuestionComponent, QuestionData } from '../../shared/game-question/game-question';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { DonateModalService } from '../../core/donate-modal.service';
@@ -16,7 +17,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
   selector: 'app-solo',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, AdDisplayComponent],
+  imports: [FormsModule, RouterLink, AdDisplayComponent, GameQuestionComponent],
   host: { class: 'solo-host' },
   templateUrl: './solo.html',
   styleUrl: './solo.css',
@@ -52,12 +53,10 @@ export class SoloComponent implements OnDestroy {
   currentQuestion = signal<NextQuestionResponse | null>(null);
   lastResult = signal<AnswerResponse | null>(null);
 
-  answer = '';
   reportDisabled = signal(false);
   problemReported = signal(false);
   private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
   timeLeft = signal(35);
-  timerPercent = computed(() => (this.timeLeft() / this.totalTimeLimit()) * 100);
   totalTimeLimit = signal(35);
 
   private timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -68,20 +67,21 @@ export class SoloComponent implements OnDestroy {
     return Math.round((this.correctAnswers() / q) * 100);
   });
 
-  difficultyBadgeClass = computed(() => {
-    const diff = this.currentQuestion()?.difficulty;
-    if (diff === 'EASY') return 'bg-win/10 text-win border border-win/50';
-    if (diff === 'MEDIUM') return 'bg-yellow-900/50 text-yellow-400 border border-yellow-700';
-    return 'bg-loss/10 text-loss border border-loss/50';
-  });
-
-  difficultyLabel = computed(() => {
-    const diff = this.currentQuestion()?.difficulty;
-    const t = this.lang.t();
-    if (diff === 'EASY') return t.soloEasy;
-    if (diff === 'MEDIUM') return t.soloMedium;
-    if (diff === 'HARD') return t.soloHard;
-    return diff ?? '';
+  questionData = computed<QuestionData | null>(() => {
+    const q = this.currentQuestion();
+    if (!q) return null;
+    return {
+      question_id: q.question_id,
+      category: q.category,
+      difficulty: q.difficulty,
+      question_text: q.question_text,
+      points: q.points,
+      options: q.options,
+      image_url: q.image_url,
+      career_path: q.career_path,
+      match_meta: q.match_meta,
+      fifty_fifty_hint: q.fifty_fifty_hint,
+    };
   });
 
   async startSession(): Promise<void> {
@@ -110,7 +110,6 @@ export class SoloComponent implements OnDestroy {
       this.currentQuestion.set(q);
       this.questionsAnswered.set(q.questions_answered);
       this.currentElo.set(q.current_elo);
-      this.answer = '';
       this.totalTimeLimit.set(q.time_limit);
       this.timeLeft.set(q.time_limit);
       this.phase.set('question');
@@ -146,10 +145,10 @@ export class SoloComponent implements OnDestroy {
     await this.doSubmit('TIMEOUT');
   }
 
-  async submitAnswer(): Promise<void> {
-    if (!this.answer.trim() || this.submitting()) return;
+  async submitAnswer(answer: string): Promise<void> {
+    if (!answer.trim() || this.submitting()) return;
     this.stopTimer();
-    await this.doSubmit(this.answer.trim());
+    await this.doSubmit(answer.trim());
   }
 
   private async doSubmit(answer: string): Promise<void> {
