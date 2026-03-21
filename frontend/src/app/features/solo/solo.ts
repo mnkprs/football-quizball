@@ -88,7 +88,7 @@ export class SoloComponent implements OnDestroy {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const res = await firstValueFrom(this.api.startSession(this.lang.lang()));
+      const res = await firstValueFrom(this.api.startSession());
       this.sessionId.set(res.session_id);
       this.startElo.set(res.user_elo);
       this.currentElo.set(res.user_elo);

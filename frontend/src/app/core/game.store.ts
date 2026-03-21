@@ -2,7 +2,6 @@ import { signalStore, withState, withMethods, withComputed, patchState, withHook
 import { inject } from '@angular/core';
 import { computed } from '@angular/core';
 import { GameApiService, BoardState, Question, AnswerResult, Top5Entry, Top5GuessResult } from './game-api.service';
-import { LanguageService } from './language.service';
 
 import { firstValueFrom } from 'rxjs';
 
@@ -97,7 +96,7 @@ export const GameStore = signalStore(
       ] as [number, number];
     }),
   })),
-  withMethods((store, api = inject(GameApiService), language = inject(LanguageService)) => ({
+  withMethods((store, api = inject(GameApiService)) => ({
     async startGame(player1Name: string, player2Name: string, language: string): Promise<void> {
       patchState(store, { loading: true, error: null, phase: 'loading' });
       try {
@@ -387,7 +386,6 @@ export const GameStore = signalStore(
     async restoreGame(gameId: string): Promise<void> {
       patchState(store, { loading: true, phase: 'loading' });
       try {
-        await firstValueFrom(api.setGameLanguage(gameId, language.lang()));
         const boardState = await firstValueFrom(api.getGame(gameId));
         saveNewsIdsFromBoard(boardState.board);
         const phase = boardState.status === 'FINISHED' ? 'finished' : 'board';
@@ -403,31 +401,6 @@ export const GameStore = signalStore(
       } catch {
         localStorage.removeItem(STORAGE_KEY);
         patchState(store, { loading: false, phase: 'setup' });
-      }
-    },
-
-    /** Syncs game language with backend. Call when returning to game after language change. */
-    async syncGameLanguage(): Promise<void> {
-      const gameId = store.gameId();
-      if (!gameId) return;
-      try {
-        await firstValueFrom(api.setGameLanguage(gameId, language.lang()));
-      } catch {
-        // ignore
-      }
-    },
-
-    /** Syncs game language and re-fetches current question. Use when returning to question screen after language change. */
-    async refreshQuestionForLanguage(): Promise<void> {
-      const gameId = store.gameId();
-      const questionId = store.currentQuestionId();
-      if (!gameId || !questionId || store.phase() !== 'question') return;
-      try {
-        await firstValueFrom(api.setGameLanguage(gameId, language.lang()));
-        const question = await firstValueFrom(api.getQuestion(gameId, questionId));
-        patchState(store, { currentQuestion: question });
-      } catch {
-        // ignore
       }
     },
   })),

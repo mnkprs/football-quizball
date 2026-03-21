@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
-import { LanguageService } from './language.service';
 import { environment } from '../../environments/environment';
 
 export interface MayhemQuestion {
@@ -59,7 +58,6 @@ export interface MayhemMeEntry extends MayhemLeaderboardEntry {
 export class MayhemApiService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
-  private lang = inject(LanguageService);
   private base = `${environment.apiUrl}/api/mayhem`;
 
   private headers(): HttpHeaders {
@@ -68,23 +66,22 @@ export class MayhemApiService {
   }
 
   getQuestions(excludeIds: string[] = []) {
-    const parts: string[] = [`lang=${this.lang.lang()}`];
-    if (excludeIds.length) parts.push(`excludeIds=${encodeURIComponent(excludeIds.join(','))}`);
-    return this.http.get<MayhemQuestion[]>(`${this.base}/mode/questions?${parts.join('&')}`, { headers: this.headers() });
+    const params = excludeIds.length ? `?excludeIds=${encodeURIComponent(excludeIds.join(','))}` : '';
+    return this.http.get<MayhemQuestion[]>(`${this.base}/mode/questions${params}`, { headers: this.headers() });
   }
 
   checkAnswer(questionId: string, selectedAnswer: string) {
-    return this.http.post<MayhemAnswerResponse>(`${this.base}/mode/answer`, { questionId, selectedAnswer, lang: this.lang.lang() }, { headers: this.headers() });
+    return this.http.post<MayhemAnswerResponse>(`${this.base}/mode/answer`, { questionId, selectedAnswer }, { headers: this.headers() });
   }
 
-  startSession(language = 'en') {
-    return this.http.post<MayhemSessionResponse>(`${this.base}/session`, { language }, { headers: this.headers() });
+  startSession() {
+    return this.http.post<MayhemSessionResponse>(`${this.base}/session`, { language: 'en' }, { headers: this.headers() });
   }
 
   submitSessionAnswer(sessionId: string, questionId: string, selectedAnswer: string) {
     return this.http.post<MayhemSessionAnswerResponse>(
       `${this.base}/session/${sessionId}/answer`,
-      { questionId, selectedAnswer, lang: this.lang.lang() },
+      { questionId, selectedAnswer },
       { headers: this.headers() },
     );
   }

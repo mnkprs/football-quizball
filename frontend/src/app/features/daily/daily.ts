@@ -150,10 +150,6 @@ export class DailyComponent {
   }
 
   translatedText(q: DailyQuestionRef, field: 'question_text' | 'explanation'): string {
-    if (this.lang.lang() === 'el') {
-      const el = q.translations?.el;
-      if (el?.[field]) return el[field];
-    }
     return q[field];
   }
 

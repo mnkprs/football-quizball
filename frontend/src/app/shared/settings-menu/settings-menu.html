@@ -54,21 +54,6 @@
             <span class="settings-card__toggle-thumb"></span>
           </button>
         </div>
-        <div class="settings-card">
-          <span class="material-icons settings-card__icon">language</span>
-          <div class="settings-card__content">
-            <span class="settings-card__label">{{ t().settingsLanguage }}</span>
-            <span class="settings-card__desc">{{ lang.lang() === 'en' ? 'English' : 'Ελληνικά' }}</span>
-          </div>
-          <button
-            type="button"
-            class="settings-card__action"
-            (click)="lang.toggle()"
-            [attr.aria-label]="lang.lang() === 'en' ? 'Switch to Greek' : 'Switch to English'"
-          >
-            {{ lang.lang() === 'en' ? '🇬🇷 EL' : '🇬🇧 EN' }}
-          </button>
-        </div>
       </div>
       @if (auth.isLoggedIn()) {
         <button

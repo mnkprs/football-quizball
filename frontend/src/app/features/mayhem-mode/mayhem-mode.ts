@@ -51,7 +51,7 @@ export class MayhemModeComponent implements OnInit {
     try {
       // Start ELO session if logged in
       if (this.auth.isLoggedIn()) {
-        const session = await firstValueFrom(this.mayhemApi.startSession(this.lang.lang())).catch(() => null);
+        const session = await firstValueFrom(this.mayhemApi.startSession()).catch(() => null);
         if (session) {
           this.sessionId.set(session.session_id);
           this.currentElo.set(session.user_elo);

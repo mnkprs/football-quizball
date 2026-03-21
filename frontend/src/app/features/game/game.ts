@@ -32,16 +32,7 @@ export class GameComponent implements OnInit {
   lang = inject(LanguageService);
   private router = inject(Router);
 
-  ngOnInit(): void {
-    const gameId = this.store.gameId();
-    const phase = this.store.phase();
-    if (!gameId || phase === 'setup' || phase === 'loading' || phase === 'finished') return;
-    if (phase === 'question' && this.store.currentQuestionId()) {
-      this.store.refreshQuestionForLanguage();
-    } else {
-      this.store.syncGameLanguage();
-    }
-  }
+  ngOnInit(): void {}
 
   goBack(): void {
     this.router.navigate(['/']);
