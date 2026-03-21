@@ -1,4 +1,4 @@
-CREATE TABLE mayhem_questions (
+CREATE TABLE IF NOT EXISTS mayhem_questions (
   id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   question          jsonb NOT NULL,
   translations      jsonb,
@@ -7,8 +7,8 @@ CREATE TABLE mayhem_questions (
   expires_at        timestamptz NOT NULL DEFAULT (now() + interval '30 days')
 );
 
-CREATE INDEX idx_mayhem_questions_expires_at ON mayhem_questions (expires_at);
-CREATE INDEX idx_mayhem_questions_created_at ON mayhem_questions (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_mayhem_questions_expires_at ON mayhem_questions (expires_at);
+CREATE INDEX IF NOT EXISTS idx_mayhem_questions_created_at ON mayhem_questions (created_at DESC);
 
 CREATE OR REPLACE FUNCTION expire_mayhem_questions()
 RETURNS integer LANGUAGE plpgsql SECURITY DEFINER AS $$
