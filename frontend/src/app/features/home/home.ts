@@ -1,5 +1,5 @@
-import { Component, inject, signal, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild, computed, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
@@ -7,6 +7,7 @@ import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { DailyApiService } from '../../core/daily-api.service';
 import { ProService } from '../../core/pro.service';
+import { ToastService } from '../../core/toast.service';
 import { LanguageService } from '../../core/language.service';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
@@ -27,13 +28,14 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('homePage') homePage!: ElementRef<HTMLDivElement>;
+export class HomeComponent implements OnInit, OnDestroy {
 
   auth = inject(AuthService);
   lang = inject(LanguageService);
   pro = inject(ProService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private toast = inject(ToastService);
   private blitzApi = inject(BlitzApiService);
   private soloApi = inject(SoloApiService);
   private dailyApi = inject(DailyApiService);
@@ -123,30 +125,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   private countdownInterval: ReturnType<typeof setInterval> | null = null;
-  private rafId: number | null = null;
-  private animStart: number | null = null;
-
-  ngAfterViewInit(): void {
-    const el = this.homePage.nativeElement;
-    const PERIOD = 18000; // ms for one full cycle
-
-    const animate = (timestamp: number) => {
-      if (this.animStart === null) this.animStart = timestamp;
-      const t = (timestamp - this.animStart) / PERIOD;
-
-      // Two independent sine waves for organic non-repeating movement
-      const x = 50 + 8 * Math.sin(t * Math.PI * 2);
-      const y = 50 + 6 * Math.sin(t * Math.PI * 2 * 1.37 + 1.1);
-      const size = 110 + 2 * Math.sin(t * Math.PI * 2 * 0.71);
-
-      el.style.backgroundPosition = `${x}% ${y}%`;
-      el.style.backgroundSize = `${size}%`;
-
-      // this.rafId = requestAnimationFrame(animate);
-    };
-
-    // this.rafId = requestAnimationFrame(animate);
-  }
 
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
@@ -157,14 +135,28 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.loadDailyMetadata();
     this.countdownInterval = setInterval(() => this.countdownTick.update((v) => v + 1), 1000);
+    this.handleProRedirect();
+  }
+
+  private handleProRedirect(): void {
+    const proParam = this.route.snapshot.queryParamMap.get('pro');
+    if (!proParam) return;
+
+    this.router.navigate([], { queryParams: { pro: null }, queryParamsHandling: 'merge', replaceUrl: true });
+
+    if (proParam === 'success') {
+      this.auth.sessionReady.then(() => {
+        this.pro.loadStatus();
+        this.toast.show("You're now Pro!", 'success');
+      });
+    } else if (proParam === 'cancel') {
+      this.toast.show('Upgrade cancelled', 'info');
+    }
   }
 
   ngOnDestroy(): void {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
-    }
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
     }
   }
 

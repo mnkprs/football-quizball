@@ -1,3 +1,11 @@
+@keyframes bg-drift {
+  0%   { background-position: 50% 50%; background-size: 110%; }
+  25%  { background-position: 58% 44%; background-size: 112%; }
+  50%  { background-position: 50% 56%; background-size: 108%; }
+  75%  { background-position: 42% 50%; background-size: 111%; }
+  100% { background-position: 50% 50%; background-size: 110%; }
+}
+
 .home-page {
   min-height: 100%;
   display: flex;
@@ -9,6 +17,7 @@
   background-image: url(/header-banner-bg.jpg);
   background-size: 110%;
   background-position: 50% 50%;
+  animation: bg-drift 18s ease-in-out infinite;
 }
 
 .home-content {
