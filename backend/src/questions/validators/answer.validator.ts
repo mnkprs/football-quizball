@@ -29,40 +29,8 @@ export class AnswerValidator {
     }
   }
 
-  private transliterateGreek(str: string): string {
-    const map: Record<string, string> = {
-      'α': 'a', 'ά': 'a', 'Α': 'a', 'Ά': 'a',
-      'β': 'v', 'Β': 'v',
-      'γ': 'g', 'Γ': 'g',
-      'δ': 'd', 'Δ': 'd',
-      'ε': 'e', 'έ': 'e', 'Ε': 'e', 'Έ': 'e',
-      'ζ': 'z', 'Ζ': 'z',
-      'η': 'i', 'ή': 'i', 'Η': 'i', 'Ή': 'i',
-      'θ': 'th', 'Θ': 'th',
-      'ι': 'i', 'ί': 'i', 'ϊ': 'i', 'ΐ': 'i', 'Ι': 'i', 'Ί': 'i',
-      'κ': 'k', 'Κ': 'k',
-      'λ': 'l', 'Λ': 'l',
-      'μ': 'm', 'Μ': 'm',
-      'ν': 'n', 'Ν': 'n',
-      'ξ': 'x', 'Ξ': 'x',
-      'ο': 'o', 'ό': 'o', 'Ο': 'o', 'Ό': 'o',
-      'π': 'p', 'Π': 'p',
-      'ρ': 'r', 'Ρ': 'r',
-      'σ': 's', 'ς': 's', 'Σ': 's',
-      'τ': 't', 'Τ': 't',
-      'υ': 'y', 'ύ': 'y', 'ϋ': 'y', 'ΰ': 'y', 'Υ': 'y', 'Ύ': 'y',
-      'φ': 'f', 'Φ': 'f',
-      'χ': 'ch', 'Χ': 'ch',
-      'ψ': 'ps', 'Ψ': 'ps',
-      'ω': 'o', 'ώ': 'o', 'Ω': 'o', 'Ώ': 'o',
-    };
-    // Only transliterate if Greek characters are present
-    if (!/[\u0370-\u03ff\u1f00-\u1fff]/u.test(str)) return str;
-    return str.split('').map(c => map[c] ?? c).join('');
-  }
-
   private normalize(str: string): string {
-    return this.transliterateGreek(str)
+    return str
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Remove accents
