@@ -130,18 +130,18 @@
   margin-left: 2px;
 }
 
-/* Sky (news) variant */
+/* Amber (news) variant */
 :host(.daily-hero-host--sky) .daily-hero__badge {
-  background: #0ea5e9;
-  color: #ffffff;
-  border-color: #0284c7;
+  background: #f59e0b;
+  color: #000000;
+  border-color: #d97706;
 }
 
 :host(.daily-hero-host--sky) .daily-hero__play {
-  background: #0ea5e9;
-  color: #ffffff;
+  background: #f59e0b;
+  color: #000000;
 }
 
 :host(.daily-hero-host--sky) .daily-hero:hover .daily-hero__play {
-  background: #38bdf8;
+  background: #fbbf24;
 }
