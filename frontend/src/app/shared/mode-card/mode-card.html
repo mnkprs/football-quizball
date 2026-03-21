@@ -3,12 +3,21 @@
   [backgroundIcon]="backgroundIcon()"
   [backgroundImage]="backgroundImage()"
   [ariaLabel]="title()"
-  (clicked)="!locked() && cardClick.emit()"
+  (clicked)="!locked() && !proLocked() && cardClick.emit()"
 >
   @if (locked()) {
     <div class="mode-card__locked-overlay">
       <span class="material-icons mode-card__lock-icon">lock</span>
       <span class="mode-card__lock-text">Available Soon</span>
+    </div>
+  }
+  @if (proLocked()) {
+    <div class="mode-card__locked-overlay mode-card__locked-overlay--pro">
+      <div class="mode-card__pro-lock-badge">
+        <span class="material-icons mode-card__pro-lock-crown">workspace_premium</span>
+        <span class="mode-card__pro-lock-label">Pro</span>
+      </div>
+      <span class="mode-card__pro-lock-text">Upgrade to unlock</span>
     </div>
   }
   @if (sectionLabel()) {

@@ -29,6 +29,7 @@ export class ModeCardComponent {
   variant = input<ModeCardVariant>('outline');
   actionLabel = input<string>();
   locked = input<boolean>(false);
+  proLocked = input<boolean>(false);
 
   cardClick = output<void>();
 }
