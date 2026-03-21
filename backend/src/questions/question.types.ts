@@ -6,8 +6,6 @@ import {
   BoardCategory,
   QuestionCategory,
   Difficulty,
-  QuestionLocale,
-  QuestionTranslation,
   AnswerType,
   DifficultyFactors,
   GeneratedQuestion,
@@ -26,7 +24,7 @@ import {
   CATEGORY_LABELS,
 } from './config';
 
-export type { BoardCategory, QuestionCategory, Difficulty, QuestionLocale, QuestionTranslation, AnswerType, DifficultyFactors, GeneratedQuestion, BoardCell, Top5Entry, Top5Progress };
+export type { BoardCategory, QuestionCategory, Difficulty, AnswerType, DifficultyFactors, GeneratedQuestion, BoardCell, Top5Entry, Top5Progress };
 
 export {
   LEAGUE_FAMILIARITY_TIERS,

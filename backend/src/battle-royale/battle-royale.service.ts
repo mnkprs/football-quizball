@@ -32,8 +32,8 @@ export class BattleRoyaleService {
 
   // ── Create room ─────────────────────────────────────────────────────────────
 
-  async createRoom(hostId: string, hostUsername: string, language = 'en', isPrivate = true): Promise<{ roomId: string; inviteCode: string }> {
-    const questions = await this.blitzService.drawForRoom(language, QUESTION_COUNT);
+  async createRoom(hostId: string, hostUsername: string, isPrivate = true): Promise<{ roomId: string; inviteCode: string }> {
+    const questions = await this.blitzService.drawForRoom(QUESTION_COUNT);
     if (questions.length === 0) {
       throw new BadRequestException('No questions available in the pool');
     }
@@ -48,7 +48,6 @@ export class BattleRoyaleService {
         status: 'waiting',
         questions,
         question_count: questions.length,
-        language,
         is_private: isPrivate,
       })
       .select()
@@ -81,14 +80,13 @@ export class BattleRoyaleService {
 
   // ── Join queue (find or create waiting room) ────────────────────────────────
 
-  async joinQueue(userId: string, username: string, language = 'en'): Promise<{ roomId: string; isHost: boolean }> {
+  async joinQueue(userId: string, username: string): Promise<{ roomId: string; isHost: boolean }> {
     // Look for an open waiting public room
     const { data: rooms } = await this.supabaseService.client
       .from('battle_royale_rooms')
       .select('id, host_id')
       .eq('status', 'waiting')
       .eq('is_private', false)
-      .eq('language', language)
       .limit(5);
 
     // Check if user is already in a room
@@ -119,7 +117,7 @@ export class BattleRoyaleService {
     }
 
     // No suitable room found — create a public one
-    const { roomId } = await this.createRoom(userId, username, language, false);
+    const { roomId } = await this.createRoom(userId, username, false);
     return { roomId, isHost: true };
   }
 
@@ -173,7 +171,6 @@ export class BattleRoyaleService {
       players: playerEntries,
       currentQuestion,
       myCurrentIndex: myIndex,
-      language: room.language,
       startedAt: room.started_at,
     };
   }

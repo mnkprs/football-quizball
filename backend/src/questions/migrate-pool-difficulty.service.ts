@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { QuestionsService } from './questions.service';
 import { QuestionValidator } from './validators/question.validator';
-import type { GeneratedQuestion, QuestionCategory, QuestionLocale } from './question.types';
+import type { GeneratedQuestion, QuestionCategory } from './question.types';
 import type { Difficulty } from './config';
 import { GENERATION_VERSION } from './config/generation-version.config';
 import { ThresholdConfigService, type ScoreThresholds } from './threshold-config.service';
@@ -32,7 +32,6 @@ type RowRange = {
 export interface MigratePoolDifficultyOptions {
   slot?: string;
   range?: string;
-  locale?: QuestionLocale;
   apply?: boolean;
 }
 
@@ -152,12 +151,12 @@ export class MigratePoolDifficultyService {
   ) {}
 
   async migrate(options: MigratePoolDifficultyOptions = {}): Promise<MigratePoolDifficultyResult> {
-    const { slot, range, locale = 'el', apply = false } = options;
+    const { slot, range, apply = false } = options;
     const slotFilter = parseSlotFilter(slot);
     const rowRange = parseRowRange(range);
 
     const rows = await this.fetchRows(slotFilter, rowRange);
-    const { rejectedIds, updates } = this.collectUpdates(rows, locale);
+    const { rejectedIds, updates } = this.collectUpdates(rows);
 
     if (apply && updates.length > 0) {
       await this.applyUpdates(updates);
@@ -241,7 +240,6 @@ export class MigratePoolDifficultyService {
 
   private collectUpdates(
     rows: PoolRow[],
-    locale: QuestionLocale,
   ): {
     rejectedIds: string[];
     updates: Array<{
@@ -266,7 +264,6 @@ export class MigratePoolDifficultyService {
     for (const row of rows) {
       const { scored, rejectReason } = this.questionsService.scoreQuestionWithDetails(
         row.question,
-        locale,
         { categoryOverride: row.category as QuestionCategory },
       );
 

@@ -25,6 +25,6 @@ export class SetupComponent {
 
   async startGame(): Promise<void> {
     if (!this.canStart()) return;
-    await this.store.startGame(this.player1Name.trim(), this.player2Name.trim(), 'en');
+    await this.store.startGame(this.player1Name.trim(), this.player2Name.trim());
   }
 }

@@ -292,17 +292,15 @@ export class AdminController {
     @Query('apply') apply?: string,
     @Query('slot') slot?: string,
     @Query('range') range?: string,
-    @Query('locale') locale?: string,
   ) {
     const applyFlag = apply === 'true' || apply === '1';
     this.logger.log(
-      `[migrate-pool-difficulty] Request: apply=${applyFlag} slot=${slot ?? 'all'} range=${range ?? 'all'} locale=${locale ?? 'el'}`,
+      `[migrate-pool-difficulty] Request: apply=${applyFlag} slot=${slot ?? 'all'} range=${range ?? 'all'}`,
     );
     return this.migratePoolDifficultyService.migrate({
       apply: applyFlag,
       slot: slot?.trim() || undefined,
       range: range?.trim() || undefined,
-      locale: (locale?.trim() as 'en' | 'el') || 'el',
     });
   }
 }

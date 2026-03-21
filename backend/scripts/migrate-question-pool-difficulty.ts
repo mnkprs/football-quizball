@@ -8,7 +8,6 @@ import {
   Difficulty,
   GeneratedQuestion,
   QuestionCategory,
-  QuestionLocale,
 } from '../src/questions/question.types';
 
 const PAGE_SIZE = 1000;
@@ -276,7 +275,6 @@ function collectUpdates(
   rows: PoolRow[],
   questionsService: QuestionsService,
   questionValidator: QuestionValidator,
-  locale: QuestionLocale,
   verbose: boolean,
 ): {
   rejectedIds: string[];
@@ -288,7 +286,6 @@ function collectUpdates(
   for (const row of rows) {
     const { scored, rejectReason } = questionsService.scoreQuestionWithDetails(
       row.question,
-      locale,
       { categoryOverride: row.category as QuestionCategory },
     );
 
@@ -378,7 +375,6 @@ async function applyUpdates(supabase: SupabaseService, updates: UpdateEntry[]): 
 async function main() {
   const apply = process.argv.includes('--apply');
   const verbose = hasFlag('--verbose');
-  const locale = (getArgValue('--locale') ?? 'el') as QuestionLocale;
   const slotFilter = parseSlotFilter(getArgValue('--slot'));
   const rowRange = parseRowRange(getArgValue('--range'));
 
@@ -395,7 +391,6 @@ async function main() {
     rows,
     questionsService,
     questionValidator,
-    locale,
     verbose,
   );
 
@@ -403,7 +398,7 @@ async function main() {
     console.log('');
   }
   console.log(
-    `Scanned ${rows.length} question_pool rows (locale=${locale}, apply=${apply}, slot=${formatSlotFilter(slotFilter)}, range=${formatRowRange(rowRange)})`,
+    `Scanned ${rows.length} question_pool rows (apply=${apply}, slot=${formatSlotFilter(slotFilter)}, range=${formatRowRange(rowRange)})`,
   );
   console.log(`Rows to update: ${updates.length}`);
   console.log(`Rows rejected by new rules (kept untouched): ${rejectedIds.length}`);

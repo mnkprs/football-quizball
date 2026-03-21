@@ -34,7 +34,7 @@ export class GossipGenerator extends BaseGenerator {
     super(llmService);
   }
 
-  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+  async generate(options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const currentYear = new Date().getFullYear();
     const systemPrompt = `You are a football celebrity gossip expert. Generate a fun football gossip trivia question.
 Topics can include: famous transfer sagas, player controversies, WAG stories, celebrity footballer relationships, off-pitch incidents, feuds between players or managers, outrageous quotes, extravagant lifestyles.
@@ -54,7 +54,7 @@ Return ONLY a valid JSON object with these exact fields:
 }
 fame_score is 1-10: 10 = tabloid front page that everyone knows, 1 = very obscure gossip.
 specificity_score is 1-5: 1 = widely known celebrity story, 3 = specific incident detail, 5 = very niche off-pitch fact.
-combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dimensions (person+event+context), 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
+combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dimensions (person+event+context), 10 = multi-dimensional reasoning.`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GOSSIP', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GOSSIP', options?.slotIndex, constraints);
@@ -64,14 +64,14 @@ combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dime
     return this.mapQuestion(result, options?.forBlitz);
   }
 
-  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
+  async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
     const currentYear = new Date().getFullYear();
     const systemPrompt = `You are a football celebrity gossip expert. Generate ${questionCount} factual and entertaining football gossip questions.
 They should be easy to answer in spirit and rely on recognizable off-pitch stories. IMPORTANT: Only generate questions about events that occurred within the last 2 years (${currentYear - 1}–${currentYear}). Do not reference events older than ${currentYear - 1}.${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, fifty_fifty_hint, explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 fifty_fifty_hint: Must be the SAME type as correct_answer (e.g. if answer is a person name, hint is another person name). NOT a description.
-${getLeagueFameGuidanceForBatch('GOSSIP')}${this.langInstruction(language)}`;
+${getLeagueFameGuidanceForBatch('GOSSIP')}`;
     const userPrompt = `Generate ${questionCount} football gossip questions in one batch. ${getRelativityConstraint('GOSSIP', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: GossipPayload[] }>(systemPrompt, userPrompt);

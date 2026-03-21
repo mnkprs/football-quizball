@@ -32,7 +32,7 @@ export class BattleRoyaleController {
     if (!req.proStatus?.is_pro) {
       await this.supabaseService.incrementBattleRoyaleTrial(req.user.id);
     }
-    return this.brService.createRoom(req.user.id, req.user.username, dto.language ?? 'en');
+    return this.brService.createRoom(req.user.id, req.user.username);
   }
 
   /** Join a room by invite code */

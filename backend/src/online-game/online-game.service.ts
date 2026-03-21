@@ -66,11 +66,11 @@ export class OnlineGameService {
 
   // ── Board drawing ───────────────────────────────────────────────────────────
 
-  private async drawBoard(language: 'en' | 'el'): Promise<{ boardState: OnlineBoardState; poolQuestionIds: string[] }> {
+  private async drawBoard(): Promise<{ boardState: OnlineBoardState; poolQuestionIds: string[] }> {
     // allowLlmFallback=true: when a slot collision is detected (same question eligible for
     // two difficulty tiers drawn by the same RPC call), fall back to a live-generated question
     // for the missing slot rather than throwing a 503 and forcing the player to retry.
-    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard(language, [], true);
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard([], true);
 
     const usedIds = new Set<string>();
     const cells: OnlineBoardCell[][] = CATEGORIES_ORDER.map((category) => {
@@ -217,7 +217,6 @@ export class OnlineGameService {
       guestId: row['guest_id'] as string | null,
       hostUsername,
       guestUsername,
-      language: row['language'] as string,
     };
   }
 
@@ -235,8 +234,7 @@ export class OnlineGameService {
 
   async createGame(userId: string, dto: CreateOnlineGameDto): Promise<OnlineGamePublicView> {
     await this.checkGameLimit(userId);
-    const language = dto.language ?? 'en';
-    const { boardState, poolQuestionIds } = await this.drawBoard(language);
+    const { boardState, poolQuestionIds } = await this.drawBoard();
 
     // Generate unique invite code
     let inviteCode = generateInviteCode();
@@ -255,19 +253,18 @@ export class OnlineGameService {
         status: 'waiting',
         board_state: boardState,
         pool_question_ids: poolQuestionIds,
-        language,
         player_scores: [0, 0],
       })
       .select()
       .single();
 
     if (error || !data) throw new BadRequestException('Failed to create online game');
-    this.logger.log(JSON.stringify({ event: 'game_created', gameId: (data as Record<string,unknown>)['id'], userId, language }));
+    this.logger.log(JSON.stringify({ event: 'game_created', gameId: (data as Record<string,unknown>)['id'], userId }));
     const { host, guest } = await this.getUsernames(userId, null);
     return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
   }
 
-  async joinQueue(userId: string, language: 'en' | 'el' = 'en'): Promise<OnlineGamePublicView> {
+  async joinQueue(userId: string): Promise<OnlineGamePublicView> {
     await this.checkGameLimit(userId);
 
     // Look for an existing queued game
@@ -275,7 +272,6 @@ export class OnlineGameService {
       .from('online_games')
       .select('*')
       .eq('status', 'queued')
-      .eq('language', language)
       .neq('host_id', userId)
       .limit(1)
       .maybeSingle();
@@ -301,7 +297,7 @@ export class OnlineGameService {
     }
 
     // Create a new queued game (no invite_code)
-    const { boardState, poolQuestionIds } = await this.drawBoard(language);
+    const { boardState, poolQuestionIds } = await this.drawBoard();
     const { data, error } = await this.supabaseService.client
       .from('online_games')
       .insert({
@@ -310,7 +306,6 @@ export class OnlineGameService {
         status: 'queued',
         board_state: boardState,
         pool_question_ids: poolQuestionIds,
-        language,
         player_scores: [0, 0],
       })
       .select()

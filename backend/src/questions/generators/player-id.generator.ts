@@ -46,7 +46,7 @@ export class PlayerIdGenerator extends BaseGenerator {
     super(llmService);
   }
 
-  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+  async generate(options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football expert. Generate a "Guess the Player" question where the player's career clubs are shown.
 Pick a professional footballer who had a real career but is NOT a universally famous superstar — think squad players, backup goalkeepers, journeymen, cult heroes, dependable pros. Any era, any well-known league.${getSquadPlayerInstruction()}${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with these exact fields:
@@ -71,7 +71,7 @@ The career array must have at least 3 entries.
 combinational_thinking_score 1-10: 1 = single fact (iconic player with unique path), 5 = combines career path + era + league, 10 = multi-dimensional reasoning across many clubs/eras. All career data must be factually accurate.
 Set "is_loan": true for any spell where the player was on loan, otherwise false.
 fame_score is 1-10: 10 = universally iconic (Messi/Ronaldo level), 1 = hyper-niche player.
-specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.${this.langInstruction(language)}`;
+specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known player but career path not top-of-mind, 5 = obscure player few would recognize.`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('PLAYER_ID', options?.slotIndex, options?.minorityScale);
     this.logConstraints('PLAYER_ID', options?.slotIndex, constraints);
@@ -81,7 +81,7 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
     return this.mapQuestion(result, options?.forBlitz);
   }
 
-  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
+  async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football expert. Generate ${questionCount} "Guess the Player" questions where each player is identified by a factual career path.
 Each player must be a real professional footballer who is NOT a universally famous superstar — target squad players, journeymen, backup roles, cult heroes at specific clubs. Any well-known league or era.${getSquadPlayerInstruction()}${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
@@ -104,7 +104,7 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
 }
 Set "is_loan": true for any loan spell in the career path, otherwise false.
 CRITICAL: career must be COMPLETE from first professional club to last — never omit early clubs. Verify via source_url (Wikipedia, Transfermarkt).
-${getLeagueFameGuidanceForBatch('PLAYER_ID')}${this.langInstruction(language)}`;
+${getLeagueFameGuidanceForBatch('PLAYER_ID')}`;
     const userPrompt = `Generate ${questionCount} player-id questions in one batch. ${getRelativityConstraint('PLAYER_ID', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: PlayerIdPayload[] }>(systemPrompt, userPrompt);

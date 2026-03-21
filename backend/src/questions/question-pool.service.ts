@@ -64,7 +64,6 @@ export class QuestionPoolService {
    * Draws a full board for a game. Draws from the pool, with LLM fallback for missing slots.
    */
   async drawBoard(
-    language: string = 'en',
     excludeNewsQuestionIds?: string[],
     allowLlmFallback: boolean = true,
   ): Promise<DrawBoardResult> {
@@ -96,7 +95,7 @@ export class QuestionPoolService {
       Array.from(missingByCategory.entries())
         .filter(([cat]) => cat !== 'NEWS')
         .map(([category, difficulties]) =>
-          this.generateCategoryFallback(category, difficulties, 'en'),
+          this.generateCategoryFallback(category, difficulties),
         ),
     );
     for (const generated of fallbackResults) {
@@ -111,9 +110,9 @@ export class QuestionPoolService {
    * @param excludeIds Optional list of question IDs to exclude (user question history).
    * @returns The drawn question or null if pool is empty for all categories.
    */
-  async drawOneForSolo(difficulty: Difficulty, language: string = 'en', excludeIds: string[] = []): Promise<GeneratedQuestion | null> {
+  async drawOneForSolo(difficulty: Difficulty, excludeIds: string[] = []): Promise<GeneratedQuestion | null> {
     for (const category of SOLO_DRAW_CATEGORY_ORDER) {
-      const drawn = await this.drawSlot(category, difficulty, 1, language, excludeIds.length > 0 ? excludeIds : undefined);
+      const drawn = await this.drawSlot(category, difficulty, 1, excludeIds.length > 0 ? excludeIds : undefined);
       if (drawn.length > 0) return drawn[0];
     }
     return null;
@@ -124,7 +123,7 @@ export class QuestionPoolService {
    * Distributes evenly across categories and difficulties (EASY/MEDIUM/HARD).
    * @param n Total number of questions to draw (default 30 for a buffer)
    */
-  async drawForDuel(language: string = 'en', n: number = 30, excludeIds: string[] = []): Promise<GeneratedQuestion[]> {
+  async drawForDuel(n: number = 30, excludeIds: string[] = []): Promise<GeneratedQuestion[]> {
     const difficulties: Difficulty[] = ['EASY', 'MEDIUM', 'HARD'];
     const results: GeneratedQuestion[] = [];
     const exclude = new Set(excludeIds);
@@ -142,7 +141,7 @@ export class QuestionPoolService {
       const batch = slots.slice(i, i + 5);
       const fetched = await Promise.all(
         batch.map(([cat, diff]) =>
-          this.drawSlot(cat, diff, 1, language, exclude.size > 0 ? [...exclude] : undefined),
+          this.drawSlot(cat, diff, 1, exclude.size > 0 ? [...exclude] : undefined),
         ),
       );
       for (const drawn of fetched) {
@@ -706,7 +705,6 @@ export class QuestionPoolService {
     category: QuestionCategory,
     difficulty: Difficulty,
     count: number,
-    language: string = 'en',
     excludeQuestionIds?: string[],
   ): Promise<GeneratedQuestion[]> {
     const rpcParams: Record<string, unknown> = {
@@ -750,7 +748,7 @@ export class QuestionPoolService {
       const batchSize = Math.min(GENERATION_BATCH_SIZE, count - offset);
       const results = await Promise.allSettled(
         Array.from({ length: batchSize }, (_, i) =>
-          this.questionsService.generateOne(category, difficulty, 'en', {
+          this.questionsService.generateOne(category, difficulty, {
             slotIndex: baseSlotIndex + offset + i,
           }),
         ),
@@ -1025,7 +1023,7 @@ export class QuestionPoolService {
         let attempt = 0;
 
         while (attempt <= DUPLICATE_RETRY_ATTEMPTS) {
-          const batch = await this.questionsService.generateBatch(category, 'en', {
+          const batch = await this.questionsService.generateBatch(category, {
             questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
             targetDifficulty: difficulty,
             avoidQuestions,
@@ -1137,7 +1135,7 @@ export class QuestionPoolService {
     while (added < targetCount && pass < MAX_CATEGORY_BATCH_ATTEMPTS) {
       pass += 1;
       this.logger.log(`[seedSlot] ${category}/${difficulty} pass ${pass}`);
-      const batch = await this.questionsService.generateBatch(category, 'en', {
+      const batch = await this.questionsService.generateBatch(category, {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
         targetDifficulty: difficulty,
         avoidQuestions,
@@ -1215,7 +1213,6 @@ export class QuestionPoolService {
   private async generateCategoryFallback(
     category: QuestionCategory,
     difficulties: Difficulty[],
-    language: string,
   ): Promise<GeneratedQuestion[]> {
     const remaining = [...difficulties];
     const generated: GeneratedQuestion[] = [];
@@ -1223,7 +1220,7 @@ export class QuestionPoolService {
 
     while (remaining.length > 0 && attempts < 3) {
       attempts += 1;
-      const batch = await this.questionsService.generateBatch(category, language, {
+      const batch = await this.questionsService.generateBatch(category, {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? remaining.length,
       });
       const used = new Set<number>();
@@ -1241,7 +1238,7 @@ export class QuestionPoolService {
 
     for (const difficulty of remaining) {
       try {
-        const question = await this.questionsService.generateOne(category, difficulty, language);
+        const question = await this.questionsService.generateOne(category, difficulty);
         generated.push(question);
       } catch (err) {
         this.logger.error(`[generateCategoryFallback] Failed ${category}/${difficulty}: ${(err as Error).message}`);
@@ -1272,7 +1269,7 @@ export class QuestionPoolService {
           needed,
           CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
         );
-        const batch = await this.questionsService.generateBatch(category, 'en', {
+        const batch = await this.questionsService.generateBatch(category, {
           questionCount: batchSize,
           targetDifficulty: difficulty,
           avoidQuestions,

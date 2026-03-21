@@ -41,9 +41,9 @@ export class QuestionsService {
    * Generates a full board (one question per slot) for all LIVE_CATEGORIES.
    * Matches generated questions to slots by category and difficulty.
    */
-  async generateBoard(language: string = 'en'): Promise<GeneratedQuestion[]> {
+  async generateBoard(): Promise<GeneratedQuestion[]> {
     const tasks: Promise<GeneratedQuestion[]>[] = LIVE_CATEGORIES.map((category) =>
-      this.generateBatch(category, language, {
+      this.generateBatch(category, {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? 2,
       }),
     );
@@ -104,12 +104,11 @@ export class QuestionsService {
   async generateOne(
     category: QuestionCategory,
     difficulty: Difficulty,
-    language: string = 'en',
     options?: GeneratorOptions,
   ): Promise<GeneratedQuestion> {
     const scale = options?.minorityScale ?? minorityScaleForDifficulty(difficulty);
-    const question = await this.generateRawWithRetry(category, language, { ...options, minorityScale: scale });
-    const scoredQuestion = this.scoreQuestion(question, language);
+    const question = await this.generateRawWithRetry(category, { ...options, minorityScale: scale });
+    const scoredQuestion = this.scoreQuestion(question);
     if (!scoredQuestion) {
       throw new Error(`Rejected ${category} question while scoring`);
     }
@@ -121,18 +120,16 @@ export class QuestionsService {
    */
   async generateBatch(
     category: QuestionCategory,
-    language: string = 'en',
     options?: GeneratorBatchOptions,
   ): Promise<GeneratedQuestion[]> {
-    const results = await this.generateRawBatch(category, language, options);
+    const results = await this.generateRawBatch(category, options);
     return results
-      .map((question) => this.scoreQuestion(question, language))
+      .map((question) => this.scoreQuestion(question))
       .filter((question): question is GeneratedQuestion => question !== null);
   }
 
   private async generateRawWithRetry(
     category: QuestionCategory,
-    language: string = 'en',
     options?: GeneratorOptions,
     maxRetries = 3,
   ): Promise<GeneratedQuestion> {
@@ -140,7 +137,7 @@ export class QuestionsService {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const question = await this.generateRaw(category, language, options);
+        const question = await this.generateRaw(category, options);
         this.validateQuestion(question);
         return question;
       } catch (err) {
@@ -154,7 +151,6 @@ export class QuestionsService {
 
   private async generateRaw(
     category: QuestionCategory,
-    language: string = 'en',
     options?: GeneratorOptions,
   ): Promise<GeneratedQuestion> {
     const genOpts =
@@ -162,13 +158,13 @@ export class QuestionsService {
         ? { avoidAnswers: options.avoidAnswers, slotIndex: options.slotIndex, minorityScale: options.minorityScale, forBlitz: options.forBlitz }
         : undefined;
     switch (category) {
-      case 'HISTORY':         return this.historyGenerator.generate(language, genOpts);
-      case 'PLAYER_ID':       return this.playerIdGenerator.generate(language, genOpts);
-      case 'HIGHER_OR_LOWER': return this.higherOrLowerGenerator.generate(language, genOpts);
-      case 'GUESS_SCORE':     return this.guessScoreGenerator.generate(language, genOpts);
-      case 'TOP_5':           return this.top5Generator.generate(language, genOpts);
-      case 'GEOGRAPHY':       return this.geographyGenerator.generate(language, genOpts);
-      case 'GOSSIP':          return this.gossipGenerator.generate(language, genOpts);
+      case 'HISTORY':         return this.historyGenerator.generate(genOpts);
+      case 'PLAYER_ID':       return this.playerIdGenerator.generate(genOpts);
+      case 'HIGHER_OR_LOWER': return this.higherOrLowerGenerator.generate(genOpts);
+      case 'GUESS_SCORE':     return this.guessScoreGenerator.generate(genOpts);
+      case 'TOP_5':           return this.top5Generator.generate(genOpts);
+      case 'GEOGRAPHY':       return this.geographyGenerator.generate(genOpts);
+      case 'GOSSIP':          return this.gossipGenerator.generate(genOpts);
       case 'NEWS':            throw new Error('NEWS has no live generator — use news ingestion service');
       default:                throw new Error(`Unknown category: ${category}`);
     }
@@ -176,24 +172,23 @@ export class QuestionsService {
 
   private async generateRawBatch(
     category: QuestionCategory,
-    language: string = 'en',
     options?: GeneratorBatchOptions,
   ): Promise<GeneratedQuestion[]> {
     switch (category) {
       case 'HISTORY':
-        return this.historyGenerator.generateBatch(language, options);
+        return this.historyGenerator.generateBatch(options);
       case 'PLAYER_ID':
-        return this.playerIdGenerator.generateBatch(language, options);
+        return this.playerIdGenerator.generateBatch(options);
       case 'HIGHER_OR_LOWER':
-        return this.higherOrLowerGenerator.generateBatch(language, options);
+        return this.higherOrLowerGenerator.generateBatch(options);
       case 'GUESS_SCORE':
-        return this.guessScoreGenerator.generateBatch(language, options);
+        return this.guessScoreGenerator.generateBatch(options);
       case 'TOP_5':
-        return this.top5Generator.generateBatch(language, options);
+        return this.top5Generator.generateBatch(options);
       case 'GEOGRAPHY':
-        return this.geographyGenerator.generateBatch(language, options);
+        return this.geographyGenerator.generateBatch(options);
       case 'GOSSIP':
-        return this.gossipGenerator.generateBatch(language, options);
+        return this.gossipGenerator.generateBatch(options);
       case 'NEWS':
         throw new Error('NEWS has no live generator — use news ingestion service');
       default:
@@ -207,10 +202,9 @@ export class QuestionsService {
    */
   scoreQuestion(
     question: GeneratedQuestion,
-    language: string = 'en',
     options?: { categoryOverride?: QuestionCategory },
   ): GeneratedQuestion | null {
-    const details = this.scoreQuestionWithDetails(question, language, options);
+    const details = this.scoreQuestionWithDetails(question, options);
     return details.scored;
   }
 
@@ -219,7 +213,6 @@ export class QuestionsService {
    */
   scoreQuestionWithDetails(
     question: GeneratedQuestion,
-    language: string = 'en',
     options?: { categoryOverride?: QuestionCategory },
   ): { scored: GeneratedQuestion | null; rejectReason?: string } {
     if (!question.difficulty_factors) {

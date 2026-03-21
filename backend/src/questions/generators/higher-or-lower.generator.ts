@@ -36,7 +36,7 @@ export class HigherOrLowerGenerator extends BaseGenerator {
     super(llmService);
   }
 
-  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+  async generate(options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football statistics expert. Create a "Higher or Lower" question.
 The question shows a player's stat with a WRONG value, and the player must guess if the real value is Higher or Lower.
 The "shown_value" should be plausibly wrong (within 20-30% of real value, either above or below).
@@ -58,7 +58,7 @@ Return ONLY valid JSON:
 }
 fame_score is 1-10: 10 = universally iconic stat, 1 = obscure niche stat.
 specificity_score is 1-5: 1 = widely known career total, 3 = season-specific stat, 5 = very obscure sub-statistic.
-combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+season+competition+stat type, 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
+combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+season+competition+stat type, 10 = multi-dimensional reasoning.`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('HIGHER_OR_LOWER', options?.slotIndex, options?.minorityScale);
     this.logConstraints('HIGHER_OR_LOWER', options?.slotIndex, constraints);
@@ -68,7 +68,7 @@ combinational_thinking_score 1-10: 1 = single stat recall, 5 = combines player+s
     return this.mapQuestion(result);
   }
 
-  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
+  async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football statistics expert. Create ${questionCount} "Higher or Lower" questions.
 Each question must show a player's stat with a wrong number and ask whether the real number is higher or lower.
@@ -92,7 +92,7 @@ Return ONLY valid JSON:
     }
   ]
 }
-${getLeagueFameGuidanceForBatch('HIGHER_OR_LOWER')}${this.langInstruction(language)}`;
+${getLeagueFameGuidanceForBatch('HIGHER_OR_LOWER')}`;
     const userPrompt = `Generate ${questionCount} Higher or Lower questions in one batch. ${getRelativityConstraint('HIGHER_OR_LOWER', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: HolPayload[] }>(systemPrompt, userPrompt);

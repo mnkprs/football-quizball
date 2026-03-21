@@ -1,14 +1,9 @@
-import { IsString, IsOptional, IsIn, MaxLength, IsInt, Min } from 'class-validator';
+import { IsString, MaxLength, IsInt, Min } from 'class-validator';
 import { GeneratedQuestion } from '../questions/question.types';
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
-export class CreateDuelDto {
-  @IsOptional()
-  @IsString()
-  @IsIn(['en', 'el'])
-  language?: 'en' | 'el';
-}
+export class CreateDuelDto {}
 
 export class JoinDuelByCodeDto {
   @IsString()
@@ -60,7 +55,6 @@ export interface DuelPublicView {
   questionResults: DuelQuestionResult[];
   hostReady: boolean;
   guestReady: boolean;
-  language: string;
 }
 
 export interface DuelAnswerResult {
@@ -105,7 +99,6 @@ export interface DuelGameRow {
   scores: { host: number; guest: number };
   question_results: DuelQuestionResult[];
   pool_question_ids: string[];
-  language: string;
   question_started_at: string | null;
   created_at: string;
   updated_at: string;

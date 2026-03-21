@@ -53,7 +53,7 @@ export class DuelController {
     if (!req.proStatus?.is_pro) {
       await this.supabaseService.incrementDuelTrial(req.user.id);
     }
-    return this.service.joinQueue(req.user.id, 'en');
+    return this.service.joinQueue(req.user.id);
   }
 
   /** POST /api/duel/join — Join a duel by invite code */

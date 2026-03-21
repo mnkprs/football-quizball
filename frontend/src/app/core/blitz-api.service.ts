@@ -50,8 +50,8 @@ export class BlitzApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  startSession(language: string = 'en'): Observable<BlitzStartResponse> {
-    return this.http.post<BlitzStartResponse>(`${this.base}/session`, { language }, { headers: this.headers() });
+  startSession(): Observable<BlitzStartResponse> {
+    return this.http.post<BlitzStartResponse>(`${this.base}/session`, {}, { headers: this.headers() });
   }
 
   submitAnswer(sessionId: string, answer: string): Observable<BlitzAnswerResponse> {

@@ -5,7 +5,6 @@ export interface SoloSession {
   userId: string;
   userElo: number;
   currentElo: number;
-  language: string;
   currentQuestion: SoloQuestion | null;
   servedAt: Date | null;
   questionsAnswered: number;

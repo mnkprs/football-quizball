@@ -32,18 +32,17 @@ export class SoloService {
     return session;
   }
 
-  async startSession(userId: string, language: string = 'en'): Promise<{ session_id: string; user_elo: number }> {
+  async startSession(userId: string): Promise<{ session_id: string; user_elo: number }> {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('User profile not found');
 
     const sessionId = crypto.randomUUID();
-    this.logger.log(JSON.stringify({ event: 'session_start', userId, userElo: profile.elo, language }));
+    this.logger.log(JSON.stringify({ event: 'session_start', userId, userElo: profile.elo }));
     const session: SoloSession = {
       id: sessionId,
       userId,
       userElo: profile.elo,
       currentElo: profile.elo,
-      language,
       currentQuestion: null,
       servedAt: null,
       questionsAnswered: 0,
@@ -71,7 +70,7 @@ export class SoloService {
 
     const difficulty = this.eloService.getDifficultyForElo(session.currentElo);
     const seenIds = await this.supabaseService.getSeenQuestionIds(userId).catch(() => [] as string[]);
-    const question = await this.generator.generate(difficulty, session.currentElo, session.language, seenIds);
+    const question = await this.generator.generate(difficulty, session.currentElo, seenIds);
     const now = new Date();
 
     session.currentQuestion = question;

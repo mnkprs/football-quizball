@@ -17,7 +17,6 @@ export interface GameSession {
   createdAt: Date;
   updatedAt: Date;
   top5Progress: Record<string, Top5Progress>;
-  language: string;
   poolQuestionIds?: string[];
 }
 

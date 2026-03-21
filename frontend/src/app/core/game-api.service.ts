@@ -6,7 +6,6 @@ import { environment } from '../../environments/environment';
 export interface CreateGameRequest {
   player1Name: string;
   player2Name: string;
-  language: string;
   /** NEWS question IDs to exclude (from localStorage) to avoid repeats in back-to-back games */
   excludeNewsQuestionIds?: string[];
 }
@@ -16,11 +15,6 @@ export interface CreateGameResponse {
   players: Array<{ name: string; score: number }>;
   question_count: number;
   status: string;
-}
-
-export interface UpdateGameLanguageResponse {
-  game_id: string;
-  language: string;
 }
 
 export interface BoardState {
@@ -114,12 +108,6 @@ export class GameApiService {
 
   getGame(gameId: string): Observable<BoardState> {
     return this.http.get<BoardState>(`${this.base}/api/games/${gameId}`);
-  }
-
-  setGameLanguage(gameId: string, language: string): Observable<UpdateGameLanguageResponse> {
-    return this.http.post<UpdateGameLanguageResponse>(`${this.base}/api/games/${gameId}/language`, {
-      language,
-    });
   }
 
   getQuestion(gameId: string, questionId: string): Observable<Question> {

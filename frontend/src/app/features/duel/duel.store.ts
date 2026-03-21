@@ -153,10 +153,10 @@ export const DuelStore = signalStore(
         }
       },
 
-      async createGame(language?: 'en' | 'el'): Promise<string | null> {
+      async createGame(): Promise<string | null> {
         patchState(store, { loading: true, error: null });
         try {
-          const view = await firstValueFrom(api.createGame(language));
+          const view = await firstValueFrom(api.createGame());
           patchState(store, {
             gameId: view.id,
             gameView: view,
@@ -189,10 +189,10 @@ export const DuelStore = signalStore(
         }
       },
 
-      async joinQueue(language?: 'en' | 'el'): Promise<string | null> {
+      async joinQueue(): Promise<string | null> {
         patchState(store, { loading: true, error: null });
         try {
-          const view = await firstValueFrom(api.joinQueue(language));
+          const view = await firstValueFrom(api.joinQueue());
           patchState(store, {
             gameId: view.id,
             gameView: view,

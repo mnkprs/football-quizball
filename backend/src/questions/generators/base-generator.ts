@@ -26,20 +26,10 @@ export abstract class BaseGenerator {
     this.logger = new Logger(this.constructor.name);
   }
 
-  abstract generate(language: string, options?: GeneratorOptions): Promise<GeneratedQuestion>;
-  abstract generateBatch(language: string, options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]>;
+  abstract generate(options?: GeneratorOptions): Promise<GeneratedQuestion>;
+  abstract generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]>;
 
   // ── Prompt helpers ─────────────────────────────────────────────────────────
-
-  /**
-   * Returns the language instruction appended to the end of system prompts.
-   * Empty string for English — no extra instruction needed.
-   */
-  protected langInstruction(language: string): string {
-    return language === 'el'
-      ? '\nIMPORTANT: Write question_text and explanation in Greek (Ελληνικά). The correct_answer MUST remain in English.'
-      : '';
-  }
 
   /**
    * Returns the fifty_fifty_hint schema line. LLM proposes a plausible wrong answer.

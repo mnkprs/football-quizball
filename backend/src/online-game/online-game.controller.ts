@@ -48,7 +48,7 @@ export class OnlineGameController {
   @UseGuards(AuthGuard)
   @Post('queue')
   joinQueue(@Request() req: { user: { id: string } }) {
-    return this.service.joinQueue(req.user.id, 'en');
+    return this.service.joinQueue(req.user.id);
   }
 
   /** GET /api/online-games/preview/:code — Public preview of an invite link (no auth) */

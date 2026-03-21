@@ -14,9 +14,8 @@ export class SoloController {
 
   @Post('session')
   @UseGuards(AuthGuard)
-  async startSession(@Req() req: AuthenticatedRequest, @Body() body?: { language?: string }) {
-    const language = body?.language ?? 'en';
-    return this.soloService.startSession(req.user.id, language);
+  async startSession(@Req() req: AuthenticatedRequest) {
+    return this.soloService.startSession(req.user.id);
   }
 
   @Get('session/:id/next')

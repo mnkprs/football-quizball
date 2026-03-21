@@ -35,7 +35,6 @@ export interface DuelPublicView {
   questionResults: DuelQuestionResult[];
   hostReady: boolean;
   guestReady: boolean;
-  language: string;
 }
 
 export interface DuelAnswerResult {
@@ -71,17 +70,16 @@ export class DuelApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  createGame(language?: 'en' | 'el'): Observable<DuelPublicView> {
-    return this.http.post<DuelPublicView>(this.base, { language }, { headers: this.headers() });
+  createGame(): Observable<DuelPublicView> {
+    return this.http.post<DuelPublicView>(this.base, {}, { headers: this.headers() });
   }
 
   listMyGames(): Observable<DuelGameSummary[]> {
     return this.http.get<DuelGameSummary[]>(this.base, { headers: this.headers() });
   }
 
-  joinQueue(language?: 'en' | 'el'): Observable<DuelPublicView> {
-    const params = language ? `?language=${language}` : '';
-    return this.http.post<DuelPublicView>(`${this.base}/queue${params}`, {}, { headers: this.headers() });
+  joinQueue(): Observable<DuelPublicView> {
+    return this.http.post<DuelPublicView>(`${this.base}/queue`, {}, { headers: this.headers() });
   }
 
   joinByCode(inviteCode: string): Observable<DuelPublicView> {

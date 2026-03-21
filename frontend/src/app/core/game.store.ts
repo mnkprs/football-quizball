@@ -97,12 +97,12 @@ export const GameStore = signalStore(
     }),
   })),
   withMethods((store, api = inject(GameApiService)) => ({
-    async startGame(player1Name: string, player2Name: string, language: string): Promise<void> {
+    async startGame(player1Name: string, player2Name: string): Promise<void> {
       patchState(store, { loading: true, error: null, phase: 'loading' });
       try {
         const excludeNewsQuestionIds = getSeenNewsIds();
         const response = await firstValueFrom(
-          api.createGame({ player1Name, player2Name, language, excludeNewsQuestionIds })
+          api.createGame({ player1Name, player2Name, excludeNewsQuestionIds })
         );
         const boardState = await firstValueFrom(api.getGame(response.game_id));
         localStorage.setItem(STORAGE_KEY, response.game_id);

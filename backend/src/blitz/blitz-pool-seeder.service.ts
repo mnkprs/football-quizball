@@ -108,7 +108,7 @@ export class BlitzPoolSeederService {
           const difficulty = scoreToDifficulty(score);
           const idx = slotIndex++;
           return this.questionsService
-            .generateOne(band.category as QuestionCategory, difficulty, 'en', {
+            .generateOne(band.category as QuestionCategory, difficulty, {
               slotIndex: idx,
               minorityScale,
               forBlitz: true,

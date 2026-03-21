@@ -1,12 +1,7 @@
-import { IsString, IsOptional, IsIn, IsBoolean, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, MaxLength } from 'class-validator';
 
 // DTOs
-export class CreateOnlineGameDto {
-  @IsOptional()
-  @IsString()
-  @IsIn(['en', 'el'])
-  language?: 'en' | 'el';
-}
+export class CreateOnlineGameDto {}
 
 export class JoinByCodeDto {
   @IsString()
@@ -93,7 +88,6 @@ export interface OnlineGamePublicView {
   guestId: string | null;
   hostUsername: string;
   guestUsername: string | null;
-  language: string;
 }
 
 /** Snake_case to match offline AnswerResult shape expected by frontend ResultComponent. */

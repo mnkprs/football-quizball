@@ -75,7 +75,7 @@ export class MayhemApiService {
   }
 
   startSession() {
-    return this.http.post<MayhemSessionResponse>(`${this.base}/session`, { language: 'en' }, { headers: this.headers() });
+    return this.http.post<MayhemSessionResponse>(`${this.base}/session`, {}, { headers: this.headers() });
   }
 
   submitSessionAnswer(sessionId: string, questionId: string, selectedAnswer: string) {

@@ -3,12 +3,7 @@ import { BlitzQuestion } from '../blitz/blitz.types';
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
-export class CreateRoomDto {
-  @IsOptional()
-  @IsString()
-  @IsIn(['en', 'el'])
-  language?: 'en' | 'el';
-}
+export class CreateRoomDto {}
 
 export class JoinRoomByCodeDto {
   @IsString()
@@ -68,7 +63,6 @@ export interface BRPublicView {
   players: BRPlayerEntry[];
   currentQuestion: BRPublicQuestion | null;
   myCurrentIndex: number;
-  language: string;
   startedAt: string | null;
 }
 
@@ -94,7 +88,6 @@ export interface BRRoomRow {
   question_count: number;
   started_at: string | null;
   finished_at: string | null;
-  language: string;
   created_at: string;
   updated_at: string;
 }

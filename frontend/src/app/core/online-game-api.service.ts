@@ -24,7 +24,6 @@ export interface OnlineGamePublicView {
   guestId: string | null;
   hostUsername: string;
   guestUsername: string | null;
-  language: string;
 }
 
 export interface OnlineBoardCell {
@@ -107,8 +106,8 @@ export class OnlineGameApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  createGame(language?: 'en' | 'el'): Observable<OnlineGamePublicView> {
-    return this.http.post<OnlineGamePublicView>(this.base, { language }, { headers: this.headers() });
+  createGame(): Observable<OnlineGamePublicView> {
+    return this.http.post<OnlineGamePublicView>(this.base, {}, { headers: this.headers() });
   }
 
   listMyGames(): Observable<OnlineGameSummary[]> {
@@ -119,9 +118,8 @@ export class OnlineGameApiService {
     return this.http.get<{ count: number; isPro: boolean }>(`${this.base}/count`, { headers: this.headers() });
   }
 
-  joinQueue(language?: 'en' | 'el'): Observable<OnlineGamePublicView> {
-    const params = language ? `?language=${language}` : '';
-    return this.http.post<OnlineGamePublicView>(`${this.base}/queue${params}`, {}, { headers: this.headers() });
+  joinQueue(): Observable<OnlineGamePublicView> {
+    return this.http.post<OnlineGamePublicView>(`${this.base}/queue`, {}, { headers: this.headers() });
   }
 
   previewInvite(code: string): Observable<{ hostUsername: string; status: string }> {

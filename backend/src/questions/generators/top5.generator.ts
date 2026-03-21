@@ -43,7 +43,7 @@ export class Top5Generator extends BaseGenerator {
     super(llmService);
   }
 
-  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+  async generate(options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `You are a football statistics expert. Generate a "Name the Top 5" football quiz question.
 Pick any interesting football top-5 ranking — all-time records, season stats, trophies, transfers, caps, etc. from any league or era.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY valid JSON:
@@ -67,7 +67,7 @@ The top5 array must have exactly 5 entries ordered from 1st to 5th place.
 combinational_thinking_score 1-10: 1 = iconic all-time list everyone knows, 5 = combines league+season+stat type, 10 = obscure multi-criteria ranking requiring reasoning across many facts.
 All data must be factually accurate. Do not mention any of the 5 answer names anywhere in question_text.
 fame_score is 1-10: 10 = universally iconic ranking everyone knows, 1 = very obscure niche stat.
-specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.${this.langInstruction(language)}`;
+specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific season/competition ranking, 5 = very obscure sub-statistic ranking.`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('TOP_5', options?.slotIndex, options?.minorityScale);
     this.logConstraints('TOP_5', options?.slotIndex, constraints);
@@ -77,7 +77,7 @@ specificity_score is 1-5: 1 = all-time list everyone can name, 3 = specific seas
     return this.mapQuestion(result);
   }
 
-  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
+  async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 2;
     const systemPrompt = `You are a football statistics expert. Generate ${questionCount} "Name the Top 5" football quiz questions.
 These questions are hard by nature, but they must still be findable because the competition context is familiar.${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
@@ -103,7 +103,7 @@ Return ONLY valid JSON:
   ]
 }
 Do not mention any answer name from the top5 array anywhere in question_text.
-${getLeagueFameGuidanceForBatch('TOP_5')}${this.langInstruction(language)}`;
+${getLeagueFameGuidanceForBatch('TOP_5')}`;
     const userPrompt = `Generate ${questionCount} Top 5 questions in one batch. ${getRelativityConstraint('TOP_5', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: Top5Payload[] }>(systemPrompt, userPrompt);

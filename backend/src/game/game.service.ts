@@ -43,9 +43,8 @@ export class GameService {
     const gameId = crypto.randomUUID();
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
-    const language = dto.language ?? 'en';
     const excludeNewsQuestionIds = dto.excludeNewsQuestionIds?.filter(Boolean).slice(0, 100) ?? [];
-    const result = await this.questionPoolService.drawBoard(language, excludeNewsQuestionIds);
+    const result = await this.questionPoolService.drawBoard(excludeNewsQuestionIds);
     let questions: GeneratedQuestion[] = result.questions;
     const poolQuestionIds = result.poolQuestionIds;
     questions = questions.map((question) => this.ensureQuestionLocaleState(question));
@@ -90,41 +89,10 @@ export class GameService {
       createdAt: new Date(),
       updatedAt: new Date(),
       top5Progress: {},
-      language,
       poolQuestionIds,
     };
 
     await this.cacheService.set(`game:${gameId}`, session, 86400); // 24h TTL
-    return session;
-  }
-
-  async updateLanguage(gameId: string, language: 'en' | 'el'): Promise<GameSession> {
-    const session = await this.getGame(gameId);
-    if (session.language === language) {
-      return session;
-    }
-
-    const answeredQuestionIds = new Set(
-      session.board
-        .flat()
-        .filter((cell) => cell.answered)
-        .map((cell) => cell.question_id),
-    );
-
-    // Restore English source text for all unanswered questions
-    session.questions = session.questions.map((question) => {
-      if (answeredQuestionIds.has(question.id)) {
-        return question;
-      }
-      return {
-        ...question,
-        question_text: question.source_question_text ?? question.question_text,
-        explanation: question.source_explanation ?? question.explanation,
-      };
-    });
-    session.language = language;
-    session.updatedAt = new Date();
-    await this.cacheService.set(`game:${session.id}`, session, 86400);
     return session;
   }
 

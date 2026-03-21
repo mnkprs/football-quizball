@@ -46,8 +46,7 @@ export class DuelService {
   // ── Create / Join ─────────────────────────────────────────────────────────
 
   async createGame(hostId: string, dto: CreateDuelDto): Promise<DuelPublicView> {
-    const language = dto.language ?? 'en';
-    const questions = await this.questionPoolService.drawForDuel(language, PREFETCH_COUNT);
+    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT);
     if (questions.length === 0) {
       throw new BadRequestException('Question pool is empty. Please try again later.');
     }
@@ -62,7 +61,6 @@ export class DuelService {
         invite_code: inviteCode,
         questions,
         pool_question_ids: poolQuestionIds,
-        language,
         status: 'waiting',
       })
       .select('*')
@@ -107,7 +105,7 @@ export class DuelService {
     return this.toPublicView(updated as DuelGameRow, guestId, hostUsername, guestUsername);
   }
 
-  async joinQueue(userId: string, language: 'en' | 'el'): Promise<DuelPublicView> {
+  async joinQueue(userId: string): Promise<DuelPublicView> {
     // Singleton guard: if the user is already waiting in queue or in an active duel,
     // return that existing game instead of creating a second one.
     const { data: existing } = await this.supabaseService.client
@@ -128,12 +126,11 @@ export class DuelService {
       return this.toPublicView(row, userId, hostUsername, guestUsername);
     }
 
-    // Look for an open waiting game created by someone else in the same language
+    // Look for an open waiting game created by someone else
     const { data: candidates } = await this.supabaseService.client
       .from('duel_games')
       .select('*')
       .eq('status', 'waiting')
-      .eq('language', language)
       .is('guest_id', null)
       .neq('host_id', userId)
       .order('created_at', { ascending: true })
@@ -161,7 +158,7 @@ export class DuelService {
     }
 
     // No open games — create one without an invite code (queue marker)
-    const questions = await this.questionPoolService.drawForDuel(language, PREFETCH_COUNT);
+    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT);
     const { data, error } = await this.supabaseService.client
       .from('duel_games')
       .insert({
@@ -169,7 +166,6 @@ export class DuelService {
         invite_code: null,
         questions,
         pool_question_ids: questions.map((q) => q.id),
-        language,
         status: 'waiting',
       })
       .select('*')
@@ -442,7 +438,6 @@ export class DuelService {
       questionResults: row.question_results,
       hostReady: row.host_ready,
       guestReady: row.guest_ready,
-      language: row.language,
     };
   }
 

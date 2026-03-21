@@ -19,9 +19,9 @@ export class SoloQuestionGenerator {
     private questionPoolService: QuestionPoolService,
   ) {}
 
-  async generate(difficulty: Difficulty, elo: number = 1000, language: string = 'en', excludeIds: string[] = []): Promise<SoloQuestion> {
+  async generate(difficulty: Difficulty, elo: number = 1000, excludeIds: string[] = []): Promise<SoloQuestion> {
     // Use pool first — no LLM call when questions exist in DB
-    const fromPool = await this.questionPoolService.drawOneForSolo(difficulty, language, excludeIds);
+    const fromPool = await this.questionPoolService.drawOneForSolo(difficulty, excludeIds);
     if (fromPool) {
       this.logger.debug(`[generate] Using pool question ${fromPool.id} (${fromPool.category}/${difficulty})`);
       return {
@@ -37,7 +37,7 @@ export class SoloQuestionGenerator {
     }
 
     this.logger.warn(
-      `[generate] Pool empty for difficulty=${difficulty} language=${language} — falling back to LLM. ` +
+      `[generate] Pool empty for difficulty=${difficulty} — falling back to LLM. ` +
         'Seed the pool via POST /api/admin/seed-pool?target=5 to avoid LLM calls.',
     );
     // Pool empty — fall back to LLM

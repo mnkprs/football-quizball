@@ -2,7 +2,6 @@ export type {
   BoardCategory,
   QuestionCategory,
   Difficulty,
-  QuestionLocale,
   DifficultyFactors,
   GeneratedQuestion,
   BoardCell,

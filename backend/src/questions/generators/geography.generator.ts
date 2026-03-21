@@ -35,7 +35,7 @@ export class GeographyGenerator extends BaseGenerator {
     super(llmService);
   }
 
-  async generate(language = 'en', options?: GeneratorOptions): Promise<GeneratedQuestion> {
+  async generate(options?: GeneratorOptions): Promise<GeneratedQuestion> {
     const systemPrompt = `As a renowned football geographer, craft a realistic football-related geography question.
       VARY the question type: use cities, stadiums, nationalities, confederations, club locations — Topics: cities and their clubs, stadium locations, player nationalities, FIFA/UEFA confederations, host nations, club bases.
       Draw from the full breadth of world football geography — not just the most-discussed leagues or nations. Consider clubs and players from all confederations.
@@ -57,7 +57,7 @@ export class GeographyGenerator extends BaseGenerator {
       answer_type: What the question asks for (e.g. country, city, stadium, player nationality). Use lowercase, 1-3 words.
       fame_score is 1-10: 10 = universally known geography fact, 1 = very obscure.
       specificity_score is 1-5: 1 = general knowledge (country/continent), 3 = moderate (city/stadium), 5 = very specific (confederation zone, exact capacity).
-      combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dimensions (country+competition+context), 10 = multi-dimensional reasoning.${this.langInstruction(language)}`;
+      combinational_thinking_score 1-10: 1 = single fact recall, 5 = combines 2-3 dimensions (country+competition+context), 10 = multi-dimensional reasoning.`;
 
     const { promptPart, constraints } = getExplicitConstraintsWithMeta('GEOGRAPHY', options?.slotIndex, options?.minorityScale);
     this.logConstraints('GEOGRAPHY', options?.slotIndex, constraints);
@@ -67,7 +67,7 @@ export class GeographyGenerator extends BaseGenerator {
     return this.mapQuestion(result, options?.forBlitz);
   }
 
-  async generateBatch(language = 'en', options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
+  async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
     const questionCount = options?.questionCount ?? 3;
     const systemPrompt = `You are a football geography expert. Generate ${questionCount} football geography questions.
 CRITICAL: Each question MUST use a DIFFERENT entity type and phrasing. Use exactly one of: (1) a city question, (2) a stadium question, (3) a country/nation question. Do NOT use "Which country hosted..." for more than one question. Vary: "Which city...", "In which country is...", "Which stadium...", "Which nationality...", etc.
@@ -75,7 +75,7 @@ They should range from easy to hard while staying answerable in familiar context
 ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 fifty_fifty_hint: Must be the SAME type as correct_answer (e.g. if answer is a country, hint is another country; if city, another city). NOT a description.
-    ${getLeagueFameGuidanceForBatch('GEOGRAPHY', options?.targetDifficulty)}${this.langInstruction(language)}`;
+    ${getLeagueFameGuidanceForBatch('GEOGRAPHY', options?.targetDifficulty)}`;
     const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: GeographyPayload[] }>(systemPrompt, userPrompt);
