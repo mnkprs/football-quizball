@@ -279,7 +279,6 @@
 /* PRO locked variant */
 .mode-card__locked-overlay--pro {
   background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(4px);
   gap: 0.625rem;
 }
 
