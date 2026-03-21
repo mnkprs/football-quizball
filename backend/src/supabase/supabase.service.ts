@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { RedisService } from '../redis/redis.service';
@@ -9,6 +9,7 @@ const LEADERBOARD_TTL = 60; // 60s — leaderboard refreshes every minute
 @Injectable()
 export class SupabaseService {
   readonly client: SupabaseClient;
+  private readonly logger = new Logger(SupabaseService.name);
 
   constructor(
     private configService: ConfigService,
@@ -346,8 +347,19 @@ export class SupabaseService {
     player1_username: string; player2_username: string;
     winner_id: string | null; player1_score: number; player2_score: number;
     match_mode: 'local' | 'online';
-  }): Promise<void> {
-    await this.client.from('match_history').insert(match);
+  }): Promise<boolean> {
+    const { error } = await this.client.from('match_history').insert(match);
+    if (error) this.logger.error(`[saveMatchResult] Insert failed: ${error.message}`);
+    return !error;
+  }
+
+  async getMatchWinCount(userId: string): Promise<number> {
+    const { count, error } = await this.client
+      .from('match_history')
+      .select('*', { count: 'exact', head: true })
+      .eq('winner_id', userId);
+    if (error) this.logger.error(`[getMatchWinCount] ${error.message}`);
+    return count ?? 0;
   }
 
   async updateUsername(userId: string, username: string): Promise<void> {

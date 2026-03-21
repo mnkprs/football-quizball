@@ -1,9 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { AchievementsService } from '../achievements/achievements.service';
 
 @Injectable()
 export class MatchHistoryService {
+  private readonly logger = new Logger(MatchHistoryService.name);
+
   constructor(
     private supabaseService: SupabaseService,
     private achievementsService: AchievementsService,
@@ -23,14 +25,17 @@ export class MatchHistoryService {
     },
   ): Promise<void> {
     if (match.player1_id !== requestingUserId) throw new UnauthorizedException();
-    await this.supabaseService.saveMatchResult(match);
 
-    // Check achievements for match wins
-    if (match.winner_id === requestingUserId) {
-      const history = await this.supabaseService.getMatchHistory(requestingUserId, 100);
-      const wins = history.filter(m => m.winner_id === requestingUserId).length;
-      await this.achievementsService.checkAndAward(requestingUserId, { matchWins: wins });
+    const saved = await this.supabaseService.saveMatchResult(match);
+    if (!saved) {
+      this.logger.error(`[saveMatch] Failed to save match for user ${requestingUserId}`);
+      return;
     }
+
+    // Always check achievements after saving (win count query is efficient)
+    const wins = await this.supabaseService.getMatchWinCount(requestingUserId);
+    this.logger.log(`[saveMatch] User ${requestingUserId} has ${wins} match wins — checking achievements`);
+    await this.achievementsService.checkAndAward(requestingUserId, { matchWins: wins });
   }
 
   async getHistory(userId: string) {
