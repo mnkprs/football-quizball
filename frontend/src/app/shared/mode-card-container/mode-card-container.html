@@ -1,6 +1,7 @@
 <button
   type="button"
   class="mode-card-container mode-card-container--{{ variant() }} pressable"
+  [class.mode-card-container--compact]="compact()"
   (click)="clicked.emit()"
   [attr.aria-label]="ariaLabel()"
 >

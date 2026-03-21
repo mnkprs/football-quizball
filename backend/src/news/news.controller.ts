@@ -25,6 +25,11 @@ export class NewsController {
     return { deleted };
   }
 
+  @Get('metadata')
+  async getMetadata() {
+    return this.newsService.getMetadata();
+  }
+
   /**
    * Returns active news questions for News mode (correct_answer not exposed).
    * Accepts comma-separated excludeIds to skip already-seen questions.

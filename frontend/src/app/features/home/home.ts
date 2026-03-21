@@ -6,6 +6,7 @@ import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { DailyApiService } from '../../core/daily-api.service';
+import { NewsApiService } from '../../core/news-api.service';
 import { ProService } from '../../core/pro.service';
 import { ToastService } from '../../core/toast.service';
 import { LanguageService } from '../../core/language.service';
@@ -39,6 +40,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private blitzApi = inject(BlitzApiService);
   private soloApi = inject(SoloApiService);
   private dailyApi = inject(DailyApiService);
+  private newsApi = inject(NewsApiService);
 
   twoPlayerExpanded = signal(false);
   profileLoading = signal(false);
@@ -46,6 +48,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   avatarLoadFailed = signal(false);
   dailyMetadata = signal<{ count: number; resetsAt: string } | null>(null);
+  newsMetadata = signal<{ count: number; updatesAt: string } | null>(null);
   private countdownTick = signal(0);
 
   dailyCount = computed(() => {
@@ -55,9 +58,23 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   dailyResetsIn = computed(() => {
     const meta = this.dailyMetadata();
-    this.countdownTick(); // trigger recompute on tick
+    this.countdownTick();
     if (!meta?.resetsAt) return '—';
     const ms = new Date(meta.resetsAt).getTime() - Date.now();
+    if (ms <= 0) return '0:00:00';
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  });
+
+  newsCount = computed(() => this.newsMetadata()?.count ?? null);
+
+  newsUpdatesIn = computed(() => {
+    const meta = this.newsMetadata();
+    this.countdownTick();
+    if (!meta?.updatesAt) return '—';
+    const ms = new Date(meta.updatesAt).getTime() - Date.now();
     if (ms <= 0) return '0:00:00';
     const h = Math.floor(ms / 3600000);
     const m = Math.floor((ms % 3600000) / 60000);
@@ -134,6 +151,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     });
     this.loadDailyMetadata();
+    this.loadNewsMetadata();
     this.countdownInterval = setInterval(() => this.countdownTick.update((v) => v + 1), 1000);
     this.handleProRedirect();
   }
@@ -166,6 +184,15 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.dailyMetadata.set(meta);
     } catch {
       this.dailyMetadata.set(null);
+    }
+  }
+
+  private async loadNewsMetadata(): Promise<void> {
+    try {
+      const meta = await firstValueFrom(this.newsApi.getMetadata());
+      this.newsMetadata.set(meta);
+    } catch {
+      this.newsMetadata.set(null);
     }
   }
 

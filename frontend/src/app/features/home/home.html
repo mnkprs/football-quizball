@@ -26,6 +26,17 @@
       (play)="goDaily()"
     />
 
+    <app-daily-hero
+      [title]="lang.t().btnNews"
+      [badgeLabel]="lang.t().newsDailyBadge"
+      [questionCount]="newsCount() ?? '—'"
+      [resetsIn]="newsUpdatesIn()"
+      questionsLabel="articles"
+      resetsLabel="Updates in"
+      playLabel="Read"
+      backgroundImage="/news-mode.png"
+      (play)="goNews()"
+    />
 
     <app-section-header
       [title]="lang.t().gameModes"
@@ -60,17 +71,6 @@
           </button>
         </div>
       }
-      <app-mode-card
-        icon="newspaper"
-        iconBgColor="lime"
-        [title]="lang.t().btnNews"
-        [hint]="lang.t().btnNewsHint"
-        [badge]="lang.t().newsDailyBadge"
-        badgeColor="lime"
-        backgroundImage="/news-mode.png"
-        variant="accent"
-        (cardClick)="goNews()"
-      />
       <app-mode-card
         icon="local_fire_department"
         iconBgColor="orange"

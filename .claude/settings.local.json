@@ -84,7 +84,19 @@
       "mcp__plugin_claude-mem_mcp-search__smart_outline",
       "Read(//Users/instashop/Projects/football-quizball/frontend/**)",
       "Bash(npm view:*)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(supabase db:*)",
+      "Bash(supabase migration:*)",
+      "Bash(supabase --help)",
+      "Bash(npx supabase@latest --help)",
+      "Bash(supabase sql:*)",
+      "Bash(supabase status:*)",
+      "Bash(cat /Users/instashop/Projects/football-quizball/.env*)",
+      "Bash(supabase projects:*)",
+      "Bash(brew upgrade:*)",
+      "Bash(brew install:*)",
+      "Bash(PGHOST=\"db.npwneqworgyclzaofuln.supabase.co\" \\\\\nPGPORT=\"5432\" \\\\\nPGUSER=\"cli_login_postgres\" \\\\\nPGPASSWORD=\"rlORgAVvPOZVpKxwVLISFWSZugonBRwE\" \\\\\nPGDATABASE=\"postgres\" \\\\\n/opt/homebrew/opt/libpq/bin/psql -f supabase/migrations/20260412000000_add_mode_trials.sql 2>&1)",
+      "Bash(PGHOST=\"db.npwneqworgyclzaofuln.supabase.co\" \\\\\nPGPORT=\"5432\" \\\\\nPGUSER=\"cli_login_postgres\" \\\\\nPGPASSWORD=\"rlORgAVvPOZVpKxwVLISFWSZugonBRwE\" \\\\\nPGDATABASE=\"postgres\" \\\\\n/opt/homebrew/opt/libpq/bin/psql -c \"SELECT column_name FROM information_schema.columns WHERE table_name='profiles' AND column_name LIKE 'trial%';\" 2>&1)"
     ]
   },
   "enableAllProjectMcpServers": true,

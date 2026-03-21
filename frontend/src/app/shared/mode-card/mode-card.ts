@@ -27,6 +27,7 @@ export class ModeCardComponent {
   iconBgColor = input<'gold' | 'blue' | 'lime' | 'orange' |  'red' | 'purple'>();
   footerText = input<string>();
   variant = input<ModeCardVariant>('outline');
+  compact = input(false);
   actionLabel = input<string>();
   locked = input<boolean>(false);
   proLocked = input<boolean>(false);

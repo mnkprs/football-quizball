@@ -160,6 +160,14 @@ export class NewsService {
     };
   }
 
+  async getMetadata(): Promise<{ count: number; updatesAt: string }> {
+    const count = await this.getNewsPoolCount();
+    const now = new Date();
+    const nextHour = (Math.floor(now.getUTCHours() / 6) + 1) * 6;
+    const updatesAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), nextHour));
+    return { count, updatesAt: updatesAt.toISOString() };
+  }
+
   private async getNewsPoolCount(): Promise<number> {
     const { count, error } = await this.supabaseService.client
       .from('news_questions')

@@ -56,6 +56,13 @@
   min-height: 180px;
 }
 
+.mode-card-container--compact,
+.mode-card-container--compact.mode-card-container--accent,
+.mode-card-container--compact.mode-card-container--outline {
+  min-height: 80px;
+  padding: 0.875rem 1.25rem;
+}
+
 
 .mode-card-container__bg-image,
 .mode-card-container__bg-overlay,

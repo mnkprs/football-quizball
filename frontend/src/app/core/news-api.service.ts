@@ -1,7 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
+
+export interface NewsMetadata {
+  count: number;
+  updatesAt: string;
+}
 
 export interface NewsQuestion {
   id: string;
@@ -25,6 +31,10 @@ export class NewsApiService {
   private headers(): HttpHeaders {
     const token = this.auth.accessToken();
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+  }
+
+  getMetadata(): Observable<NewsMetadata> {
+    return this.http.get<NewsMetadata>(`${this.base}/metadata`);
   }
 
   getQuestions(excludeIds: string[] = []) {

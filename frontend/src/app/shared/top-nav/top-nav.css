@@ -293,6 +293,7 @@
   font-weight: 600;
   font-size: 0.9375rem;
   color: var(--mat-sys-on-surface, #fff);
+  white-space: nowrap;
 }
 
 .tsp__card-desc {
@@ -327,6 +328,46 @@
   background: #fff;
 }
 
+.tsp__card--pro {
+  border-color: rgba(255, 200, 50, 0.25);
+}
+
+.tsp__pro-icon {
+  stroke: #f5c842;
+}
+
+.tsp__pill-btn--upgrade {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-foreground, #000);
+  white-space: nowrap;
+}
+
+.tsp__pill-btn--upgrade:hover {
+  background: color-mix(in srgb, var(--color-accent) 85%, #000);
+  border-color: color-mix(in srgb, var(--color-accent) 85%, #000);
+}
+
+.tsp__pill-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tsp__spinner {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: tsp-spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes tsp-spin {
+  to { transform: rotate(360deg); }
+}
+
 .tsp__pill-btn {
   padding: 0.5rem 0.875rem;
   font-size: 0.8125rem;
@@ -337,6 +378,8 @@
   color: #fff;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tsp__pill-btn:hover {

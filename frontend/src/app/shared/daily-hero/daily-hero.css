@@ -4,8 +4,8 @@
   overflow: hidden;
   display: flex;
   align-items: flex-end;
-  min-height: 180px;
-  padding: 1.5rem;
+  min-height: 130px;
+  padding: 1rem 1.25rem;
   border-radius: 1rem;
   background: color-mix(in srgb, var(--color-card, #111111) 88%, #000000 12%);
   border: 1px solid rgba(255, 255, 255, 0.1);

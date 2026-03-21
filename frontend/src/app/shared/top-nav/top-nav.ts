@@ -4,6 +4,7 @@ import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeService } from '../../core/theme.service';
+import { ProService } from '../../core/pro.service';
 
 @Component({
   selector: 'app-top-nav',
@@ -17,11 +18,15 @@ export class TopNavComponent {
   auth = inject(AuthService);
   lang = inject(LanguageService);
   theme = inject(ThemeService);
+  pro = inject(ProService);
   private authModal = inject(AuthModalService);
   private router = inject(Router);
 
   settingsOpen = signal(false);
   avatarFailed = signal(false);
+  upgrading = signal(false);
+
+  trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
@@ -47,8 +52,25 @@ export class TopNavComponent {
   });
 
   openAuth(): void { this.authModal.open(); }
-  toggleSettings(): void { this.settingsOpen.update(v => !v); }
+
+  toggleSettings(): void {
+    this.settingsOpen.update(v => !v);
+    if (this.settingsOpen() && this.auth.isLoggedIn()) {
+      this.pro.ensureLoaded();
+    }
+  }
+
   closeSettings(): void { this.settingsOpen.set(false); }
+
+  async upgrade(): Promise<void> {
+    this.upgrading.set(true);
+    try { await this.pro.createCheckout(); } finally { this.upgrading.set(false); }
+  }
+
+  async managePlan(): Promise<void> {
+    this.upgrading.set(true);
+    try { await this.pro.openPortal(); } finally { this.upgrading.set(false); }
+  }
 
   async signOut(): Promise<void> {
     this.closeSettings();
