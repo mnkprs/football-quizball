@@ -1,19 +1,19 @@
 .mode-card-container--primary .mode-card__section-text {
-  color: #000000;
+  color: #ffffff;
   font-weight: 700;
 }
 
 .mode-card-container--primary .mode-card__section-icon {
-  color: #000000;
+  color: #ffffff;
 }
 
 .mode-card-container--primary .mode-card__title,
 .mode-card-container--primary .mode-card__hint {
-  color: #000000;
+  color: #ffffff;
 }
 
 .mode-card-container--primary .mode-card__hint {
-  color: #000000;
+  color: #ffffff;
   opacity: 1;
 }
 
@@ -22,7 +22,7 @@
 }
 
 .mode-card-container--primary .mode-card__footer-text {
-  color: rgba(0, 0, 0, 0.72);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .mode-card-container--accent .mode-card__title,
@@ -279,7 +279,7 @@
 /* PRO locked variant */
 .mode-card__locked-overlay--pro {
   background: rgba(0, 0, 0, 0.72);
-  gap: 0.625rem;
+    gap: 0.625rem;
 }
 
 .mode-card__pro-lock-badge {
