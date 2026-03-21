@@ -28,8 +28,8 @@
 }
 
 .mode-card-container--primary {
-  background: #0d9488;
-  border-color: color-mix(in srgb, #0d9488 72%, #000000 28%);
+  background: #10b981;
+  border-color: color-mix(in srgb, #10b981 72%, #000000 28%);
   color: #ffffff;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
   padding: 1.5rem;
@@ -37,8 +37,8 @@
 }
 
 .mode-card-container--primary:hover {
-  background: #14b8a6;
-  border-color: color-mix(in srgb, #14b8a6 72%, #000000 28%);
+  background: #34d399;
+  border-color: color-mix(in srgb, #34d399 72%, #000000 28%);
 }
 
 .mode-card-container--accent {

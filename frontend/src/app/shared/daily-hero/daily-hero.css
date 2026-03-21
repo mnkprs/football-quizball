@@ -130,18 +130,18 @@
   margin-left: 2px;
 }
 
-/* Emerald (news) variant */
+/* Teal (news) variant */
 :host(.daily-hero-host--sky) .daily-hero__badge {
-  background: #10b981;
+  background: #0d9488;
   color: #ffffff;
-  border-color: #059669;
+  border-color: #0f766e;
 }
 
 :host(.daily-hero-host--sky) .daily-hero__play {
-  background: #10b981;
+  background: #0d9488;
   color: #ffffff;
 }
 
 :host(.daily-hero-host--sky) .daily-hero:hover .daily-hero__play {
-  background: #34d399;
+  background: #14b8a6;
 }
