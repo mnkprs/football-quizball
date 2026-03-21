@@ -5,7 +5,7 @@
     <div class="flex items-center justify-between mb-6 pt-2">
       <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">← Back</button>
       <div class="text-center">
-        <div class="text-amber-400 font-black text-lg">NEWS MODE</div>
+        <div class="text-emerald-400 font-black text-lg">NEWS MODE</div>
       </div>
       <div class="text-right">
         @if (phase() !== 'loading' && total() > 0) {
@@ -28,7 +28,7 @@
         <!-- Progress bar -->
         <div class="w-full h-1.5 bg-muted rounded-full mb-6 overflow-hidden">
           <div
-            class="h-full bg-amber-500 rounded-full transition-all duration-300"
+            class="h-full bg-emerald-500 rounded-full transition-all duration-300"
             [style.width]="progressPercent() + '%'"
           ></div>
         </div>
@@ -42,12 +42,12 @@
             [(ngModel)]="answer"
             (keydown.enter)="submitAnswer()"
             placeholder="Your answer..."
-            class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+            class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
           />
           <button
             (click)="submitAnswer()"
             [disabled]="!answer.trim() || submitting()"
-            class="px-6 py-3 rounded-xl bg-amber-500 text-white font-bold hover:bg-amber-400 active:scale-95 transition disabled:opacity-40 pressable"
+            class="px-6 py-3 rounded-xl bg-emerald-500 text-white font-bold hover:bg-emerald-400 active:scale-95 transition disabled:opacity-40 pressable"
           >
             {{ lang.t().submit }}
           </button>
@@ -80,7 +80,7 @@
           }
           @if (currentQuestion()!.source_url) {
             <a [href]="currentQuestion()!.source_url" target="_blank" rel="noopener"
-               class="inline-block text-amber-400 text-xs mt-3 underline">
+               class="inline-block text-emerald-400 text-xs mt-3 underline">
               Source →
             </a>
           }
@@ -88,21 +88,21 @@
 
         <div class="bg-card rounded-2xl p-4 mb-6 border border-border flex items-center justify-between">
           <span class="text-muted-foreground text-sm">Score</span>
-          <span class="font-black text-2xl text-amber-400">{{ correctCount() }} / {{ currentIndex() + 1 }}</span>
+          <span class="font-black text-2xl text-emerald-400">{{ correctCount() }} / {{ currentIndex() + 1 }}</span>
         </div>
 
         <div class="flex gap-3 mt-auto">
           @if (hasMore()) {
             <button
               (click)="nextQuestion()"
-              class="flex-1 py-4 rounded-2xl bg-amber-500 text-white font-black text-lg hover:bg-amber-400 active:scale-95 transition pressable"
+              class="flex-1 py-4 rounded-2xl bg-emerald-500 text-white font-black text-lg hover:bg-emerald-400 active:scale-95 transition pressable"
             >
               Next Question
             </button>
           } @else {
             <button
               (click)="finish()"
-              class="flex-1 py-4 rounded-2xl bg-amber-500 text-white font-black text-lg hover:bg-amber-400 active:scale-95 transition pressable"
+              class="flex-1 py-4 rounded-2xl bg-emerald-500 text-white font-black text-lg hover:bg-emerald-400 active:scale-95 transition pressable"
             >
               See Results
             </button>
@@ -134,12 +134,12 @@
           </div>
           <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
             <span class="text-muted-foreground">Accuracy</span>
-            <span class="text-amber-400 font-bold">{{ accuracy() }}%</span>
+            <span class="text-emerald-400 font-bold">{{ accuracy() }}%</span>
           </div>
         </div>
         <button
           (click)="goHome()"
-          class="w-full max-w-xs py-4 rounded-2xl bg-amber-500 text-white font-black text-xl hover:bg-amber-400 active:scale-95 transition pressable"
+          class="w-full max-w-xs py-4 rounded-2xl bg-emerald-500 text-white font-black text-xl hover:bg-emerald-400 active:scale-95 transition pressable"
         >
           Back to Home
         </button>
@@ -152,7 +152,7 @@
         <div class="text-5xl mb-4">📭</div>
         <h2 class="text-xl font-black text-foreground mb-2">No questions available</h2>
         <p class="text-muted-foreground mb-8">Check back later — news questions refresh every 6 hours.</p>
-        <button (click)="goHome()" class="py-3 px-8 rounded-xl bg-amber-500 text-white font-bold">Back to Home</button>
+        <button (click)="goHome()" class="py-3 px-8 rounded-xl bg-emerald-500 text-white font-bold">Back to Home</button>
       </div>
     }
   </div>
