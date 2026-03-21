@@ -120,6 +120,7 @@
           [footerText]="lang.t().playersOnline"
           backgroundImage="/solo-mode.png"
           variant="accent"
+          [proLocked]="!pro.isPro() && pro.trialRemaining() === 0"
           (cardClick)="goSolo()"
         />
         <app-mode-card
@@ -131,7 +132,7 @@
           badgeColor="blue"
           backgroundImage="/blitz-mode.png"
           variant="accent"
-          [locked]="false"
+          [proLocked]="!pro.isPro() && pro.trialRemaining() === 0"
           (cardClick)="goBlitz()"
         />
       } @else {
@@ -144,7 +145,8 @@
           badgeColor="lime"
           [footerText]="lang.t().playersOnline"
           backgroundImage="/solo-mode.png"
-          variant="outline"
+          variant="accent"
+          [proLocked]="true"
           (cardClick)="goSolo()"
         />
         <app-mode-card
@@ -155,8 +157,8 @@
           [badge]="lang.t().speedrun"
           badgeColor="blue"
           backgroundImage="/blitz-mode.png"
-          variant="outline"
-          [locked]="true"
+          variant="accent"
+          [proLocked]="true"
           (cardClick)="goBlitz()"
         />
       }
