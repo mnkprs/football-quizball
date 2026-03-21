@@ -1,4 +1,4 @@
-<div class="daily-hero">
+<button type="button" class="daily-hero" (click)="play.emit()" [attr.aria-label]="playLabel() + ' ' + title()">
   @if (backgroundImage(); as imagePath) {
     <img
       class="daily-hero__bg-image"
@@ -20,12 +20,10 @@
       </p>
     </div>
   </div>
-  <button
-    type="button"
-    class="daily-hero__play pressable"
-    (click)="play.emit()"
-    [attr.aria-label]="playLabel() + ' ' + title()"
+  <span
+    class="daily-hero__play"
+    aria-hidden="true"
   >
     <span class="material-icons">play_arrow</span>
-  </button>
-</div>
+  </span>
+</button>

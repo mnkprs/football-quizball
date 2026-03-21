@@ -237,8 +237,8 @@ const TRANSLATIONS = {
     navBuyMeACoffee: 'Buy me a coffee',
     // News mode
     btnNews: 'NEWS',
-    btnNewsHint: 'Latest football headlines • Daily updates',
-    newsDailyBadge: 'DAILY',
+    btnNewsHint: 'Latest football headlines • Hourly updates',
+    newsDailyBadge: 'HOURLY',
     newsLatestHeadlines: 'Latest headlines',
     // Mayhem mode
     btnMayhem: 'MAYHEM',

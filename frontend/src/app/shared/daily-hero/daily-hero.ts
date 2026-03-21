@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -19,6 +19,11 @@ export class DailyHeroComponent {
   resetsLabel = input<string>('Resets in');
   playLabel = input<string>('Play');
   backgroundImage = input<string>();
+  variant = input<'default' | 'sky'>('default');
+
+  @HostBinding('class') get hostClass() {
+    return `daily-hero-host daily-hero-host--${this.variant()}`;
+  }
 
   play = output<void>();
 }

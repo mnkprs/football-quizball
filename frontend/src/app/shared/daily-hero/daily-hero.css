@@ -11,6 +11,9 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: var(--shadow-card);
   margin-bottom: 1.5rem;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
 .daily-hero__bg-image,
@@ -112,18 +115,33 @@
   flex-shrink: 0;
   color: var(--color-accent-foreground);
   background: var(--color-accent);
-  border: none;
   border-radius: 50%;
-  cursor: pointer;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
   transition: background-color 0.2s, transform 0.15s;
+  pointer-events: none;
 }
 
-.daily-hero__play:hover {
+.daily-hero:hover .daily-hero__play {
   background: var(--color-accent-light);
 }
 
 .daily-hero__play .material-icons {
   font-size: 1.5rem;
   margin-left: 2px;
+}
+
+/* Sky (news) variant */
+:host(.daily-hero-host--sky) .daily-hero__badge {
+  background: #0ea5e9;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+:host(.daily-hero-host--sky) .daily-hero__play {
+  background: #0ea5e9;
+  color: #ffffff;
+}
+
+:host(.daily-hero-host--sky) .daily-hero:hover .daily-hero__play {
+  background: #38bdf8;
 }
