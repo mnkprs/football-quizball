@@ -213,7 +213,7 @@ export class MayhemService {
     return {
       correct,
       correct_answer: correctAnswer,
-      explanation: t?.['explanation'] ?? q['explanation'] ?? '',
+      explanation: q['explanation'] ?? '',
     };
   }
 

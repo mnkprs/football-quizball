@@ -10,6 +10,7 @@ import {
 import { AuthService } from '../../core/auth.service';
 import { ThemeService } from '../../core/theme.service';
 import { LanguageService } from '../../core/language.service';
+import { ProService } from '../../core/pro.service';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -24,11 +25,15 @@ export class SettingsMenuComponent {
   auth = inject(AuthService);
   theme = inject(ThemeService);
   lang = inject(LanguageService);
+  pro = inject(ProService);
 
   avatarLoadFailed = signal(false);
+  upgrading = signal(false);
 
   open = signal(false);
   t = computed(() => this.lang.t());
+
+  trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
@@ -64,6 +69,27 @@ export class SettingsMenuComponent {
 
   toggle(): void {
     this.open.update((v) => !v);
+    if (this.open() && this.auth.isLoggedIn()) {
+      this.pro.ensureLoaded();
+    }
+  }
+
+  async upgrade(): Promise<void> {
+    this.upgrading.set(true);
+    try {
+      await this.pro.createCheckout();
+    } finally {
+      this.upgrading.set(false);
+    }
+  }
+
+  async managePlan(): Promise<void> {
+    this.upgrading.set(true);
+    try {
+      await this.pro.openPortal();
+    } finally {
+      this.upgrading.set(false);
+    }
   }
 
   close(): void {

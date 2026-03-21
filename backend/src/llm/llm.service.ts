@@ -132,11 +132,6 @@ export class LlmService {
     return !!this.gemini;
   }
 
-  /** True if we can translate (Google Translate or Gemini). */
-  private get hasTranslation(): boolean {
-    return !!this.googleTranslate || !!this.gemini;
-  }
-
   /**
    * Generates structured JSON. Uses DeepSeek when configured, else Gemini.
    */

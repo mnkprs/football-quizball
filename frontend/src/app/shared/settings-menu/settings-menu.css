@@ -220,6 +220,50 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.settings-card--pro {
+  border-color: rgba(255, 200, 50, 0.3);
+  background: color-mix(in srgb, var(--color-card) 88%, #c9a227 12%);
+}
+
+.settings-card__icon--pro {
+  background: linear-gradient(135deg, #f5c842, #e0a020);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.settings-card__action--upgrade {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-foreground, #fff);
+}
+
+.settings-card__action--upgrade:hover {
+  background: color-mix(in srgb, var(--color-accent) 85%, #000);
+  border-color: color-mix(in srgb, var(--color-accent) 85%, #000);
+  color: var(--color-accent-foreground, #fff);
+}
+
+.settings-card__action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-card__spinner {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .settings-panel__sign-out {
   display: flex;
   align-items: center;
