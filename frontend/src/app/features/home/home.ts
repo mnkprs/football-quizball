@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
-import { catchError, of, from, switchMap } from 'rxjs';
+import { catchError, of, from, switchMap, firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
@@ -43,7 +43,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   private dailyApi = inject(DailyApiService);
   private newsApi = inject(NewsApiService);
 
-  twoPlayerExpanded = signal(false);
   profileLoading = signal(false);
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
@@ -215,17 +214,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggle2PlayerExpanded(): void {
-    this.twoPlayerExpanded.update((v) => !v);
-  }
-
   go2Player(): void {
-    this.twoPlayerExpanded.set(false);
     this.router.navigate(['/game']);
   }
 
   goOnline(): void {
-    this.twoPlayerExpanded.set(false);
     if (this.auth.isLoggedIn()) {
       this.router.navigate(['/online-game']);
     } else {

@@ -4,15 +4,21 @@ import { DIFFICULTY_ELO } from './solo.types';
 
 @Injectable()
 export class EloService {
-  private getK(elo: number): number {
-    if (elo < 1200) return 32;
-    if (elo < 1600) return 24;
-    return 16;
+  private getProvisionalMultiplier(totalAnswered: number): number {
+    if (totalAnswered < 50) return 2.0;
+    if (totalAnswered < 150) return 1.5;
+    if (totalAnswered < 300) return 1.25;
+    return 1.0;
   }
 
-  calculate(playerElo: number, difficulty: Difficulty, correct: boolean, timedOut: boolean): number {
+  private getK(elo: number, totalAnswered: number): number {
+    const base = elo < 1200 ? 32 : elo < 1600 ? 24 : 16;
+    return Math.round(base * this.getProvisionalMultiplier(totalAnswered));
+  }
+
+  calculate(playerElo: number, difficulty: Difficulty, correct: boolean, timedOut: boolean, totalQuestionsAnswered: number): number {
     const questionElo = DIFFICULTY_ELO[difficulty];
-    const K = this.getK(playerElo);
+    const K = this.getK(playerElo, totalQuestionsAnswered);
     const expected = 1 / (1 + Math.pow(10, (questionElo - playerElo) / 400));
     const actual = correct ? 1 : 0;
     let change = Math.round(K * (actual - expected));

@@ -46,32 +46,29 @@
     />
 
     <div class="home-modes">
-      <app-mode-card
-        icon="group"
-        [sectionLabel]="lang.t().localMultiplayer"
-        backgroundIcon="group"
-        [title]="hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player"
-        [hint]="lang.t().btn2PlayerHint"
-        variant="primary"
-        [actionLabel]="lang.t().startMatch"
-        (cardClick)="toggle2PlayerExpanded()"
-      />
-      @if (twoPlayerExpanded()) {
-        <div class="flex gap-3 -mt-2 px-1">
-          <button
-            (click)="go2Player()"
-            class="flex-1 py-3 rounded-2xl bg-card border-2 border-border text-foreground font-bold text-sm hover:border-accent hover:text-accent active:scale-95 transition"
-          >
-            🏠 Local
+      <div class="two-player-card">
+        <div class="two-player-card__header">
+          <span class="material-icons two-player-card__bg-icon">group</span>
+          <div class="two-player-card__section">
+            <span class="material-icons two-player-card__section-icon">group</span>
+            <span class="two-player-card__section-text">{{ lang.t().localMultiplayer }}</span>
+          </div>
+          <h3 class="two-player-card__title">{{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</h3>
+          <p class="two-player-card__hint">{{ lang.t().btn2PlayerHint }}</p>
+        </div>
+        <div class="two-player-card__actions">
+          <button class="two-player-card__btn" (click)="go2Player()">
+            <span class="two-player-card__btn-icon">🏠</span>
+            <span class="two-player-card__btn-label">Local</span>
+            <span class="two-player-card__btn-sub">Same device</span>
           </button>
-          <button
-            (click)="goOnline()"
-            class="flex-1 py-3 rounded-2xl bg-card border-2 border-border text-foreground font-bold text-sm hover:border-accent hover:text-accent active:scale-95 transition"
-          >
-            🌐 Online
+          <button class="two-player-card__btn" (click)="goOnline()">
+            <span class="two-player-card__btn-icon">🌐</span>
+            <span class="two-player-card__btn-label">Online</span>
+            <span class="two-player-card__btn-sub">Play ranked</span>
           </button>
         </div>
-      }
+      </div>
       <app-mode-card
         icon="local_fire_department"
         iconBgColor="orange"

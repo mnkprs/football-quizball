@@ -47,6 +47,7 @@ export class SoloService {
       servedAt: null,
       questionsAnswered: 0,
       correctAnswers: 0,
+      profileQuestionsAnswered: profile.questions_answered ?? 0,
       eloChanges: [],
       drawnQuestionIds: [],
       createdAt: new Date(),
@@ -114,7 +115,8 @@ export class SoloService {
     }
 
     const eloBefore = session.currentElo;
-    const eloChange = this.eloService.calculate(eloBefore, question.difficulty, correct, timedOut);
+    const totalQuestionsAnswered = session.profileQuestionsAnswered + session.questionsAnswered;
+    const eloChange = this.eloService.calculate(eloBefore, question.difficulty, correct, timedOut, totalQuestionsAnswered);
     const eloAfter = this.eloService.applyChange(eloBefore, eloChange);
 
     session.currentElo = eloAfter;

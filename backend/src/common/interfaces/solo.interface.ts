@@ -9,6 +9,7 @@ export interface SoloSession {
   servedAt: Date | null;
   questionsAnswered: number;
   correctAnswers: number;
+  profileQuestionsAnswered: number;
   eloChanges: number[];
   drawnQuestionIds: string[];
   createdAt: Date;

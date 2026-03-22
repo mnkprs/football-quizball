@@ -31,3 +31,126 @@
   gap: 0.875rem;
   margin-bottom: 2rem;
 }
+
+/* 2-Player card */
+.two-player-card {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.two-player-card__header {
+  position: relative;
+  background: #4dff00;
+  padding: 1.5rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.two-player-card__bg-icon {
+  position: absolute;
+  top: -1.75rem;
+  right: -1.75rem;
+  font-size: 7.5rem;
+  opacity: 0.15;
+  color: #000000;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.two-player-card__section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+  position: relative;
+  z-index: 1;
+}
+
+.two-player-card__section-icon {
+  font-size: 1.125rem;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.two-player-card__section-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.two-player-card__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.08;
+  margin: 0;
+  color: #000000;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+.two-player-card__hint {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0.375rem 0 0;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.65);
+  position: relative;
+  z-index: 1;
+}
+
+.two-player-card__actions {
+  display: flex;
+  background: color-mix(in srgb, var(--color-card, #111111) 88%, #000000 12%);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.two-player-card__btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.875rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  color: #ffffff;
+}
+
+.two-player-card__btn:first-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.two-player-card__btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.two-player-card__btn:active {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(0.97);
+}
+
+.two-player-card__btn-icon {
+  font-size: 1.375rem;
+  line-height: 1;
+}
+
+.two-player-card__btn-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.two-player-card__btn-sub {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+}
