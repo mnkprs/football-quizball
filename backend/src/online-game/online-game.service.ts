@@ -70,7 +70,7 @@ export class OnlineGameService {
     // allowLlmFallback=true: when a slot collision is detected (same question eligible for
     // two difficulty tiers drawn by the same RPC call), fall back to a live-generated question
     // for the missing slot rather than throwing a 503 and forcing the player to retry.
-    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard([], true, [hostId]);
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard([], true);
 
     const usedIds = new Set<string>();
     const cells: OnlineBoardCell[][] = CATEGORIES_ORDER.map((category) => {

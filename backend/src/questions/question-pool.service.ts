@@ -652,7 +652,6 @@ export class QuestionPoolService {
     missingByCategory: Map<QuestionCategory, Difficulty[]>;
   }> {
     const rpcParams: Record<string, unknown> = { p_exclude_ids: null };
-    if (userIds.length > 0) rpcParams.p_user_ids = userIds;
     const { data, error } = await this.supabaseService.client.rpc('draw_board', rpcParams);
 
     if (error) {
