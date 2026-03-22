@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsIn, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsIn, IsNumber, MaxLength } from 'class-validator';
 import { BlitzQuestion } from '../blitz/blitz.types';
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
@@ -13,6 +13,7 @@ export class JoinRoomByCodeDto {
 
 export class BRAnswerDto {
   /** Index of the question being answered — prevents stale submissions */
+  @IsNumber()
   questionIndex: number;
 
   @IsString()

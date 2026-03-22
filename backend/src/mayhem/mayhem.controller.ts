@@ -74,7 +74,7 @@ export class MayhemController {
 
   @Get('leaderboard/me')
   @UseGuards(AuthGuard)
-  async getMyEntry(@Request() req: { user: { sub: string } }) {
-    return this.mayhemSessionService.getMyEntry(req.user.sub);
+  async getMyEntry(@Request() req: { user: { id: string } }) {
+    return this.mayhemSessionService.getMyEntry(req.user.id);
   }
 }

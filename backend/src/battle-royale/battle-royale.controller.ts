@@ -14,7 +14,7 @@ import { BattleRoyaleService } from './battle-royale.service';
 import { CreateRoomDto, JoinRoomByCodeDto, BRAnswerDto } from './battle-royale.types';
 
 interface AuthRequest extends Request {
-  user: { id: string; username: string; email: string };
+  user: { id: string; email: string };
   proStatus?: { is_pro: boolean; trial_battle_royale_used: number };
 }
 
@@ -32,7 +32,7 @@ export class BattleRoyaleController {
     if (!req.proStatus?.is_pro) {
       await this.supabaseService.incrementBattleRoyaleTrial(req.user.id);
     }
-    return this.brService.createRoom(req.user.id, req.user.username);
+    return this.brService.createRoom(req.user.id);
   }
 
   /** Join a room by invite code */
@@ -42,7 +42,7 @@ export class BattleRoyaleController {
     if (!req.proStatus?.is_pro) {
       await this.supabaseService.incrementBattleRoyaleTrial(req.user.id);
     }
-    return this.brService.joinByCode(req.user.id, req.user.username, dto.inviteCode);
+    return this.brService.joinByCode(req.user.id, undefined, dto.inviteCode);
   }
 
   /** Join or create a random waiting room */
@@ -52,7 +52,7 @@ export class BattleRoyaleController {
     if (!req.proStatus?.is_pro) {
       await this.supabaseService.incrementBattleRoyaleTrial(req.user.id);
     }
-    return this.brService.joinQueue(req.user.id, req.user.username);
+    return this.brService.joinQueue(req.user.id);
   }
 
   /** Get public room view (correct answers stripped) */

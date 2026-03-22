@@ -56,8 +56,11 @@
   @else if (store.phase() === 'active' || store.phase() === 'answered') {
     <div class="br-play__game">
 
-      <!-- Header: progress + score -->
+      <!-- Header: progress + score + quit -->
       <div class="br-play__game-header">
+        <button class="br-play__quit-btn" (click)="goHome()" title="Quit game">
+          <span class="material-icons">close</span>
+        </button>
         <div class="br-play__progress">
           <div class="br-play__progress-bar" [style.width.%]="progress"></div>
         </div>
@@ -72,7 +75,7 @@
         <div class="br-play__question-panel">
           <p class="br-play__q-index">Q{{ q.index + 1 }} / {{ store.roomView()?.questionCount }}</p>
 
-          @if (q.category === 'PLAYER_ID' && q.meta.career.length) {
+          @if (q.category === 'PLAYER_ID' && q.meta?.career?.length) {
             <p class="br-play__q-label">Who is this player?</p>
             <div class="br-play__career-path">
               @for (stop of q.meta.career; track stop.club; let last = $last) {

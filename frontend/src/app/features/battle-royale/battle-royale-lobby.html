@@ -9,39 +9,55 @@
     </div>
     <p class="br-lobby__subtitle">Up to 20 players · 20 MC questions · Live leaderboard</p>
   </div>
+  
 
-  <div class="br-lobby__actions">
-    <!-- Quick join queue -->
-    <button class="br-action-btn br-action-btn--primary" (click)="joinQueue()" [disabled]="loading()">
-      <span class="material-icons">flash_on</span>
-      <span>Quick Join</span>
-    </button>
+  <div class="d-flex flex-col justify-between">
 
-    <!-- Create private room -->
-    <button class="br-action-btn br-action-btn--secondary" (click)="createRoom()" [disabled]="loading()">
-      <span class="material-icons">add_circle_outline</span>
-      <span>Create Private Room</span>
-    </button>
-  </div>
-
-  <!-- Join by code -->
-  <div class="br-lobby__join-code">
-    <p class="br-lobby__section-label">Join with invite code</p>
-    <div class="br-lobby__code-row">
-      <input
-        class="br-lobby__code-input"
-        type="text"
-        placeholder="XXXXXX"
-        maxlength="6"
-        [(ngModel)]="inviteCode"
-        (keyup.enter)="joinByCode()"
-      />
-      <button class="br-lobby__code-btn" (click)="joinByCode()" [disabled]="loading() || !inviteCode.trim()">
-        Join
-      </button>
+    <div class="br-lobby__rules mb-4 d-flex flex-col">
+      <h3>How it works</h3>
+      <ul>
+        <li><span class="material-icons">check_circle</span> Everyone answers the same 20 questions</li>
+        <li><span class="material-icons">check_circle</span> +100 points for each correct answer</li>
+        <li><span class="material-icons">check_circle</span> Wrong answers — just move on, no penalty</li>
+        <li><span class="material-icons">check_circle</span> Live leaderboard updates as players answer</li>
+        <li><span class="material-icons">check_circle</span> Highest score wins!</li>
+      </ul>
     </div>
+    <div class="d-flex flex-col">
+      <div class="br-lobby__actions">
+        <!-- Quick join queue -->
+        <button class="br-action-btn br-action-btn--primary" (click)="joinQueue()" [disabled]="loading()">
+          <span class="material-icons">flash_on</span>
+          <span>Quick Join</span>
+        </button>
+    
+        <!-- Create private room -->
+        <button class="br-action-btn br-action-btn--secondary" (click)="createRoom()" [disabled]="loading()">
+          <span class="material-icons">add_circle_outline</span>
+          <span>Create Private Room</span>
+        </button>
+      </div>
+      <div class="br-lobby__join-code">
+        <p class="br-lobby__section-label">Join with invite code</p>
+        <div class="br-lobby__code-row">
+          <input
+            class="br-lobby__code-input"
+            type="text"
+            placeholder="XXXXXX"
+            maxlength="6"
+            [(ngModel)]="inviteCode"
+            (keyup.enter)="joinByCode()"
+          />
+          <button class="br-lobby__code-btn" (click)="joinByCode()" [disabled]="loading() || !inviteCode.trim()">
+            Join
+          </button>
+        </div>
+      </div>
+    </div>
+  
   </div>
-
+  <!-- Join by code -->
+  
   @if (loading()) {
     <div class="br-lobby__loading">
       <span class="material-icons spinning">sync</span>
@@ -56,15 +72,5 @@
     </div>
   }
 
-  <!-- How it works -->
-  <div class="br-lobby__rules">
-    <h3>How it works</h3>
-    <ul>
-      <li><span class="material-icons">check_circle</span> Everyone answers the same 20 questions</li>
-      <li><span class="material-icons">check_circle</span> +100 points for each correct answer</li>
-      <li><span class="material-icons">check_circle</span> Wrong answers — just move on, no penalty</li>
-      <li><span class="material-icons">check_circle</span> Live leaderboard updates as players answer</li>
-      <li><span class="material-icons">check_circle</span> Highest score wins!</li>
-    </ul>
-  </div>
+
 </div>

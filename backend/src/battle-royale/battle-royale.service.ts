@@ -17,7 +17,7 @@ import {
   BRPlayerEntry,
 } from './battle-royale.types';
 
-const QUESTION_COUNT = 20;
+const QUESTION_COUNT = 10;
 const POINTS_PER_CORRECT = 100;
 const ROOM_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 
@@ -32,7 +32,7 @@ export class BattleRoyaleService {
 
   // ── Create room ─────────────────────────────────────────────────────────────
 
-  async createRoom(hostId: string, hostUsername: string, isPrivate = true): Promise<{ roomId: string; inviteCode: string }> {
+  async createRoom(hostId: string, hostUsername?: string, isPrivate = true): Promise<{ roomId: string; inviteCode: string }> {
     const questions = await this.blitzService.drawForRoom(QUESTION_COUNT);
     if (questions.length === 0) {
       throw new BadRequestException('No questions available in the pool');
@@ -64,7 +64,7 @@ export class BattleRoyaleService {
 
   // ── Join by invite code ─────────────────────────────────────────────────────
 
-  async joinByCode(userId: string, username: string, inviteCode: string): Promise<{ roomId: string }> {
+  async joinByCode(userId: string, username: string | undefined, inviteCode: string): Promise<{ roomId: string }> {
     const { data: room, error } = await this.supabaseService.client
       .from('battle_royale_rooms')
       .select()
@@ -80,7 +80,7 @@ export class BattleRoyaleService {
 
   // ── Join queue (find or create waiting room) ────────────────────────────────
 
-  async joinQueue(userId: string, username: string): Promise<{ roomId: string; isHost: boolean }> {
+  async joinQueue(userId: string, username?: string): Promise<{ roomId: string; isHost: boolean }> {
     // Look for an open waiting public room
     const { data: rooms } = await this.supabaseService.client
       .from('battle_royale_rooms')
@@ -288,9 +288,19 @@ export class BattleRoyaleService {
       };
     }
 
-    // Check if all players are done
+    // Check if all players are done and record match history for this player
     if (isLastQuestion) {
       await this.checkAndFinishRoom(roomId);
+      this.supabaseService.saveMatchResult({
+        player1_id: userId,
+        player2_id: null,
+        player1_username: player.username,
+        player2_username: 'Battle Royale',
+        winner_id: null,
+        player1_score: newScore,
+        player2_score: 0,
+        match_mode: 'battle_royale',
+      }).catch((e) => this.logger.warn(`[br] match history save failed: ${e?.message}`));
     }
 
     const nextQuestion =
@@ -348,7 +358,13 @@ export class BattleRoyaleService {
     await this.startRoom(roomId, room.host_id);
   }
 
-  private async addPlayer(roomId: string, userId: string, username: string): Promise<void> {
+  private async addPlayer(roomId: string, userId: string, usernameHint?: string): Promise<void> {
+    let username = usernameHint;
+    if (!username) {
+      const profile = await this.supabaseService.getProfile(userId);
+      username = profile?.username ?? 'Player';
+    }
+
     const { error } = await this.supabaseService.client
       .from('battle_royale_players')
       .upsert({ room_id: roomId, user_id: userId, username }, { onConflict: 'room_id,user_id' });
@@ -366,7 +382,7 @@ export class BattleRoyaleService {
       choices: q.choices,
       category: q.category,
       difficulty: q.difficulty,
-      meta: q.meta as BRPublicQuestion['meta'],
+      meta: (q.meta ?? {}) as BRPublicQuestion['meta'],
     };
   }
 

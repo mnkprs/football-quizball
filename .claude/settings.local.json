@@ -96,7 +96,9 @@
       "Bash(brew upgrade:*)",
       "Bash(brew install:*)",
       "Bash(PGHOST=\"db.npwneqworgyclzaofuln.supabase.co\" \\\\\nPGPORT=\"5432\" \\\\\nPGUSER=\"cli_login_postgres\" \\\\\nPGPASSWORD=\"rlORgAVvPOZVpKxwVLISFWSZugonBRwE\" \\\\\nPGDATABASE=\"postgres\" \\\\\n/opt/homebrew/opt/libpq/bin/psql -f supabase/migrations/20260412000000_add_mode_trials.sql 2>&1)",
-      "Bash(PGHOST=\"db.npwneqworgyclzaofuln.supabase.co\" \\\\\nPGPORT=\"5432\" \\\\\nPGUSER=\"cli_login_postgres\" \\\\\nPGPASSWORD=\"rlORgAVvPOZVpKxwVLISFWSZugonBRwE\" \\\\\nPGDATABASE=\"postgres\" \\\\\n/opt/homebrew/opt/libpq/bin/psql -c \"SELECT column_name FROM information_schema.columns WHERE table_name='profiles' AND column_name LIKE 'trial%';\" 2>&1)"
+      "Bash(PGHOST=\"db.npwneqworgyclzaofuln.supabase.co\" \\\\\nPGPORT=\"5432\" \\\\\nPGUSER=\"cli_login_postgres\" \\\\\nPGPASSWORD=\"rlORgAVvPOZVpKxwVLISFWSZugonBRwE\" \\\\\nPGDATABASE=\"postgres\" \\\\\n/opt/homebrew/opt/libpq/bin/psql -c \"SELECT column_name FROM information_schema.columns WHERE table_name='profiles' AND column_name LIKE 'trial%';\" 2>&1)",
+      "mcp__supabase__list_tables",
+      "Bash(supabase link:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -1,9 +1,10 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LanguageService } from '../../core/language.service';
 import { UpgradeModalComponent } from '../../shared/upgrade-modal/upgrade-modal';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
 import { ProService } from '../../core/pro.service';
+import { AuthService } from '../../core/auth.service';
 
 export interface NavTab {
   labelKey: 'navHome' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
@@ -26,11 +27,16 @@ export interface NavTab {
   styleUrl: './shell.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
   private router = inject(Router);
+  private auth = inject(AuthService);
   lang = inject(LanguageService);
   pro = inject(ProService);
   upgrading = signal(false);
+
+  ngOnInit(): void {
+    this.auth.sessionReady.then(() => this.pro.ensureLoaded());
+  }
 
   async upgrade(): Promise<void> {
     if (this.upgrading()) return;

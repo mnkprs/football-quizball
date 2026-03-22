@@ -81,6 +81,7 @@ export class ProfileComponent implements OnInit {
     const userId = this.currentUserId();
     return this.matchHistory().reduce(
       (acc, m) => {
+        if (m.match_mode === 'battle_royale') return acc;
         if (m.winner_id === null) acc.draws++;
         else if (m.winner_id === userId) acc.wins++;
         else acc.losses++;
