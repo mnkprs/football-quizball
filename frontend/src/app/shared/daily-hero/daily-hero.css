@@ -10,7 +10,7 @@
   background: color-mix(in srgb, var(--color-card, #111111) 88%, #000000 12%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: var(--shadow-card);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.875rem;
   width: 100%;
   text-align: left;
   cursor: pointer;
