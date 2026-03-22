@@ -5,6 +5,7 @@ import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeService } from '../../core/theme.service';
 import { ProService } from '../../core/pro.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-top-nav',
@@ -25,6 +26,7 @@ export class TopNavComponent {
   settingsOpen = signal(false);
   avatarFailed = signal(false);
   upgrading = signal(false);
+  readonly buyMeACoffeeUrl = environment.buyMeACoffeeUrl;
 
   trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
 

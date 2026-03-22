@@ -111,42 +111,146 @@
           <span class="rank-banner__separator">·</span>
           <span class="rank-banner__rank">Rank #{{ profile()?.rank ?? '—' }}</span>
         </div>
+        @if (memberSince()) {
+          <div class="rank-banner__member-since">Member since {{ memberSince() }}</div>
+        }
       </div>
 
       <!-- Quick stats row inside banner -->
       <div class="rank-banner__stats">
         <div class="rank-banner__stat">
-          <span class="rank-banner__stat-val">{{ profile()?.games_played ?? 0 }}</span>
-          <span class="rank-banner__stat-lbl">Games</span>
-        </div>
-        <div class="rank-banner__stat-divider"></div>
-        <div class="rank-banner__stat">
-          <span class="rank-banner__stat-val">{{ accuracy() }}%</span>
-          <span class="rank-banner__stat-lbl">Accuracy</span>
-        </div>
-        <div class="rank-banner__stat-divider"></div>
-        <div class="rank-banner__stat">
           <span class="rank-banner__stat-val">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
           <span class="rank-banner__stat-lbl">Peak ELO</span>
         </div>
-        @if (blitzStats()?.bestScore) {
-          <div class="rank-banner__stat-divider"></div>
-          <div class="rank-banner__stat">
-            <span class="rank-banner__stat-val">{{ blitzStats()?.bestScore }}</span>
-            <span class="rank-banner__stat-lbl">Blitz</span>
-          </div>
-        }
+        <div class="rank-banner__stat-divider"></div>
+        <div class="rank-banner__stat">
+          <span class="rank-banner__stat-val">{{ profile()?.questions_answered ?? 0 }}</span>
+          <span class="rank-banner__stat-lbl">Questions</span>
+        </div>
       </div>
     </div>
+
+    <!-- ─── ELO SPARKLINE ───────────────────────────────── -->
+    @if (sparklineData(); as spark) {
+      <section class="profile-section">
+        <h2 class="profile-section-title">ELO Progression</h2>
+        <div class="elo-sparkline">
+          <div class="elo-sparkline__labels">
+            <span class="elo-sparkline__label-min">{{ spark.minElo }}</span>
+            <span class="elo-sparkline__label-max">{{ spark.maxElo }}</span>
+          </div>
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="elo-sparkline__svg">
+            <defs>
+              <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.18"/>
+                <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <polygon [attr.points]="spark.points + ' ' + spark.lastX + ',40 3,40'" fill="url(#sparkGrad)"/>
+            <polyline [attr.points]="spark.points" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <circle [attr.cx]="spark.lastX" [attr.cy]="spark.lastY" r="2.5" fill="var(--color-accent)"/>
+          </svg>
+        </div>
+      </section>
+    }
+
+    <!-- ─── MODE STATS ────────────────────────────────── -->
+    <section class="profile-section">
+      <h2 class="profile-section-title">Mode Stats</h2>
+      <div class="mode-stats">
+
+        <div class="mode-stat-card mode-stat-card--solo">
+          <div class="mode-stat-card__header">
+            <span class="mode-stat-card__icon">⚡</span>
+            <span class="mode-stat-card__label">Solo</span>
+          </div>
+          <div class="mode-stat-card__rows">
+            <div class="mode-stat-card__row">
+              <span class="mode-stat-card__val">{{ profile()?.elo ?? 1000 }}</span>
+              <span class="mode-stat-card__key">ELO</span>
+            </div>
+            <div class="mode-stat-card__row">
+              <span class="mode-stat-card__val">{{ accuracy() }}%</span>
+              <span class="mode-stat-card__key">Accuracy</span>
+            </div>
+            <div class="mode-stat-card__row">
+              <span class="mode-stat-card__val">{{ profile()?.games_played ?? 0 }}</span>
+              <span class="mode-stat-card__key">Games</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mode-stat-card mode-stat-card--mayhem">
+          <div class="mode-stat-card__header">
+            <span class="mode-stat-card__icon">🌪️</span>
+            <span class="mode-stat-card__label">Mayhem</span>
+          </div>
+          @if (mayhemStats()) {
+            <div class="mode-stat-card__rows">
+              <div class="mode-stat-card__row">
+                <span class="mode-stat-card__val">{{ mayhemStats()!.best_session_score }}</span>
+                <span class="mode-stat-card__key">Best</span>
+              </div>
+              <div class="mode-stat-card__row">
+                <span class="mode-stat-card__val">{{ mayhemAccuracy() }}%</span>
+                <span class="mode-stat-card__key">Accuracy</span>
+              </div>
+              <div class="mode-stat-card__row">
+                <span class="mode-stat-card__val">{{ mayhemStats()!.games_played }}</span>
+                <span class="mode-stat-card__key">Games</span>
+              </div>
+            </div>
+          } @else {
+            <p class="mode-stat-card__empty">No games yet</p>
+          }
+        </div>
+
+        <div class="mode-stat-card mode-stat-card--blitz">
+          <div class="mode-stat-card__header">
+            <span class="mode-stat-card__icon">💨</span>
+            <span class="mode-stat-card__label">Blitz</span>
+          </div>
+          @if (blitzStats()?.bestScore) {
+            <div class="mode-stat-card__rows">
+              <div class="mode-stat-card__row">
+                <span class="mode-stat-card__val">{{ blitzStats()!.bestScore }}</span>
+                <span class="mode-stat-card__key">Best</span>
+              </div>
+              <div class="mode-stat-card__row">
+                <span class="mode-stat-card__val">{{ blitzStats()!.totalGames }}</span>
+                <span class="mode-stat-card__key">Games</span>
+              </div>
+              @if (blitzStats()!.rank) {
+                <div class="mode-stat-card__row">
+                  <span class="mode-stat-card__val">#{{ blitzStats()!.rank }}</span>
+                  <span class="mode-stat-card__key">Rank</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="mode-stat-card__empty">No games yet</p>
+          }
+        </div>
+
+      </div>
+    </section>
 
     <!-- ─── MATCH HISTORY ───────────────────────────────── -->
     @if (matchHistory().length > 0) {
       <section class="profile-section">
-        <h2 class="profile-section-title">{{ lang.t().matchHistory }}</h2>
+        <div class="profile-section-header">
+          <h2 class="profile-section-title">Last 10 games</h2>
+          <div class="match-record">
+            <span class="match-record__chip match-record__chip--win">{{ winRecord().wins }}W</span>
+            <span class="match-record__sep">·</span>
+            <span class="match-record__chip match-record__chip--draw">{{ winRecord().draws }}D</span>
+            <span class="match-record__sep">·</span>
+            <span class="match-record__chip match-record__chip--loss">{{ winRecord().losses }}L</span>
+          </div>
+        </div>
         <div class="match-list">
           @for (match of matchHistory(); track match.id) {
             <div class="match-row" [class.match-row--win]="match.winner_id === currentUserId()" [class.match-row--loss]="match.winner_id !== null && match.winner_id !== currentUserId()">
-              <!-- result indicator -->
               <div class="match-row__result">
                 @if (match.winner_id === null) {
                   <span class="match-row__result-label match-row__result-label--draw">D</span>
@@ -156,7 +260,6 @@
                   <span class="match-row__result-label match-row__result-label--loss">L</span>
                 }
               </div>
-              <!-- names & score -->
               <div class="match-row__body">
                 <div class="match-row__vs">
                   <span class="match-row__p1">{{ match.player1_username }}</span>
@@ -164,7 +267,9 @@
                   <span class="match-row__p2">{{ match.player2_username }}</span>
                 </div>
                 <div class="match-row__footer">
-                  <span class="match-row__mode">{{ match.match_mode }}</span>
+                  <span class="match-badge" [class.match-badge--online]="match.match_mode === 'online'" [class.match-badge--local]="match.match_mode !== 'online'">
+                    {{ match.match_mode === 'online' ? 'Online' : 'Local' }}
+                  </span>
                   <span class="match-row__date">{{ formatDate(match.played_at) }}</span>
                 </div>
               </div>
@@ -177,7 +282,10 @@
     <!-- ─── ACHIEVEMENTS ───────────────────────────────── -->
     @if (achievements().length > 0) {
       <section class="profile-section">
-        <h2 class="profile-section-title">{{ lang.t().achievements }}</h2>
+        <div class="profile-section-header">
+          <h2 class="profile-section-title">{{ lang.t().achievements }}</h2>
+          <span class="achievements-count">{{ achievementsEarned() }} / {{ achievements().length }}</span>
+        </div>
         <div class="achievements-grid">
           @for (a of achievements(); track a.id) {
             <div class="achievement-card" [class.achievement-card--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
@@ -190,17 +298,13 @@
     }
 
     <!-- ─── ACTIONS ────────────────────────────────────── -->
-    <div class="profile-actions">
-      <a routerLink="/leaderboard" class="profile-action-link">
-        <span class="material-icons">leaderboard</span>
-        {{ lang.t().profileViewLeaderboard }}
-      </a>
-      @if (isOwnProfile()) {
+    @if (isOwnProfile()) {
+      <div class="profile-actions">
         <button mat-stroked-button class="profile-signout" (click)="signOut()">
           <span class="material-icons">logout</span>
           {{ lang.t().signOut }}
         </button>
-      }
-    </div>
+      </div>
+    }
   }
 </div>

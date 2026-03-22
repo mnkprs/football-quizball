@@ -1,10 +1,9 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
 import { LanguageService } from '../../core/language.service';
-import { environment } from '../../../environments/environment';
 import { UpgradeModalComponent } from '../../shared/upgrade-modal/upgrade-modal';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
+import { ProService } from '../../core/pro.service';
 
 export interface NavTab {
   labelKey: 'navHome' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
@@ -20,7 +19,6 @@ export interface NavTab {
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
-    MatIconModule,
     UpgradeModalComponent,
     TopNavComponent,
   ],
@@ -31,8 +29,14 @@ export interface NavTab {
 export class ShellComponent {
   private router = inject(Router);
   lang = inject(LanguageService);
+  pro = inject(ProService);
+  upgrading = signal(false);
 
-  readonly buyMeACoffeeUrl = environment.buyMeACoffeeUrl;
+  async upgrade(): Promise<void> {
+    if (this.upgrading()) return;
+    this.upgrading.set(true);
+    try { await this.pro.createCheckout(); } finally { this.upgrading.set(false); }
+  }
 
   readonly leftTabs: NavTab[] = [
     { labelKey: 'navHome', icon: 'home', href: '/', match: '/' },

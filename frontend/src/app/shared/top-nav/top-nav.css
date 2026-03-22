@@ -408,3 +408,14 @@
   background: rgba(239,68,68,0.25);
   border-color: rgba(239,68,68,0.4);
 }
+
+.tsp__coffee-link {
+  text-decoration: none;
+  color: var(--color-muted-foreground);
+  border-color: var(--color-border);
+}
+.tsp__coffee-link:hover {
+  background: rgba(251,191,36,0.1);
+  border-color: rgba(251,191,36,0.3);
+  color: #fbbf24;
+}

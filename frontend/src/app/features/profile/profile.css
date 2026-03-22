@@ -307,12 +307,27 @@
   background: rgba(255,255,255,0.1);
 }
 
+/* ── Member since ───────────────────────────── */
+.rank-banner__member-since {
+  font-size: 0.6875rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 500;
+  margin-top: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
 /* ── Section wrapper ────────────────────────── */
 .profile-section {
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
   padding: 0 1rem;
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .profile-section-title {
@@ -324,21 +339,126 @@
   margin: 0;
 }
 
-/* ── Match history ──────────────────────────── */
-.match-list {
+/* ── ELO Sparkline ──────────────────────────── */
+.elo-sparkline {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
 }
 
+.elo-sparkline__labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  letter-spacing: 0.04em;
+}
+
+.elo-sparkline__svg {
+  width: 100%;
+  height: 48px;
+  display: block;
+  overflow: visible;
+}
+
+/* ── Mode Stats ─────────────────────────────── */
+.mode-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.mode-stat-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  padding: 0.75rem 0.625rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.mode-stat-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mode-stat-card__icon {
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.mode-stat-card__label {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mode-stat-card--solo   .mode-stat-card__label { color: var(--color-accent); }
+.mode-stat-card--mayhem .mode-stat-card__label { color: #f97316; }
+.mode-stat-card--blitz  .mode-stat-card__label { color: #3b82f6; }
+
+.mode-stat-card__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.mode-stat-card__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.mode-stat-card__val {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--color-foreground);
+  line-height: 1;
+}
+
+.mode-stat-card__key {
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted-foreground);
+}
+
+.mode-stat-card__empty {
+  font-size: 0.625rem;
+  color: var(--color-muted-foreground);
+  margin: 0;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+/* ── Match history ──────────────────────────── */
+.match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
 .match-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
-  border-radius: 0.75rem;
+  gap: 0.4rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
   background: var(--color-card);
   border: 1px solid var(--color-border);
+  min-height: 0;
 }
 
 .match-row--win  { border-color: rgba(204,255,0,0.25); background: rgba(204,255,0,0.04); }
@@ -346,37 +466,45 @@
 
 .match-row__result {
   flex-shrink: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.5rem;
   display: flex;
   align-items: center;
-  justify-content: center;
 }
 
 .match-row__result-label {
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 900;
   letter-spacing: 0.04em;
 }
 
-.match-row__result-label--win  { color: var(--color-win);  background: rgba(204,255,0,0.12); border-radius: 0.4rem; padding: 0.2rem 0.4rem; }
-.match-row__result-label--loss { color: var(--color-loss); background: rgba(179,38,30,0.12); border-radius: 0.4rem; padding: 0.2rem 0.4rem; }
-.match-row__result-label--draw { color: #f9a825;           background: rgba(249,168,37,0.12); border-radius: 0.4rem; padding: 0.2rem 0.4rem; }
+.match-row__result-label--win,
+.match-row__result-label--loss,
+.match-row__result-label--draw {
+  display: inline-block;
+  width: 1.25rem;
+  text-align: center;
+  border-radius: 0.3rem;
+  padding: 0.1rem 0;
+}
+.match-row__result-label--win  { color: var(--color-win);  background: rgba(204,255,0,0.12); }
+.match-row__result-label--loss { color: var(--color-loss); background: rgba(179,38,30,0.12); }
+.match-row__result-label--draw { color: #f9a825;           background: rgba(249,168,37,0.12); }
 
+/* Single-line layout: result | p1 score p2 | badge date */
 .match-row__body {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .match-row__vs {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8125rem;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .match-row__p1,
@@ -384,38 +512,79 @@
   font-weight: 600;
   color: var(--color-foreground);
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 5.5rem;
+  max-width: 4.5rem;
 }
 
 .match-row__score {
   font-weight: 700;
   color: var(--color-muted-foreground);
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
 }
 
 .match-row__footer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.match-row__mode {
-  font-size: 0.5625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.15rem 0.4rem;
-  border-radius: 999px;
-  background: var(--color-muted);
-  color: var(--color-muted-foreground);
+  flex-shrink: 0;
+  width: 10rem;
+  justify-content: flex-end;
 }
 
 .match-row__date {
-  font-size: 0.625rem;
+  font-size: 0.5625rem;
   color: var(--color-muted-foreground);
+  width: 4rem;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Match record & badge ───────────────────── */
+.match-record {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.match-record__chip {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.match-record__chip--win  { color: var(--color-win); }
+.match-record__chip--draw { color: #f9a825; }
+.match-record__chip--loss { color: var(--color-loss); }
+
+.match-record__sep {
+  font-size: 0.5rem;
+  color: var(--color-muted-foreground);
+  opacity: 0.5;
+}
+
+.match-badge {
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  width: 3.75rem;
+  text-align: center;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.match-badge--online {
+  background: rgba(20, 184, 166, 0.12);
+  color: #14b8a6;
+  border-color: rgba(20, 184, 166, 0.25);
+}
+
+.match-badge--local {
+  background: rgba(100, 116, 139, 0.12);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.2);
 }
 
 /* ── Achievements ───────────────────────────── */
@@ -458,6 +627,17 @@
   text-align: center;
   color: var(--color-foreground);
   line-height: 1.2;
+}
+
+.achievements-count {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  background: rgba(204, 255, 0, 0.1);
+  border: 1px solid rgba(204, 255, 0, 0.2);
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  letter-spacing: 0.04em;
 }
 
 /* ── Actions ────────────────────────────────── */

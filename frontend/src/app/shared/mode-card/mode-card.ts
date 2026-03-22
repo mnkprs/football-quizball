@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { BadgeComponent } from '../badge/badge';
 import { ModeCardContainerComponent } from '../mode-card-container/mode-card-container';
 import { NgClass } from '@angular/common';
+import { ProService } from '../../core/pro.service';
 
 export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
@@ -33,4 +34,11 @@ export class ModeCardComponent {
   proLocked = input<boolean>(false);
 
   cardClick = output<void>();
+
+  private pro = inject(ProService);
+
+  async onProOverlayClick(e: Event): Promise<void> {
+    e.stopPropagation();
+    await this.pro.createCheckout();
+  }
 }

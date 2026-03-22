@@ -13,7 +13,7 @@
     </div>
   }
   @if (proLocked()) {
-    <div class="mode-card__locked-overlay mode-card__locked-overlay--pro">
+    <div class="mode-card__locked-overlay mode-card__locked-overlay--pro" (click)="onProOverlayClick($event)">
       <div class="mode-card__pro-lock-badge">
         <span class="material-icons mode-card__pro-lock-crown">workspace_premium</span>
         <span class="mode-card__pro-lock-label">Pro</span>

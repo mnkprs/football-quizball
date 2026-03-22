@@ -32,6 +32,8 @@ export class ProfileComponent implements OnInit {
 
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
+  mayhemStats = signal<{ best_session_score: number; games_played: number; questions_answered: number; correct_answers: number; } | null>(null);
+  eloHistory = signal<any[]>([]);
   achievements = signal<Achievement[]>([]);
   matchHistory = signal<MatchHistoryEntry[]>([]);
   loading = signal(true);
@@ -69,6 +71,52 @@ export class ProfileComponent implements OnInit {
     return Math.round((p.correct_answers / p.questions_answered) * 100);
   });
 
+  mayhemAccuracy = computed(() => {
+    const s = this.mayhemStats();
+    if (!s?.questions_answered) return 0;
+    return Math.round((s.correct_answers / s.questions_answered) * 100);
+  });
+
+  winRecord = computed(() => {
+    const userId = this.currentUserId();
+    return this.matchHistory().reduce(
+      (acc, m) => {
+        if (m.winner_id === null) acc.draws++;
+        else if (m.winner_id === userId) acc.wins++;
+        else acc.losses++;
+        return acc;
+      },
+      { wins: 0, draws: 0, losses: 0 },
+    );
+  });
+
+  achievementsEarned = computed(() => this.achievements().filter(a => a.earned_at).length);
+
+  memberSince = computed(() => {
+    const p = this.profile();
+    if (!p?.created_at) return null;
+    return new Date(p.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  });
+
+  sparklineData = computed(() => {
+    const raw = this.eloHistory();
+    if (raw.length < 2) return null;
+    const elos: number[] = [...raw].reverse().map((h: any) => h.elo_after);
+    const min = Math.min(...elos);
+    const max = Math.max(...elos);
+    const range = max - min || 1;
+    const W = 100, H = 40, pad = 3;
+    const points = elos.map((elo, i) => {
+      const x = (i / (elos.length - 1)) * (W - pad * 2) + pad;
+      const y = H - pad - ((elo - min) / range) * (H - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const lastElo = elos[elos.length - 1];
+    const lastX = ((W - pad * 2) + pad).toFixed(1);
+    const lastY = (H - pad - ((lastElo - min) / range) * (H - pad * 2)).toFixed(1);
+    return { points, lastX, lastY, minElo: min, maxElo: max };
+  });
+
   rankTier = computed(() => getEloTier(this.profile()?.elo ?? 1000));
 
   ngOnInit(): void {
@@ -89,13 +137,15 @@ export class ProfileComponent implements OnInit {
     this.loading.set(true);
     try {
       const [profileRes, achievementsRes, matchHistoryRes, avatarUrl] = await Promise.all([
-        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null })),
+        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null, mayhem_stats: null, history: [] })),
         firstValueFrom(this.achievementsApi.getForUser(userId)).catch(() => [] as Achievement[]),
         firstValueFrom(this.matchHistoryApi.getHistory(userId)).catch(() => [] as MatchHistoryEntry[]),
         this.auth.fetchAvatarUrl(userId).catch(() => null),
       ]);
       this.profile.set(profileRes?.profile ?? null);
       this.blitzStats.set(profileRes?.blitz_stats ?? { bestScore: 0, totalGames: 0, rank: null });
+      this.mayhemStats.set(profileRes?.mayhem_stats ?? null);
+      this.eloHistory.set(profileRes?.history ?? []);
       this.achievements.set(achievementsRes);
       this.matchHistory.set(matchHistoryRes);
       this.avatarUrl.set(avatarUrl);

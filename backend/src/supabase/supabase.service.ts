@@ -376,13 +376,14 @@ export class SupabaseService {
     winner_id: string | null; player1_score: number; player2_score: number;
     match_mode: string; played_at: string;
   }>> {
-    const { data } = await this.client
-      .from('match_history')
-      .select('id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at')
-      .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
-      .order('played_at', { ascending: false })
-      .limit(limit);
-    return data ?? [];
+    const sel = 'id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at';
+    const [asP1, asP2] = await Promise.all([
+      this.client.from('match_history').select(sel).eq('player1_id', userId).order('played_at', { ascending: false }).limit(limit),
+      this.client.from('match_history').select(sel).eq('player2_id', userId).order('played_at', { ascending: false }).limit(limit),
+    ]);
+    const combined = [...(asP1.data ?? []), ...(asP2.data ?? [])];
+    combined.sort((a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime());
+    return combined.slice(0, limit);
   }
 
   /** Atomically updates ELO and inserts history in a single DB transaction. */

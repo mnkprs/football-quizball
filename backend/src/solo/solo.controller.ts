@@ -50,16 +50,18 @@ export class SoloController {
   @Get('profile/:userId')
   @UseGuards(AuthGuard)
   async getProfile(@Param('userId') userId: string) {
-    const [profile, rank, maxElo, blitzStats] = await Promise.all([
+    const [profile, rank, maxElo, blitzStats, mayhemStats] = await Promise.all([
       this.supabaseService.getProfile(userId),
       this.supabaseService.getSoloRank(userId),
       this.supabaseService.getMaxElo(userId),
       this.supabaseService.getBlitzStatsForUser(userId),
+      this.supabaseService.getMayhemStats(userId),
     ]);
     const history = profile ? await this.supabaseService.getEloHistory(userId, 20) : [];
     return {
       profile: profile ? { ...profile, rank, max_elo: maxElo ?? profile.elo } : null,
       blitz_stats: blitzStats ?? { bestScore: 0, totalGames: 0, rank: null },
+      mayhem_stats: mayhemStats ?? null,
       history,
     };
   }

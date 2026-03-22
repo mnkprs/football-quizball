@@ -17,18 +17,17 @@
           <span class="bottom-nav__label">{{ lang.t()[tab.labelKey] }}</span>
         </a>
       }
-      @if (buyMeACoffeeUrl) {
-        <a
-          [href]="buyMeACoffeeUrl"
-          target="_blank"
-          rel="noopener noreferrer"
+      @if (!pro.isPro()) {
+        <button
           class="bottom-nav__coffee pressable"
-          [attr.aria-label]="lang.t().navBuyMeACoffee"
+          aria-label="Upgrade to Pro"
+          [disabled]="upgrading()"
+          (click)="upgrade()"
         >
-          <span class="bottom-nav__coffee-badge">
-            <span class="material-icons bottom-nav__coffee-icon">local_cafe</span>
+          <span class="bottom-nav__coffee-badge bottom-nav__coffee-badge--pro">
+            <span class="material-icons bottom-nav__coffee-icon">workspace_premium</span>
           </span>
-        </a>
+        </button>
       }
       @for (tab of rightTabs; track tab.href) {
         <a
