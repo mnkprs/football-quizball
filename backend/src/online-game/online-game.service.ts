@@ -150,6 +150,7 @@ export class OnlineGameService {
       const winnerId =
         finalScores.host > finalScores.guest ? hostId :
         finalScores.guest > finalScores.host ? (guestId ?? null) : null;
+      const isBotMatch = guestId ? await this.supabaseService.isDummyUser(guestId) : false;
       await this.supabaseService.saveMatchResult({
         player1_id: hostId,
         player2_id: guestId,
@@ -159,6 +160,7 @@ export class OnlineGameService {
         player1_score: finalScores.host,
         player2_score: finalScores.guest,
         match_mode: 'online',
+        is_bot_match: isBotMatch,
       });
       this.logger.log(JSON.stringify({
         event: 'game_finished',

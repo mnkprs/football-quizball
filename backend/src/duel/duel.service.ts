@@ -429,12 +429,8 @@ export class DuelService {
   }
 
   private async getUsername(userId: string): Promise<string> {
-    const { data } = await this.supabaseService.client
-      .from('profiles')
-      .select('username')
-      .eq('id', userId)
-      .single();
-    return (data as { username: string } | null)?.username ?? 'Unknown';
+    const profile = await this.supabaseService.getProfile(userId);
+    return profile?.username ?? 'Unknown';
   }
 
   private toPublicView(

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OnlineGameStore } from './online-game.store';
@@ -7,6 +7,9 @@ import { BoardComponent } from '../board/board';
 import { QuestionComponent } from '../question/question';
 import { ResultComponent } from '../question/result';
 import { ResultsComponent } from '../results/results';
+
+/** Seconds after which a bot is guaranteed to be matched. */
+const BOT_MATCH_THRESHOLD = 30;
 
 @Component({
   selector: 'app-online-play',
@@ -25,16 +28,36 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   copied = signal(false);
+  queueSeconds = signal(0);
+  queueBotPhase = computed(() => this.queueSeconds() >= BOT_MATCH_THRESHOLD);
+
+  private queueTimer: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
     const gameId = this.route.snapshot.params['id'] as string;
     this.store.loadGame(gameId).then(() => {
       this.store.subscribeRealtime(gameId);
+      if (this.store.phase() === 'queued') this.startQueueTimer();
     });
   }
 
   ngOnDestroy(): void {
     this.store.unsubscribeRealtime();
+    this.stopQueueTimer();
+  }
+
+  private startQueueTimer(): void {
+    this.queueSeconds.set(0);
+    this.queueTimer = setInterval(() => {
+      this.queueSeconds.update((s) => s + 1);
+    }, 1_000);
+  }
+
+  private stopQueueTimer(): void {
+    if (this.queueTimer) {
+      clearInterval(this.queueTimer);
+      this.queueTimer = null;
+    }
   }
 
   goBack(): void {
@@ -42,6 +65,7 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
   }
 
   async leaveQueue(): Promise<void> {
+    this.stopQueueTimer();
     await this.store.leaveQueue();
     this.router.navigate(['/online-game']);
   }
@@ -60,7 +84,6 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     } catch {
-      // fallback: just mark copied
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     }

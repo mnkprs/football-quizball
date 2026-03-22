@@ -331,6 +331,23 @@ export class BattleRoyaleService {
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
+  /** Add a bot (or any participant) to a room by ID — used by the bot matchmaker. */
+  async addBotToRoom(roomId: string, botId: string, botUsername: string): Promise<void> {
+    await this.addPlayer(roomId, botId, botUsername);
+  }
+
+  /** Programmatically start a room — used by the bot matchmaker for auto-start. */
+  async forceStartRoom(roomId: string): Promise<void> {
+    const { data: room, error } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .select('id, host_id, status')
+      .eq('id', roomId)
+      .single<Pick<BRRoomRow, 'id' | 'host_id' | 'status'>>();
+
+    if (error || !room || room.status !== 'waiting') return;
+    await this.startRoom(roomId, room.host_id);
+  }
+
   private async addPlayer(roomId: string, userId: string, username: string): Promise<void> {
     const { error } = await this.supabaseService.client
       .from('battle_royale_players')

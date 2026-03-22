@@ -28,6 +28,7 @@ import { DuelModule } from './duel/duel.module';
 import { BattleRoyaleModule } from './battle-royale/battle-royale.module';
 import { MatchHistoryModule } from './match-history/match-history.module';
 import { ProfileModule } from './profile/profile.module';
+import { BotModule } from './bot/bot.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { ProfileModule } from './profile/profile.module';
     BattleRoyaleModule,
     MatchHistoryModule,
     ProfileModule,
+    BotModule,
   ],
 })
 export class AppModule {}

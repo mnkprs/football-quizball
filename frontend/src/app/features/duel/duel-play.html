@@ -31,7 +31,24 @@
             </div>
           </div>
         } @else {
-          <p class="text-sm text-muted-foreground">Looking for an opponent in the queue...</p>
+          <!-- Queue mode: show countdown progress -->
+          <div class="flex flex-col items-center gap-3 w-full">
+            @if (queueBotPhase()) {
+              <p class="text-sm font-bold text-foreground">Almost there...</p>
+              <p class="text-xs text-muted-foreground">Finding the best opponent for you</p>
+            } @else {
+              <p class="text-sm text-muted-foreground">Searching for an opponent...</p>
+              <div class="flex items-center gap-2 w-48">
+                <div class="flex-1 bg-border rounded-full h-1.5 overflow-hidden">
+                  <div
+                    class="h-1.5 bg-accent rounded-full transition-all duration-1000"
+                    [style.width.%]="(queueSeconds() / 30) * 100"
+                  ></div>
+                </div>
+                <span class="text-xs text-muted-foreground tabular-nums w-6">{{ 30 - queueSeconds() }}s</span>
+              </div>
+            }
+          </div>
         }
       </div>
     </div>

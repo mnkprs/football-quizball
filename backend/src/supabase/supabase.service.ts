@@ -347,10 +347,31 @@ export class SupabaseService {
     player1_username: string; player2_username: string;
     winner_id: string | null; player1_score: number; player2_score: number;
     match_mode: 'local' | 'online';
+    is_bot_match?: boolean;
   }): Promise<boolean> {
     const { error } = await this.client.from('match_history').insert(match);
     if (error) this.logger.error(`[saveMatchResult] Insert failed: ${error.message}`);
     return !error;
+  }
+
+  /** Returns true if the given UUID belongs to a dummy_user (bot) rather than a real profile. */
+  async isDummyUser(userId: string): Promise<boolean> {
+    const { data } = await this.client
+      .from('dummy_users')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+    return !!data;
+  }
+
+  /** Increment stats on a dummy_user (bot) after a game. */
+  async updateDummyUserStats(botId: string, questionsAnswered: number, correctAnswers: number): Promise<void> {
+    const { error } = await this.client.rpc('increment_dummy_user_stats', {
+      p_id: botId,
+      p_questions: questionsAnswered,
+      p_correct: correctAnswers,
+    });
+    if (error) this.logger.warn(`[updateDummyUserStats] ${error.message}`);
   }
 
   async getMatchWinCount(userId: string): Promise<number> {

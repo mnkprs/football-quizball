@@ -10,5 +10,6 @@ import { SupabaseModule } from '../supabase/supabase.module';
   imports: [AuthModule, QuestionsModule, SupabaseModule, ScheduleModule.forRoot()],
   controllers: [OnlineGameController],
   providers: [OnlineGameService],
+  exports: [OnlineGameService],
 })
 export class OnlineGameModule {}

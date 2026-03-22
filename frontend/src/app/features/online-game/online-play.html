@@ -24,8 +24,22 @@
     @case ('queued') {
       <div class="flex flex-col items-center justify-center min-h-screen p-6 gap-4">
         <div class="text-5xl animate-spin-slow">⚽</div>
-        <h2 class="text-2xl font-black text-foreground">Finding opponent...</h2>
-        <p class="text-muted-foreground text-sm">We'll notify you when someone joins</p>
+        @if (queueBotPhase()) {
+          <h2 class="text-2xl font-black text-foreground">Almost there...</h2>
+          <p class="text-muted-foreground text-sm">Finding the best opponent for you</p>
+        } @else {
+          <h2 class="text-2xl font-black text-foreground">Finding opponent...</h2>
+          <p class="text-muted-foreground text-sm">We'll notify you when someone joins</p>
+          <div class="flex items-center gap-2">
+            <div class="w-full bg-border rounded-full h-1.5 w-32 overflow-hidden">
+              <div
+                class="h-1.5 bg-accent rounded-full transition-all duration-1000"
+                [style.width.%]="(queueSeconds() / 30) * 100"
+              ></div>
+            </div>
+            <span class="text-xs text-muted-foreground tabular-nums">{{ 30 - queueSeconds() }}s</span>
+          </div>
+        }
         <button (click)="leaveQueue()" class="mt-4 px-6 py-2.5 rounded-full border-2 border-border text-muted-foreground text-sm font-medium hover:border-loss/60 hover:text-loss transition">Leave Queue</button>
       </div>
     }

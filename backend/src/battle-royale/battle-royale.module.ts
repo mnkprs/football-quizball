@@ -9,5 +9,6 @@ import { BlitzModule } from '../blitz/blitz.module';
   imports: [AuthModule, SupabaseModule, BlitzModule],
   controllers: [BattleRoyaleController],
   providers: [BattleRoyaleService],
+  exports: [BattleRoyaleService],
 })
 export class BattleRoyaleModule {}

@@ -14,6 +14,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DuelStore } from './duel.store';
 
 const QUESTION_TIME = 30;
+/** Seconds to wait before a bot is guaranteed to be matched. */
+const BOT_MATCH_THRESHOLD = 30;
 
 @Component({
   selector: 'app-duel-play',
@@ -34,6 +36,9 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   opponentFlash = signal(false);
   myFlash = signal(false);
   timeLeft = signal(QUESTION_TIME);
+  queueSeconds = signal(0);
+  queueBotPhase = computed(() => this.queueSeconds() >= BOT_MATCH_THRESHOLD);
+  inQueueMode = computed(() => this.store.phase() === 'waiting' && !this.store.inviteCode());
 
   timerColor = computed(() => {
     const t = this.timeLeft();
@@ -47,6 +52,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   private opponentFlashTimer: ReturnType<typeof setTimeout> | null = null;
   private myFlashTimer: ReturnType<typeof setTimeout> | null = null;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
+  private queueTimer: ReturnType<typeof setInterval> | null = null;
   private lastQIndex: number | null = null;
 
   constructor() {
@@ -55,6 +61,12 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       if (phase === 'opponent-answered') {
         this.showOpponentFlash();
       }
+    });
+
+    // Stop queue timer once opponent is found
+    effect(() => {
+      const phase = this.store.phase();
+      if (phase !== 'waiting') this.stopQueueTimer();
     });
 
     // Start/reset timer when question changes, stop when not active
@@ -77,6 +89,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
     const gameId = this.route.snapshot.params['id'] as string;
     this.store.loadGame(gameId).then(() => {
       this.store.subscribeRealtime(gameId);
+      if (this.inQueueMode()) this.startQueueTimer();
     });
   }
 
@@ -85,6 +98,21 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
     if (this.opponentFlashTimer) clearTimeout(this.opponentFlashTimer);
     if (this.myFlashTimer) clearTimeout(this.myFlashTimer);
     this.stopTimer();
+    this.stopQueueTimer();
+  }
+
+  private startQueueTimer(): void {
+    this.queueSeconds.set(0);
+    this.queueTimer = setInterval(() => {
+      this.queueSeconds.update((s) => s + 1);
+    }, 1_000);
+  }
+
+  private stopQueueTimer(): void {
+    if (this.queueTimer) {
+      clearInterval(this.queueTimer);
+      this.queueTimer = null;
+    }
   }
 
   async markReady(): Promise<void> {
