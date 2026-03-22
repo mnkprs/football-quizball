@@ -35,16 +35,14 @@
         <!-- Score -->
         <div class="board-score text-4xl font-black mb-3">{{ players()[0]?.score ?? 0 }}</div>
         
-        <!-- Power-ups row -->
-        <div class="flex items-center gap-2 mb-2">
-          <span [class]="'board-powerup text-xs font-semibold px-2 py-1 rounded-md ' + (players()[0]?.lifelineUsed ? 'board-powerup--used' : '')">50/50</span>
-          <span [class]="'board-powerup text-xs font-semibold px-2 py-1 rounded-md ' + (players()[0]?.doubleUsed ? 'board-powerup--used' : '')">2x</span>
-          @if (isActivePlayer(0) && !players()[0]?.doubleUsed) {
-            @if (store.doubleArmed()) {
-              <span class="board-powerup-armed text-xs font-bold px-2 py-1 rounded-md">2x ARMED</span>
-            } @else {
-              <button (click)="armDouble()" class="board-use-double text-xs font-bold px-2 py-1 rounded-md transition pressable">{{ lang.t().use2x }}</button>
-            }
+        <!-- Power-ups -->
+        <div class="mb-2">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span [class]="'board-powerup text-sm font-semibold px-2.5 py-1.5 rounded-md ' + (players()[0]?.lifelineUsed ? 'board-powerup--used' : '')">50/50</span>
+            <span [class]="'board-powerup text-sm font-semibold px-2.5 py-1.5 rounded-md ' + (players()[0]?.doubleUsed ? 'board-powerup--used' : (isActivePlayer(0) && store.doubleArmed() ? 'board-powerup-armed' : ''))">2x</span>
+          </div>
+          @if (isActivePlayer(0) && !players()[0]?.doubleUsed && !store.doubleArmed()) {
+            <button (click)="armDouble()" class="board-use-double w-full text-sm font-bold px-2.5 py-1.5 rounded-md transition pressable">{{ lang.t().use2x }}</button>
           }
         </div>
         
@@ -90,16 +88,14 @@
         <!-- Score -->
         <div class="board-score text-4xl font-black mb-3">{{ players()[1]?.score ?? 0 }}</div>
         
-        <!-- Power-ups row -->
-        <div class="flex items-center gap-2 mb-2">
-          <span [class]="'board-powerup text-xs font-semibold px-2 py-1 rounded-md ' + (players()[1]?.lifelineUsed ? 'board-powerup--used' : '')">50/50</span>
-          <span [class]="'board-powerup text-xs font-semibold px-2 py-1 rounded-md ' + (players()[1]?.doubleUsed ? 'board-powerup--used' : '')">2x</span>
-          @if (isActivePlayer(1) && !players()[1]?.doubleUsed) {
-            @if (store.doubleArmed()) {
-              <span class="board-powerup-armed text-xs font-bold px-2 py-1 rounded-md">2x ARMED</span>
-            } @else {
-              <button (click)="armDouble()" class="board-use-double text-xs font-bold px-2 py-1 rounded-md transition pressable">{{ lang.t().use2x }}</button>
-            }
+        <!-- Power-ups -->
+        <div class="mb-2">
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span [class]="'board-powerup text-sm font-semibold px-2.5 py-1.5 rounded-md ' + (players()[1]?.lifelineUsed ? 'board-powerup--used' : '')">50/50</span>
+            <span [class]="'board-powerup text-sm font-semibold px-2.5 py-1.5 rounded-md ' + (players()[1]?.doubleUsed ? 'board-powerup--used' : (isActivePlayer(1) && store.doubleArmed() ? 'board-powerup-armed' : ''))">2x</span>
+          </div>
+          @if (isActivePlayer(1) && !players()[1]?.doubleUsed && !store.doubleArmed()) {
+            <button (click)="armDouble()" class="board-use-double w-full text-sm font-bold px-2.5 py-1.5 rounded-md transition pressable">{{ lang.t().use2x }}</button>
           }
         </div>
         
@@ -122,7 +118,7 @@
   <div class="flex flex-col gap-2">
     @for (row of categoryRows(); track row.key) {
       <div [class]="'board-category-row rounded-xl overflow-hidden ' + row.style.rowCls">
-        <div class="flex items-center px-2.5 py-2 gap-2">
+        <div class="flex items-center px-2.5 py-4 gap-2">
 
           <!-- Icon -->
           <div class="board-category-icon w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0">
@@ -130,7 +126,7 @@
           </div>
 
           <!-- Label -->
-          <div class="flex-1 font-black text-white text-xs tracking-wide uppercase leading-tight">
+          <div class="flex-1 font-black text-white text-base tracking-wide uppercase leading-tight">
             {{ row.label }}
           </div>
 
@@ -140,7 +136,7 @@
               <button
                 (click)="selectQuestion(cell)"
                 [disabled]="cell.answered || !cell.question_id"
-                [class]="'board-question-circle w-11 h-11 rounded-full flex flex-col items-center justify-center font-black transition-all ' + circleClass(cell, row.key)"
+                [class]="'board-question-circle w-12 h-12 rounded-full flex flex-col items-center justify-center font-black transition-all ' + circleClass(cell, row.key)"
               >
                 @if (cell.answered) {
                   <span class="text-white/40 text-lg leading-none">X</span>

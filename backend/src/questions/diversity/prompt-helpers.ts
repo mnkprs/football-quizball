@@ -69,7 +69,8 @@ IMPORTANT: Each question must ask for exactly ONE answer. correct_answer must be
  */
 export function getFactualAccuracyInstruction(): string {
   return `
-FACTUAL ACCURACY: Use your knowledge only. Include only facts you are confident about. Do not guess — if unsure, pick a different question. Prefer well-known, established facts (retired players, historic matches) over recent transfers or stats that may have changed.`;
+FACTUAL ACCURACY: Use your knowledge only. Include only facts you are confident about. Do not guess — if unsure, pick a different question. 
+Prefer well-known, established facts (retired players, historic matches) over recent transfers or stats that may have changed.`;
 }
 
 /**

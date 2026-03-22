@@ -12,7 +12,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     // No lazyConnect — eager connect at startup so TLS handshake (Upstash) happens once,
     // not on the first real request. maxRetriesPerRequest: null lets ioredis retry indefinitely
     // on connection errors rather than failing commands immediately.
-    this.client = new Redis(url, { maxRetriesPerRequest: 3 });
+    this.client = new Redis(url, { maxRetriesPerRequest: null });
     this.client.on('error', (err) => this.logger.error(`Redis error: ${err.message}`));
     this.client.on('connect', () => this.logger.log('Redis connected'));
   }

@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { catchError, of, from, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
@@ -47,17 +48,24 @@ export class HomeComponent implements OnInit, OnDestroy {
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   avatarLoadFailed = signal(false);
-  dailyMetadata = signal<{ count: number; resetsAt: string } | null>(null);
-  newsMetadata = signal<{ count: number; updatesAt: string } | null>(null);
   private countdownTick = signal(0);
 
-  dailyCount = computed(() => {
-    const meta = this.dailyMetadata();
-    return meta ? meta.count : null;
-  });
+  private dailyMeta = toSignal(
+    this.dailyApi.getMetadata().pipe(catchError(() => of(null))),
+    { initialValue: null }
+  );
+
+  private newsMeta = toSignal(
+    from(this.auth.sessionReady).pipe(
+      switchMap(() => this.newsApi.getMetadata().pipe(catchError(() => of(null))))
+    ),
+    { initialValue: null }
+  );
+
+  dailyCount = computed(() => this.dailyMeta()?.count ?? null);
 
   dailyResetsIn = computed(() => {
-    const meta = this.dailyMetadata();
+    const meta = this.dailyMeta();
     this.countdownTick();
     if (!meta?.resetsAt) return '—';
     const ms = new Date(meta.resetsAt).getTime() - Date.now();
@@ -68,10 +76,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   });
 
-  newsCount = computed(() => this.newsMetadata()?.count ?? null);
+  newsCount = computed(() => this.newsMeta()?.count ?? null);
 
   newsUpdatesIn = computed(() => {
-    const meta = this.newsMetadata();
+    const meta = this.newsMeta();
     this.countdownTick();
     if (!meta?.updatesAt) return '—';
     const ms = new Date(meta.updatesAt).getTime() - Date.now();
@@ -149,9 +157,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loadProfile();
         this.pro.loadStatus();
       }
-      this.loadNewsMetadata();
     });
-    this.loadDailyMetadata();
     this.countdownInterval = setInterval(() => this.countdownTick.update((v) => v + 1), 1000);
     this.handleProRedirect();
   }
@@ -175,24 +181,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
-    }
-  }
-
-  private async loadDailyMetadata(): Promise<void> {
-    try {
-      const meta = await firstValueFrom(this.dailyApi.getMetadata());
-      this.dailyMetadata.set(meta);
-    } catch {
-      this.dailyMetadata.set(null);
-    }
-  }
-
-  private async loadNewsMetadata(): Promise<void> {
-    try {
-      const meta = await firstValueFrom(this.newsApi.getMetadata());
-      this.newsMetadata.set(meta);
-    } catch {
-      this.newsMetadata.set(null);
     }
   }
 
