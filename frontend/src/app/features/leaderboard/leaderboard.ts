@@ -12,11 +12,17 @@ import { MayhemApiService, MayhemLeaderboardEntry, MayhemMeEntry } from '../../c
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
+import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
-  imports: [RouterLink, MatCardModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [
+    RouterLink,
+    MatCardModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    MatIconModule,
+  ],
   templateUrl: './leaderboard.html',
   styleUrl: './leaderboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,9 +41,14 @@ export class LeaderboardComponent implements OnInit {
   mayhemMeEntry = signal<MayhemMeEntry | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
+  activeTab = signal<'solo' | 'blitz' | 'mayhem'>('solo');
 
   ngOnInit(): void {
     this.load();
+  }
+
+  setActiveTab(tab: 'solo' | 'blitz' | 'mayhem'): void {
+    this.activeTab.set(tab);
   }
 
   async load(): Promise<void> {
