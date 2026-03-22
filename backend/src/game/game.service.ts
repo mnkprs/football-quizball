@@ -44,7 +44,8 @@ export class GameService {
     this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
     const excludeNewsQuestionIds = dto.excludeNewsQuestionIds?.filter(Boolean).slice(0, 100) ?? [];
-    const result = await this.questionPoolService.drawBoard(excludeNewsQuestionIds);
+    const playerIds = dto.playerIds?.filter(Boolean) ?? [];
+    const result = await this.questionPoolService.drawBoard(excludeNewsQuestionIds, true, playerIds);
     let questions: GeneratedQuestion[] = result.questions;
     const poolQuestionIds = result.poolQuestionIds;
     questions = questions.map((question) => this.ensureQuestionLocaleState(question));
@@ -510,22 +511,15 @@ export class GameService {
     return false;
   }
 
-  /** Marks the session as FINISHED and returns unanswered pool questions back to the pool. */
+  /** Marks the session as FINISHED and returns ALL pool questions back to the pool. */
   private async finishSession(session: GameSession): Promise<void> {
     session.status = 'FINISHED';
-    const poolIds = session.poolQuestionIds ?? [];
+    const poolIds = (session.poolQuestionIds ?? []).filter(Boolean);
     if (poolIds.length > 0) {
-      const unansweredIds = session.board
-        .flat()
-        .filter((c) => !c.answered)
-        .map((c) => c.question_id)
-        .filter((id) => id && poolIds.includes(id));
-      if (unansweredIds.length > 0) {
-        this.logger.log(`[finishSession] Returning ${unansweredIds.length} unanswered questions to pool`);
-        await this.questionPoolService.returnUnansweredToPool(unansweredIds).catch((err) =>
-          this.logger.error(`[finishSession] Failed to return questions to pool: ${(err as Error).message}`),
-        );
-      }
+      this.logger.log(`[finishSession] Returning ${poolIds.length} questions to pool`);
+      await this.questionPoolService.returnUnansweredToPool(poolIds).catch((err) =>
+        this.logger.error(`[finishSession] Failed to return questions to pool: ${(err as Error).message}`),
+      );
     }
   }
 

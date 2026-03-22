@@ -434,13 +434,12 @@ export class SupabaseService {
     return data as boolean;
   }
 
-  /** Returns question IDs the user has seen in the last 30 days (solo mode dedup). */
+  /** Returns question IDs the user has seen (60-day window maintained by cleanup cron). */
   async getSeenQuestionIds(userId: string): Promise<string[]> {
     const { data } = await this.client
       .from('user_question_history')
       .select('question_id')
-      .eq('user_id', userId)
-      .gte('seen_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+      .eq('user_id', userId);
     return (data ?? []).map((r: { question_id: string }) => r.question_id);
   }
 

@@ -62,13 +62,16 @@ export class QuestionPoolService {
 
   /**
    * Draws a full board for a game. Draws from the pool, with LLM fallback for missing slots.
+   * @param userIds IDs of all participants — used to exclude questions they have already seen.
+   *                Records drawn questions in user_question_history for each user atomically.
    */
   async drawBoard(
     excludeNewsQuestionIds?: string[],
     allowLlmFallback: boolean = true,
+    userIds: string[] = [],
   ): Promise<DrawBoardResult> {
     // Draw from pool, then fallback to LLM for any missing slots
-    const { questions: poolQuestions, poolIds, missingByCategory } = await this.drawBoardFromDb();
+    const { questions: poolQuestions, poolIds, missingByCategory } = await this.drawBoardFromDb(userIds);
     const board: GeneratedQuestion[] = [...poolQuestions];
 
     if (missingByCategory.size > 0) {
@@ -387,6 +390,21 @@ export class QuestionPoolService {
   }
 
   /**
+   * Records that a set of questions was shown to a list of users (board modes).
+   * Use this when a user joins a game whose board was already drawn (e.g. guest joining online/duel).
+   */
+  async recordBoardHistory(questionIds: string[], userIds: string[]): Promise<void> {
+    if (userIds.length === 0 || questionIds.length === 0) return;
+    const { error } = await this.supabaseService.client.rpc('record_board_question_history', {
+      p_user_ids: userIds,
+      p_question_ids: questionIds,
+    });
+    if (error) {
+      this.logger.warn(`[recordBoardHistory] RPC error (non-fatal): ${error.message}`);
+    }
+  }
+
+  /**
    * Returns unanswered question IDs to the pool (marks them available again).
    * Call when a game ends early to prevent create→peek→end abuse.
    */
@@ -628,14 +646,14 @@ export class QuestionPoolService {
   // ── Private helpers ────────────────────────────────────────────────────────
 
   /** Single RPC to draw full board (replaces 18 drawSlot calls). */
-  private async drawBoardFromDb(): Promise<{
+  private async drawBoardFromDb(userIds: string[] = []): Promise<{
     questions: GeneratedQuestion[];
     poolIds: string[];
     missingByCategory: Map<QuestionCategory, Difficulty[]>;
   }> {
-    const { data, error } = await this.supabaseService.client.rpc('draw_board', {
-      p_exclude_ids: null,
-    });
+    const rpcParams: Record<string, unknown> = { p_exclude_ids: null };
+    if (userIds.length > 0) rpcParams.p_user_ids = userIds;
+    const { data, error } = await this.supabaseService.client.rpc('draw_board', rpcParams);
 
     if (error) {
       this.logger.error(`[drawBoardFromDb] RPC error: ${error.message}`);

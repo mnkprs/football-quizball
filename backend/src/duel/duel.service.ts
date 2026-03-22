@@ -46,7 +46,9 @@ export class DuelService {
   // ── Create / Join ─────────────────────────────────────────────────────────
 
   async createGame(hostId: string, dto: CreateDuelDto): Promise<DuelPublicView> {
-    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT);
+    // Exclude questions the host has already seen to prevent duplicates from their perspective.
+    const seenIds = await this.supabaseService.getSeenQuestionIds(hostId).catch(() => [] as string[]);
+    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT, seenIds);
     if (questions.length === 0) {
       throw new BadRequestException('Question pool is empty. Please try again later.');
     }
@@ -67,6 +69,9 @@ export class DuelService {
       .single();
 
     if (error) throw new BadRequestException(`Failed to create duel: ${error.message}`);
+
+    // Record drawn questions in host's history (fire-and-forget)
+    this.questionPoolService.recordBoardHistory(poolQuestionIds, [hostId]).catch(() => {});
 
     const hostUsername = await this.getUsername(hostId);
     return this.toPublicView(data as DuelGameRow, hostId, hostUsername, null);
@@ -96,6 +101,10 @@ export class DuelService {
       .single();
 
     if (updErr || !updated) throw new ConflictException('Could not join — duel may have just been taken.');
+
+    // Record the questions in the guest's history so they don't see them again in future games
+    const poolIds = ((updated as DuelGameRow).pool_question_ids ?? []);
+    this.questionPoolService.recordBoardHistory(poolIds, [guestId]).catch(() => {});
 
     const [hostUsername, guestUsername] = await Promise.all([
       this.getUsername(row.host_id),
@@ -148,6 +157,9 @@ export class DuelService {
         .single();
 
       if (!error && joined) {
+        // Record questions in guest's history (board was drawn by host)
+        const joinedPoolIds = (candidate.pool_question_ids ?? []);
+        this.questionPoolService.recordBoardHistory(joinedPoolIds, [userId]).catch(() => {});
         const [hostUsername, guestUsername] = await Promise.all([
           this.getUsername(candidate.host_id),
           this.getUsername(userId),
@@ -158,7 +170,8 @@ export class DuelService {
     }
 
     // No open games — create one without an invite code (queue marker)
-    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT);
+    const seenIds = await this.supabaseService.getSeenQuestionIds(userId).catch(() => [] as string[]);
+    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT, seenIds);
     const { data, error } = await this.supabaseService.client
       .from('duel_games')
       .insert({
@@ -172,6 +185,8 @@ export class DuelService {
       .single();
 
     if (error || !data) throw new BadRequestException('Failed to join queue.');
+    // Record drawn questions in user's history (fire-and-forget)
+    this.questionPoolService.recordBoardHistory(questions.map((q) => q.id), [userId]).catch(() => {});
     const hostUsername = await this.getUsername(userId);
     return this.toPublicView(data as DuelGameRow, userId, hostUsername, null);
   }
@@ -336,6 +351,14 @@ export class DuelService {
     const row = await this.fetchGame(gameId, userId);
     if (row.status === 'finished' || row.status === 'abandoned') {
       throw new BadRequestException('Game is already over.');
+    }
+
+    // Return ALL pool questions so they can be drawn in future games.
+    const poolIds = (row.pool_question_ids ?? []).filter(Boolean);
+    if (poolIds.length > 0) {
+      this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
+        this.logger.warn(`[abandonGame] Failed to return questions to pool: ${err.message}`),
+      );
     }
 
     await this.supabaseService.client

@@ -66,11 +66,11 @@ export class OnlineGameService {
 
   // ── Board drawing ───────────────────────────────────────────────────────────
 
-  private async drawBoard(): Promise<{ boardState: OnlineBoardState; poolQuestionIds: string[] }> {
+  private async drawBoard(hostId: string): Promise<{ boardState: OnlineBoardState; poolQuestionIds: string[] }> {
     // allowLlmFallback=true: when a slot collision is detected (same question eligible for
     // two difficulty tiers drawn by the same RPC call), fall back to a live-generated question
     // for the missing slot rather than throwing a 503 and forcing the player to retry.
-    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard([], true);
+    const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard([], true, [hostId]);
 
     const usedIds = new Set<string>();
     const cells: OnlineBoardCell[][] = CATEGORIES_ORDER.map((category) => {
@@ -136,6 +136,15 @@ export class OnlineGameService {
     if (newStatus !== 'finished') return;
     const hostId = row['host_id'] as string;
     const guestId = row['guest_id'] as string | null;
+
+    // Return ALL pool questions — user_question_history handles per-user dedup going forward.
+    const poolIds = (row['pool_question_ids'] as string[] | null) ?? [];
+    if (poolIds.length > 0) {
+      this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
+        this.logger.warn(`[saveMatchHistoryIfFinished] Failed to return questions to pool: ${err.message}`),
+      );
+    }
+
     try {
       const usernames = await this.getUsernames(hostId, guestId);
       const winnerId =
@@ -234,7 +243,7 @@ export class OnlineGameService {
 
   async createGame(userId: string, dto: CreateOnlineGameDto): Promise<OnlineGamePublicView> {
     await this.checkGameLimit(userId);
-    const { boardState, poolQuestionIds } = await this.drawBoard();
+    const { boardState, poolQuestionIds } = await this.drawBoard(userId);
 
     // Generate unique invite code
     let inviteCode = generateInviteCode();
@@ -277,7 +286,7 @@ export class OnlineGameService {
       .maybeSingle();
 
     if (existing) {
-      // Join it
+      // Join it — record guest's history for questions already drawn by the host
       const deadline = this.deadlineFromNow();
       const { data, error } = await this.supabaseService.client
         .from('online_games')
@@ -292,12 +301,14 @@ export class OnlineGameService {
         .select()
         .single();
       if (error || !data) throw new BadRequestException('Failed to join queued game');
+      const existingPoolIds = (existing['pool_question_ids'] as string[] | null) ?? [];
+      this.questionPoolService.recordBoardHistory(existingPoolIds, [userId]).catch(() => {});
       const { host, guest } = await this.getUsernames(existing['host_id'] as string, userId);
       return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
     }
 
     // Create a new queued game (no invite_code)
-    const { boardState, poolQuestionIds } = await this.drawBoard();
+    const { boardState, poolQuestionIds } = await this.drawBoard(userId);
     const { data, error } = await this.supabaseService.client
       .from('online_games')
       .insert({
@@ -342,6 +353,9 @@ export class OnlineGameService {
       .single();
     if (error || !data) throw new BadRequestException('Failed to join game');
     this.logger.log(JSON.stringify({ event: 'game_joined', gameId: row['id'], userId, via: 'invite_code' }));
+    // Record the existing pool questions in the guest's history (board was drawn by host)
+    const existingPoolIds = (row['pool_question_ids'] as string[] | null) ?? [];
+    this.questionPoolService.recordBoardHistory(existingPoolIds, [userId]).catch(() => {});
     const { host, guest } = await this.getUsernames(row['host_id'] as string, userId);
     return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
   }
@@ -713,17 +727,11 @@ export class OnlineGameService {
     if (row['host_id'] !== userId && row['guest_id'] !== userId) {
       throw new ForbiddenException('Not a participant of this game');
     }
-    const poolIds = row['pool_question_ids'] as string[];
+    const poolIds = ((row['pool_question_ids'] as string[] | null) ?? []).filter(Boolean);
     if (poolIds.length > 0) {
-      const boardState = row['board_state'] as OnlineBoardState;
-      const unansweredIds = boardState.cells.flat()
-        .filter((c) => !c.answered && poolIds.includes(c.question_id))
-        .map((c) => c.question_id);
-      if (unansweredIds.length > 0) {
-        await this.questionPoolService.returnUnansweredToPool(unansweredIds).catch((err: Error) =>
-          this.logger.error(`[abandonGame] Failed to return questions: ${err.message}`),
-        );
-      }
+      await this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
+        this.logger.error(`[abandonGame] Failed to return questions: ${err.message}`),
+      );
     }
     await this.supabaseService.client
       .from('online_games')

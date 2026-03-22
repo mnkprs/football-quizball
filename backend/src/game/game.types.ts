@@ -18,6 +18,12 @@ export class CreateGameDto {
   @IsArray()
   @IsString({ each: true })
   excludeNewsQuestionIds?: string[];
+
+  /** Authenticated user IDs for both players (optional — enables per-user question dedup). */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  playerIds?: string[];
 }
 
 export class SubmitAnswerDto {
