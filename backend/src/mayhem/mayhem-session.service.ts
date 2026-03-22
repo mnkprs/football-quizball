@@ -106,7 +106,7 @@ export class MayhemSessionService {
     const correct = !timedOut && selectedAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase();
 
     const eloBefore = session.currentElo;
-    const eloChange = this.eloService.calculate(eloBefore, difficulty, correct, timedOut);
+    const eloChange = this.eloService.calculate(eloBefore, difficulty, correct, timedOut, session.questionsAnswered);
     const eloAfter = this.eloService.applyChange(eloBefore, eloChange);
 
     session.currentElo = eloAfter;
