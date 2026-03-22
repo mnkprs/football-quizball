@@ -1,33 +1,33 @@
-<div class="question-page min-h-screen flex flex-col p-4">
+<div class="question-page min-h-screen flex flex-col p-4 sm:p-6">
   @if (store.loading()) {
     <div class="flex-1 flex items-center justify-center">
       <div class="question-loader">
-        <img src="/icons/quizball-unlimited-logo.png" alt="" class="w-10 h-10 object-contain" />
+        <img src="/icons/quizball-unlimited-logo.png" alt="" class="w-12 h-12 object-contain" />
       </div>
     </div>
   } @else if (question()) {
-    <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
-      <!-- Header Card -->
-      <div class="question-header-card rounded-xl p-3 mb-4">
+    <div class="max-w-2xl mx-auto w-full flex flex-col flex-1 relative z-10">
+      <!-- Premium Header Card -->
+      <div class="question-header-card rounded-2xl p-4 mb-5">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="question-difficulty-badge px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider"
+          <div class="flex items-center gap-3">
+            <span class="question-difficulty-badge px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider"
                   [class]="difficultyBadgeClass()">
               {{ question()?.difficulty }}
             </span>
-            <span class="text-muted-foreground text-xs font-medium">{{ categoryLabel() }}</span>
+            <span class="text-muted-foreground text-sm font-medium tracking-wide">{{ categoryLabel() }}</span>
           </div>
-          <div class="question-points text-xl font-black">
+          <div class="question-points text-2xl font-black tracking-tight">
             {{ currentPoints() }}<span class="text-sm font-bold opacity-70 ml-0.5">pts</span>
           </div>
         </div>
       </div>
 
-      <!-- Current player indicator -->
-      <div class="question-player-indicator flex items-center justify-center gap-2 mb-4">
+      <!-- Premium Player Indicator -->
+      <div class="question-player-indicator flex items-center justify-center gap-3 mb-5">
         <span [class]="'question-player-dot ' + playerDotClass()"></span>
-        <span class="text-foreground text-sm font-semibold">{{ store.currentPlayer()?.name }}</span>
-        <span class="text-muted-foreground text-xs">{{ lang.t().yourTurn }}</span>
+        <span class="text-foreground text-sm font-semibold tracking-wide">{{ store.currentPlayer()?.name }}</span>
+        <span class="text-muted-foreground text-xs font-medium">{{ lang.t().yourTurn }}</span>
       </div>
 
       <!-- Question renderer by category -->
@@ -54,22 +54,22 @@
 
       <!-- 2x Armed indicator -->
       @if (store.doubleArmed()) {
-        <div class="mt-4 p-3 bg-win/10 border border-win/50 rounded-xl text-center">
-          <div class="text-win text-sm font-bold">{{ lang.t().doubleArmed }}</div>
+        <div class="mt-5 p-4 bg-win/10 border border-win/50 rounded-2xl text-center backdrop-blur-sm">
+          <div class="text-win text-base font-bold tracking-wide">{{ lang.t().doubleArmed }}</div>
         </div>
       }
 
       <!-- 50-50 -->
       @if (showLifeline() || store.fiftyFiftyOptions()) {
-        <div class="mt-4">
+        <div class="mt-5">
           @if (store.fiftyFiftyOptions(); as opts) {
-            <div class="p-4 bg-accent/10 border border-accent/50 rounded-xl">
-              <div class="text-accent text-sm font-bold mb-3 text-center">🎯 50-50 — Pick one (1 pt if correct)</div>
+            <div class="p-5 bg-accent/10 border border-accent/40 rounded-2xl backdrop-blur-sm">
+              <div class="text-accent text-sm font-bold mb-4 text-center tracking-wide">50-50 — Pick one (1 pt if correct)</div>
               <div class="grid grid-cols-2 gap-3">
                 @for (opt of opts; track $index) {
                   <button
                     (click)="submitFiftyFifty(opt)"
-                    class="py-3 px-4 rounded-xl bg-muted border border-border text-foreground font-semibold hover:bg-accent/20 hover:border-accent focus:outline-none focus:ring-0 active:scale-95 transition text-sm"
+                    class="py-3.5 px-5 rounded-xl bg-muted border border-border text-foreground font-semibold hover:bg-accent/20 hover:border-accent focus:outline-none focus:ring-0 active:scale-95 transition-all duration-300"
                   >
                     {{ opt }}
                   </button>
@@ -79,20 +79,20 @@
           } @else {
             <button
               (click)="useLifeline()"
-              class="w-full py-3 rounded-xl border border-accent/50 text-accent font-bold hover:bg-accent/10 transition text-sm"
+              class="w-full py-3.5 rounded-xl border border-accent/50 text-accent font-bold hover:bg-accent/10 hover:border-accent transition-all duration-300 text-sm"
             >
-              🎯 Use 50-50 (reduces to 1 pt)
+              Use 50-50 (reduces to 1 pt)
             </button>
           }
         </div>
       }
 
       <!-- Report problem -->
-      <div class="mt-auto pt-6">
+      <div class="mt-auto pt-8">
         <button
           (click)="reportQuestion()"
           [disabled]="reportDisabled()"
-          class="w-full py-2 rounded-xl border border-border text-muted-foreground text-sm hover:bg-muted hover:border-border transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+          class="w-full py-3 rounded-xl border border-border text-muted-foreground text-sm hover:bg-muted/50 hover:border-border/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
         >
           {{ reportDisabled() ? lang.t().reportCooldown : lang.t().reportProblem }}
         </button>
@@ -103,12 +103,13 @@
 
 <!-- Problem reported popup -->
 @if (problemReported()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
-    <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
-      <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" (click)="dismissProblemReported()">
+    <div class="bg-card rounded-2xl p-8 border border-border shadow-2xl max-w-sm text-center backdrop-blur-xl" (click)="$event.stopPropagation()">
+      <p class="text-foreground font-semibold text-xl mb-1">{{ lang.t().problemReported }}</p>
+      <p class="text-muted-foreground text-sm mb-6">Thank you for your feedback</p>
       <button
         (click)="dismissProblemReported()"
-        class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
+        class="px-8 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light transition-all duration-300 text-base"
       >
         OK
       </button>
@@ -119,8 +120,8 @@
 <!-- Default text question template -->
 <ng-template #defaultTemplate>
   <div class="flex flex-col">
-    <div class="bg-card rounded-2xl p-6 mb-6 border border-border min-h-[140px]">
-      <p class="text-foreground text-xl leading-relaxed">{{ question()?.question_text }}</p>
+    <div class="question-card bg-card rounded-2xl p-7 mb-6 border border-border min-h-[160px] flex items-center">
+      <p class="text-foreground text-xl leading-relaxed font-medium">{{ question()?.question_text }}</p>
     </div>
     @if (!store.fiftyFiftyOptions()) {
       <div class="flex gap-3">
@@ -128,12 +129,12 @@
           [(ngModel)]="answer"
           (keydown.enter)="submit()"
           [placeholder]="lang.t().typeAnswer"
-          class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+          class="flex-1 px-5 py-3.5 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent text-base"
         />
         <button
           (click)="submit()"
           [disabled]="!answer.trim()"
-          class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
+          class="px-7 py-3.5 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable text-base"
         >
           {{ lang.t().submit }}
         </button>
@@ -145,22 +146,22 @@
 <!-- Higher or Lower template -->
 <ng-template #holTemplate>
   <div class="flex flex-col">
-    <div class="question-card bg-card rounded-xl p-6 mb-6 border border-border text-center min-h-[120px] flex items-center justify-center">
-      <p class="text-foreground text-lg leading-relaxed">{{ question()?.question_text }}</p>
+    <div class="question-card bg-card rounded-2xl p-7 mb-6 border border-border text-center min-h-[140px] flex items-center justify-center">
+      <p class="text-foreground text-xl leading-relaxed font-medium">{{ question()?.question_text }}</p>
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-4">
       <button
         (click)="submitHol('higher')"
-        class="hol-btn hol-btn--higher py-5 rounded-xl text-white font-black text-xl active:scale-95 transition flex flex-col items-center justify-center gap-1"
+        class="hol-btn hol-btn--higher py-6 rounded-2xl text-white font-black text-xl tracking-wide transition flex flex-col items-center justify-center gap-2"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
         {{ lang.t().higher }}
       </button>
       <button
         (click)="submitHol('lower')"
-        class="hol-btn hol-btn--lower py-5 rounded-xl text-white font-black text-xl active:scale-95 transition flex flex-col items-center justify-center gap-1"
+        class="hol-btn hol-btn--lower py-6 rounded-2xl text-white font-black text-xl tracking-wide transition flex flex-col items-center justify-center gap-2"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
         {{ lang.t().lower }}
       </button>
     </div>
@@ -170,14 +171,16 @@
 <!-- Logo Quiz template -->
 <ng-template #logoTemplate>
   <div class="flex flex-col">
-    <div class="bg-card rounded-2xl p-6 mb-6 border border-border text-center">
-      <p class="text-muted-foreground text-sm mb-4">{{ question()?.question_text }}</p>
+    <div class="question-card bg-card rounded-2xl p-7 mb-6 border border-border text-center">
+      <p class="text-muted-foreground text-sm mb-5 font-medium">{{ question()?.question_text }}</p>
       @if (question()?.image_url) {
-        <img
-          [src]="question()?.image_url!"
-          alt="Club badge"
-          class="w-40 h-40 object-contain mx-auto"
-        />
+        <div class="relative inline-block">
+          <img
+            [src]="question()?.image_url!"
+            alt="Club badge"
+            class="w-44 h-44 object-contain mx-auto drop-shadow-lg hover:scale-105 transition-transform duration-300"
+          />
+        </div>
       }
     </div>
     <div class="flex gap-3">
@@ -185,12 +188,12 @@
         [(ngModel)]="answer"
         (keydown.enter)="submit()"
         [placeholder]="lang.t().clubName"
-        class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent"
+        class="flex-1 px-5 py-3.5 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent text-base"
       />
       <button
         (click)="submit()"
         [disabled]="!answer.trim()"
-        class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
+        class="px-7 py-3.5 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable text-base"
       >
         {{ lang.t().submit }}
       </button>
@@ -201,23 +204,23 @@
 <!-- Player ID template -->
 <ng-template #playerIdTemplate>
   <div class="flex flex-col">
-    <div class="bg-card rounded-2xl p-6 mb-6 border border-border">
-      <p class="text-muted-foreground text-sm mb-4">{{ question()?.question_text }}</p>
+    <div class="question-card bg-card rounded-2xl p-7 mb-6 border border-border">
+      <p class="text-muted-foreground text-sm mb-5 font-medium">{{ question()?.question_text }}</p>
       @if (careerPath()) {
-        <div class="space-y-2">
+        <div class="space-y-3">
           @for (entry of careerPath(); track $index) {
-            <div class="flex items-center gap-3">
-              <div class="w-2 h-2 rounded-full bg-accent shrink-0"></div>
-              <span class="text-foreground font-medium">{{ entry.club }}</span>
+            <div class="flex items-center gap-3 py-1 hover:bg-white/[0.02] rounded-lg transition-colors">
+              <div class="w-2.5 h-2.5 rounded-full bg-accent shrink-0 shadow-[0_0_8px_rgba(204,255,0,0.4)]"></div>
+              <span class="text-foreground font-semibold">{{ entry.club }}</span>
               @if (entry.is_loan) {
-                <span class="px-2 py-0.5 rounded-full bg-accent/10 border border-accent/30 text-accent text-[10px] font-bold uppercase tracking-wide">
+                <span class="px-2.5 py-1 rounded-full bg-accent/10 border border-accent/30 text-accent text-[10px] font-bold uppercase tracking-wider">
                   {{ lang.t().loanSpell }}
                 </span>
               }
-              <span class="text-muted-foreground text-sm ml-auto">{{ entry.from }} – {{ entry.to }}</span>
+              <span class="text-muted-foreground text-sm ml-auto font-medium tabular-nums">{{ entry.from }} – {{ entry.to }}</span>
             </div>
             @if ($index < careerPath()!.length - 1) {
-              <div class="ml-1 border-l-2 border-border h-3"></div>
+              <div class="ml-1.5 border-l-2 border-border/50 h-3"></div>
             }
           }
         </div>
@@ -229,12 +232,12 @@
           [(ngModel)]="answer"
           (keydown.enter)="submit()"
           [placeholder]="lang.t().playerName"
-          class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent"
+          class="flex-1 px-5 py-3.5 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent text-base"
         />
         <button
           (click)="submit()"
           [disabled]="!answer.trim()"
-          class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
+          class="px-7 py-3.5 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable text-base"
         >
           {{ lang.t().submit }}
         </button>
@@ -246,24 +249,24 @@
 <!-- Guess Score template -->
 <ng-template #guessScoreTemplate>
   <div class="flex flex-col">
-    <div class="bg-card rounded-2xl p-6 mb-6 border border-border min-h-[140px]">
+    <div class="question-card bg-card rounded-2xl p-7 mb-6 border border-border min-h-[160px] flex items-center justify-center">
       @if (matchMeta()) {
-        <div class="text-center">
-          <div class="text-muted-foreground text-sm mb-4">{{ matchMeta()?.competition }} · {{ matchMeta()?.date }}</div>
-          <div class="flex items-center justify-center gap-6">
-            <div class="text-center">
-              <div class="text-foreground font-bold text-lg">{{ matchMeta()?.home_team }}</div>
-              <div class="text-xs text-muted-foreground mt-1">{{ lang.t().home }}</div>
+        <div class="text-center w-full">
+          <div class="text-muted-foreground text-sm mb-5 font-medium tracking-wide">{{ matchMeta()?.competition }} · {{ matchMeta()?.date }}</div>
+          <div class="flex items-center justify-center gap-8">
+            <div class="text-center flex-1">
+              <div class="text-foreground font-bold text-xl mb-1.5">{{ matchMeta()?.home_team }}</div>
+              <div class="text-xs text-muted-foreground uppercase tracking-wider font-medium">{{ lang.t().home }}</div>
             </div>
-            <div class="text-4xl font-black text-muted-foreground">vs</div>
-            <div class="text-center">
-              <div class="text-foreground font-bold text-lg">{{ matchMeta()?.away_team }}</div>
-              <div class="text-xs text-muted-foreground mt-1">{{ lang.t().away }}</div>
+            <div class="text-5xl font-black text-muted-foreground/40">vs</div>
+            <div class="text-center flex-1">
+              <div class="text-foreground font-bold text-xl mb-1.5">{{ matchMeta()?.away_team }}</div>
+              <div class="text-xs text-muted-foreground uppercase tracking-wider font-medium">{{ lang.t().away }}</div>
             </div>
           </div>
         </div>
       } @else {
-        <p class="text-foreground text-lg">{{ question()?.question_text }}</p>
+        <p class="text-foreground text-xl font-medium">{{ question()?.question_text }}</p>
       }
     </div>
     @if (!store.fiftyFiftyOptions()) {
@@ -272,12 +275,12 @@
           [(ngModel)]="answer"
           (keydown.enter)="submit()"
           [placeholder]="lang.t().scorePlaceholder"
-          class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent"
+          class="flex-1 px-5 py-3.5 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent text-base"
         />
         <button
           (click)="submit()"
           [disabled]="!answer.trim()"
-          class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
+          class="px-7 py-3.5 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable text-base"
         >
           {{ lang.t().submit }}
         </button>
@@ -290,33 +293,33 @@
 <ng-template #top5Template>
   <div class="flex flex-col">
     <!-- Question -->
-    <div class="bg-card rounded-2xl p-5 mb-4 border border-border">
-      <p class="text-foreground text-lg leading-relaxed">{{ question()?.question_text }}</p>
+    <div class="question-card bg-card rounded-2xl p-6 mb-5 border border-border">
+      <p class="text-foreground text-xl leading-relaxed font-medium">{{ question()?.question_text }}</p>
     </div>
 
     <!-- Lives indicator -->
     @if (store.top5State(); as t5) {
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-muted-foreground text-sm">{{ t5.filledCount }}{{ lang.t().found }}</span>
-        <div class="flex items-center gap-1.5">
-          <span class="text-muted-foreground text-sm">{{ lang.t().lives }}</span>
+      <div class="flex items-center justify-between mb-4 px-1">
+        <span class="text-muted-foreground text-sm font-medium">{{ t5.filledCount }}{{ lang.t().found }}</span>
+        <div class="flex items-center gap-2">
+          <span class="text-muted-foreground text-sm font-medium">{{ lang.t().lives }}</span>
           @for (i of [0, 1]; track i) {
-            <span class="text-lg" [class.grayscale]="t5.wrongCount > i" [class.opacity-30]="t5.wrongCount > i">❤️</span>
+            <span class="text-xl transition-all duration-300" [class.grayscale]="t5.wrongCount > i" [class.opacity-30]="t5.wrongCount > i" [class.drop-shadow-[0_0_4px_rgba(239,68,68,0.5)]]="t5.wrongCount <= i">&#10084;</span>
           }
         </div>
       </div>
 
       <!-- Top 5 slots -->
-      <div class="space-y-2 mb-4">
+      <div class="space-y-2.5 mb-5">
         @for (slot of t5.filledSlots; track $index) {
-          <div class="flex items-center gap-3 px-4 py-3 rounded-xl border"
-               [class]="slot ? 'bg-win/10 border-win/50' : 'bg-card border-border'">
-            <span class="text-accent font-black text-lg w-6 shrink-0">{{ $index + 1 }}</span>
+          <div class="flex items-center gap-4 px-5 py-3.5 rounded-xl border backdrop-blur-sm transition-all duration-300"
+               [class]="slot ? 'bg-win/10 border-win/50 shadow-[0_0_16px_rgba(204,255,0,0.1)]' : 'bg-card border-border hover:border-border/80'">
+            <span class="text-accent font-black text-xl w-7 shrink-0 drop-shadow-[0_0_8px_rgba(204,255,0,0.3)]">{{ $index + 1 }}</span>
             @if (slot) {
-              <span class="text-foreground font-semibold">{{ slot.name }}</span>
-              <span class="text-muted-foreground text-sm ml-auto">({{ slot.stat }})</span>
+              <span class="text-foreground font-semibold text-base">{{ slot.name }}</span>
+              <span class="text-muted-foreground text-sm ml-auto font-medium">({{ slot.stat }})</span>
             } @else {
-              <span class="text-slate-600 italic text-sm">???</span>
+              <span class="text-muted-foreground/40 italic text-sm">???</span>
             }
           </div>
         }
@@ -324,13 +327,13 @@
 
       <!-- Wrong guesses -->
       @if (t5.wrongGuesses.length > 0) {
-        <div class="mb-4">
-          <p class="text-muted-foreground text-xs uppercase tracking-wider mb-2">{{ lang.t().notInTop5Label }}</p>
-          <div class="space-y-1.5">
+        <div class="mb-5">
+          <p class="text-muted-foreground text-xs uppercase tracking-widest mb-2.5 font-medium">{{ lang.t().notInTop5Label }}</p>
+          <div class="space-y-2">
             @for (wrong of t5.wrongGuesses; track $index) {
-              <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-loss/10 border border-loss/50">
-                <span class="text-loss text-sm font-medium">{{ wrong.name }}</span>
-                <span class="text-loss text-xs ml-auto">{{ lang.t().notInTop5 }}</span>
+              <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-loss/10 border border-loss/50 backdrop-blur-sm">
+                <span class="text-loss text-sm font-semibold">{{ wrong.name }}</span>
+                <span class="text-loss/70 text-xs ml-auto font-medium">{{ lang.t().notInTop5 }}</span>
               </div>
             }
           </div>
@@ -341,7 +344,7 @@
       @if (!t5.complete && t5.filledCount === 4) {
         <button
           (click)="stopTop5Early()"
-          class="w-full mb-3 py-3 rounded-xl border border-accent/60 text-accent font-bold hover:bg-accent/10 transition text-sm"
+          class="w-full mb-4 py-3.5 rounded-xl border border-accent/60 text-accent font-bold hover:bg-accent/10 hover:border-accent transition-all duration-300 text-sm"
         >
           {{ lang.t().stopEarly }}
         </button>
@@ -354,23 +357,23 @@
             [(ngModel)]="top5Answer"
             (keydown.enter)="submitTop5Guess()"
             [placeholder]="lang.t().typePlayer"
-            class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+            class="flex-1 px-5 py-3.5 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent text-base"
           />
           <button
             (click)="submitTop5Guess()"
             [disabled]="!top5Answer.trim()"
-            class="px-6 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable"
+            class="px-7 py-3.5 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light active:scale-95 transition disabled:opacity-40 pressable text-base"
           >
             {{ lang.t().guess }}
           </button>
         </div>
         @if (t5.wrongCount === 1) {
-          <p class="text-loss text-xs text-center mt-2">{{ lang.t().oneWrong }}</p>
+          <p class="text-loss text-sm text-center mt-3 font-medium animate-pulse">{{ lang.t().oneWrong }}</p>
         }
       } @else {
-        <div class="mt-2 p-3 rounded-xl text-center"
-             [class]="t5.won ? 'bg-win/10 border border-win/50' : 'bg-loss/10 border border-loss/50'">
-          <p class="font-bold" [class]="t5.won ? 'text-win' : 'text-loss'">
+        <div class="mt-3 p-4 rounded-xl text-center"
+             [class]="t5.won ? 'bg-win/10 border border-win/50 shadow-[0_0_24px_rgba(204,255,0,0.15)]' : 'bg-loss/10 border border-loss/50'">
+          <p class="font-bold text-lg" [class]="t5.won ? 'text-win' : 'text-loss'">
             {{ t5.filledCount === 5 ? lang.t().allFound : t5.won ? lang.t().stoppedEarly : lang.t().questionLost }}
           </p>
         </div>
