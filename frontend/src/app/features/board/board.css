@@ -21,103 +21,158 @@
   box-shadow: 0 0 8px rgba(204, 255, 0, 0.3);
 }
 
-.board-score-card {
-  border: 1px solid transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+/* Score bar layout */
+.board-scorebar {
+  display: flex;
+  align-items: stretch;
 }
 
+.board-score-card {
+  position: relative;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Turn indicator strip at top of card */
+.board-turn-strip {
+  height: 3px;
+  width: 100%;
+}
+
+.board-turn-strip--p1 {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+}
+
+.board-turn-strip--p2 {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+}
+
+/* Player 1 card */
 .board-score-card--p1 {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .board-score-card--p1.active {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.2) 100%);
-  border-color: rgba(59, 130, 246, 0.6);
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
   box-shadow:
-    0 0 0 2px rgba(59, 130, 246, 0.2),
-    0 4px 16px rgba(59, 130, 246, 0.25);
+    0 0 0 1px rgba(59, 130, 246, 0.3),
+    0 8px 24px rgba(59, 130, 246, 0.2);
 }
 
+/* Player 2 card */
 .board-score-card--p2 {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
-  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
 }
 
 .board-score-card--p2.active {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
-  border-color: rgba(239, 68, 68, 0.6);
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
   box-shadow:
-    0 0 0 2px rgba(239, 68, 68, 0.2),
-    0 4px 16px rgba(239, 68, 68, 0.25);
+    0 0 0 1px rgba(239, 68, 68, 0.3),
+    0 8px 24px rgba(239, 68, 68, 0.2);
 }
 
-.board-player-name {
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
+/* Player names */
 .board-player-name--p1 { color: #60a5fa; }
 .board-player-name--p2 { color: #f87171; }
 
+/* Turn badge */
+.board-turn-badge {
+  letter-spacing: 0.05em;
+}
+
+.board-turn-badge--p1 {
+  background: rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.board-turn-badge--p2 {
+  background: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* Score display */
 .board-score {
   color: var(--color-foreground);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1;
 }
 
-.board-pill {
-  background: rgba(255, 255, 255, 0.1);
+/* Power-ups */
+.board-powerup {
+  background: rgba(255, 255, 255, 0.08);
   color: var(--color-muted-foreground);
-  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.board-stat-pill {
-  background: rgba(204, 255, 0, 0.1);
+.board-powerup--used {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.board-powerup-armed {
+  background: rgba(204, 255, 0, 0.2);
   color: var(--color-accent);
-  font-weight: 600;
+  border: 1px solid rgba(204, 255, 0, 0.4);
+  animation: pulse-glow 1.5s ease-in-out infinite;
 }
 
-.board-double-btn {
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(204, 255, 0, 0.3); }
+  50% { box-shadow: 0 0 12px rgba(204, 255, 0, 0.6); }
+}
+
+.board-use-double {
   background: transparent;
   border: 1px solid var(--color-accent);
   color: var(--color-accent);
 }
 
-.board-double-btn:hover {
-  background: rgba(204, 255, 0, 0.1);
+.board-use-double:hover {
+  background: rgba(204, 255, 0, 0.15);
 }
 
-.board-turn-center {
-  min-width: 4.5rem;
+/* Stats */
+.board-stat {
+  color: var(--color-muted-foreground);
 }
 
-.board-turn-label {
-  font-size: 0.625rem;
+.board-stat::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
 }
 
-.board-turn-name {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+/* VS divider */
+.board-vs-divider {
+  min-width: 2.5rem;
+  flex-shrink: 0;
 }
 
-.board-turn-name--p1 {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
-}
-
-.board-turn-name--p2 {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
+.board-vs {
+  opacity: 0.5;
 }
 
 .board-end-btn {
-  background: transparent;
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--color-muted-foreground);
 }
 
 .board-end-btn:hover {
-  border-color: var(--color-loss);
-  color: var(--color-loss);
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
 }
 
 .board-category-row {
