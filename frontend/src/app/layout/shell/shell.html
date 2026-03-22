@@ -1,5 +1,7 @@
 <div class="shell-layout">
-  <app-top-nav />
+  @if (isHome()) {
+    <app-top-nav />
+  }
   <app-upgrade-modal />
   <main class="shell-main" [class.shell-main--no-top-pad]="isHome()">
     <router-outlet />
