@@ -37,8 +37,8 @@
 }
 
 .mode-card-container--primary:hover {
-  background: #34d399;
-  border-color: color-mix(in srgb, #34d399 72%, #000000 28%);
+  background: color-mix(in srgb, #4dff00 88%, #000000 12%);
+  border-color: color-mix(in srgb, #10b981 60%, #000000 40%);
 }
 
 .mode-card-container--accent {
