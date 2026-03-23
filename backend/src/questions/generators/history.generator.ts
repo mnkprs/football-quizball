@@ -45,7 +45,7 @@ Return ONLY a valid JSON object with these exact fields:
   "question_text": "the question",
   "correct_answer": "the answer (short, 1-5 words)",
   "answer_type": "name",
-  ${this.getFiftyFiftyHintInstruction('name or short phrase matching answer_type')},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+  ${this.getFiftyFiftyHintInstruction('name or short phrase matching answer_type')},${this.wrongChoicesPromptBlock()}
   "explanation": "brief explanation of why this is correct (1-2 sentences)",
   ${this.getSourceUrlInstruction()},
   "event_year": 2022,
@@ -64,7 +64,7 @@ specificity_score is 1-5: 1 = general knowledge ("Who won the 2022 World Cup?"),
     const userPrompt = `Generate a unique football history trivia question. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<HistoryPayload>(systemPrompt, userPrompt);
-    return this.mapQuestion(result, options?.forBlitz);
+    return this.mapQuestion(result);
   }
 
   async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
@@ -80,6 +80,7 @@ Return ONLY a valid JSON object:
       "correct_answer": "the answer",
       "answer_type": "player name",
       "fifty_fifty_hint": "another player name (wrong answer, same format as correct_answer — NOT a description like 'Italian defender')",
+      "wrong_choices": ["plausible wrong answer 1", "plausible wrong answer 2", "plausible wrong answer 3"],
       "explanation": "brief explanation",
       "source_url": "URL to verify the answer",
       "event_year": 2022,
@@ -94,10 +95,10 @@ ${getLeagueFameGuidanceForBatch('HISTORY', options?.targetDifficulty)}`;
     const userPrompt = `Generate ${questionCount} football history questions in one batch. ${getRelativityConstraint('HISTORY', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: HistoryPayload[] }>(systemPrompt, userPrompt);
-    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));
+    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));
   }
 
-  private mapQuestion(result: HistoryPayload, forBlitz = false): GeneratedQuestion {
+  private mapQuestion(result: HistoryPayload): GeneratedQuestion {
     if (!result.question_text || !result.correct_answer) {
       throw new Error('Invalid LLM response: missing question_text or correct_answer');
     }
@@ -108,7 +109,7 @@ ${getLeagueFameGuidanceForBatch('HISTORY', options?.targetDifficulty)}`;
       points: 1,
       question_text: result.question_text,
       correct_answer: result.correct_answer,
-      wrong_choices: this.extractWrongChoices(forBlitz, result.wrong_choices, result.correct_answer),
+      wrong_choices: this.extractWrongChoices(result.wrong_choices, result.correct_answer),
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',

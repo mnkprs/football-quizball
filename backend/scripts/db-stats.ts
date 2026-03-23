@@ -41,19 +41,15 @@ async function main() {
   console.log('\nquestions_v1 (storage/archive)');
   console.log(`  total: ${v1Total ?? 0}`);
 
-  // blitz_question_pool
-  const { count: bqpTotal } = await supabase.client
-    .from('blitz_question_pool')
-    .select('id', { count: 'exact', head: true });
-  const { count: bqpUnanswered } = await supabase.client
-    .from('blitz_question_pool')
+  // blitz-ready questions (from question_pool, categories with wrong_choices)
+  const { count: blitzReady } = await supabase.client
+    .from('question_pool')
     .select('id', { count: 'exact', head: true })
-    .eq('used', false);
+    .in('category', ['HISTORY', 'GEOGRAPHY', 'GOSSIP', 'PLAYER_ID'])
+    .not('question->wrong_choices', 'is', null);
 
-  console.log('\nblitz_question_pool');
-  console.log(`  total: ${bqpTotal ?? 0}`);
-  console.log(`  unanswered (available): ${bqpUnanswered ?? 0}`);
-  console.log('  Automations: blitz top-up (daily 3AM), cleanup');
+  console.log('\nBlitz/BattleRoyale-ready questions (question_pool with wrong_choices)');
+  console.log(`  total: ${blitzReady ?? 0}`);
 
   // daily_questions
   const { count: dqCount } = await supabase.client

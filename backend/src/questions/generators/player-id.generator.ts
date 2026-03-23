@@ -55,7 +55,7 @@ Return ONLY a valid JSON object with these exact fields:
   "career": [{"club": "Club Name", "from": "YYYY", "to": "YYYY or Present", "is_loan": false}],
   "nationality": "Nationality",
   "position": "Position",
-  "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",${this.wrongChoicesPromptBlock(options?.forBlitz ?? false, 'player')}
+  "wrong_player_name": "A different real player who played in a similar era/league (decoy for 50-50)",${this.wrongChoicesPromptBlock('player')}
   "image_url": null,
   ${this.getSourceUrlInstruction()},
   "competition": "most notable league/competition where this player was famous e.g. Premier League",
@@ -78,7 +78,7 @@ specificity_score is 1-5: 1 = iconic player with unique club path, 3 = known pla
     const userPrompt = `Generate a unique "guess the player" challenge with accurate career history. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<PlayerIdPayload>(systemPrompt, userPrompt);
-    return this.mapQuestion(result, options?.forBlitz);
+    return this.mapQuestion(result);
   }
 
   async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
@@ -92,6 +92,7 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
   "nationality": "Nationality",
   "position": "Position",
   "wrong_player_name": "A plausible wrong player",
+  "wrong_choices": ["plausible wrong player 1", "plausible wrong player 2", "plausible wrong player 3"],
   "image_url": null,
   "source_url": "URL to verify the player and career",
   "competition": "most notable competition",
@@ -108,10 +109,10 @@ ${getLeagueFameGuidanceForBatch('PLAYER_ID')}`;
     const userPrompt = `Generate ${questionCount} player-id questions in one batch. ${getRelativityConstraint('PLAYER_ID', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: PlayerIdPayload[] }>(systemPrompt, userPrompt);
-    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));
+    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));
   }
 
-  private mapQuestion(result: PlayerIdPayload, forBlitz = false): GeneratedQuestion {
+  private mapQuestion(result: PlayerIdPayload): GeneratedQuestion {
     if (!result.player_name || !result.career?.length) {
       throw new Error('Invalid LLM response: missing player_name or career');
     }
@@ -135,7 +136,7 @@ ${getLeagueFameGuidanceForBatch('PLAYER_ID')}`;
       points: 1,
       question_text: result.question_text ?? 'Identify the player from their career path:',
       correct_answer: result.player_name,
-      wrong_choices: this.extractWrongChoices(forBlitz, result.wrong_choices, result.player_name),
+      wrong_choices: this.extractWrongChoices(result.wrong_choices, result.player_name),
       fifty_fifty_hint: result.wrong_player_name || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation ?? `The player is ${result.player_name}. Career: ${careerText}`,

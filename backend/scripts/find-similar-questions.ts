@@ -205,40 +205,6 @@ async function run() {
     console.log('question_pool is empty');
   }
 
-  console.log('=== Similar questions in blitz_question_pool (by category) ===\n');
-  let bqpData: PoolRow[] | null = null;
-  try {
-    bqpData = await fetchAllRows<PoolRow>(supabase.client, 'blitz_question_pool', 'id, category, difficulty_score, question');
-  } catch (bqpErr: unknown) {
-    const err = bqpErr as { code?: string; message?: string };
-    if (err?.code === '42P01') console.log('blitz_question_pool does not exist');
-    else console.error('blitz_question_pool error:', err?.message ?? bqpErr);
-  }
-
-  if (bqpData?.length) {
-    const pairs = findSimilarPairs(
-      bqpData as PoolRow[],
-      (r) => r.category,
-      MIN_SCORE,
-    );
-    if (pairs.length === 0) {
-      console.log('No similar pairs found (above threshold).');
-    } else {
-      console.log(`Found ${pairs.length} similar pairs (score >= ${MIN_SCORE}):\n`);
-      pairs.slice(0, 25).forEach((p, i) => {
-        const qa = (p.a.question?.question_text ?? '').slice(0, 55);
-        const qb = (p.b.question?.question_text ?? '').slice(0, 55);
-        console.log(`${i + 1}. [${p.a.category}] score ${p.score.toFixed(2)}`);
-        console.log(`   A: "${qa}${qa.length >= 55 ? '...' : ''}"`);
-        console.log(`   B: "${qb}${qb.length >= 55 ? '...' : ''}"`);
-        console.log(`   → ${p.reasons.join('; ')}\n`);
-      });
-      if (pairs.length > 25) console.log(`... and ${pairs.length - 25} more.\n`);
-    }
-  } else if (bqpData !== null) {
-    console.log('blitz_question_pool is empty');
-  }
-
   await app.close();
 }
 

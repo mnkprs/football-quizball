@@ -3,7 +3,6 @@ export interface GeneratorOptions {
   avoidQuestions?: string[];
   slotIndex?: number;
   minorityScale?: number;
-  forBlitz?: boolean;
 }
 
 export interface GeneratorBatchOptions {

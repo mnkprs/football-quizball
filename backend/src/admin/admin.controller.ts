@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Put, Query, Param, HttpCode, HttpStatus, Logger, UseGuards, Header, Body } from '@nestjs/common';
 import { QuestionPoolService } from '../questions/question-pool.service';
-import { BlitzPoolSeederService } from '../blitz/blitz-pool-seeder.service';
 import { AdminScriptsService } from './admin-scripts.service';
 import { MigratePoolDifficultyService } from '../questions/migrate-pool-difficulty.service';
 import { ThresholdConfigService, type ScoreThresholds } from '../questions/threshold-config.service';
@@ -13,7 +12,6 @@ export class AdminController {
 
   constructor(
     private questionPoolService: QuestionPoolService,
-    private blitzPoolSeederService: BlitzPoolSeederService,
     private adminScriptsService: AdminScriptsService,
     private migratePoolDifficultyService: MigratePoolDifficultyService,
     private thresholdConfig: ThresholdConfigService,
@@ -181,41 +179,7 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async cleanupQuestions() {
     const questionPool = await this.questionPoolService.cleanupPool();
-    const blitzPool = await this.blitzPoolSeederService.cleanupPool();
-    return {
-      question_pool: questionPool,
-      blitz_question_pool: blitzPool,
-    };
-  }
-
-  /**
-   * Seed the blitz question pool. Fills each band to the target count.
-   * Example: POST /api/admin/seed-blitz-pool?target=150
-   */
-  @Post('seed-blitz-pool')
-  @UseGuards(AdminApiKeyGuard)
-  @HttpCode(HttpStatus.OK)
-  async seedBlitzPool(@Query('target') target?: string) {
-    const count = target ? Math.min(500, Math.max(1, parseInt(target, 10))) : undefined;
-    this.logger.log(`[seed-blitz-pool] Request received: target=${count ?? 'default'}`);
-    const results = await this.blitzPoolSeederService.seedPool(count);
-    return {
-      target: count ?? 'band-defaults',
-      results,
-      totalAdded: results.reduce((sum, r) => sum + r.added, 0),
-    };
-  }
-
-  /**
-   * Dedupe wrong_choices arrays in blitz_question_pool.
-   * Example: POST /api/admin/dedupe-blitz-wrong-choices
-   */
-  @Post('dedupe-blitz-wrong-choices')
-  @UseGuards(AdminApiKeyGuard)
-  @HttpCode(HttpStatus.OK)
-  async dedupeBlitzWrongChoices() {
-    this.logger.log('[dedupe-blitz-wrong-choices] Request received');
-    return this.adminScriptsService.dedupeBlitzWrongChoices();
+    return { question_pool: questionPool };
   }
 
   /**
@@ -239,7 +203,7 @@ export class AdminController {
   }
 
   /**
-   * Get DB stats (row counts for question_pool, blitz_question_pool, etc.).
+   * Get DB stats (row counts for question_pool, etc.).
    * Example: GET /api/admin/db-stats
    */
   @Get('db-stats')

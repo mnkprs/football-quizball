@@ -75,7 +75,7 @@
         <div class="br-play__question-panel">
           <p class="br-play__q-index">Q{{ q.index + 1 }} / {{ store.roomView()?.questionCount }}</p>
 
-          @if (q.category === 'PLAYER_ID' && q.meta?.career?.length) {
+          @if (q.category === 'PLAYER_ID' && q.meta.career.length) {
             <p class="br-play__q-label">Who is this player?</p>
             <div class="br-play__career-path">
               @for (stop of q.meta.career; track stop.club; let last = $last) {

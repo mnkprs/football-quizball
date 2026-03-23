@@ -53,28 +53,24 @@ export abstract class BaseGenerator {
 
   /**
    * Returns the `wrong_choices` JSON field snippet to embed in the prompt schema.
-   * Returns an empty string when not in Blitz mode.
    *
    * @param label  Word describing what the choices represent, e.g. "answer" or "player".
    */
-  protected wrongChoicesPromptBlock(forBlitz: boolean, label = 'answer'): string {
-    return forBlitz
-      ? `\n  "wrong_choices": ["plausible wrong ${label} 1", "plausible wrong ${label} 2", "plausible wrong ${label} 3"],`
-      : '';
+  protected wrongChoicesPromptBlock(label = 'answer'): string {
+    return `\n  "wrong_choices": ["plausible wrong ${label} 1", "plausible wrong ${label} 2", "plausible wrong ${label} 3"],`;
   }
 
   // ── LLM output helpers ─────────────────────────────────────────────────────
 
   /**
-   * Extracts and validates `wrong_choices` from LLM output for Blitz mode.
-   * Returns `undefined` if fewer than 2 valid, non-duplicate choices are present.
+   * Extracts and validates `wrong_choices` from LLM output.
+   * Returns `undefined` if fewer than 3 valid, non-duplicate choices are present.
    */
   protected extractWrongChoices(
-    forBlitz: boolean,
     wrongChoicesRaw: unknown,
     correctAnswer: string,
   ): string[] | undefined {
-    if (!forBlitz || !Array.isArray(wrongChoicesRaw)) return undefined;
+    if (!Array.isArray(wrongChoicesRaw)) return undefined;
     const filtered = (wrongChoicesRaw as unknown[])
       .filter((s): s is string => typeof s === 'string' && s.trim() !== '')
       .filter((s) => s.trim().toLowerCase() !== correctAnswer.trim().toLowerCase())

@@ -36,45 +36,8 @@ type PoolRow = {
 export class AdminScriptsService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async dedupeBlitzWrongChoices(): Promise<{ updated: number }> {
-    const rows = await fetchAllRows<PoolRow>(
-      this.supabase.client,
-      'blitz_question_pool',
-      'id, question',
-    );
-
-    const dedupeWrongChoices = (arr: string[]): string[] => {
-      const seen = new Set<string>();
-      return arr.filter((s) => {
-        const key = (s ?? '').trim().toLowerCase();
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-    };
-
-    let updated = 0;
-    for (const row of rows) {
-      const wc = row.question?.wrong_choices;
-      if (!Array.isArray(wc) || wc.length === 0) continue;
-
-      const deduped = dedupeWrongChoices(wc);
-      if (deduped.length === wc.length) continue;
-
-      const { error } = await this.supabase.client
-        .from('blitz_question_pool')
-        .update({ question: { ...row.question, wrong_choices: deduped } })
-        .eq('id', row.id);
-
-      if (!error) updated++;
-    }
-
-    return { updated };
-  }
-
   async findDuplicateAnswers(): Promise<{
     question_pool: Array<{ answer: string; count: number; ids: string[]; questions: string[] }>;
-    blitz_question_pool: Array<{ answer: string; count: number; ids: string[]; questions: string[] }>;
   }> {
     const findBySameAnswer = (
       rows: PoolRow[],
@@ -102,28 +65,16 @@ export class AdminScriptsService {
       'id, category, difficulty, question',
     ).catch(() => [] as PoolRow[]);
 
-    const bqpData: PoolRow[] = await fetchAllRows<PoolRow>(
-      this.supabase.client,
-      'blitz_question_pool',
-      'id, category, difficulty_score, question',
-    ).catch(() => [] as PoolRow[]);
-
     const qpDups = findBySameAnswer(
       qpData.filter((r) => !EXCLUDE_DUPLICATE_CHECK.includes(r.category)),
       (r) => `${r.category}|${r.difficulty}|${(r.question?.correct_answer ?? '').trim().toLowerCase()}`,
     );
 
-    const bqpDups = findBySameAnswer(
-      bqpData.filter((r) => !EXCLUDE_DUPLICATE_CHECK.includes(r.category)),
-      (r) => `${r.category}|${r.difficulty_score}|${(r.question?.correct_answer ?? '').trim().toLowerCase()}`,
-    );
-
-    return { question_pool: qpDups, blitz_question_pool: bqpDups };
+    return { question_pool: qpDups };
   }
 
   async findSimilarQuestions(): Promise<{
     question_pool: Array<{ a: PoolRow; b: PoolRow; score: number; reasons: string[] }>;
-    blitz_question_pool: Array<{ a: PoolRow; b: PoolRow; score: number; reasons: string[] }>;
   }> {
     const tokenize = (text: string): Set<string> => {
       const normalized = text.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ');
@@ -250,22 +201,14 @@ export class AdminScriptsService {
       'id, category, difficulty, question',
     ).catch(() => [] as PoolRow[]);
 
-    const bqpData: PoolRow[] = await fetchAllRows<PoolRow>(
-      this.supabase.client,
-      'blitz_question_pool',
-      'id, category, difficulty_score, question',
-    ).catch(() => [] as PoolRow[]);
-
     const qpPairs = findSimilarPairs(qpData, (r) => `${r.category}|${r.difficulty}`, MIN_SCORE);
-    const bqpPairs = findSimilarPairs(bqpData, (r) => r.category, MIN_SCORE);
 
-    return { question_pool: qpPairs, blitz_question_pool: bqpPairs };
+    return { question_pool: qpPairs };
   }
 
   async getDbStats(): Promise<{
-    question_pool: { total: number; unanswered: number; news_unanswered: number };
+    question_pool: { total: number; unanswered: number; news_unanswered: number; blitz_ready: number };
     questions_v1: { total: number };
-    blitz_question_pool: { total: number; unanswered: number };
     daily_questions: { rows: number };
     mayhem_unanswered: number;
   }> {
@@ -280,18 +223,15 @@ export class AdminScriptsService {
       .from('news_questions')
       .select('id', { count: 'exact', head: true })
       .gt('expires_at', new Date().toISOString());
+    const { count: blitzReady } = await this.supabase.client
+      .from('question_pool')
+      .select('id', { count: 'exact', head: true })
+      .in('category', ['HISTORY', 'GEOGRAPHY', 'GOSSIP', 'PLAYER_ID'])
+      .not('question->wrong_choices', 'is', null);
 
     const { count: v1Total } = await this.supabase.client
       .from('questions_v1')
       .select('id', { count: 'exact', head: true });
-
-    const { count: bqpTotal } = await this.supabase.client
-      .from('blitz_question_pool')
-      .select('id', { count: 'exact', head: true });
-    const { count: bqpUnanswered } = await this.supabase.client
-      .from('blitz_question_pool')
-      .select('id', { count: 'exact', head: true })
-      .eq('used', false);
 
     const { count: dqCount } = await this.supabase.client
       .from('daily_questions')
@@ -307,12 +247,9 @@ export class AdminScriptsService {
         total: qpTotal ?? 0,
         unanswered: qpUnanswered ?? 0,
         news_unanswered: qpNews ?? 0,
+        blitz_ready: blitzReady ?? 0,
       },
       questions_v1: { total: v1Total ?? 0 },
-      blitz_question_pool: {
-        total: bqpTotal ?? 0,
-        unanswered: bqpUnanswered ?? 0,
-      },
       daily_questions: { rows: dqCount ?? 0 },
       mayhem_unanswered: mayhemCount ?? 0,
     };

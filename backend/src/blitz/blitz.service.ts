@@ -174,11 +174,11 @@ export class BlitzService {
 
   /**
    * Draw N random Blitz-style questions (4 choices, MC) for a Battle Royale room.
-   * Uses the draw_blitz_questions_random RPC — no per-user seen tracking.
+   * Uses question_pool — no per-user seen tracking.
    */
   async drawForRoom(n: number = 20): Promise<BlitzQuestion[]> {
     const { data, error } = await this.supabaseService.client.rpc(
-      'draw_blitz_questions_random',
+      'draw_blitz_from_question_pool',
       { p_count: n, p_language: 'en' },
     );
     if (error) {
@@ -188,7 +188,7 @@ export class BlitzService {
     type PoolRow = {
       id: string;
       category: string;
-      difficulty_score: number;
+      raw_score: number;
       question: { question_text: string; correct_answer: string; wrong_choices?: string[]; meta?: Record<string, unknown> };
     };
     const rows = (data ?? []) as PoolRow[];
@@ -202,7 +202,7 @@ export class BlitzService {
         correct_answer: correctAnswer,
         choices,
         category: row.category,
-        difficulty: this.scoreToLabel(row.difficulty_score),
+        difficulty: this.scoreToLabel(row.raw_score),
         meta: row.question.meta,
       };
     });
@@ -210,7 +210,7 @@ export class BlitzService {
 
   private async drawBlitzQuestions(userId: string): Promise<BlitzQuestion[]> {
     const { data, error } = await this.supabaseService.client.rpc(
-      'draw_blitz_questions_for_user',
+      'draw_blitz_for_user_from_question_pool',
       { p_user_id: userId, p_count: DRAW_COUNT },
     );
 
@@ -222,7 +222,7 @@ export class BlitzService {
     const rows = (data ?? []) as Array<{
       id: string;
       category: string;
-      difficulty_score: number;
+      raw_score: number;
       question: { question_text: string; correct_answer: string; wrong_choices?: string[] };
     }>;
 
@@ -237,7 +237,7 @@ export class BlitzService {
         correct_answer: correctAnswer,
         choices,
         category: row.category,
-        difficulty: this.scoreToLabel(row.difficulty_score),
+        difficulty: this.scoreToLabel(row.raw_score),
       };
     });
   }

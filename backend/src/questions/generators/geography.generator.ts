@@ -45,7 +45,7 @@ export class GeographyGenerator extends BaseGenerator {
         "question_text": "the question",
         "correct_answer": "the answer (short, 1-5 words)",
         "answer_type": "location(vary by question)",
-        ${this.getFiftyFiftyHintInstruction('location/country/city matching answer_type')},${this.wrongChoicesPromptBlock(options?.forBlitz ?? false)}
+        ${this.getFiftyFiftyHintInstruction('location/country/city matching answer_type')},${this.wrongChoicesPromptBlock()}
         "explanation": "brief explanation (1-2 sentences)",
         ${this.getSourceUrlInstruction()},
         "event_year": 2022,
@@ -64,7 +64,7 @@ export class GeographyGenerator extends BaseGenerator {
     const userPrompt = `Generate a unique football geography trivia question. Return JSON only.${promptPart}${getAvoidInstruction(options?.avoidAnswers)}`;
 
     const result = await this.llmService.generateStructuredJson<GeographyPayload>(systemPrompt, userPrompt);
-    return this.mapQuestion(result, options?.forBlitz);
+    return this.mapQuestion(result);
   }
 
   async generateBatch(options?: GeneratorBatchOptions): Promise<GeneratedQuestion[]> {
@@ -73,16 +73,16 @@ export class GeographyGenerator extends BaseGenerator {
 CRITICAL: Each question MUST use a DIFFERENT entity type and phrasing. Use exactly one of: (1) a city question, (2) a stadium question, (3) a country/nation question. Do NOT use "Which country hosted..." for more than one question. Vary: "Which city...", "In which country is...", "Which stadium...", "Which nationality...", etc.
 They should range from easy to hard while staying answerable in familiar contexts.
 ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQuestionInstruction()}${getFactualAccuracyInstruction()}
-Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
+Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, wrong_choices (array of 3 plausible wrong answers), explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 fifty_fifty_hint: Must be the SAME type as correct_answer (e.g. if answer is a country, hint is another country; if city, another city). NOT a description.
     ${getLeagueFameGuidanceForBatch('GEOGRAPHY', options?.targetDifficulty)}`;
     const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: GeographyPayload[] }>(systemPrompt, userPrompt);
-    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item, false));
+    return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));
   }
 
-  private mapQuestion(result: GeographyPayload, forBlitz = false): GeneratedQuestion {
+  private mapQuestion(result: GeographyPayload): GeneratedQuestion {
     if (!result.question_text || !result.correct_answer) {
       throw new Error('Invalid LLM response: missing question_text or correct_answer');
     }
@@ -93,7 +93,7 @@ fifty_fifty_hint: Must be the SAME type as correct_answer (e.g. if answer is a c
       points: 1,
       question_text: result.question_text,
       correct_answer: result.correct_answer,
-      wrong_choices: this.extractWrongChoices(forBlitz, result.wrong_choices, result.correct_answer),
+      wrong_choices: this.extractWrongChoices(result.wrong_choices, result.correct_answer),
       fifty_fifty_hint: result.fifty_fifty_hint || null,
       fifty_fifty_applicable: true,
       explanation: result.explanation || '',

@@ -78,40 +78,6 @@ async function main() {
     }
   }
 
-  console.log('\n=== Checking blitz_question_pool ===');
-  let bqpData: PoolRow[] | null = null;
-  try {
-    bqpData = await fetchAllRows<PoolRow>(supabase.client, 'blitz_question_pool', 'id, category, difficulty_score, question');
-  } catch (bqpErr: unknown) {
-    const err = bqpErr as { code?: string; message?: string };
-    if (err?.code === '42P01') {
-      console.log('blitz_question_pool table does not exist (migrations not applied?)');
-    } else {
-      console.error('blitz_question_pool error:', err?.message ?? bqpErr);
-    }
-  }
-
-  if (bqpData !== null) {
-    if (bqpData.length) {
-      const dups = findBySameAnswer(
-        bqpData.filter((r) => !EXCLUDE_DUPLICATE_CHECK.includes(r.category)),
-        (r) =>
-          `${r.category}|${r.difficulty_score}|${(r.question?.correct_answer ?? '').trim().toLowerCase()}`,
-      );
-      if (dups.length === 0) {
-        console.log('No questions with same answer in blitz_question_pool');
-      } else {
-        console.log(`Found ${dups.length} answer groups with multiple questions (${dups.reduce((s, d) => s + d.count - 1, 0)} extra rows):`);
-        dups.forEach((d) => {
-          console.log(`  - answer "${d.answer}" (${d.count}x):`);
-          d.questions.forEach((q, i) => console.log(`      ${i + 1}. "${q.slice(0, 60)}${q.length > 60 ? '...' : ''}"`));
-        });
-      }
-    } else {
-      console.log('blitz_question_pool is empty');
-    }
-  }
-
   await app.close();
 }
 

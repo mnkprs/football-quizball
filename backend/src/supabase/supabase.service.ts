@@ -127,8 +127,10 @@ export class SupabaseService {
 
   async countBlitzPool(): Promise<number> {
     const { count } = await this.client
-      .from('blitz_question_pool')
-      .select('*', { count: 'exact', head: true });
+      .from('question_pool')
+      .select('*', { count: 'exact', head: true })
+      .in('category', ['HISTORY', 'GEOGRAPHY', 'GOSSIP', 'PLAYER_ID'])
+      .not('question->wrong_choices', 'is', null);
     return count ?? 0;
   }
 

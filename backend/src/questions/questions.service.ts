@@ -154,8 +154,8 @@ export class QuestionsService {
     options?: GeneratorOptions,
   ): Promise<GeneratedQuestion> {
     const genOpts =
-      options?.avoidAnswers?.length || options?.slotIndex !== undefined || options?.minorityScale !== undefined || options?.forBlitz
-        ? { avoidAnswers: options.avoidAnswers, slotIndex: options.slotIndex, minorityScale: options.minorityScale, forBlitz: options.forBlitz }
+      options?.avoidAnswers?.length || options?.slotIndex !== undefined || options?.minorityScale !== undefined
+        ? { avoidAnswers: options.avoidAnswers, slotIndex: options.slotIndex, minorityScale: options.minorityScale }
         : undefined;
     switch (category) {
       case 'HISTORY':         return this.historyGenerator.generate(genOpts);
