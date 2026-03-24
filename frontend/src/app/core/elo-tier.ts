@@ -1,18 +1,21 @@
+/**
+ * ELO Tier Identity — from DESIGN.md
+ * Tier borders are expressed as left-border accent colors on rank cards.
+ * No background fills — tonal surface steps define elevation.
+ */
 export interface EloTier {
-  tier: 'iron' | 'bronze' | 'silver' | 'gold' | 'diamond' | 'challenger';
+  tier: 'grassroots' | 'contender' | 'challenger' | 'elite' | 'legend';
   label: string;
+  /** Left-border accent color */
   color: string;
-  /** Hex color used for glow/shadow */
+  /** Glow shadow color */
   glow: string;
-  /** Border width in px — increases with rank */
-  borderWidth: number;
 }
 
 export function getEloTier(elo: number): EloTier {
-  if (elo >= 2000) return { tier: 'challenger', label: 'Challenger', color: '#ccff00', glow: '#ccff00', borderWidth: 5 };
-  if (elo >= 1600) return { tier: 'diamond',    label: 'Diamond',    color: '#a855f7', glow: '#a855f7', borderWidth: 4 };
-  if (elo >= 1400) return { tier: 'gold',       label: 'Gold',       color: '#f59e0b', glow: '#f59e0b', borderWidth: 3 };
-  if (elo >= 1200) return { tier: 'silver',     label: 'Silver',     color: '#94a3b8', glow: '#94a3b8', borderWidth: 2 };
-  if (elo >= 1000) return { tier: 'bronze',     label: 'Bronze',     color: '#b45309', glow: '#b45309', borderWidth: 2 };
-  return                  { tier: 'iron',       label: 'Iron',       color: '#6b7280', glow: '#6b7280', borderWidth: 2 };
+  if (elo >= 1800) return { tier: 'legend',     label: 'Legend',     color: '#c3f400', glow: 'rgba(195,244,0,0.35)' };
+  if (elo >= 1600) return { tier: 'elite',      label: 'Elite',      color: '#C0C0C0', glow: 'rgba(192,192,192,0.3)' };
+  if (elo >= 1400) return { tier: 'challenger', label: 'Challenger', color: '#CD7F32', glow: 'rgba(205,127,50,0.3)' };
+  if (elo >= 1200) return { tier: 'contender',  label: 'Contender',  color: '#4A90D9', glow: 'rgba(74,144,217,0.3)' };
+  return                  { tier: 'grassroots', label: 'Grassroots', color: '#8e9379', glow: 'rgba(142,147,121,0.2)' };
 }

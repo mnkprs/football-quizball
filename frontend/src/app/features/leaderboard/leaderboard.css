@@ -1,11 +1,52 @@
+/* ============================================================
+   LEADERBOARD — Design System: "The Floodlit Arena"
+   Fonts: Space Grotesk (headlines) · Inter (UI) · Lexend (data)
+   ============================================================ */
+
+/* ---- Design tokens (scoped locally; mirror globals) ---- */
 .leaderboard-page {
+  --bg:              #131313;
+  --surface-lowest:  #0e0e0e;
+  --surface-low:     #1c1b1b;
+  --surface:         #201f1f;
+  --surface-high:    #2a2a2a;
+  --surface-highest: #353534;
+  --surface-bright:  #3a3939;
+
+  --fg:          #e5e2e1;
+  --fg-variant:  #c4c9ac;
+  --fg-muted:    #8e9379;
+
+  --accent:      #c3f400;
+  --accent-dim:  #abd600;
+  --accent-fg:   #161e00;
+  --accent-bg:   rgba(195, 244, 0, 0.15);
+  --accent-glow: rgba(195, 244, 0, 0.3);
+
+  --error:       #ffb4ab;
+  --error-bg:    #93000a;
+  --success:     #22C55E;
+
+  --r-sm:   0.25rem;
+  --r-md:   0.5rem;
+  --r-lg:   0.75rem;
+  --r-xl:   1.5rem;
+  --r-full: 9999px;
+
+  /* ---- Layout ---- */
   padding: 1rem;
+  padding-bottom: 6rem;
   max-width: 28rem;
   margin: 0 auto;
-  padding-bottom: 6rem;
+  background: var(--bg);
+  min-height: 100dvh;
+  color: var(--fg);
+  font-family: 'Inter', ui-sans-serif, sans-serif;
 }
 
-/* Header */
+/* ============================================================
+   HEADER
+   ============================================================ */
 .leaderboard-header {
   display: flex;
   justify-content: space-between;
@@ -15,11 +56,12 @@
 }
 
 .leaderboard-title {
-  font-size: 1.75rem;
-  font-weight: 900;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem; /* headline-md */
+  font-weight: 600;
   margin: 0;
   letter-spacing: -0.02em;
-  color: var(--mat-sys-on-surface);
+  color: var(--fg);
 }
 
 .leaderboard-refresh-btn {
@@ -28,20 +70,23 @@
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
-  background: transparent;
-  color: var(--mat-sys-on-surface);
+  border-radius: var(--r-lg);
+  border: none;
+  background: var(--surface-high);
+  color: var(--fg-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, color 0.15s ease;
+  /* Ghost border per design system */
+  box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
 }
 
 .leaderboard-refresh-btn:hover:not(:disabled) {
-  background: var(--mat-sys-surface-variant);
+  background: var(--surface-highest);
+  color: var(--fg);
 }
 
 .leaderboard-refresh-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -51,26 +96,36 @@
   height: 1.25rem;
 }
 
-/* Loading & Error States */
+/* ============================================================
+   LOADING & ERROR STATES
+   ============================================================ */
 .leaderboard-loading {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
   padding: 4rem 0;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--fg-muted);
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 .leaderboard-error {
   text-align: center;
-  color: var(--mat-sys-error);
-  padding: 1.5rem;
-  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
-  border-radius: 0.75rem;
+  color: var(--error);
+  padding: 1.25rem;
+  background: var(--error-bg);
+  border-radius: var(--r-lg);
   margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-/* Your Ranks Section */
+/* ============================================================
+   YOUR RANKS SUMMARY
+   ============================================================ */
 .your-ranks-section {
   margin-bottom: 1.5rem;
 }
@@ -78,16 +133,16 @@
 .your-ranks-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
 }
 
 .your-ranks-label {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem; /* label-sm */
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--fg-muted);
 }
 
 .your-ranks-grid {
@@ -101,60 +156,69 @@
   flex-direction: row;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 0.875rem;
-  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--r-lg);
   text-decoration: none;
   color: inherit;
-  transition: all 0.15s ease;
+  background: var(--surface-high);
+  transition: opacity 0.15s ease;
+  /* Ghost border */
+  box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
 }
 
+.your-rank-card:hover {
+  opacity: 0.85;
+}
+
+/* Left accent borders per ELO tier identity */
 .your-rank-card--solo {
-  background: linear-gradient(135deg, rgba(230, 168, 0, 0.12), rgba(230, 168, 0, 0.04));
-  border: 1px solid rgba(230, 168, 0, 0.25);
+  border-left: 3px solid var(--accent);
 }
-.your-rank-card--solo .your-rank-icon { color: #e6a800; }
-
 .your-rank-card--blitz {
-  background: linear-gradient(135deg, rgba(33, 150, 243, 0.12), rgba(33, 150, 243, 0.04));
-  border: 1px solid rgba(33, 150, 243, 0.25);
+  border-left: 3px solid #4A90D9;
 }
-.your-rank-card--blitz .your-rank-icon { color: #2196f3; }
-
 .your-rank-card--mayhem {
-  background: linear-gradient(135deg, rgba(255, 107, 43, 0.12), rgba(255, 107, 43, 0.04));
-  border: 1px solid rgba(255, 107, 43, 0.25);
+  border-left: 3px solid var(--error);
 }
-.your-rank-card--mayhem .your-rank-icon { color: #ff6b2b; }
-
-.your-rank-card:hover { opacity: 0.85; }
 
 .your-rank-icon {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  color: var(--fg-muted);
 }
-.your-rank-icon mat-icon { font-size: 1.2rem; width: 1.2rem; height: 1.2rem; }
+.your-rank-icon mat-icon {
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.your-rank-card--solo   .your-rank-icon { color: var(--accent); }
+.your-rank-card--blitz  .your-rank-icon { color: #4A90D9; }
+.your-rank-card--mayhem .your-rank-icon { color: var(--error); }
 
 .your-rank-info {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
   flex: 1;
 }
 
 .your-rank-mode {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem; /* label-md */
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--fg-muted);
 }
 
 .your-rank-value {
-  font-size: 0.875rem;
-  font-weight: 800;
-  color: var(--mat-sys-on-surface);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--fg);
 }
 
 .your-rank-score {
@@ -166,28 +230,31 @@
 }
 
 .your-rank-score-value {
-  font-size: 0.9375rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--mat-sys-on-surface);
+  color: var(--accent);
 }
 
 .your-rank-score-label {
+  font-family: 'Lexend', sans-serif;
   font-size: 0.625rem;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--mat-sys-on-surface-variant);
-  opacity: 0.7;
+  color: var(--fg-muted);
 }
 
-/* Mode Tabs */
+/* ============================================================
+   MODE TABS — Pill switcher
+   ============================================================ */
 .mode-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
   padding: 0.25rem;
-  background: var(--mat-sys-surface-variant);
-  border-radius: 0.875rem;
+  background: var(--surface-low);
+  border-radius: var(--r-xl);
 }
 
 .mode-tab {
@@ -198,39 +265,44 @@
   gap: 0.375rem;
   padding: 0.625rem 0.5rem;
   border: none;
-  border-radius: 0.625rem;
+  border-radius: var(--r-full);
   background: transparent;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--fg-muted);
+  font-family: 'Inter', sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
+  min-height: 44px;
 }
 
 .mode-tab mat-icon {
-  font-size: 1.125rem;
-  width: 1.125rem;
-  height: 1.125rem;
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
 }
 
 .mode-tab:hover:not(.mode-tab--active) {
-  color: var(--mat-sys-on-surface);
+  color: var(--fg-variant);
 }
 
 .mode-tab--active {
-  background: var(--mat-sys-surface);
-  color: var(--color-accent, #bef264);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: var(--surface-highest);
+  color: var(--accent);
+  /* Neon glow */
+  box-shadow: 0 0 15px var(--accent-glow);
 }
 
-/* Leaderboard Section */
+/* ============================================================
+   LEADERBOARD LIST
+   ============================================================ */
 .leaderboard-section {
-  animation: fadeIn 0.2s ease;
+  animation: lb-fade 0.2s ease;
 }
 
-@keyframes fadeIn {
+@keyframes lb-fade {
   from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .leaderboard-list {
@@ -245,36 +317,41 @@
   color: inherit;
 }
 
+/* ---- Base card ---- */
 .leaderboard-card {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem;
-  background: var(--mat-sys-surface-variant);
-  border-radius: 1rem;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+  background: var(--surface-high);
+  border-radius: var(--r-lg);
+  transition: background 0.15s ease, transform 0.1s ease;
+  /* Ghost border */
+  box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
 }
 
 .leaderboard-card-link:hover .leaderboard-card {
-  background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-variant));
+  background: var(--surface-highest);
   transform: translateX(2px);
 }
 
+/* Top 3 — subtle accent tint */
 .leaderboard-card--top3 {
-  background: color-mix(in srgb, var(--color-accent, #bef264) 5%, var(--mat-sys-surface-variant));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface-high));
 }
 
+/* Your card — accent border */
 .leaderboard-card--you {
-  border-color: var(--color-accent, #bef264);
-  background: color-mix(in srgb, var(--color-accent, #bef264) 8%, var(--mat-sys-surface-variant));
+  background: var(--accent-bg);
+  box-shadow: inset 0 0 0 1px rgba(195, 244, 0, 0.25);
 }
 
 .leaderboard-card--highlighted {
-  background: color-mix(in srgb, var(--color-accent, #bef264) 12%, var(--mat-sys-surface-variant));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-high));
+  box-shadow: inset 0 0 0 1px rgba(195, 244, 0, 0.3);
 }
 
-/* Rank Display */
+/* ---- Rank column ---- */
 .leaderboard-rank {
   width: 2.25rem;
   display: flex;
@@ -289,59 +366,65 @@
   justify-content: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 50%;
+  border-radius: var(--r-full);
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #000000;
 }
 
+/* ELO tier colors from DESIGN.md */
 .rank-medal--gold {
   background: linear-gradient(135deg, #ffd700, #e6a800);
-  box-shadow: 0 2px 8px rgba(230, 168, 0, 0.4);
+  box-shadow: 0 0 12px rgba(230, 168, 0, 0.45);
 }
 
 .rank-medal--silver {
   background: linear-gradient(135deg, #e8e8e8, #b8b8b8);
-  box-shadow: 0 2px 8px rgba(184, 184, 184, 0.4);
+  box-shadow: 0 0 12px rgba(184, 184, 184, 0.35);
 }
 
 .rank-medal--bronze {
-  background: linear-gradient(135deg, #cd7f32, #a0522d);
-  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.4);
+  background: linear-gradient(135deg, #CD7F32, #a0522d);
+  box-shadow: 0 0 12px rgba(205, 127, 50, 0.4);
 }
 
 .rank-number {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--mat-sys-on-surface-variant);
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fg-muted);
 }
 
 .rank-number--you {
-  color: var(--color-accent, #bef264);
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--accent);
 }
 
-/* Avatar */
+/* ---- Avatar ---- */
 .leaderboard-avatar {
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: 0.75rem;
-  background: var(--mat-sys-surface);
+  border-radius: var(--r-lg);
+  background: var(--surface-highest);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--mat-sys-on-surface);
+  font-weight: 600;
+  color: var(--fg-variant);
   flex-shrink: 0;
 }
 
 .leaderboard-avatar--you {
-  background: var(--color-accent, #bef264);
-  color: #000000;
+  background: var(--accent);
+  color: var(--accent-fg);
 }
 
-/* Info */
+/* ---- Info ---- */
 .leaderboard-info {
   flex: 1;
   min-width: 0;
@@ -351,35 +434,39 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 0.9375rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--mat-sys-on-surface);
+  color: var(--fg);
 }
 
 .leaderboard-you-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.375rem;
-  background: var(--color-accent, #bef264);
-  color: #000000;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-family: 'Lexend', sans-serif;
   font-size: 0.5625rem;
-  font-weight: 800;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: 0.25rem;
+  letter-spacing: 0.06em;
+  border-radius: var(--r-sm);
   flex-shrink: 0;
 }
 
 .leaderboard-meta {
-  font-size: 0.75rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem; /* label-md */
+  font-weight: 400;
+  color: var(--fg-muted);
   margin-top: 0.125rem;
 }
 
-/* Score */
+/* ---- Score ---- */
 .leaderboard-score {
   text-align: right;
   flex-shrink: 0;
@@ -387,23 +474,29 @@
 
 .leaderboard-score-value {
   display: block;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-accent, #bef264);
+  font-weight: 700;
+  color: var(--accent);
   letter-spacing: -0.02em;
+  /* Subtle neon glow on score */
+  text-shadow: 0 0 12px var(--accent-glow);
 }
 
 .leaderboard-score-label {
   display: block;
+  font-family: 'Lexend', sans-serif;
   font-size: 0.625rem;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--fg-muted);
   margin-top: 0.0625rem;
 }
 
-/* Separator */
+/* ============================================================
+   YOUR RANK SEPARATOR (below the top list)
+   ============================================================ */
 .leaderboard-separator {
   display: flex;
   align-items: center;
@@ -414,40 +507,45 @@
 .leaderboard-separator-line {
   flex: 1;
   height: 1px;
-  background: var(--mat-sys-outline-variant, rgba(255, 255, 255, 0.12));
+  background: rgba(68, 73, 51, 0.3);
 }
 
 .leaderboard-separator-text {
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem; /* label-sm */
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--fg-muted);
+  white-space: nowrap;
 }
 
-/* Empty State */
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
 .leaderboard-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 3rem 1.5rem;
-  background: var(--mat-sys-surface-variant);
-  border-radius: 1rem;
+  background: var(--surface-low);
+  border-radius: var(--r-lg);
   text-align: center;
 }
 
 .leaderboard-empty mat-icon {
-  font-size: 3rem;
-  width: 3rem;
-  height: 3rem;
-  color: var(--mat-sys-on-surface-variant);
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--fg-muted);
   opacity: 0.5;
   margin-bottom: 0.75rem;
 }
 
 .leaderboard-empty p {
   margin: 0;
-  color: var(--mat-sys-on-surface-variant);
+  font-family: 'Inter', sans-serif;
   font-size: 0.9375rem;
+  color: var(--fg-muted);
 }
