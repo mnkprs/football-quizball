@@ -346,6 +346,45 @@ export class BattleRoyaleService {
     await this.addPlayer(roomId, botId, botUsername);
   }
 
+  /** Remove a player from a waiting room; deletes the room if it becomes empty. */
+  async leaveRoom(roomId: string, userId: string): Promise<void> {
+    const { data: room, error } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .select('id, host_id, status')
+      .eq('id', roomId)
+      .single<Pick<BRRoomRow, 'id' | 'host_id' | 'status'>>();
+
+    if (error || !room) throw new NotFoundException('Room not found');
+    if (room.status !== 'waiting') throw new BadRequestException('Cannot leave a room that has already started');
+
+    await this.supabaseService.client
+      .from('battle_royale_players')
+      .delete()
+      .eq('room_id', roomId)
+      .eq('user_id', userId);
+
+    const { data: remaining } = await this.supabaseService.client
+      .from('battle_royale_players')
+      .select('user_id')
+      .eq('room_id', roomId);
+
+    if (!remaining || remaining.length === 0) {
+      await this.supabaseService.client
+        .from('battle_royale_rooms')
+        .delete()
+        .eq('id', roomId);
+      return;
+    }
+
+    if (room.host_id === userId) {
+      const newHostId = (remaining as { user_id: string }[])[0].user_id;
+      await this.supabaseService.client
+        .from('battle_royale_rooms')
+        .update({ host_id: newHostId, updated_at: new Date().toISOString() })
+        .eq('id', roomId);
+    }
+  }
+
   /** Programmatically start a room — used by the bot matchmaker for auto-start. */
   async forceStartRoom(roomId: string): Promise<void> {
     const { data: room, error } = await this.supabaseService.client

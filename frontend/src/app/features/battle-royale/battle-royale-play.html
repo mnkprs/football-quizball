@@ -49,6 +49,15 @@
       } @else {
         <p class="br-play__waiting-hint">Waiting for the host to start the game…</p>
       }
+
+      <button
+        class="br-play__leave-btn"
+        (click)="leaveRoom()"
+        [disabled]="store.submitting()"
+      >
+        <span class="material-icons">exit_to_app</span>
+        Leave Room
+      </button>
     </div>
   }
 

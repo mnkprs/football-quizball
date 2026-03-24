@@ -98,6 +98,10 @@ export class BattleRoyaleApiService {
     );
   }
 
+  leaveRoom(roomId: string): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(`${this.base}/${roomId}/leave`, { headers: this.headers() });
+  }
+
   getLeaderboard(roomId: string): Observable<BRPlayerEntry[]> {
     return this.http.get<BRPlayerEntry[]>(`${this.base}/${roomId}/leaderboard`, { headers: this.headers() });
   }

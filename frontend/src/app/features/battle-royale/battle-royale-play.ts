@@ -62,6 +62,11 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
     }
   }
 
+  async leaveRoom(): Promise<void> {
+    await this.store.leaveRoom();
+    this.router.navigate(['/battle-royale']);
+  }
+
   goHome(): void {
     this.router.navigate(['/']);
   }

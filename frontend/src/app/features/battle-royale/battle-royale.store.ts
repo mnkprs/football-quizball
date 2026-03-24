@@ -2,6 +2,7 @@ import { signalStore, withState, withMethods, patchState } from '@ngrx/signals';
 import { inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { BattleRoyaleApiService, BRPublicView, BRPublicQuestion, BRPlayerEntry } from './battle-royale-api.service';
 
@@ -51,7 +52,7 @@ function derivePhase(view: BRPublicView): BRPhase {
 export const BattleRoyaleStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withMethods((store, api = inject(BattleRoyaleApiService), auth = inject(AuthService)) => {
+  withMethods((store, api = inject(BattleRoyaleApiService), auth = inject(AuthService), router = inject(Router)) => {
     let roomChannel: RealtimeChannel | null = null;
     let playersChannel: RealtimeChannel | null = null;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -69,8 +70,12 @@ export const BattleRoyaleStore = signalStore(
           players: view.players,
           myIndex: view.myCurrentIndex,
         });
-      } catch {
-        // silent
+      } catch (err: unknown) {
+        const status = (err as { status?: number })?.status;
+        if (status === 404) {
+          // Room was deleted (stale cleanup or host left) — redirect to lobby
+          router.navigate(['/battle-royale']);
+        }
       }
     }
 
@@ -141,6 +146,17 @@ export const BattleRoyaleStore = signalStore(
           });
         } catch {
           patchState(store, { loading: false, error: 'Failed to load room' });
+        }
+      },
+
+      async leaveRoom(): Promise<void> {
+        const roomId = store.roomId();
+        if (!roomId) return;
+        patchState(store, { submitting: true });
+        try {
+          await firstValueFrom(api.leaveRoom(roomId));
+        } finally {
+          patchState(store, { submitting: false });
         }
       },
 

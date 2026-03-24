@@ -156,6 +156,29 @@
   margin-top: 1rem;
 }
 
+.br-play__leave-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: transparent;
+  color: var(--color-muted-foreground);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  margin-top: 0.75rem;
+  transition: color 0.2s, border-color 0.2s;
+}
+.br-play__leave-btn:hover:not(:disabled) {
+  color: var(--color-destructive, #ef4444);
+  border-color: var(--color-destructive, #ef4444);
+}
+.br-play__leave-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── Game phase ── */
 .br-play__game {
   display: flex;

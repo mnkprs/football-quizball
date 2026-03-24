@@ -13,9 +13,13 @@ const QUEUE_TIMEOUT_SECONDS = 30;
 const BR_BOT_MIN = 3;
 const BR_BOT_MAX = 7;
 
+/** Minutes a BR room can stay in 'waiting' before being deleted as stale. */
+const STALE_BR_ROOM_MINUTES = 10;
+
 @Injectable()
 export class BotMatchmakerService {
   private readonly logger = new Logger(BotMatchmakerService.name);
+  private checkQueuesRunning = false;
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -27,11 +31,18 @@ export class BotMatchmakerService {
 
   @Cron('*/5 * * * * *') // every 5 seconds
   async checkQueues(): Promise<void> {
-    await Promise.allSettled([
-      this.injectBotsIntoOnlineQueues(),
-      this.injectBotsIntoDuelQueues(),
-      this.injectBotsIntoBattleRoyaleRooms(),
-    ]);
+    if (this.checkQueuesRunning) return;
+    this.checkQueuesRunning = true;
+    try {
+      await Promise.allSettled([
+        this.injectBotsIntoOnlineQueues(),
+        this.injectBotsIntoDuelQueues(),
+        this.injectBotsIntoBattleRoyaleRooms(),
+        this.cleanStaleBRRooms(),
+      ]);
+    } finally {
+      this.checkQueuesRunning = false;
+    }
   }
 
   // ── Online Game ─────────────────────────────────────────────────────────────
@@ -220,5 +231,21 @@ export class BotMatchmakerService {
       roomId,
       bots.map((b) => ({ id: b.id, skill: b.bot_skill })),
     );
+  }
+
+  // ── Stale room cleanup ───────────────────────────────────────────────────────
+
+  /** Delete waiting BR rooms that have been open longer than STALE_BR_ROOM_MINUTES. */
+  private async cleanStaleBRRooms(): Promise<void> {
+    const staleAt = new Date(Date.now() - STALE_BR_ROOM_MINUTES * 60 * 1000).toISOString();
+    const { error } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .delete()
+      .eq('status', 'waiting')
+      .lt('created_at', staleAt);
+
+    if (error) {
+      this.logger.warn(`[Matchmaker] Stale BR room cleanup failed: ${error.message}`);
+    }
   }
 }

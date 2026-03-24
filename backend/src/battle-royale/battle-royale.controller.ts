@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Param,
   Body,
   UseGuards,
@@ -86,5 +87,13 @@ export class BattleRoyaleController {
   @UseGuards(AuthGuard)
   async getLeaderboard(@Param('id') id: string) {
     return this.brService.getLeaderboard(id);
+  }
+
+  /** Leave a waiting room; host transfer or room deletion handled server-side */
+  @Delete(':id/leave')
+  @UseGuards(AuthGuard)
+  async leaveRoom(@Param('id') id: string, @Request() req: AuthRequest) {
+    await this.brService.leaveRoom(id, req.user.id);
+    return { ok: true };
   }
 }
