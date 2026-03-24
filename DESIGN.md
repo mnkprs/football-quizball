@@ -213,12 +213,43 @@ color: #ffffff;
 border-bottom: 1px solid rgba(142, 147, 121, 0.3);
 ```
 
-### Answer Cards
+### Answer Cards (Multiple Choice)
 
-- **Default:** `var(--color-surface-high)` bg, `var(--radius-lg)` corners, no border
-- **Correct:** lime gradient fill, text `#161e00`
-- **Wrong:** `var(--color-error-bg)` bg, text `var(--color-error)`
-- **Gutter:** `1rem` between cards — **no dividers**
+Always 4 options (A / B / C / D). Cards are tappable; reveal fires on tap — no separate "Check" step.
+
+**States:**
+
+| State | Background | Border/Shadow | Text |
+|-------|-----------|---------------|------|
+| Default | `--color-surface-high` | none | `--color-fg` |
+| Selected (pre-reveal) | `--color-surface-highest` | `inset 0 0 0 2px rgba(195,244,0,0.4)` | `--color-fg` |
+| Correct (chosen) | `linear-gradient(135deg, #c3f400, #abd600)` | `0 0 20px rgba(195,244,0,0.35)` | `--color-accent-fg` `#161e00` |
+| Wrong (chosen by user) | `--color-error-bg` `#93000a` | `inset 0 0 0 1px rgba(255,180,171,0.2)` | `--color-error` |
+| Correct (revealed, user chose wrong) | `--color-success-bg` `rgba(34,197,94,0.12)` | `inset 0 0 0 1px rgba(34,197,94,0.25)` | `--color-success` |
+| Wrong (unchosen, dimmed) | unchanged | none | `opacity: 0.45` |
+
+**Answer label badge (A/B/C/D):**
+```css
+width: 28px; height: 28px;
+border-radius: var(--radius-sm);
+background: var(--color-surface-highest);
+font: 600 0.7rem 'Lexend';
+color: var(--color-fg-muted);
+
+/* Selected state */
+background: rgba(195, 244, 0, 0.15);
+color: var(--color-accent);
+```
+
+**Indicator icon (right side — visible on selected/revealed states only):**
+- Selected pre-reveal: filled dot `●`
+- Correct: checkmark `✓` in circle, `rgba(22,30,0,0.25)` bg
+- Wrong chosen: × in circle, `rgba(255,180,171,0.1)` bg
+- Correct revealed: checkmark, `rgba(34,197,94,0.15)` bg
+
+**Gutter:** `12px` between cards — **no dividers**
+
+**Accessibility:** This is a touch-first mobile game. Full keyboard navigation is explicitly out of scope. Minimum requirements: answer cards must have `aria-label` (e.g., `Option A: Brazil`) so screen readers can announce selections. `role="button"` on tappable tiles. Touch targets are 44px+ by default from the padding spec — no additional changes needed.
 
 ### Game Mode Cards
 
@@ -246,7 +277,165 @@ font: 500 0.75rem 'Lexend';
 padding: 4px 12px;
 ```
 
-### Input Fields
+### Free Text Questions
+
+Questions where the user types an answer. Submit is explicit: user taps **Check Answer** button.
+
+**Layout:**
+```
+┌──────────────────────────────┐
+│  ← Back    Q 7/10    0:30   │  ← Glass nav
+│  ██████████████░░░░░  (glow) │  ← Progress bar
+├──────────────────────────────┤
+│  [CATEGORY]                  │
+│                              │
+│  Question text here          │  ← Inter title-lg
+│                              │
+│  ┌──────────────────────┐    │
+│  │  Type your answer... │    │  ← Free text input
+│  └──────────────────────┘    │
+│                              │
+│  [CHECK ANSWER ▶]            │  ← Disabled until input non-empty
+└──────────────────────────────┘
+```
+
+**Input field states:**
+
+```css
+/* Default */
+background: var(--color-surface-low);
+border-radius: var(--radius-md);
+padding: 18px 16px;
+box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
+font: 400 1rem 'Inter';
+color: var(--color-fg);
+
+/* Focused (keyboard active) */
+box-shadow: inset 0 0 0 2px var(--color-accent);
+
+/* Correct reveal */
+background: linear-gradient(135deg,
+  rgba(195, 244, 0, 0.12) 0%,
+  rgba(171, 214, 0, 0.08) 100%);
+box-shadow:
+  inset 0 0 0 2px var(--color-accent),
+  0 0 12px rgba(195, 244, 0, 0.15);
+color: var(--color-accent);
+font-weight: 600;
+/* + checkmark icon right-aligned, rgba(195,244,0,0.2) circle bg */
+
+/* Wrong reveal */
+background: rgba(147, 0, 10, 0.15);
+box-shadow: inset 0 0 0 2px rgba(255, 180, 171, 0.4);
+color: var(--color-error);
+/* User's typed text preserved — they see exactly what they entered */
+/* + × icon right-aligned, rgba(255,180,171,0.15) circle bg */
+```
+
+**Check Answer button states:**
+```css
+/* Disabled (empty input) */
+background: var(--color-surface-highest);
+color: var(--color-fg-muted);
+box-shadow: none;
+cursor: not-allowed;
+
+/* Enabled (has text) — standard primary button */
+background: linear-gradient(135deg, #c3f400 0%, #abd600 100%);
+color: var(--color-accent-fg);
+box-shadow: 0 0 15px rgba(195, 244, 0, 0.3);
+```
+
+**Button layout:** Stacked — input full-width above, "Check Answer" button full-width below. Apply to ALL free-text templates (default, logo, playerID, guessScore). The existing inline (side-by-side) layout in question.html should be updated.
+
+**Blitz mode exception:** No "Check Answer" button. Text submission fires on Enter only (or auto-submit with countdown). MC options fire on tap immediately.
+
+**Correct answer reveal card** (shown below input only on wrong answer):
+```css
+background: rgba(58, 57, 57, 0.4);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border-radius: var(--radius-lg);
+border-left: 3px solid var(--color-success);
+padding: 14px 16px;
+margin-top: 12px;
+
+/* Label: "Correct Answer" */
+font: 500 0.65rem 'Lexend';
+color: var(--color-success);
+text-transform: uppercase;
+letter-spacing: 0.1em;
+
+/* Value */
+font: 600 1rem 'Inter';
+color: var(--color-fg);
+```
+
+**Timeout state:** When the timer expires before the user answers, trigger wrong-reveal state immediately. Same CSS as wrong-reveal — no separate "Time's Up" visual. Timer chip switches to `--color-warning` at ≤5s, then the wrong-reveal fires on expiry. The ELO penalty badge shows the extra penalty amount (e.g., `−13` instead of `−8`).
+
+**Result badge** (shown above question on reveal):
+```css
+/* Correct */
+background: var(--color-success-bg);
+color: var(--color-success);
+box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
+
+/* Wrong */
+background: rgba(147, 0, 10, 0.2);
+color: var(--color-error);
+box-shadow: inset 0 0 0 1px rgba(255, 180, 171, 0.15);
+
+/* Common */
+border-radius: var(--radius-full);
+font: 600 0.7rem 'Lexend';
+text-transform: uppercase;
+letter-spacing: 0.08em;
+padding: 6px 12px;
+```
+
+**Three question interaction modes**
+
+The question screen operates in one of three modes, determined by the game mode:
+
+| Mode | Used in | Behavior |
+|------|---------|----------|
+| `standard` | Solo, Duel, Battle Royale, daily | Tap → selected-pre state → auto-submit after brief highlight → reveal |
+| `free-text` | Any question with open text input | Type → tap "Check Answer" button → reveal |
+| `blitz` | Blitz mode (speedrun) | Tap → **immediately** fires event, no selected-pre state, no check button |
+
+**Blitz mode note:** In blitz mode, speed is the product. The selected-pre state and Check Answer button are removed. Tapping an MC option or submitting a text input fires immediately. The in-place reveal still applies (ANSWERING → REVEALING), but the transition is instant.
+
+This mode distinction should be passed as a component input/signal: `@Input() mode: 'standard' | 'blitz'`. The question template renders check button and selected-pre state only when `mode !== 'blitz'`.
+
+**Reveal architecture: In-place (do NOT route to result.html)**
+
+Both free text and multiple choice use in-place reveal. The question screen transitions through three sub-states without a route change:
+
+```
+ANSWERING → REVEALING → (navigate to next question)
+```
+
+| Sub-state | What the user sees |
+|-----------|-------------------|
+| ANSWERING | Input/options active, timer running |
+| REVEALING | Input/options frozen in correct/wrong state, ELO delta card shown, timer stopped, "Next Question →" button appears |
+
+The existing `result.html` route remains for game-over summary screens. Per-question reveal is always in-place.
+
+**Reveal timing:**
+1. User taps "Check Answer" (free text) or taps an option (MC)
+2. `150ms` — input/card transitions to correct/wrong state
+3. `200ms` — ELO delta card enters (slide up, `ease-out`)
+4. `250ms` — "Next Question →" button appears
+5. User taps → navigate to next question (or result.html when game is over)
+
+**Mobile keyboard behavior:**
+- Question text + input field must remain visible above the raised software keyboard
+- "Check Answer" button docks immediately above the keyboard (fixed to bottom of visible area)
+- Use `padding-bottom: env(keyboard-inset-height, 80px)` or scroll-into-view on input focus
+- On reveal, dismiss keyboard programmatically (`input.blur()`)
+
+### Input Fields (General)
 
 ```css
 /* Default */
@@ -255,6 +444,30 @@ border-radius: var(--radius-md);
 box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
 /* Focus */
 box-shadow: inset 0 0 0 2px var(--color-accent);
+```
+
+### ELO Delta Card
+
+Shown after both MC and free-text reveals, below the answer area.
+
+```css
+/* Correct */
+background: var(--color-success-bg);
+border-radius: var(--radius-lg);
+box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.15);
+padding: 12px 16px;
+
+/* Wrong */
+background: rgba(147, 0, 10, 0.15);
+box-shadow: inset 0 0 0 1px rgba(255, 180, 171, 0.15);
+
+/* Value (e.g. "+24" / "−8") */
+font: 700 1.5rem 'Space Grotesk';
+color: var(--color-success);  /* or var(--color-error) */
+
+/* Label ("ELO gained" / "ELO lost") */
+font: 400 0.75rem 'Lexend';
+color: var(--color-fg-muted);
 ```
 
 ### Bottom Navigation
@@ -346,7 +559,7 @@ border-radius: var(--radius-lg);
 min-height: 80px;
 ```
 
-### Question Screen Layout
+### Question Screen Layout — Multiple Choice
 
 ```
 ┌──────────────────────────────┐
@@ -359,18 +572,63 @@ min-height: 80px;
 │  first FIFA World Cup?       │
 │                              │
 │  ┌──────────────────────┐    │
-│  │  A  Brazil           │    │  ← Answer card (surface-high)
+│  │  A  Brazil           │    │  ← Default: surface-high
 │  └──────────────────────┘    │
 │  ┌──────────────────────┐    │
 │  │  B  Uruguay   ✓      │    │  ← Correct: lime gradient
 │  └──────────────────────┘    │
 │  ┌──────────────────────┐    │
-│  │  C  Argentina  ✕     │    │  ← Wrong: error container
+│  │  C  Argentina  ✕     │    │  ← Wrong chosen: error-bg
 │  └──────────────────────┘    │
 │  ┌──────────────────────┐    │
-│  │  D  Italy            │    │
+│  │  D  Italy            │    │  ← Wrong unchosen: opacity 0.45
 │  └──────────────────────┘    │
+│  ┌────────────────────────┐  │
+│  │  +24 ELO gained        │  │  ← ELO delta card
+│  └────────────────────────┘  │
+│  [NEXT QUESTION →]           │  ← Primary button
 └──────────────────────────────┘
+```
+
+### Question Screen Layout — Free Text
+
+```
+┌──────────────────────────────┐
+│  ← Back    Q 7/10    0:30   │  ← Glass nav, timer
+│  ██████████████░░░░░  (glow) │  ← Progress bar
+├──────────────────────────────┤
+│  [WORLD CUP FINALS]          │  ← Category label
+│                              │
+│  Who scored the winning      │  ← Inter title-lg
+│  goal in the 2010 WC Final?  │
+│                              │
+│  ┌──────────────────────┐    │
+│  │  Type your answer... │    │  ← Input idle: ghost border
+│  └──────────────────────┘    │
+│  [CHECK ANSWER]              │  ← Disabled (empty)
+│                              │
+│  ─── keyboard raised ───     │
+│  [Q][W][E][R][T][Y]...       │
+│  [A][S][D][F][G][H]...       │
+│  [     space     ] [Go▶]     │
+└──────────────────────────────┘
+
+After correct submit:
+│  ✓ CORRECT                   │  ← Result badge
+│  ┌──────────────────────┐    │
+│  │  Iniesta          ✓  │    │  ← Input: lime state
+│  └──────────────────────┘    │
+│  +24 ELO gained              │  ← ELO delta card
+
+After wrong submit:
+│  ✗ WRONG                     │  ← Result badge
+│  ┌──────────────────────┐    │
+│  │  Torres           ✕  │    │  ← Input: error state
+│  └──────────────────────┘    │
+│  ┌──────────────────────┐    │
+│  │  Correct: Iniesta    │    │  ← Reveal card (glass, green border)
+│  └──────────────────────┘    │
+│  −8 ELO lost                 │  ← ELO delta card
 ```
 
 ### Result Screen Layout
@@ -509,6 +767,49 @@ BASE = https://lh3.googleusercontent.com/aida-public/
 | Daily Challenge | `AB6AXuCxCyFwOniKxQ6C2RCzbXx84vb9hK3Sg20G9lWf6EOtpTjEr-qvoOV7zvwvjAOyw3zntTpzKqVT7UixLkOJAmZtyFM9QEljYL_Qh3Owg3ntfaUhiivj7LayVG0m2q23LmO-WNytMuPg2oBcX4_50QvYGNb5rzyrEGxwsOQte3xcSFopa3QJye8YBPDMn57IpgU8_2rQdkCrPvd_s87FFKXvNAYiUD0jyXxClDCqS5yvieBLXO_YWPR_rzLviPgkRey2ozGW2zAjvAC8` | Daily challenge atmosphere |
 
 Full URL = `https://lh3.googleusercontent.com/aida-public/<key>`
+
+---
+
+## Implementation Token Mapping
+
+DESIGN.md uses canonical token names. The Angular app uses Tailwind-mapped CSS variables. This table maps between them so implementers don't need to guess.
+
+| DESIGN.md token | App equivalent | Notes |
+|----------------|---------------|-------|
+| `--color-bg` / `--color-surface-lowest` | `var(--color-background)` / `bg-background` | Base page background |
+| `--color-surface-low` | `bg-card` / `var(--color-card)` | Card backgrounds |
+| `--color-surface-high` | `bg-muted` / `var(--color-muted)` | Interactive card, answer tiles |
+| `--color-surface-highest` | `bg-muted/80` or `var(--color-muted)` at higher contrast | Chips, elevated surfaces |
+| `--color-fg` | `text-foreground` / `var(--color-foreground)` | Primary text |
+| `--color-fg-variant` | `text-muted-foreground` | Secondary text |
+| `--color-fg-muted` | `text-muted-foreground/70` | Tertiary labels |
+| `--color-accent` | `var(--color-accent)` / `bg-accent` | Lime — already in use |
+| `--color-accent-fg` | `text-accent-foreground` | Text on lime backgrounds |
+| `--color-accent-bg` | `bg-accent/15` | Tinted accent backgrounds |
+| `--color-accent-glow` | `rgba(204, 255, 0, 0.3)` | Used directly in box-shadow |
+| `--color-error` | `var(--color-loss)` / `text-loss` | Wrong answer |
+| `--color-error-bg` | `bg-loss/80` or `#93000a` directly | Wrong answer container |
+| `--color-success` | `var(--color-win)` / `text-win` | Correct answer |
+| `--color-success-bg` | `bg-win/10` | Correct state tint |
+| `--radius-lg` | `rounded-xl` (12px) | Primary cards and buttons |
+| `--radius-md` | `rounded-lg` (8px) | Input fields |
+| `--radius-full` | `rounded-full` | Pills, avatars |
+
+**Note on borders:** The app's existing `.question-page input` already uses `focus:border-accent`. The `box-shadow: inset 0 0 0 2px var(--color-accent)` pattern from the spec is the same visual result — use whichever matches the Tailwind class you're working with. Do not use both.
+
+---
+
+## Decisions Log
+
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| 2026-03-24 | Initial design system — "Floodlit Arena" | Created by /design-consultation based on Stitch mockups. Glassmorphism + organic brutalism for premium broadcast energy. |
+| 2026-03-25 | Added question format specs (MC + free text) | Free text uses explicit submit button; wrong reveal preserves typed text so user sees exactly where they went wrong. Correct answer reveal uses frosted glass card with green left-border. |
+| 2026-03-25 | In-place reveal (not route-based) | Reveal happens inline on question screen. result.html remains for end-of-game summary only. |
+| 2026-03-25 | Three interaction modes: standard, free-text, blitz | Blitz = immediate fire on tap, no check button. Standard MC = selected-pre then auto-submit. Free text = explicit check button. |
+| 2026-03-25 | Button layout stacked (all free-text) | Full-width input above, full-width Check Answer below. Applies to all 4 existing templates + new ones. |
+| 2026-03-25 | Timeout = wrong-reveal (no separate state) | Timer expiry triggers wrong state, same CSS as wrong-reveal. No amber visual. |
+| 2026-03-25 | MC a11y explicitly out of scope | Touch-first mobile game. Minimum: aria-label on answer cards. No keyboard nav required. |
 
 ---
 

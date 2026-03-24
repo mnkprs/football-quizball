@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetection
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
-import { GameQuestionComponent, QuestionData } from '../../shared/game-question/game-question';
+import { GameQuestionComponent, QuestionData, RevealResult } from '../../shared/game-question/game-question';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { DonateModalService } from '../../core/donate-modal.service';
@@ -52,6 +52,8 @@ export class SoloComponent implements OnDestroy {
 
   currentQuestion = signal<NextQuestionResponse | null>(null);
   lastResult = signal<AnswerResponse | null>(null);
+  revealing = signal(false);
+  revealResultData = signal<RevealResult | null>(null);
 
   reportDisabled = signal(false);
   problemReported = signal(false);
@@ -167,7 +169,17 @@ export class SoloComponent implements OnDestroy {
         difficulty: this.currentQuestion()?.difficulty,
         timed_out: result.timed_out,
       });
-      this.phase.set('result');
+      // In-place reveal: stay on question phase, pass result to component
+      this.revealResultData.set({
+        correct: result.correct,
+        correct_answer: result.correct_answer,
+        user_answer: answer === 'TIMEOUT' ? undefined : answer,
+        elo_change: result.elo_change,
+        elo_after: result.elo_after,
+        explanation: result.explanation,
+        timed_out: result.timed_out,
+      });
+      this.revealing.set(true);
     } catch (err: any) {
       this.error.set('Failed to submit answer');
     } finally {
@@ -176,6 +188,8 @@ export class SoloComponent implements OnDestroy {
   }
 
   async nextQuestion(): Promise<void> {
+    this.revealing.set(false);
+    this.revealResultData.set(null);
     await this.loadNextQuestion();
   }
 
