@@ -63,7 +63,7 @@
 
         <!-- Choices -->
         <div class="flex flex-col gap-3">
-          @for (choice of currentQuestion()?.choices ?? []; track choice) {
+          @for (choice of currentQuestion()?.choices ?? []; track $index) {
             <button
               (click)="selectChoice(choice)"
               [disabled]="showFlash() || submitting()"

@@ -158,7 +158,7 @@
     <p class="gq__question-text">{{ question()?.question_text }}</p>
   </div>
   <div class="gq__options">
-    @for (option of question()?.options; track option; let i = $index) {
+    @for (option of question()?.options; track $index; let i = $index) {
       <button
         [class]="optionClass(option)"
         (click)="selectOption(option)"
