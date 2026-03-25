@@ -76,7 +76,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #ffffff;
+  color: var(--color-fg, #e5e2e1);
   font-style: italic;
 }
 
@@ -157,7 +157,7 @@
   border: 2px solid rgba(255, 255, 255, 0.7);
   min-height: 2.75rem;
   background: transparent;
-  color: #ffffff;
+  color: var(--color-fg, #e5e2e1);
   font-family: 'Inter', sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
