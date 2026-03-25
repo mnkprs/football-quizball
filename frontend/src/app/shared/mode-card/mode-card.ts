@@ -36,8 +36,8 @@ export class ModeCardComponent {
 
   private pro = inject(ProService);
 
-  async onProOverlayClick(e: Event): Promise<void> {
+  onProOverlayClick(e: Event): void {
     e.stopPropagation();
-    await this.pro.createCheckout();
+    this.pro.showUpgradeModal.set(true);
   }
 }
