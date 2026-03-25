@@ -231,9 +231,9 @@
 }
 
 .gq__question-text {
-  font-size: 1.125rem;
-  font-weight: 500;
-  line-height: 1.6;
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.5;
   color: var(--color-foreground);
   margin: 0;
   z-index: 1;

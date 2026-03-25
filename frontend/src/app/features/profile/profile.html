@@ -130,6 +130,37 @@
       </div>
     </div>
 
+    <!-- ─── PRO STATUS ─────────────────────────────────── -->
+    @if (isOwnProfile()) {
+      <section class="profile-section pro-status-section">
+        @if (pro.isPro()) {
+          <div class="pro-badge-row">
+            <span class="pro-badge">STEPOVR Pro</span>
+            @if (pro.purchaseType() === 'lifetime') {
+              <span class="pro-type">Lifetime</span>
+            } @else if (pro.purchaseType() === 'subscription') {
+              <span class="pro-type">Monthly</span>
+              @if (pro.subscriptionExpiresAt()) {
+                <span class="pro-renews">Renews {{ formatDate(pro.subscriptionExpiresAt()!) }}</span>
+              }
+            }
+          </div>
+          @if (pro.purchaseType() === 'subscription') {
+            <a class="manage-subscription-link" href="javascript:void(0)" (click)="openSubscriptionManagement()">
+              Manage Subscription
+            </a>
+          }
+        } @else {
+          <button mat-flat-button class="upgrade-btn" (click)="pro.showUpgradeModal.set(true)">
+            Upgrade to Pro
+          </button>
+        }
+        <button mat-button class="restore-btn" (click)="restorePurchases()">
+          Restore Purchase
+        </button>
+      </section>
+    }
+
     <!-- ─── ELO SPARKLINE ───────────────────────────────── -->
     @if (sparklineData(); as spark) {
       <section class="profile-section">

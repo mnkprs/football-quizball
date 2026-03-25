@@ -390,3 +390,87 @@
   - Pre-production doc: `Stepover`
   - Repo name: `football-quizball`
 - **How:** Decide on one name. Update `capacitor.config.ts`, `AndroidManifest.xml` (`app_name`), `Info.plist`, store listings.
+
+---
+
+## Native IAP Monetization (blocks paid features)
+
+### 30. Apple App Store Connect Setup
+- **Status:** Code implemented (branch `feat/iap-hybrid-monetization`), store products not yet created
+- **How:**
+  1. Create Apple Developer account ($99/year) if not already enrolled
+  2. Create App ID with In-App Purchase capability in Certificates, Identifiers & Profiles
+  3. In App Store Connect, create the app listing
+  4. Create In-App Purchase products:
+     - `stepovr_pro_monthly` (Auto-Renewable Subscription) — Subscription Group: "STEPOVR Pro", Price: $2.99/mo (Tier 4)
+     - `stepovr_pro_lifetime` (Non-Consumable) — Price: $9.99 (Tier 13)
+  5. Set per-territory pricing (UAE/Gulf: Tier 6/$3.99, SEA: Tier 2/$1.99, India: Tier 1/$0.99 for monthly; adjust lifetime accordingly)
+  6. Add display names, descriptions, and review screenshots for each product
+  7. Enable App Store Server Notifications v2:
+     - App Store Connect → App → General → App Information → App Store Server Notifications
+     - Production URL: `https://your-backend.railway.app/api/subscription/apple-notification`
+     - Sandbox URL: same endpoint (service handles both environments)
+  8. Generate App Store Connect API key (.p8 file):
+     - Users and Access → Keys → In-App Purchase → Generate
+     - Save Key ID, Issuer ID, and the .p8 file
+
+### 31. Google Play Console Setup
+- **Status:** Code implemented, Play Console products not yet created
+- **How:**
+  1. Create Google Play Developer account ($25 one-time) if not already enrolled
+  2. Create app listing in Google Play Console
+  3. Create In-App Products:
+     - Subscription: `stepovr_pro_monthly` at $2.99/mo with per-country pricing
+     - One-time product: `stepovr_pro_lifetime` at $9.99 with per-country pricing
+  4. Activate both products
+  5. Set up Real-Time Developer Notifications (RTDN):
+     - Google Cloud Console → Pub/Sub → Create topic (e.g., `stepovr-iap-notifications`)
+     - Create push subscription pointing to: `https://your-backend.railway.app/api/subscription/google-notification`
+     - Play Console → Monetization setup → Real-time developer notifications → Link topic
+  6. Create Google Cloud Service Account:
+     - Grant `androidpublisher` role
+     - Download JSON key file
+     - Link service account in Play Console → API access
+
+### 32. Backend Environment Variables
+- **Status:** IAP validation service expects these env vars
+- **How:** Add to Railway backend service variables:
+  ```
+  APPLE_IAP_KEY_ID=<from step 30.8>
+  APPLE_IAP_ISSUER_ID=<from step 30.8>
+  APPLE_IAP_PRIVATE_KEY=<contents of .p8 file>
+  APPLE_BUNDLE_ID=com.stepovr.app
+  GOOGLE_SERVICE_ACCOUNT_KEY=<contents of service account JSON>
+  ```
+- **Security:** Never commit these to git. Use Railway's secret variable feature.
+
+### 33. Sandbox/Test Track Testing
+- **Status:** Must verify full purchase flow before App Store submission
+- **How:**
+  1. **Apple Sandbox:**
+     - Create sandbox tester accounts in App Store Connect → Users and Access → Sandbox
+     - Build app with Xcode, run on physical device signed into sandbox account
+     - Test: monthly subscription purchase, lifetime purchase, restore purchases
+     - Sandbox subscriptions auto-renew every 5 minutes (accelerated)
+  2. **Google Test Track:**
+     - Add tester emails in Play Console → Testing → Internal testing
+     - Upload signed AAB to internal test track
+     - Test: both product purchases, restore, refund flow
+  3. **Verify backend receipt validation works end-to-end:**
+     - Purchase triggers → receipt sent to backend → `is_pro` set to `true`
+     - Check Supabase profiles table for correct `purchase_type`, `pro_lifetime_owned` values
+
+### 34. Run Supabase Migration
+- **Status:** Migration file `20260415000000_iap_hybrid.sql` created but not yet applied
+- **How:** `supabase db push` or apply via Supabase Dashboard → SQL Editor
+- **Verify:** Check that `profiles` table has new columns: `purchase_type`, `pro_lifetime_owned`, `subscription_expires_at`, `iap_platform`, `iap_transaction_id`, `daily_duels_played`, `daily_duels_reset_at`
+
+### 35. Remove Stripe Feature Flag (after App Store approval)
+- **Status:** Stripe endpoints are commented out but code remains in the codebase
+- **When:** Only after BOTH Apple App Store and Google Play approve the app with IAP
+- **How:**
+  1. Delete `backend/src/subscription/stripe.service.ts`
+  2. Remove commented Stripe endpoints from `subscription.controller.ts`
+  3. Remove `stripe` from `package.json` dependencies
+  4. Create migration to drop `stripe_customer_id` and `stripe_subscription_id` columns
+  5. Remove `STRIPE_*` environment variables from Railway

@@ -690,3 +690,62 @@
   margin-right: 0.4rem;
   vertical-align: middle;
 }
+
+/* ── Pro Status ────────────────────────────── */
+.pro-status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.pro-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pro-badge {
+  background: var(--color-accent, #c3f400);
+  color: var(--color-accent-fg, #0a0a0a);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.75rem;
+  border-radius: 100px;
+}
+
+.pro-type {
+  color: var(--color-fg-muted, #999);
+  font-size: 0.8125rem;
+}
+
+.pro-renews {
+  color: var(--color-fg-dim, #666);
+  font-size: 0.75rem;
+}
+
+.manage-subscription-link {
+  color: var(--color-accent, #c3f400);
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.upgrade-btn {
+  background: var(--color-accent, #c3f400) !important;
+  color: var(--color-accent-fg, #0a0a0a) !important;
+  font-weight: 600;
+  border-radius: 100px;
+  padding: 0.5rem 1.5rem;
+}
+
+.restore-btn {
+  color: var(--color-fg-muted, #999) !important;
+  font-size: 0.75rem;
+}

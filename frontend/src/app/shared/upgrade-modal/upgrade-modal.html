@@ -1,29 +1,104 @@
 @if (pro.showUpgradeModal()) {
-  <div class="modal-backdrop" (click)="close()">
+  <div class="modal-backdrop" (click)="onBackdropClick()">
     <div class="modal-card" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <span class="modal-icon">⚡</span>
-        <h2 class="modal-title">Stepover Pro</h2>
-        <p class="modal-price">$1.99 / month</p>
-      </div>
 
-      <ul class="modal-features">
-        <li>🏆 Solo ELO Ranked Ladder</li>
-        <li>⚡ Blitz Speed Ladder</li>
-        <li>📊 Full stats & history</li>
-        <li>Unlimited ranked games</li>
-      </ul>
+      <!-- SUCCESS STATE -->
+      @if (state() === 'success') {
+        <div class="success-state">
+          <div class="success-glow"></div>
+          <h2 class="success-headline">Welcome to the Arena</h2>
+          <p class="success-subtitle">You've unlocked STEPOVR Pro</p>
+          <ul class="success-features">
+            <li class="success-feature"><span class="check-icon">&#10003;</span> Unlimited Duels</li>
+            <li class="success-feature"><span class="check-icon">&#10003;</span> Battle Royale</li>
+            <li class="success-feature"><span class="check-icon">&#10003;</span> Ad-free experience</li>
+            <li class="success-feature"><span class="check-icon">&#10003;</span> All future modes</li>
+          </ul>
+          <button class="btn-cta" (click)="onSuccessCta()">{{ successCtaLabel }}</button>
+          <button class="btn-dismiss" (click)="close()">Close</button>
+        </div>
+      } @else {
+        <!-- PRICING STATE (idle / loading / purchasing / error) -->
+        <div class="modal-header">
+          <span class="modal-icon">&#9889;</span>
+          <h2 class="modal-title">STEPOVR Pro</h2>
+          <p class="modal-hook">Unlock every mode. No limits.</p>
+        </div>
 
-      @if (pro.trialGamesUsed() > 0) {
-        <p class="modal-trial-note">
-          You've used all {{ pro.trialGamesUsed() }} of your 5 free trial games.
-        </p>
+        <!-- Pricing cards -->
+        <div class="pricing-cards">
+          <!-- Monthly -->
+          <button
+            class="pricing-card"
+            [class.pricing-card--selected]="selectedPlan() === 'monthly'"
+            (click)="selectPlan('monthly')"
+          >
+            @if (state() === 'loading') {
+              <span class="price-skeleton"></span>
+              <span class="label-skeleton"></span>
+            } @else {
+              <span class="pricing-card__price">{{ monthlyProduct()?.price ?? '$2.99' }}</span>
+              <span class="pricing-card__label">/ month</span>
+            }
+          </button>
+
+          <!-- Lifetime -->
+          <button
+            class="pricing-card"
+            [class.pricing-card--selected]="selectedPlan() === 'lifetime'"
+            (click)="selectPlan('lifetime')"
+          >
+            <span class="best-value-pill">BEST VALUE</span>
+            @if (state() === 'loading') {
+              <span class="price-skeleton"></span>
+              <span class="label-skeleton"></span>
+            } @else {
+              <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$9.99' }}</span>
+              <span class="pricing-card__label">one time</span>
+            }
+          </button>
+        </div>
+
+        <!-- Feature list -->
+        <ul class="feature-list">
+          <li class="feature-item"><span class="check-icon">&#10003;</span> Unlimited Duels</li>
+          <li class="feature-item"><span class="check-icon">&#10003;</span> Battle Royale</li>
+          <li class="feature-item"><span class="check-icon">&#10003;</span> All future modes</li>
+          <li class="feature-item"><span class="check-icon">&#10003;</span> Ad-free experience</li>
+        </ul>
+
+        <!-- Error message -->
+        @if (state() === 'error' && errorMessage()) {
+          <p class="error-message">{{ errorMessage() }}</p>
+        }
+        <!-- Restore "no purchases" message (shown in idle state) -->
+        @if (state() === 'idle' && errorMessage()) {
+          <p class="info-message">{{ errorMessage() }}</p>
+        }
+
+        <!-- CTA -->
+        <button
+          class="btn-cta"
+          [disabled]="state() === 'purchasing' || state() === 'loading'"
+          (click)="subscribe()"
+        >
+          @if (state() === 'purchasing') {
+            <span class="spinner"></span> Processing...
+          } @else {
+            {{ selectedCtaLabel }}
+          }
+        </button>
+
+        <!-- Restore -->
+        <button class="btn-restore" (click)="restore()" [disabled]="state() === 'purchasing'">
+          Restore Purchase
+        </button>
+
+        <!-- Dismiss -->
+        <button class="btn-dismiss" (click)="close()" [disabled]="state() === 'purchasing'">
+          Maybe later
+        </button>
       }
-
-      <button class="btn-subscribe" (click)="subscribe()">
-        Subscribe with Stripe
-      </button>
-      <button class="btn-close" (click)="close()">Maybe later</button>
     </div>
   </div>
 }
