@@ -15,10 +15,18 @@ dist/
 supabase/.temp/
 
 # Local AI/Claude settings
-.claude/
+.claude/*
+.cursor/mcp.json
 .vercel
 .env*.local
+
+# Sensitive credentials
+backend/gen-lang-client-*.json
+*.pem
+*.p12
+*.key
 
 # Seed-pool handoff (written by pool:seed, read by pool:verify-integrity --from-last-seed)
 .seed-pool-last-ids.json
 .mcp.json
+.gstack
