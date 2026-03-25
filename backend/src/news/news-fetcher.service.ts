@@ -17,7 +17,7 @@ export class NewsFetcherService {
     try {
       const { data } = await axios.get<string>(BBC_FOOTBALL_RSS, {
         timeout: 10000,
-        headers: { 'User-Agent': 'FootballQuizball/1.0' },
+        headers: { 'User-Agent': 'Stepover/1.0' },
       });
 
       const headlines = this.parseRssItems(data);
