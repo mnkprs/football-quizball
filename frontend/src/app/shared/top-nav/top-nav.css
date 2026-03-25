@@ -130,8 +130,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.45);
@@ -152,9 +152,10 @@
 }
 
 .top-nav__sign-in {
-  padding: 0.5rem 1rem;
+  padding: 0.625rem 1rem;
   border-radius: 9999px;
   border: 2px solid rgba(255, 255, 255, 0.7);
+  min-height: 2.75rem;
   background: transparent;
   color: #ffffff;
   font-family: 'Inter', sans-serif;
