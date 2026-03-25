@@ -7,16 +7,22 @@ import {
   HostListener,
   output,
 } from '@angular/core';
+import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { ThemeService } from '../../core/theme.service';
 import { LanguageService } from '../../core/language.service';
 import { ProService } from '../../core/pro.service';
+import { ToastService } from '../../core/toast.service';
 import { MatIconModule } from '@angular/material/icon';
+import { ConfirmModalComponent } from '../confirm-modal/confirm-modal';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-settings-menu',
   standalone: true,
-  imports: [MatIconModule],
+  imports: [MatIconModule, ConfirmModalComponent],
   templateUrl: './settings-menu.html',
   styleUrl: './settings-menu.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,12 +32,20 @@ export class SettingsMenuComponent {
   theme = inject(ThemeService);
   lang = inject(LanguageService);
   pro = inject(ProService);
+  private router = inject(Router);
+  private http = inject(HttpClient);
+  private toast = inject(ToastService);
 
   avatarLoadFailed = signal(false);
   upgrading = signal(false);
+  showDeleteConfirm = signal(false);
+  deleting = signal(false);
+  exporting = signal(false);
 
   open = signal(false);
   t = computed(() => this.lang.t());
+  appVersion = environment.appVersion;
+  contactEmail = environment.reportEmail;
 
   trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
 
@@ -99,6 +113,65 @@ export class SettingsMenuComponent {
   onSignOut(): void {
     this.signOut.emit();
     this.close();
+  }
+
+  goToTerms(): void {
+    this.close();
+    this.router.navigate(['/terms']);
+  }
+
+  goToPrivacy(): void {
+    this.close();
+    this.router.navigate(['/privacy']);
+  }
+
+  openContact(): void {
+    window.location.href = `mailto:${this.contactEmail}`;
+  }
+
+  async exportData(): Promise<void> {
+    this.exporting.set(true);
+    try {
+      const token = this.auth.accessToken();
+      const data = await firstValueFrom(
+        this.http.get(`${environment.apiUrl}/api/profile/export`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      );
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'stepover-data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      this.toast.show('Data downloaded', 'success');
+    } catch {
+      this.toast.show('Failed to export data');
+    } finally {
+      this.exporting.set(false);
+    }
+  }
+
+  async confirmDeleteAccount(): Promise<void> {
+    this.deleting.set(true);
+    try {
+      const token = this.auth.accessToken();
+      await firstValueFrom(
+        this.http.delete(`${environment.apiUrl}/api/profile/account`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      );
+      await this.auth.signOut();
+      this.close();
+      this.router.navigate(['/']);
+      this.toast.show('Account deleted', 'success');
+    } catch {
+      this.toast.show('Failed to delete account');
+    } finally {
+      this.deleting.set(false);
+      this.showDeleteConfirm.set(false);
+    }
   }
 
   @HostListener('document:keydown.escape')

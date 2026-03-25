@@ -12,11 +12,12 @@ import { AuthService } from './core/auth.service';
 import { GoogleAdsService } from './core/google-ads.service';
 import { PosthogService } from './core/posthog.service';
 import { ToastComponent } from './shared/toast/toast';
+import { CookieConsentComponent } from './shared/cookie-consent/cookie-consent';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, ToastComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, ToastComponent, CookieConsentComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,8 +77,7 @@ export class App implements OnInit, OnDestroy {
           this.swUpdate!.activateUpdate().then(() => location.reload());
         });
       this.swUpdate.checkForUpdate();
-    }
-
+      });
     // Splash: show 2s, then fade 0.6s, then check onboarding
     setTimeout(() => {
       this.splashFading.set(true);

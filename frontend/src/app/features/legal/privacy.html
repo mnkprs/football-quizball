@@ -1,0 +1,297 @@
+<div class="legal-page">
+  <div class="legal-page__header">
+    <button type="button" class="legal-page__back" (click)="goBack()" aria-label="Go back">
+      <span class="material-icons" style="font-size:1.25rem">arrow_back</span>
+    </button>
+    <h1 class="legal-page__title">Privacy Policy</h1>
+  </div>
+
+  <div class="legal-page__content">
+    <p class="legal-page__updated">Last updated: March 2026</p>
+
+    <h2>1. Introduction</h2>
+    <p>
+      Stepover ("we", "us", or "our") operates the Stepover application (the "Service"). This Privacy
+      Policy explains what personal data we collect, how we use it, who we share it with, and what rights you
+      have over it.
+    </p>
+    <p>
+      We are committed to protecting your privacy and processing your data lawfully, transparently, and fairly.
+      By using the Service, you acknowledge that you have read and understood this Privacy Policy.
+    </p>
+    <p>
+      For any privacy-related questions or requests, contact us at
+      <a href="mailto:support@stepover.app">support@stepover.app</a>.
+    </p>
+
+    <h2>2. Information We Collect</h2>
+
+    <h3>Account Data</h3>
+    <p>
+      When you create an account — either via Google OAuth or email/password — we collect and store:
+    </p>
+    <ul>
+      <li>Email address</li>
+      <li>Display name / username (chosen by you)</li>
+      <li>Profile avatar (if provided via Google or uploaded by you)</li>
+      <li>Account creation date and last login date</li>
+    </ul>
+    <p>
+      If you sign in with Google, we receive only the email address and name that Google shares with us at
+      sign-in. We do not receive your Google password.
+    </p>
+
+    <h3>Game Data</h3>
+    <p>
+      As you play, we record the following to power your stats and leaderboards:
+    </p>
+    <ul>
+      <li>ELO rating and ELO history (changes per game)</li>
+      <li>Number of games played, questions answered, and correct answers</li>
+      <li>Game mode participation and results</li>
+      <li>Match outcomes in multiplayer, duel, and battle royale modes</li>
+      <li>Daily challenge completion status</li>
+    </ul>
+
+    <h3>Usage and Analytics Data</h3>
+    <p>
+      We use PostHog analytics to understand how users interact with the Service. This may include:
+    </p>
+    <ul>
+      <li>Pages and screens visited within the App</li>
+      <li>Game modes accessed and session duration</li>
+      <li>Button clicks and feature interactions</li>
+      <li>Approximate geographic region (country level, derived from IP)</li>
+      <li>Referring URL (if accessed via web)</li>
+    </ul>
+    <p>
+      PostHog analytics data is collected only with your consent. You can opt out via the cookie consent banner.
+    </p>
+
+    <h3>Payment Data</h3>
+    <p>
+      Pro subscriptions are processed by Stripe. We do not store your full card number, CVC, or bank account
+      details. We store only:
+    </p>
+    <ul>
+      <li>Stripe Customer ID — a reference token used to manage your subscription</li>
+      <li>Subscription status (active, cancelled, past due)</li>
+      <li>Billing period dates</li>
+    </ul>
+
+    <h3>Device and Technical Data</h3>
+    <p>
+      When you use the App, your browser or device may automatically transmit:
+    </p>
+    <ul>
+      <li>Browser type and version</li>
+      <li>Operating system</li>
+      <li>Screen resolution</li>
+      <li>IP address (used for security and fraud prevention; not stored long-term)</li>
+      <li>Time zone</li>
+    </ul>
+
+    <h2>3. How We Use Your Information</h2>
+    <p>We use your data to:</p>
+    <ul>
+      <li>Create and manage your account</li>
+      <li>Deliver the game service, including matchmaking, question generation, and leaderboards</li>
+      <li>Track and display your quiz statistics and ELO progress</li>
+      <li>Process Pro subscription payments via Stripe</li>
+      <li>Send transactional emails (account confirmation, password reset, subscription receipts)</li>
+      <li>Improve the App based on aggregated usage analytics</li>
+      <li>Detect and prevent fraud, cheating, or abuse</li>
+      <li>Comply with legal obligations</li>
+    </ul>
+    <p>
+      We do not sell your personal data to third parties, and we do not use it for profiling or automated
+      decision-making that produces legal effects.
+    </p>
+
+    <h2>4. Cookies and Tracking</h2>
+    <p>
+      We use cookies and similar local storage mechanisms. These fall into the following categories:
+    </p>
+
+    <h3>Essential Cookies</h3>
+    <p>
+      Required for the Service to function. These cannot be disabled:
+    </p>
+    <ul>
+      <li><strong>Authentication session</strong> — keeps you logged in (managed by Supabase)</li>
+      <li><strong>Theme preference</strong> — remembers your dark/light mode choice</li>
+      <li><strong>Cookie consent choice</strong> — stores whether you accepted or declined non-essential cookies</li>
+      <li><strong>Onboarding status</strong> — remembers if you have completed the onboarding flow</li>
+    </ul>
+
+    <h3>Analytics Cookies (Consent Required)</h3>
+    <ul>
+      <li><strong>PostHog</strong> — product analytics to understand feature usage and improve the App</li>
+    </ul>
+
+    <h3>Advertising Cookies (Consent Required)</h3>
+    <ul>
+      <li>
+        <strong>Google AdSense</strong> — used to serve personalised advertisements to Free tier users.
+        The AdSense script is only loaded after you explicitly accept cookies via the consent banner.
+        Pro subscribers do not see ads.
+      </li>
+    </ul>
+
+    <p>
+      You can change your cookie preferences at any time by clearing your browser's local storage, which will
+      prompt the consent banner again on your next visit.
+    </p>
+
+    <h2>5. Data Storage</h2>
+    <p>
+      Your data is stored in <strong>Supabase</strong>, a cloud database platform built on PostgreSQL. Data is
+      hosted on servers located within the European Union (AWS eu-west-1 region). All data in transit between
+      your device and our servers is encrypted using TLS (HTTPS). Data at rest is encrypted by Supabase at the
+      storage level.
+    </p>
+
+    <h2>6. Third-Party Services</h2>
+    <p>
+      We share data with the following third-party services, each of which has its own privacy policy:
+    </p>
+    <ul>
+      <li>
+        <strong>Google LLC</strong> — Sign In with Google (OAuth identity provider); Google AdSense
+        (advertising, consent-gated).
+        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>
+      </li>
+      <li>
+        <strong>Stripe, Inc.</strong> — Payment processing for Pro subscriptions.
+        <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>
+      </li>
+      <li>
+        <strong>PostHog, Inc.</strong> — Product analytics (consent-gated).
+        <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">PostHog Privacy Policy</a>
+      </li>
+      <li>
+        <strong>Supabase, Inc.</strong> — Database, authentication, and real-time infrastructure.
+        <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Supabase Privacy Policy</a>
+      </li>
+      <li>
+        <strong>Vercel, Inc.</strong> — Frontend hosting and edge delivery.
+        <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel Privacy Policy</a>
+      </li>
+    </ul>
+    <p>
+      We only share the minimum data necessary for each service to function. We do not permit third parties to
+      use your data for their own marketing or advertising purposes unless you have separately consented to that
+      (e.g., via Google's own ad personalisation settings).
+    </p>
+
+    <h2>7. Data Retention</h2>
+    <p>
+      We retain your personal data for as long as your account is active. Specifically:
+    </p>
+    <ul>
+      <li>Account and game data: retained until you delete your account</li>
+      <li>ELO history: retained as part of your account record; deleted on account deletion</li>
+      <li>Analytics data: retained per PostHog's default retention policy (typically up to 12 months)</li>
+      <li>Payment records: Stripe retains transaction records for up to 7 years for legal and tax compliance</li>
+    </ul>
+    <p>
+      When you delete your account, your profile and all associated game data are permanently deleted from our
+      database via a cascade delete. Some anonymised aggregate statistics (e.g., total questions answered
+      globally) may be retained.
+    </p>
+
+    <h2>8. Your Rights (GDPR)</h2>
+    <p>
+      If you are located in the European Economic Area (EEA), United Kingdom, or another jurisdiction with
+      equivalent data protection laws, you have the following rights:
+    </p>
+    <ul>
+      <li>
+        <strong>Right to Access</strong> — You can view your profile data, game statistics, and ELO history
+        directly in the App under Profile settings.
+      </li>
+      <li>
+        <strong>Right to Data Portability</strong> — You can request an export of your personal data by emailing
+        <a href="mailto:support@stepover.app">support@stepover.app</a>.
+      </li>
+      <li>
+        <strong>Right to Erasure</strong> — You can delete your account at any time from the Profile settings
+        page. This will permanently remove your data from our systems.
+      </li>
+      <li>
+        <strong>Right to Rectification</strong> — You can update your username and profile details within the App.
+        For other corrections, contact us at <a href="mailto:support@stepover.app">support@stepover.app</a>.
+      </li>
+      <li>
+        <strong>Right to Object</strong> — You can object to non-essential cookies and analytics via the cookie
+        consent banner. You can opt out of Google ad personalisation via Google's own settings.
+      </li>
+      <li>
+        <strong>Right to Restrict Processing</strong> — Contact us to request that we restrict processing of
+        your data in certain circumstances.
+      </li>
+    </ul>
+    <p>
+      To exercise any of these rights, email <a href="mailto:support@stepover.app">support@stepover.app</a>.
+      We will respond within 30 days. You also have the right to lodge a complaint with your local data
+      protection authority (e.g., the ICO in the UK, or your national DPA in the EU).
+    </p>
+
+    <h2>9. Children's Privacy</h2>
+    <p>
+      The Service is intended for users aged <strong>13 and over</strong>. We do not knowingly collect personal
+      data from children under 13. If you believe a child under 13 has provided us with personal data, please
+      contact us at <a href="mailto:support@stepover.app">support@stepover.app</a> and we will promptly delete
+      that data.
+    </p>
+    <p>
+      Users between 13 and 16 in the EU may require parental consent under GDPR Article 8. We rely on parents
+      and guardians to supervise minors' use of the Service.
+    </p>
+
+    <h2>10. Data Security</h2>
+    <p>
+      We take reasonable technical and organisational measures to protect your personal data against unauthorised
+      access, disclosure, alteration, or destruction. These include:
+    </p>
+    <ul>
+      <li>All data in transit is encrypted using TLS (HTTPS)</li>
+      <li>Database access is restricted to authenticated service roles with row-level security (RLS) policies</li>
+      <li>Authentication tokens are managed by Supabase and are short-lived</li>
+      <li>Production secrets are stored in environment variables, not in source code</li>
+      <li>We do not store passwords in plaintext; authentication is handled via Supabase Auth or Google OAuth</li>
+    </ul>
+    <p>
+      No system is completely secure. If you discover a security vulnerability in the Service, please report it
+      responsibly to <a href="mailto:support@stepover.app">support@stepover.app</a>.
+    </p>
+
+    <h2>11. Changes to This Policy</h2>
+    <p>
+      We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or
+      legal requirements. When we make material changes, we will update the "Last updated" date at the top of
+      this page. For significant changes, we may notify you via email or an in-app notification.
+    </p>
+    <p>
+      We encourage you to review this page periodically. Your continued use of the Service after changes are
+      posted constitutes your acceptance of the updated policy.
+    </p>
+
+    <h2>12. Contact</h2>
+    <p>
+      If you have any questions, concerns, or requests relating to this Privacy Policy or your personal data,
+      please contact us:
+    </p>
+    <p>
+      <strong>Stepover</strong><br>
+      Email: <a href="mailto:support@stepover.app">support@stepover.app</a>
+    </p>
+    <p>
+      We aim to respond to all privacy-related enquiries within 30 days.
+    </p>
+
+    <p style="margin-top: 2rem;">
+      You can also review our <a routerLink="/terms">Terms of Service</a>.
+    </p>
+  </div>
+</div>

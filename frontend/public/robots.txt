@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /game
+Disallow: /online-game
+Disallow: /duel
+Disallow: /battle-royale
+Disallow: /onboarding
+
+Sitemap: https://football-quizball.vercel.app/sitemap.xml

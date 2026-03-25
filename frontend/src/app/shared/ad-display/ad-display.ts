@@ -1,6 +1,7 @@
-import { Component, inject, AfterViewInit, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, AfterViewInit, ViewChild, ElementRef, ChangeDetectionStrategy, effect } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { environment } from '../../../environments/environment';
+import { CookieConsentService } from '../../core/cookie-consent.service';
 
 declare global {
   interface Window {
@@ -10,7 +11,8 @@ declare global {
 
 /**
  * Displays a Google AdSense ad unit. Renders only in production when
- * adSenseClientId and adSenseSlotId are configured.
+ * adSenseClientId and adSenseSlotId are configured, and only after the
+ * user has accepted cookies via the CookieConsentService.
  */
 @Component({
   selector: 'app-ad-display',
@@ -22,6 +24,7 @@ declare global {
 })
 export class AdDisplayComponent implements AfterViewInit {
   private readonly doc = inject(DOCUMENT);
+  private readonly cookieConsent = inject(CookieConsentService);
 
   @ViewChild('adSlot') adSlotRef?: ElementRef<HTMLElement>;
 
@@ -33,9 +36,23 @@ export class AdDisplayComponent implements AfterViewInit {
   readonly adClient = environment.adSenseClientId;
   readonly adSlotId = environment.adSenseSlotId;
 
+  private adLoaded = false;
+
+  constructor() {
+    effect(() => {
+      if (this.cookieConsent.adsAllowed() && this.enabled && !this.adLoaded && this.adSlotRef?.nativeElement) {
+        this.adLoaded = true;
+        this.loadScript().then(() => this.pushAd());
+      }
+    });
+  }
+
   ngAfterViewInit(): void {
     if (!this.enabled || !this.adSlotRef?.nativeElement) return;
-    this.loadScript().then(() => this.pushAd());
+    if (this.cookieConsent.adsAllowed()) {
+      this.adLoaded = true;
+      this.loadScript().then(() => this.pushAd());
+    }
   }
 
   private loadScript(): Promise<void> {

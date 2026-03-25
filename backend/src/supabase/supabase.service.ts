@@ -473,4 +473,50 @@ export class SupabaseService {
       .from('user_question_history')
       .upsert({ user_id: userId, question_id: questionId, seen_at: new Date().toISOString() }, { onConflict: 'user_id,question_id' });
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    // Delete avatar from storage if any files exist under the user's prefix
+    const { data: avatarFiles } = await this.client.storage
+      .from('avatars')
+      .list(userId);
+    if (avatarFiles?.length) {
+      await this.client.storage
+        .from('avatars')
+        .remove(avatarFiles.map((f) => `${userId}/${f.name}`));
+    }
+
+    // Delete the auth user — cascades to profiles and all FK-linked tables
+    const { error } = await this.client.auth.admin.deleteUser(userId);
+    if (error) throw new Error(`Failed to delete user: ${error.message}`);
+  }
+
+  async exportUserData(userId: string): Promise<Record<string, unknown>> {
+    const [profile, eloHistory, achievements, matchHistory, modeStats, blitzStats] =
+      await Promise.all([
+        this.client.from('profiles').select('*').eq('id', userId).single(),
+        this.client
+          .from('elo_history')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false }),
+        this.client.from('user_achievements').select('*').eq('user_id', userId),
+        this.client
+          .from('match_history')
+          .select('*')
+          .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+          .order('played_at', { ascending: false }),
+        this.client.from('user_mode_stats').select('*').eq('user_id', userId),
+        this.client.from('blitz_scores').select('*').eq('user_id', userId),
+      ]);
+
+    return {
+      exported_at: new Date().toISOString(),
+      profile: profile.data,
+      elo_history: eloHistory.data ?? [],
+      achievements: achievements.data ?? [],
+      match_history: matchHistory.data ?? [],
+      mode_stats: modeStats.data ?? [],
+      blitz_scores: blitzStats.data ?? [],
+    };
+  }
 }

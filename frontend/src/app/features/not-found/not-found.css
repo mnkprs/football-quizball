@@ -1,0 +1,59 @@
+.not-found {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg, #000);
+  padding: 2rem;
+}
+
+.not-found__content {
+  text-align: center;
+  max-width: 20rem;
+}
+
+.not-found__code {
+  display: block;
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--color-accent, #6C63FF), color-mix(in srgb, var(--color-accent, #6C63FF) 60%, #ff6b6b));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.not-found__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-foreground, #fff);
+  margin: 0 0 0.5rem;
+}
+
+.not-found__message {
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 2rem;
+  line-height: 1.5;
+}
+
+:host-context(html:not(.dark)) .not-found__message {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.not-found__btn {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  background: var(--color-accent, #6C63FF);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.not-found__btn:active {
+  opacity: 0.8;
+}
