@@ -16,21 +16,36 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pro_purchased_at TIMESTAMPTZ;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS daily_duels_played INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS daily_duels_reset_at DATE NOT NULL DEFAULT CURRENT_DATE;
 
--- Atomic daily duel increment with auto-reset at midnight
+-- Atomic daily duel increment with auto-reset at midnight.
+-- Only increments if under the limit (3). Returns the new count,
+-- or -1 if already at/over the limit (prevents unbounded growth on retries).
 CREATE OR REPLACE FUNCTION increment_daily_duel(p_user_id UUID)
 RETURNS INTEGER AS $$
 DECLARE
   v_count INTEGER;
+  v_reset_at DATE;
 BEGIN
+  SELECT daily_duels_played, daily_duels_reset_at
+  INTO v_count, v_reset_at
+  FROM profiles WHERE id = p_user_id FOR UPDATE;
+
+  -- Auto-reset if new day
+  IF v_reset_at < CURRENT_DATE THEN
+    v_count := 0;
+  END IF;
+
+  -- Check limit before incrementing
+  IF v_count >= 3 THEN
+    RETURN -1;
+  END IF;
+
+  -- Increment
   UPDATE profiles
-  SET daily_duels_played = CASE
-    WHEN daily_duels_reset_at < CURRENT_DATE THEN 1
-    ELSE daily_duels_played + 1
-  END,
-  daily_duels_reset_at = CURRENT_DATE
-  WHERE id = p_user_id
-  RETURNING daily_duels_played INTO v_count;
-  RETURN v_count;
+  SET daily_duels_played = v_count + 1,
+      daily_duels_reset_at = CURRENT_DATE
+  WHERE id = p_user_id;
+
+  RETURN v_count + 1;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 

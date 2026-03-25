@@ -89,7 +89,7 @@ export class SubscriptionController {
     } catch (err: any) {
       this.logger.error(`Apple notification handling failed: ${err.message}`);
       // Return 200 anyway to prevent Apple from retrying endlessly
-      return { received: true, error: err.message };
+      return { received: true };
     }
   }
 
@@ -101,8 +101,7 @@ export class SubscriptionController {
       return { received: true };
     } catch (err: any) {
       this.logger.error(`Google notification handling failed: ${err.message}`);
-      // Return 200 to acknowledge receipt
-      return { received: true, error: err.message };
+      return { received: true };
     }
   }
 

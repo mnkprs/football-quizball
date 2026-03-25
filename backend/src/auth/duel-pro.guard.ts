@@ -32,15 +32,16 @@ export class DuelProGuard implements CanActivate {
       return true;
     }
 
-    // Free users: increment daily duel counter (auto-resets at midnight UTC)
+    // Free users: try to increment daily duel counter (auto-resets at midnight UTC)
+    // Returns -1 if already at limit (no increment applied), or new count 1-3 if allowed
     const count = await this.supabaseService.incrementDailyDuel(request.user.id);
 
-    if (count <= DAILY_DUEL_LIMIT) {
+    if (count > 0) {
       request.proStatus = { is_pro: false, dailyDuelCount: count };
       return true;
     }
 
-    // Over limit — compute next midnight UTC for retry_after
+    // At limit (count === -1) — compute next midnight UTC for retry_after
     const now = new Date();
     const nextMidnight = new Date(Date.UTC(
       now.getUTCFullYear(),
