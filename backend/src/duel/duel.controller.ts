@@ -15,7 +15,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { DuelService } from './duel.service';
 import { CreateDuelDto, JoinDuelByCodeDto, DuelAnswerDto, DuelTimeoutDto } from './duel.types';
 
-type DuelRequest = { user: { id: string }; proStatus?: { is_pro: boolean; trial_duel_used: number } };
+type DuelRequest = { user: { id: string }; proStatus?: { is_pro: boolean; dailyDuelCount: number } };
 
 @Controller('api/duel')
 export class DuelController {
@@ -31,9 +31,7 @@ export class DuelController {
     @Request() req: DuelRequest,
     @Body() dto: CreateDuelDto,
   ) {
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementDuelTrial(req.user.id);
-    }
+    // Daily duel increment is handled atomically by DuelProGuard
     return this.service.createGame(req.user.id, dto);
   }
 
@@ -50,9 +48,7 @@ export class DuelController {
   async joinQueue(
     @Request() req: DuelRequest,
   ) {
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementDuelTrial(req.user.id);
-    }
+    // Daily duel increment is handled atomically by DuelProGuard
     return this.service.joinQueue(req.user.id);
   }
 
@@ -63,9 +59,7 @@ export class DuelController {
     @Request() req: DuelRequest,
     @Body() dto: JoinDuelByCodeDto,
   ) {
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementDuelTrial(req.user.id);
-    }
+    // Daily duel increment is handled atomically by DuelProGuard
     return this.service.joinByCode(req.user.id, dto);
   }
 

@@ -4,7 +4,7 @@
   [backgroundIcon]="backgroundIcon()"
   [backgroundImage]="backgroundImage()"
   [ariaLabel]="title()"
-  (clicked)="!locked() && !proLocked() && cardClick.emit()"
+  (clicked)="!locked() && !proLocked() && rateLimit() !== 0 && cardClick.emit()"
 >
   @if (locked()) {
     <div class="mode-card__locked-overlay">
@@ -20,6 +20,16 @@
       </div>
       <span class="mode-card__pro-lock-text">Upgrade to unlock</span>
     </div>
+  }
+  @if (rateLimit() === 0 && !proLocked()) {
+    <div class="mode-card__locked-overlay mode-card__locked-overlay--rate-limit" (click)="onProOverlayClick($event)">
+      <span class="material-icons mode-card__lock-icon">schedule</span>
+      <span class="mode-card__lock-text">Come back tomorrow</span>
+      <span class="mode-card__rate-limit-hint">or upgrade for unlimited</span>
+    </div>
+  }
+  @if (rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) {
+    <span class="mode-card__badge-pill mode-card__badge-pill--accent mode-card__rate-badge">{{ rateLimit() }} free today</span>
   }
   @if (badge(); as badgeText) {
     <span class="mode-card__badge-pill"

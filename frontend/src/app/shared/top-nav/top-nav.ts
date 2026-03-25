@@ -37,7 +37,7 @@ export class TopNavComponent implements OnInit {
   elo = this._elo.asReadonly();
   rank = computed(() => this._rank() ?? '—');
 
-  trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
+  trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining());
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
@@ -91,14 +91,13 @@ export class TopNavComponent implements OnInit {
 
   closeSettings(): void { this.settingsOpen.set(false); }
 
-  async upgrade(): Promise<void> {
-    this.upgrading.set(true);
-    try { await this.pro.createCheckout(); } finally { this.upgrading.set(false); }
+  upgrade(): void {
+    this.pro.showUpgradeModal.set(true);
   }
 
-  async managePlan(): Promise<void> {
-    this.upgrading.set(true);
-    try { await this.pro.openPortal(); } finally { this.upgrading.set(false); }
+  managePlan(): void {
+    // Subscription management is handled natively via App Store / Play Store settings
+    this.pro.showUpgradeModal.set(true);
   }
 
   async signOut(): Promise<void> {

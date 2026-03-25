@@ -31,10 +31,14 @@ export class ModeCardComponent {
   actionLabel = input<string>();
   locked = input<boolean>(false);
   proLocked = input<boolean>(false);
+  /** Daily rate limit for the mode (e.g. Duel). null = no rate limit. 0 = limit reached. */
+  rateLimit = input<number | null>(null);
+  /** Trial info badge (e.g. Battle Royale). Shows "{remaining} of {total} free" badge. */
+  trialInfo = input<{ remaining: number; total: number } | null>(null);
 
   cardClick = output<void>();
 
-  private pro = inject(ProService);
+  pro = inject(ProService);
 
   onProOverlayClick(e: Event): void {
     e.stopPropagation();
