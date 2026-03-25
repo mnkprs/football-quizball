@@ -11,7 +11,7 @@
   justify-content: space-between;
   padding: 0 1.25rem;
   z-index: 50;
-  background: transparent;
+  background: rgba(58, 57, 57, 0.4);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
