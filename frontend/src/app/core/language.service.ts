@@ -117,6 +117,8 @@ const TRANSLATIONS = {
     dailyResetsIn: 'Resets in',
     dailyQuestionsLabel: 'questions',
     gameModes: 'Game Modes',
+    compete: 'Compete',
+    proArena: 'Pro Arena',
     viewAll: 'View All',
     startMatch: 'Start Match',
     localMultiplayer: 'Local Multiplayer',
