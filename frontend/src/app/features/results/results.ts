@@ -27,7 +27,8 @@ export class ResultsComponent implements OnInit {
   players = this.store.players;
 
   ngOnInit(): void {
-    this.donateModal.considerShowing();
+    // Delay donate prompt so users can see their results first
+    setTimeout(() => this.donateModal.considerShowing(), 3000);
     this.saveMatchResult();
   }
 
