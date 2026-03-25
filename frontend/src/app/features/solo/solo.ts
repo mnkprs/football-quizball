@@ -196,6 +196,8 @@ export class SoloComponent implements OnDestroy {
   async endSession(): Promise<void> {
     const sid = this.sessionId();
     if (!sid) { this.phase.set('finished'); return; }
+    this.revealing.set(false);
+    this.revealResultData.set(null);
     this.loading.set(true);
     try {
       await firstValueFrom(this.api.endSession(sid));

@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal, HostListener, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, computed, signal, HostListener, effect } from '@angular/core';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
@@ -17,7 +19,7 @@ import { environment } from '../../../environments/environment';
   styleUrl: './top-nav.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopNavComponent implements OnInit {
+export class TopNavComponent {
   auth = inject(AuthService);
   lang = inject(LanguageService);
   theme = inject(ThemeService);
@@ -38,6 +40,33 @@ export class TopNavComponent implements OnInit {
   rank = computed(() => this._rank() ?? '—');
 
   trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
+
+  /** Tracks navigation events to refresh stats when user returns from a game */
+  private navEnd = toSignal(
+    this.router.events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd)),
+    { initialValue: null }
+  );
+
+  constructor() {
+    // React to auth state changes (handles OAuth redirect, login, logout)
+    effect(() => {
+      const user = this.auth.user();
+      if (user) {
+        this.loadStats(user.id);
+      } else {
+        this._elo.set(1000);
+        this._rank.set(null);
+      }
+    });
+
+    // Refresh stats when navigating back to home (after playing a game)
+    effect(() => {
+      const nav = this.navEnd();
+      if (nav?.url === '/' && this.auth.user()?.id) {
+        this.loadStats(this.auth.user()!.id);
+      }
+    });
+  }
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
@@ -62,15 +91,7 @@ export class TopNavComponent implements OnInit {
     return name.slice(0, 2).toUpperCase();
   });
 
-  ngOnInit(): void {
-    this.auth.sessionReady.then(() => {
-      if (this.auth.isLoggedIn()) this.loadStats();
-    });
-  }
-
-  private async loadStats(): Promise<void> {
-    const userId = this.auth.user()?.id;
-    if (!userId) return;
+  private async loadStats(userId: string): Promise<void> {
     try {
       const res = await firstValueFrom(this.soloApi.getProfile(userId));
       if (res?.profile) {

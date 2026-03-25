@@ -151,7 +151,7 @@ export class GameQuestionComponent {
   timerPercent = computed(() => {
     const left = this.timeLeft();
     const total = this.totalTime();
-    if (left === null || total <= 0) return 100;
+    if (left === null || left < 0 || total <= 0) return 100;
     return (left / total) * 100;
   });
 
