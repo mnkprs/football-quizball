@@ -78,14 +78,19 @@ export class App implements OnInit, OnDestroy {
         });
       this.swUpdate.checkForUpdate();
     }
-    // Splash: show 2s, then fade 0.6s, then check onboarding
-    setTimeout(() => {
-      this.splashFading.set(true);
+    // Splash: only show on home/root, skip for deep-linked inner pages
+    if (this.router.url !== '/' && this.router.url !== '') {
+      this.showSplash.set(false);
+      this.checkOnboarding();
+    } else {
       setTimeout(() => {
-        this.showSplash.set(false);
-        this.checkOnboarding();
-      }, 600);
-    }, 2000);
+        this.splashFading.set(true);
+        setTimeout(() => {
+          this.showSplash.set(false);
+          this.checkOnboarding();
+        }, 600);
+      }, 2000);
+    }
   }
 
   ngOnDestroy(): void {
