@@ -210,6 +210,43 @@
   flex-shrink: 0;
 }
 
+.auth-apple-btn {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.875rem;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 0.5rem;
+}
+
+:host-context(html:not(.dark)) .auth-apple-btn {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.auth-apple-btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.auth-apple-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-apple-icon {
+  flex-shrink: 0;
+}
+
 .auth-modal-error {
   color: var(--color-loss);
   font-size: 0.875rem;

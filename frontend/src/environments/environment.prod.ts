@@ -28,4 +28,8 @@ export const environment = {
   /** PostHog project API key. Set in environment.prod.ts or build pipeline. */
   posthogKey: 'phc_F8tJ3RTBgYPfc3CCJGX3AEF7s49qiu6p7JeJTPYs0Fn',
   posthogHost: 'https://us.i.posthog.com',
+  /** Google OAuth Web Client ID for native sign-in. Get from Google Cloud Console → Credentials. */
+  googleWebClientId: '',
+  /** Apple Client ID (bundle identifier) for Sign in with Apple. */
+  appleClientId: 'com.stepovr.app',
 };
