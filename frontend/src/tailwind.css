@@ -6,12 +6,49 @@
 /*  Static tokens (same across both themes)           */
 /* -------------------------------------------------- */
 :root {
+  /* DESIGN.md tokens — surfaces */
+  --color-bg: #131313;
+  --color-surface-lowest: #0e0e0e;
+  --color-surface-low: #1c1b1b;
+  --color-surface: #201f1f;
+  --color-surface-high: #2a2a2a;
+  --color-surface-highest: #353534;
+  --color-surface-bright: #3a3939;
+
+  /* DESIGN.md tokens — text */
+  --color-fg: #e5e2e1;
+  --color-fg-variant: #c4c9ac;
+  --color-fg-muted: #8e9379;
+  --color-fg-dim: #444933;
+
+  /* DESIGN.md tokens — brand accent */
+  --color-accent-glow: rgba(195, 244, 0, 0.3);
+  --color-accent-bg: rgba(195, 244, 0, 0.15);
+  --color-accent-dim: #abd600;
+
+  /* DESIGN.md tokens — semantic */
+  --color-error: #ffb4ab;
+  --color-error-bg: #93000a;
+  --color-success: #22C55E;
+  --color-success-bg: rgba(34, 197, 94, 0.12);
+  --color-warning: #FF9500;
+  --color-pro: #e6a800;
+  --color-pro-bg: rgba(230, 168, 0, 0.08);
+
+  /* DESIGN.md tokens — radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Existing tokens */
   --color-accent: #c3f400;
   --color-accent-foreground: #161e00;
   --color-accent-light: #d4ff33;
   --color-ring: #c3f400;
   --color-destructive: #B3261E;
-  --color-win: #ccff00;
+  --color-win: #c3f400;
   --color-loss: #B3261E;
   --color-draw: #F9A825;
 
