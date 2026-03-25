@@ -77,7 +77,7 @@ export class App implements OnInit, OnDestroy {
           this.swUpdate!.activateUpdate().then(() => location.reload());
         });
       this.swUpdate.checkForUpdate();
-      });
+    }
     // Splash: show 2s, then fade 0.6s, then check onboarding
     setTimeout(() => {
       this.splashFading.set(true);
