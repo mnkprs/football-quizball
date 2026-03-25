@@ -1,4 +1,4 @@
-# Pre-Production Checklist — QuizBall
+# Pre-Production Checklist — Stepover
 
 > Last updated: 2026-03-25
 > Target: 400 concurrent players
@@ -89,3 +89,279 @@
 | Monitoring | None | Sentry ($0 free tier) |
 
 **Estimated monthly cost at 400 players: ~$35/mo**
+
+---
+
+## Mobile App Launch (App Store + Play Store)
+
+### Apple (iOS)
+
+#### Account & Setup
+- [ ] **Apple Developer Account** — enroll at developer.apple.com ($99/year)
+- [ ] **App Store Connect** — create the app record (bundle ID: `com.stepover.app`)
+- [ ] **Certificates & Provisioning** — create Distribution certificate + App Store provisioning profile
+- [ ] **Apple Sign-In** — required by Apple if you offer any social login (Google, etc.). Already planned in Capacitor integration
+
+#### Required Assets
+- [ ] **App icon** — 1024×1024 PNG, no alpha/transparency, no rounded corners (Apple adds them)
+- [ ] **Screenshots** — minimum 3 per device size:
+  - 6.7" (iPhone 15 Pro Max) — 1290×2796
+  - 6.1" (iPhone 15 Pro) — 1179×2556
+  - iPad Pro 12.9" (if supporting iPad) — 2048×2732
+- [ ] **App preview video** (optional but recommended) — 15-30 second gameplay
+
+#### App Store Listing
+- [ ] **App name:** Stepover
+- [ ] **Subtitle:** Football Trivia & Quiz Game
+- [ ] **Category:** Trivia (primary), Sports (secondary)
+- [ ] **Description** — feature list, modes, what makes it unique
+- [ ] **Keywords** — football, trivia, quiz, soccer, ELO, ranked, daily
+- [ ] **Privacy policy URL** — must be publicly accessible (host on GitHub Pages or similar)
+- [ ] **Support URL** — can be same page or a simple contact page
+- [ ] **Age rating** — complete the questionnaire (likely 4+ or 9+ with no objectionable content)
+
+#### App Review Compliance
+- [ ] **Sign-In with Apple** — must be offered alongside Google Sign-In
+- [ ] **In-App Purchases** — Pro subscription must use StoreKit/Apple IAP (not Stripe) for iOS. Apple takes 15-30% cut
+- [ ] **No external payment links** — cannot link to web checkout from inside the iOS app
+- [ ] **IDFA / ATT** — if using AdSense or any ad SDK, must show App Tracking Transparency prompt
+- [ ] **Privacy Nutrition Labels** — declare what data you collect in App Store Connect
+
+### Google (Android)
+
+#### Account & Setup
+- [ ] **Google Play Developer Account** — enroll at play.google.com/console ($25 one-time)
+- [ ] **Create app** in Play Console (package: `com.stepover.app`)
+- [ ] **Signing key** — use Play App Signing (recommended) or upload your own keystore
+
+#### Required Assets
+- [ ] **App icon** — 512×512 PNG
+- [ ] **Feature graphic** — 1024×500 PNG (shown at top of store listing)
+- [ ] **Screenshots** — minimum 2, recommended 4-8 (phone + tablet if supporting)
+
+#### Play Store Listing
+- [ ] **App name:** Stepover
+- [ ] **Short description** (80 chars max)
+- [ ] **Full description** — same as iOS but can be longer
+- [ ] **Category:** Trivia
+- [ ] **Content rating** — complete IARC questionnaire
+- [ ] **Privacy policy URL** — required
+- [ ] **Data safety section** — declare data collection/sharing practices
+
+#### Play Store Compliance
+- [ ] **In-App Purchases** — Pro subscription must use Google Play Billing for Android (not Stripe). Google takes 15% (first $1M/year)
+- [ ] **Target API level** — must target latest Android SDK (currently API 34+)
+- [ ] **Ads declaration** — if showing ads, declare in Play Console
+
+### Cross-Platform (both stores)
+
+- [ ] **Capacitor build** — `npx cap sync` working for both iOS and Android
+- [ ] **Deep links** — configure app-scheme URLs for duel/game invites
+- [ ] **Push notifications** — Firebase Cloud Messaging for both platforms (optional for launch)
+- [ ] **Offline handling** — graceful error when no network (currently shows nothing)
+- [ ] **Splash screen** — configured via `@capacitor/splash-screen` with new Stepover logo
+- [ ] **Status bar** — dark background to match app theme
+
+### Payment Architecture Change (critical)
+
+> **Stripe will NOT work for in-app subscriptions on iOS/Android.** Both Apple and Google require using their native billing systems for digital goods purchased inside the app. You have two options:
+>
+> 1. **Native IAP only** — use `@capawesome/capacitor-purchases` (RevenueCat wrapper) or `cordova-plugin-purchase` to handle subscriptions through App Store / Play Store billing
+> 2. **Hybrid** — keep Stripe for web, use native IAP for mobile. RevenueCat can unify both under one dashboard
+>
+> This is a **blocking architectural change** before submitting to either store.
+
+---
+
+## Authentication & OAuth (blocks social login)
+
+### 11. Google Sign-In setup
+- **Status:** `capacitor.config.ts` has `serverClientId: ''` (empty). `environment.prod.ts` has `googleWebClientId: ''` (empty).
+- **What to do:**
+  1. Go to [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials
+  2. Create an **OAuth 2.0 Client ID** (Web application type) for Supabase redirect
+     - Authorized redirect URI: `https://npwneqworgyclzaofuln.supabase.co/auth/v1/callback`
+  3. Create a second **OAuth 2.0 Client ID** (iOS type) with bundle ID `com.stepovr.app`
+  4. Create a third **OAuth 2.0 Client ID** (Android type) with package `com.stepovr.app` + SHA-1 fingerprint from your signing key
+  5. Set the **Web Client ID** in:
+     - `capacitor.config.ts` → `GoogleAuth.serverClientId`
+     - `environment.prod.ts` → `googleWebClientId`
+  6. Enable the Google provider in **Supabase Dashboard → Authentication → Providers → Google** and paste the Web Client ID + Client Secret
+- **iOS extra:** Download `GoogleService-Info.plist` from Firebase Console and add to `ios/App/App/`
+- **Android extra:** Download `google-services.json` and add to `android/app/`
+
+### 12. Apple Sign-In setup
+- **Status:** `appleClientId` is set to `com.stepovr.app` but no Apple Developer configuration exists.
+- **What to do:**
+  1. In [Apple Developer Portal](https://developer.apple.com/):
+     - Register an **App ID** with "Sign In with Apple" capability
+     - Register a **Services ID** (for web OAuth redirect)
+     - Create a **Key** for Sign In with Apple
+  2. In **Supabase Dashboard → Authentication → Providers → Apple:**
+     - Add the Services ID, Team ID, and Key ID + private key
+     - Set redirect URL: `https://npwneqworgyclzaofuln.supabase.co/auth/v1/callback`
+  3. In Xcode: add "Sign In with Apple" capability to the app target
+  4. Create `App.entitlements` file in `ios/App/App/` (currently missing)
+
+### 13. Supabase Auth URL Configuration
+- **Status:** Supabase needs to know your production redirect URLs.
+- **What to do:**
+  1. Supabase Dashboard → Authentication → URL Configuration
+  2. Set **Site URL** to: `https://football-quizball.vercel.app` (or your custom domain)
+  3. Add **Redirect URLs:**
+     - `https://football-quizball.vercel.app/`
+     - `com.stepovr.app://` (iOS/Android deep link scheme)
+     - `http://localhost:4200/` (for development)
+
+---
+
+## Backend Production Config (blocks deploy)
+
+### 14. Update FRONTEND_URL in Railway
+- **Status:** `.env` has `FRONTEND_URL=http://localhost:4200` — must be production URL.
+- **How:** Railway → Variables → Set `FRONTEND_URL=https://football-quizball.vercel.app`
+
+### 15. Update CORS_ORIGIN for native apps
+- **Status:** CORS only allows `localhost:4200` and `football-quizball.vercel.app`. Native Capacitor apps send requests from `capacitor://localhost` (iOS) and `http://localhost` (Android).
+- **How:** Set `CORS_ORIGIN` env var on Railway to:
+  ```
+  https://football-quizball.vercel.app,capacitor://localhost,http://localhost
+  ```
+- **Also add** your custom domain if you set one up.
+
+### 16. Secure admin API key
+- **Status:** `ADMIN_API_KEY` exists in `.env`. Verify it's set to a strong random value on Railway (not the dev default).
+- **How:** `openssl rand -hex 32` → paste into Railway env vars.
+
+### 17. Set NODE_ENV=production on Railway
+- **Status:** Enables cluster mode, removes dev-only logging, enables production optimizations.
+- **How:** Railway → Variables → `NODE_ENV=production`
+- **Verify:** Cluster mode activates (logs show "Primary starting N workers").
+
+---
+
+## Deep Linking & Universal Links (blocks invite sharing)
+
+### 18. iOS Universal Links
+- **Status:** No `App.entitlements` file. No Associated Domains configured. The `appUrlOpen` handler in `app.ts` only reads the pathname — won't work without universal link setup.
+- **What to do:**
+  1. Create `ios/App/App/App.entitlements` with Associated Domains:
+     ```xml
+     <key>com.apple.developer.associated-domains</key>
+     <array>
+       <string>applinks:football-quizball.vercel.app</string>
+     </array>
+     ```
+  2. Host `apple-app-site-association` file at `https://football-quizball.vercel.app/.well-known/apple-app-site-association`:
+     ```json
+     {"applinks":{"apps":[],"details":[{"appID":"TEAMID.com.stepovr.app","paths":["/join/*","/battle-royale/*","/duel/*"]}]}}
+     ```
+  3. Replace `TEAMID` with your Apple Developer Team ID.
+
+### 19. Android App Links
+- **Status:** `AndroidManifest.xml` has no intent-filter for deep links. Only the launcher intent exists.
+- **What to do:**
+  1. Add intent-filter to `AndroidManifest.xml` inside the `<activity>`:
+     ```xml
+     <intent-filter android:autoVerify="true">
+       <action android:name="android.intent.action.VIEW" />
+       <category android:name="android.intent.category.DEFAULT" />
+       <category android:name="android.intent.category.BROWSABLE" />
+       <data android:scheme="https" android:host="football-quizball.vercel.app" android:pathPrefix="/join" />
+       <data android:scheme="https" android:host="football-quizball.vercel.app" android:pathPrefix="/battle-royale" />
+       <data android:scheme="https" android:host="football-quizball.vercel.app" android:pathPrefix="/duel" />
+     </intent-filter>
+     ```
+  2. Host `assetlinks.json` at `https://football-quizball.vercel.app/.well-known/assetlinks.json`:
+     ```json
+     [{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"com.stepovr.app","sha256_cert_fingerprints":["YOUR_SHA256"]}}]
+     ```
+
+### 20. Custom URL scheme (fallback for OAuth redirects)
+- **Status:** No custom URL scheme registered for native OAuth callback.
+- **What to do:**
+  1. Add to `ios/App/App/Info.plist`:
+     ```xml
+     <key>CFBundleURLTypes</key>
+     <array><dict>
+       <key>CFBundleURLSchemes</key>
+       <array><string>com.stepovr.app</string></array>
+     </dict></array>
+     ```
+  2. Add to `AndroidManifest.xml`:
+     ```xml
+     <intent-filter>
+       <action android:name="android.intent.action.VIEW" />
+       <category android:name="android.intent.category.DEFAULT" />
+       <category android:name="android.intent.category.BROWSABLE" />
+       <data android:scheme="com.stepovr.app" />
+     </intent-filter>
+     ```
+
+---
+
+## Native App Build & Versioning
+
+### 21. Version sync
+- **Status:** `environment.prod.ts` says `1.7.0`, iOS `CFBundleShortVersionString` is unset, Android `build.gradle` says `1.0`. These must match for each release.
+- **How:** Before each release, update all three:
+  - `frontend/src/environments/environment.prod.ts` → `appVersion`
+  - `ios/App/App/Info.plist` → `CFBundleShortVersionString`
+  - `android/app/build.gradle` → `versionName` + increment `versionCode`
+
+### 22. Android target SDK
+- **Status:** Google requires `targetSdkVersion 34` (API 34) minimum as of 2025. Check `build.gradle`.
+- **How:** Verify `android/app/build.gradle` has `targetSdkVersion 34` or higher.
+
+### 23. iOS minimum deployment target
+- **Status:** Check `ios/App/Podfile` for the deployment target. Should be iOS 15+ minimum.
+- **How:** Verify and update if needed in `Podfile` and Xcode project settings.
+
+---
+
+## Ads & Monetization (native)
+
+### 24. Replace AdSense with AdMob for native
+- **Status:** Using Google AdSense (`ca-pub-7781323448253047`) which only works on web. Native apps need **Google AdMob**.
+- **What to do:**
+  1. Create AdMob account at [admob.google.com](https://admob.google.com)
+  2. Register iOS and Android apps
+  3. Get ad unit IDs for banner/interstitial
+  4. Install `@capacitor-community/admob` or `@capawesome/capacitor-admob`
+  5. Replace `AdDisplayComponent` with AdMob calls on native, keep AdSense for web
+  6. Handle ATT prompt on iOS before loading ads
+
+---
+
+## Security & Privacy
+
+### 25. Privacy policy hosting
+- **Status:** Privacy and terms pages exist (`features/legal/privacy.html`, `terms.html`) but need to be accessible via public URL for store listings.
+- **How:** Host at `https://football-quizball.vercel.app/privacy` and `https://football-quizball.vercel.app/terms`. Verify routes exist in `app.routes.ts`.
+
+### 26. Data deletion endpoint
+- **Status:** Both Apple and Google require users to be able to delete their account and data.
+- **What to do:** Add a "Delete my account" button in the profile/settings screen that:
+  1. Calls backend to delete: profile, elo_history, match history, BR player entries
+  2. Calls `supabase.auth.admin.deleteUser(userId)` to remove the auth user
+  3. Signs the user out
+
+### 27. Remove hardcoded secrets from source
+- **Status:** `environment.ts` and `environment.prod.ts` contain Supabase anon key (this is fine — anon key is public by design). But verify no service role keys or secret keys are in frontend code.
+- **Verified:** No service role keys in frontend. Backend `.env` is gitignored. OK.
+
+---
+
+## Domain & Branding
+
+### 28. Custom domain (optional but recommended)
+- **Status:** App is at `football-quizball.vercel.app`. For a production app, a custom domain (e.g., `stepovr.com`) looks more professional and is needed for universal links.
+- **How:** Buy domain → Vercel → Settings → Domains → Add. Update all redirect URLs in Supabase, CORS, and universal link configs.
+
+### 29. App name consistency
+- **Status:** Multiple names in different places:
+  - Capacitor: `StepOvr`
+  - Environment: no app name field
+  - Pre-production doc: `Stepover`
+  - Repo name: `football-quizball`
+- **How:** Decide on one name. Update `capacitor.config.ts`, `AndroidManifest.xml` (`app_name`), `Info.plist`, store listings.

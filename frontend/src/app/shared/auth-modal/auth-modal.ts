@@ -2,6 +2,7 @@ import { Component, inject, signal, HostListener, ChangeDetectionStrategy } from
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
+import { PlatformService } from '../../core/platform.service';
 
 @Component({
   selector: 'app-auth-modal',
@@ -13,11 +14,13 @@ import { AuthModalService } from '../../core/auth-modal.service';
 })
 export class AuthModalComponent {
   modalService = inject(AuthModalService);
+  platform = inject(PlatformService);
   private auth = inject(AuthService);
 
   mode = signal<'signin' | 'signup'>('signin');
   loading = signal(false);
   googleLoading = signal(false);
+  appleLoading = signal(false);
   error = signal<string | null>(null);
   emailSent = signal(false);
   sentEmail = signal('');
@@ -56,10 +59,26 @@ export class AuthModalComponent {
     this.googleLoading.set(true);
     try {
       await this.auth.signInWithGoogle();
+      if (this.platform.isNative) this.modalService.close();
     } catch (err: any) {
       this.error.set(err?.message ?? 'Google sign-in failed');
       this.loading.set(false);
       this.googleLoading.set(false);
+    }
+  }
+
+  async signInWithApple(): Promise<void> {
+    this.error.set(null);
+    this.loading.set(true);
+    this.appleLoading.set(true);
+    try {
+      await this.auth.signInWithApple();
+      if (this.platform.isNative) this.modalService.close();
+    } catch (err: any) {
+      this.error.set(err?.message ?? 'Apple sign-in failed');
+    } finally {
+      this.loading.set(false);
+      this.appleLoading.set(false);
     }
   }
 

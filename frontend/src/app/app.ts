@@ -2,6 +2,7 @@ import { Component, inject, OnInit, OnDestroy, signal, effect, ChangeDetectionSt
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { SwUpdate } from '@angular/service-worker';
+import { Capacitor } from '@capacitor/core';
 import { DonateModalComponent } from './shared/donate-modal/donate-modal';
 import { DonateModalService } from './core/donate-modal.service';
 import { AuthModalComponent } from './shared/auth-modal/auth-modal';
@@ -12,11 +13,12 @@ import { AuthService } from './core/auth.service';
 import { GoogleAdsService } from './core/google-ads.service';
 import { PosthogService } from './core/posthog.service';
 import { ToastComponent } from './shared/toast/toast';
+import { CookieConsentComponent } from './shared/cookie-consent/cookie-consent';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, ToastComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, ToastComponent, CookieConsentComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,6 +78,16 @@ export class App implements OnInit, OnDestroy {
           this.swUpdate!.activateUpdate().then(() => location.reload());
         });
       this.swUpdate.checkForUpdate();
+    }
+
+    // Deep link handling for native OAuth callbacks
+    if (Capacitor.isNativePlatform()) {
+      import('@capacitor/app').then(({ App: CapApp }) => {
+        CapApp.addListener('appUrlOpen', ({ url }) => {
+          const path = new URL(url).pathname;
+          if (path) this.router.navigateByUrl(path);
+        });
+      });
     }
 
     // Splash: show 2s, then fade 0.6s, then check onboarding

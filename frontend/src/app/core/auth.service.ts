@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { createClient, SupabaseClient, Session, User } from '@supabase/supabase-js';
+import { Capacitor } from '@capacitor/core';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -59,15 +60,49 @@ export class AuthService {
   }
 
   async signInWithGoogle(): Promise<void> {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await this.supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl,
-        queryParams: { access_type: 'offline', prompt: 'select_account' },
-      },
-    });
-    if (error) throw error;
+    if (Capacitor.isNativePlatform()) {
+      const { GoogleAuth } = await import('@southdevs/capacitor-google-auth');
+      await GoogleAuth.initialize();
+      const googleUser = await GoogleAuth.signIn({ scopes: ['profile', 'email'] });
+      const { error } = await this.supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: googleUser.authentication.idToken,
+      });
+      if (error) throw error;
+    } else {
+      const redirectUrl = `${window.location.origin}/`;
+      const { error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: { access_type: 'offline', prompt: 'select_account' },
+        },
+      });
+      if (error) throw error;
+    }
+  }
+
+  async signInWithApple(): Promise<void> {
+    if (Capacitor.isNativePlatform()) {
+      const { SignInWithApple } = await import('@capacitor-community/apple-sign-in');
+      const result = await SignInWithApple.authorize({
+        clientId: environment.appleClientId,
+        redirectURI: `https://${environment.supabaseUrl.replace('https://', '')}/auth/v1/callback`,
+        scopes: 'email name',
+      });
+      const { error } = await this.supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: result.response.identityToken!,
+      });
+      if (error) throw error;
+    } else {
+      const redirectUrl = `${window.location.origin}/`;
+      const { error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: { redirectTo: redirectUrl },
+      });
+      if (error) throw error;
+    }
   }
 
   async fetchAvatarUrl(userId: string): Promise<string | null> {

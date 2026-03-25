@@ -6,7 +6,11 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "cap:sync": "npx cap sync",
+    "cap:build": "ng build --configuration production && npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "cap:android": "npx cap open android"
   },
   "private": true,
   "dependencies": {
@@ -20,7 +24,14 @@
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@angular/service-worker": "^20.0.0",
+    "@capacitor-community/apple-sign-in": "^7.1.0",
+    "@capacitor/android": "^7.6.0",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/cli": "^7.6.0",
+    "@capacitor/core": "^7.6.0",
+    "@capacitor/ios": "^7.6.0",
     "@ngrx/signals": "^20.1.0",
+    "@southdevs/capacitor-google-auth": "^7.0.0",
     "@supabase/supabase-js": "^2.98.0",
     "posthog-js": "^1.360.2",
     "rxjs": "~7.8.0",
