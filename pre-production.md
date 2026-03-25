@@ -162,14 +162,39 @@
 - [ ] **Splash screen** — configured via `@capacitor/splash-screen` with new Stepover logo
 - [ ] **Status bar** — dark background to match app theme
 
-### Payment Architecture Change (critical)
+### Payment Architecture — Native IAP Setup (blocks store submission)
 
-> **Stripe will NOT work for in-app subscriptions on iOS/Android.** Both Apple and Google require using their native billing systems for digital goods purchased inside the app. You have two options:
->
-> 1. **Native IAP only** — use `@capawesome/capacitor-purchases` (RevenueCat wrapper) or `cordova-plugin-purchase` to handle subscriptions through App Store / Play Store billing
-> 2. **Hybrid** — keep Stripe for web, use native IAP for mobile. RevenueCat can unify both under one dashboard
->
-> This is a **blocking architectural change** before submitting to either store.
+> **Status:** Code implemented on `feat/native-iap` branch. Stripe stays for web, native IAP via `cordova-plugin-purchase` for iOS/Android. Backend validates receipts at `POST /api/subscription/verify-receipt`. All changes share `profiles.is_pro` as single source of truth.
+
+#### Apple App Store IAP
+- [ ] **Create subscription product in App Store Connect:**
+  1. App Store Connect → Your App → Subscriptions → Create Subscription Group ("Pro")
+  2. Add product with ID: `pro_monthly`, price: $1.99/month
+  3. Add subscription description and review screenshot
+- [ ] **Get shared secret:** App Store Connect → Your App → General → App-Specific Shared Secret → Generate
+- [ ] **Set env var on Railway:** `APPLE_SHARED_SECRET=<shared secret from above>`
+
+#### Google Play Store IAP
+- [ ] **Create subscription product in Play Console:**
+  1. Play Console → Your App → Monetize → Products → Subscriptions → Create
+  2. Product ID: `pro_monthly`, price: $1.99/month, billing period: monthly
+- [ ] **Create service account for receipt validation:**
+  1. Google Cloud Console → IAM & Admin → Service Accounts → Create
+  2. Grant role: "Android Publisher" (or link via Play Console → API access)
+  3. Create JSON key and download
+- [ ] **Set env vars on Railway:**
+  - `GOOGLE_PLAY_PACKAGE_NAME=com.stepover.app`
+  - `GOOGLE_PLAY_SERVICE_ACCOUNT_KEY=<paste full JSON key content>`
+
+#### Database Migration
+- [ ] **Run IAP migration:** `supabase/migrations/20260325000001_add_iap_fields.sql` adds `iap_platform` and `iap_original_transaction_id` to `profiles` table
+  - Run via: Supabase Dashboard → SQL Editor, or `supabase db push`
+
+#### Capacitor Native Platforms
+- [ ] **Generate native projects** (after Capacitor deps are installed):
+  ```bash
+  cd frontend && npx cap add ios && npx cap add android && npx cap sync
+  ```
 
 ---
 
