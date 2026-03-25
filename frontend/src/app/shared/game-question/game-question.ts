@@ -1,10 +1,22 @@
-import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../core/language.service';
 import { inject } from '@angular/core';
 
-export type GameMode = 'solo' | '2p-local' | '2p-online' | 'mayhem' | 'news';
+export type GameMode = 'solo' | '2p-local' | '2p-online' | 'mayhem' | 'news' | 'blitz';
+
+export type InteractionMode = 'standard' | 'blitz';
+
+export interface RevealResult {
+  correct: boolean;
+  correct_answer: string;
+  user_answer?: string;
+  elo_change?: number;
+  elo_after?: number;
+  explanation?: string;
+  timed_out?: boolean;
+}
 
 export type QuestionCategory =
   | 'CLASSIC'
@@ -86,10 +98,14 @@ export class GameQuestionComponent {
   top5State = input<Top5State | null>(null);
   submitting = input<boolean>(false);
   reportDisabled = input<boolean>(false);
+  interactionMode = input<InteractionMode>('standard');
+  reveal = input<boolean>(false);
+  revealResult = input<RevealResult | null>(null);
 
   // ─── OUTPUTS ──────────────────────────────────────────────────
   answerSubmitted = output<string>();
   optionSelected = output<string>();
+  nextClicked = output<void>();
   holAnswered = output<'higher' | 'lower'>();
   top5Guessed = output<string>();
   top5StopEarly = output<void>();
@@ -100,6 +116,7 @@ export class GameQuestionComponent {
   // ─── LOCAL STATE ──────────────────────────────────────────────
   textAnswer = '';
   top5Answer = '';
+  selectedOption = signal<string | null>(null);
 
   // ─── COMPUTED ─────────────────────────────────────────────────
   questionCategory = computed(() => this.question()?.category ?? 'CLASSIC');
@@ -147,16 +164,55 @@ export class GameQuestionComponent {
     return !!this.question() && this.mode() !== 'mayhem' && this.mode() !== 'news';
   });
 
+  // ─── COMPUTED (reveal) ────────────────────────────────────────
+  optionClass = (option: string): string => {
+    const base = 'gq__option-btn';
+    const revealing = this.reveal();
+    const result = this.revealResult();
+    const selected = this.selectedOption();
+
+    if (!revealing || !result) {
+      if (selected === option) return `${base} gq__option-btn--selected`;
+      return base;
+    }
+
+    const isCorrectAnswer = option === result.correct_answer;
+    const isUserChoice = option === (result.user_answer ?? selected);
+
+    if (result.correct && isCorrectAnswer) return `${base} gq__option-btn--correct`;
+    if (!result.correct && isUserChoice) return `${base} gq__option-btn--wrong-chosen`;
+    if (!result.correct && isCorrectAnswer) return `${base} gq__option-btn--correct-revealed`;
+    if (revealing) return `${base} gq__option-btn--dimmed`;
+    return base;
+  };
+
+  inputStateClass = computed(() => {
+    if (!this.reveal() || !this.revealResult()) return '';
+    return this.revealResult()!.correct ? 'gq__input--correct' : 'gq__input--wrong';
+  });
+
   // ─── METHODS ──────────────────────────────────────────────────
   submitTextAnswer(): void {
     const answer = this.textAnswer.trim();
     if (!answer) return;
     this.answerSubmitted.emit(answer);
-    this.textAnswer = '';
+    // Don't clear textAnswer — keep it visible for reveal
   }
 
   selectOption(option: string): void {
+    if (this.reveal()) return;
+    if (this.interactionMode() === 'blitz') {
+      this.optionSelected.emit(option);
+      return;
+    }
+    this.selectedOption.set(option);
     this.optionSelected.emit(option);
+  }
+
+  onNextClicked(): void {
+    this.selectedOption.set(null);
+    this.textAnswer = '';
+    this.nextClicked.emit();
   }
 
   submitHol(choice: 'higher' | 'lower'): void {

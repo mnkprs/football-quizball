@@ -1,41 +1,43 @@
 <header class="top-nav">
-  <!-- Logo -->
-  <a routerLink="/" class="top-nav__logo" aria-label="Home">
-    <img src="/icons/quizball-unlimited-logo.png" alt="Quizball" class="top-nav__logo-img" />
-  </a>
-
-  <!-- Right side -->
-  <div class="top-nav__right">
-    <!-- Settings trigger -->
-    <button class="top-nav__icon-btn" aria-label="Settings" (click)="toggleSettings()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
-    </button>
-
-    <!-- Auth buttons (logged out) -->
-    @if (!auth.isLoggedIn()) {
-      <button type="button" class="top-nav__btn top-nav__btn--outline" (click)="openAuth()">
-        {{ lang.t().profileSignIn }}
-      </button>
-      <button type="button" class="top-nav__btn top-nav__btn--green" (click)="openAuth()">
-        Register
-      </button>
-    } @else {
-      <!-- Logged in: avatar -->
-      <a routerLink="/profile" class="top-nav__avatar pressable" [attr.aria-label]="'Profile'">
+  <!-- Left: Avatar + Brand -->
+  <div class="top-nav__left">
+    @if (auth.isLoggedIn()) {
+      <a routerLink="/profile" class="top-nav__avatar pressable" aria-label="Profile">
         @if (avatarUrl() && !avatarFailed()) {
           <img [src]="avatarUrl()" referrerpolicy="no-referrer" class="top-nav__avatar-img" (error)="avatarFailed.set(true)" />
         } @else {
           <span class="top-nav__avatar-initials">{{ initials() }}</span>
         }
       </a>
+    } @else {
+      <a routerLink="/" class="top-nav__logo-icon" aria-label="Home">
+        <img src="/icons/quizball-unlimited-logo.png" alt="Quizball" class="top-nav__logo-img" />
+      </a>
     }
+    <a routerLink="/" class="top-nav__brand">QUIZBALL</a>
+  </div>
+
+  <!-- Right: Stat pill + Settings -->
+  <div class="top-nav__right">
+    @if (auth.isLoggedIn()) {
+      <div class="top-nav__stat-pill pressable" routerLink="/leaderboard">
+        <span class="top-nav__stat-text">ELO {{ elo() }}</span>
+        <span class="top-nav__stat-sep">·</span>
+        <span class="top-nav__stat-text">#{{ rank() }}</span>
+        <span class="material-icons top-nav__stat-icon">bolt</span>
+      </div>
+    } @else {
+      <button type="button" class="top-nav__sign-in pressable" (click)="openAuth()">
+        {{ lang.t().profileSignIn }}
+      </button>
+    }
+    <button class="top-nav__settings-btn pressable" aria-label="Settings" (click)="toggleSettings()">
+      <span class="material-icons">settings</span>
+    </button>
   </div>
 </header>
 
-<!-- Settings panel overlay -->
+<!-- Settings panel overlay (kept for backward compat — triggered from profile page now) -->
 @if (settingsOpen()) {
   <div class="top-nav__overlay" (click)="closeSettings()" role="presentation"></div>
   <div class="top-nav__settings-panel" role="dialog" aria-label="Settings">

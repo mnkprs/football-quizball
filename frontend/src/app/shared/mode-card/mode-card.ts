@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject, input, output } from '@angu
 import { MatIconModule } from '@angular/material/icon';
 import { BadgeComponent } from '../badge/badge';
 import { ModeCardContainerComponent } from '../mode-card-container/mode-card-container';
-import { NgClass } from '@angular/common';
 import { ProService } from '../../core/pro.service';
 
 export type ModeCardVariant = 'primary' | 'accent' | 'outline';
@@ -10,7 +9,7 @@ export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 @Component({
   selector: 'app-mode-card',
   standalone: true,
-  imports: [MatIconModule, BadgeComponent, ModeCardContainerComponent, NgClass],
+  imports: [MatIconModule, ModeCardContainerComponent],
   templateUrl: './mode-card.html',
   styleUrl: './mode-card.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

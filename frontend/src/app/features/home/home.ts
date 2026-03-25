@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute } from '@angular/router';
-import { catchError, of, from, switchMap, firstValueFrom } from 'rxjs';
+import { catchError, of, firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
@@ -55,9 +55,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   );
 
   private newsMeta = toSignal(
-    from(this.auth.sessionReady).pipe(
-      switchMap(() => this.newsApi.getMetadata().pipe(catchError(() => of(null))))
-    ),
+    this.newsApi.getMetadata().pipe(catchError(() => of(null))),
     { initialValue: null }
   );
 

@@ -40,47 +40,10 @@
     />
 
     <app-section-header
-      [title]="lang.t().gameModes"
-      [actionLabel]="lang.t().viewAll"
-      actionHref="/leaderboard"
+      [title]="lang.t().proArena"
     />
 
-    <div class="home-modes">
-      <div class="two-player-card">
-        <div class="two-player-card__header">
-          <span class="material-icons two-player-card__bg-icon">group</span>
-          <div class="two-player-card__section">
-            <span class="material-icons two-player-card__section-icon">group</span>
-            <span class="two-player-card__section-text">{{ lang.t().localMultiplayer }}</span>
-          </div>
-          <h3 class="two-player-card__title">{{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</h3>
-          <p class="two-player-card__hint">{{ lang.t().btn2PlayerHint }}</p>
-        </div>
-        <div class="two-player-card__actions">
-          <button class="two-player-card__btn" (click)="go2Player()">
-            <span class="two-player-card__btn-icon">🏠</span>
-            <span class="two-player-card__btn-label">Local</span>
-            <span class="two-player-card__btn-sub">Same device</span>
-          </button>
-          <button class="two-player-card__btn" (click)="goOnline()">
-            <span class="two-player-card__btn-icon">🌐</span>
-            <span class="two-player-card__btn-label">Online</span>
-            <span class="two-player-card__btn-sub">Play ranked</span>
-          </button>
-        </div>
-      </div>
-      <app-mode-card
-        icon="local_fire_department"
-        iconBgColor="orange"
-        [title]="lang.t().btnMayhem"
-        [hint]="lang.t().btnMayhemHint"
-        [badge]="lang.t().mayhemNewBadge"
-        badgeColor="red"
-        backgroundImage="/mayhem-mode.png"
-        variant="accent"
-        [locked]="false"
-        (cardClick)="goMayhem()"
-      />
+    <div class="section-modes pro-arena">
       <app-mode-card
         icon="swords"
         iconClass="material-symbols-outlined"
@@ -109,6 +72,15 @@
         [proLocked]="auth.isLoggedIn() ? !pro.isPro() : true"
         (cardClick)="goBattleRoyale()"
       />
+    </div>
+
+    <app-section-header
+      [title]="lang.t().compete"
+      [actionLabel]="lang.t().viewAll"
+      actionHref="/leaderboard"
+    />
+
+    <div class="section-modes">
       <app-mode-card
         icon="emoji_events"
         iconBgColor="gold"
@@ -134,6 +106,37 @@
         [locked]="!auth.isLoggedIn()"
         (cardClick)="goBlitz()"
       />
+      <app-mode-card
+        icon="local_fire_department"
+        iconBgColor="orange"
+        [title]="lang.t().btnMayhem"
+        [hint]="lang.t().btnMayhemHint"
+        [badge]="lang.t().mayhemNewBadge"
+        badgeColor="red"
+        backgroundImage="/mayhem-mode.png"
+        variant="accent"
+        [locked]="false"
+        (cardClick)="goMayhem()"
+      />
+      <div class="two-player-card">
+        <img class="two-player-card__bg-image" src="/football-field.png" alt="" aria-hidden="true" />
+        <span class="two-player-card__bg-overlay" aria-hidden="true"></span>
+        <span class="two-player-card__badge">{{ lang.t().localMultiplayer }}</span>
+        <h3 class="two-player-card__title">{{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</h3>
+        <p class="two-player-card__hint">{{ lang.t().btn2PlayerHint }}</p>
+        <div class="two-player-card__actions">
+          <button class="two-player-card__btn" (click)="go2Player()">
+            <span class="material-icons two-player-card__btn-icon">smartphone</span>
+            <span class="two-player-card__btn-label">Local</span>
+            <span class="two-player-card__btn-sub">Same device</span>
+          </button>
+          <button class="two-player-card__btn" (click)="goOnline()">
+            <span class="material-icons two-player-card__btn-icon">public</span>
+            <span class="two-player-card__btn-label">Online</span>
+            <span class="two-player-card__btn-sub">Play ranked</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

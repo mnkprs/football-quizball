@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, signal, HostListener, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeService } from '../../core/theme.service';
 import { ProService } from '../../core/pro.service';
+import { SoloApiService } from '../../core/solo-api.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -15,18 +17,25 @@ import { environment } from '../../../environments/environment';
   styleUrl: './top-nav.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TopNavComponent {
+export class TopNavComponent implements OnInit {
   auth = inject(AuthService);
   lang = inject(LanguageService);
   theme = inject(ThemeService);
   pro = inject(ProService);
   private authModal = inject(AuthModalService);
   private router = inject(Router);
+  private soloApi = inject(SoloApiService);
 
   settingsOpen = signal(false);
   avatarFailed = signal(false);
   upgrading = signal(false);
   readonly buyMeACoffeeUrl = environment.buyMeACoffeeUrl;
+
+  private _elo = signal(1000);
+  private _rank = signal<number | null>(null);
+
+  elo = this._elo.asReadonly();
+  rank = computed(() => this._rank() ?? '—');
 
   trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
 
@@ -52,6 +61,24 @@ export class TopNavComponent {
     if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     return name.slice(0, 2).toUpperCase();
   });
+
+  ngOnInit(): void {
+    this.auth.sessionReady.then(() => {
+      if (this.auth.isLoggedIn()) this.loadStats();
+    });
+  }
+
+  private async loadStats(): Promise<void> {
+    const userId = this.auth.user()?.id;
+    if (!userId) return;
+    try {
+      const res = await firstValueFrom(this.soloApi.getProfile(userId));
+      if (res?.profile) {
+        this._elo.set(res.profile.elo ?? 1000);
+        this._rank.set(res.profile.rank ?? null);
+      }
+    } catch { /* silent — stat pill shows defaults */ }
+  }
 
   openAuth(): void { this.authModal.open(); }
 

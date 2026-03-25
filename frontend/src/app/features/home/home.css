@@ -26,89 +26,116 @@
   width: 100%;
 }
 
-.home-modes {
+.section-modes {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  margin-bottom: 2rem;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
-/* 2-Player card */
-.two-player-card {
+/* Pro Arena — gold premium treatment */
+.pro-arena {
+  background: linear-gradient(160deg, rgba(230, 168, 0, 0.06) 0%, transparent 60%);
   border-radius: 1rem;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  padding: 0.75rem;
 }
 
-.two-player-card__header {
+/* ============================================
+   2-Player Card — Stitch "Classic Mode" style
+   ============================================ */
+.two-player-card {
   position: relative;
-  background: #4dff00;
-  padding: 1.5rem;
-  overflow: hidden;
   isolation: isolate;
-}
-
-.two-player-card__bg-icon {
-  position: absolute;
-  top: -1.75rem;
-  right: -1.75rem;
-  font-size: 7.5rem;
-  opacity: 0.15;
-  color: #000000;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.two-player-card__section {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.625rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 18rem;
+  padding: 1.5rem;
+  border-radius: 2rem;
+  overflow: hidden;
+  border: none;
+  background: var(--color-surface, #131313);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.two-player-card:active {
+  transform: scale(0.96);
+}
+
+.two-player-card__bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  pointer-events: none;
+  transform: scale(1);
+  transition: transform 0.7s ease;
+}
+
+.two-player-card:hover .two-player-card__bg-image {
+  transform: scale(1.1);
+}
+
+.two-player-card__bg-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, var(--color-bg, #131313) 0%, rgba(19, 19, 19, 0.4) 50%, transparent 100%);
+}
+
+.two-player-card__badge {
   position: relative;
   z-index: 1;
-}
-
-.two-player-card__section-icon {
-  font-size: 1.125rem;
-  color: rgba(0, 0, 0, 0.72);
-}
-
-.two-player-card__section-text {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.625rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.72);
+  color: var(--color-accent, #c3f400);
+  background: rgba(195, 244, 0, 0.1);
+  margin-bottom: 0.625rem;
 }
 
 .two-player-card__title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1.08;
+  position: relative;
+  z-index: 1;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.875rem;
+  font-weight: 900;
+  line-height: 1.05;
   margin: 0;
-  color: #000000;
+  color: #ffffff;
   letter-spacing: -0.03em;
   text-transform: uppercase;
   font-style: italic;
-  position: relative;
-  z-index: 1;
 }
 
 .two-player-card__hint {
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin: 0.375rem 0 0;
-  line-height: 1.4;
-  color: rgba(0, 0, 0, 0.65);
   position: relative;
   z-index: 1;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin: 0.25rem 0 0;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 80%;
 }
 
 .two-player-card__actions {
+  position: relative;
+  z-index: 1;
   display: flex;
-  background: color-mix(in srgb, var(--color-card, #111111) 88%, #000000 12%);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 0.625rem;
+  margin-top: 1rem;
 }
 
 .two-player-card__btn {
@@ -117,30 +144,29 @@
   flex-direction: column;
   align-items: center;
   gap: 0.125rem;
-  padding: 0.875rem 1rem;
-  background: transparent;
-  border: none;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
   color: #ffffff;
 }
 
-.two-player-card__btn:first-child {
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .two-player-card__btn:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .two-player-card__btn:active {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.18);
   transform: scale(0.97);
 }
 
 .two-player-card__btn-icon {
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   line-height: 1;
+  color: var(--color-accent, #c3f400);
 }
 
 .two-player-card__btn-label {
@@ -154,4 +180,17 @@
   font-weight: 500;
   opacity: 0.5;
   letter-spacing: 0.02em;
+}
+
+/* News hero — compact secondary treatment */
+app-daily-hero:last-of-type {
+  transform: scale(0.94);
+  transform-origin: top center;
+  margin-bottom: -0.5rem;
+}
+
+/* Section header spacing */
+:host app-section-header {
+  display: block;
+  margin-top: 1.75rem;
 }
