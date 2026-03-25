@@ -8,15 +8,21 @@ export class ThemeService {
   readonly isDark = this._dark.asReadonly();
 
   private readStored(): boolean {
-    try {
-      return localStorage.getItem(STORAGE_KEY) !== 'light';
-    } catch { return true; }
+    // Always start in dark mode — light mode is only for local 2-player game sessions
+    return true;
   }
 
   toggle(): void {
     const next = !this._dark();
     this._dark.set(next);
-    try { localStorage.setItem(STORAGE_KEY, next ? 'dark' : 'light'); } catch {}
     document.documentElement.classList.toggle('dark', next);
+  }
+
+  /** Reset to dark mode (call when leaving local game pages) */
+  resetToDark(): void {
+    if (!this._dark()) {
+      this._dark.set(true);
+      document.documentElement.classList.add('dark');
+    }
   }
 }
