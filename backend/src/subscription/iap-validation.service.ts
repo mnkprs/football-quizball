@@ -48,10 +48,14 @@ export class IapValidationService {
    */
   async validateAppleReceipt(signedTransaction: string, expectedProductId: string): Promise<IapValidationResult> {
     try {
-      // Decode the JWS signed transaction (Apple signs with ES256)
-      // In production, fetch Apple's public keys from JWKS endpoint and verify signature.
-      // For now, decode the payload and verify claims.
-      const decoded = jose.decodeJwt(signedTransaction);
+      // Verify the JWS signature using Apple's JWKS endpoint
+      let decoded: jose.JWTPayload;
+      try {
+        decoded = await this.verifyAppleJWS(signedTransaction);
+      } catch (verifyErr: any) {
+        this.logger.warn(`Apple JWS signature verification failed: ${verifyErr.message}`);
+        return this.invalidResult(expectedProductId);
+      }
 
       const bundleId = decoded['bundleId'] as string | undefined;
       const productId = decoded['productId'] as string | undefined;
@@ -150,7 +154,7 @@ export class IapValidationService {
     try {
       const auth = await this.getGoogleAuthClient();
       const androidPublisher = google.androidpublisher({ version: 'v3', auth });
-      const packageName = this.appleBundleId; // Reuse or add separate GOOGLE_PACKAGE_NAME
+      const packageName = this.configService.get<string>('GOOGLE_PACKAGE_NAME') ?? this.appleBundleId;
 
       const purchaseType = this.getGooglePurchaseType(productId);
 

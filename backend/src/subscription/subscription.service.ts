@@ -29,8 +29,17 @@ export class SubscriptionService {
       return;
     }
 
-    // Decode the outer JWS to get the notification body
-    const notificationData = jose.decodeJwt(signedPayload) as any;
+    // Verify and decode the outer JWS using Apple's JWKS endpoint
+    const APPLE_JWKS_URL = 'https://appleid.apple.com/auth/keys';
+    const JWKS = jose.createRemoteJWKSet(new URL(APPLE_JWKS_URL));
+    let notificationData: any;
+    try {
+      const { payload } = await jose.jwtVerify(signedPayload, JWKS);
+      notificationData = payload;
+    } catch (err: any) {
+      this.logger.warn(`Apple notification JWS verification failed: ${err.message}`);
+      return;
+    }
     const notificationType = notificationData.notificationType as string;
     const subtype = notificationData.subtype as string | undefined;
 
@@ -45,7 +54,8 @@ export class SubscriptionService {
     const originalTransactionId = transactionInfo.originalTransactionId as string;
 
     // Idempotency: skip if already processed
-    const eventKey = `apple:notification:${notificationType}:${originalTransactionId}:${Date.now()}`;
+    const notificationUUID = notificationData.notificationUUID ?? `${notificationType}:${originalTransactionId}`;
+    const eventKey = `apple:notification:${notificationUUID}`;
     const acquired = await this.redisService.acquireLock(eventKey, 86400);
     if (!acquired) {
       this.logger.log(`Apple notification already processed: ${eventKey}`);
