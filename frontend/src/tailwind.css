@@ -6,10 +6,10 @@
 /*  Static tokens (same across both themes)           */
 /* -------------------------------------------------- */
 :root {
-  --color-accent: #ccff00;
-  --color-accent-foreground: #000000;
+  --color-accent: #c3f400;
+  --color-accent-foreground: #161e00;
   --color-accent-light: #d4ff33;
-  --color-ring: #ccff00;
+  --color-ring: #c3f400;
   --color-destructive: #B3261E;
   --color-win: #ccff00;
   --color-loss: #B3261E;
