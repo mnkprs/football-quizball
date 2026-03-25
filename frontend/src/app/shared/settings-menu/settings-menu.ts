@@ -47,7 +47,7 @@ export class SettingsMenuComponent {
   appVersion = environment.appVersion;
   contactEmail = environment.reportEmail;
 
-  trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining() + this.pro.trialDuelRemaining());
+  trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining());
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
@@ -88,22 +88,13 @@ export class SettingsMenuComponent {
     }
   }
 
-  async upgrade(): Promise<void> {
-    this.upgrading.set(true);
-    try {
-      await this.pro.createCheckout();
-    } finally {
-      this.upgrading.set(false);
-    }
+  upgrade(): void {
+    this.pro.showUpgradeModal.set(true);
   }
 
-  async managePlan(): Promise<void> {
-    this.upgrading.set(true);
-    try {
-      await this.pro.openPortal();
-    } finally {
-      this.upgrading.set(false);
-    }
+  managePlan(): void {
+    // Subscription management is handled natively via App Store / Play Store settings
+    this.pro.showUpgradeModal.set(true);
   }
 
   close(): void {

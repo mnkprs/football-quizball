@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { catchError, of, firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
@@ -9,7 +9,6 @@ import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { DailyApiService } from '../../core/daily-api.service';
 import { NewsApiService } from '../../core/news-api.service';
 import { ProService } from '../../core/pro.service';
-import { ToastService } from '../../core/toast.service';
 import { LanguageService } from '../../core/language.service';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
@@ -36,8 +35,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   lang = inject(LanguageService);
   pro = inject(ProService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private toast = inject(ToastService);
   private blitzApi = inject(BlitzApiService);
   private soloApi = inject(SoloApiService);
   private dailyApi = inject(DailyApiService);
@@ -156,23 +153,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     });
     this.countdownInterval = setInterval(() => this.countdownTick.update((v) => v + 1), 1000);
-    this.handleProRedirect();
-  }
-
-  private handleProRedirect(): void {
-    const proParam = this.route.snapshot.queryParamMap.get('pro');
-    if (!proParam) return;
-
-    this.router.navigate([], { queryParams: { pro: null }, queryParamsHandling: 'merge', replaceUrl: true });
-
-    if (proParam === 'success') {
-      this.auth.sessionReady.then(() => {
-        this.pro.loadStatus();
-        this.toast.show("You're now Pro!", 'success');
-      });
-    } else if (proParam === 'cancel') {
-      this.toast.show('Upgrade cancelled', 'info');
-    }
   }
 
   ngOnDestroy(): void {

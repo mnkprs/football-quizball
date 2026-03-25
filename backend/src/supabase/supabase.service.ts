@@ -211,33 +211,103 @@ export class SupabaseService {
    *      WHERE id = p_user_id;
    *    $$;
    */
-  async getProStatus(userId: string): Promise<{ is_pro: boolean; trial_games_used: number; trial_battle_royale_used: number; trial_duel_used: number; stripe_customer_id: string | null } | null> {
+  async getProStatus(userId: string): Promise<{
+    is_pro: boolean;
+    trial_battle_royale_used: number;
+    purchase_type: string | null;
+    pro_lifetime_owned: boolean;
+    subscription_expires_at: string | null;
+    daily_duels_played: number;
+    daily_duels_reset_at: string | null;
+    stripe_customer_id: string | null;
+  } | null> {
     const { data } = await this.client
       .from('profiles')
-      .select('is_pro, trial_games_used, trial_battle_royale_used, trial_duel_used, stripe_customer_id')
+      .select('is_pro, trial_battle_royale_used, purchase_type, pro_lifetime_owned, subscription_expires_at, daily_duels_played, daily_duels_reset_at, stripe_customer_id')
       .eq('id', userId)
       .maybeSingle();
     return data ?? null;
   }
 
-  async setProStatus(userId: string, isPro: boolean, customerId?: string, subscriptionId?: string): Promise<void> {
-    const update: Record<string, unknown> = { is_pro: isPro };
-    if (customerId !== undefined) update['stripe_customer_id'] = customerId;
-    if (subscriptionId !== undefined) update['stripe_subscription_id'] = subscriptionId;
+  async setProStatus(userId: string, params: {
+    isPro: boolean;
+    proSource?: 'subscription' | 'lifetime';
+    proLifetimeOwned?: boolean;
+    proExpiresAt?: string | null;
+    iapPlatform?: 'ios' | 'android';
+    iapOriginalTransactionId?: string;
+  }): Promise<void> {
+    const update: Record<string, unknown> = { is_pro: params.isPro };
+
+    if (params.proSource !== undefined) {
+      update['purchase_type'] = params.proSource;
+    }
+    if (params.proExpiresAt !== undefined) {
+      update['subscription_expires_at'] = params.proExpiresAt;
+    }
+    if (params.iapPlatform !== undefined) {
+      update['iap_platform'] = params.iapPlatform;
+    }
+    if (params.iapOriginalTransactionId !== undefined) {
+      update['iap_original_transaction_id'] = params.iapOriginalTransactionId;
+    }
+
+    // Lifetime-wins rule: if setting proLifetimeOwned to true, always set purchase_type to 'lifetime'
+    if (params.proLifetimeOwned === true) {
+      update['pro_lifetime_owned'] = true;
+      update['purchase_type'] = 'lifetime';
+      update['is_pro'] = true; // Lifetime always means pro
+      update['pro_purchased_at'] = new Date().toISOString();
+    } else if (params.proLifetimeOwned === false) {
+      update['pro_lifetime_owned'] = false;
+    }
+
     await this.client.from('profiles').update(update).eq('id', userId);
   }
 
-  async incrementTrialGames(userId: string): Promise<void> {
-    await this.client.rpc('increment_trial_games', { p_user_id: userId });
+  /**
+   * Atomically increments the daily duel counter (auto-resets at midnight UTC).
+   * Returns the new count after increment.
+   */
+  async incrementDailyDuel(userId: string): Promise<number> {
+    const { data, error } = await this.client.rpc('increment_daily_duel', { p_user_id: userId });
+    if (error) {
+      this.logger.error(`incrementDailyDuel RPC failed: ${error.message}`);
+      // Fallback: return a high number to be safe (deny rather than allow on error)
+      return 999;
+    }
+    return data as number;
+  }
+
+  /**
+   * Returns how many daily duels the user has remaining (out of 3).
+   * Auto-resets if the stored reset date is before today.
+   */
+  async getDailyDuelsRemaining(userId: string): Promise<number> {
+    const { data } = await this.client
+      .from('profiles')
+      .select('daily_duels_played, daily_duels_reset_at, is_pro')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!data) return 3;
+    if (data.is_pro) return -1; // -1 signals unlimited for pro users
+
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const resetAt = data.daily_duels_reset_at as string | null;
+
+    // If reset date is before today, counter is effectively 0
+    if (!resetAt || resetAt < today) return 3;
+
+    return Math.max(0, 3 - (data.daily_duels_played ?? 0));
   }
 
   async incrementBattleRoyaleTrial(userId: string): Promise<void> {
     await this.client.rpc('increment_trial_battle_royale', { p_user_id: userId });
   }
 
-  async incrementDuelTrial(userId: string): Promise<void> {
-    await this.client.rpc('increment_trial_duel', { p_user_id: userId });
-  }
+  // incrementTrialGames removed — Solo is now free
+  // incrementDuelTrial removed — replaced by daily rate limit (incrementDailyDuel)
 
   async incrementGamesPlayed(userId: string, questionsAnswered: number, correctAnswers: number): Promise<void> {
     const { error } = await this.client.rpc('increment_stats', {

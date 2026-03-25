@@ -11,12 +11,18 @@ export class ProService {
   private base = `${environment.apiUrl}/api/subscription`;
 
   readonly isPro = signal(false);
-  readonly trialGamesUsed = signal(0);
   readonly trialBattleRoyaleUsed = signal(0);
-  readonly trialDuelUsed = signal(0);
   readonly trialBattleRoyaleRemaining = computed(() => Math.max(0, 1 - this.trialBattleRoyaleUsed()));
-  readonly trialDuelRemaining = computed(() => Math.max(0, 2 - this.trialDuelUsed()));
   readonly showUpgradeModal = signal(false);
+
+  /** Number of free duels remaining today (0 = limit reached, null = not loaded). */
+  readonly dailyDuelsRemaining = signal<number>(3);
+  /** How the user purchased Pro: subscription, lifetime, or null (not pro). */
+  readonly purchaseType = signal<'subscription' | 'lifetime' | null>(null);
+  /** ISO date string for when the subscription expires (null for lifetime or non-pro). */
+  readonly subscriptionExpiresAt = signal<string | null>(null);
+  /** Which mode triggered the upgrade modal — used for contextual CTA in the modal. */
+  readonly triggerContext = signal<'duel' | 'battle-royale' | 'general'>('general');
 
   private loaded = false;
 
@@ -34,33 +40,26 @@ export class ProService {
     if (!this.auth.isLoggedIn()) return;
     try {
       const status = await firstValueFrom(
-        this.http.get<{ is_pro: boolean; trial_games_used: number; trial_battle_royale_used: number; trial_duel_used: number }>(
+        this.http.get<{
+          is_pro: boolean;
+          trial_battle_royale_used: number;
+          daily_duels_remaining: number;
+          purchase_type: 'subscription' | 'lifetime' | null;
+          subscription_expires_at: string | null;
+        }>(
           `${this.base}/status`,
           { headers: this.headers() },
         ),
       );
       this.isPro.set(status.is_pro);
-      this.trialGamesUsed.set(status.trial_games_used);
       this.trialBattleRoyaleUsed.set(status.trial_battle_royale_used ?? 0);
-      this.trialDuelUsed.set(status.trial_duel_used ?? 0);
+      this.dailyDuelsRemaining.set(status.daily_duels_remaining ?? 3);
+      this.purchaseType.set(status.purchase_type ?? null);
+      this.subscriptionExpiresAt.set(status.subscription_expires_at ?? null);
       this.loaded = true;
     } catch {
-      // Non-fatal: defaults stay false/0
+      // Non-fatal: defaults stay
     }
-  }
-
-  async createCheckout(): Promise<void> {
-    const result = await firstValueFrom(
-      this.http.post<{ url: string }>(`${this.base}/checkout`, {}, { headers: this.headers() }),
-    );
-    window.location.href = result.url;
-  }
-
-  async openPortal(): Promise<void> {
-    const result = await firstValueFrom(
-      this.http.post<{ url: string }>(`${this.base}/portal`, {}, { headers: this.headers() }),
-    );
-    window.location.href = result.url;
   }
 
   resetLoaded(): void {

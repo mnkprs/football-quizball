@@ -23,14 +23,10 @@ export class ProGuard implements CanActivate {
 
     const status = await this.supabaseService.getProStatus(request.user.id);
     const isPro = status?.is_pro ?? false;
-    const trialUsed = status?.trial_games_used ?? 0;
 
-    if (isPro || trialUsed < 5) {
-      // Attach pro status so controllers can check without re-fetching
-      request.proStatus = { is_pro: isPro, trial_games_used: trialUsed };
-      return true;
-    }
-
-    throw new HttpException('Pro subscription required', 402);
+    // Solo and Blitz are now free — this guard allows all authenticated users through.
+    // Kept for backwards compatibility; remove if no longer referenced.
+    request.proStatus = { is_pro: isPro };
+    return true;
   }
 }

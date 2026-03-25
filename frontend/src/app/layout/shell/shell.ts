@@ -38,10 +38,8 @@ export class ShellComponent implements OnInit {
     this.auth.sessionReady.then(() => this.pro.ensureLoaded());
   }
 
-  async upgrade(): Promise<void> {
-    if (this.upgrading()) return;
-    this.upgrading.set(true);
-    try { await this.pro.createCheckout(); } finally { this.upgrading.set(false); }
+  upgrade(): void {
+    this.pro.showUpgradeModal.set(true);
   }
 
   readonly leftTabs: NavTab[] = [

@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, computed, ViewChild, ElementRef, Cha
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
@@ -23,6 +24,7 @@ export class ProfileComponent implements OnInit {
   @ViewChild('avatarInput') avatarInput?: ElementRef<HTMLInputElement>;
 
   auth = inject(AuthService);
+  pro = inject(ProService);
   lang = inject(LanguageService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -182,6 +184,22 @@ export class ProfileComponent implements OnInit {
 
   formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  openSubscriptionManagement(): void {
+    const isIos = (window as any).Capacitor?.getPlatform?.() === 'ios';
+    const url = isIos
+      ? 'itms-apps://apps.apple.com/account/subscriptions'
+      : 'https://play.google.com/store/account/subscriptions';
+    window.open(url, '_system');
+  }
+
+  async restorePurchases(): Promise<void> {
+    // Delegate to ProService which handles IAP restore
+    // ProService.restore() will be added by the IAP implementation
+    if ((this.pro as any).restore) {
+      await (this.pro as any).restore();
+    }
   }
 
   async signOut(): Promise<void> {

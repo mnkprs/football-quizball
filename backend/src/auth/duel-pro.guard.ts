@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } 
 import { AuthService } from './auth.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
-const DUEL_TRIAL_LIMIT = 2;
+const DAILY_DUEL_LIMIT = 3;
 
 @Injectable()
 export class DuelProGuard implements CanActivate {
@@ -14,6 +14,7 @@ export class DuelProGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
+    // Ensure user is authenticated
     if (!request.user) {
       const authHeader = request.headers['authorization'];
       if (!authHeader?.startsWith('Bearer ')) {
@@ -24,13 +25,36 @@ export class DuelProGuard implements CanActivate {
 
     const status = await this.supabaseService.getProStatus(request.user.id);
     const isPro = status?.is_pro ?? false;
-    const trialUsed = status?.trial_duel_used ?? 0;
 
-    if (isPro || trialUsed < DUEL_TRIAL_LIMIT) {
-      request.proStatus = { is_pro: isPro, trial_duel_used: trialUsed };
+    // Pro users get unlimited duels
+    if (isPro) {
+      request.proStatus = { is_pro: true, dailyDuelCount: 0 };
       return true;
     }
 
-    throw new HttpException('Pro subscription required', 402);
+    // Free users: increment daily duel counter (auto-resets at midnight UTC)
+    const count = await this.supabaseService.incrementDailyDuel(request.user.id);
+
+    if (count <= DAILY_DUEL_LIMIT) {
+      request.proStatus = { is_pro: false, dailyDuelCount: count };
+      return true;
+    }
+
+    // Over limit — compute next midnight UTC for retry_after
+    const now = new Date();
+    const nextMidnight = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + 1,
+      0, 0, 0, 0,
+    ));
+
+    throw new HttpException(
+      {
+        message: 'Daily duel limit reached',
+        retry_after: nextMidnight.toISOString(),
+      },
+      HttpStatus.TOO_MANY_REQUESTS, // 429
+    );
   }
 }
