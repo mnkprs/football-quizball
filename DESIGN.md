@@ -102,6 +102,10 @@ https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&
   --color-success-bg:  rgba(34, 197, 94, 0.12);
   --color-warning:     #FF9500;                /* Time pressure (last 5s only) */
 
+  /* ---- Pro / Premium ---- */
+  --color-pro:         #e6a800;                /* Gold — Pro modes, premium accent */
+  --color-pro-bg:      rgba(230, 168, 0, 0.08); /* Pro section background tint */
+
   /* ---- Border Radius ---- */
   --radius-sm:   0.25rem;  /* 4px  — chips, tags */
   --radius-md:   0.5rem;   /* 8px  — inputs */
