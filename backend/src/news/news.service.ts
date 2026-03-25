@@ -42,11 +42,20 @@ export class NewsService {
     let skipped = 0;
 
     try {
-      const headlines = await this.newsFetcher.fetchHeadlines();
-      if (headlines.length === 0) {
+      const allHeadlines = await this.newsFetcher.fetchHeadlines();
+      if (allHeadlines.length === 0) {
         this.logger.warn('[ingestNews] No headlines fetched');
         return { added: 0, skipped: 0 };
       }
+
+      // Filter out headlines we've already processed
+      const processedUrls = await this.getProcessedHeadlineUrls();
+      const headlines = allHeadlines.filter((h) => !processedUrls.has(h.url));
+      if (headlines.length === 0) {
+        this.logger.log('[ingestNews] All headlines already processed');
+        return { added: 0, skipped: 0 };
+      }
+      this.logger.log(`[ingestNews] ${headlines.length} new headlines (${allHeadlines.length - headlines.length} already processed)`);
 
       const questions = await this.newsGenerator.generateFromHeadlines(headlines);
       const existingKeys = await this.getExistingQuestionKeys();
@@ -75,7 +84,7 @@ export class NewsService {
 
       const rows = validQuestions
         .filter((q) => {
-          const key = `${q.question_text}|||${q.correct_answer}`;
+          const key = this.normalizeKey(q.question_text, q.correct_answer);
           if (existingKeys.has(key)) {
             skipped++;
             return false;
@@ -86,6 +95,7 @@ export class NewsService {
         .map((q) => ({
           generation_version: GENERATION_VERSION,
           question: this.toPoolQuestion(q),
+          headline_url: q.source_url ?? null,
         }));
 
       if (rows.length === 0) {
@@ -311,7 +321,34 @@ export class NewsService {
     return new Set(
       (data as Array<{ question: { question_text?: string; correct_answer?: string } }>)
         .filter((r) => r.question?.question_text && r.question?.correct_answer)
-        .map((r) => `${r.question.question_text}|||${r.question.correct_answer}`),
+        .map((r) => this.normalizeKey(r.question.question_text!, r.question.correct_answer!)),
     );
+  }
+
+  private async getProcessedHeadlineUrls(): Promise<Set<string>> {
+    const { data, error } = await this.supabaseService.client
+      .from('news_questions')
+      .select('headline_url')
+      .not('headline_url', 'is', null);
+
+    if (error) {
+      this.logger.error(`[getProcessedHeadlineUrls] Error: ${error.message}`);
+      return new Set();
+    }
+
+    return new Set(
+      (data as Array<{ headline_url: string }>).map((r) => r.headline_url),
+    );
+  }
+
+  /** Normalize question+answer to catch near-duplicate phrasings */
+  private normalizeKey(questionText: string, correctAnswer: string): string {
+    const norm = (s: string) =>
+      s.toLowerCase()
+        .replace(/[''""?.,!:;]/g, '')
+        .replace(/\b(a|an|the|which|who|what|in|for|of|to|did|was|is|has|had)\b/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    return `${norm(questionText)}|||${norm(correctAnswer)}`;
   }
 }

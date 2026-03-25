@@ -1,5 +1,6 @@
 import { Component, inject, AfterViewInit, ViewChild, ElementRef, ChangeDetectionStrategy, effect } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { Capacitor } from '@capacitor/core';
 import { environment } from '../../../environments/environment';
 import { CookieConsentService } from '../../core/cookie-consent.service';
 
@@ -30,6 +31,7 @@ export class AdDisplayComponent implements AfterViewInit {
 
   readonly enabled =
     environment.production &&
+    !Capacitor.isNativePlatform() &&
     !!environment.adSenseClientId &&
     !!environment.adSenseSlotId;
 

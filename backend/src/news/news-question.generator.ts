@@ -18,7 +18,7 @@ export class NewsQuestionGenerator {
     if (headlines.length === 0) return [];
 
     const headlinesText = headlines
-      .map((h, i) => `[${i + 1}] ${h.headline}`)
+      .map((h, i) => `[${i + 1}] ${h.headline} | URL: ${h.url}`)
       .join('\n');
 
     const systemPrompt = `You are a football trivia expert. Given recent football news headlines, generate trivia questions.
@@ -26,7 +26,9 @@ Rules:
 - Each question must be factually correct and derivable from the headline or widely known football knowledge.
 - Prefer questions about: transfers, match results, manager appointments, injuries, records, trophies.
 - Answer must be SHORT: a name, team, score, year, or number (1-5 words).
-- Generate 1-2 questions per headline. Skip headlines that don't yield a clear trivia question.
+- Generate EXACTLY 1 question per headline. Skip headlines that don't yield a clear trivia question.
+- IMPORTANT: Do NOT generate multiple questions about the same event or fact. Each question must test a DIFFERENT piece of knowledge. If two headlines cover the same story, only generate a question from one of them.
+- Do NOT create "reverse" questions (e.g. if you ask "Who scored for Everton?", do NOT also ask "Which team did Beto score for?").
 - Avoid questions that would be outdated in a week (e.g. "who is currently manager" - prefer "who was appointed manager in March 2025").
 ${getCompactQuestionInstruction()}
 Return ONLY a valid JSON object:
@@ -37,13 +39,13 @@ Return ONLY a valid JSON object:
       "correct_answer": "short answer",
       "fifty_fifty_hint": "plausible wrong answer — SAME type as correct_answer (name→name, team→team, year→year). NOT a description.",
       "explanation": "brief explanation",
-      "source_url": "URL to verify the answer (e.g. news article, official source)",
+      "headline_url": "the URL from the headline (copy exactly from input)",
       "headline_index": 1
     }
   ]
 }`;
 
-    const userPrompt = `Generate football trivia questions from these headlines:\n\n${headlinesText}\n\nReturn JSON with "questions" array only.`;
+    const userPrompt = `Generate football trivia questions from these headlines. ONE question per headline, no duplicate facts:\n\n${headlinesText}\n\nReturn JSON with "questions" array only.`;
 
     try {
       const result = await this.llmService.generateStructuredJson<{
@@ -52,7 +54,7 @@ Return ONLY a valid JSON object:
           correct_answer: string;
           fifty_fifty_hint: string;
           explanation: string;
-          source_url?: string;
+          headline_url?: string;
           headline_index?: number;
         }>;
       }>(systemPrompt, userPrompt);
@@ -78,7 +80,7 @@ Return ONLY a valid JSON object:
       correct_answer: string;
       fifty_fifty_hint?: string;
       explanation?: string;
-      source_url?: string;
+      headline_url?: string;
     },
     headlines: NewsHeadline[],
   ): GeneratedQuestion {
@@ -93,7 +95,7 @@ Return ONLY a valid JSON object:
       fifty_fifty_hint: q.fifty_fifty_hint?.trim() || null,
       fifty_fifty_applicable: true,
       explanation: q.explanation?.trim() || '',
-      source_url: typeof q.source_url === 'string' && q.source_url.trim() ? q.source_url.trim() : undefined,
+      source_url: typeof q.headline_url === 'string' && q.headline_url.trim() ? q.headline_url.trim() : undefined,
       image_url: null,
       difficulty_factors: {
         event_year: new Date().getFullYear(),
