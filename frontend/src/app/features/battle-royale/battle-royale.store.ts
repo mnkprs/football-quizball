@@ -56,6 +56,8 @@ export const BattleRoyaleStore = signalStore(
     let roomChannel: RealtimeChannel | null = null;
     let playersChannel: RealtimeChannel | null = null;
     let pollTimer: ReturnType<typeof setInterval> | null = null;
+    let refreshDebounce: ReturnType<typeof setTimeout> | null = null;
+    let refreshInFlight = false;
 
     async function refreshRoom(roomId: string): Promise<void> {
       try {
@@ -77,6 +79,18 @@ export const BattleRoyaleStore = signalStore(
           router.navigate(['/battle-royale']);
         }
       }
+    }
+
+    /** Debounced refresh: collapses multiple realtime events within 500ms into one fetch. */
+    function debouncedRefresh(roomId: string): void {
+      if (refreshDebounce) clearTimeout(refreshDebounce);
+      refreshDebounce = setTimeout(async () => {
+        refreshDebounce = null;
+        if (refreshInFlight) return; // skip if a fetch is already running
+        refreshInFlight = true;
+        await refreshRoom(roomId);
+        refreshInFlight = false;
+      }, 500);
     }
 
     return {
@@ -202,6 +216,7 @@ export const BattleRoyaleStore = signalStore(
 
       subscribeRealtime(roomId: string): void {
         const client = auth.supabaseClient;
+        let realtimeConnected = false;
 
         // Subscribe to room status changes (active, finished)
         roomChannel = client
@@ -209,9 +224,11 @@ export const BattleRoyaleStore = signalStore(
           .on(
             'postgres_changes',
             { event: 'UPDATE', schema: 'public', table: 'battle_royale_rooms', filter: `id=eq.${roomId}` },
-            () => { refreshRoom(roomId); },
+            () => { debouncedRefresh(roomId); },
           )
-          .subscribe();
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') realtimeConnected = true;
+          });
 
         // Subscribe to player score/progress changes for live leaderboard
         playersChannel = client
@@ -219,12 +236,14 @@ export const BattleRoyaleStore = signalStore(
           .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'battle_royale_players', filter: `room_id=eq.${roomId}` },
-            () => { refreshRoom(roomId); },
+            () => { debouncedRefresh(roomId); },
           )
           .subscribe();
 
-        // Fallback polling every 5s
-        pollTimer = setInterval(() => { refreshRoom(roomId); }, 5_000);
+        // Fallback polling — only fires if realtime isn't connected, and at a slower rate
+        pollTimer = setInterval(() => {
+          if (!realtimeConnected) refreshRoom(roomId);
+        }, 10_000);
       },
 
       unsubscribeRealtime(): void {
@@ -239,6 +258,10 @@ export const BattleRoyaleStore = signalStore(
         if (pollTimer) {
           clearInterval(pollTimer);
           pollTimer = null;
+        }
+        if (refreshDebounce) {
+          clearTimeout(refreshDebounce);
+          refreshDebounce = null;
         }
       },
 
