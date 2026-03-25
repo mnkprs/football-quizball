@@ -8,22 +8,24 @@
     />
     <span class="daily-hero__bg-overlay" aria-hidden="true"></span>
   }
-  <div class="daily-hero__content">
+  <div class="daily-hero__top">
     @if (badgeLabel()) {
-      <span class="daily-hero__badge">{{ badgeLabel() }}</span>
+      <div class="daily-hero__badge-glass">
+        <span class="material-icons daily-hero__badge-icon">bolt</span>
+        <span class="daily-hero__badge-text">{{ badgeLabel() }}</span>
+      </div>
     }
-    <div class="daily-hero__text">
-      <h2 class="daily-hero__title">{{ title() }}</h2>
-      <p class="daily-hero__meta">
-        <span class="material-icons daily-hero__meta-icon">schedule</span>
-        {{ questionCount() }} {{ questionsLabel() }} · {{ resetsLabel() }} {{ resetsIn() }}
-      </p>
+    <div class="daily-hero__countdown">
+      <span class="daily-hero__countdown-label">{{ resetsLabel() }}</span>
+      <span class="daily-hero__countdown-value">{{ resetsIn() }}</span>
     </div>
   </div>
-  <span
-    class="daily-hero__play"
-    aria-hidden="true"
-  >
-    <span class="material-icons">play_arrow</span>
-  </span>
+  <div class="daily-hero__bottom">
+    <h2 class="daily-hero__title">{{ title() }}</h2>
+    <div class="daily-hero__meta-row">
+      <span class="material-icons daily-hero__meta-icon">verified</span>
+      <p class="daily-hero__meta">{{ questionCount() }} {{ questionsLabel() }}</p>
+    </div>
+    <span class="daily-hero__cta">{{ playLabel() }}</span>
+  </div>
 </button>

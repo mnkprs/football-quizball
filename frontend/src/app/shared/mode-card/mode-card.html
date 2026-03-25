@@ -21,58 +21,18 @@
       <span class="mode-card__pro-lock-text">Upgrade to unlock</span>
     </div>
   }
-  @if (sectionLabel()) {
-    <div class="mode-card__section">
-      <div class="mode-card__section-left">
-        <span class="mode-card__section-icon" [ngClass]="iconClass()">{{ icon() }}</span>
-        <span class="mode-card__section-text">{{ sectionLabel() }}</span>
-      </div>
-      @if (badge(); as badgeText) {
-        <app-badge [label]="badgeText" [variant]="badgeColor()" />
-      }
-    </div>
-    <h3 class="mode-card__title">{{ title() }}</h3>
-  } @else {
-    <div class="mode-card__header">
-      <span
-        class="mode-card__icon-wrap"
-        [class.mode-card__icon-wrap--gold]="iconBgColor() === 'gold'"
-        [class.mode-card__icon-wrap--blue]="iconBgColor() === 'blue'"
-        [class.mode-card__icon-wrap--lime]="iconBgColor() === 'lime'"
-        [class.mode-card__icon-wrap--orange]="iconBgColor() === 'orange'"
-        [class.mode-card__icon-wrap--red]="iconBgColor() === 'red'"
-        [class.mode-card__icon-wrap--none]="!iconBgColor()"
-      >
-        <span class="mode-card__icon" [ngClass]="iconClass()">{{ icon() }}</span>
-      </span>
-      <div class="mode-card__title-row">
-        <h3 class="mode-card__title">{{ title() }}</h3>
-        @if (badge(); as badgeText) {
-          <app-badge [label]="badgeText" [variant]="badgeColor()" />
-        }
-      </div>
-    </div>
+  @if (badge(); as badgeText) {
+    <span class="mode-card__badge-pill"
+      [class.mode-card__badge-pill--accent]="badgeColor() === 'lime'"
+      [class.mode-card__badge-pill--red]="badgeColor() === 'red'"
+      [class.mode-card__badge-pill--blue]="badgeColor() === 'blue'"
+      [class.mode-card__badge-pill--gold]="badgeColor() === 'gold'"
+      [class.mode-card__badge-pill--purple]="badgeColor() === 'purple'"
+    >{{ badgeText }}</span>
   }
+  <h3 class="mode-card__title">{{ title() }}</h3>
   <p class="mode-card__hint">{{ hint() }}</p>
-  @if (footerText()) {
-    <div class="mode-card__footer">
-      <div class="mode-card__footer-avatars">
-        <span class="mode-card__footer-avatar"></span>
-        <span class="mode-card__footer-avatar"></span>
-        <span class="mode-card__footer-avatar"></span>
-      </div>
-      <span class="mode-card__footer-text">{{ footerText() }}</span>
-    </div>
-  }
-  @if (actionLabel() && variant() === 'primary') {
-    <span class="mode-card__cta mode-card__cta--pill">{{ actionLabel() }}</span>
-  }
-  @if (actionLabel() && variant() === 'accent' && sectionLabel()) {
-    <span class="mode-card__cta mode-card__cta--pill mode-card__cta--pill-accent">{{ actionLabel() }}</span>
-  }
-  @if (actionLabel() && variant() === 'accent' && !sectionLabel()) {
-    <div class="mode-card__cta mode-card__cta--link">
-      {{ actionLabel() }} <span class="material-icons">arrow_forward</span>
-    </div>
+  @if (actionLabel()) {
+    <span class="mode-card__cta">{{ actionLabel() }}</span>
   }
 </app-mode-card-container>
