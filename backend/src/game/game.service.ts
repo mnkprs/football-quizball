@@ -271,10 +271,9 @@ export class GameService {
     const cell = session.board.flat().find((c) => c.question_id === questionId);
     if (!cell) throw new NotFoundException('Board cell not found');
 
-    const player = session.players[playerIndex];
     const basePoints = isCorrect ? cell.points : 0;
-    const doubleApply =
-      isCorrect && !!cell.double_armed && !player.doubleUsed;
+    // If 2x was armed on this cell, apply it on override too (already consumed)
+    const doubleApply = isCorrect && !!cell.double_armed;
     const newPoints = doubleApply ? basePoints * 2 : basePoints;
 
     // Adjust score
@@ -286,9 +285,6 @@ export class GameService {
       session.players[playerIndex].score + scoreDelta,
     );
     cell.points_awarded = newPoints;
-    if (doubleApply) {
-      session.players[playerIndex].doubleUsed = true;
-    }
 
     session.updatedAt = new Date();
     await this.cacheService.set(`game:${session.id}`, session, 86400);
