@@ -2,7 +2,6 @@ import { Component, inject, OnInit, OnDestroy, signal, effect, ChangeDetectionSt
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { SwUpdate } from '@angular/service-worker';
-import { Capacitor } from '@capacitor/core';
 import { DonateModalComponent } from './shared/donate-modal/donate-modal';
 import { DonateModalService } from './core/donate-modal.service';
 import { AuthModalComponent } from './shared/auth-modal/auth-modal';
@@ -79,17 +78,6 @@ export class App implements OnInit, OnDestroy {
         });
       this.swUpdate.checkForUpdate();
     }
-
-    // Deep link handling for native OAuth callbacks
-    if (Capacitor.isNativePlatform()) {
-      import('@capacitor/app').then(({ App: CapApp }) => {
-        CapApp.addListener('appUrlOpen', ({ url }) => {
-          const path = new URL(url).pathname;
-          if (path) this.router.navigateByUrl(path);
-        });
-      });
-    }
-
     // Splash: show 2s, then fade 0.6s, then check onboarding
     setTimeout(() => {
       this.splashFading.set(true);

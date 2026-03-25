@@ -29,5 +29,7 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./features/login/login').then(m => m.LoginComponent) },
   { path: 'admin', loadComponent: () => import('./features/admin/admin').then(m => m.AdminComponent) },
   { path: 'onboarding', loadComponent: () => import('./features/onboarding/onboarding').then(m => m.OnboardingComponent) },
-  { path: '**', redirectTo: '' },
+  { path: 'terms', loadComponent: () => import('./features/legal/terms').then(m => m.TermsComponent) },
+  { path: 'privacy', loadComponent: () => import('./features/legal/privacy').then(m => m.PrivacyComponent) },
+  { path: '**', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFoundComponent) },
 ];

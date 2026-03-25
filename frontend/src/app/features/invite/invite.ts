@@ -49,7 +49,7 @@ export class InviteComponent {
     if (!navigator.share) return;
     try {
       await navigator.share({
-        title: 'Unlimited Quizball',
+        title: 'Stepover',
         text: 'Try this football trivia app',
         url: this.inviteUrl,
       });

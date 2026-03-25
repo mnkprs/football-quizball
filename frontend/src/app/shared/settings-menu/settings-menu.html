@@ -97,6 +97,47 @@
             }
           </div>
         }
+        @if (auth.isLoggedIn()) {
+          <div class="settings-card settings-card--link" (click)="exportData()">
+            <span class="material-icons settings-card__icon">download</span>
+            <div class="settings-card__content">
+              <span class="settings-card__label">{{ t().settingsExportData }}</span>
+              <span class="settings-card__desc">Download your data as JSON</span>
+            </div>
+            @if (exporting()) {
+              <span class="settings-card__spinner"></span>
+            }
+          </div>
+        }
+        <div class="settings-card settings-card--link" (click)="goToTerms()">
+          <span class="material-icons settings-card__icon">gavel</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">{{ t().settingsTerms }}</span>
+          </div>
+          <span class="material-icons settings-card__chevron">chevron_right</span>
+        </div>
+        <div class="settings-card settings-card--link" (click)="goToPrivacy()">
+          <span class="material-icons settings-card__icon">shield</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">{{ t().settingsPrivacy }}</span>
+          </div>
+          <span class="material-icons settings-card__chevron">chevron_right</span>
+        </div>
+        <div class="settings-card settings-card--link" (click)="openContact()">
+          <span class="material-icons settings-card__icon">mail</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">{{ t().settingsContact }}</span>
+            <span class="settings-card__desc">{{ contactEmail }}</span>
+          </div>
+          <span class="material-icons settings-card__chevron">chevron_right</span>
+        </div>
+        <div class="settings-card">
+          <span class="material-icons settings-card__icon">info</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">{{ t().settingsAbout }}</span>
+            <span class="settings-card__desc">v{{ appVersion }}</span>
+          </div>
+        </div>
       </div>
       @if (auth.isLoggedIn()) {
         <button
@@ -108,6 +149,23 @@
           <span class="material-icons settings-panel__sign-out-icon">logout</span>
           {{ t().signOut }}
         </button>
+        <button
+          type="button"
+          class="settings-panel__delete-account"
+          (click)="showDeleteConfirm.set(true)"
+        >
+          <span class="material-icons settings-panel__sign-out-icon">delete_forever</span>
+          {{ t().settingsDeleteAccount }}
+        </button>
+      }
+      @if (showDeleteConfirm()) {
+        <app-confirm-modal
+          [message]="t().deleteConfirmMessage"
+          [confirmLabel]="t().deleteConfirmLabel"
+          cancelLabel="Cancel"
+          (confirm)="confirmDeleteAccount()"
+          (cancel)="showDeleteConfirm.set(false)"
+        />
       }
     </div>
   }

@@ -30,13 +30,18 @@ export class SubscriptionController {
   @UseGuards(AuthGuard)
   async createCheckout(@Req() req: any) {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
-    const url = await this.stripeService.createCheckoutSession(
-      req.user.id,
-      req.user.email,
-      `${frontendUrl}/?pro=success`,
-      `${frontendUrl}/?pro=cancel`,
-    );
-    return { url };
+    try {
+      const url = await this.stripeService.createCheckoutSession(
+        req.user.id,
+        req.user.email,
+        `${frontendUrl}/?pro=success`,
+        `${frontendUrl}/?pro=cancel`,
+      );
+      return { url };
+    } catch (err: any) {
+      console.error('Stripe checkout error:', err.message, err.raw ?? '');
+      throw new HttpException(err.message ?? 'Stripe checkout failed', err.statusCode ?? 500);
+    }
   }
 
   @Post('portal')

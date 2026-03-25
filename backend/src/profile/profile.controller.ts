@@ -1,10 +1,26 @@
-import { Controller, Patch, Body, UseGuards, Request, HttpCode, HttpStatus, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Patch,
+  Delete,
+  Get,
+  Body,
+  UseGuards,
+  Request,
+  HttpCode,
+  HttpStatus,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { SupabaseService } from '../supabase/supabase.service';
+import { StripeService } from '../subscription/stripe.service';
 
 @Controller('api/profile')
 export class ProfileController {
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly stripeService: StripeService,
+  ) {}
 
   @Patch('username')
   @UseGuards(AuthGuard)
@@ -38,5 +54,37 @@ export class ProfileController {
       }
       throw err;
     }
+  }
+
+  @Delete('account')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteAccount(@Request() req: { user: { id: string } }): Promise<void> {
+    const userId = req.user.id;
+
+    // Cancel any active Stripe subscriptions if the user has a customer ID
+    const profile = await this.supabaseService.getProStatus(userId);
+    if (profile?.stripe_customer_id && this.stripeService.isConfigured) {
+      try {
+        const subscriptions = await this.stripeService.listActiveSubscriptions(
+          profile.stripe_customer_id,
+        );
+        for (const sub of subscriptions) {
+          await this.stripeService.cancelSubscription(sub.id);
+        }
+      } catch (err) {
+        // Log but do not block account deletion
+        console.error('Failed to cancel Stripe subscriptions during account deletion:', err);
+      }
+    }
+
+    // Delete the user — cascades to all FK-linked data in Supabase
+    await this.supabaseService.deleteUser(userId);
+  }
+
+  @Get('export')
+  @UseGuards(AuthGuard)
+  async exportData(@Request() req: { user: { id: string } }): Promise<Record<string, unknown>> {
+    return this.supabaseService.exportUserData(req.user.id);
   }
 }
