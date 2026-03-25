@@ -11,10 +11,10 @@
       </a>
     } @else {
       <a routerLink="/" class="top-nav__logo-icon" aria-label="Home">
-        <img src="/icons/quizball-unlimited-logo.png" alt="Quizball" class="top-nav__logo-img" />
+        <img src="/icons/quizball-unlimited-logo.png" alt="Stepover" class="top-nav__logo-img" />
       </a>
     }
-    <a routerLink="/" class="top-nav__brand">QUIZBALL</a>
+    <a routerLink="/" class="top-nav__brand">STEPOVR.</a>
   </div>
 
   <!-- Right: Stat pill + Settings -->
@@ -82,10 +82,9 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tsp__pro-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           <div class="tsp__card-content">
             <span class="tsp__card-label">Pro Member</span>
-            <span class="tsp__card-desc">Unlimited access</span>
           </div>
           <button class="tsp__pill-btn" [disabled]="upgrading()" (click)="managePlan()">
-            @if (upgrading()) { <span class="tsp__spinner"></span> } @else { Manage Plan → }
+            @if (upgrading()) { <span class="tsp__spinner"></span> } @else { Manage → }
           </button>
         </div>
       }

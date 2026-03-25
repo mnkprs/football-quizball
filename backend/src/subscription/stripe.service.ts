@@ -56,4 +56,16 @@ export class StripeService {
   constructWebhookEvent(rawBody: Buffer, sig: string): Stripe.Event {
     return this.requireStripe().webhooks.constructEvent(rawBody, sig, this.webhookSecret);
   }
+
+  async listActiveSubscriptions(customerId: string): Promise<Stripe.Subscription[]> {
+    const result = await this.requireStripe().subscriptions.list({
+      customer: customerId,
+      status: 'active',
+    });
+    return result.data;
+  }
+
+  async cancelSubscription(subscriptionId: string): Promise<void> {
+    await this.requireStripe().subscriptions.cancel(subscriptionId);
+  }
 }

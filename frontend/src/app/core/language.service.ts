@@ -82,7 +82,7 @@ const TRANSLATIONS = {
     backToBoard: 'Back to Board →',
     // Results
     finalResults: 'Final Results',
-    gameComplete: 'Unlimited Quizball Complete!',
+    gameComplete: 'Stepover Complete!',
     itsDraw: "🤝 It's a Draw!",
     wins: 'wins!',
     points: 'points',
@@ -93,9 +93,9 @@ const TRANSLATIONS = {
     categoryBreakdown: 'Category Breakdown',
     playAgain: 'Play Again ⚽',
     // Home
-    appTitle: 'Unlimited Quizball',
-    appTitlePart1: 'Unlimited',
-    appTitlePart2: 'Quizball',
+    appTitle: 'Stepover',
+    appTitlePart1: '',
+    appTitlePart2: 'Stepover',
     appSubtitle: 'The football trivia game',
     signOut: 'Sign out',
     settingsTitle: 'Settings',
@@ -249,6 +249,23 @@ const TRANSLATIONS = {
     mayhemSubtitle: 'Obscure world football trivia',
     mayhemFinishedTitle: 'Mayhem Complete!',
     mayhemFinishedSubtitle: 'You survived the hardest football trivia.',
+    // Settings — legal & account
+    settingsTerms: 'Terms of Service',
+    settingsPrivacy: 'Privacy Policy',
+    settingsContact: 'Contact & Support',
+    settingsAbout: 'About',
+    settingsExportData: 'Download My Data',
+    settingsDeleteAccount: 'Delete Account',
+    deleteConfirmMessage: 'This will permanently delete your account, all your stats, match history, and achievements. This action cannot be undone.',
+    deleteConfirmLabel: 'Delete Account',
+    // Cookie consent
+    cookieText: 'We use cookies for ads and analytics.',
+    cookieAccept: 'Accept All',
+    cookieReject: 'Necessary Only',
+    // 404
+    notFoundTitle: 'Page Not Found',
+    notFoundMessage: 'Looks like this page got a red card.',
+    notFoundBack: 'Back to Home',
 } as const;
 
 @Injectable({ providedIn: 'root' })

@@ -1,0 +1,105 @@
+.legal-page {
+  min-height: 100dvh;
+  background: var(--color-bg, #000);
+  color: var(--color-foreground, #fff);
+  padding: 1rem 1.25rem calc(2rem + env(safe-area-inset-bottom));
+}
+
+.legal-page__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-top: env(safe-area-inset-top);
+}
+
+.legal-page__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--color-foreground, #fff);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+:host-context(html:not(.dark)) .legal-page__back {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.legal-page__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.legal-page__updated {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 1.5rem;
+}
+
+:host-context(html:not(.dark)) .legal-page__updated {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.legal-page__content {
+  max-width: 40rem;
+  margin: 0 auto;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.legal-page__content h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.75rem 0 0.5rem;
+}
+
+.legal-page__content h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.375rem;
+}
+
+.legal-page__content p {
+  margin: 0 0 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:host-context(html:not(.dark)) .legal-page__content p {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.legal-page__content ul,
+.legal-page__content ol {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.legal-page__content li {
+  margin-bottom: 0.375rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+:host-context(html:not(.dark)) .legal-page__content li {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.legal-page__content a {
+  color: var(--color-accent, #6C63FF);
+  text-decoration: underline;
+}
+
+.legal-page__content strong {
+  font-weight: 600;
+  color: var(--color-foreground, #fff);
+}
+
+:host-context(html:not(.dark)) .legal-page__content strong {
+  color: rgba(0, 0, 0, 0.9);
+}
