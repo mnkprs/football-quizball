@@ -1,0 +1,11 @@
+<button type="button" class="daily-strip" (click)="play.emit()">
+  <div class="daily-strip__left">
+    <span class="material-icons daily-strip__icon">bolt</span>
+    <span class="daily-strip__title">{{ title() }}</span>
+    <span class="daily-strip__divider">&middot;</span>
+    <span class="daily-strip__meta">{{ questionCount() }} {{ questionsLabel() }}</span>
+    <span class="daily-strip__divider">&middot;</span>
+    <span class="daily-strip__timer">{{ resetsIn() }}</span>
+  </div>
+  <span class="daily-strip__cta">{{ playLabel() }}</span>
+</button>
