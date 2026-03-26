@@ -185,6 +185,16 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+.board-category-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .board-category-icon {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(4px);

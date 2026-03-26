@@ -20,15 +20,15 @@ export class BoardComponent {
   players = this.store.players;
   currentPlayer = this.store.currentPlayer;
 
-  private readonly categoryStyle: Record<string, { rowCls: string; circleCls: string; icon: string }> = {
-    HISTORY:         { rowCls: 'bg-gradient-to-r from-amber-800 to-amber-600',  circleCls: 'bg-amber-900 border-amber-700', icon: '🏛️' },
-    PLAYER_ID:       { rowCls: 'bg-gradient-to-r from-purple-700 to-purple-500', circleCls: 'bg-purple-900 border-purple-700', icon: '🕵️' },
-    LOGO_QUIZ:       { rowCls: 'bg-gradient-to-r from-blue-700 to-blue-500',     circleCls: 'bg-blue-900 border-blue-700',   icon: '🛡️' },
-    HIGHER_OR_LOWER: { rowCls: 'bg-gradient-to-r from-red-700 to-red-500',       circleCls: 'bg-red-900 border-red-700',     icon: '📊' },
-    GUESS_SCORE:     { rowCls: 'bg-gradient-to-r from-teal-700 to-teal-500',     circleCls: 'bg-teal-900 border-teal-700',   icon: '🎯' },
-    GEOGRAPHY:       { rowCls: 'bg-gradient-to-r from-green-700 to-green-500',   circleCls: 'bg-green-900 border-green-700', icon: '🌍' },
-    GOSSIP:          { rowCls: 'bg-gradient-to-r from-pink-700 to-pink-500',     circleCls: 'bg-pink-900 border-pink-700',   icon: '💬' },
-    TOP_5:           { rowCls: 'bg-gradient-to-r from-indigo-700 to-indigo-500', circleCls: 'bg-indigo-900 border-indigo-700', icon: '🏅' },
+  private readonly categoryStyle: Record<string, { rowCls: string; circleCls: string; icon: string; bgImage?: string }> = {
+    HISTORY:         { rowCls: 'bg-gradient-to-r from-amber-800 to-amber-600',  circleCls: 'bg-amber-900 border-amber-700', icon: '🏛️', bgImage: '/history.png' },
+    PLAYER_ID:       { rowCls: 'bg-gradient-to-r from-purple-700 to-purple-500', circleCls: 'bg-purple-900 border-purple-700', icon: '🕵️', bgImage: '/player_id.png' },
+    LOGO_QUIZ:       { rowCls: 'bg-gradient-to-r from-blue-700 to-blue-500',     circleCls: 'bg-blue-900 border-blue-700',   icon: '🛡️', bgImage: '/logo-quiz.png' },
+    HIGHER_OR_LOWER: { rowCls: 'bg-gradient-to-r from-red-700 to-red-500',       circleCls: 'bg-red-900 border-red-700',     icon: '📊', bgImage: '/higher-lower.png' },
+    GUESS_SCORE:     { rowCls: 'bg-gradient-to-r from-teal-700 to-teal-500',     circleCls: 'bg-teal-900 border-teal-700',   icon: '🎯', bgImage: '/guess-the-score.png' },
+    GEOGRAPHY:       { rowCls: 'bg-gradient-to-r from-green-700 to-green-500',   circleCls: 'bg-green-900 border-green-700', icon: '🌍', bgImage: '/geography.png' },
+    GOSSIP:          { rowCls: 'bg-gradient-to-r from-pink-700 to-pink-500',     circleCls: 'bg-pink-900 border-pink-700',   icon: '💬', bgImage: '/gossip.png' },
+    TOP_5:           { rowCls: 'bg-gradient-to-r from-indigo-700 to-indigo-500', circleCls: 'bg-indigo-900 border-indigo-700', icon: '🏅', bgImage: '/top-5.png' },
     NEWS:            { rowCls: 'bg-gradient-to-r from-orange-700 to-orange-500',   circleCls: 'bg-orange-900 border-orange-700', icon: '📰' },
   };
 
