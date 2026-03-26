@@ -7,6 +7,7 @@ import {
   LeaderboardApiService,
   LeaderboardEntry,
   BlitzLeaderboardEntry,
+  LogoQuizLeaderboardEntry,
 } from '../../core/leaderboard-api.service';
 import { MayhemApiService, MayhemLeaderboardEntry, MayhemMeEntry } from '../../core/mayhem-api.service';
 import { MatCardModule } from '@angular/material/card';
@@ -36,18 +37,20 @@ export class LeaderboardComponent implements OnInit {
   entries = signal<LeaderboardEntry[]>([]);
   blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
   mayhemEntries = signal<MayhemLeaderboardEntry[]>([]);
+  logoQuizEntries = signal<LogoQuizLeaderboardEntry[]>([]);
   soloMeEntry = signal<(LeaderboardEntry & { rank: number }) | null>(null);
   blitzMeEntry = signal<(BlitzLeaderboardEntry & { rank: number }) | null>(null);
   mayhemMeEntry = signal<MayhemMeEntry | null>(null);
+  logoQuizMeEntry = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
-  activeTab = signal<'solo' | 'blitz' | 'mayhem'>('solo');
+  activeTab = signal<'solo' | 'blitz' | 'mayhem' | 'logo-quiz'>('solo');
 
   ngOnInit(): void {
     this.load();
   }
 
-  setActiveTab(tab: 'solo' | 'blitz' | 'mayhem'): void {
+  setActiveTab(tab: 'solo' | 'blitz' | 'mayhem' | 'logo-quiz'): void {
     this.activeTab.set(tab);
   }
 
@@ -63,8 +66,9 @@ export class LeaderboardComponent implements OnInit {
           ? firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries()).catch(() => ({
               soloMe: null,
               blitzMe: null,
+              logoQuizMe: null,
             }))
-          : Promise.resolve({ soloMe: null, blitzMe: null }),
+          : Promise.resolve({ soloMe: null, blitzMe: null, logoQuizMe: null }),
         firstValueFrom(this.mayhemApi.getLeaderboard()).catch(() => [] as MayhemLeaderboardEntry[]),
         isLoggedIn
           ? firstValueFrom(this.mayhemApi.getMyLeaderboardEntry()).catch(() => null)
@@ -72,8 +76,10 @@ export class LeaderboardComponent implements OnInit {
       ]);
       this.entries.set(leaderboardRes.solo);
       this.blitzEntries.set(leaderboardRes.blitz);
+      this.logoQuizEntries.set(leaderboardRes.logoQuiz ?? []);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.blitzMeEntry.set(meRes.blitzMe ?? null);
+      this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
       this.mayhemEntries.set(mayhemRes);
       this.mayhemMeEntry.set(mayhemMeRes);
     } catch (err: any) {
@@ -103,6 +109,12 @@ export class LeaderboardComponent implements OnInit {
     const me = this.mayhemMeEntry();
     if (!me) return false;
     return !this.mayhemEntries().some((e) => e.user_id === me.user_id);
+  }
+
+  showLogoQuizMeBelow(): boolean {
+    const me = this.logoQuizMeEntry();
+    if (!me) return false;
+    return !this.logoQuizEntries().some((e) => e.id === me.id);
   }
 
   accuracy(entry: LeaderboardEntry): number {
