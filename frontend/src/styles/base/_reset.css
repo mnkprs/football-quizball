@@ -17,7 +17,7 @@ button:not([disabled]) {
   touch-action: manipulation;
 }
 button:not([disabled]):active { transform: scale(0.97); }
-a[href] { -webkit-tap-highlight-color: transparent; }
+a[href] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 /* Pressable utility */
 .pressable {

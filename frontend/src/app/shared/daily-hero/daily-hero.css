@@ -10,7 +10,7 @@
   border-radius: 2rem;
   background: var(--color-surface, #131313);
   border: none;
-  /* box-shadow covered by .shadow-lg */
+  /* box-shadow covered by Tailwind's .shadow-lg utility in template */
   margin-bottom: 0.875rem;
   width: 100%;
   text-align: left;
