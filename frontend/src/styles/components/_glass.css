@@ -1,0 +1,21 @@
+/* ==========================================================
+   Glass Surface — frosted glass morphism effect
+   Available: .glass-surface, .glass-surface--subtle, .glass-surface--strong
+   ========================================================== */
+
+.glass-surface {
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.glass-surface--subtle {
+  background: var(--glass-bg-subtle);
+}
+
+.glass-surface--strong {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-strong);
+}

@@ -1,0 +1,115 @@
+/* ==========================================================
+   Design Tokens — Single source of truth
+   From DESIGN.md + existing tailwind.css :root
+   ========================================================== */
+
+:root {
+  /* ---- Surfaces ---- */
+  --color-bg: #131313;
+  --color-surface-lowest: #0e0e0e;
+  --color-surface-low: #1c1b1b;
+  --color-surface: #201f1f;
+  --color-surface-high: #2a2a2a;
+  --color-surface-highest: #353534;
+  --color-surface-bright: #3a3939;
+
+  /* ---- Text ---- */
+  --color-fg: #e5e2e1;
+  --color-fg-variant: #c4c9ac;
+  --color-fg-muted: #8e9379;
+  --color-fg-dim: #444933;
+
+  /* ---- Brand accent ---- */
+  --color-accent: #c3f400;
+  --color-accent-foreground: #161e00;
+  --color-accent-fg: #161e00;
+  --color-accent-light: #d4ff33;
+  --color-accent-dim: #abd600;
+  --color-accent-glow: rgba(195, 244, 0, 0.3);
+  --color-accent-bg: rgba(195, 244, 0, 0.15);
+  --color-ring: #c3f400;
+
+  /* ---- Semantic ---- */
+  --color-error: #ffb4ab;
+  --color-error-bg: #93000a;
+  --color-success: #22C55E;
+  --color-success-bg: rgba(34, 197, 94, 0.12);
+  --color-warning: #FF9500;
+  --color-destructive: #B3261E;
+  --color-win: #c3f400;
+  --color-loss: #B3261E;
+  --color-draw: #F9A825;
+  --color-pro: #e6a800;
+  --color-pro-bg: rgba(230, 168, 0, 0.08);
+
+  /* ---- Orphan values promoted to tokens ---- */
+  --color-tier-bronze: #cd7f32;
+  --color-forest: #1B5E20;
+  --color-blue-light: #90caf9;
+  --color-blue-bg: rgba(33, 150, 243, 0.15);
+  --color-gold-light: #ffd54f;
+  --color-gold-bg: rgba(230, 168, 0, 0.15);
+  --color-purple-light: #ce93d8;
+  --color-purple-bg: rgba(156, 39, 176, 0.15);
+
+  /* ---- Radius ---- */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ---- Glass surfaces ---- */
+  --glass-bg-subtle: rgba(58, 57, 57, 0.25);
+  --glass-bg-default: rgba(58, 57, 57, 0.4);
+  --glass-bg-strong: rgba(58, 57, 57, 0.6);
+  --glass-blur-sm: 8px;
+  --glass-blur-md: 12px;
+  --glass-blur-lg: 20px;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-strong: rgba(255, 255, 255, 0.12);
+
+  /* ---- Glow intensities ---- */
+  --glow-accent-sm: 0 0 15px rgba(195, 244, 0, 0.2);
+  --glow-accent-md: 0 0 20px rgba(195, 244, 0, 0.3);
+  --glow-accent-lg: 0 0 40px rgba(195, 244, 0, 0.4);
+  --glow-accent-xl: 0 0 60px rgba(195, 244, 0, 0.55);
+  --glow-gold: 0 0 20px rgba(255, 179, 0, 0.3);
+  --glow-error: 0 0 20px rgba(147, 0, 10, 0.3);
+
+  /* ---- Shadow depths ---- */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.24);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.4);
+
+  /* ---- Legacy theme tokens (used by Tailwind config) ---- */
+  --color-background: #F7F8FA;
+  --color-foreground: #111111;
+  --color-header: #1a1a1a;
+  --color-header-foreground: #FAFAFA;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #111111;
+  --color-muted: #F0F0F0;
+  --color-muted-foreground: #6B7280;
+  --color-border: #E5E7EB;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-overlay: rgba(0,0,0,0.4);
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* ---- Dark theme (.dark on <html>) ---- */
+.dark {
+  --color-background: #000000;
+  --color-foreground: #FAFAFA;
+  --color-header: #1a1a1a;
+  --color-header-foreground: #FAFAFA;
+  --color-card: #111111;
+  --color-card-foreground: #FAFAFA;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #A3A3A3;
+  --color-border: #2a2a2a;
+  --color-surface-elevated: #161616;
+  --color-surface-overlay: rgba(0,0,0,0.6);
+  --shadow-card: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 16px rgba(0,0,0,0.4);
+}

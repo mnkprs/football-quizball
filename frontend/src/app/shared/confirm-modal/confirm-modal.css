@@ -36,7 +36,7 @@
 
 .confirm-btn {
   padding: 0.625rem 1.25rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;

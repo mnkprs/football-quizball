@@ -33,7 +33,7 @@
   border: none;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   transition: opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
 }

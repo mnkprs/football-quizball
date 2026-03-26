@@ -30,20 +30,20 @@
     </div>
   }
   @if (rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) {
-    <span class="mode-card__badge-pill mode-card__rate-badge">{{ rateLimit() }} free today</span>
+    <span class="badge-pill mode-card__badge-pill mode-card__rate-badge">{{ rateLimit() }} free today</span>
   }
   @if (badge(); as badgeText) {
-    <span class="mode-card__badge-pill"
-      [class.mode-card__badge-pill--accent]="badgeColor() === 'lime'"
-      [class.mode-card__badge-pill--red]="badgeColor() === 'red'"
-      [class.mode-card__badge-pill--blue]="badgeColor() === 'blue'"
-      [class.mode-card__badge-pill--gold]="badgeColor() === 'gold'"
-      [class.mode-card__badge-pill--purple]="badgeColor() === 'purple'"
+    <span class="badge-pill badge-pill--default mode-card__badge-pill"
+      [class.badge-pill--accent]="badgeColor() === 'lime'"
+      [class.badge-pill--error]="badgeColor() === 'red'"
+      [class.badge-pill--blue]="badgeColor() === 'blue'"
+      [class.badge-pill--gold]="badgeColor() === 'gold'"
+      [class.badge-pill--purple]="badgeColor() === 'purple'"
     >{{ badgeText }}</span>
   }
   <h3 class="mode-card__title">{{ title() }}</h3>
   <p class="mode-card__hint">{{ hint() }}</p>
   @if (actionLabel()) {
-    <span class="mode-card__cta">{{ actionLabel() }}</span>
+    <span class="btn-accent mode-card__cta">{{ actionLabel() }}</span>
   }
 </app-mode-card-container>

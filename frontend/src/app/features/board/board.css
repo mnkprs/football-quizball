@@ -17,7 +17,7 @@
   align-items: center;
   justify-content: center;
   background: var(--color-accent);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   box-shadow: 0 0 8px rgba(204, 255, 0, 0.3);
 }
 

@@ -1,0 +1,50 @@
+/* ==========================================================
+   Badge Pills — floating label badges
+   Available: .badge-pill, .badge-pill--accent, .badge-pill--error,
+              .badge-pill--blue, .badge-pill--gold, .badge-pill--purple,
+              .badge-pill--default
+   ========================================================== */
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.badge-pill--default {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.badge-pill--accent {
+  color: var(--color-accent);
+  background: var(--color-accent-bg);
+  border: 1px solid rgba(195, 244, 0, 0.2);
+}
+
+.badge-pill--error {
+  color: var(--color-error);
+  background: rgba(147, 0, 10, 0.2);
+}
+
+.badge-pill--blue {
+  color: var(--color-blue-light);
+  background: var(--color-blue-bg);
+}
+
+.badge-pill--gold {
+  color: var(--color-gold-light);
+  background: var(--color-gold-bg);
+}
+
+.badge-pill--purple {
+  color: var(--color-purple-light);
+  background: var(--color-purple-bg);
+}

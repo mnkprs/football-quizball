@@ -70,7 +70,7 @@ app-battle-hero {
   justify-content: flex-end;
   min-height: 10rem;
   padding: 1.25rem;
-  border-radius: 1.5rem;
+  border-radius: var(--radius-xl);
   overflow: hidden;
   border: none;
   background: var(--color-surface, #131313);
@@ -112,13 +112,13 @@ app-battle-hero {
   display: inline-flex;
   align-self: flex-start;
   padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   font-family: 'Lexend', sans-serif;
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--color-accent, #c3f400);
+  color: var(--color-accent);
   background: rgba(195, 244, 0, 0.1);
   margin-bottom: 0.375rem;
 }
@@ -131,7 +131,7 @@ app-battle-hero {
   font-weight: 700;
   line-height: 1.05;
   margin: 0;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
   letter-spacing: -0.03em;
   text-transform: uppercase;
   font-style: italic;
@@ -166,7 +166,7 @@ app-battle-hero {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
   color: #ffffff;
@@ -184,7 +184,7 @@ app-battle-hero {
 .two-player-card__btn-icon {
   font-size: 1.125rem;
   line-height: 1;
-  color: var(--color-accent, #c3f400);
+  color: var(--color-accent);
 }
 
 .two-player-card__btn-label {

@@ -3,7 +3,7 @@
    ============================================================ */
 
 .player-banner {
-  --tier-color: #cd7f32; /* overridden inline per ELO */
+  --tier-color: var(--color-tier-bronze); /* overridden inline per ELO */
 
   display: flex;
   align-items: center;
@@ -111,7 +111,7 @@
   color: var(--tier-color);
   background: color-mix(in srgb, var(--tier-color) 12%, transparent 88%);
   border: 1px solid color-mix(in srgb, var(--tier-color) 35%, transparent 65%);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: 0.125rem 0.5rem;
   line-height: 1.4;
 }

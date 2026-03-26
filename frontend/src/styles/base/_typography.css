@@ -1,0 +1,34 @@
+/* ==========================================================
+   Typography Scale — heading classes from DESIGN.md
+   Available: .title-sm, .title-md, .title-lg
+   ========================================================== */
+
+.title-sm {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+.title-md {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  font-style: italic;
+}
+
+.title-lg {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  font-style: italic;
+}

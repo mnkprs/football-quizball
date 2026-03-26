@@ -1,0 +1,11 @@
+/* ==========================================================
+   Shadow Depths — elevation system
+   Available: .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl,
+              .shadow-card (themed)
+   ========================================================== */
+
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+.shadow-card { box-shadow: var(--shadow-card); }

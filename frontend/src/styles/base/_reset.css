@@ -1,0 +1,30 @@
+/* ==========================================================
+   Base Reset — box-sizing, scrollbar, tap targets, pressable
+   ========================================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+
+/* Tap targets */
+button:not([disabled]) {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+button:not([disabled]):active { transform: scale(0.97); }
+a[href] { -webkit-tap-highlight-color: transparent; }
+
+/* Pressable utility */
+.pressable {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 0.15s ease, color 0.2s ease,
+    background-color 0.2s ease, border-color 0.2s ease,
+    opacity 0.2s ease, box-shadow 0.2s ease;
+}
+.pressable:active { transform: scale(0.97); }

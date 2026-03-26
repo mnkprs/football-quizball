@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: center;
   background: var(--color-accent);
-  border-radius: 1.5rem;
+  border-radius: var(--radius-xl);
   box-shadow:
     0 0 0 3px rgba(204, 255, 0, 0.15),
     0 8px 32px rgba(204, 255, 0, 0.25),

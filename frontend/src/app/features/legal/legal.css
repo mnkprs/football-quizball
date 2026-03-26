@@ -91,7 +91,7 @@
 }
 
 .legal-page__content a {
-  color: var(--color-accent, #6C63FF);
+  color: var(--color-accent);
   text-decoration: underline;
 }
 

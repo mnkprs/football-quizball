@@ -1,0 +1,12 @@
+/* ==========================================================
+   Glow Effects — box-shadow utilities
+   Available: .glow-accent-sm, .glow-accent, .glow-accent-lg,
+              .glow-accent-xl, .glow-gold, .glow-error
+   ========================================================== */
+
+.glow-accent-sm { box-shadow: var(--glow-accent-sm); }
+.glow-accent    { box-shadow: var(--glow-accent-md); }
+.glow-accent-lg { box-shadow: var(--glow-accent-lg); }
+.glow-accent-xl { box-shadow: var(--glow-accent-xl); }
+.glow-gold      { box-shadow: var(--glow-gold); }
+.glow-error     { box-shadow: var(--glow-error); }

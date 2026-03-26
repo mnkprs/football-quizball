@@ -79,7 +79,7 @@
   padding: 0.875rem 1rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--color-border, rgba(255,255,255,0.12));
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   color: var(--color-foreground, #fff);
   font-size: 1rem;
   outline: none;
@@ -88,7 +88,7 @@
 }
 
 .um-input:focus {
-  border-color: var(--color-accent, #22c55e);
+  border-color: var(--color-accent);
 }
 
 .um-input--error {
@@ -115,7 +115,7 @@
 .um-btn {
   width: 100%;
   padding: 0.9rem 1.5rem;
-  background: var(--color-accent, #22c55e);
+  background: var(--color-accent);
   color: #000;
   border: none;
   border-radius: 0.875rem;

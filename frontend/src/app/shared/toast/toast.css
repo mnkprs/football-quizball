@@ -14,7 +14,7 @@
 }
 .toast {
   padding: 0.75rem 1.25rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 500;
   color: #fff;
@@ -22,7 +22,7 @@
   animation: slideUp 0.25s ease-out both;
 }
 .toast--error   { background: #ef4444; }
-.toast--success { background: #22c55e; }
+.toast--success { background: var(--color-success); }
 .toast--info    { background: #3b82f6; }
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(8px); }
