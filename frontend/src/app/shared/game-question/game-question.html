@@ -169,12 +169,15 @@
         <span class="gq__option-text">{{ option }}</span>
         @if (reveal() && revealResult()) {
           @if (option === revealResult()!.correct_answer && revealResult()!.correct) {
+            <span class="gq__option-tag gq__option-tag--correct">CORRECT</span>
             <span class="gq__option-icon gq__option-icon--correct">&#10003;</span>
           }
           @if (option === (revealResult()!.user_answer ?? selectedOption()) && !revealResult()!.correct) {
+            <span class="gq__option-tag gq__option-tag--wrong">YOUR CHOICE</span>
             <span class="gq__option-icon gq__option-icon--wrong">&#10007;</span>
           }
           @if (option === revealResult()!.correct_answer && !revealResult()!.correct) {
+            <span class="gq__option-tag gq__option-tag--correct-revealed">CORRECT ANSWER</span>
             <span class="gq__option-icon gq__option-icon--correct-revealed">&#10003;</span>
           }
         }

@@ -25,6 +25,7 @@ export class NewsModeComponent implements OnInit {
   questions = signal<NewsQuestion[]>([]);
   currentIndex = signal(0);
   answer = '';
+  userAnswer = signal('');
   submitting = signal(false);
   lastResult = signal<NewsAnswerResponse | null>(null);
   correctCount = signal(0);
@@ -59,6 +60,7 @@ export class NewsModeComponent implements OnInit {
     if (!q) return;
 
     this.submitting.set(true);
+    this.userAnswer.set(this.answer.trim());
     try {
       const result = await firstValueFrom(this.newsApi.checkAnswer(q.id, this.answer.trim()));
       if (result.correct) this.correctCount.update(v => v + 1);

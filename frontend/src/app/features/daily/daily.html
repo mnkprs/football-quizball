@@ -1,12 +1,10 @@
-<div class="daily-root bg-background flex flex-col p-4">
-  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
-
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6 pt-2">
-      <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().dailyBackBtn }}</button>
-      <div class="text-accent font-black text-xl">📅 {{ lang.t().dailyTitle }}</div>
-      <div class="w-16"></div>
-    </div>
+<div class="daily-root bg-background flex flex-col">
+  <!-- Background image — Stitch: opacity-40, grayscale, gradient overlay -->
+  <div class="daily-bg">
+    <img src="/today-in-football-bg.png" alt="" class="daily-bg-img" />
+    <div class="daily-bg-overlay"></div>
+  </div>
+  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1 px-6 pt-6 pb-28 relative z-10">
 
     <!-- IDLE / LOADING phase -->
     @if (phase() === 'idle' || phase() === 'loading') {
@@ -32,56 +30,69 @@
 
     <!-- PLAYING phase -->
     @if (phase() === 'playing') {
-      <div class="flex flex-col flex-1 relative">
-        <!-- Progress -->
-        <div class="flex items-center justify-between mb-5">
-          <div class="text-muted-foreground text-sm">
-            {{ lang.t().dailyQuestionOf }} {{ currentIndex() + 1 }} of {{ questions().length }}
-          </div>
-          <div class="text-accent font-black text-xl">{{ score() }}/{{ questions().length }}</div>
+      <div class="flex flex-col flex-1">
+        <!-- Progress bar -->
+        <div class="daily-progress-bar">
+          <div class="daily-progress-fill" [style.width]="((currentIndex() + 1) / questions().length * 100) + '%'"></div>
         </div>
 
-        <!-- Question -->
+        <!-- Header: question counter + score -->
+        <div class="flex items-center justify-between mb-6">
+          <span class="text-muted-foreground text-sm">
+            {{ lang.t().dailyQuestionOf }} {{ currentIndex() + 1 }} of {{ questions().length }}
+          </span>
+          <span class="daily-score">{{ score() }}/{{ questions().length }}</span>
+        </div>
+
         @if (currentQuestion(); as q) {
-          <div class="bg-card rounded-2xl p-5 mb-5 border border-border min-h-[110px] flex items-center">
-            <p class="text-foreground text-lg leading-relaxed">{{ translatedText(q, 'question_text') }}</p>
-          </div>
+          <!-- Category badge -->
+          <div class="mb-4">
+            <span class="daily-category-badge">TODAY'S KICKOFF</span>
+          </div>  
+
+          <!-- Question text (no card — bare headline like Stitch) -->
+          <h2 class="daily-question-text">{{ translatedText(q, 'question_text') }}</h2>
 
           <!-- Choices -->
-          <div class="flex flex-col gap-3">
+          <div class="daily-choices">
             @for (choice of q.choices; track $index) {
               <button
                 (click)="selectChoice(choice)"
                 [disabled]="showFlash()"
                 [class]="choiceClass(choice)"
               >
-                {{ choice }}
+                <div class="flex items-center gap-3">
+                  @if (showFlash()) {
+                    @if (choice.trim().toLowerCase() === (currentQuestion()?.correct_answer ?? '').trim().toLowerCase()) {
+                      <span class="daily-choice-icon daily-choice-icon--correct">✓</span>
+                    } @else if (choice === selectedChoice() && !flashCorrect()) {
+                      <span class="daily-choice-icon daily-choice-icon--wrong">✗</span>
+                    }
+                  }
+                  <span class="font-bold text-lg">{{ choice }}</span>
+                </div>
+                <span class="daily-choice-tag">
+                  @if (showFlash() && choice === selectedChoice() && !flashCorrect()) {
+                    YOUR CHOICE
+                  } @else if (showFlash() && choice.trim().toLowerCase() === (currentQuestion()?.correct_answer ?? '').trim().toLowerCase()) {
+                    CORRECT ANSWER
+                  } @else if (!showFlash()) {
+                    OPTION {{ 'ABCDEFGH'[$index] }}
+                  }
+                </span>
               </button>
             }
           </div>
-        }
 
-        <!-- Result flash overlay -->
-        @if (showFlash()) {
-          <div
-            (click)="dismissFlash()"
-            class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl z-10 cursor-pointer backdrop-blur-xl"
-            [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
-          >
-            <div class="text-5xl mb-3 shrink-0">{{ flashCorrect() ? '✅' : '❌' }}</div>
-            <div class="text-white font-black text-2xl mb-2 shrink-0">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
-            @if (!flashCorrect()) {
-              <div class="text-white/90 text-sm text-center px-6 mb-3 shrink-0">{{ lang.t().correctAnswer }}: {{ flashAnswer() }}</div>
-            }
-            @if (currentQuestion(); as q) {
-              <div class="text-white text-sm text-center px-6 max-w-md max-h-[40vh] overflow-y-auto leading-relaxed break-words overscroll-contain">
-                {{ translatedText(q, 'explanation') }}
-              </div>
-            }
-            @if (!flashCorrect()) {
-              <div class="text-white/70 text-xs mt-4 shrink-0">{{ lang.t().tapToContinue }}</div>
-            }
-          </div>
+          <!-- Explanation + Next (after reveal) -->
+          @if (showFlash()) {
+            <div class="daily-explanation">
+              <p class="text-muted-foreground text-sm leading-relaxed">{{ translatedText(q, 'explanation') }}</p>
+            </div>
+            <button (click)="dismissFlash()" class="daily-next-btn">
+              NEXT QUESTION →
+            </button>
+          }
         }
       </div>
     }
@@ -96,11 +107,12 @@
 
         <button
           (click)="resetToIdle()"
-          class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light transition mb-3 pressable"
+          class="daily-next-btn mb-3"
+          style="max-width: 20rem;"
         >
           {{ lang.t().playAgain }}
         </button>
-        <button (click)="goHome()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
+        <button (click)="goHome()" class="w-full max-w-xs py-3 rounded-xl border border-[rgba(73,72,71,0.15)] text-muted-foreground font-semibold transition pressable">
           {{ lang.t().navHome }}
         </button>
       </div>

@@ -56,20 +56,14 @@ export class DailyComponent {
   });
 
   choiceClass(choice: string): string {
-    const base = 'w-full py-4 px-5 rounded-2xl font-bold text-left text-base transition pressable';
-    if (!this.showFlash()) {
-      return `${base} bg-card border border-border text-foreground hover:border-accent hover:bg-muted active:scale-95`;
-    }
+    const base = 'daily-choice';
+    if (!this.showFlash()) return `${base} daily-choice--default`;
     const isSelected = choice === this.selectedChoice();
     const correctAns = this.currentQuestion()?.correct_answer ?? '';
     const isCorrectAnswer = choice.trim().toLowerCase() === correctAns.trim().toLowerCase();
-    if (isCorrectAnswer) {
-      return `${base} bg-win/20 border-2 border-win text-win`;
-    }
-    if (isSelected && !this.flashCorrect()) {
-      return `${base} bg-loss/20 border-2 border-loss text-loss`;
-    }
-    return `${base} bg-card border border-border text-muted-foreground opacity-40`;
+    if (isCorrectAnswer) return `${base} daily-choice--correct`;
+    if (isSelected && !this.flashCorrect()) return `${base} daily-choice--wrong`;
+    return `${base} daily-choice--dimmed`;
   }
 
   async startQuiz(): Promise<void> {
