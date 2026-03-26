@@ -14,6 +14,7 @@ export type ModeCardContainerVariant = 'primary' | 'accent' | 'outline';
 export class ModeCardContainerComponent {
   variant = input<ModeCardContainerVariant>('outline');
   compact = input(false);
+  size = input<'default' | 'compact' | 'medium'>('default');
   backgroundIcon = input<string>();
   backgroundImage = input<string>();
   ariaLabel = input<string>('');

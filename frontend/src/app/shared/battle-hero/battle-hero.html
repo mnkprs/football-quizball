@@ -1,0 +1,46 @@
+<button type="button" class="battle-hero" (click)="onCardClick()" [attr.aria-label]="title()">
+  @if (backgroundImage(); as img) {
+    <img class="battle-hero__bg" [src]="img" alt="" aria-hidden="true" />
+    <span class="battle-hero__overlay" aria-hidden="true"></span>
+  }
+
+  <div class="battle-hero__top">
+    <span class="battle-hero__featured">
+      <span class="material-icons battle-hero__featured-icon">auto_awesome</span>
+      Featured
+    </span>
+    @if (onlineCount(); as count) {
+      <span class="battle-hero__online">
+        <span class="battle-hero__online-dot"></span>
+        {{ count }} online
+      </span>
+    }
+  </div>
+
+  <div class="battle-hero__bottom">
+    <div class="battle-hero__badges">
+      <span class="battle-hero__badge">
+        <span class="material-icons battle-hero__badge-icon">groups_3</span>
+        {{ badge() }}
+      </span>
+    </div>
+    <p class="battle-hero__subtitle">{{ subtitle() }}</p>
+    <h2 class="battle-hero__title" aria-label="Battle Royale">
+      <span class="battle-hero__wave" style="--i:0">B</span><span class="battle-hero__wave" style="--i:1">a</span><span class="battle-hero__wave" style="--i:2">t</span><span class="battle-hero__wave" style="--i:3">t</span><span class="battle-hero__wave" style="--i:4">l</span><span class="battle-hero__wave" style="--i:5">e</span><span class="battle-hero__wave" style="--i:6">&nbsp;</span><span class="battle-hero__wave" style="--i:7">R</span><span class="battle-hero__wave" style="--i:8">o</span><span class="battle-hero__wave" style="--i:9">y</span><span class="battle-hero__wave" style="--i:10">a</span><span class="battle-hero__wave" style="--i:11">l</span><span class="battle-hero__wave" style="--i:12">e</span>
+    </h2>
+
+    @if (locked()) {
+      <div class="battle-hero__lock-strip">
+        <span class="material-icons battle-hero__lock-icon">arrow_forward</span>
+        <span class="battle-hero__lock-text">{{ lockMessage() }}</span>
+      </div>
+    } @else if (proLocked()) {
+      <div class="battle-hero__lock-strip battle-hero__lock-strip--pro">
+        <span class="material-icons battle-hero__lock-crown">workspace_premium</span>
+        <span class="battle-hero__lock-text">Upgrade to Pro</span>
+      </div>
+    } @else {
+      <span class="battle-hero__cta">{{ actionLabel() }}</span>
+    }
+  </div>
+</button>

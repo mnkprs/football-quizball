@@ -1,19 +1,16 @@
 import { Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { catchError, of, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { BlitzApiService } from '../../core/blitz-api.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
-import { DailyApiService } from '../../core/daily-api.service';
-import { NewsApiService } from '../../core/news-api.service';
 import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
-import { DailyHeroComponent } from '../../shared/daily-hero/daily-hero';
 import { AuthCardComponent } from '../../shared/auth-card/auth-card';
+import { BattleHeroComponent } from '../../shared/battle-hero/battle-hero';
 
 @Component({
   selector: 'app-home',
@@ -23,13 +20,13 @@ import { AuthCardComponent } from '../../shared/auth-card/auth-card';
     CommonModule,
     SectionHeaderComponent,
     ModeCardComponent,
-    DailyHeroComponent,
     AuthCardComponent,
+    BattleHeroComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit {
 
   auth = inject(AuthService);
   lang = inject(LanguageService);
@@ -37,52 +34,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private blitzApi = inject(BlitzApiService);
   private soloApi = inject(SoloApiService);
-  private dailyApi = inject(DailyApiService);
-  private newsApi = inject(NewsApiService);
 
   profileLoading = signal(false);
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   avatarLoadFailed = signal(false);
-  private countdownTick = signal(0);
-
-  private dailyMeta = toSignal(
-    this.dailyApi.getMetadata().pipe(catchError(() => of(null))),
-    { initialValue: null }
-  );
-
-  private newsMeta = toSignal(
-    this.newsApi.getMetadata().pipe(catchError(() => of(null))),
-    { initialValue: null }
-  );
-
-  dailyCount = computed(() => this.dailyMeta()?.count ?? null);
-
-  dailyResetsIn = computed(() => {
-    const meta = this.dailyMeta();
-    this.countdownTick();
-    if (!meta?.resetsAt) return '—';
-    const ms = new Date(meta.resetsAt).getTime() - Date.now();
-    if (ms <= 0) return '0:00:00';
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    const s = Math.floor((ms % 60000) / 1000);
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  });
-
-  newsCount = computed(() => this.newsMeta()?.count ?? null);
-
-  newsUpdatesIn = computed(() => {
-    const meta = this.newsMeta();
-    this.countdownTick();
-    if (!meta?.updatesAt) return '—';
-    const ms = new Date(meta.updatesAt).getTime() - Date.now();
-    if (ms <= 0) return '0:00:00';
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    const s = Math.floor((ms % 60000) / 1000);
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  });
+  onlinePlayers = signal(Math.floor(Math.random() * 40) + 12);
 
   authStatsText = computed(() => {
     const t = this.lang.t();
@@ -143,8 +100,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     return `${t.blitzStatsHint} ${this.blitzBest()} · ${t.rankLabel} #${this.blitzRank()}`;
   });
 
-  private countdownInterval: ReturnType<typeof setInterval> | null = null;
-
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
@@ -152,13 +107,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.pro.loadStatus();
       }
     });
-    this.countdownInterval = setInterval(() => this.countdownTick.update((v) => v + 1), 1000);
-  }
-
-  ngOnDestroy(): void {
-    if (this.countdownInterval) {
-      clearInterval(this.countdownInterval);
-    }
   }
 
   onAvatarError(): void {
@@ -229,10 +177,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   goBattleRoyale(): void {
-    if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/battle-royale']);
-    } else {
+    if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
+    } else if (!this.pro.isPro() && this.pro.trialBattleRoyaleRemaining() === 0) {
+      this.pro.showUpgradeModal.set(true);
+    } else {
+      this.router.navigate(['/battle-royale']);
     }
   }
 

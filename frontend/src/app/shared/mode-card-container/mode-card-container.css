@@ -49,6 +49,13 @@
   padding: 0.875rem 1.25rem;
 }
 
+.mode-card-container--medium,
+.mode-card-container--medium.mode-card-container--accent,
+.mode-card-container--medium.mode-card-container--outline {
+  min-height: 12rem;
+  padding: 1.25rem;
+}
+
 .mode-card-container__bg-image,
 .mode-card-container__bg-overlay,
 .mode-card-container__bg-icon {

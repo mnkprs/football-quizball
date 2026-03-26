@@ -7,6 +7,7 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/shell/shell').then(m => m.ShellComponent),
     children: [
       { path: '', loadComponent: () => import('./features/home/home').then(m => m.HomeComponent) },
+      { path: 'today', loadComponent: () => import('./features/today/today').then(m => m.TodayComponent) },
       { path: 'invite', loadComponent: () => import('./features/invite/invite').then(m => m.InviteComponent) },
       { path: 'news', loadComponent: () => import('./features/news-mode/news-mode').then(m => m.NewsModeComponent) },
       { path: 'mayhem', loadComponent: () => import('./features/mayhem-mode/mayhem-mode').then(m => m.MayhemModeComponent), canActivate: [authGuard] },

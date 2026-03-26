@@ -129,6 +129,7 @@ const TRANSLATIONS = {
     dailyChallenge: 'Daily Challenge',
     // Nav
     navHome: 'Home',
+    navToday: 'Today',
     navInvite: 'Invite',
     navLeaderboard: 'Leaderboard',
     navRank: 'Rank',

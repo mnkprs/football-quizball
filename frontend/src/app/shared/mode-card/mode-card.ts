@@ -28,6 +28,8 @@ export class ModeCardComponent {
   footerText = input<string>();
   variant = input<ModeCardVariant>('outline');
   compact = input(false);
+  size = input<'default' | 'compact' | 'medium'>('default');
+  velvetLock = input(false);
   actionLabel = input<string>();
   locked = input<boolean>(false);
   proLocked = input<boolean>(false);

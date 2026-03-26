@@ -1,0 +1,28 @@
+<div class="today-page">
+  <h1 class="today-page__title">{{ lang.t().navToday }}</h1>
+
+  <app-daily-hero
+    [title]="lang.t().btnDaily"
+    [badgeLabel]="lang.t().dailyChallenge"
+    [questionCount]="dailyCount() ?? '—'"
+    [resetsIn]="dailyResetsIn()"
+    [questionsLabel]="lang.t().dailyQuestionsLabel"
+    [resetsLabel]="lang.t().dailyResetsIn"
+    [playLabel]="lang.t().dailyPlay"
+    backgroundImage="/football-field.png"
+    (play)="goDaily()"
+  />
+
+  <app-daily-hero
+    [title]="lang.t().btnNews"
+    [badgeLabel]="lang.t().newsDailyBadge"
+    [questionCount]="newsCount() ?? '—'"
+    [resetsIn]="newsUpdatesIn()"
+    questionsLabel="articles"
+    resetsLabel="Updates in"
+    playLabel="Read"
+    backgroundImage="/news-mode.png"
+    variant="sky"
+    (play)="goNews()"
+  />
+</div>
