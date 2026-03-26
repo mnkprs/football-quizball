@@ -21,6 +21,9 @@ export class ModeCardComponent {
   hint = input.required<string>();
   badge = input<string>();
   badgeColor = input<'lime' | 'blue' | 'red' | 'purple' | 'gold'>('lime');
+  tags = input<string[]>([]);
+  featured = input(false);
+  onlineCount = input<number | null>(null);
   sectionLabel = input<string>();
   backgroundIcon = input<string>();
   backgroundImage = input<string>();
@@ -41,6 +44,26 @@ export class ModeCardComponent {
   cardClick = output<void>();
 
   pro = inject(ProService);
+
+  static readonly TAG_COLORS: Record<string, string> = {
+    '1v1': 'red',
+    'pvp': 'orange',
+    'ranked': 'gold',
+    'elo': 'lime',
+    'solo': 'white',
+    'multi': 'blue',
+    'speed run': 'cyan',
+    'timed': 'pink',
+    'visual': 'purple',
+    'chaos': 'dark',
+    'free': 'mint',
+    'live': 'coral',
+    '8 players': 'teal',
+  };
+
+  tagColor(tag: string): string {
+    return ModeCardComponent.TAG_COLORS[tag.toLowerCase()] || 'white';
+  }
 
   onProOverlayClick(e: Event): void {
     e.stopPropagation();

@@ -5,6 +5,27 @@
   }
 
   <div class="battle-hero__top">
+    @if (tags().length > 0) {
+      <div class="battle-hero__tags">
+        @for (tag of tags(); track tag) {
+          <span class="battle-hero__tag"
+            [class.battle-hero__tag--red]="tagColorFor(tag) === 'red'"
+            [class.battle-hero__tag--blue]="tagColorFor(tag) === 'blue'"
+            [class.battle-hero__tag--lime]="tagColorFor(tag) === 'lime'"
+            [class.battle-hero__tag--orange]="tagColorFor(tag) === 'orange'"
+            [class.battle-hero__tag--purple]="tagColorFor(tag) === 'purple'"
+            [class.battle-hero__tag--white]="tagColorFor(tag) === 'white'"
+            [class.battle-hero__tag--cyan]="tagColorFor(tag) === 'cyan'"
+            [class.battle-hero__tag--pink]="tagColorFor(tag) === 'pink'"
+            [class.battle-hero__tag--amber]="tagColorFor(tag) === 'amber'"
+            [class.battle-hero__tag--mint]="tagColorFor(tag) === 'mint'"
+            [class.battle-hero__tag--coral]="tagColorFor(tag) === 'coral'"
+            [class.battle-hero__tag--teal]="tagColorFor(tag) === 'teal'"
+            [class.battle-hero__tag--dark]="tagColorFor(tag) === 'dark'"
+          >{{ tag }}</span>
+        }
+      </div>
+    }
     <span class="battle-hero__featured">
       <span class="material-icons battle-hero__featured-icon">auto_awesome</span>
       Featured
@@ -18,12 +39,6 @@
   </div>
 
   <div class="battle-hero__bottom">
-    <div class="battle-hero__badges">
-      <span class="battle-hero__badge">
-        <span class="material-icons battle-hero__badge-icon">groups_3</span>
-        {{ badge() }}
-      </span>
-    </div>
     <p class="battle-hero__subtitle">{{ subtitle() }}</p>
     <h2 class="battle-hero__title" aria-label="Battle Royale">
       <span class="battle-hero__wave" style="--i:0">B</span><span class="battle-hero__wave" style="--i:1">a</span><span class="battle-hero__wave" style="--i:2">t</span><span class="battle-hero__wave" style="--i:3">t</span><span class="battle-hero__wave" style="--i:4">l</span><span class="battle-hero__wave" style="--i:5">e</span><span class="battle-hero__wave" style="--i:6">&nbsp;</span><span class="battle-hero__wave" style="--i:7">R</span><span class="battle-hero__wave" style="--i:8">o</span><span class="battle-hero__wave" style="--i:9">y</span><span class="battle-hero__wave" style="--i:10">a</span><span class="battle-hero__wave" style="--i:11">l</span><span class="battle-hero__wave" style="--i:12">e</span>
