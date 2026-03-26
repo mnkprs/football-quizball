@@ -25,6 +25,7 @@
   --color-accent-glow: rgba(195, 244, 0, 0.3);
   --color-accent-bg: rgba(195, 244, 0, 0.15);
   --color-accent-dim: #abd600;
+  --color-accent-fg: #161e00;
 
   /* DESIGN.md tokens — semantic */
   --color-error: #ffb4ab;
