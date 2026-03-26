@@ -1,15 +1,16 @@
 <app-mode-card-container
   [variant]="variant()"
   [compact]="compact()"
+  [size]="size()"
   [backgroundIcon]="backgroundIcon()"
   [backgroundImage]="backgroundImage()"
   [ariaLabel]="title()"
   (clicked)="!locked() && !proLocked() && rateLimit() !== 0 && cardClick.emit()"
 >
   @if (locked()) {
-    <div class="mode-card__locked-overlay">
+    <div class="mode-card__locked-overlay" [class.mode-card__locked-overlay--velvet]="velvetLock()">
       <span class="material-icons mode-card__lock-icon">lock</span>
-      <span class="mode-card__lock-text">Available Soon</span>
+      <span class="mode-card__lock-text">{{ velvetLock() ? 'Sign in to unlock' : 'Available Soon' }}</span>
     </div>
   }
   @if (proLocked()) {
@@ -29,7 +30,7 @@
     </div>
   }
   @if (rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) {
-    <span class="mode-card__badge-pill mode-card__badge-pill--accent mode-card__rate-badge">{{ rateLimit() }} free today</span>
+    <span class="mode-card__badge-pill mode-card__rate-badge">{{ rateLimit() }} free today</span>
   }
   @if (badge(); as badgeText) {
     <span class="mode-card__badge-pill"

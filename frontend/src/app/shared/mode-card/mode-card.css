@@ -116,6 +116,26 @@
   opacity: 0.85;
 }
 
+/* Velvet rope locked — aspirational, not punitive */
+.mode-card__locked-overlay--velvet {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(1px);
+}
+
+.mode-card__locked-overlay--velvet .mode-card__lock-icon {
+  display: none;
+}
+
+.mode-card__locked-overlay--velvet .mode-card__lock-text {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  opacity: 1;
+}
+
 /* PRO locked variant */
 .mode-card__locked-overlay--pro {
   background: rgba(0, 0, 0, 0.72);
@@ -168,10 +188,19 @@
   opacity: 0.85;
 }
 
-/* Rate limit badge (floats top-right) */
+/* Rate limit badge (floats top-right) — subscription info, not mode type */
 .mode-card__rate-badge {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
   z-index: 5;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
