@@ -210,7 +210,9 @@
   }
   <div class="gq__question-card gq__question-card--logo">
     <p class="gq__question-subtext">{{ question()?.question_text }}</p>
-    @if (question()?.image_url) {
+    @if (reveal() && revealResult()?.original_image_url) {
+      <img [src]="revealResult()!.original_image_url" alt="Original Logo" class="gq__logo-image" />
+    } @else if (question()?.image_url) {
       <img [src]="question()?.image_url" alt="Logo" class="gq__logo-image" />
     }
   </div>
@@ -242,7 +244,7 @@
         </div>
       }
     </div>
-    @if (!reveal()) {
+    @if (!reveal() && !logoDropdownOpen()) {
       <button class="gq__submit-btn gq__submit-btn--full" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim() || submitting()">
         {{ lang.t().submit }}
       </button>

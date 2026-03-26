@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../core/language.service';
@@ -16,6 +16,7 @@ export interface RevealResult {
   elo_after?: number;
   explanation?: string;
   timed_out?: boolean;
+  original_image_url?: string;
 }
 
 export type QuestionCategory =
@@ -241,6 +242,14 @@ export class GameQuestionComponent {
     this.logoSearchQuery.set(team);
     this.logoDropdownOpen.set(false);
     this.answerSubmitted.emit(team);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.gq__logo-select-wrap')) {
+      this.logoDropdownOpen.set(false);
+    }
   }
 
   submitHol(choice: 'higher' | 'lower'): void {
