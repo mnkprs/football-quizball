@@ -427,9 +427,16 @@
 .gq__hol-icon { width: 1.5rem; height: 1.5rem; }
 
 .gq__logo-image {
-  width: 9rem;
-  height: 9rem;
+  width: 12rem;
+  height: 12rem;
   object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .gq__logo-image {
+    width: 16rem;
+    height: 16rem;
+  }
 }
 
 .gq__logo-select-wrap {

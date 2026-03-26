@@ -127,6 +127,7 @@ export class LogoQuizComponent implements OnDestroy {
         user_answer: answer,
         elo_change: result.elo_change,
         elo_after: result.elo_after,
+        original_image_url: q.original_image_url,
       });
       this.revealing.set(true);
     } catch (err: any) {
@@ -153,6 +154,7 @@ export class LogoQuizComponent implements OnDestroy {
         timed_out: true,
         elo_change: result.elo_change,
         elo_after: result.elo_after,
+        original_image_url: q.original_image_url,
       });
       this.revealing.set(true);
     } catch {
