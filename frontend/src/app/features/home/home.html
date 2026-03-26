@@ -14,36 +14,27 @@
       />
     }
 
-    <app-daily-hero
-      [title]="lang.t().btnDaily"
-      [badgeLabel]="lang.t().dailyChallenge"
-      [questionCount]="dailyCount() ?? '—'"
-      [resetsIn]="dailyResetsIn()"
-      [questionsLabel]="lang.t().dailyQuestionsLabel"
-      [resetsLabel]="lang.t().dailyResetsIn"
-      [playLabel]="lang.t().dailyPlay"
-      backgroundImage="/football-field.png"
-      (play)="goDaily()"
+    <!-- TIER 1: Battle Royale Hero -->
+    <app-battle-hero
+      title="Battle Royale"
+      subtitle="8-Player High-Speed Clash"
+      badge="8 Players"
+      backgroundImage="/royale.png"
+      actionLabel="Join Battle"
+      [locked]="!auth.isLoggedIn()"
+      [proLocked]="auth.isLoggedIn() && !pro.isPro() && pro.trialBattleRoyaleRemaining() === 0"
+      lockMessage="Sign in to join the arena"
+      [onlineCount]="onlinePlayers()"
+      (cardClick)="goBattleRoyale()"
+      (unlockClick)="goBattleRoyale()"
     />
 
-    <app-daily-hero
-      [title]="lang.t().btnNews"
-      [badgeLabel]="lang.t().newsDailyBadge"
-      [questionCount]="newsCount() ?? '—'"
-      [resetsIn]="newsUpdatesIn()"
-      questionsLabel="articles"
-      resetsLabel="Updates in"
-      playLabel="Read"
-      backgroundImage="/news-mode.png"
-      variant="sky"
-      (play)="goNews()"
-    />
-
+    <!-- TIER 3: Pro Arena -->
     <app-section-header
       [title]="lang.t().proArena"
     />
 
-    <div class="section-modes pro-arena">
+    <div class="section-modes pro-arena-tier">
       <app-mode-card
         icon="swords"
         iconClass="material-symbols-outlined"
@@ -55,45 +46,11 @@
         backgroundImage="/duel_mode.png"
         variant="accent"
         actionLabel="Challenge Now"
+        size="medium"
+        [velvetLock]="true"
         [locked]="!auth.isLoggedIn()"
         [rateLimit]="auth.isLoggedIn() && !pro.isPro() ? pro.dailyDuelsRemaining() : null"
         (cardClick)="goDuel()"
-      />
-      <app-mode-card
-        icon="groups_3"
-        iconClass="material-symbols-outlined"
-        sectionLabel="8-Player High-Speed Clash"
-        title="Battle Royale"
-        [hint]="auth.isLoggedIn() ? (pro.isPro() ? 'Compete for speed and correctness in real-time.' : pro.trialBattleRoyaleRemaining() > 0 ? 'Compete for speed and correctness • 1 free game' : 'Upgrade to play Battle Royale') : 'Compete for speed and correctness • Login required'"
-        badge="8 Players"
-        badgeColor="lime"
-        backgroundImage="/royale.png"
-        variant="accent"
-        actionLabel="Join Battle"
-        [proLocked]="auth.isLoggedIn() ? (!pro.isPro() && pro.trialBattleRoyaleRemaining() === 0) : false"
-        [locked]="!auth.isLoggedIn()"
-        (cardClick)="goBattleRoyale()"
-      />
-    </div>
-
-    <app-section-header
-      [title]="lang.t().compete"
-      [actionLabel]="lang.t().viewAll"
-      actionHref="/leaderboard"
-    />
-
-    <div class="section-modes">
-      <app-mode-card
-        icon="image_search"
-        iconBgColor="purple"
-        title="Logo Quiz"
-        hint="Guess the club from its logo"
-        badge="COMING SOON"
-        badgeColor="purple"
-        backgroundImage="/gemini-logo.png"
-        variant="accent"
-        [locked]="false"
-        (cardClick)="goLogoQuiz()"
       />
       <app-mode-card
         icon="emoji_events"
@@ -105,6 +62,8 @@
         [footerText]="lang.t().playersOnline"
         backgroundImage="/solo-mode.png"
         variant="accent"
+        size="medium"
+        [velvetLock]="true"
         [locked]="!auth.isLoggedIn()"
         (cardClick)="goSolo()"
       />
@@ -117,9 +76,21 @@
         badgeColor="blue"
         backgroundImage="/blitz-mode.png"
         variant="accent"
+        size="medium"
+        [velvetLock]="true"
         [locked]="!auth.isLoggedIn()"
         (cardClick)="goBlitz()"
       />
+    </div>
+
+    <!-- TIER 4: Free Modes -->
+    <app-section-header
+      [title]="lang.t().compete"
+      [actionLabel]="lang.t().viewAll"
+      actionHref="/leaderboard"
+    />
+
+    <div class="section-modes free-tier">
       <app-mode-card
         icon="local_fire_department"
         iconBgColor="orange"
@@ -129,8 +100,22 @@
         badgeColor="red"
         backgroundImage="/mayhem-mode.png"
         variant="accent"
+        [compact]="true"
         [locked]="false"
         (cardClick)="goMayhem()"
+      />
+      <app-mode-card
+        icon="image_search"
+        iconBgColor="purple"
+        title="Logo Quiz"
+        hint="Guess the club from its logo"
+        badge="COMING SOON"
+        badgeColor="purple"
+        backgroundImage="/gemini-logo.png"
+        variant="accent"
+        [compact]="true"
+        [locked]="false"
+        (cardClick)="goLogoQuiz()"
       />
       <div class="two-player-card">
         <img class="two-player-card__bg-image" src="/football-field.png" alt="" aria-hidden="true" />
