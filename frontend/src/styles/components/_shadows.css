@@ -1,0 +1,12 @@
+/* ==========================================================
+   Shadow Depths — elevation system
+   Prefixed with "elev-" to avoid collision with Tailwind's
+   built-in shadow-sm/md/lg/xl utilities.
+   Available: .elev-sm, .elev-md, .elev-lg, .elev-xl, .elev-card
+   ========================================================== */
+
+.elev-sm { box-shadow: var(--shadow-sm); }
+.elev-md { box-shadow: var(--shadow-md); }
+.elev-lg { box-shadow: var(--shadow-lg); }
+.elev-xl { box-shadow: var(--shadow-xl); }
+.elev-card { box-shadow: var(--shadow-card); }

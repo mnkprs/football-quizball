@@ -4,7 +4,7 @@
   justify-content: space-between;
   width: 100%;
   padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--color-surface-high, #2a2a2a);
   border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
@@ -26,7 +26,7 @@
 
 .daily-strip__icon {
   font-size: 1rem;
-  color: var(--color-accent, #c3f400);
+  color: var(--color-accent);
   flex-shrink: 0;
 }
 
@@ -34,7 +34,7 @@
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -57,8 +57,8 @@
   flex-shrink: 0;
   margin-left: 0.75rem;
   padding: 0.4375rem 0.875rem;
-  background: var(--color-accent, #c3f400);
-  color: var(--color-accent-fg, #161e00);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
   border-radius: 0.625rem;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.6875rem;

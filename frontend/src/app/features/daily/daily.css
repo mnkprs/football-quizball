@@ -38,8 +38,8 @@
   width: 100%;
   max-width: 20rem;
   padding: 1.25rem 1.5rem;
-  border-radius: .75rem;
-  background: linear-gradient(135deg, #daff6f 0%, #c3f400 100%);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #daff6f 0%, var(--color-accent) 100%);
   color: #4c6200;
   font-weight: 800;
   font-size: 1.125rem;
@@ -63,15 +63,15 @@
   width: 100%;
   height: 6px;
   background: rgba(38, 38, 38, 1);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   overflow: hidden;
   margin-bottom: 1.5rem;
 }
 
 .daily-progress-fill {
   height: 100%;
-  background: linear-gradient(to right, #daff6f, #c3f400);
-  border-radius: 999px;
+  background: linear-gradient(to right, #daff6f, var(--color-accent));
+  border-radius: var(--radius-full);
   box-shadow: 0 0 15px rgba(195, 244, 0, 0.3);
   transition: width 0.3s;
 }
@@ -80,7 +80,7 @@
 .daily-score {
   font-weight: 900;
   font-size: 1.25rem;
-  color: #c3f400;
+  color: var(--color-accent);
 }
 
 /* Category badge — Stitch: primary/10 bg, primary text, rounded-full */
@@ -90,10 +90,10 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .2em;
-  color: #c3f400;
+  color: var(--color-accent);
   background: rgba(195, 244, 0, 0.1);
   padding: .375rem .75rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   border: 1px solid rgba(195, 244, 0, 0.2);
 }
 
@@ -105,19 +105,19 @@
   text-transform: uppercase;
   letter-spacing: .2em;
   padding: .375rem .75rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 
 .daily-result-inline-badge--correct {
-  color: #22C55E;
+  color: var(--color-success);
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .daily-result-inline-badge--wrong {
-  color: #ffb4ab;
+  color: var(--color-error);
   background: rgba(147, 0, 10, 0.3);
-  border: 1px solid #93000a;
+  border: 1px solid var(--color-error-bg);
 }
 
 /* Question text — Stitch: bare headline, no card */
@@ -143,7 +143,7 @@
   width: 100%;
   text-align: left;
   padding: 1.25rem;
-  border-radius: .75rem;
+  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -171,14 +171,14 @@
 .daily-choice--correct {
   background: rgba(34, 197, 94, 0.12);
   border: 1px solid rgba(34, 197, 94, 0.25);
-  color: #22C55E;
+  color: var(--color-success);
 }
 
 /* Wrong chosen: deep red */
 .daily-choice--wrong {
-  background: #93000a;
+  background: var(--color-error-bg);
   border: 1px solid rgba(255, 180, 171, 0.2);
-  color: #ffb4ab;
+  color: var(--color-error);
 }
 
 /* Dimmed inactive */
@@ -204,12 +204,12 @@
 
 .daily-choice-icon--correct {
   background: rgba(34, 197, 94, 0.2);
-  color: #22C55E;
+  color: var(--color-success);
 }
 
 .daily-choice-icon--wrong {
   background: rgba(255, 180, 171, 0.15);
-  color: #ffb4ab;
+  color: var(--color-error);
 }
 
 /* Choice tag — Stitch: "OPTION A" / "YOUR CHOICE" / "CORRECT ANSWER" */
@@ -227,7 +227,7 @@
 .daily-explanation {
   margin-bottom: 1rem;
   padding: 1rem;
-  border-radius: .75rem;
+  border-radius: var(--radius-lg);
   background: rgba(26, 25, 25, 0.5);
   border: 1px solid rgba(73, 72, 71, 0.15);
 }
@@ -236,8 +236,8 @@
 .daily-next-btn {
   width: 100%;
   padding: 1.25rem;
-  border-radius: .75rem;
-  background: linear-gradient(135deg, #daff6f 0%, #c3f400 100%) !important;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #daff6f 0%, var(--color-accent) 100%) !important;
   color: #4c6200 !important;
   font-weight: 800;
   font-size: 1.125rem;

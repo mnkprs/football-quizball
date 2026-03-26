@@ -1,4 +1,4 @@
-<button type="button" class="daily-hero" (click)="play.emit()" [attr.aria-label]="playLabel() + ' ' + title()">
+<button type="button" class="shadow-lg daily-hero" (click)="play.emit()" [attr.aria-label]="playLabel() + ' ' + title()">
   @if (backgroundImage(); as imagePath) {
     <img
       class="daily-hero__bg-image"
@@ -26,6 +26,6 @@
       <span class="material-icons daily-hero__meta-icon">verified</span>
       <p class="daily-hero__meta">{{ questionCount() }} {{ questionsLabel() }}</p>
     </div>
-    <span class="daily-hero__cta">{{ playLabel() }}</span>
+    <span class="btn-accent daily-hero__cta">{{ playLabel() }}</span>
   </div>
 </button>

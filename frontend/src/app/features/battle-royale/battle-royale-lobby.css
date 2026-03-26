@@ -122,7 +122,7 @@
 .br-lobby__code-input {
   flex: 1;
   padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--color-background);
   border: 1px solid var(--color-border);
   color: var(--color-foreground);
@@ -139,7 +139,7 @@
 
 .br-lobby__code-btn {
   padding: 0.75rem 1.25rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--color-accent);
   color: var(--color-accent-foreground);
   font-weight: 800;
@@ -159,7 +159,7 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   margin-bottom: 1rem;
 }
 

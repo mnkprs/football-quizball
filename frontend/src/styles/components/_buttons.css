@@ -1,0 +1,76 @@
+/* ==========================================================
+   Buttons — shared button styles
+   Available: .btn-accent, .btn-secondary, .btn-ghost
+   IMPORTANT: .btn-accent uses Space Grotesk/900 (matches actual CTAs)
+   ========================================================== */
+
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 0.875rem 1.5rem;
+  min-height: 44px;
+  box-shadow: var(--glow-accent-md);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.btn-accent:active { transform: scale(0.97); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  color: var(--color-fg);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 0.875rem 1.5rem;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.btn-secondary:active { transform: scale(0.97); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  background: transparent;
+  color: var(--color-fg-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1rem;
+  min-height: 44px;
+  cursor: pointer;
+  transition: color 0.2s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.btn-ghost:active { transform: scale(0.97); }
+.btn-ghost:hover { color: var(--color-fg); }

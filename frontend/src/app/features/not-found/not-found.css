@@ -17,7 +17,7 @@
   font-size: 5rem;
   font-weight: 900;
   line-height: 1;
-  background: linear-gradient(135deg, var(--color-accent, #6C63FF), color-mix(in srgb, var(--color-accent, #6C63FF) 60%, #ff6b6b));
+  background: linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, #ff6b6b));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -45,8 +45,8 @@
 .not-found__btn {
   display: inline-block;
   padding: 0.75rem 2rem;
-  border-radius: 9999px;
-  background: var(--color-accent, #6C63FF);
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
   color: #fff;
   font-weight: 600;
   font-size: 0.9375rem;

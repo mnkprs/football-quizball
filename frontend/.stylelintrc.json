@@ -1,0 +1,20 @@
+{
+  "extends": [],
+  "rules": {
+    "comment-empty-line-before": null,
+    "comment-whitespace-inside": null
+  },
+  "overrides": [
+    {
+      "files": ["src/app/**/*.css"],
+      "rules": {
+        "color-no-hex": null
+      }
+    }
+  ],
+  "ignoreFiles": [
+    "src/styles/abstracts/_tokens.css",
+    "src/app/features/admin/admin.css",
+    "node_modules/**"
+  ]
+}

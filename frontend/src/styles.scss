@@ -58,19 +58,4 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Kickup-style utilities (kept for compatibility) */
-.pressable {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  transition: transform 0.15s ease, color 0.2s ease, background-color 0.2s ease,
-    border-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-}
-.pressable:active {
-  transform: scale(0.97);
-}
-
-button:not([disabled]),
-a[href] {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
+/* .pressable and button/link tap styles moved to styles/base/_reset.css */

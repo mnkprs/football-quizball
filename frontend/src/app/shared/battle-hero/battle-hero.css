@@ -32,8 +32,8 @@
   width: 100%;
   min-height: 24rem;
   padding: 1.5rem;
-  border-radius: 1.5rem;
-  background: var(--color-surface, #131313);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
   border: 1px solid rgba(255, 179, 0, 0.15);
   overflow: hidden;
   cursor: pointer;
@@ -126,7 +126,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.875rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: rgba(255, 179, 0, 0.12);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -150,7 +150,7 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.3125rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -189,10 +189,10 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.4375rem 1rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: linear-gradient(135deg, rgba(156, 39, 176, 0.25), rgba(206, 147, 216, 0.12));
   border: 1px solid rgba(206, 147, 216, 0.35);
-  color: #e1bee7;
+  color: var(--color-purple-light);
   font-family: 'Lexend', sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
@@ -203,7 +203,7 @@
 
 .battle-hero__featured-icon {
   font-size: 0.875rem;
-  color: #ce93d8;
+  color: var(--color-purple-light);
 }
 
 /* Badges row (above subtitle) */
@@ -235,21 +235,21 @@
   text-transform: uppercase;
   font-style: italic;
   margin: 0 0 1.25rem;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
 }
 
 .battle-hero__wave {
   display: inline-block;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
   animation: wave 3s ease-in-out infinite, letter-glow 6s ease-in-out infinite;
   animation-delay: calc(var(--i) * 0.12s), calc(var(--i) * 0.12s);
 }
 
 @keyframes letter-glow {
-  0%, 100% { color: var(--color-fg, #e5e2e1); }
-  40% { color: var(--color-fg, #e5e2e1); }
+  0%, 100% { color: var(--color-fg); }
+  40% { color: var(--color-fg); }
   50% { color: #ffb300; text-shadow: 0 0 12px rgba(255, 179, 0, 0.4); }
-  60% { color: var(--color-fg, #e5e2e1); }
+  60% { color: var(--color-fg); }
 }
 
 /* ---- Unlocked CTA ---- */
@@ -262,7 +262,7 @@
   padding: 0.875rem 1.5rem;
   background: #ffb300;
   color: #1a1200;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.875rem;
   font-weight: 900;
@@ -282,7 +282,7 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.875rem 1.5rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: rgba(255, 179, 0, 0.06);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -312,9 +312,9 @@
 
 .battle-hero__lock-crown {
   font-size: 1.125rem;
-  color: #e6a800;
+  color: var(--color-pro);
 }
 
 .battle-hero__lock-strip--pro .battle-hero__lock-text {
-  color: #e6a800;
+  color: var(--color-pro);
 }

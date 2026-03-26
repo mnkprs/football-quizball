@@ -1,0 +1,21 @@
+/* ==========================================================
+   Styles Index — Angular-adapted 7-1 architecture
+   Load order: abstracts → base → components (@layer)
+   Registered in angular.json as second styles entry.
+   ========================================================== */
+
+/* Abstracts — tokens (CSS custom properties) */
+@import './abstracts/_tokens.css';
+
+/* Base — resets, typography, animations */
+@import './base/_reset.css';
+@import './base/_typography.css';
+@import './base/_animations.css';
+
+/* Components — shared utility classes */
+@import './components/_glass.css';
+@import './components/_buttons.css';
+@import './components/_badges.css';
+@import './components/_glows.css';
+@import './components/_shadows.css';
+@import './components/_states.css';

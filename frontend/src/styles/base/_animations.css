@@ -1,0 +1,33 @@
+/* ==========================================================
+   Shared Animations — generic keyframes used across components
+   Component-specific keyframes (battle-hero gold, game-question
+   timer, modals, splash) stay in their component CSS files.
+   ========================================================== */
+
+@keyframes correctPulse {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(204,255,0,0.2); }
+}
+
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
+
+@keyframes scoreFloat {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-40px); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

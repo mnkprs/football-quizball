@@ -29,7 +29,7 @@
 }
 
 .cookie-banner__link {
-  color: var(--color-accent, #6C63FF);
+  color: var(--color-accent);
   text-decoration: underline;
 }
 
@@ -41,7 +41,7 @@
 .cookie-banner__btn {
   flex: 1;
   padding: 0.625rem 1rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   font-size: 0.8125rem;
   font-weight: 600;
   border: none;
@@ -59,7 +59,7 @@
 }
 
 .cookie-banner__btn--accept {
-  background: var(--color-accent, #6C63FF);
+  background: var(--color-accent);
   color: #fff;
 }
 

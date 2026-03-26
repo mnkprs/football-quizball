@@ -14,7 +14,7 @@
 .modal-card {
   background: var(--color-surface, #201f1f);
   border: 1px solid var(--color-surface-highest, #353534);
-  border-radius: 1rem 1rem 0.5rem 0.5rem;
+  border-radius: 1rem 1rem var(--radius-md) var(--radius-md);
   padding: 1.5rem;
   width: 100%;
   max-width: 24rem;
@@ -36,7 +36,7 @@
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.75rem;
   font-weight: 600;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
   margin: 0.25rem 0 0;
 }
 
@@ -64,7 +64,7 @@
   padding: 1rem 0.75rem;
   background: var(--color-surface-high, #2a2a2a);
   border: 1px solid var(--color-fg-dim, #444933);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   position: relative;
   transition: border-color 0.2s, background 0.2s;
@@ -75,19 +75,19 @@
 }
 
 .pricing-card--selected {
-  border-color: var(--color-accent, #c3f400);
+  border-color: var(--color-accent);
   background: rgba(195, 244, 0, 0.06);
 }
 
 .pricing-card--selected:hover {
-  border-color: var(--color-accent, #c3f400);
+  border-color: var(--color-accent);
 }
 
 .pricing-card__price {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
 }
 
 .pricing-card__label {
@@ -103,15 +103,15 @@
   position: absolute;
   top: -0.5rem;
   right: -0.25rem;
-  background: var(--color-accent, #c3f400);
-  color: var(--color-accent-fg, #161e00);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
   font-family: 'Lexend', sans-serif;
   font-size: 0.5625rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.1875rem 0.5rem;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 
 /* Skeleton loaders */
@@ -120,7 +120,7 @@
   width: 3.5rem;
   height: 1.5rem;
   background: var(--color-surface-highest, #353534);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   animation: skeleton-pulse 1.2s ease-in-out infinite;
 }
 
@@ -129,7 +129,7 @@
   width: 2.5rem;
   height: 0.75rem;
   background: var(--color-surface-highest, #353534);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
   animation: skeleton-pulse 1.2s ease-in-out infinite;
   animation-delay: 0.15s;
 }
@@ -156,11 +156,11 @@
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: 400;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
 }
 
 .check-icon {
-  color: var(--color-accent, #c3f400);
+  color: var(--color-accent);
   font-size: 1rem;
   font-weight: 700;
   flex-shrink: 0;
@@ -170,7 +170,7 @@
 .error-message {
   font-family: 'Inter', sans-serif;
   font-size: 0.8125rem;
-  color: var(--color-error, #ffb4ab);
+  color: var(--color-error);
   text-align: center;
   margin: 0;
 }
@@ -187,10 +187,10 @@
 .btn-cta {
   width: 100%;
   padding: 0.875rem;
-  background: var(--color-accent, #c3f400);
-  color: var(--color-accent-fg, #161e00);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
   border: none;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   font-family: 'Inter', sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
@@ -206,7 +206,7 @@
 }
 
 .btn-cta:hover:not(:disabled) {
-  background: var(--color-accent-dim, #abd600);
+  background: var(--color-accent-dim);
 }
 
 .btn-cta:disabled {
@@ -219,7 +219,7 @@
   display: inline-block;
   width: 1rem;
   height: 1rem;
-  border: 2px solid var(--color-accent-fg, #161e00);
+  border: 2px solid var(--color-accent-fg);
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
@@ -312,7 +312,7 @@
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--color-accent, #c3f400);
+  color: var(--color-accent);
   margin: 0;
   position: relative;
 }
@@ -341,7 +341,7 @@
   font-family: 'Inter', sans-serif;
   font-size: 0.9375rem;
   font-weight: 400;
-  color: var(--color-fg, #e5e2e1);
+  color: var(--color-fg);
   animation: check-in 0.4s ease-out both;
 }
 
