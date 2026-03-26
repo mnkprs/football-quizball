@@ -19,7 +19,7 @@
 
   @if (!loading() || entries().length > 0) {
     <!-- Your Ranks Summary Card (only for logged in users) -->
-    @if (auth.isLoggedIn() && (soloMeEntry() || blitzMeEntry() || mayhemMeEntry())) {
+    @if (auth.isLoggedIn() && (soloMeEntry() || blitzMeEntry() || mayhemMeEntry() || logoQuizMeEntry())) {
       <section class="your-ranks-section">
         <div class="your-ranks-header">
           <span class="your-ranks-label">Your Rankings</span>
@@ -70,6 +70,21 @@
               </div>
             </a>
           }
+          @if (logoQuizMeEntry(); as me) {
+            <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--logo-quiz">
+              <div class="your-rank-icon">
+                <mat-icon>image_search</mat-icon>
+              </div>
+              <div class="your-rank-info">
+                <span class="your-rank-mode">Logo Quiz</span>
+                <span class="your-rank-value">#{{ me.rank }}</span>
+              </div>
+              <div class="your-rank-score">
+                <span class="your-rank-score-value">{{ me.logo_quiz_elo }}</span>
+                <span class="your-rank-score-label">ELO</span>
+              </div>
+            </a>
+          }
         </div>
       </section>
     }
@@ -90,12 +105,19 @@
         <mat-icon>bolt</mat-icon>
         <span>Blitz</span>
       </button>
-      <button 
-        class="mode-tab" 
+      <button
+        class="mode-tab"
         [class.mode-tab--active]="activeTab() === 'mayhem'"
         (click)="setActiveTab('mayhem')">
         <mat-icon>whatshot</mat-icon>
         <span>Mayhem</span>
+      </button>
+      <button
+        class="mode-tab"
+        [class.mode-tab--active]="activeTab() === 'logo-quiz'"
+        (click)="setActiveTab('logo-quiz')">
+        <mat-icon>image_search</mat-icon>
+        <span>Logo Quiz</span>
       </button>
     </div>
 
@@ -337,6 +359,87 @@
           <div class="leaderboard-empty">
             <mat-icon>whatshot</mat-icon>
             <p>No Mayhem players yet</p>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- Logo Quiz Tab Content -->
+    @if (activeTab() === 'logo-quiz') {
+      <section class="leaderboard-section">
+        @if (logoQuizEntries().length > 0) {
+          <div class="leaderboard-list">
+            @for (entry of logoQuizEntries(); track entry.id; let i = $index) {
+              <a [routerLink]="['/profile', entry.id]" class="leaderboard-card-link">
+                <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.id)" [class.leaderboard-card--top3]="i < 3">
+                  <div class="leaderboard-rank" [attr.data-rank]="i + 1">
+                    @if (i === 0) {
+                      <div class="rank-medal rank-medal--gold">1</div>
+                    } @else if (i === 1) {
+                      <div class="rank-medal rank-medal--silver">2</div>
+                    } @else if (i === 2) {
+                      <div class="rank-medal rank-medal--bronze">3</div>
+                    } @else {
+                      <span class="rank-number">{{ i + 1 }}</span>
+                    }
+                  </div>
+                  <div class="leaderboard-avatar">
+                    {{ entry.username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="leaderboard-info">
+                    <div class="leaderboard-name">
+                      {{ entry.username }}
+                      @if (isCurrentUser(entry.id)) {
+                        <span class="leaderboard-you-badge">YOU</span>
+                      }
+                    </div>
+                    <div class="leaderboard-meta">
+                      {{ entry.logo_quiz_games_played }} games played
+                    </div>
+                  </div>
+                  <div class="leaderboard-score">
+                    <span class="leaderboard-score-value">{{ entry.logo_quiz_elo }}</span>
+                    <span class="leaderboard-score-label">ELO</span>
+                  </div>
+                </div>
+              </a>
+            }
+          </div>
+
+          @if (showLogoQuizMeBelow()) {
+            <div class="leaderboard-separator">
+              <span class="leaderboard-separator-line"></span>
+              <span class="leaderboard-separator-text">{{ lang.t().lbYourRank }}</span>
+              <span class="leaderboard-separator-line"></span>
+            </div>
+            <a [routerLink]="['/profile', logoQuizMeEntry()!.id]" class="leaderboard-card-link">
+              <div class="leaderboard-card leaderboard-card--you leaderboard-card--highlighted">
+                <div class="leaderboard-rank">
+                  <span class="rank-number rank-number--you">#{{ logoQuizMeEntry()!.rank }}</span>
+                </div>
+                <div class="leaderboard-avatar leaderboard-avatar--you">
+                  {{ logoQuizMeEntry()!.username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="leaderboard-info">
+                  <div class="leaderboard-name">
+                    {{ logoQuizMeEntry()!.username }}
+                    <span class="leaderboard-you-badge">YOU</span>
+                  </div>
+                  <div class="leaderboard-meta">
+                    {{ logoQuizMeEntry()!.logo_quiz_games_played }} games played
+                  </div>
+                </div>
+                <div class="leaderboard-score">
+                  <span class="leaderboard-score-value">{{ logoQuizMeEntry()!.logo_quiz_elo }}</span>
+                  <span class="leaderboard-score-label">ELO</span>
+                </div>
+              </div>
+            </a>
+          }
+        } @else {
+          <div class="leaderboard-empty">
+            <mat-icon>image_search</mat-icon>
+            <p>No Logo Quiz players yet</p>
           </div>
         }
       </section>

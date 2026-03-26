@@ -10,21 +10,23 @@ export class LeaderboardController {
 
   @Get()
   async getLeaderboard() {
-    const [solo, blitz] = await Promise.all([
+    const [solo, blitz, logoQuiz] = await Promise.all([
       this.supabaseService.getLeaderboard(LIMIT),
       this.supabaseService.getBlitzLeaderboard(LIMIT),
+      this.supabaseService.getLogoQuizLeaderboard(LIMIT),
     ]);
-    return { solo, blitz };
+    return { solo, blitz, logoQuiz };
   }
 
   @Get('me')
   @UseGuards(AuthGuard)
   async getMyLeaderboardEntries(@Req() req: any) {
     const userId = req.user.id;
-    const [soloMe, blitzMe] = await Promise.all([
+    const [soloMe, blitzMe, logoQuizMe] = await Promise.all([
       this.supabaseService.getLeaderboardEntryForUser(userId),
       this.supabaseService.getBlitzLeaderboardEntryForUser(userId),
+      this.supabaseService.getLogoQuizLeaderboardEntryForUser(userId),
     ]);
-    return { soloMe, blitzMe };
+    return { soloMe, blitzMe, logoQuizMe };
   }
 }

@@ -115,6 +115,43 @@ export class SupabaseService {
     return { ...profile, rank: rank ?? 0 };
   }
 
+  async getLogoQuizLeaderboard(limit: number): Promise<Array<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number }>> {
+    const cacheKey = `leaderboard:logo-quiz:${limit}`;
+    const cached = await this.redisService.get<Array<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number }>>(cacheKey);
+    if (cached) return cached;
+
+    const cols = 'id, username, logo_quiz_elo, logo_quiz_games_played';
+    const { data } = await this.client
+      .from('profiles')
+      .select(cols)
+      .gt('logo_quiz_games_played', 0)
+      .order('logo_quiz_elo', { ascending: false })
+      .limit(limit);
+
+    const result = (data ?? []) as Array<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number }>;
+    await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
+    return result;
+  }
+
+  async getLogoQuizLeaderboardEntryForUser(userId: string): Promise<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number; rank: number } | null> {
+    const { data: p } = await this.client
+      .from('profiles')
+      .select('id, username, logo_quiz_elo, logo_quiz_games_played')
+      .eq('id', userId)
+      .maybeSingle();
+    if (!p || (p as any).logo_quiz_games_played === 0) return null;
+    const profile = p as { id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number };
+
+    // Count how many players have higher ELO
+    const { count } = await this.client
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .gt('logo_quiz_elo', profile.logo_quiz_elo)
+      .gt('logo_quiz_games_played', 0);
+
+    return { ...profile, rank: (count ?? 0) + 1 };
+  }
+
   async getEloHistory(userId: string, limit: number): Promise<any[]> {
     const { data } = await this.client
       .from('elo_history')

@@ -126,6 +126,12 @@
 }
 .your-rank-card--mayhem .your-rank-icon { color: #ff6b2b; }
 
+.your-rank-card--logo-quiz {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(168, 85, 247, 0.04));
+  border: 1px solid rgba(168, 85, 247, 0.25);
+}
+.your-rank-card--logo-quiz .your-rank-icon { color: #a855f7; }
+
 .your-rank-card:hover { opacity: 0.85; }
 
 .your-rank-icon {
