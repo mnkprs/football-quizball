@@ -113,10 +113,23 @@ export class GameQuestionComponent {
   fiftyFiftySelected = output<string>();
   reportClicked = output<void>();
 
+  /** Team names for LOGO_QUIZ searchable select. */
+  teamNames = input<string[]>([]);
+
   // ─── LOCAL STATE ──────────────────────────────────────────────
   textAnswer = '';
   top5Answer = '';
   selectedOption = signal<string | null>(null);
+  logoSearchQuery = signal('');
+  logoDropdownOpen = signal(false);
+
+  /** Filtered team names based on search query. */
+  filteredTeams = computed(() => {
+    const query = this.logoSearchQuery().toLowerCase().trim();
+    const names = this.teamNames();
+    if (!query || query.length < 2) return [];
+    return names.filter(n => n.toLowerCase().includes(query)).slice(0, 8);
+  });
 
   // ─── COMPUTED ─────────────────────────────────────────────────
   questionCategory = computed(() => this.question()?.category ?? 'CLASSIC');
@@ -212,7 +225,22 @@ export class GameQuestionComponent {
   onNextClicked(): void {
     this.selectedOption.set(null);
     this.textAnswer = '';
+    this.logoSearchQuery.set('');
+    this.logoDropdownOpen.set(false);
     this.nextClicked.emit();
+  }
+
+  onLogoSearchInput(value: string): void {
+    this.textAnswer = value;
+    this.logoSearchQuery.set(value);
+    this.logoDropdownOpen.set(value.trim().length >= 2);
+  }
+
+  selectTeam(team: string): void {
+    this.textAnswer = team;
+    this.logoSearchQuery.set(team);
+    this.logoDropdownOpen.set(false);
+    this.answerSubmitted.emit(team);
   }
 
   submitHol(choice: 'higher' | 'lower'): void {

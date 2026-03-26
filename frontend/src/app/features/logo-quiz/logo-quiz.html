@@ -1,0 +1,112 @@
+<div class="logo-quiz-root bg-background flex flex-col p-4">
+  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6 pt-2">
+      <button class="text-sm text-muted-foreground" (click)="goHome()">&larr; Back</button>
+      @if (phase() !== 'idle') {
+        <div class="flex items-center gap-3 text-sm">
+          <span class="text-muted-foreground">ELO</span>
+          <span class="font-bold text-foreground">{{ currentElo() }}</span>
+        </div>
+        <div class="flex items-center gap-1 text-sm">
+          <span class="text-win font-bold">{{ correctAnswers() }}</span>
+          <span class="text-muted-foreground">/</span>
+          <span class="text-foreground">{{ questionsAnswered() }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- IDLE -->
+    @if (phase() === 'idle') {
+      <div class="flex-1 flex flex-col items-center justify-center gap-4">
+        <div class="text-6xl">⚽</div>
+        <h2 class="text-2xl font-bold text-foreground">Logo Quiz</h2>
+        <p class="text-muted-foreground text-center text-sm max-w-xs">
+          Identify football clubs from their modified logos. The more you get right, the harder it gets.
+        </p>
+        <button
+          class="mt-4 px-8 py-3 rounded-xl bg-accent text-accent-foreground font-bold text-lg"
+          (click)="startPlaying()"
+          [disabled]="loading()"
+        >
+          {{ loading() ? 'Loading...' : 'Start Playing' }}
+        </button>
+      </div>
+    }
+
+    <!-- LOADING -->
+    @if (phase() === 'loading') {
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-5xl animate-spin">⚽</div>
+      </div>
+    }
+
+    <!-- QUESTION -->
+    @if (phase() === 'question' && currentQuestion()) {
+      <app-game-question
+        mode="solo"
+        [question]="questionData()"
+        [timeLeft]="revealing() ? -1 : timeLeft()"
+        [totalTime]="30"
+        [showPoints]="false"
+        [submitting]="loading()"
+        [reveal]="revealing()"
+        [revealResult]="revealResultData()"
+        [teamNames]="teamNames()"
+        (answerSubmitted)="submitAnswer($event)"
+        (nextClicked)="nextQuestion()"
+      />
+      @if (revealing()) {
+        <button
+          class="mt-3 px-6 py-2 rounded-lg border border-border text-muted-foreground text-sm"
+          (click)="endSession()"
+        >
+          End Session
+        </button>
+      }
+    }
+
+    <!-- FINISHED -->
+    @if (phase() === 'finished') {
+      <div class="flex-1 flex flex-col items-center justify-center gap-4">
+        <div class="text-5xl">🏁</div>
+        <h2 class="text-2xl font-bold text-foreground">Session Complete</h2>
+
+        @if (error()) {
+          <p class="text-sm text-loss">{{ error() }}</p>
+        }
+
+        <div class="w-full max-w-xs space-y-3 mt-4">
+          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
+            <span class="text-sm text-muted-foreground">Questions</span>
+            <span class="font-bold text-foreground">{{ questionsAnswered() }}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
+            <span class="text-sm text-muted-foreground">Correct</span>
+            <span class="font-bold text-win">{{ correctAnswers() }}</span>
+          </div>
+          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
+            <span class="text-sm text-muted-foreground">Accuracy</span>
+            <span class="font-bold text-foreground">{{ accuracy() }}%</span>
+          </div>
+          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
+            <span class="text-sm text-muted-foreground">ELO Change</span>
+            <span class="font-bold" [class.text-win]="eloDelta() >= 0" [class.text-loss]="eloDelta() < 0">
+              {{ eloDelta() >= 0 ? '+' : '' }}{{ eloDelta() }}
+            </span>
+          </div>
+        </div>
+
+        <button
+          class="mt-6 px-8 py-3 rounded-xl bg-accent text-accent-foreground font-bold"
+          (click)="resetToIdle()"
+        >
+          Play Again
+        </button>
+        <a routerLink="/" class="text-sm text-muted-foreground mt-2">Back to Home</a>
+      </div>
+    }
+
+  </div>
+</div>
