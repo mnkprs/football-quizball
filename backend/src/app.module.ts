@@ -29,6 +29,7 @@ import { BattleRoyaleModule } from './battle-royale/battle-royale.module';
 import { MatchHistoryModule } from './match-history/match-history.module';
 import { ProfileModule } from './profile/profile.module';
 import { BotModule } from './bot/bot.module';
+import { LogoQuizModule } from './logo-quiz/logo-quiz.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { BotModule } from './bot/bot.module';
     MatchHistoryModule,
     ProfileModule,
     BotModule,
+    LogoQuizModule,
   ],
 })
 export class AppModule {}

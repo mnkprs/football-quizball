@@ -84,6 +84,18 @@
 
     <div class="section-modes">
       <app-mode-card
+        icon="image_search"
+        iconBgColor="purple"
+        title="Logo Quiz"
+        hint="Guess the club from its logo"
+        badge="COMING SOON"
+        badgeColor="purple"
+        backgroundImage="/logo-quiz.png"
+        variant="accent"
+        [locked]="true"
+        (cardClick)="goLogoQuiz()"
+      />
+      <app-mode-card
         icon="emoji_events"
         iconBgColor="gold"
         [title]="lang.t().btnSolo"

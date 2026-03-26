@@ -212,6 +212,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/blitz']);
   }
 
+  goLogoQuiz(): void {
+    this.router.navigate(['/logo-quiz']);
+  }
+
   goNews(): void {
     this.router.navigate(['/news']);
   }

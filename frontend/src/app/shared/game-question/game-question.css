@@ -432,6 +432,48 @@
   object-fit: contain;
 }
 
+.gq__logo-select-wrap {
+  position: relative;
+}
+
+.gq__logo-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 14rem;
+  overflow-y: auto;
+  background: var(--_gd, rgba(30, 30, 30, .95));
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  backdrop-filter: blur(12px);
+}
+
+.gq__logo-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, .9);
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gq__logo-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.gq__logo-dropdown-item:hover,
+.gq__logo-dropdown-item:focus {
+  background: rgba(255, 255, 255, .1);
+}
+
 .gq__career-path {
   display: flex;
   flex-direction: column;

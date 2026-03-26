@@ -12,6 +12,7 @@ export const routes: Routes = [
       { path: 'mayhem', loadComponent: () => import('./features/mayhem-mode/mayhem-mode').then(m => m.MayhemModeComponent), canActivate: [authGuard] },
       { path: 'solo', loadComponent: () => import('./features/solo/solo').then(m => m.SoloComponent), canActivate: [authGuard] },
       { path: 'blitz', loadComponent: () => import('./features/blitz/blitz').then(m => m.BlitzComponent), canActivate: [authGuard] },
+      { path: 'logo-quiz', loadComponent: () => import('./features/logo-quiz/logo-quiz').then(m => m.LogoQuizComponent), canActivate: [authGuard] },
       { path: 'daily', loadComponent: () => import('./features/daily/daily').then(m => m.DailyComponent) },
       { path: 'leaderboard', loadComponent: () => import('./features/leaderboard/leaderboard').then(m => m.LeaderboardComponent) },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },

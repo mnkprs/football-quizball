@@ -17,6 +17,7 @@ export const CATEGORY_MODIFIERS: Record<QuestionCategory, number> = {
   GUESS_SCORE: 0.04,
   NEWS: -0.05,
   MAYHEM: 0.15,
+  LOGO_QUIZ: 0.0,
 };
 
 /** Minimum raw score for certain categories. Removed TOP_5 so actual computed raw is stored; difficulty stays HARD via CATEGORY_FIXED_DIFFICULTY. */

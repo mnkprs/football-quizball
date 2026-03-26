@@ -203,6 +203,11 @@
 
 <!-- Logo Quiz -->
 <ng-template #logoTemplate>
+  @if (reveal() && revealResult()) {
+    <div class="gq__result-badge" [class.gq__result-badge--correct]="revealResult()!.correct" [class.gq__result-badge--wrong]="!revealResult()!.correct">
+      {{ revealResult()!.correct ? 'CORRECT' : 'WRONG' }}
+    </div>
+  }
   <div class="gq__question-card gq__question-card--logo">
     <p class="gq__question-subtext">{{ question()?.question_text }}</p>
     @if (question()?.image_url) {
@@ -210,15 +215,33 @@
     }
   </div>
   <div class="gq__input-stack">
-    <input
-      type="text"
-      class="gq__input"
-      [class]="inputStateClass()"
-      [(ngModel)]="textAnswer"
-      (keydown.enter)="submitTextAnswer()"
-      [placeholder]="lang.t().clubName"
-      [disabled]="reveal()"
-    />
+    <div class="gq__input-wrap gq__logo-select-wrap">
+      <input
+        type="text"
+        class="gq__input"
+        [class]="inputStateClass()"
+        [value]="textAnswer"
+        (input)="onLogoSearchInput($any($event.target).value)"
+        (keydown.enter)="submitTextAnswer()"
+        [placeholder]="lang.t().clubName"
+        [disabled]="reveal()"
+        autocomplete="off"
+      />
+      @if (reveal() && revealResult()) {
+        <span class="gq__input-icon" [class.gq__input-icon--correct]="revealResult()!.correct" [class.gq__input-icon--wrong]="!revealResult()!.correct">
+          {{ revealResult()!.correct ? '&#10003;' : '&#10007;' }}
+        </span>
+      }
+      @if (logoDropdownOpen() && filteredTeams().length && !reveal()) {
+        <div class="gq__logo-dropdown">
+          @for (team of filteredTeams(); track team) {
+            <button class="gq__logo-dropdown-item" (click)="selectTeam(team)">
+              {{ team }}
+            </button>
+          }
+        </div>
+      }
+    </div>
     @if (!reveal()) {
       <button class="gq__submit-btn gq__submit-btn--full" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim() || submitting()">
         {{ lang.t().submit }}

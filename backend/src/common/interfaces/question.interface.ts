@@ -9,7 +9,7 @@ export type BoardCategory =
   | 'GOSSIP';
 
 /** All question categories, including standalone modes that don't use the shared pool. */
-export type QuestionCategory = BoardCategory | 'NEWS' | 'MAYHEM';
+export type QuestionCategory = BoardCategory | 'NEWS' | 'MAYHEM' | 'LOGO_QUIZ';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 

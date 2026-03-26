@@ -10,4 +10,5 @@ export const CATEGORY_LABELS: Record<QuestionCategory, string> = {
   GOSSIP: 'Gossip',
   NEWS: 'News',
   MAYHEM: 'Mayhem',
+  LOGO_QUIZ: 'Logo Quiz',
 };
