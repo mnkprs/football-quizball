@@ -1,3 +1,7 @@
+<span class="battle-hero__featured">
+  <span class="material-icons battle-hero__featured-icon">auto_awesome</span>
+  Featured
+</span>
 <button type="button" class="battle-hero" (click)="onCardClick()" [attr.aria-label]="title()">
   @if (backgroundImage(); as img) {
     <img class="battle-hero__bg" [src]="img" alt="" aria-hidden="true" />
@@ -23,14 +27,10 @@
             [class.battle-hero__tag--coral]="tagColorFor(tag) === 'coral'"
             [class.battle-hero__tag--teal]="tagColorFor(tag) === 'teal'"
             [class.battle-hero__tag--dark]="tagColorFor(tag) === 'dark'"
-          >{{ tag }}</span>
+          >@if (tagIconFor(tag); as icon) {<span class="material-icons battle-hero__tag-icon">{{ icon }}</span>}{{ tag }}</span>
         }
       </div>
     }
-    <span class="battle-hero__featured">
-      <span class="material-icons battle-hero__featured-icon">auto_awesome</span>
-      Featured
-    </span>
     @if (onlineCount(); as count) {
       <span class="battle-hero__online">
         <span class="battle-hero__online-dot"></span>

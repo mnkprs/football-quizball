@@ -35,6 +35,11 @@
 }
 
 /* Tag color variants — match each game mode's identity */
+.mode-card__tag-icon {
+  font-size: 0.7rem;
+  margin-right: 0.2rem;
+}
+
 .mode-card__tag--red {
   color: #ff6b6b;
   background: rgba(239, 68, 68, 0.15);
