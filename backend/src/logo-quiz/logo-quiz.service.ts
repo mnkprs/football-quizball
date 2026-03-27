@@ -158,6 +158,59 @@ export class LogoQuizService {
     return [...new Set(names)].sort();
   }
 
+  /**
+   * Draw `count` unique random logo questions for team/battle-royale modes.
+   * Returns the medium (degraded) image URL for gameplay and the original for reveal.
+   * The question JSONB shape is documented at the top of this file.
+   */
+  async drawLogosForTeamMode(count: number): Promise<
+    Array<{
+      id: string;
+      correct_answer: string;
+      image_url: string;
+      original_image_url: string;
+      difficulty: string;
+      meta: { slug: string; league: string; country: string };
+    }>
+  > {
+    const client = (this.supabaseService as any).client;
+
+    // Over-fetch so the random shuffle has enough candidates.
+    const { data, error } = await client
+      .from('question_pool')
+      .select('id, question')
+      .eq('category', 'LOGO_QUIZ')
+      .limit(count * 4);
+
+    if (error || !data || data.length === 0) {
+      throw new NotFoundException('No logo questions available');
+    }
+
+    // Shuffle in-place then take the first `count` entries.
+    const shuffled: Array<{ id: string; question: any }> = (data as Array<{ id: string; question: any }>)
+      .slice()
+      .sort(() => Math.random() - 0.5)
+      .slice(0, count);
+
+    return shuffled.map((row) => {
+      const q = row.question as any;
+      return {
+        id: row.id,
+        correct_answer: q.correct_answer as string,
+        // Prefer medium (degraded) URL for gameplay; fall back to image_url.
+        image_url: (q.medium_image_url ?? q.image_url) as string,
+        // Original un-degraded image for the reveal.
+        original_image_url: (q.meta?.original_image_url ?? q.image_url) as string,
+        difficulty: (q.difficulty ?? 'MEDIUM') as string,
+        meta: {
+          slug: (q.meta?.slug ?? '') as string,
+          league: (q.meta?.league ?? '') as string,
+          country: (q.meta?.country ?? '') as string,
+        },
+      };
+    });
+  }
+
   private mapQuestion(q: any, difficulty: Difficulty): LogoQuestion {
     return {
       id: q.id,
@@ -175,7 +228,7 @@ export class LogoQuizService {
    * Fuzzy match team name: normalize, check exact match, then Levenshtein.
    * Allows partial match (last word, first word).
    */
-  private fuzzyMatch(submitted: string, correct: string): boolean {
+  public fuzzyMatch(submitted: string, correct: string): boolean {
     const normalize = (s: string) =>
       s
         .toLowerCase()

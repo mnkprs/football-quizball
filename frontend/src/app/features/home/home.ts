@@ -184,6 +184,14 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/battle-royale']);
   }
 
+  goTeamLogoQuiz(): void {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
+      return;
+    }
+    this.router.navigate(['/battle-royale'], { queryParams: { mode: 'team_logo' } });
+  }
+
   goDuel(): void {
     if (this.auth.isLoggedIn()) {
       this.router.navigate(['/duel']);

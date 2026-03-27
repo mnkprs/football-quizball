@@ -18,7 +18,13 @@ export interface BRState {
   roomView: BRPublicView | null;
   myUserId: string | null;
   phase: BRPhase;
-  lastAnswer: { correct: boolean; correctAnswer: string; pointsAwarded: number; timeBonus: number } | null;
+  lastAnswer: {
+    correct: boolean;
+    correctAnswer: string;
+    pointsAwarded: number;
+    timeBonus: number;
+    original_image_url?: string;
+  } | null;
   currentQuestion: BRPublicQuestion | null;
   myScore: number;
   myIndex: number;
@@ -111,6 +117,23 @@ export const BattleRoyaleStore = signalStore(
         }
       },
 
+      async createTeamLogoRoom(): Promise<string | null> {
+        patchState(store, { loading: true, error: null });
+        try {
+          const { roomId } = await firstValueFrom(api.createTeamLogoRoom());
+          patchState(store, {
+            roomId,
+            myUserId: auth.user()?.id ?? null,
+            phase: 'waiting',
+            loading: false,
+          });
+          return roomId;
+        } catch {
+          patchState(store, { loading: false, error: 'Could not create team logo room' });
+          return null;
+        }
+      },
+
       async joinByCode(inviteCode: string): Promise<string | null> {
         patchState(store, { loading: true, error: null });
         try {
@@ -196,7 +219,7 @@ export const BattleRoyaleStore = signalStore(
             submitting: false,
             myScore: result.myScore,
             myIndex: result.finished ? questionIndex + 1 : (result.nextQuestion?.index ?? questionIndex + 1),
-            lastAnswer: { correct: result.correct, correctAnswer: result.correct_answer, pointsAwarded: result.pointsAwarded, timeBonus: result.timeBonus },
+            lastAnswer: { correct: result.correct, correctAnswer: result.correct_answer, pointsAwarded: result.pointsAwarded, timeBonus: result.timeBonus, original_image_url: result.original_image_url },
             currentQuestion: result.nextQuestion,
             phase: result.finished ? 'finished' : 'answered',
           });

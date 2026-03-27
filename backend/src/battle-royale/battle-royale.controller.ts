@@ -52,6 +52,13 @@ export class BattleRoyaleController {
     return this.brService.getPublicRooms();
   }
 
+  /** Create a new Team Logo Battle Royale room (friends-only, private) */
+  @Post('team-logo')
+  @UseGuards(AuthGuard)
+  async createTeamLogoRoom(@Request() req: AuthRequest): Promise<{ roomId: string; inviteCode: string }> {
+    return this.brService.createTeamLogoRoom(req.user.id);
+  }
+
   /** Get public room view (correct answers stripped) */
   @Get(':id')
   @UseGuards(AuthGuard)
