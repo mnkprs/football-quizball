@@ -308,13 +308,13 @@
 .battle-hero__featured {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   padding: 0.4375rem 1rem;
   border-radius: var(--radius-full);
-  background: linear-gradient(1deg, rgb(156 39 176), rgb(34 4 39 / 55%));
+  background: linear-gradient(164deg, rgb(156 39 176), rgb(34 4 39 / 55%));
   border: 1px solid rgba(206, 147, 216, 0.35);
   color: var(--color-purple-light);
   font-family: "Lexend", sans-serif;
@@ -322,7 +322,7 @@
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  box-shadow: 0 0 16px rgba(156, 39, 176, 0.2);
+  box-shadow: 0 0 16px 10px rgba(156, 39, 176, 0.2);
   z-index: 1;
 }
 
