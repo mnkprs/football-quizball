@@ -193,8 +193,9 @@ const ERASURE_LEVELS = [
 ] as const;
 
 // ─── Formula ─────────────────────────────────────────────────────
+// Weights: erasure 30%, league 25%, team 40% (team familiarity is the strongest factor)
 function computeQuestionElo(erasure: number, leagueScore: number, teamScore: number): number {
-  return Math.round(600 + (800 * erasure) + (400 * leagueScore) + (400 * teamScore));
+  return Math.round(600 + (480 * erasure) + (400 * leagueScore) + (640 * teamScore));
 }
 
 function elotoDifficulty(elo: number): 'EASY' | 'MEDIUM' | 'HARD' {
