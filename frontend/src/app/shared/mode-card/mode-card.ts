@@ -3,6 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { BadgeComponent } from '../badge/badge';
 import { ModeCardContainerComponent } from '../mode-card-container/mode-card-container';
 import { ProService } from '../../core/pro.service';
+import { getTagColor } from '../tag-colors';
 
 export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
@@ -45,25 +46,7 @@ export class ModeCardComponent {
 
   pro = inject(ProService);
 
-  static readonly TAG_COLORS: Record<string, string> = {
-    '1v1': 'red',
-    'pvp': 'orange',
-    'ranked': 'gold',
-    'elo': 'lime',
-    'solo': 'white',
-    'multi': 'blue',
-    'speed run': 'cyan',
-    'timed': 'pink',
-    'visual': 'purple',
-    'chaos': 'dark',
-    'free': 'mint',
-    'live': 'coral',
-    '8 players': 'teal',
-  };
-
-  tagColor(tag: string): string {
-    return ModeCardComponent.TAG_COLORS[tag.toLowerCase()] || 'white';
-  }
+  tagColor = getTagColor;
 
   onProOverlayClick(e: Event): void {
     e.stopPropagation();

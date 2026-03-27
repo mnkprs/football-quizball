@@ -43,7 +43,7 @@
   transition: transform 0.2s;
   text-align: left;
   -webkit-tap-highlight-color: transparent;
-  animation: pulse-glow 4s ease-in-out infinite;
+  animation: pulse-glow 1s ease-in-out infinite;
 }
 
 .battle-hero:active {
@@ -143,6 +143,12 @@
   text-transform: uppercase;
   color: #ffb300;
   white-space: nowrap;
+}
+
+.battle-hero__tag--gold {
+  color: var(--color-gold-light);
+  background: var(--color-gold-bg);
+  border-color: rgba(230, 168, 0, 0.25);
 }
 
 .battle-hero__tag--red {

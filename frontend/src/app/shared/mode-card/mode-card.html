@@ -34,7 +34,7 @@
   <div class="mode-card__header">
     @if (tags().length > 0) {
       <div class="mode-card__tags">
-        @for (tag of tags(); track tag) {
+        @for (tag of tags(); track $index) {
           <span class="mode-card__tag"
             [class.mode-card__tag--red]="tagColor(tag) === 'red'"
             [class.mode-card__tag--blue]="tagColor(tag) === 'blue'"
@@ -62,20 +62,22 @@
       </span>
     }
 
-    <div class="mode-card__info">
-      @if (rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) {
-        <span class="mode-card__info-badge">{{ rateLimit() }} free today</span>
-      }
-      @if (trialInfo(); as trial) {
-        <span class="mode-card__info-badge">{{ trial.remaining }} of {{ trial.total }} free</span>
-      }
-      @if (onlineCount() !== null && onlineCount()! > 0) {
-        <span class="mode-card__info-badge">
-          <span class="mode-card__online-dot"></span>
-          {{ onlineCount() }} online
-        </span>
-      }
-    </div>
+    @if ((rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) || trialInfo() || (onlineCount() !== null && onlineCount()! > 0)) {
+      <div class="mode-card__info">
+        @if (rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) {
+          <span class="mode-card__info-badge">{{ rateLimit() }} free today</span>
+        }
+        @if (trialInfo(); as trial) {
+          <span class="mode-card__info-badge">{{ trial.remaining }} of {{ trial.total }} free</span>
+        }
+        @if (onlineCount() !== null && onlineCount()! > 0) {
+          <span class="mode-card__info-badge">
+            <span class="mode-card__online-dot"></span>
+            {{ onlineCount() }} online
+          </span>
+        }
+      </div>
+    }
   </div>
 
   @if (badge(); as badgeText) {

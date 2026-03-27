@@ -7,7 +7,7 @@
   <div class="battle-hero__top">
     @if (tags().length > 0) {
       <div class="battle-hero__tags">
-        @for (tag of tags(); track tag) {
+        @for (tag of tags(); track $index) {
           <span class="battle-hero__tag"
             [class.battle-hero__tag--red]="tagColorFor(tag) === 'red'"
             [class.battle-hero__tag--blue]="tagColorFor(tag) === 'blue'"
@@ -15,6 +15,7 @@
             [class.battle-hero__tag--orange]="tagColorFor(tag) === 'orange'"
             [class.battle-hero__tag--purple]="tagColorFor(tag) === 'purple'"
             [class.battle-hero__tag--white]="tagColorFor(tag) === 'white'"
+            [class.battle-hero__tag--gold]="tagColorFor(tag) === 'gold'"
             [class.battle-hero__tag--cyan]="tagColorFor(tag) === 'cyan'"
             [class.battle-hero__tag--pink]="tagColorFor(tag) === 'pink'"
             [class.battle-hero__tag--amber]="tagColorFor(tag) === 'amber'"
