@@ -36,47 +36,52 @@ export class LogoQuizService {
   ) {}
 
   /**
-   * Get a random logo question at the given difficulty.
-   * Draws from question_pool with category='LOGO_QUIZ'.
+   * Get a random logo question matched to the player's ELO.
+   * Uses composite question_elo (erasure + league + team popularity) for matching.
+   * Falls back to categorical difficulty draw if no ELO-based questions are available.
    */
   async getQuestion(
     userId: string,
     difficulty?: Difficulty,
   ): Promise<LogoQuestion> {
-    // Get user's logo quiz ELO to determine difficulty
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('Profile not found');
 
     const logoElo = (profile as any).logo_quiz_elo ?? 1000;
-    const diff = difficulty ?? this.eloService.getDifficultyForElo(logoElo);
-
-    // Draw a question from the pool
     const client = (this.supabaseService as any).client;
-    const { data, error } = await client.rpc('draw_questions', {
-      p_category: 'LOGO_QUIZ',
-      p_difficulty: diff,
-      p_count: 1,
-    });
 
-    if (error || !data?.length) {
-      // Fallback: try other difficulties
-      for (const fallback of ['EASY', 'MEDIUM', 'HARD'] as Difficulty[]) {
-        if (fallback === diff) continue;
-        const { data: fb } = await client.rpc('draw_questions', {
-          p_category: 'LOGO_QUIZ',
-          p_difficulty: fallback,
-          p_count: 1,
-        });
-        if (fb?.length) {
-          const q = fb[0].question;
-          return this.mapQuestion(q, fallback);
-        }
+    // Try ELO-range-based draw with widening ranges
+    for (const range of [200, 400, 800]) {
+      const { data, error } = await client.rpc('draw_logo_questions_by_elo', {
+        p_target_elo: logoElo,
+        p_range: range,
+        p_count: 1,
+      });
+
+      if (!error && data?.length) {
+        const row = data[0];
+        const q = row.question;
+        return {
+          ...this.mapQuestion(q, row.difficulty as Difficulty),
+          question_elo: row.question_elo,
+        };
       }
-      throw new NotFoundException('No logo questions available');
     }
 
-    const q = data[0].question;
-    return this.mapQuestion(q, diff);
+    // Fallback: categorical difficulty draw
+    const diff = difficulty ?? this.eloService.getDifficultyForElo(logoElo);
+    for (const fallback of [diff, 'EASY', 'MEDIUM', 'HARD'] as Difficulty[]) {
+      const { data: fb } = await client.rpc('draw_questions', {
+        p_category: 'LOGO_QUIZ',
+        p_difficulty: fallback,
+        p_count: 1,
+      });
+      if (fb?.length) {
+        const q = fb[0].question;
+        return this.mapQuestion(q, fallback);
+      }
+    }
+    throw new NotFoundException('No logo questions available');
   }
 
   /**
@@ -93,11 +98,11 @@ export class LogoQuizService {
 
     const logoElo = (profile as any).logo_quiz_elo ?? 1000;
 
-    // Look up the question to get correct answer
+    // Look up the question to get correct answer and question_elo
     const client = (this.supabaseService as any).client;
     const { data } = await client
       .from('question_pool')
-      .select('question, difficulty')
+      .select('question, difficulty, question_elo')
       .eq('category', 'LOGO_QUIZ')
       .filter('question->>id', 'eq', questionId)
       .limit(1)
@@ -109,14 +114,11 @@ export class LogoQuizService {
     const difficulty = data.difficulty as Difficulty;
     const correct = !timedOut && this.fuzzyMatch(answer, correctAnswer);
 
-    // Calculate ELO change
-    const eloChange = this.eloService.calculate(
-      logoElo,
-      difficulty,
-      correct,
-      timedOut,
-      (profile as any).logo_quiz_games_played ?? 0,
-    );
+    // Calculate ELO change — use composite question_elo when available
+    const gamesPlayed = (profile as any).logo_quiz_games_played ?? 0;
+    const eloChange = data.question_elo
+      ? this.eloService.calculateWithQuestionElo(logoElo, data.question_elo, correct, timedOut, gamesPlayed)
+      : this.eloService.calculate(logoElo, difficulty, correct, timedOut, gamesPlayed);
     const newElo = this.eloService.applyChange(logoElo, eloChange);
 
     // Atomic DB update
@@ -148,8 +150,7 @@ export class LogoQuizService {
     const { data } = await client
       .from('question_pool')
       .select('question')
-      .eq('category', 'LOGO_QUIZ')
-      .eq('difficulty', 'EASY'); // one per team
+      .eq('category', 'LOGO_QUIZ');
 
     if (!data) return [];
     const names: string[] = data.map(
