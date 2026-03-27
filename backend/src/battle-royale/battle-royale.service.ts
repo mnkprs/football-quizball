@@ -24,6 +24,7 @@ const ROOM_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 @Injectable()
 export class BattleRoyaleService {
   private readonly logger = new Logger(BattleRoyaleService.name);
+  private roomsCache: { data: { id: string; inviteCode: string; playerCount: number; maxPlayers: number; createdAt: string; hostUsername: string }[]; expiresAt: number } | null = null;
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -131,6 +132,13 @@ export class BattleRoyaleService {
     createdAt: string;
     hostUsername: string;
   }[]> {
+    // Serve from cache if still fresh (5-second TTL)
+    const now = Date.now();
+    if (this.roomsCache && this.roomsCache.expiresAt > now) {
+      return this.roomsCache.data;
+    }
+
+    // Query 1: fetch waiting public rooms
     const { data: rooms, error } = await this.supabaseService.client
       .from('battle_royale_rooms')
       .select('id, invite_code, host_id, created_at')
@@ -139,32 +147,46 @@ export class BattleRoyaleService {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    if (error || !rooms) return [];
+    if (error || !rooms || rooms.length === 0) return [];
 
-    const results = await Promise.all(
-      (rooms as { id: string; invite_code: string; host_id: string; created_at: string }[]).map(
-        async (room) => {
-          const [playerCountResult, profile] = await Promise.all([
-            this.supabaseService.client
-              .from('battle_royale_players')
-              .select('*', { count: 'exact', head: true })
-              .eq('room_id', room.id),
-            this.supabaseService.getProfile(room.host_id),
-          ]);
+    const typedRooms = rooms as { id: string; invite_code: string; host_id: string; created_at: string }[];
+    const roomIds = typedRooms.map((r) => r.id);
+    const hostIds = [...new Set(typedRooms.map((r) => r.host_id))];
 
-          return {
-            id: room.id,
-            inviteCode: room.invite_code,
-            playerCount: playerCountResult.count ?? 0,
-            maxPlayers: 20,
-            createdAt: room.created_at,
-            hostUsername: profile?.username ?? 'Unknown',
-          };
-        },
-      ),
-    );
+    // Query 2: batch-fetch all player rows for these rooms in one round-trip
+    const { data: playerRows } = await this.supabaseService.client
+      .from('battle_royale_players')
+      .select('room_id')
+      .in('room_id', roomIds);
 
-    return results;
+    const countMap = new Map<string, number>();
+    for (const row of (playerRows ?? []) as { room_id: string }[]) {
+      countMap.set(row.room_id, (countMap.get(row.room_id) ?? 0) + 1);
+    }
+
+    // Query 3: batch-fetch all host profiles in one round-trip
+    const { data: profiles } = await this.supabaseService.client
+      .from('profiles')
+      .select('id, username')
+      .in('id', hostIds);
+
+    const profileMap = new Map<string, string>();
+    for (const p of (profiles ?? []) as { id: string; username: string | null }[]) {
+      profileMap.set(p.id, p.username ?? 'Unknown');
+    }
+
+    const result = typedRooms.map((room) => ({
+      id: room.id,
+      inviteCode: room.invite_code,
+      playerCount: countMap.get(room.id) ?? 0,
+      maxPlayers: 20,
+      createdAt: room.created_at,
+      hostUsername: profileMap.get(room.host_id) ?? 'Unknown',
+    }));
+
+    // Cache the result for 5 seconds
+    this.roomsCache = { data: result, expiresAt: now + 5_000 };
+    return result;
   }
 
   // ── Get room (public view, correct answers stripped) ────────────────────────

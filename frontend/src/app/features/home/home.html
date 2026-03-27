@@ -22,7 +22,7 @@
       backgroundImage="/royale.png"
       actionLabel="Join Battle"
       [locked]="!auth.isLoggedIn()"
-      [proLocked]="auth.isLoggedIn() && !pro.isPro() && pro.trialBattleRoyaleRemaining() === 0"
+      [proLocked]="false"
       lockMessage="Sign in to join the arena"
       [onlineCount]="onlinePlayers()"
       (cardClick)="goBattleRoyale()"
