@@ -1492,17 +1492,6 @@
         "country": "Brazil"
       },
       {
-        "team_name": "Sao Paulo",
-        "slug": "sao-paulo",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/sao-paulo.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sao-paulo/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sao-paulo/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sao-paulo/hard.webp",
-        "difficulty": null,
-        "league": "Brasileirao Serie A",
-        "country": "Brazil"
-      },
-      {
         "team_name": "Corinthians",
         "slug": "corinthians",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/corinthians.webp",
@@ -1580,45 +1569,12 @@
         "country": "Brazil"
       },
       {
-        "team_name": "Ceara",
-        "slug": "ceara",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/ceara.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ceara/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ceara/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ceara/hard.webp",
-        "difficulty": "medium",
-        "league": "Brasileirao Serie A",
-        "country": "Brazil"
-      },
-      {
-        "team_name": "Mirassol",
-        "slug": "mirassol",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/mirassol.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mirassol/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mirassol/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mirassol/hard.webp",
-        "difficulty": "medium",
-        "league": "Brasileirao Serie A, Copa Libertadores",
-        "country": "Brazil"
-      },
-      {
         "team_name": "Sao Paulo FC",
         "slug": "sao-paulo-fc",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/sao-paulo-fc.webp",
         "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sao-paulo-fc/easy.webp",
         "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sao-paulo-fc/medium.webp",
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sao-paulo-fc/hard.webp",
-        "difficulty": "easy",
-        "league": "Brasileirao Serie A",
-        "country": "Brazil"
-      },
-      {
-        "team_name": "Santos",
-        "slug": "santos",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/santos.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/santos/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/santos/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/santos/hard.webp",
         "difficulty": "easy",
         "league": "Brasileirao Serie A",
         "country": "Brazil"
@@ -1868,17 +1824,6 @@
         "country": "Brazil"
       },
       {
-        "team_name": "Avai",
-        "slug": "avai",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/avai.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/avai/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/avai/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/avai/hard.webp",
-        "difficulty": "medium",
-        "league": "Brasileirao Serie B",
-        "country": "Brazil"
-      },
-      {
         "team_name": "Athletic Club (BR)",
         "slug": "athletic-club-br",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/athletic-club-br.webp",
@@ -2112,17 +2057,6 @@
         "country": "Germany"
       },
       {
-        "team_name": "Wolfsburg",
-        "slug": "wolfsburg",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/wolfsburg.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/wolfsburg/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/wolfsburg/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/wolfsburg/hard.webp",
-        "difficulty": "medium",
-        "league": "Bundesliga",
-        "country": "Germany"
-      },
-      {
         "team_name": "Hoffenheim",
         "slug": "hoffenheim",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/hoffenheim.webp",
@@ -2134,50 +2068,6 @@
         "country": "Bundesliga"
       },
       {
-        "team_name": "Augsburg",
-        "slug": "augsburg",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/augsburg.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/augsburg/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/augsburg/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/augsburg/hard.webp",
-        "difficulty": "medium",
-        "league": "Bundesliga",
-        "country": "Germany"
-      },
-      {
-        "team_name": "Heidenheim",
-        "slug": "heidenheim",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/heidenheim.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/heidenheim/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/heidenheim/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/heidenheim/hard.webp",
-        "difficulty": "medium",
-        "league": "Bundesliga",
-        "country": "Germany"
-      },
-      {
-        "team_name": "St Pauli",
-        "slug": "st-pauli",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/st-pauli.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/st-pauli/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/st-pauli/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/st-pauli/hard.webp",
-        "difficulty": "medium",
-        "league": "Bundesliga",
-        "country": "Germany"
-      },
-      {
-        "team_name": "Freiburg",
-        "slug": "freiburg",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/freiburg.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/freiburg/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/freiburg/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/freiburg/hard.webp",
-        "difficulty": "medium",
-        "league": "Bundesliga, Europa League",
-        "country": "Germany"
-      },
-      {
         "team_name": "Hamburger",
         "slug": "hamburger",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/hamburger.webp",
@@ -2186,17 +2076,6 @@
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/hamburger/hard.webp",
         "difficulty": "easy",
         "league": "Bundesliga",
-        "country": "Germany"
-      },
-      {
-        "team_name": "Stuttgart",
-        "slug": "stuttgart",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/stuttgart.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/stuttgart/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/stuttgart/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/stuttgart/hard.webp",
-        "difficulty": "medium",
-        "league": "Bundesliga, Europa League",
         "country": "Germany"
       }
     ],
@@ -3345,17 +3224,6 @@
         "country": "South America"
       },
       {
-        "team_name": "Universidad Catolica",
-        "slug": "universidad-catolica",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/universidad-catolica.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/universidad-catolica/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/universidad-catolica/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/universidad-catolica/hard.webp",
-        "difficulty": "medium",
-        "league": "Copa Libertadores",
-        "country": "Chile"
-      },
-      {
         "team_name": "Liverpool Montevideo",
         "slug": "liverpool-montevideo",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/liverpool-montevideo.webp",
@@ -3497,17 +3365,6 @@
         "difficulty": "medium",
         "league": "Copa Libertadores",
         "country": "Peru"
-      },
-      {
-        "team_name": "Platense",
-        "slug": "platense",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/platense.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/platense/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/platense/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/platense/hard.webp",
-        "difficulty": "medium",
-        "league": "Copa Libertadores",
-        "country": "Argentina"
       },
       {
         "team_name": "Nacional (Uruguay)",
@@ -4018,17 +3875,6 @@
         "difficulty": "medium",
         "league": "EFL Championship",
         "country": "England"
-      },
-      {
-        "team_name": "Wrexham",
-        "slug": "wrexham",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/wrexham.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/wrexham/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/wrexham/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/wrexham/hard.webp",
-        "difficulty": "medium",
-        "league": "EFL Championship",
-        "country": "Wales"
       },
       {
         "team_name": "Oxford Utd",
@@ -5497,45 +5343,12 @@
         "country": "Netherlands"
       },
       {
-        "team_name": "Twente",
-        "slug": "twente",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/twente.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/twente/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/twente/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/twente/hard.webp",
-        "difficulty": "medium",
-        "league": "Eredivisie",
-        "country": "Netherlands"
-      },
-      {
-        "team_name": "Groningen",
-        "slug": "groningen",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/groningen.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/groningen/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/groningen/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/groningen/hard.webp",
-        "difficulty": "medium",
-        "league": "Eredivisie",
-        "country": "Netherlands"
-      },
-      {
         "team_name": "Heracles",
         "slug": "heracles",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/heracles.webp",
         "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/heracles/easy.webp",
         "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/heracles/medium.webp",
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/heracles/hard.webp",
-        "difficulty": "medium",
-        "league": "Eredivisie",
-        "country": "Netherlands"
-      },
-      {
-        "team_name": "Volendam",
-        "slug": "volendam",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/volendam.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/volendam/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/volendam/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/volendam/hard.webp",
         "difficulty": "medium",
         "league": "Eredivisie",
         "country": "Netherlands"
@@ -5840,17 +5653,6 @@
         "country": "Norway"
       },
       {
-        "team_name": "Midtjylland",
-        "slug": "midtjylland",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/midtjylland.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/midtjylland/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/midtjylland/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/midtjylland/hard.webp",
-        "difficulty": "medium",
-        "league": "Europa League",
-        "country": "Denmark"
-      },
-      {
         "team_name": "Sturm Graz",
         "slug": "sturm-graz",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/sturm-graz.webp",
@@ -5862,28 +5664,6 @@
         "country": "Austria"
       },
       {
-        "team_name": "Young Boys",
-        "slug": "young-boys",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/young-boys.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/young-boys/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/young-boys/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/young-boys/hard.webp",
-        "difficulty": "medium",
-        "league": "Europa League",
-        "country": "Swizterland"
-      },
-      {
-        "team_name": "Basel",
-        "slug": "basel",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/basel.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/basel/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/basel/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/basel/hard.webp",
-        "difficulty": "medium",
-        "league": "Europa League",
-        "country": "Swizterland"
-      },
-      {
         "team_name": "Salzburg",
         "slug": "salzburg",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/salzburg.webp",
@@ -5893,50 +5673,6 @@
         "difficulty": "easy",
         "league": "Europa League",
         "country": "Austria"
-      },
-      {
-        "team_name": "Braga",
-        "slug": "braga",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/braga.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/braga/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/braga/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/braga/hard.webp",
-        "difficulty": "medium",
-        "league": "Europa League, Liga Portugal",
-        "country": "Portugal"
-      },
-      {
-        "team_name": "Porto",
-        "slug": "porto",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/porto.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/porto/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/porto/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/porto/hard.webp",
-        "difficulty": "easy",
-        "league": "Europa League, Liga Portugal",
-        "country": "Portugal"
-      },
-      {
-        "team_name": "Ferencvaros",
-        "slug": "ferencvaros",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/ferencvaros.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ferencvaros/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ferencvaros/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ferencvaros/hard.webp",
-        "difficulty": "medium",
-        "league": "Europa League",
-        "country": "Hungary"
-      },
-      {
-        "team_name": "Dinamo Zagreb",
-        "slug": "dinamo-zagreb",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/dinamo-zagreb.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dinamo-zagreb/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dinamo-zagreb/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dinamo-zagreb/hard.webp",
-        "difficulty": "easy",
-        "league": "Europa League",
-        "country": "Croatia"
       },
       {
         "team_name": "Utrecht",
@@ -6425,116 +6161,6 @@
         "country": "International"
       },
       {
-        "team_name": "Australia",
-        "slug": "australia",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/australia.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/australia/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/australia/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/australia/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Australia"
-      },
-      {
-        "team_name": "Iran",
-        "slug": "iran",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/iran.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/iran/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/iran/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/iran/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Iran"
-      },
-      {
-        "team_name": "Japan",
-        "slug": "japan",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/japan.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/japan/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/japan/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/japan/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Japan"
-      },
-      {
-        "team_name": "Jordan",
-        "slug": "jordan",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/jordan.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/jordan/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/jordan/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/jordan/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Jordan"
-      },
-      {
-        "team_name": "South Korea",
-        "slug": "south-korea",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/south-korea.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/south-korea/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/south-korea/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/south-korea/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "South Korea"
-      },
-      {
-        "team_name": "Qatar",
-        "slug": "qatar",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/qatar.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/qatar/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/qatar/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/qatar/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Qatar"
-      },
-      {
-        "team_name": "Saudi Arabia",
-        "slug": "saudi-arabia",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/saudi-arabia.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/saudi-arabia/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/saudi-arabia/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/saudi-arabia/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Saudi Arabia"
-      },
-      {
-        "team_name": "Uzbekistan",
-        "slug": "uzbekistan",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/uzbekistan.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/uzbekistan/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/uzbekistan/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/uzbekistan/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Uzbekistan"
-      },
-      {
-        "team_name": "Algeria",
-        "slug": "algeria",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/algeria.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/algeria/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/algeria/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/algeria/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Algeria"
-      },
-      {
-        "team_name": "Cabo Verde",
-        "slug": "cabo-verde",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/cabo-verde.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/cabo-verde/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/cabo-verde/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/cabo-verde/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Cabo Verde"
-      },
-      {
         "team_name": "Cote d'Ivoire",
         "slug": "cote-d-ivoire",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/cote-d-ivoire.webp",
@@ -6544,270 +6170,6 @@
         "difficulty": "medium",
         "league": "World Cup 2026",
         "country": "Côte d'Ivoire"
-      },
-      {
-        "team_name": "Egypt",
-        "slug": "egypt",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/egypt.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/egypt/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/egypt/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/egypt/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Egypt"
-      },
-      {
-        "team_name": "Ghana",
-        "slug": "ghana",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/ghana.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ghana/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ghana/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ghana/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Ghana"
-      },
-      {
-        "team_name": "Senegal",
-        "slug": "senegal",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/senegal.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/senegal/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/senegal/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/senegal/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Senegal"
-      },
-      {
-        "team_name": "Tunisia",
-        "slug": "tunisia",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/tunisia.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/tunisia/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/tunisia/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/tunisia/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Tunisia"
-      },
-      {
-        "team_name": "Morocco",
-        "slug": "morocco",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/morocco.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/morocco/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/morocco/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/morocco/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Morocco"
-      },
-      {
-        "team_name": "Curacao",
-        "slug": "curacao",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/curacao.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/curacao/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/curacao/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/curacao/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Curaçao"
-      },
-      {
-        "team_name": "Haiti",
-        "slug": "haiti",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/haiti.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/haiti/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/haiti/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/haiti/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Haiti"
-      },
-      {
-        "team_name": "Mexico",
-        "slug": "mexico",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/mexico.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mexico/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mexico/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mexico/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Mexico"
-      },
-      {
-        "team_name": "Panama",
-        "slug": "panama",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/panama.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/panama/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/panama/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/panama/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Panama"
-      },
-      {
-        "team_name": "Ecuador",
-        "slug": "ecuador",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/ecuador.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ecuador/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ecuador/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/ecuador/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Ecuador"
-      },
-      {
-        "team_name": "Paraguay",
-        "slug": "paraguay",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/paraguay.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/paraguay/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/paraguay/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/paraguay/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Paraguay"
-      },
-      {
-        "team_name": "USA",
-        "slug": "usa",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/usa.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/usa/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/usa/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/usa/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "USA"
-      },
-      {
-        "team_name": "Argentina",
-        "slug": "argentina",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/argentina.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/argentina/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/argentina/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/argentina/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Argentina"
-      },
-      {
-        "team_name": "Brazil",
-        "slug": "brazil",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/brazil.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/brazil/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/brazil/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/brazil/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Brazil"
-      },
-      {
-        "team_name": "Colombia",
-        "slug": "colombia",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/colombia.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/colombia/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/colombia/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/colombia/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Colombia"
-      },
-      {
-        "team_name": "Austria",
-        "slug": "austria",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/austria.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/austria/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/austria/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/austria/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Austria"
-      },
-      {
-        "team_name": "Norway",
-        "slug": "norway",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/norway.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/norway/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/norway/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/norway/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Norway"
-      },
-      {
-        "team_name": "Scotland",
-        "slug": "scotland",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/scotland.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/scotland/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/scotland/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/scotland/hard.webp",
-        "difficulty": "medium",
-        "league": "World Cup 2026",
-        "country": "Scotland"
-      },
-      {
-        "team_name": "Uruguay",
-        "slug": "uruguay",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/uruguay.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/uruguay/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/uruguay/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/uruguay/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Uruguay"
-      },
-      {
-        "team_name": "Belgium",
-        "slug": "belgium",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/belgium.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/belgium/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/belgium/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/belgium/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Belgium"
-      },
-      {
-        "team_name": "Croatia",
-        "slug": "croatia",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/croatia.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/croatia/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/croatia/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/croatia/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Croatia"
-      },
-      {
-        "team_name": "England",
-        "slug": "england",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/england.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/england/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/england/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/england/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "England"
-      },
-      {
-        "team_name": "France",
-        "slug": "france",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/france.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/france/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/france/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/france/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "France"
-      },
-      {
-        "team_name": "Germany",
-        "slug": "germany",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/germany.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/germany/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/germany/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/germany/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Germany"
       },
       {
         "team_name": "Netherlands",
@@ -6821,39 +6183,6 @@
         "country": "Netherlands"
       },
       {
-        "team_name": "Portugal",
-        "slug": "portugal",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/portugal.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/portugal/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/portugal/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/portugal/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Portugal"
-      },
-      {
-        "team_name": "Spain",
-        "slug": "spain",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/spain.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/spain/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/spain/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/spain/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Spain"
-      },
-      {
-        "team_name": "New Zealand",
-        "slug": "new-zealand",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/new-zealand.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/new-zealand/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/new-zealand/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/new-zealand/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "New Zealand"
-      },
-      {
         "team_name": "Swizterland",
         "slug": "swizterland",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/swizterland.webp",
@@ -6863,17 +6192,6 @@
         "difficulty": "easy",
         "league": "World Cup 2026",
         "country": "Swizterland"
-      },
-      {
-        "team_name": "Canada",
-        "slug": "canada",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/canada.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/canada/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/canada/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/canada/hard.webp",
-        "difficulty": "easy",
-        "league": "World Cup 2026",
-        "country": "Canada"
       }
     ],
     "fifa-world-cup-editions": [
@@ -8245,17 +7563,6 @@
         "country": "Spain"
       },
       {
-        "team_name": "Real Madrid",
-        "slug": "real-madrid",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/real-madrid.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/real-madrid/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/real-madrid/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/real-madrid/hard.webp",
-        "difficulty": "easy",
-        "league": "LaLiga, Champions League",
-        "country": "Spain"
-      },
-      {
         "team_name": "Levante",
         "slug": "levante",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/levante.webp",
@@ -8278,50 +7585,6 @@
         "country": "Spain"
       },
       {
-        "team_name": "Elche",
-        "slug": "elche",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/elche.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/elche/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/elche/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/elche/hard.webp",
-        "difficulty": "medium",
-        "league": "LaLiga",
-        "country": "Spain"
-      },
-      {
-        "team_name": "Barcelona",
-        "slug": "barcelona",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/barcelona.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/barcelona/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/barcelona/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/barcelona/hard.webp",
-        "difficulty": "easy",
-        "league": "LaLiga, Champions League",
-        "country": "Spain"
-      },
-      {
-        "team_name": "Oviedo",
-        "slug": "oviedo",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/oviedo.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/oviedo/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/oviedo/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/oviedo/hard.webp",
-        "difficulty": "medium",
-        "league": "LaLiga",
-        "country": "Spain"
-      },
-      {
-        "team_name": "Getafe",
-        "slug": "getafe",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/getafe.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/getafe/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/getafe/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/getafe/hard.webp",
-        "difficulty": "medium",
-        "league": "LaLiga",
-        "country": "Spain"
-      },
-      {
         "team_name": "Real Betis",
         "slug": "real-betis",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/real-betis.webp",
@@ -8333,67 +7596,12 @@
         "country": "Spain"
       },
       {
-        "team_name": "Valencia",
-        "slug": "valencia",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/valencia.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/valencia/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/valencia/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/valencia/hard.webp",
-        "difficulty": "easy",
-        "league": "LaLiga",
-        "country": "Spain"
-      },
-      {
-        "team_name": "Girona",
-        "slug": "girona",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/girona.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/girona/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/girona/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/girona/hard.webp",
-        "difficulty": "medium",
-        "league": "LaLiga",
-        "country": "Spain"
-      },
-      {
         "team_name": "Athletic Bilbao",
         "slug": "athletic-bilbao",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/athletic-bilbao.webp",
         "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/athletic-bilbao/easy.webp",
         "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/athletic-bilbao/medium.webp",
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/athletic-bilbao/hard.webp",
-        "difficulty": "easy",
-        "league": "LaLiga, Champions League",
-        "country": "Spain"
-      },
-      {
-        "team_name": "Sevilla",
-        "slug": "sevilla",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/sevilla.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sevilla/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sevilla/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/sevilla/hard.webp",
-        "difficulty": "easy",
-        "league": "LaLiga",
-        "country": "Spain"
-      },
-      {
-        "team_name": "Mallorca",
-        "slug": "mallorca",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/mallorca.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mallorca/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mallorca/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mallorca/hard.webp",
-        "difficulty": "medium",
-        "league": "LaLiga",
-        "country": "Spain"
-      },
-      {
-        "team_name": "Villarreal",
-        "slug": "villarreal",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/villarreal.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/villarreal/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/villarreal/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/villarreal/hard.webp",
         "difficulty": "easy",
         "league": "LaLiga, Champions League",
         "country": "Spain"
@@ -8986,28 +8194,6 @@
         "difficulty": "medium",
         "league": "Liga MX",
         "country": "Mexico"
-      },
-      {
-        "team_name": "Queretaro",
-        "slug": "queretaro",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/queretaro.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/queretaro/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/queretaro/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/queretaro/hard.webp",
-        "difficulty": "medium",
-        "league": "Liga MX",
-        "country": "Mexico"
-      },
-      {
-        "team_name": "Mazatlan",
-        "slug": "mazatlan",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/mazatlan.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mazatlan/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mazatlan/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/mazatlan/hard.webp",
-        "difficulty": "medium",
-        "league": "Liga MX",
-        "country": "Mexico"
       }
     ],
     "liga-portugal": [
@@ -9205,50 +8391,6 @@
         "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/vitoria-pt/easy.webp",
         "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/vitoria-pt/medium.webp",
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/vitoria-pt/hard.webp",
-        "difficulty": "medium",
-        "league": "Liga Portugal",
-        "country": "Portugal"
-      },
-      {
-        "team_name": "Famalicao",
-        "slug": "famalicao",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/famalicao.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/famalicao/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/famalicao/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/famalicao/hard.webp",
-        "difficulty": "medium",
-        "league": "Liga Portugal",
-        "country": "Portugal"
-      },
-      {
-        "team_name": "Vizela",
-        "slug": "vizela",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/vizela.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/vizela/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/vizela/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/vizela/hard.webp",
-        "difficulty": "medium",
-        "league": "Liga Portugal",
-        "country": "Portugal"
-      },
-      {
-        "team_name": "Arouca",
-        "slug": "arouca",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/arouca.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/arouca/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/arouca/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/arouca/hard.webp",
-        "difficulty": "medium",
-        "league": "Liga Portugal",
-        "country": "Portugal"
-      },
-      {
-        "team_name": "Farense",
-        "slug": "farense",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/farense.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/farense/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/farense/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/farense/hard.webp",
         "difficulty": "medium",
         "league": "Liga Portugal",
         "country": "Portugal"
@@ -10010,17 +9152,6 @@
         "country": "France"
       },
       {
-        "team_name": "Lens",
-        "slug": "lens",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/lens.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/lens/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/lens/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/lens/hard.webp",
-        "difficulty": "medium",
-        "league": "Ligue 1",
-        "country": "France"
-      },
-      {
         "team_name": "Rennes",
         "slug": "rennes",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/rennes.webp",
@@ -10043,56 +9174,12 @@
         "country": "France"
       },
       {
-        "team_name": "Toulouse",
-        "slug": "toulouse",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/toulouse.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/toulouse/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/toulouse/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/toulouse/hard.webp",
-        "difficulty": "medium",
-        "league": "Ligue 1",
-        "country": "France"
-      },
-      {
         "team_name": "Brest",
         "slug": "brest",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/brest.webp",
         "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/brest/easy.webp",
         "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/brest/medium.webp",
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/brest/hard.webp",
-        "difficulty": "medium",
-        "league": "Ligue 1",
-        "country": "France"
-      },
-      {
-        "team_name": "Le Havre",
-        "slug": "le-havre",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/le-havre.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/le-havre/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/le-havre/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/le-havre/hard.webp",
-        "difficulty": "medium",
-        "league": "Ligue 1",
-        "country": "France"
-      },
-      {
-        "team_name": "Nantes",
-        "slug": "nantes",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/nantes.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/nantes/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/nantes/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/nantes/hard.webp",
-        "difficulty": "medium",
-        "league": "Ligue 1",
-        "country": "France"
-      },
-      {
-        "team_name": "Lorient",
-        "slug": "lorient",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/lorient.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/lorient/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/lorient/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/lorient/hard.webp",
         "difficulty": "medium",
         "league": "Ligue 1",
         "country": "France"
@@ -10128,17 +9215,6 @@
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/lyon-ol/hard.webp",
         "difficulty": "easy",
         "league": "Ligue 1, Europa League",
-        "country": "France"
-      },
-      {
-        "team_name": "Metz",
-        "slug": "metz",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/metz.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/metz/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/metz/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/metz/hard.webp",
-        "difficulty": "medium",
-        "league": "Ligue 1",
         "country": "France"
       },
       {
@@ -10718,39 +9794,6 @@
         "country": "USA"
       },
       {
-        "team_name": "Dallas",
-        "slug": "dallas",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/dallas.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dallas/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dallas/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dallas/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "USA"
-      },
-      {
-        "team_name": "Austin",
-        "slug": "austin",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/austin.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/austin/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/austin/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/austin/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "USA"
-      },
-      {
-        "team_name": "Kansas City",
-        "slug": "kansas-city",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/kansas-city.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/kansas-city/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/kansas-city/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/kansas-city/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "USA"
-      },
-      {
         "team_name": "St. Louis City",
         "slug": "st-louis-city",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/st-louis-city.webp",
@@ -10784,28 +9827,6 @@
         "country": "USA"
       },
       {
-        "team_name": "San Diego",
-        "slug": "san-diego",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/san-diego.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/san-diego/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/san-diego/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/san-diego/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "USA"
-      },
-      {
-        "team_name": "Cincinnati",
-        "slug": "cincinnati",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/cincinnati.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/cincinnati/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/cincinnati/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/cincinnati/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "USA"
-      },
-      {
         "team_name": "Atlanta",
         "slug": "atlanta",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/atlanta.webp",
@@ -10815,50 +9836,6 @@
         "difficulty": "medium",
         "league": "Major League Soccer (MLS)",
         "country": "USA"
-      },
-      {
-        "team_name": "Nashville",
-        "slug": "nashville",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/nashville.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/nashville/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/nashville/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/nashville/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "USA"
-      },
-      {
-        "team_name": "Charlotte",
-        "slug": "charlotte",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/charlotte.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/charlotte/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/charlotte/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/charlotte/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "USA"
-      },
-      {
-        "team_name": "Toronto",
-        "slug": "toronto",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/toronto.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/toronto/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/toronto/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/toronto/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "Canada"
-      },
-      {
-        "team_name": "Montreal",
-        "slug": "montreal",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/montreal.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/montreal/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/montreal/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/montreal/hard.webp",
-        "difficulty": "medium",
-        "league": "Major League Soccer (MLS)",
-        "country": "Canada"
       },
       {
         "team_name": "Red Bull NY",
@@ -12032,17 +11009,6 @@
         "country": "Scotland"
       },
       {
-        "team_name": "Dundee",
-        "slug": "dundee",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/dundee.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dundee/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dundee/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dundee/hard.webp",
-        "difficulty": null,
-        "league": "Scottish Premiership",
-        "country": "Scotland"
-      },
-      {
         "team_name": "Motherwell",
         "slug": "motherwell",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/motherwell.webp",
@@ -12087,45 +11053,12 @@
         "country": "Scotland"
       },
       {
-        "team_name": "Kilmarnock",
-        "slug": "kilmarnock",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/kilmarnock.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/kilmarnock/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/kilmarnock/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/kilmarnock/hard.webp",
-        "difficulty": "medium",
-        "league": "Scottish Premiership",
-        "country": "Scotland"
-      },
-      {
         "team_name": "Dundee FC",
         "slug": "dundee-fc",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/dundee-fc.webp",
         "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dundee-fc/easy.webp",
         "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dundee-fc/medium.webp",
         "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/dundee-fc/hard.webp",
-        "difficulty": "medium",
-        "league": "Scottish Premiership",
-        "country": "Scotland"
-      },
-      {
-        "team_name": "Livingston",
-        "slug": "livingston",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/livingston.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/livingston/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/livingston/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/livingston/hard.webp",
-        "difficulty": "medium",
-        "league": "Scottish Premiership",
-        "country": "Scotland"
-      },
-      {
-        "team_name": "Aberdeen",
-        "slug": "aberdeen",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/aberdeen.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/aberdeen/easy.webp",
-        "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/aberdeen/medium.webp",
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/aberdeen/hard.webp",
         "difficulty": "medium",
         "league": "Scottish Premiership",
         "country": "Scotland"
