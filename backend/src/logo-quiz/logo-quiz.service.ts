@@ -187,13 +187,21 @@ export class LogoQuizService {
       throw new NotFoundException('No logo questions available');
     }
 
-    // Fisher-Yates shuffle for unbiased randomness, then take the first `count` entries.
+    // Fisher-Yates shuffle for unbiased randomness, then dedup by team slug and take `count`.
     const shuffled: Array<{ id: string; question: any }> = (data as Array<{ id: string; question: any }>).slice();
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    const picked = shuffled.slice(0, count);
+    const seenSlugs = new Set<string>();
+    const picked: typeof shuffled = [];
+    for (const row of shuffled) {
+      const slug = (row.question as any)?.meta?.slug ?? '';
+      if (slug && seenSlugs.has(slug)) continue;
+      if (slug) seenSlugs.add(slug);
+      picked.push(row);
+      if (picked.length >= count) break;
+    }
 
     return picked.map((row) => {
       const q = row.question as any;
