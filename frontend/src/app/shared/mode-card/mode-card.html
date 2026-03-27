@@ -29,9 +29,57 @@
       <span class="mode-card__rate-limit-hint">or upgrade for unlimited</span>
     </div>
   }
-  @if (rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) {
-    <span class="badge-pill mode-card__badge-pill mode-card__rate-badge">{{ rateLimit() }} free today</span>
-  }
+
+  <!-- Header bar: tags (left) | featured (center) | info (right) -->
+  <div class="mode-card__header">
+    @if (tags().length > 0) {
+      <div class="mode-card__tags">
+        @for (tag of tags(); track $index) {
+          <span class="mode-card__tag"
+            [class.mode-card__tag--red]="tagColor(tag) === 'red'"
+            [class.mode-card__tag--blue]="tagColor(tag) === 'blue'"
+            [class.mode-card__tag--gold]="tagColor(tag) === 'gold'"
+            [class.mode-card__tag--lime]="tagColor(tag) === 'lime'"
+            [class.mode-card__tag--orange]="tagColor(tag) === 'orange'"
+            [class.mode-card__tag--purple]="tagColor(tag) === 'purple'"
+            [class.mode-card__tag--white]="tagColor(tag) === 'white'"
+            [class.mode-card__tag--cyan]="tagColor(tag) === 'cyan'"
+            [class.mode-card__tag--pink]="tagColor(tag) === 'pink'"
+            [class.mode-card__tag--amber]="tagColor(tag) === 'amber'"
+            [class.mode-card__tag--mint]="tagColor(tag) === 'mint'"
+            [class.mode-card__tag--coral]="tagColor(tag) === 'coral'"
+            [class.mode-card__tag--teal]="tagColor(tag) === 'teal'"
+            [class.mode-card__tag--dark]="tagColor(tag) === 'dark'"
+          >@if (tagIcon(tag); as icon) {<span class="material-icons mode-card__tag-icon">{{ icon }}</span>}{{ tag }}</span>
+        }
+      </div>
+    }
+
+    @if (featured()) {
+      <span class="mode-card__featured">
+        <span class="material-icons mode-card__featured-icon">auto_awesome</span>
+        Featured
+      </span>
+    }
+
+    @if ((rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) || trialInfo() || (onlineCount() !== null && onlineCount()! > 0)) {
+      <div class="mode-card__info">
+        @if (rateLimit() !== null && rateLimit()! > 0 && !pro.isPro()) {
+          <span class="mode-card__info-badge">{{ rateLimit() }} free today</span>
+        }
+        @if (trialInfo(); as trial) {
+          <span class="mode-card__info-badge">{{ trial.remaining }} of {{ trial.total }} free</span>
+        }
+        @if (onlineCount() !== null && onlineCount()! > 0) {
+          <span class="mode-card__info-badge">
+            <span class="mode-card__online-dot"></span>
+            {{ onlineCount() }} online
+          </span>
+        }
+      </div>
+    }
+  </div>
+
   @if (badge(); as badgeText) {
     <span class="badge-pill badge-pill--default mode-card__badge-pill"
       [class.badge-pill--accent]="badgeColor() === 'lime'"
