@@ -9,6 +9,7 @@ export interface LogoQuestion {
   difficulty: Difficulty;
   image_url: string;
   original_image_url: string;
+  question_elo?: number;
 }
 
 export interface LogoQuizAnswerResult {

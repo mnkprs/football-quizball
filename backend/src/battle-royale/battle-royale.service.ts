@@ -521,6 +521,8 @@ export class BattleRoyaleService {
     // Check if all players are done and record match history for this player
     if (isLastQuestion) {
       await this.checkAndFinishRoom(roomId);
+      // Force-finish room 30s after any player completes, in case bots stall
+      setTimeout(() => this.autoFinishRoom(roomId), 30_000);
       this.supabaseService.saveMatchResult({
         player1_id: userId,
         player2_id: null,

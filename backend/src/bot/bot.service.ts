@@ -14,7 +14,7 @@ export type BotGameMode = 'online' | 'duel' | 'battle-royale';
 const THINK_TIME_MS: Record<BotGameMode, { min: number; max: number }> = {
   online:          { min: 30_000,   max: 480_000  }, // 30s–8min (async turn-based)
   duel:            { min: 1_500,    max: 7_000    }, // 1.5–7s   (real-time race)
-  'battle-royale': { min: 2_000,    max: 18_000   }, // 2–18s    (per MC question)
+  'battle-royale': { min: 8_000,    max: 25_000   }, // 8–25s    (per MC question, nerfed to let humans win)
 };
 
 /** Difficulty multipliers for answer accuracy. */
@@ -26,11 +26,11 @@ const DIFFICULTY_MULTIPLIER: Record<string, number> = {
 
 /** Skill thresholds by player ELO. */
 function targetSkillForElo(playerElo: number): number {
-  if (playerElo < 900)  return 0.45;
-  if (playerElo < 1100) return 0.55;
-  if (playerElo < 1400) return 0.65;
-  if (playerElo < 1600) return 0.72;
-  return 0.80;
+  if (playerElo < 900)  return 0.25;
+  if (playerElo < 1100) return 0.35;
+  if (playerElo < 1400) return 0.45;
+  if (playerElo < 1600) return 0.55;
+  return 0.65;
 }
 
 @Injectable()

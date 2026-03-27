@@ -18,6 +18,10 @@ export class EloService {
 
   calculate(playerElo: number, difficulty: Difficulty, correct: boolean, timedOut: boolean, totalQuestionsAnswered: number): number {
     const questionElo = DIFFICULTY_ELO[difficulty];
+    return this.calculateWithQuestionElo(playerElo, questionElo, correct, timedOut, totalQuestionsAnswered);
+  }
+
+  calculateWithQuestionElo(playerElo: number, questionElo: number, correct: boolean, timedOut: boolean, totalQuestionsAnswered: number): number {
     const K = this.getK(playerElo, totalQuestionsAnswered);
     const expected = 1 / (1 + Math.pow(10, (questionElo - playerElo) / 400));
     const actual = correct ? 1 : 0;
