@@ -284,6 +284,13 @@
   50% { transform: scale(1.4); box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.3); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .battle-hero { animation: none; }
+  .battle-hero::before { animation: none; }
+  .battle-hero__online-dot { animation: none; }
+  .battle-hero__wave { animation: none; }
+}
+
 /* ---- Bottom section ---- */
 
 .battle-hero__bottom {

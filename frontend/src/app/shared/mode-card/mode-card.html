@@ -68,7 +68,9 @@
           <span class="mode-card__info-badge">{{ rateLimit() }} free today</span>
         }
         @if (trialInfo(); as trial) {
-          <span class="mode-card__info-badge">{{ trial.remaining }} of {{ trial.total }} free</span>
+          @if (trial.remaining > 0) {
+            <span class="mode-card__info-badge">{{ trial.remaining }} of {{ trial.total }} free</span>
+          }
         }
         @if (onlineCount() !== null && onlineCount()! > 0) {
           <span class="mode-card__info-badge">
