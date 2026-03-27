@@ -1,9 +1,20 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { BattleRoyaleStore } from './battle-royale.store';
+import { BattleRoyaleApiService } from './battle-royale-api.service';
 import { AuthService } from '../../core/auth.service';
+
+export interface BRPublicRoom {
+  id: string;
+  inviteCode: string;
+  playerCount: number;
+  maxPlayers: number;
+  createdAt: string;
+  hostUsername: string;
+}
 
 @Component({
   selector: 'app-battle-royale-lobby',
@@ -13,36 +24,74 @@ import { AuthService } from '../../core/auth.service';
   styleUrl: './battle-royale-lobby.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BattleRoyaleLobbyComponent {
+export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
   protected store = inject(BattleRoyaleStore);
   private router = inject(Router);
+  private api = inject(BattleRoyaleApiService);
   auth = inject(AuthService);
 
   loading = signal(false);
   error = signal<string | null>(null);
+  showPlaySheet = signal(false);
+  rooms = signal<BRPublicRoom[]>([]);
   inviteCode = '';
 
-  async createRoom(): Promise<void> {
-    this.loading.set(true);
-    this.error.set(null);
-    const roomId = await this.store.createRoom();
-    this.loading.set(false);
-    if (roomId) {
-      this.router.navigate(['/battle-royale', roomId]);
-    } else {
-      this.error.set(this.store.error() ?? 'Failed to create room');
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
+
+  ngOnInit(): void {
+    this.fetchRooms();
+    // Poll every 10 seconds — simple and sufficient for a lobby list
+    this.pollTimer = setInterval(() => this.fetchRooms(), 10_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
     }
   }
 
-  async joinQueue(): Promise<void> {
+  private async fetchRooms(): Promise<void> {
+    try {
+      const list = await firstValueFrom(this.api.getPublicRooms());
+      this.rooms.set(list);
+    } catch {
+      // Silently ignore — room list failing shouldn't block the lobby
+    }
+  }
+
+  openPlaySheet(): void {
+    this.showPlaySheet.set(true);
+    this.error.set(null);
+  }
+
+  closePlaySheet(): void {
+    this.showPlaySheet.set(false);
+  }
+
+  async quickJoin(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     const roomId = await this.store.joinQueue();
     this.loading.set(false);
     if (roomId) {
+      this.closePlaySheet();
       this.router.navigate(['/battle-royale', roomId]);
     } else {
       this.error.set(this.store.error() ?? 'Failed to find a room');
+    }
+  }
+
+  async createPrivateRoom(): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    const roomId = await this.store.createRoom();
+    this.loading.set(false);
+    if (roomId) {
+      this.closePlaySheet();
+      this.router.navigate(['/battle-royale', roomId]);
+    } else {
+      this.error.set(this.store.error() ?? 'Failed to create room');
     }
   }
 
@@ -53,10 +102,31 @@ export class BattleRoyaleLobbyComponent {
     const roomId = await this.store.joinByCode(this.inviteCode.trim().toUpperCase());
     this.loading.set(false);
     if (roomId) {
+      this.closePlaySheet();
+      this.router.navigate(['/battle-royale', roomId]);
+    } else {
+      this.error.set(this.store.error() ?? 'Room not found');
+      this.inviteCode = '';
+    }
+  }
+
+  async joinRoom(inviteCode: string): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
+    const roomId = await this.store.joinByCode(inviteCode.toUpperCase());
+    this.loading.set(false);
+    if (roomId) {
       this.router.navigate(['/battle-royale', roomId]);
     } else {
       this.error.set(this.store.error() ?? 'Room not found');
     }
+  }
+
+  getTimeAgo(dateStr: string): string {
+    const seconds = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000));
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ago`;
   }
 
   goBack(): void {

@@ -26,6 +26,7 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
 
   selectedChoice = signal<string | null>(null);
   answerFeedback = signal<'correct' | 'wrong' | null>(null);
+  codeCopied = signal(false);
 
   ngOnInit(): void {
     const roomId = this.route.snapshot.paramMap.get('id');
@@ -41,6 +42,20 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.store.unsubscribeRealtime();
+  }
+
+  async copyCode(): Promise<void> {
+    const code = this.store.roomView()?.inviteCode;
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      this.codeCopied.set(true);
+      setTimeout(() => this.codeCopied.set(false), 2000);
+    } catch {
+      // Fallback: still show copied state (code is visible on screen)
+      this.codeCopied.set(true);
+      setTimeout(() => this.codeCopied.set(false), 2000);
+    }
   }
 
   async startGame(): Promise<void> {

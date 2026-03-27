@@ -9,14 +9,12 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
-import { BattleRoyaleProGuard } from '../auth/battle-royale-pro.guard';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BattleRoyaleService } from './battle-royale.service';
 import { CreateRoomDto, JoinRoomByCodeDto, BRAnswerDto } from './battle-royale.types';
 
 interface AuthRequest extends Request {
   user: { id: string; email: string };
-  proStatus?: { is_pro: boolean; trial_battle_royale_used: number };
 }
 
 @Controller('api/battle-royale')
@@ -28,32 +26,30 @@ export class BattleRoyaleController {
 
   /** Create a new room and become the host */
   @Post()
-  @UseGuards(AuthGuard, BattleRoyaleProGuard)
+  @UseGuards(AuthGuard)
   async createRoom(@Request() req: AuthRequest, @Body() dto: CreateRoomDto) {
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementBattleRoyaleTrial(req.user.id);
-    }
     return this.brService.createRoom(req.user.id);
   }
 
   /** Join a room by invite code */
   @Post('join')
-  @UseGuards(AuthGuard, BattleRoyaleProGuard)
+  @UseGuards(AuthGuard)
   async joinByCode(@Request() req: AuthRequest, @Body() dto: JoinRoomByCodeDto) {
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementBattleRoyaleTrial(req.user.id);
-    }
     return this.brService.joinByCode(req.user.id, undefined, dto.inviteCode);
   }
 
   /** Join or create a random waiting room */
   @Post('queue')
-  @UseGuards(AuthGuard, BattleRoyaleProGuard)
+  @UseGuards(AuthGuard)
   async joinQueue(@Request() req: AuthRequest) {
-    if (!req.proStatus?.is_pro) {
-      await this.supabaseService.incrementBattleRoyaleTrial(req.user.id);
-    }
     return this.brService.joinQueue(req.user.id);
+  }
+
+  /** List public waiting rooms (lobby browser) */
+  @Get('rooms')
+  @UseGuards(AuthGuard)
+  async getPublicRooms(@Request() req: AuthRequest) {
+    return this.brService.getPublicRooms();
   }
 
   /** Get public room view (correct answers stripped) */
