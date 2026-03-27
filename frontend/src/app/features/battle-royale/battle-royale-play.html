@@ -28,19 +28,36 @@
         <p class="br-play__room-code-hint">Share this code so others can join</p>
       </div>
 
-      <!-- Player list -->
-      <div class="br-play__player-list">
-        <p class="br-play__player-list-label">{{ store.players().length }} player(s) joined</p>
-        @for (player of store.players(); track player.userId) {
-          <div class="br-play__player-row">
-            <span class="material-icons">person</span>
-            <span>{{ player.username }}</span>
-            @if (player.userId === store.roomView()?.hostId) {
-              <span class="br-play__host-badge">HOST</span>
+      <!-- Player list: grouped by team in team_logo mode, flat otherwise -->
+      @if (store.roomView()?.mode === 'team_logo') {
+        <div class="br-play__teams-waiting">
+          <div class="br-play__team-column team-1">
+            <h4>Team 1</h4>
+            @for (p of team1Players(); track p.userId) {
+              <div class="br-play__team-player">{{ p.username }}</div>
             }
           </div>
-        }
-      </div>
+          <div class="br-play__team-column team-2">
+            <h4>Team 2</h4>
+            @for (p of team2Players(); track p.userId) {
+              <div class="br-play__team-player">{{ p.username }}</div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="br-play__player-list">
+          <p class="br-play__player-list-label">{{ store.players().length }} player(s) joined</p>
+          @for (player of store.players(); track player.userId) {
+            <div class="br-play__player-row">
+              <span class="material-icons">person</span>
+              <span>{{ player.username }}</span>
+              @if (player.userId === store.roomView()?.hostId) {
+                <span class="br-play__host-badge">HOST</span>
+              }
+            </div>
+          }
+        </div>
+      }
 
       <!-- Only host sees Start button -->
       @if (store.roomView()?.isHost) {
@@ -90,55 +107,116 @@
         <div class="br-play__question-panel">
           <p class="br-play__q-index">Q{{ q.index + 1 }} / {{ store.roomView()?.questionCount }}</p>
 
-          @if (q.category === 'PLAYER_ID' && q.meta.career.length) {
-            <p class="br-play__q-label">Who is this player?</p>
-            <div class="br-play__career-path">
-              @for (stop of q.meta.career; track stop.club; let last = $last) {
-                <div class="br-play__career-stop">
-                  <span class="br-play__career-club">{{ stop.club }}{{ stop.is_loan ? ' *' : '' }}</span>
-                  <span class="br-play__career-years">{{ stop.from }}–{{ stop.to }}</span>
-                </div>
-                @if (!last) {
-                  <span class="material-icons br-play__career-arrow">arrow_downward</span>
-                }
-              }
-            </div>
-          } @else {
-            <h2 class="br-play__q-text">{{ q.question_text }}</h2>
-          }
+          @if (store.roomView()?.mode === 'team_logo' && q.image_url) {
+            <!-- ── TEAM LOGO MODE ─────────────────────────────────────── -->
+            <p class="br-play__q-label">Which team does this logo belong to?</p>
 
-          <!-- Answer flash overlay -->
-          @if (store.phase() === 'answered') {
-            <div class="br-play__answer-flash"
-                 [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
-                 [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct">
-              @if (store.lastAnswer()?.correct) {
-                <span class="material-icons">check_circle</span>
-                Correct! +{{ store.lastAnswer()?.pointsAwarded }}
-                @if ((store.lastAnswer()?.timeBonus ?? 0) > 0) {
-                  <span class="br-play__speed-bonus">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
-                }
+            <div class="br-play__logo-question">
+              <!-- After answering, reveal original (unobscured) logo if available -->
+              @if (store.phase() === 'answered' && store.lastAnswer()?.original_image_url) {
+                <img [src]="store.lastAnswer()!.original_image_url" alt="Answer" class="br-play__logo-image" />
               } @else {
-                <span class="material-icons">cancel</span>
-                Correct: {{ store.lastAnswer()?.correctAnswer }}
+                <img [src]="q.image_url" alt="Logo" class="br-play__logo-image" />
+              }
+            </div>
+
+            <!-- Answer flash overlay -->
+            @if (store.phase() === 'answered') {
+              <div class="br-play__answer-flash"
+                   [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
+                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct">
+                @if (store.lastAnswer()?.correct) {
+                  <span class="material-icons">check_circle</span>
+                  Correct! +{{ store.lastAnswer()?.pointsAwarded }}
+                  @if ((store.lastAnswer()?.timeBonus ?? 0) > 0) {
+                    <span class="br-play__speed-bonus">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
+                  }
+                } @else {
+                  <span class="material-icons">cancel</span>
+                  Correct: {{ store.lastAnswer()?.correctAnswer }}
+                }
+              </div>
+            }
+
+            <div class="br-play__logo-input-stack">
+              <input
+                type="text"
+                class="br-play__logo-input"
+                [value]="textAnswer"
+                (input)="onLogoSearchInput($any($event.target).value)"
+                (keydown.enter)="submitTextAnswer()"
+                placeholder="Team name..."
+                [disabled]="store.submitting() || store.phase() === 'answered'"
+                autocomplete="off"
+              />
+              @if (logoDropdownOpen() && filteredTeams().length) {
+                <div class="br-play__logo-dropdown">
+                  @for (team of filteredTeams(); track team) {
+                    <button class="br-play__logo-dropdown-item" (click)="selectTeam(team)">{{ team }}</button>
+                  }
+                </div>
+              }
+              <button
+                class="br-play__submit-btn"
+                (click)="submitTextAnswer()"
+                [disabled]="store.submitting() || !textAnswer.trim() || store.phase() === 'answered'"
+              >
+                Submit
+              </button>
+            </div>
+
+          } @else {
+            <!-- ── CLASSIC MODE ───────────────────────────────────────── -->
+            @if (q.category === 'PLAYER_ID' && q.meta.career.length) {
+              <p class="br-play__q-label">Who is this player?</p>
+              <div class="br-play__career-path">
+                @for (stop of q.meta.career; track stop.club; let last = $last) {
+                  <div class="br-play__career-stop">
+                    <span class="br-play__career-club">{{ stop.club }}{{ stop.is_loan ? ' *' : '' }}</span>
+                    <span class="br-play__career-years">{{ stop.from }}–{{ stop.to }}</span>
+                  </div>
+                  @if (!last) {
+                    <span class="material-icons br-play__career-arrow">arrow_downward</span>
+                  }
+                }
+              </div>
+            } @else {
+              <h2 class="br-play__q-text">{{ q.question_text }}</h2>
+            }
+
+            <!-- Answer flash overlay -->
+            @if (store.phase() === 'answered') {
+              <div class="br-play__answer-flash"
+                   [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
+                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct">
+                @if (store.lastAnswer()?.correct) {
+                  <span class="material-icons">check_circle</span>
+                  Correct! +{{ store.lastAnswer()?.pointsAwarded }}
+                  @if ((store.lastAnswer()?.timeBonus ?? 0) > 0) {
+                    <span class="br-play__speed-bonus">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
+                  }
+                } @else {
+                  <span class="material-icons">cancel</span>
+                  Correct: {{ store.lastAnswer()?.correctAnswer }}
+                }
+              </div>
+            }
+
+            <div class="br-play__choices">
+              @for (choice of q.choices; track $index) {
+                <button
+                  class="br-play__choice-btn"
+                  [class.br-play__choice-btn--selected]="selectedChoice() === choice"
+                  [class.br-play__choice-btn--correct]="store.phase() === 'answered' && store.lastAnswer()?.correct && selectedChoice() === choice"
+                  [class.br-play__choice-btn--wrong]="store.phase() === 'answered' && !store.lastAnswer()?.correct && selectedChoice() === choice"
+                  [disabled]="store.submitting() || store.phase() === 'answered'"
+                  (click)="selectAndSubmit(choice)"
+                >
+                  {{ choice }}
+                </button>
               }
             </div>
           }
-
-          <div class="br-play__choices">
-            @for (choice of q.choices; track $index) {
-              <button
-                class="br-play__choice-btn"
-                [class.br-play__choice-btn--selected]="selectedChoice() === choice"
-                [class.br-play__choice-btn--correct]="store.phase() === 'answered' && store.lastAnswer()?.correct && selectedChoice() === choice"
-                [class.br-play__choice-btn--wrong]="store.phase() === 'answered' && !store.lastAnswer()?.correct && selectedChoice() === choice"
-                [disabled]="store.submitting() || store.phase() === 'answered'"
-                (click)="selectAndSubmit(choice)"
-              >
-                {{ choice }}
-              </button>
-            }
-          </div>
         </div>
       } @else {
         <div class="br-play__between-questions">
@@ -152,6 +230,19 @@
         <h3 class="br-play__lb-title">
           <span class="material-icons">leaderboard</span> Live Scores
         </h3>
+
+        <!-- Team scores banner (team_logo mode only) -->
+        @if (store.roomView()?.mode === 'team_logo') {
+          <div class="br-play__team-scores">
+            <div class="br-play__team-score team-1">
+              Team 1: {{ store.roomView()?.teamScores?.team1Avg | number:'1.0-0' }}
+            </div>
+            <div class="br-play__team-score team-2">
+              Team 2: {{ store.roomView()?.teamScores?.team2Avg | number:'1.0-0' }}
+            </div>
+          </div>
+        }
+
         @for (player of store.players(); track player.userId; let i = $index) {
           <div class="br-play__lb-row"
                [class.br-play__lb-row--me]="player.userId === store.myUserId()">
@@ -174,6 +265,18 @@
         <span class="material-icons br-play__trophy">emoji_events</span>
         <h2>Game Over!</h2>
       </div>
+
+      <!-- Team Logo mode: MVP + winning team -->
+      @if (store.roomView()?.mode === 'team_logo') {
+        <div class="br-play__mvp">
+          <span>MVP: {{ store.roomView()?.mvp?.username }}</span>
+          <span>{{ store.roomView()?.mvp?.score }} pts</span>
+        </div>
+        <div class="br-play__winner">
+          {{ (store.roomView()?.teamScores?.team1Avg ?? 0) > (store.roomView()?.teamScores?.team2Avg ?? 0)
+            ? 'Team 1 Wins!' : 'Team 2 Wins!' }}
+        </div>
+      }
 
       <div class="br-play__final-leaderboard">
         @for (player of store.players(); track player.userId; let i = $index) {

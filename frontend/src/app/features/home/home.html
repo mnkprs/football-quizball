@@ -112,6 +112,20 @@
         [locked]="false"
         (cardClick)="goLogoQuiz()"
       />
+      <app-mode-card
+        icon="shield"
+        iconClass="material-symbols-outlined"
+        iconBgColor="lime"
+        title="Team Logo Quiz"
+        hint="Team vs Team · Logo Recognition"
+        [tags]="['teams', 'logos', 'pvp']"
+        backgroundImage="/royale.png"
+        variant="accent"
+        [compact]="true"
+        [locked]="!auth.isLoggedIn()"
+        [velvetLock]="true"
+        (cardClick)="goTeamLogoQuiz()"
+      />
       <div class="two-player-card">
         <img class="two-player-card__bg-image" src="/football-field.png" alt="" aria-hidden="true" />
         <span class="two-player-card__bg-overlay" aria-hidden="true"></span>

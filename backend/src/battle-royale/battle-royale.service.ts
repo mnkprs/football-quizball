@@ -8,6 +8,7 @@ import {
 import { SupabaseService } from '../supabase/supabase.service';
 import { BlitzService } from '../blitz/blitz.service';
 import { BlitzQuestion } from '../blitz/blitz.types';
+import { LogoQuizService } from '../logo-quiz/logo-quiz.service';
 import {
   BRRoomRow,
   BRPlayerRow,
@@ -15,6 +16,7 @@ import {
   BRPublicQuestion,
   BRAnswerResult,
   BRPlayerEntry,
+  BRLogoPlayerQuestion,
 } from './battle-royale.types';
 
 const QUESTION_COUNT = 10;
@@ -29,6 +31,7 @@ export class BattleRoyaleService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly blitzService: BlitzService,
+    private readonly logoQuizService: LogoQuizService,
   ) {}
 
   // ── Create room ─────────────────────────────────────────────────────────────
@@ -57,6 +60,35 @@ export class BattleRoyaleService {
     if (roomErr || !room) {
       this.logger.error(`[br] createRoom error: ${roomErr?.message}`);
       throw new BadRequestException('Could not create room');
+    }
+
+    await this.addPlayer(room.id, hostId, hostUsername);
+    return { roomId: room.id, inviteCode };
+  }
+
+  // ── Create team logo room ────────────────────────────────────────────────────
+
+  async createTeamLogoRoom(hostId: string, hostUsername?: string): Promise<{ roomId: string; inviteCode: string }> {
+    const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+
+    const { data: room, error: roomErr } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .insert({
+        host_id: hostId,
+        invite_code: inviteCode,
+        status: 'waiting',
+        questions: [],        // questions are per-player for team_logo, not on the room
+        question_count: 10,
+        is_private: true,     // friends-only for v1
+        mode: 'team_logo',
+        config: { teamCount: 2, questionCount: 10, timerSeconds: 45 },
+      })
+      .select()
+      .single<BRRoomRow>();
+
+    if (roomErr || !room) {
+      this.logger.error(`[br] createTeamLogoRoom error: ${roomErr?.message}`);
+      throw new BadRequestException('Could not create team logo room');
     }
 
     await this.addPlayer(room.id, hostId, hostUsername);
@@ -209,6 +241,7 @@ export class BattleRoyaleService {
 
     const room = roomResult.data;
     const players = (playersResult.data ?? []) as BRPlayerRow[];
+    const isTeamLogoMode = room.mode === 'team_logo';
 
     const me = players.find((p) => p.user_id === requestingUserId);
     const myIndex = me?.current_question_index ?? 0;
@@ -220,11 +253,52 @@ export class BattleRoyaleService {
       currentQuestionIndex: p.current_question_index,
       finished: !!p.finished_at,
       rank: i + 1,
+      ...(isTeamLogoMode && { teamId: p.team_id ?? undefined }),
     }));
 
+    // Build the current question for the requesting player
     let currentQuestion: BRPublicQuestion | null = null;
-    if (room.status === 'active' && me && myIndex < room.questions.length) {
-      currentQuestion = this.toPublicQuestion(room.questions[myIndex], myIndex);
+    if (room.status === 'active' && me) {
+      if (isTeamLogoMode) {
+        const logoQ = (me.player_questions ?? [])[myIndex];
+        if (logoQ) {
+          currentQuestion = {
+            index: myIndex,
+            question_text: 'Identify this football club from its logo',
+            choices: [],
+            category: 'LOGO_QUIZ',
+            difficulty: logoQ.difficulty,
+            image_url: logoQ.image_url,
+            original_image_url: logoQ.original_image_url,
+            meta: logoQ.meta as BRPublicQuestion['meta'],
+          };
+        }
+      } else if (myIndex < room.questions.length) {
+        currentQuestion = this.toPublicQuestion(room.questions[myIndex], myIndex);
+      }
+    }
+
+    // Compute team scores for team_logo rooms
+    let teamScores: BRPublicView['teamScores'];
+    if (isTeamLogoMode) {
+      const team1Players = players.filter((p) => p.team_id === 1);
+      const team2Players = players.filter((p) => p.team_id === 2);
+      const sum = (arr: BRPlayerRow[]) => arr.reduce((acc, p) => acc + p.score, 0);
+      const team1Total = sum(team1Players);
+      const team2Total = sum(team2Players);
+      teamScores = {
+        team1: team1Total,
+        team2: team2Total,
+        team1Avg: team1Players.length > 0 ? team1Total / team1Players.length : 0,
+        team2Avg: team2Players.length > 0 ? team2Total / team2Players.length : 0,
+      };
+    }
+
+    // Compute MVP when the game is finished (player with the highest individual score)
+    let mvp: BRPublicView['mvp'];
+    if (isTeamLogoMode && room.status === 'finished' && players.length > 0) {
+      const top = players.reduce((best, p) => (p.score > best.score ? p : best), players[0]);
+      mvp = { userId: top.user_id, username: top.username, score: top.score };
     }
 
     return {
@@ -240,6 +314,7 @@ export class BattleRoyaleService {
       currentQuestion,
       myCurrentIndex: myIndex,
       startedAt: room.started_at,
+      ...(isTeamLogoMode && { mode: room.mode, teamScores, mvp }),
     };
   }
 
@@ -248,13 +323,18 @@ export class BattleRoyaleService {
   async startRoom(roomId: string, requestingUserId: string): Promise<void> {
     const { data: room, error } = await this.supabaseService.client
       .from('battle_royale_rooms')
-      .select('id, host_id, status')
+      .select('id, host_id, status, mode, config')
       .eq('id', roomId)
-      .single<Pick<BRRoomRow, 'id' | 'host_id' | 'status'>>();
+      .single<Pick<BRRoomRow, 'id' | 'host_id' | 'status' | 'mode' | 'config'>>();
 
     if (error || !room) throw new NotFoundException('Room not found');
     if (room.host_id !== requestingUserId) throw new ForbiddenException('Only the host can start the game');
     if (room.status !== 'waiting') throw new BadRequestException('Room is not in waiting state');
+
+    // Deal per-player logo questions before setting the room to active
+    if (room.mode === 'team_logo') {
+      await this.dealLogoQuestions(roomId, room.config?.questionCount ?? QUESTION_COUNT);
+    }
 
     const { error: updateErr } = await this.supabaseService.client
       .from('battle_royale_rooms')
@@ -273,6 +353,59 @@ export class BattleRoyaleService {
     setTimeout(() => this.autoFinishRoom(roomId), ROOM_TIMEOUT_MS);
   }
 
+  // ── Deal logo questions to each player (team_logo mode) ──────────────────────
+
+  private async dealLogoQuestions(roomId: string, questionCount: number): Promise<void> {
+    const { data: playerRows } = await this.supabaseService.client
+      .from('battle_royale_players')
+      .select('id, user_id')
+      .eq('room_id', roomId);
+
+    const players = (playerRows ?? []) as { id: string; user_id: string }[];
+    if (players.length === 0) return;
+
+    const totalNeeded = questionCount * players.length;
+    const logos = await this.logoQuizService.drawLogosForTeamMode(totalNeeded);
+
+    if (logos.length < totalNeeded) {
+      this.logger.warn(
+        `[br] dealLogoQuestions: requested ${totalNeeded} logos but only got ${logos.length}; proceeding with available`,
+      );
+    }
+
+    // Round-robin deal: for each round, assign one logo to each player in order.
+    // Player i gets logos at positions [i, i + playerCount, i + 2*playerCount, ...]
+    const playerCount = players.length;
+    const updates: Array<Promise<void>> = players.map(async (player, playerIdx) => {
+      const questions: BRLogoPlayerQuestion[] = [];
+      for (let round = 0; round < questionCount; round++) {
+        const logoIdx = round * playerCount + playerIdx;
+        const logo = logos[logoIdx];
+        if (!logo) break; // guard: insufficient pool
+        questions.push({
+          index: round,
+          question_id: logo.id,
+          correct_answer: logo.correct_answer,
+          image_url: logo.image_url,
+          original_image_url: logo.original_image_url,
+          difficulty: logo.difficulty,
+          meta: logo.meta,
+        });
+      }
+
+      const { error } = await this.supabaseService.client
+        .from('battle_royale_players')
+        .update({ player_questions: questions, updated_at: new Date().toISOString() })
+        .eq('id', player.id);
+
+      if (error) {
+        this.logger.error(`[br] dealLogoQuestions update error for player ${player.user_id}: ${error.message}`);
+      }
+    });
+
+    await Promise.all(updates);
+  }
+
   // ── Submit answer ────────────────────────────────────────────────────────────
 
   async submitAnswer(
@@ -284,9 +417,9 @@ export class BattleRoyaleService {
     const [roomResult, playerResult] = await Promise.all([
       this.supabaseService.client
         .from('battle_royale_rooms')
-        .select('id, status, questions, question_count')
+        .select('id, status, questions, question_count, mode')
         .eq('id', roomId)
-        .single<Pick<BRRoomRow, 'id' | 'status' | 'questions' | 'question_count'>>(),
+        .single<Pick<BRRoomRow, 'id' | 'status' | 'questions' | 'question_count' | 'mode'>>(),
       this.supabaseService.client
         .from('battle_royale_players')
         .select()
@@ -307,11 +440,27 @@ export class BattleRoyaleService {
       throw new BadRequestException('Stale question index');
     }
 
-    const question = room.questions[questionIndex] as BlitzQuestion;
-    if (!question) throw new BadRequestException('Question not found');
+    const isTeamLogoMode = room.mode === 'team_logo';
 
-    const normalise = (s: string) => s.toLowerCase().trim();
-    const correct = normalise(answer) === normalise(question.correct_answer);
+    // For team_logo rooms, questions live on the player row; standard rooms use room.questions.
+    let correctAnswer: string;
+    if (isTeamLogoMode) {
+      const logoQuestion = (player.player_questions ?? [])[questionIndex];
+      if (!logoQuestion) throw new BadRequestException('Question not found');
+      correctAnswer = logoQuestion.correct_answer;
+    } else {
+      const question = room.questions[questionIndex] as BlitzQuestion;
+      if (!question) throw new BadRequestException('Question not found');
+      correctAnswer = question.correct_answer;
+    }
+
+    const correct = isTeamLogoMode
+      ? this.logoQuizService.fuzzyMatch(answer, correctAnswer)
+      : (() => {
+          const normalise = (s: string) => s.toLowerCase().trim();
+          return normalise(answer) === normalise(correctAnswer);
+        })();
+
     const newIndex = questionIndex + 1;
     const isLastQuestion = newIndex >= room.question_count;
 
@@ -347,7 +496,7 @@ export class BattleRoyaleService {
       // Duplicate submission — index already advanced, return idempotent result
       return {
         correct,
-        correct_answer: question.correct_answer,
+        correct_answer: correctAnswer,
         myScore: player.score,
         nextQuestion: null,
         finished: !!player.finished_at,
@@ -363,22 +512,39 @@ export class BattleRoyaleService {
         player1_id: userId,
         player2_id: null,
         player1_username: player.username,
-        player2_username: 'Battle Royale',
+        player2_username: isTeamLogoMode ? 'Team Logo Battle' : 'Battle Royale',
         winner_id: null,
         player1_score: newScore,
         player2_score: 0,
-        match_mode: 'battle_royale',
+        match_mode: isTeamLogoMode ? 'team_logo_battle' : 'battle_royale',
       }).catch((e) => this.logger.warn(`[br] match history save failed: ${e?.message}`));
     }
 
-    const nextQuestion =
-      !isLastQuestion && room.questions[newIndex]
-        ? this.toPublicQuestion(room.questions[newIndex] as BlitzQuestion, newIndex)
-        : null;
+    // Build the next question reference depending on mode
+    let nextQuestion: BRPublicQuestion | null = null;
+    if (!isLastQuestion) {
+      if (isTeamLogoMode) {
+        const nextLogoQ = (player.player_questions ?? [])[newIndex];
+        if (nextLogoQ) {
+          nextQuestion = {
+            index: newIndex,
+            question_text: 'Identify this football club from its logo',
+            choices: [],
+            category: 'LOGO_QUIZ',
+            difficulty: nextLogoQ.difficulty,
+            image_url: nextLogoQ.image_url,
+            original_image_url: nextLogoQ.original_image_url,
+            meta: nextLogoQ.meta as BRPublicQuestion['meta'],
+          };
+        }
+      } else if (room.questions[newIndex]) {
+        nextQuestion = this.toPublicQuestion(room.questions[newIndex] as BlitzQuestion, newIndex);
+      }
+    }
 
     return {
       correct,
-      correct_answer: question.correct_answer,
+      correct_answer: correctAnswer,
       myScore: newScore,
       nextQuestion,
       finished: isLastQuestion,
@@ -507,9 +673,35 @@ export class BattleRoyaleService {
       username = profile?.username ?? 'Player';
     }
 
+    // For team_logo rooms, auto-assign team_id by balancing player counts across teams.
+    let teamId: number | undefined;
+    const { data: roomRow } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .select('mode')
+      .eq('id', roomId)
+      .single<Pick<BRRoomRow, 'mode'>>();
+
+    if (roomRow?.mode === 'team_logo') {
+      const { data: existingPlayers } = await this.supabaseService.client
+        .from('battle_royale_players')
+        .select('team_id')
+        .eq('room_id', roomId);
+
+      const rows = (existingPlayers ?? []) as { team_id: number | null }[];
+      const team1Count = rows.filter((p) => p.team_id === 1).length;
+      const team2Count = rows.filter((p) => p.team_id === 2).length;
+      // Assign to whichever team has fewer players; break ties by defaulting to team 1
+      teamId = team1Count <= team2Count ? 1 : 2;
+    }
+
+    const payload: Record<string, unknown> = { room_id: roomId, user_id: userId, username };
+    if (teamId !== undefined) {
+      payload.team_id = teamId;
+    }
+
     const { error } = await this.supabaseService.client
       .from('battle_royale_players')
-      .upsert({ room_id: roomId, user_id: userId, username }, { onConflict: 'room_id,user_id' });
+      .upsert(payload, { onConflict: 'room_id,user_id' });
 
     if (error) {
       this.logger.error(`[br] addPlayer error: ${error.message}`);

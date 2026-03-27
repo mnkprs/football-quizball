@@ -20,6 +20,9 @@ export interface BRPublicQuestion {
   category: string;
   difficulty: string;
   meta: { career: BRCareerEntry[] };
+  // Team Logo mode fields
+  image_url?: string;
+  original_image_url?: string;
 }
 
 export interface BRPlayerEntry {
@@ -29,6 +32,19 @@ export interface BRPlayerEntry {
   currentQuestionIndex: number;
   finished: boolean;
   rank?: number;
+  // Team Logo mode: which team this player belongs to
+  teamId?: 1 | 2;
+}
+
+export interface BRTeamScores {
+  team1Avg: number;
+  team2Avg: number;
+}
+
+export interface BRMvp {
+  userId: string;
+  username: string;
+  score: number;
 }
 
 export interface BRPublicView {
@@ -45,6 +61,10 @@ export interface BRPublicView {
   myCurrentIndex: number;
   language: string;
   startedAt: string | null;
+  // Team Logo mode fields
+  mode?: 'classic' | 'team_logo';
+  teamScores?: BRTeamScores;
+  mvp?: BRMvp;
 }
 
 export interface BRAnswerResult {
@@ -55,6 +75,8 @@ export interface BRAnswerResult {
   finished: boolean;
   pointsAwarded: number;
   timeBonus: number;
+  // Team Logo mode: original logo revealed after answering
+  original_image_url?: string;
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -72,6 +94,14 @@ export class BattleRoyaleApiService {
 
   createRoom(language?: 'en' | 'el'): Observable<{ roomId: string; inviteCode: string }> {
     return this.http.post<{ roomId: string; inviteCode: string }>(this.base, { language }, { headers: this.headers() });
+  }
+
+  createTeamLogoRoom(): Observable<{ roomId: string; inviteCode: string }> {
+    return this.http.post<{ roomId: string; inviteCode: string }>(
+      `${this.base}/team-logo`,
+      {},
+      { headers: this.headers() },
+    );
   }
 
   joinByCode(inviteCode: string): Observable<{ roomId: string }> {

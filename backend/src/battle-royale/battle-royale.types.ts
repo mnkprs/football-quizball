@@ -37,6 +37,10 @@ export interface BRPublicQuestion {
   category: string;
   difficulty: string;
   meta?: { career?: BRCareerEntry[] };
+  /** Team logo quiz: degraded/medium image shown during gameplay */
+  image_url?: string;
+  /** Team logo quiz: original full-quality image for the reveal */
+  original_image_url?: string;
 }
 
 // ── Player view ───────────────────────────────────────────────────────────────
@@ -48,6 +52,8 @@ export interface BRPlayerEntry {
   currentQuestionIndex: number;
   finished: boolean;
   rank?: number;
+  /** Team Logo Battle Royale: which team this player belongs to (1 or 2) */
+  teamId?: number;
 }
 
 // ── Public room view ──────────────────────────────────────────────────────────
@@ -65,6 +71,12 @@ export interface BRPublicView {
   currentQuestion: BRPublicQuestion | null;
   myCurrentIndex: number;
   startedAt: string | null;
+  /** Game mode — 'standard' for classic BR, 'team_logo' for Team Logo Battle */
+  mode?: string;
+  /** Team Logo Battle: aggregate scores per team */
+  teamScores?: { team1: number; team2: number; team1Avg: number; team2Avg: number };
+  /** Team Logo Battle: player with the highest individual score when the game is finished */
+  mvp?: { userId: string; username: string; score: number };
 }
 
 export interface BRAnswerResult {
@@ -77,6 +89,18 @@ export interface BRAnswerResult {
   timeBonus: number;
 }
 
+// ── Team logo question as stored in player_questions JSONB ───────────────────
+
+export interface BRLogoPlayerQuestion {
+  index: number;
+  question_id: string;
+  correct_answer: string;
+  image_url: string;
+  original_image_url: string;
+  difficulty: string;
+  meta: { slug: string; league: string; country: string };
+}
+
 // ── DB row shapes ─────────────────────────────────────────────────────────────
 
 export interface BRRoomRow {
@@ -87,6 +111,14 @@ export interface BRRoomRow {
   is_private: boolean;
   questions: BlitzQuestion[];
   question_count: number;
+  /** Populated for team_logo mode only */
+  mode?: string;
+  /** Populated for team_logo mode only — game configuration */
+  config?: {
+    teamCount: number;
+    questionCount: number;
+    timerSeconds: number;
+  };
   started_at: string | null;
   finished_at: string | null;
   created_at: string;
@@ -104,4 +136,8 @@ export interface BRPlayerRow {
   finished_at: string | null;
   created_at: string;
   updated_at: string;
+  /** Team Logo Battle Royale: which team this player is on (1 or 2) */
+  team_id?: number | null;
+  /** Team Logo Battle Royale: per-player question list dealt at game start */
+  player_questions?: BRLogoPlayerQuestion[] | null;
 }

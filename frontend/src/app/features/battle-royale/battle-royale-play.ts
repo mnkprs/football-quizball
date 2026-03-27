@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   signal,
+  computed,
   OnInit,
   OnDestroy,
   ChangeDetectionStrategy,
@@ -10,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BattleRoyaleStore } from './battle-royale.store';
+import { LogoQuizApiService } from '../../core/logo-quiz-api.service';
 
 @Component({
   selector: 'app-battle-royale-play',
@@ -23,10 +25,28 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
   protected store = inject(BattleRoyaleStore);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private logoQuizApi = inject(LogoQuizApiService);
 
   selectedChoice = signal<string | null>(null);
   answerFeedback = signal<'correct' | 'wrong' | null>(null);
   codeCopied = signal(false);
+
+  // ── Team Logo mode state ──────────────────────────────────────────────────
+  teamNames = signal<string[]>([]);
+  logoSearchQuery = signal('');
+  logoDropdownOpen = signal(false);
+  textAnswer = '';
+
+  filteredTeams = computed(() => {
+    const query = this.logoSearchQuery().toLowerCase().trim();
+    const names = this.teamNames();
+    if (!query || query.length < 2) return [];
+    return names.filter(n => n.toLowerCase().includes(query)).slice(0, 8);
+  });
+
+  // ── Team assignment computed signals (Step 8) ─────────────────────────────
+  team1Players = computed(() => this.store.players().filter(p => p.teamId === 1));
+  team2Players = computed(() => this.store.players().filter(p => p.teamId === 2));
 
   ngOnInit(): void {
     const roomId = this.route.snapshot.paramMap.get('id');
@@ -37,7 +57,13 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
     this.store.reset();
     this.store.loadRoom(roomId).then(() => {
       this.store.subscribeRealtime(roomId);
+      // Pre-load team names if this is a team logo room
+      if (this.store.roomView()?.mode === 'team_logo') {
+        this.logoQuizApi.getTeamNames().subscribe(names => this.teamNames.set(names));
+      }
     });
+    // Always load team names eagerly — cheap, cached, needed once mode is known
+    this.logoQuizApi.getTeamNames().subscribe(names => this.teamNames.set(names));
   }
 
   ngOnDestroy(): void {
@@ -76,6 +102,28 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
       }, 1500);
     }
   }
+
+  // ── Logo mode methods ─────────────────────────────────────────────────────
+
+  onLogoSearchInput(value: string): void {
+    this.textAnswer = value;
+    this.logoSearchQuery.set(value);
+    this.logoDropdownOpen.set(true);
+  }
+
+  selectTeam(team: string): void {
+    this.textAnswer = team;
+    this.logoSearchQuery.set(team);
+    this.logoDropdownOpen.set(false);
+  }
+
+  submitTextAnswer(): void {
+    if (!this.textAnswer.trim()) return;
+    this.logoDropdownOpen.set(false);
+    this.selectAndSubmit(this.textAnswer);
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
 
   async leaveRoom(): Promise<void> {
     await this.store.leaveRoom();
