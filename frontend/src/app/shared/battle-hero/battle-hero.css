@@ -145,6 +145,12 @@
   white-space: nowrap;
 }
 
+.battle-hero__tag-icon {
+  font-size: 0.7rem;
+  margin-right: 0.2rem;
+}
+
+
 .battle-hero__tag--gold {
   color: var(--color-gold-light);
   background: var(--color-gold-bg);
@@ -308,10 +314,10 @@
   gap: 0.375rem;
   padding: 0.4375rem 1rem;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, rgba(156, 39, 176, 0.25), rgba(206, 147, 216, 0.12));
+  background: linear-gradient(1deg, rgb(156 39 176), rgb(34 4 39 / 55%));
   border: 1px solid rgba(206, 147, 216, 0.35);
   color: var(--color-purple-light);
-  font-family: 'Lexend', sans-serif;
+  font-family: "Lexend", sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.15em;

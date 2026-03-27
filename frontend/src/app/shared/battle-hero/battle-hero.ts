@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { getTagColor } from '../tag-colors';
+import { getTagColor, getTagIcon } from '../tag-colors';
 
 @Component({
   selector: 'app-battle-hero',
@@ -23,6 +23,7 @@ export class BattleHeroComponent {
   unlockClick = output<void>();
 
   tagColorFor = getTagColor;
+  tagIconFor = getTagIcon;
 
   onCardClick(): void {
     if (!this.locked() && !this.proLocked()) {

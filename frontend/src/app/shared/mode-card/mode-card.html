@@ -50,7 +50,7 @@
             [class.mode-card__tag--coral]="tagColor(tag) === 'coral'"
             [class.mode-card__tag--teal]="tagColor(tag) === 'teal'"
             [class.mode-card__tag--dark]="tagColor(tag) === 'dark'"
-          >{{ tag }}</span>
+          >@if (tagIcon(tag); as icon) {<span class="material-icons mode-card__tag-icon">{{ icon }}</span>}{{ tag }}</span>
         }
       </div>
     }

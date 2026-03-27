@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { BadgeComponent } from '../badge/badge';
 import { ModeCardContainerComponent } from '../mode-card-container/mode-card-container';
 import { ProService } from '../../core/pro.service';
-import { getTagColor } from '../tag-colors';
+import { getTagColor, getTagIcon } from '../tag-colors';
 
 export type ModeCardVariant = 'primary' | 'accent' | 'outline';
 
@@ -47,6 +47,7 @@ export class ModeCardComponent {
   pro = inject(ProService);
 
   tagColor = getTagColor;
+  tagIcon = getTagIcon;
 
   onProOverlayClick(e: Event): void {
     e.stopPropagation();
