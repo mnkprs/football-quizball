@@ -32,6 +32,7 @@ export interface BRState {
   submitting: boolean;
   loading: boolean;
   error: string | null;
+  questionDeadline: number | null; // epoch ms when current question expires
 }
 
 const initialState: BRState = {
@@ -47,6 +48,7 @@ const initialState: BRState = {
   submitting: false,
   loading: false,
   error: null,
+  questionDeadline: null,
 };
 
 function derivePhase(view: BRPublicView): BRPhase {
@@ -69,8 +71,16 @@ export const BattleRoyaleStore = signalStore(
       try {
         const view = await firstValueFrom(api.getRoom(roomId));
         const phase = store.phase();
-        // Don't override 'answered' phase from a background refresh
-        const newPhase = phase === 'answered' ? 'answered' : derivePhase(view);
+        // Don't override 'answered' or user-local 'finished' from a background refresh,
+        // but always honor room-level 'finished' status.
+        let newPhase: BRPhase;
+        if (view.status === 'finished') {
+          newPhase = 'finished';
+        } else if (phase === 'answered' || phase === 'finished') {
+          newPhase = phase;
+        } else {
+          newPhase = derivePhase(view);
+        }
         patchState(store, {
           roomView: view,
           phase: newPhase,
@@ -173,13 +183,15 @@ export const BattleRoyaleStore = signalStore(
         patchState(store, { loading: true, roomId, myUserId, error: null });
         try {
           const view = await firstValueFrom(api.getRoom(roomId));
+          const loadedPhase = derivePhase(view);
           patchState(store, {
             roomView: view,
-            phase: derivePhase(view),
+            phase: loadedPhase,
             currentQuestion: view.currentQuestion,
             players: view.players,
             myIndex: view.myCurrentIndex,
             loading: false,
+            questionDeadline: loadedPhase === 'active' && view.currentQuestion ? Date.now() + 30_000 : null,
           });
         } catch {
           patchState(store, { loading: false, error: 'Failed to load room' });
@@ -222,13 +234,14 @@ export const BattleRoyaleStore = signalStore(
             lastAnswer: { correct: result.correct, correctAnswer: result.correct_answer, pointsAwarded: result.pointsAwarded, timeBonus: result.timeBonus, original_image_url: result.original_image_url },
             currentQuestion: result.nextQuestion,
             phase: result.finished ? 'finished' : 'answered',
+            questionDeadline: null, // clear while showing answer flash
           });
 
           if (!result.finished) {
             // Clear the 'answered' flash after 1.5s and go back to 'active'
             setTimeout(() => {
               if (store.phase() === 'answered') {
-                patchState(store, { phase: 'active', lastAnswer: null });
+                patchState(store, { phase: 'active', lastAnswer: null, questionDeadline: Date.now() + 30_000 });
               }
             }, 1500);
           }

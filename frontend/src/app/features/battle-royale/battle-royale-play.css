@@ -277,6 +277,36 @@
   color: var(--color-accent);
 }
 
+/* ── Question timer pill ── */
+.br-play__timer-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 2rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  white-space: nowrap;
+  min-width: 3.5rem;
+  justify-content: center;
+}
+
+.br-play__timer-pill .material-icons {
+  font-size: 1rem;
+  color: var(--color-muted-foreground);
+}
+
+.br-play__timer-pill--danger {
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.br-play__timer-pill--danger .material-icons {
+  color: #f87171;
+}
+
 /* ── Question panel ── */
 .br-play__question-panel {
   position: relative;

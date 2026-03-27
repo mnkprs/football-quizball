@@ -31,6 +31,10 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
   answerFeedback = signal<'correct' | 'wrong' | null>(null);
   codeCopied = signal(false);
 
+  // ── Question timer ────────────────────────────────────────────────────────
+  timerSeconds = signal(30);
+  private timerInterval: ReturnType<typeof setInterval> | null = null;
+
   // ── Team Logo mode state ──────────────────────────────────────────────────
   teamNames = signal<string[]>([]);
   logoSearchQuery = signal('');
@@ -64,10 +68,17 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
     });
     // Always load team names eagerly — cheap, cached, needed once mode is known
     this.logoQuizApi.getTeamNames().subscribe(names => this.teamNames.set(names));
+
+    // Start question timer tick
+    this.timerInterval = setInterval(() => this.tickTimer(), 1000);
   }
 
   ngOnDestroy(): void {
     this.store.unsubscribeRealtime();
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
   }
 
   async copyCode(): Promise<void> {
@@ -121,6 +132,22 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
     if (!this.textAnswer.trim()) return;
     this.logoDropdownOpen.set(false);
     this.selectAndSubmit(this.textAnswer);
+  }
+
+  // ── Timer ──────────────────────────────────────────────────────────────────
+
+  private tickTimer(): void {
+    const deadline = this.store.questionDeadline();
+    if (!deadline || this.store.phase() !== 'active') {
+      this.timerSeconds.set(30);
+      return;
+    }
+    const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    this.timerSeconds.set(remaining);
+    if (remaining <= 0 && !this.store.submitting()) {
+      // Auto-submit wrong answer on timeout
+      this.store.submitAnswer('__timeout__');
+    }
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────

@@ -96,6 +96,10 @@
         <div class="br-play__progress">
           <div class="br-play__progress-bar" [style.width.%]="progress"></div>
         </div>
+        <div class="br-play__timer-pill" [class.br-play__timer-pill--danger]="timerSeconds() <= 10">
+          <span class="material-icons">timer</span>
+          {{ timerSeconds() }}s
+        </div>
         <div class="br-play__score-pill">
           <span class="material-icons">star</span>
           {{ store.myScore() }}
@@ -220,8 +224,13 @@
         </div>
       } @else {
         <div class="br-play__between-questions">
-          <span class="material-icons spinning">sync</span>
-          <p>Loading next question…</p>
+          @if (store.myIndex() >= (store.roomView()?.questionCount ?? 10)) {
+            <span class="material-icons">hourglass_top</span>
+            <p>Waiting for other players to finish...</p>
+          } @else {
+            <span class="material-icons spinning">sync</span>
+            <p>Loading next question...</p>
+          }
         </div>
       }
 
