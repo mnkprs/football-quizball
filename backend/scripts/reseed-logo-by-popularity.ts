@@ -119,8 +119,13 @@ async function main() {
 
   // Step 2: Build new questions — ONE per team (not 3), difficulty = popularity
   // All show the easy-erased image
+  // Dedup: if same team appears in multiple competitions, keep the easier
+  // (more popular) version so users see the best-known variant first.
   const rows: any[] = [];
-  const stats = { EASY: 0, MEDIUM: 0, HARD: 0, skipped: 0 };
+  const seenSlugs = new Map<string, { difficulty: Difficulty; index: number }>();
+  const stats = { EASY: 0, MEDIUM: 0, HARD: 0, skipped: 0, deduped: 0 };
+
+  const DIFF_RANK: Record<Difficulty, number> = { EASY: 0, MEDIUM: 1, HARD: 2 };
 
   for (const [comp, teams] of Object.entries(data.by_competition)) {
     const difficulty = getPopularityDifficulty(comp);
@@ -132,6 +137,23 @@ async function main() {
         stats.skipped++;
         continue;
       }
+
+      // Dedup by slug — if already seen, keep the easier (more popular) version
+      const existing = seenSlugs.get(team.slug);
+      if (existing) {
+        if (DIFF_RANK[difficulty] < DIFF_RANK[existing.difficulty]) {
+          // This version is from a more popular competition — replace
+          stats[existing.difficulty]--;
+          rows[existing.index] = null as any; // mark for removal
+          stats.deduped++;
+        } else {
+          stats.deduped++;
+          continue; // keep the existing easier version
+        }
+      }
+
+      const idx = rows.length;
+      seenSlugs.set(team.slug, { difficulty, index: idx });
 
       rows.push({
         category: 'LOGO_QUIZ',
@@ -162,18 +184,22 @@ async function main() {
     }
   }
 
+  // Filter out nulled-out entries from dedup replacements
+  const finalRows = rows.filter(Boolean);
+
   console.log(`\n  New questions to seed:`);
   console.log(`    EASY:    ${stats.EASY} (famous teams)`);
   console.log(`    MEDIUM:  ${stats.MEDIUM} (known teams)`);
   console.log(`    HARD:    ${stats.HARD} (obscure teams)`);
   console.log(`    Skipped: ${stats.skipped} (no erasure image)`);
-  console.log(`    Total:   ${rows.length}`);
+  console.log(`    Deduped: ${stats.deduped} (cross-competition duplicates)`);
+  console.log(`    Total:   ${finalRows.length}`);
 
   if (dryRun) {
     console.log('\n  Dry run — not inserting.');
     // Show examples per tier
     for (const diff of ['EASY', 'MEDIUM', 'HARD'] as Difficulty[]) {
-      const examples = rows
+      const examples = finalRows
         .filter((r) => r.difficulty === diff)
         .slice(0, 5)
         .map((r) => r.question.correct_answer);
@@ -185,8 +211,8 @@ async function main() {
   // Step 3: Insert in batches
   let inserted = 0;
   const batchSize = 100;
-  for (let i = 0; i < rows.length; i += batchSize) {
-    const batch = rows.slice(i, i + batchSize);
+  for (let i = 0; i < finalRows.length; i += batchSize) {
+    const batch = finalRows.slice(i, i + batchSize);
     const { error } = await supabase.from('question_pool').insert(batch);
     if (error) {
       console.error(`  Insert error at ${i}: ${error.message}`);
