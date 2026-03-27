@@ -24,6 +24,7 @@ const ROOM_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 @Injectable()
 export class BattleRoyaleService {
   private readonly logger = new Logger(BattleRoyaleService.name);
+  private roomsCache: { data: { id: string; inviteCode: string; playerCount: number; maxPlayers: number; createdAt: string; hostUsername: string }[]; expiresAt: number } | null = null;
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -119,6 +120,73 @@ export class BattleRoyaleService {
     // No suitable room found — create a public one
     const { roomId } = await this.createRoom(userId, username, false);
     return { roomId, isHost: true };
+  }
+
+  // ── Get public waiting rooms ─────────────────────────────────────────────────
+
+  async getPublicRooms(): Promise<{
+    id: string;
+    inviteCode: string;
+    playerCount: number;
+    maxPlayers: number;
+    createdAt: string;
+    hostUsername: string;
+  }[]> {
+    // Serve from cache if still fresh (5-second TTL)
+    const now = Date.now();
+    if (this.roomsCache && this.roomsCache.expiresAt > now) {
+      return this.roomsCache.data;
+    }
+
+    // Query 1: fetch waiting public rooms
+    const { data: rooms, error } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .select('id, invite_code, host_id, created_at')
+      .eq('status', 'waiting')
+      .eq('is_private', false)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error || !rooms || rooms.length === 0) return [];
+
+    const typedRooms = rooms as { id: string; invite_code: string; host_id: string; created_at: string }[];
+    const roomIds = typedRooms.map((r) => r.id);
+    const hostIds = [...new Set(typedRooms.map((r) => r.host_id))];
+
+    // Query 2: batch-fetch all player rows for these rooms in one round-trip
+    const { data: playerRows } = await this.supabaseService.client
+      .from('battle_royale_players')
+      .select('room_id')
+      .in('room_id', roomIds);
+
+    const countMap = new Map<string, number>();
+    for (const row of (playerRows ?? []) as { room_id: string }[]) {
+      countMap.set(row.room_id, (countMap.get(row.room_id) ?? 0) + 1);
+    }
+
+    // Query 3: batch-fetch all host profiles in one round-trip
+    const { data: profiles } = await this.supabaseService.client
+      .from('profiles')
+      .select('id, username')
+      .in('id', hostIds);
+
+    const profileMap = new Map<string, string>();
+    for (const p of (profiles ?? []) as { id: string; username: string | null }[]) {
+      profileMap.set(p.id, p.username ?? 'Unknown');
+    }
+
+    const result = typedRooms.map((room) => ({
+      id: room.id,
+      inviteCode: room.invite_code,
+      playerCount: countMap.get(room.id) ?? 0,
+      maxPlayers: 20,
+      createdAt: room.created_at,
+      hostUsername: profileMap.get(room.host_id) ?? 'Unknown',
+    }));
+
+    // Cache the result for 5 seconds
+    this.roomsCache = { data: result, expiresAt: now + 5_000 };
+    return result;
   }
 
   // ── Get room (public view, correct answers stripped) ────────────────────────
@@ -344,6 +412,41 @@ export class BattleRoyaleService {
   /** Add a bot (or any participant) to a room by ID — used by the bot matchmaker. */
   async addBotToRoom(roomId: string, botId: string, botUsername: string): Promise<void> {
     await this.addPlayer(roomId, botId, botUsername);
+  }
+
+  /**
+   * Create a public waiting room hosted by a bot user.
+   * Unlike createRoom (which defaults to private), this always sets is_private=false
+   * so the room appears in the lobby list for humans to join.
+   */
+  async createRoomForBot(botId: string, botUsername: string): Promise<{ roomId: string; inviteCode: string }> {
+    const questions = await this.blitzService.drawForRoom(QUESTION_COUNT);
+    if (questions.length === 0) {
+      throw new BadRequestException('No questions available in the pool');
+    }
+
+    const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+
+    const { data: room, error: roomErr } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .insert({
+        host_id: botId,
+        invite_code: inviteCode,
+        status: 'waiting',
+        questions,
+        question_count: questions.length,
+        is_private: false, // always public so humans can discover and join
+      })
+      .select()
+      .single<BRRoomRow>();
+
+    if (roomErr || !room) {
+      this.logger.error(`[br] createRoomForBot error: ${roomErr?.message}`);
+      throw new BadRequestException('Could not create bot room');
+    }
+
+    await this.addPlayer(room.id, botId, botUsername);
+    return { roomId: room.id, inviteCode };
   }
 
   /** Remove a player from a waiting room; deletes the room if it becomes empty. */

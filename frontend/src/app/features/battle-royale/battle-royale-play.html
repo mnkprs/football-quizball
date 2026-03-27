@@ -18,7 +18,13 @@
 
       <div class="br-play__room-code">
         <p class="br-play__room-code-label">Invite code</p>
-        <p class="br-play__room-code-value">{{ store.roomView()?.inviteCode }}</p>
+        <div class="br-play__invite-code-row">
+          <p class="br-play__room-code-value">{{ store.roomView()?.inviteCode }}</p>
+          <button class="br-play__copy-btn" (click)="copyCode()">
+            <span class="material-icons">{{ codeCopied() ? 'check' : 'content_copy' }}</span>
+            {{ codeCopied() ? 'Copied!' : 'Copy Code' }}
+          </button>
+        </div>
         <p class="br-play__room-code-hint">Share this code so others can join</p>
       </div>
 

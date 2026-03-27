@@ -13,6 +13,12 @@ const QUEUE_TIMEOUT_SECONDS = 30;
 const BR_BOT_MIN = 3;
 const BR_BOT_MAX = 7;
 
+/** Minimum number of public waiting BR rooms the matchmaker will maintain. */
+const BR_MIN_WAITING_ROOMS = 2;
+
+/** Number of seed bots to add when the matchmaker creates a new bot-hosted room. */
+const BR_SEED_BOT_COUNT = 3;
+
 /** Minutes a BR room can stay in 'waiting' before being deleted as stale. */
 const STALE_BR_ROOM_MINUTES = 10;
 
@@ -38,6 +44,7 @@ export class BotMatchmakerService {
         this.injectBotsIntoOnlineQueues(),
         this.injectBotsIntoDuelQueues(),
         this.injectBotsIntoBattleRoyaleRooms(),
+        this.createBotBRRooms(),
         this.cleanStaleBRRooms(),
       ]);
     } finally {
@@ -231,6 +238,63 @@ export class BotMatchmakerService {
       roomId,
       bots.map((b) => ({ id: b.id, skill: b.bot_skill })),
     );
+  }
+
+  // ── Bot room creation ────────────────────────────────────────────────────────
+
+  /**
+   * Ensure the lobby always has at least BR_MIN_WAITING_ROOMS public waiting rooms.
+   * If fewer exist, create new bot-hosted rooms pre-seeded with BR_SEED_BOT_COUNT bots
+   * and leave them in 'waiting' so real players can discover and join them.
+   * The existing fillAndStartBRRoom logic will force-start any room that remains
+   * bot-only after QUEUE_TIMEOUT_SECONDS.
+   */
+  private async createBotBRRooms(): Promise<void> {
+    const { count, error } = await this.supabaseService.client
+      .from('battle_royale_rooms')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'waiting')
+      .eq('is_private', false);
+
+    if (error) {
+      this.logger.warn(`[Matchmaker] Could not count waiting BR rooms: ${error.message}`);
+      return;
+    }
+
+    const waiting = count ?? 0;
+    if (waiting >= BR_MIN_WAITING_ROOMS) return;
+
+    const roomsToCreate = BR_MIN_WAITING_ROOMS - waiting;
+    this.logger.log(`[Matchmaker] Only ${waiting} waiting BR room(s) — creating ${roomsToCreate} bot-hosted room(s)`);
+
+    for (let i = 0; i < roomsToCreate; i++) {
+      await this.createOneBotBRRoom().catch((err) => {
+        this.logger.warn(`[Matchmaker] Failed to create bot BR room: ${err}`);
+      });
+    }
+  }
+
+  private async createOneBotBRRoom(): Promise<void> {
+    // Pick the host bot at average skill
+    const hostBot = await this.botService.selectBot(1000);
+    if (!hostBot) {
+      this.logger.warn('[Matchmaker] No host bot available to create BR room');
+      return;
+    }
+
+    const { roomId } = await this.brService.createRoomForBot(hostBot.id, hostBot.username);
+    this.logger.log(`[Matchmaker] Bot "${hostBot.username}" created BR room ${roomId}`);
+
+    // Seed the room with additional bots so it looks lively in the lobby
+    const seedBots = await this.botService.selectBotsForRoom(BR_SEED_BOT_COUNT, 1000);
+    for (const bot of seedBots) {
+      if (bot.id === hostBot.id) continue; // host is already in the room
+      await this.brService.addBotToRoom(roomId, bot.id, bot.username).catch((err) => {
+        this.logger.warn(`[Matchmaker] Could not seed bot ${bot.id} into new BR room ${roomId}: ${err}`);
+      });
+    }
+
+    this.logger.log(`[Matchmaker] BR room ${roomId} seeded with ${seedBots.length} bot(s) — waiting for humans`);
   }
 
   // ── Stale room cleanup ───────────────────────────────────────────────────────

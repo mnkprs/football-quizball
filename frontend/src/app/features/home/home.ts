@@ -179,11 +179,9 @@ export class HomeComponent implements OnInit {
   goBattleRoyale(): void {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
-    } else if (!this.pro.isPro() && this.pro.trialBattleRoyaleRemaining() === 0) {
-      this.pro.showUpgradeModal.set(true);
-    } else {
-      this.router.navigate(['/battle-royale']);
+      return;
     }
+    this.router.navigate(['/battle-royale']);
   }
 
   goDuel(): void {

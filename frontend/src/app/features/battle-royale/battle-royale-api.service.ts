@@ -105,4 +105,22 @@ export class BattleRoyaleApiService {
   getLeaderboard(roomId: string): Observable<BRPlayerEntry[]> {
     return this.http.get<BRPlayerEntry[]>(`${this.base}/${roomId}/leaderboard`, { headers: this.headers() });
   }
+
+  getPublicRooms(): Observable<{
+    id: string;
+    inviteCode: string;
+    playerCount: number;
+    maxPlayers: number;
+    createdAt: string;
+    hostUsername: string;
+  }[]> {
+    return this.http.get<{
+      id: string;
+      inviteCode: string;
+      playerCount: number;
+      maxPlayers: number;
+      createdAt: string;
+      hostUsername: string;
+    }[]>(`${this.base}/rooms`, { headers: this.headers() });
+  }
 }
