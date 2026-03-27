@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BlitzService } from '../blitz/blitz.service';
 import { BlitzQuestion } from '../blitz/blitz.types';
@@ -42,7 +43,7 @@ export class BattleRoyaleService {
       throw new BadRequestException('No questions available in the pool');
     }
 
-    const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+    const inviteCode = randomBytes(4).toString('hex').slice(0, 6).toUpperCase();
 
     const { data: room, error: roomErr } = await this.supabaseService.client
       .from('battle_royale_rooms')
@@ -62,14 +63,14 @@ export class BattleRoyaleService {
       throw new BadRequestException('Could not create room');
     }
 
-    await this.addPlayer(room.id, hostId, hostUsername);
+    await this.addPlayer(room.id, hostId, hostUsername); // standard mode — no mode hint needed
     return { roomId: room.id, inviteCode };
   }
 
   // ── Create team logo room ────────────────────────────────────────────────────
 
   async createTeamLogoRoom(hostId: string, hostUsername?: string): Promise<{ roomId: string; inviteCode: string }> {
-    const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+    const inviteCode = randomBytes(4).toString('hex').slice(0, 6).toUpperCase();
 
     const { data: room, error: roomErr } = await this.supabaseService.client
       .from('battle_royale_rooms')
@@ -91,7 +92,7 @@ export class BattleRoyaleService {
       throw new BadRequestException('Could not create team logo room');
     }
 
-    await this.addPlayer(room.id, hostId, hostUsername);
+    await this.addPlayer(room.id, hostId, hostUsername, 'team_logo'); // mode known — skip extra query
     return { roomId: room.id, inviteCode };
   }
 
@@ -331,17 +332,29 @@ export class BattleRoyaleService {
     if (room.host_id !== requestingUserId) throw new ForbiddenException('Only the host can start the game');
     if (room.status !== 'waiting') throw new BadRequestException('Room is not in waiting state');
 
-    // Deal per-player logo questions before setting the room to active
-    if (room.mode === 'team_logo') {
-      await this.dealLogoQuestions(roomId, room.config?.questionCount ?? QUESTION_COUNT);
-    }
-
-    const { error: updateErr } = await this.supabaseService.client
+    // CAS guard: atomically transition waiting → active. If another concurrent
+    // startRoom call already flipped the status, data will be empty and we bail out,
+    // preventing dealLogoQuestions from running twice.
+    const { data: casRows, error: updateErr } = await this.supabaseService.client
       .from('battle_royale_rooms')
       .update({ status: 'active', started_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-      .eq('id', roomId);
+      .eq('id', roomId)
+      .eq('status', 'waiting')  // CAS: only succeeds for the first caller
+      .select('id');
 
     if (updateErr) throw new BadRequestException('Could not start room');
+    if (!casRows || casRows.length === 0) {
+      // A concurrent startRoom call won the race — room is already active, do nothing.
+      return;
+    }
+
+    // Deal per-player logo questions now that we exclusively own the transition.
+    if (room.mode === 'team_logo') {
+      // Rebalance team assignments (Finding 2): concurrent joins may have produced
+      // unbalanced teams. Re-assign by join order (alternating 1/2) before dealing.
+      await this.rebalanceTeams(roomId);
+      await this.dealLogoQuestions(roomId, room.config?.questionCount ?? QUESTION_COUNT);
+    }
 
     // Set question_started_at for all players so the first question timer begins
     await this.supabaseService.client
@@ -591,7 +604,7 @@ export class BattleRoyaleService {
       throw new BadRequestException('No questions available in the pool');
     }
 
-    const inviteCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+    const inviteCode = randomBytes(4).toString('hex').slice(0, 6).toUpperCase();
 
     const { data: room, error: roomErr } = await this.supabaseService.client
       .from('battle_royale_rooms')
@@ -611,7 +624,7 @@ export class BattleRoyaleService {
       throw new BadRequestException('Could not create bot room');
     }
 
-    await this.addPlayer(room.id, botId, botUsername);
+    await this.addPlayer(room.id, botId, botUsername); // standard mode — no mode hint needed
     return { roomId: room.id, inviteCode };
   }
 
@@ -666,22 +679,36 @@ export class BattleRoyaleService {
     await this.startRoom(roomId, room.host_id);
   }
 
-  private async addPlayer(roomId: string, userId: string, usernameHint?: string): Promise<void> {
+  /**
+   * Add (or upsert) a player into a room.
+   *
+   * @param mode - Optional room mode. When known by the caller (e.g. 'team_logo'),
+   *   pass it here to avoid an extra DB round-trip (Finding 6 N+1 fix).
+   *   If omitted, the method queries the room row itself (e.g. joinByCode path).
+   */
+  private async addPlayer(roomId: string, userId: string, usernameHint?: string, mode?: string): Promise<void> {
     let username = usernameHint;
     if (!username) {
       const profile = await this.supabaseService.getProfile(userId);
       username = profile?.username ?? 'Player';
     }
 
-    // For team_logo rooms, auto-assign team_id by balancing player counts across teams.
-    let teamId: number | undefined;
-    const { data: roomRow } = await this.supabaseService.client
-      .from('battle_royale_rooms')
-      .select('mode')
-      .eq('id', roomId)
-      .single<Pick<BRRoomRow, 'mode'>>();
+    // Resolve the room mode — use the caller-supplied value when available to
+    // skip the extra SELECT (Finding 6: N+1 reduction).
+    let resolvedMode = mode;
+    if (!resolvedMode) {
+      const { data: roomRow } = await this.supabaseService.client
+        .from('battle_royale_rooms')
+        .select('mode')
+        .eq('id', roomId)
+        .single<Pick<BRRoomRow, 'mode'>>();
+      resolvedMode = roomRow?.mode ?? undefined;
+    }
 
-    if (roomRow?.mode === 'team_logo') {
+    // For team_logo rooms, auto-assign team_id by balancing player counts across teams.
+    // Note: a definitive rebalance is applied in startRoom() to handle any races.
+    let teamId: number | undefined;
+    if (resolvedMode === 'team_logo') {
       const { data: existingPlayers } = await this.supabaseService.client
         .from('battle_royale_players')
         .select('team_id')
@@ -707,6 +734,37 @@ export class BattleRoyaleService {
       this.logger.error(`[br] addPlayer error: ${error.message}`);
       throw new BadRequestException('Could not join room');
     }
+  }
+
+  /**
+   * Rebalance team assignments for a team_logo room before the game starts.
+   * Sorts players by their row insertion order (joined_at or id) and assigns
+   * alternating team IDs (1, 2, 1, 2, …) to guarantee equal-or-near-equal splits
+   * regardless of any concurrent-join races during the lobby phase.
+   */
+  private async rebalanceTeams(roomId: string): Promise<void> {
+    const { data: playerRows } = await this.supabaseService.client
+      .from('battle_royale_players')
+      .select('id, user_id')
+      .eq('room_id', roomId)
+      .order('id', { ascending: true }); // stable insertion order
+
+    const players = (playerRows ?? []) as { id: string; user_id: string }[];
+    if (players.length === 0) return;
+
+    const updates = players.map(async (player, idx) => {
+      const teamId = (idx % 2) + 1; // alternates 1, 2, 1, 2, …
+      const { error } = await this.supabaseService.client
+        .from('battle_royale_players')
+        .update({ team_id: teamId, updated_at: new Date().toISOString() })
+        .eq('id', player.id);
+      if (error) {
+        this.logger.warn(`[br] rebalanceTeams: failed to update player ${player.user_id}: ${error.message}`);
+      }
+    });
+
+    await Promise.all(updates);
+    this.logger.log(`[br] rebalanceTeams: assigned teams for ${players.length} players in room ${roomId}`);
   }
 
   private toPublicQuestion(q: BlitzQuestion, index: number): BRPublicQuestion {
