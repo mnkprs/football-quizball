@@ -186,13 +186,15 @@ export class LogoQuizService {
       throw new NotFoundException('No logo questions available');
     }
 
-    // Shuffle in-place then take the first `count` entries.
-    const shuffled: Array<{ id: string; question: any }> = (data as Array<{ id: string; question: any }>)
-      .slice()
-      .sort(() => Math.random() - 0.5)
-      .slice(0, count);
+    // Fisher-Yates shuffle for unbiased randomness, then take the first `count` entries.
+    const shuffled: Array<{ id: string; question: any }> = (data as Array<{ id: string; question: any }>).slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const picked = shuffled.slice(0, count);
 
-    return shuffled.map((row) => {
+    return picked.map((row) => {
       const q = row.question as any;
       return {
         id: row.id,
