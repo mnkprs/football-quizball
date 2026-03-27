@@ -40,6 +40,7 @@
   margin-right: 0.2rem;
 }
 
+
 .mode-card__tag--red {
   color: #ff6b6b;
   background: rgba(239, 68, 68, 0.15);
@@ -190,6 +191,11 @@
   0%, 100% { transform: scale(1); box-shadow: 0 0 4px #ef4444; }
   50% { transform: scale(1.4); box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.3); }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-card__online-dot { animation: none; }
+}
+
 
 /* Legacy badge pill — kept for backward compat */
 .mode-card__badge-pill {

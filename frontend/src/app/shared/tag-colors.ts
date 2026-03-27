@@ -18,7 +18,7 @@ export const TAG_COLORS: Record<string, string> = {
 /** Global tag-to-icon map — Material Icons name for each tag. */
 export const TAG_ICONS: Record<string, string> = {
   '1v1': 'sports_kabaddi',
-  'pvp': 'swords',
+  'pvp': 'sports_mma',
   'ranked': 'military_tech',
   'elo': 'trending_up',
   'solo': 'person',

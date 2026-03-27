@@ -150,6 +150,7 @@
   margin-right: 0.2rem;
 }
 
+
 .battle-hero__tag--gold {
   color: var(--color-gold-light);
   background: var(--color-gold-bg);
@@ -289,6 +290,13 @@
   50% { transform: scale(1.4); box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.3); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .battle-hero { animation: none; }
+  .battle-hero::before { animation: none; }
+  .battle-hero__online-dot { animation: none; }
+  .battle-hero__wave { animation: none; }
+}
+
 /* ---- Bottom section ---- */
 
 .battle-hero__bottom {
@@ -300,8 +308,8 @@
 .battle-hero__featured {
   position: absolute;
   left: 50%;
-  transform: translate(-50%, -40%);
-  /* display: inline-flex; */
+  transform: translateX(-50%);
+  display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   padding: 0.4375rem 1rem;
@@ -314,7 +322,7 @@
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  box-shadow: 0 0 16px 12px rgba(156, 39, 176, 0.2);
+  box-shadow: 0 0 16px rgba(156, 39, 176, 0.2);
   z-index: 1;
 }
 
