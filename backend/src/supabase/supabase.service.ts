@@ -60,11 +60,11 @@ export class SupabaseService {
 
     const profile = await this.getProfile(userId);
     if (!profile) return null;
-    const [profilesRes, dummiesRes] = await Promise.all([
-      this.client.from('profiles').select('id', { count: 'exact', head: true }).gt('elo', profile.elo),
-      this.client.from('dummy_users').select('id', { count: 'exact', head: true }).gt('elo', profile.elo),
-    ]);
-    const rank = (profilesRes.count ?? 0) + (dummiesRes.count ?? 0) + 1;
+    const { count } = await this.client
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .gt('elo', profile.elo);
+    const rank = (count ?? 0) + 1;
     await this.redisService.set(cacheKey, rank, RANK_TTL);
     return rank;
   }
@@ -92,19 +92,16 @@ export class SupabaseService {
     const cached = await this.redisService.get<Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>>(cacheKey);
     if (cached) return cached;
 
-    // Fetch top-N from each table (DB-sorted), then merge and re-rank
     const cols = 'id, username, elo, games_played, questions_answered, correct_answers';
-    const [profilesRes, dummyRes] = await Promise.all([
-      this.client.from('profiles').select(cols).order('elo', { ascending: false }).limit(limit),
-      this.client.from('dummy_users').select(cols).order('elo', { ascending: false }).limit(limit),
-    ]);
-    type Row = { id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number };
-    const combined = [...(profilesRes.data ?? []) as Row[], ...(dummyRes.data ?? []) as Row[]]
-      .sort((a, b) => b.elo - a.elo)
-      .slice(0, limit);
+    const { data } = await this.client
+      .from('profiles')
+      .select(cols)
+      .order('elo', { ascending: false })
+      .limit(limit);
 
-    await this.redisService.set(cacheKey, combined, LEADERBOARD_TTL);
-    return combined;
+    const result = (data ?? []) as Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>;
+    await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
+    return result;
   }
 
   /** Returns current user's solo leaderboard entry with rank, for display below top 5. */
@@ -656,5 +653,22 @@ export class SupabaseService {
       mode_stats: modeStats.data ?? [],
       blitz_scores: blitzStats.data ?? [],
     };
+  }
+
+  // ── App Settings ────────────────────────────────────────────────────────────
+
+  async getSetting(key: string): Promise<string | null> {
+    const { data } = await this.client
+      .from('app_settings')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+    return data?.value ?? null;
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    await this.client
+      .from('app_settings')
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   }
 }
