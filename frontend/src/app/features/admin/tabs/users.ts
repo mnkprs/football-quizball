@@ -211,7 +211,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
           @if ((user.recentGames ?? []).length > 0) {
             <div class="recent-games">
               <h4 class="section-title">Recent Games</h4>
-              @for (game of user.recentGames.slice(0, 5); track game.id ?? $index) {
+              @for (game of (user.recentGames ?? []).slice(0, 5); track game.id ?? $index) {
                 <div class="game-row">
                   <span class="game-type">{{ game.match_mode ?? game.game_type ?? 'game' }}</span>
                   <span class="game-result" [class.game-result--win]="game.winner_id === user.profile.id">
