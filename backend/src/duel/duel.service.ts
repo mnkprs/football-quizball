@@ -109,8 +109,10 @@ export class DuelService {
     if (updErr || !updated) throw new ConflictException('Could not join — duel may have just been taken.');
 
     // Record the questions in the guest's history so they don't see them again in future games
-    const poolIds = ((updated as DuelGameRow).pool_question_ids ?? []);
-    this.questionPoolService.recordBoardHistory(poolIds, [guestId]).catch(() => {});
+    if ((updated as DuelGameRow).game_type === 'standard') {
+      const poolIds = ((updated as DuelGameRow).pool_question_ids ?? []);
+      this.questionPoolService.recordBoardHistory(poolIds, [guestId]).catch(() => {});
+    }
 
     const [hostUsername, guestUsername] = await Promise.all([
       this.getUsername(row.host_id),
@@ -183,6 +185,9 @@ export class DuelService {
 
     // No open games — create one without an invite code (queue marker)
     const questions = await this.drawQuestionsForType(gameType, userId);
+    if (questions.length === 0) {
+      throw new BadRequestException('Question pool is empty. Please try again later.');
+    }
     const { data, error } = await this.supabaseService.client
       .from('duel_games')
       .insert({
@@ -511,7 +516,6 @@ export class DuelService {
       difficulty: q.difficulty,
       ...(isLogo && (q as any).image_url ? {
         image_url: (q as any).image_url,
-        original_image_url: (q as any).original_image_url,
       } : {}),
     };
   }
