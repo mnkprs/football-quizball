@@ -364,7 +364,8 @@ export class AdminController {
       if (/^[0-9a-f]{8}-/i.test(searchTerm)) {
         query = query.eq('id', searchTerm);
       } else {
-        query = query.ilike('username', `%${searchTerm}%`);
+        const escaped = searchTerm.replace(/%/g, '\\%').replace(/_/g, '\\_');
+        query = query.ilike('username', `%${escaped}%`);
       }
     }
 
