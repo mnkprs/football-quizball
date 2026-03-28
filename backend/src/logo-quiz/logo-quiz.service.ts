@@ -256,36 +256,7 @@ export class LogoQuizService {
     // Exact match
     if (a === b) return true;
 
-    // Check if submitted matches any word group (e.g. "Bayern" matches "Bayern Munich")
-    const bWords = b.split(/\s+/);
-    if (bWords.length > 1) {
-      // Match last word (e.g. "Munich" for "Bayern Munich")
-      if (a === bWords[bWords.length - 1]) return true;
-      // Match first word
-      if (a === bWords[0]) return true;
-      // Match without common prefixes (FC, AC, etc.)
-      const prefixes = ['fc', 'ac', 'as', 'sc', 'rc', 'cd', 'ca', 'cf', 'us', 'ss', 'sv', 'vfl', 'tsv', 'bsc', 'fk'];
-      const stripped = bWords.filter((w) => !prefixes.includes(w)).join(' ');
-      if (a === stripped) return true;
-    }
-
-    // Levenshtein distance
-    const maxDist = a.length <= 4 ? 1 : a.length <= 8 ? 2 : 3;
-    return this.levenshtein(a, b) <= maxDist;
+    return false;
   }
 
-  private levenshtein(a: string, b: string): number {
-    const m = a.length,
-      n = b.length;
-    const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
-      Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
-    );
-    for (let i = 1; i <= m; i++)
-      for (let j = 1; j <= n; j++)
-        dp[i][j] =
-          a[i - 1] === b[j - 1]
-            ? dp[i - 1][j - 1]
-            : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
-    return dp[m][n];
-  }
 }
