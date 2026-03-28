@@ -265,6 +265,27 @@ export class AdminApiService {
     );
   }
 
+  /** Get bot activity status. */
+  getBotStatus(apiKey?: string): Observable<BotStatusResponse> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.get<BotStatusResponse>(`${this.base}/api/admin/bots/status`, { headers });
+  }
+
+  /** Pause all bot activity. */
+  pauseBots(apiKey?: string): Observable<{ paused: boolean }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.post<{ paused: boolean }>(`${this.base}/api/admin/bots/pause`, null, { headers });
+  }
+
+  /** Resume all bot activity. */
+  resumeBots(apiKey?: string): Observable<{ paused: boolean }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.post<{ paused: boolean }>(`${this.base}/api/admin/bots/resume`, null, { headers });
+  }
+
   /** Re-score question_pool and optionally apply difficulty/raw_score updates. Same as npm run pool:migrate-difficulty:apply. */
   migratePoolDifficulty(
     options?: { apply?: boolean; slot?: string; range?: string; locale?: string },
@@ -345,4 +366,10 @@ export interface VerifyPoolIntegrityResponse {
 export interface DeleteByVersionResponse {
   deleted: number;
   wouldDelete?: number;
+}
+
+export interface BotStatusResponse {
+  paused: boolean;
+  matchmaker: { paused: boolean };
+  onlineGameRunner: { paused: boolean };
 }

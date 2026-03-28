@@ -26,6 +26,21 @@ const STALE_BR_ROOM_MINUTES = 10;
 export class BotMatchmakerService {
   private readonly logger = new Logger(BotMatchmakerService.name);
   private checkQueuesRunning = false;
+  private _paused = false;
+
+  get paused(): boolean {
+    return this._paused;
+  }
+
+  pause(): void {
+    this._paused = true;
+    this.logger.warn('[Matchmaker] Bot activity PAUSED');
+  }
+
+  resume(): void {
+    this._paused = false;
+    this.logger.warn('[Matchmaker] Bot activity RESUMED');
+  }
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -37,7 +52,7 @@ export class BotMatchmakerService {
 
   @Cron('*/5 * * * * *') // every 5 seconds
   async checkQueues(): Promise<void> {
-    if (this.checkQueuesRunning) return;
+    if (this._paused || this.checkQueuesRunning) return;
     this.checkQueuesRunning = true;
     try {
       await Promise.allSettled([
@@ -116,6 +131,7 @@ export class BotMatchmakerService {
       .from('duel_games')
       .select('id, host_id')
       .eq('status', 'waiting')
+      .eq('game_type', 'standard')
       .is('invite_code', null)
       .is('guest_id', null)
       .lt('created_at', cutoff)
