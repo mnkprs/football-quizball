@@ -168,7 +168,8 @@ export class ErrorLogService implements OnModuleInit, OnModuleDestroy {
     }
     // Uses the GIN trigram index for efficient full-text-like search
     if (params.search) {
-      query = query.ilike('message', `%${params.search}%`);
+      const escaped = params.search.replace(/%/g, '\\%').replace(/_/g, '\\_');
+      query = query.ilike('message', `%${escaped}%`);
     }
 
     const { data, count, error } = await query;

@@ -11,6 +11,8 @@ import { AdminStatsService } from './admin-stats.service';
 import { ErrorLogService } from './error-log.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 @Controller('api/admin')
 export class AdminController {
   private readonly logger = new Logger(AdminController.name);
@@ -386,7 +388,7 @@ export class AdminController {
   @Get('users/:id')
   @UseGuards(AdminApiKeyGuard)
   async getUserById(@Param('id') id: string) {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    if (!UUID_RE.test(id)) {
       throw new NotFoundException('Invalid user id');
     }
 
@@ -423,6 +425,7 @@ export class AdminController {
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
   async grantPro(@Param('id') id: string) {
+    if (!UUID_RE.test(id)) throw new NotFoundException('Invalid user id');
     const profile = await this.supabaseService.getProfile(id);
     if (!profile) throw new NotFoundException(`User ${id} not found`);
 
@@ -446,6 +449,7 @@ export class AdminController {
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
   async revokePro(@Param('id') id: string) {
+    if (!UUID_RE.test(id)) throw new NotFoundException('Invalid user id');
     const profile = await this.supabaseService.getProfile(id);
     if (!profile) throw new NotFoundException(`User ${id} not found`);
 
@@ -471,6 +475,7 @@ export class AdminController {
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
   async resetElo(@Param('id') id: string) {
+    if (!UUID_RE.test(id)) throw new NotFoundException('Invalid user id');
     const profile = await this.supabaseService.getProfile(id);
     if (!profile) throw new NotFoundException(`User ${id} not found`);
 
