@@ -7,11 +7,14 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { GameQuestionComponent, type QuestionData, type RevealResult } from '../../shared/game-question/game-question';
 import { LogoQuizApiService, type LogoQuestionResponse } from '../../core/logo-quiz-api.service';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
+import { ProfileStore } from '../../core/profile-store.service';
+import { getEloTier, type EloTier } from '../../core/elo-tier';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 
@@ -19,13 +22,14 @@ type Phase = 'idle' | 'loading' | 'question' | 'finished';
   selector: 'app-logo-quiz',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, GameQuestionComponent],
+  imports: [RouterLink, DecimalPipe, UpperCasePipe, GameQuestionComponent],
   templateUrl: './logo-quiz.html',
   styleUrl: './logo-quiz.css',
 })
 export class LogoQuizComponent implements OnDestroy {
   private api = inject(LogoQuizApiService);
   private auth = inject(AuthService);
+  private profileStore = inject(ProfileStore);
   lang = inject(LanguageService);
 
   // State
@@ -47,11 +51,16 @@ export class LogoQuizComponent implements OnDestroy {
   // Team names for searchable select
   teamNames = signal<string[]>([]);
 
+  // Hardcore mode
+  hardcoreMode = signal(false);
+
   // Timer
   timeLeft = signal(30);
   private timerInterval: ReturnType<typeof setInterval> | null = null;
 
   // Computed
+  eloTier = computed<EloTier>(() => getEloTier(this.currentElo()));
+
   accuracy = computed(() => {
     const q = this.questionsAnswered();
     return q === 0 ? 0 : Math.round((this.correctAnswers() / q) * 100);
@@ -68,13 +77,23 @@ export class LogoQuizComponent implements OnDestroy {
       difficulty: q.difficulty,
       question_text: 'Identify this football club from its logo',
       image_url: q.image_url,
-      points: q.difficulty === 'HARD' ? 30 : q.difficulty === 'MEDIUM' ? 20 : 10,
+      points: q.difficulty === 'HARD' ? 30 : 10,
     };
   });
 
   constructor() {
     // Preload team names
     this.api.getTeamNames().subscribe(names => this.teamNames.set(names));
+    // Load ELO from profile store
+    this.profileStore.loadProfile().then(() => {
+      const elo = this.profileStore.elo();
+      this.currentElo.set(elo);
+      this.startElo.set(elo);
+    });
+  }
+
+  toggleHardcore(): void {
+    this.hardcoreMode.update(v => !v);
   }
 
   ngOnDestroy(): void {
@@ -95,7 +114,8 @@ export class LogoQuizComponent implements OnDestroy {
     this.revealResultData.set(null);
 
     try {
-      const q = await firstValueFrom(this.api.getQuestion());
+      const diff = this.hardcoreMode() ? 'HARD' : undefined;
+      const q = await firstValueFrom(this.api.getQuestion(diff));
       this.currentQuestion.set(q);
       this.phase.set('question');
       this.startTimer(30);

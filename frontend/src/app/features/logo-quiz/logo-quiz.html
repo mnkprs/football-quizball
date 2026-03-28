@@ -1,10 +1,76 @@
-<div class="logo-quiz-root bg-background flex flex-col p-4">
-  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
+<div class="logo-quiz-root">
+  <div class="lq-container">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6 pt-2">
-      <button class="text-sm text-muted-foreground" (click)="goHome()">&larr; Back</button>
-      @if (phase() !== 'idle') {
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- IDLE — Start Screen                         -->
+    <!-- ═══════════════════════════════════════════ -->
+    @if (phase() === 'idle') {
+      <div class="lq-start">
+        <!-- Hero image -->
+        <div class="lq-hero">
+          <img src="emblem.png" alt="Logo Quiz" class="lq-hero__img" />
+          <div class="lq-hero__overlay"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="lq-start__content">
+          <h1 class="lq-title">LOGO QUIZ</h1>
+          <p class="lq-subtitle">
+            Identify football clubs from their modified logos.
+            Difficulty adjusts based on your ELO rating.
+          </p>
+
+          <!-- ELO Card -->
+          <div class="lq-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+            <span class="lq-elo-card__label">ELO RATING</span>
+            <span class="lq-elo-card__value">{{ currentElo() | number }}</span>
+            <span class="lq-elo-card__tier" [style.color]="eloTier().color">
+              {{ eloTier().label | uppercase }}
+            </span>
+          </div>
+
+          <!-- Hardcore Toggle -->
+          <div
+            class="lq-hardcore"
+            [class.lq-hardcore--active]="hardcoreMode()"
+            (click)="toggleHardcore()"
+          >
+            <div class="lq-hardcore__row">
+              <span class="lq-hardcore__label">💀 HARDCORE</span>
+              <div class="lq-toggle" [class.lq-toggle--on]="hardcoreMode()">
+                <div class="lq-toggle__thumb"></div>
+              </div>
+            </div>
+            <span class="lq-hardcore__desc">Logos are inverted and desaturated</span>
+          </div>
+
+          <!-- Start Button -->
+          <button
+            class="lq-start-btn"
+            (click)="startPlaying()"
+            [disabled]="loading()"
+          >
+            {{ loading() ? 'Loading...' : 'START QUIZ' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- LOADING                                     -->
+    <!-- ═══════════════════════════════════════════ -->
+    @if (phase() === 'loading') {
+      <div class="flex-1 flex items-center justify-center" style="min-height: 60dvh">
+        <div class="text-5xl animate-spin">⚽</div>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- QUESTION                                    -->
+    <!-- ═══════════════════════════════════════════ -->
+    @if (phase() === 'question' && currentQuestion()) {
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-4 pt-2 px-2">
         <div class="flex items-center gap-3 text-sm">
           <span class="text-muted-foreground">ELO</span>
           <span class="font-bold text-foreground">{{ currentElo() }}</span>
@@ -14,36 +80,8 @@
           <span class="text-muted-foreground">/</span>
           <span class="text-foreground">{{ questionsAnswered() }}</span>
         </div>
-      }
-    </div>
-
-    <!-- IDLE -->
-    @if (phase() === 'idle') {
-      <div class="flex-1 flex flex-col items-center justify-center gap-4">
-        <div class="text-6xl">⚽</div>
-        <h2 class="text-2xl font-bold text-foreground">Logo Quiz</h2>
-        <p class="text-muted-foreground text-center text-sm max-w-xs">
-          Identify football clubs from their modified logos. The more you get right, the harder it gets.
-        </p>
-        <button
-          class="mt-4 px-8 py-3 rounded-xl bg-accent text-accent-foreground font-bold text-lg"
-          (click)="startPlaying()"
-          [disabled]="loading()"
-        >
-          {{ loading() ? 'Loading...' : 'Start Playing' }}
-        </button>
       </div>
-    }
 
-    <!-- LOADING -->
-    @if (phase() === 'loading') {
-      <div class="flex-1 flex items-center justify-center">
-        <div class="text-5xl animate-spin">⚽</div>
-      </div>
-    }
-
-    <!-- QUESTION -->
-    @if (phase() === 'question' && currentQuestion()) {
       <app-game-question
         mode="solo"
         [question]="questionData()"
@@ -59,7 +97,7 @@
       />
       @if (revealing()) {
         <button
-          class="mt-3 px-6 py-2 rounded-lg border border-border text-muted-foreground text-sm"
+          class="mt-3 px-6 py-2 rounded-lg border border-border text-muted-foreground text-sm mx-auto block"
           (click)="endSession()"
         >
           End Session
@@ -67,9 +105,11 @@
       }
     }
 
-    <!-- FINISHED -->
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- FINISHED                                    -->
+    <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'finished') {
-      <div class="flex-1 flex flex-col items-center justify-center gap-4">
+      <div class="flex-1 flex flex-col items-center justify-center gap-4 p-4">
         <div class="text-5xl">🏁</div>
         <h2 class="text-2xl font-bold text-foreground">Session Complete</h2>
 

@@ -10,23 +10,12 @@ import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
 
 /**
  * Logo Quiz questions are seeded into question_pool with category='LOGO_QUIZ'.
- * The question JSONB shape:
- * {
- *   id: string,
- *   question_text: "Identify this football club from its logo",
- *   correct_answer: "Bayern Munich",
- *   explanation: "...",
- *   image_url: "https://...supabase.co/storage/.../easy.webp",
- *   category: "LOGO_QUIZ",
- *   difficulty: "EASY" | "MEDIUM" | "HARD",
- *   points: 10 | 20 | 30,
- *   meta: { slug, league, country, original_image_url }
- * }
  *
- * Mode-difficulty mapping:
- *   Logo Quiz standalone / Duel → EASY (image_url)
- *   Solo / BR / Blitz / 2P     → MEDIUM (medium_image_url)
- *   Mayhem                      → HARD (hard_image_url)
+ * Two difficulty tiers:
+ *   EASY → text-removed logo (image_url = easy erasure)
+ *   HARD → flipped + grayscale logo (image_url = hard erasure)
+ *
+ * The correct image_url is baked into the question JSONB at seed time.
  */
 @Injectable()
 export class LogoQuizService {
@@ -70,7 +59,7 @@ export class LogoQuizService {
 
     // Fallback: categorical difficulty draw
     const diff = difficulty ?? this.eloService.getDifficultyForElo(logoElo);
-    for (const fallback of [diff, 'EASY', 'MEDIUM', 'HARD'] as Difficulty[]) {
+    for (const fallback of [diff, 'EASY', 'HARD'] as Difficulty[]) {
       const { data: fb } = await client.rpc('draw_questions', {
         p_category: 'LOGO_QUIZ',
         p_difficulty: fallback,
@@ -161,8 +150,7 @@ export class LogoQuizService {
 
   /**
    * Draw `count` unique random logo questions for team/battle-royale modes.
-   * Returns the medium (degraded) image URL for gameplay and the original for reveal.
-   * The question JSONB shape is documented at the top of this file.
+   * Returns the question's image_url for gameplay and the original for reveal.
    */
   async drawLogosForTeamMode(count: number): Promise<
     Array<{
@@ -208,11 +196,10 @@ export class LogoQuizService {
       return {
         id: row.id,
         correct_answer: q.correct_answer as string,
-        // Prefer medium (degraded) URL for gameplay; fall back to image_url.
-        image_url: (q.medium_image_url ?? q.image_url) as string,
+        image_url: q.image_url as string,
         // Original un-degraded image for the reveal.
         original_image_url: (q.meta?.original_image_url ?? q.image_url) as string,
-        difficulty: (q.difficulty ?? 'MEDIUM') as string,
+        difficulty: (q.difficulty ?? 'EASY') as string,
         meta: {
           slug: (q.meta?.slug ?? '') as string,
           league: (q.meta?.league ?? '') as string,

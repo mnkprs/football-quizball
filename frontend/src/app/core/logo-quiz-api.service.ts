@@ -10,7 +10,7 @@ export interface LogoQuestionResponse {
   slug: string;
   league: string;
   country: string;
-  difficulty: 'EASY' | 'MEDIUM' | 'HARD';
+  difficulty: 'EASY' | 'HARD';
   image_url: string;
   original_image_url: string;
 }

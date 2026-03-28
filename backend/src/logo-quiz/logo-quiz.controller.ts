@@ -30,7 +30,7 @@ export class LogoQuizController {
     @Req() req: AuthenticatedRequest,
     @Query('difficulty') difficulty?: string,
   ) {
-    const diff = ['EASY', 'MEDIUM', 'HARD'].includes(difficulty?.toUpperCase() ?? '')
+    const diff = ['EASY', 'HARD'].includes(difficulty?.toUpperCase() ?? '')
       ? (difficulty!.toUpperCase() as Difficulty)
       : undefined;
     return this.logoQuizService.getQuestion(req.user.id, diff);

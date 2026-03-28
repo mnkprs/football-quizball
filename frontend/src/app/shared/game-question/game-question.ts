@@ -158,7 +158,6 @@ export class GameQuestionComponent {
   difficultyClass = computed(() => {
     const diff = this.question()?.difficulty?.toUpperCase();
     if (diff === 'EASY') return 'gq__difficulty--easy';
-    if (diff === 'MEDIUM') return 'gq__difficulty--medium';
     return 'gq__difficulty--hard';
   });
 
