@@ -1,43 +1,103 @@
-<header class="top-nav">
-  <!-- Left: Avatar + Brand -->
-  <div class="top-nav__left">
-    @if (auth.isLoggedIn()) {
-      <a routerLink="/profile" class="top-nav__avatar pressable" aria-label="Profile">
+<header class="top-nav" [style.--tier-color]="tierColor()">
+  @if (auth.isLoggedIn()) {
+    <!-- Logged in: Avatar + Stats -->
+    <div class="top-nav__left">
+      <a routerLink="/profile" class="top-nav__avatar pressable" aria-label="Profile"
+         [style.border-color]="tierColor()"
+         [style.box-shadow]="'0 0 8px ' + tierGlow() + '33'">
         @if (avatarUrl() && !avatarFailed()) {
           <img [src]="avatarUrl()" referrerpolicy="no-referrer" class="top-nav__avatar-img" (error)="avatarFailed.set(true)" />
         } @else {
           <span class="top-nav__avatar-initials">{{ initials() }}</span>
         }
+        @if (pro.isPro()) {
+          <span class="top-nav__pro-crown" aria-label="Pro member">
+            <span class="material-icons">workspace_premium</span>
+          </span>
+        }
       </a>
-    } @else {
+    </div>
+
+    <div class="top-nav__stats">
+      <!-- ELO + delta -->
+      <div class="top-nav__elo-group" aria-label="ELO {{ elo() }}{{ sessionDelta() > 0 ? ', up ' + sessionDelta() + ' today' : sessionDelta() < 0 ? ', down ' + (-sessionDelta()) + ' today' : '' }}">
+        @if (statsLoading()) {
+          <span class="top-nav__skeleton" style="width:3.5rem"></span>
+        } @else {
+          <span class="top-nav__elo-value">{{ eloDisplay() }}</span>
+          @if (sessionDelta() > 0) {
+            <span class="top-nav__delta top-nav__delta--up">▲{{ sessionDelta() }}</span>
+          } @else if (sessionDelta() < 0) {
+            <span class="top-nav__delta top-nav__delta--down">▼{{ -sessionDelta() }}</span>
+          }
+        }
+      </div>
+
+      <!-- Correct streak flame -->
+      @if (correctStreak() >= 2) {
+        <div class="top-nav__streak" aria-label="Correct streak {{ correctStreak() }}">
+          <span class="material-icons top-nav__streak-icon">local_fire_department</span>
+          <span class="top-nav__streak-count">{{ streakDisplay() }}</span>
+        </div>
+      }
+
+      <!-- Tier badge -->
+      @if (!statsLoading()) {
+        <a routerLink="/leaderboard" class="top-nav__tier-badge pressable"
+           [style.color]="tierColor()"
+           [style.background]="tierColor() + '26'"
+           [style.border-color]="tierColor() + '40'"
+           [attr.aria-label]="tierLabel() + ' tier, ' + store.tierProgressPct() + '% to next'">
+          {{ tierLabel() }}
+        </a>
+      } @else {
+        <span class="top-nav__skeleton" style="width:2.5rem"></span>
+      }
+    </div>
+
+    <div class="top-nav__right">
+      <button class="top-nav__settings-btn pressable" aria-label="Settings" (click)="toggleSettings()">
+        <span class="material-icons">settings</span>
+      </button>
+    </div>
+  } @else {
+    <!-- Logged out: Logo + Brand + Sign In -->
+    <div class="top-nav__left">
       <a routerLink="/" class="top-nav__logo-icon" aria-label="Home">
         <img src="/icons/quizball-unlimited-logo.png" alt="Stepover" class="top-nav__logo-img" />
       </a>
-    }
-    <a routerLink="/" class="top-nav__brand">STEPOVR.</a>
-  </div>
+      <a routerLink="/" class="top-nav__brand">STEPOVR.</a>
+    </div>
 
-  <!-- Right: Stat pill + Settings -->
-  <div class="top-nav__right">
-    @if (auth.isLoggedIn()) {
-      <div class="top-nav__stat-pill pressable" routerLink="/leaderboard">
-        <span class="top-nav__stat-text">ELO {{ elo() }}</span>
-        <span class="top-nav__stat-sep">·</span>
-        <span class="top-nav__stat-text">#{{ rank() }}</span>
-        <span class="material-icons top-nav__stat-icon">bolt</span>
-      </div>
-    } @else {
+    <div class="top-nav__right">
       <button type="button" class="top-nav__sign-in pressable" (click)="openAuth()">
         {{ lang.t().profileSignIn }}
       </button>
-    }
-    <button class="top-nav__settings-btn pressable" aria-label="Settings" (click)="toggleSettings()">
-      <span class="material-icons">settings</span>
-    </button>
-  </div>
+      <button class="top-nav__settings-btn pressable" aria-label="Settings" (click)="toggleSettings()">
+        <span class="material-icons">settings</span>
+      </button>
+    </div>
+  }
 </header>
 
-<!-- Settings panel overlay (kept for backward compat — triggered from profile page now) -->
+<!-- Tier progress bar (logged in only) -->
+@if (auth.isLoggedIn()) {
+  <div class="top-nav__tier-bar"
+       role="progressbar"
+       [attr.aria-valuenow]="tierPct()"
+       aria-valuemin="0"
+       aria-valuemax="100"
+       [attr.aria-label]="store.eloToNextTier() > 0 ? store.eloToNextTier() + ' ELO to ' + tierLabel() : tierLabel() + ' tier'">
+    <div class="top-nav__tier-bar-fill"
+         [style.width.%]="tierPct()"
+         [style.background]="tierColor()"
+         [style.box-shadow]="'0 0 6px ' + tierGlow()"
+         [class.top-nav__tier-bar-fill--max]="tierPct() >= 100">
+    </div>
+  </div>
+}
+
+<!-- Settings panel overlay -->
 @if (settingsOpen()) {
   <div class="top-nav__overlay" (click)="closeSettings()" role="presentation"></div>
   <div class="top-nav__settings-panel" role="dialog" aria-label="Settings">

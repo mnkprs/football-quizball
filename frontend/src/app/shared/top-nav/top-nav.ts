@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, computed, signal, HostListener, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeService } from '../../core/theme.service';
 import { ProService } from '../../core/pro.service';
-import { SoloApiService } from '../../core/solo-api.service';
+import { ProfileStore } from '../../core/profile-store.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -22,22 +21,24 @@ export class TopNavComponent implements OnInit {
   lang = inject(LanguageService);
   theme = inject(ThemeService);
   pro = inject(ProService);
+  store = inject(ProfileStore);
   private authModal = inject(AuthModalService);
   private router = inject(Router);
-  private soloApi = inject(SoloApiService);
 
   settingsOpen = signal(false);
   avatarFailed = signal(false);
   upgrading = signal(false);
   readonly buyMeACoffeeUrl = environment.buyMeACoffeeUrl;
 
-  private _elo = signal(1000);
-  private _rank = signal<number | null>(null);
-
-  elo = this._elo.asReadonly();
-  rank = computed(() => this._rank() ?? '—');
-
-  trialRemaining = computed(() => this.pro.trialBattleRoyaleRemaining());
+  elo = computed(() => this.store.elo());
+  rank = computed(() => this.store.rank() ?? '—');
+  tierLabel = computed(() => this.store.tier().label);
+  tierColor = computed(() => this.store.tier().color);
+  tierGlow = computed(() => this.store.tier().glow);
+  tierPct = computed(() => this.store.tierProgressPct());
+  sessionDelta = computed(() => this.store.sessionDelta());
+  correctStreak = computed(() => this.store.correctStreak());
+  statsLoading = computed(() => this.store.loading());
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
@@ -62,22 +63,23 @@ export class TopNavComponent implements OnInit {
     return name.slice(0, 2).toUpperCase();
   });
 
+  eloDisplay = computed(() => {
+    const e = this.elo();
+    return e > 9999 ? `${Math.round(e / 1000)}k` : String(e);
+  });
+
+  streakDisplay = computed(() => {
+    const s = this.correctStreak();
+    return s > 99 ? '99+' : String(s);
+  });
+
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
-      if (this.auth.isLoggedIn()) this.loadStats();
-    });
-  }
-
-  private async loadStats(): Promise<void> {
-    const userId = this.auth.user()?.id;
-    if (!userId) return;
-    try {
-      const res = await firstValueFrom(this.soloApi.getProfile(userId));
-      if (res?.profile) {
-        this._elo.set(res.profile.elo ?? 1000);
-        this._rank.set(res.profile.rank ?? null);
+      if (this.auth.isLoggedIn()) {
+        this.store.loadProfile();
+        this.pro.loadStatus();
       }
-    } catch { /* silent — stat pill shows defaults */ }
+    });
   }
 
   openAuth(): void { this.authModal.open(); }
@@ -96,7 +98,6 @@ export class TopNavComponent implements OnInit {
   }
 
   managePlan(): void {
-    // Subscription management is handled natively via App Store / Play Store settings
     this.pro.showUpgradeModal.set(true);
   }
 

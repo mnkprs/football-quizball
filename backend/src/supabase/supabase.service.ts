@@ -162,6 +162,37 @@ export class SupabaseService {
     return data ?? [];
   }
 
+  async getSessionEloDelta(userId: string): Promise<number> {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const { data } = await this.client
+      .from('elo_history')
+      .select('elo_change')
+      .eq('user_id', userId)
+      .gte('created_at', today.toISOString());
+    if (!data || data.length === 0) return 0;
+    return data.reduce((sum, row) => sum + (row.elo_change ?? 0), 0);
+  }
+
+  async getCorrectStreak(userId: string): Promise<number> {
+    const { data } = await this.client
+      .from('elo_history')
+      .select('correct, timed_out')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (!data) return 0;
+    let streak = 0;
+    for (const row of data) {
+      if (row.correct && !row.timed_out) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
   async countBlitzPool(): Promise<number> {
     const { count } = await this.client
       .from('question_pool')
