@@ -8,23 +8,14 @@ import type { BlitzLeaderboardEntry } from './blitz-api.service';
 
 export type { LeaderboardEntry, BlitzLeaderboardEntry };
 
-export interface LogoQuizLeaderboardEntry {
-  id: string;
-  username: string;
-  logo_quiz_elo: number;
-  logo_quiz_games_played: number;
-}
-
 export interface LeaderboardResponse {
   solo: LeaderboardEntry[];
   blitz: BlitzLeaderboardEntry[];
-  logoQuiz: LogoQuizLeaderboardEntry[];
 }
 
 export interface MyLeaderboardEntriesResponse {
   soloMe: (LeaderboardEntry & { rank: number }) | null;
   blitzMe: (BlitzLeaderboardEntry & { rank: number }) | null;
-  logoQuizMe: (LogoQuizLeaderboardEntry & { rank: number }) | null;
 }
 
 @Injectable({ providedIn: 'root' })
