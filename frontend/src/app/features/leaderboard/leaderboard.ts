@@ -7,9 +7,7 @@ import {
   LeaderboardApiService,
   LeaderboardEntry,
   BlitzLeaderboardEntry,
-  LogoQuizLeaderboardEntry,
 } from '../../core/leaderboard-api.service';
-import { MayhemApiService, MayhemLeaderboardEntry, MayhemMeEntry } from '../../core/mayhem-api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -30,27 +28,22 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class LeaderboardComponent implements OnInit {
   private leaderboardApi = inject(LeaderboardApiService);
-  private mayhemApi = inject(MayhemApiService);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
   entries = signal<LeaderboardEntry[]>([]);
   blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
-  mayhemEntries = signal<MayhemLeaderboardEntry[]>([]);
-  logoQuizEntries = signal<LogoQuizLeaderboardEntry[]>([]);
   soloMeEntry = signal<(LeaderboardEntry & { rank: number }) | null>(null);
   blitzMeEntry = signal<(BlitzLeaderboardEntry & { rank: number }) | null>(null);
-  mayhemMeEntry = signal<MayhemMeEntry | null>(null);
-  logoQuizMeEntry = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
-  activeTab = signal<'solo' | 'blitz' | 'mayhem' | 'logo-quiz'>('solo');
+  activeTab = signal<'solo' | 'blitz'>('solo');
 
   ngOnInit(): void {
     this.load();
   }
 
-  setActiveTab(tab: 'solo' | 'blitz' | 'mayhem' | 'logo-quiz'): void {
+  setActiveTab(tab: 'solo' | 'blitz'): void {
     this.activeTab.set(tab);
   }
 
@@ -60,28 +53,19 @@ export class LeaderboardComponent implements OnInit {
     try {
       await this.auth.sessionReady;
       const isLoggedIn = this.auth.isLoggedIn();
-      const [leaderboardRes, meRes, mayhemRes, mayhemMeRes] = await Promise.all([
+      const [leaderboardRes, meRes] = await Promise.all([
         firstValueFrom(this.leaderboardApi.getLeaderboard()),
         isLoggedIn
           ? firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries()).catch(() => ({
               soloMe: null,
               blitzMe: null,
-              logoQuizMe: null,
             }))
-          : Promise.resolve({ soloMe: null, blitzMe: null, logoQuizMe: null }),
-        firstValueFrom(this.mayhemApi.getLeaderboard()).catch(() => [] as MayhemLeaderboardEntry[]),
-        isLoggedIn
-          ? firstValueFrom(this.mayhemApi.getMyLeaderboardEntry()).catch(() => null)
-          : Promise.resolve(null),
+          : Promise.resolve({ soloMe: null, blitzMe: null }),
       ]);
       this.entries.set(leaderboardRes.solo);
       this.blitzEntries.set(leaderboardRes.blitz);
-      this.logoQuizEntries.set(leaderboardRes.logoQuiz ?? []);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.blitzMeEntry.set(meRes.blitzMe ?? null);
-      this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
-      this.mayhemEntries.set(mayhemRes);
-      this.mayhemMeEntry.set(mayhemMeRes);
     } catch (err: any) {
       this.error.set(this.lang.t().lbLoadFailed);
     } finally {
@@ -103,18 +87,6 @@ export class LeaderboardComponent implements OnInit {
     const me = this.blitzMeEntry();
     if (!me) return false;
     return !this.blitzEntries().some((entry) => entry.user_id === me.user_id);
-  }
-
-  showMayhemMeBelow(): boolean {
-    const me = this.mayhemMeEntry();
-    if (!me) return false;
-    return !this.mayhemEntries().some((e) => e.user_id === me.user_id);
-  }
-
-  showLogoQuizMeBelow(): boolean {
-    const me = this.logoQuizMeEntry();
-    if (!me) return false;
-    return !this.logoQuizEntries().some((e) => e.id === me.id);
   }
 
   accuracy(entry: LeaderboardEntry): number {
