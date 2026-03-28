@@ -311,7 +311,7 @@
                         [class.match-badge--online]="match.match_mode === 'online'"
                         [class.match-badge--local]="match.match_mode === 'local'"
                         [class.match-badge--br]="match.match_mode === 'battle_royale'">
-                    {{ match.match_mode === 'online' ? 'Online' : match.match_mode === 'battle_royale' ? 'Battle Royale' : 'Local' }}
+                    {{ match.match_mode === 'online' ? 'Online' : match.match_mode === 'battle_royale' ? 'BR' : 'Local' }}
                   </span>
                   <span class="match-row__date">{{ formatDate(match.played_at) }}</span>
                 </div>
