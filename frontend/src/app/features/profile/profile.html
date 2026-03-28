@@ -313,44 +313,29 @@
             <span class="profile-hero__stat-label">Accuracy</span>
           </div>
         </div>
+
+        <!-- Pro status badge (own profile only) -->
+        @if (isOwnProfile()) {
+          <div class="profile-hero__pro-row">
+            @if (pro.isPro()) {
+              <span class="profile-hero__pro-badge">STEPOVR Pro</span>
+              @if (pro.purchaseType() === 'lifetime') {
+                <span class="profile-hero__pro-type">Lifetime</span>
+              } @else if (pro.purchaseType() === 'subscription') {
+                <span class="profile-hero__pro-type">Monthly</span>
+                <a class="profile-hero__pro-manage" href="javascript:void(0)" (click)="openSubscriptionManagement()">Manage</a>
+              }
+            } @else {
+              <button mat-flat-button class="profile-hero__upgrade-btn" (click)="pro.showUpgradeModal.set(true)">Upgrade to Pro</button>
+            }
+            <button mat-button class="profile-hero__restore-btn" (click)="restorePurchases()">Restore</button>
+          </div>
+        }
       </div>
     </div>
 
     <!-- ─── PROFILE CONTENT ───────────────────────────── -->
     <div class="profile-content">
-
-      <!-- ─── PRO STATUS ────────────────────────────────── -->
-      @if (isOwnProfile()) {
-        <section class="profile-section pro-status-section">
-          <div class="pro-status-card">
-            @if (pro.isPro()) {
-              <div class="pro-badge-row">
-                <span class="pro-badge">STEPOVR Pro</span>
-                @if (pro.purchaseType() === 'lifetime') {
-                  <span class="pro-type">Lifetime</span>
-                } @else if (pro.purchaseType() === 'subscription') {
-                  <span class="pro-type">Monthly</span>
-                  @if (pro.subscriptionExpiresAt()) {
-                    <span class="pro-renews">Renews {{ formatDate(pro.subscriptionExpiresAt()!) }}</span>
-                  }
-                }
-              </div>
-              @if (pro.purchaseType() === 'subscription') {
-                <a class="manage-subscription-link" href="javascript:void(0)" (click)="openSubscriptionManagement()">
-                  Manage Subscription
-                </a>
-              }
-            } @else {
-              <button mat-flat-button class="upgrade-btn" (click)="pro.showUpgradeModal.set(true)">
-                Upgrade to Pro
-              </button>
-            }
-            <button mat-button class="restore-btn" (click)="restorePurchases()">
-              Restore Purchase
-            </button>
-          </div>
-        </section>
-      }
 
       <!-- ─── ELO SPARKLINE ─────────────────────────────── -->
       @if (sparklineData(); as spark) {

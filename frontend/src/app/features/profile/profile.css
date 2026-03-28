@@ -491,6 +491,75 @@
   background: linear-gradient(90deg, var(--color-accent), transparent);
 }
 
+/* ── Pro status inline badge row (inside hero) ────────────── */
+.profile-hero__pro-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--glass-border);
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.profile-hero__pro-badge {
+  background: linear-gradient(135deg, #FFB800 0%, #E6A800 100%);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  box-shadow: 0 0 12px rgba(230, 168, 0, 0.3);
+}
+
+.profile-hero__pro-type {
+  color: var(--color-fg-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.profile-hero__pro-manage {
+  color: var(--color-pro, #FFB800);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+
+.profile-hero__pro-manage:hover {
+  opacity: 1;
+}
+
+.profile-hero__upgrade-btn {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%) !important;
+  color: var(--color-accent-fg) !important;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  border-radius: 100px;
+  padding: 0.375rem 1rem;
+  box-shadow: var(--glow-accent-sm);
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.profile-hero__upgrade-btn:hover {
+  box-shadow: var(--glow-accent-md);
+  transform: translateY(-1px);
+}
+
+.profile-hero__restore-btn {
+  color: var(--color-fg-dim) !important;
+  font-size: 0.6rem !important;
+  font-weight: 500;
+  min-width: unset !important;
+  padding: 0 0.25rem !important;
+}
+
 /* ── Pro Status Section ───────────────────────────────────── */
 .pro-status-section {
   padding: 0;
