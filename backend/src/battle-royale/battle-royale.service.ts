@@ -121,6 +121,7 @@ export class BattleRoyaleService {
       .select('id, host_id')
       .eq('status', 'waiting')
       .eq('is_private', false)
+      .eq('mode', 'classic')
       .limit(5);
 
     // Check if user is already in a room
@@ -177,6 +178,7 @@ export class BattleRoyaleService {
       .select('id, invite_code, host_id, created_at')
       .eq('status', 'waiting')
       .eq('is_private', false)
+      .eq('mode', 'classic')
       .order('created_at', { ascending: false })
       .limit(20);
 

@@ -189,6 +189,7 @@ export class BotMatchmakerService {
       .from('battle_royale_rooms')
       .select('id, host_id')
       .eq('status', 'waiting')
+      .eq('mode', 'classic')
       .lt('created_at', cutoff)
       .limit(5);
 
@@ -270,7 +271,8 @@ export class BotMatchmakerService {
       .from('battle_royale_rooms')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'waiting')
-      .eq('is_private', false);
+      .eq('is_private', false)
+      .eq('mode', 'classic');
 
     if (error) {
       this.logger.warn(`[Matchmaker] Could not count waiting BR rooms: ${error.message}`);
