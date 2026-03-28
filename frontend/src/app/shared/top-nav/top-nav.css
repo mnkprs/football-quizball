@@ -17,31 +17,33 @@
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
 }
 
-/* Left: Avatar + Brand */
+/* Left: Avatar */
 .top-nav__left {
   display: flex;
   align-items: center;
   gap: 0.625rem;
+  flex-shrink: 0;
 }
 
 .top-nav__avatar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 50%;
-  border: 2px solid var(--color-accent);
-  overflow: hidden;
+  border: 2.5px solid var(--tier-color, var(--color-accent));
+  overflow: visible;
   text-decoration: none;
   flex-shrink: 0;
-  box-shadow: 0 0 8px rgba(195, 244, 0, 0.2);
 }
 
 .top-nav__avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .top-nav__avatar-initials {
@@ -55,8 +57,159 @@
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
+  border-radius: 50%;
 }
 
+/* Pro crown overlay */
+.top-nav__pro-crown {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.5);
+}
+
+.top-nav__pro-crown .material-icons {
+  font-size: 0.625rem;
+  color: #fff;
+}
+
+/* Center: Stats (logged in) */
+.top-nav__stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+.top-nav__elo-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.top-nav__elo-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-fg);
+}
+
+.top-nav__delta {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.top-nav__delta--up {
+  color: var(--color-accent, #c3f400);
+}
+
+.top-nav__delta--down {
+  color: #ef4444;
+}
+
+/* Streak */
+.top-nav__streak {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.top-nav__streak-icon {
+  font-size: 0.875rem;
+  color: #f97316;
+  text-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
+}
+
+.top-nav__streak-count {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f97316;
+}
+
+/* Tier badge */
+.top-nav__tier-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.1875rem 0.5rem;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.top-nav__tier-badge:active {
+  opacity: 0.7;
+}
+
+/* Skeleton loading */
+.top-nav__skeleton {
+  display: inline-block;
+  height: 0.875rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 75%);
+  background-size: 200% 100%;
+  animation: tn-shimmer 1.4s ease infinite;
+}
+
+@keyframes tn-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Tier progress bar */
+.top-nav__tier-bar {
+  position: fixed;
+  top: 3.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 28rem;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 50;
+}
+
+.top-nav__tier-bar-fill {
+  height: 100%;
+  border-radius: 0 1.5px 1.5px 0;
+  transition: width 0.6s ease;
+}
+
+.top-nav__tier-bar-fill--max {
+  border-radius: 0;
+  animation: tn-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tn-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Right: Settings */
+.top-nav__right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Logo (logged out) */
 .top-nav__logo-icon {
   display: flex;
   align-items: center;
@@ -78,54 +231,35 @@
   letter-spacing: 0.04em;
   color: var(--color-fg);
   font-style: italic;
-}
-
-/* Right: Stat pill */
-.top-nav__right {
-  display: flex;
-  align-items: center;
-}
-
-.top-nav__stat-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-full);
-  background: rgba(53, 53, 52, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  cursor: pointer;
   text-decoration: none;
+}
+
+/* Sign in button (logged out) */
+.top-nav__sign-in {
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  min-height: 2.75rem;
+  background: transparent;
+  color: var(--color-fg);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
   transition: background 0.15s;
 }
 
-.top-nav__stat-pill:hover {
-  background: rgba(53, 53, 52, 0.8);
+.top-nav__sign-in:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.top-nav__stat-pill:active {
-  transform: scale(0.95);
+.top-nav__sign-in:active {
+  transform: scale(0.97);
 }
 
-.top-nav__stat-text {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--color-accent);
-}
-
-.top-nav__stat-sep {
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 0.75rem;
-}
-
-.top-nav__stat-icon {
-  font-size: 1rem;
-  color: var(--color-accent);
-}
-
+/* Settings button */
 .top-nav__settings-btn {
   display: flex;
   align-items: center;
@@ -151,31 +285,9 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.top-nav__sign-in {
-  padding: 0.625rem 1rem;
-  border-radius: var(--radius-full);
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  min-height: 2.75rem;
-  background: transparent;
-  color: var(--color-fg);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.top-nav__sign-in:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.top-nav__sign-in:active {
-  transform: scale(0.97);
-}
-
-/* Settings panel — kept for backward compat */
+/* ============================================
+   Settings panel (unchanged)
+   ============================================ */
 .top-nav__overlay {
   position: fixed;
   inset: 0;

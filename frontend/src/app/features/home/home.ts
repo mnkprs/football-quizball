@@ -1,15 +1,12 @@
-import { Component, inject, signal, OnInit, OnDestroy, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
-import { BlitzApiService } from '../../core/blitz-api.service';
-import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
+import { ProfileStore } from '../../core/profile-store.service';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
-import { AuthCardComponent } from '../../shared/auth-card/auth-card';
 import { BattleHeroComponent, HeroMode } from '../../shared/battle-hero/battle-hero';
 
 @Component({
@@ -20,7 +17,6 @@ import { BattleHeroComponent, HeroMode } from '../../shared/battle-hero/battle-h
     CommonModule,
     SectionHeaderComponent,
     ModeCardComponent,
-    AuthCardComponent,
     BattleHeroComponent,
   ],
   templateUrl: './home.html',
@@ -31,14 +27,9 @@ export class HomeComponent implements OnInit {
   auth = inject(AuthService);
   lang = inject(LanguageService);
   pro = inject(ProService);
+  store = inject(ProfileStore);
   private router = inject(Router);
-  private blitzApi = inject(BlitzApiService);
-  private soloApi = inject(SoloApiService);
 
-  profileLoading = signal(false);
-  profile = signal<LeaderboardEntry | null>(null);
-  blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
-  avatarLoadFailed = signal(false);
   onlinePlayers = signal(Math.floor(Math.random() * 40) + 12);
 
   logoModes = computed<HeroMode[]>(() => {
@@ -54,50 +45,22 @@ export class HomeComponent implements OnInit {
     ];
   });
 
-  authStatsText = computed(() => {
-    const t = this.lang.t();
-    return `ELO ${this.userElo()} · ${t.rankLabel} #${this.eloRank()} · ${t.blitzStatsHint} ${this.blitzBest()}`;
-  });
-
-  avatarUrl = computed(() => {
-    const u = this.auth.user();
-    if (!u) return null;
-    const fromMeta = u.user_metadata?.['avatar_url'] ?? u.user_metadata?.['picture'];
-    if (fromMeta) return fromMeta;
-    const idData = u.identities?.[0]?.identity_data as Record<string, unknown> | undefined;
-    const fromIdentity = idData?.['avatar_url'] ?? idData?.['picture'];
-    return (typeof fromIdentity === 'string' ? fromIdentity : null);
-  });
-
-  displayName = computed(() => {
-    return this.auth.user()?.user_metadata?.['username'] ?? this.auth.user()?.user_metadata?.['full_name'] ?? this.auth.user()?.email ?? 'User';
-  });
-
-  initials = computed(() => {
-    const name = this.displayName();
-    const parts = String(name).split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase().slice(0, 2);
-    }
-    return String(name).slice(0, 2).toUpperCase();
-  });
-
-  userElo(): number {
-    return this.profile()?.elo ?? 1000;
+  private userElo(): number {
+    return this.store.elo();
   }
 
-  blitzBest(): string {
-    const stats = this.blitzStats();
+  private blitzBest(): string {
+    const stats = this.store.blitzStats();
     return stats ? String(stats.bestScore) : '—';
   }
 
-  eloRank(): string {
-    const r = this.profile()?.rank;
+  private eloRank(): string {
+    const r = this.store.rank();
     return r != null ? String(r) : '—';
   }
 
-  blitzRank(): string {
-    const r = this.blitzStats()?.rank;
+  private blitzRank(): string {
+    const r = this.store.blitzStats()?.rank;
     return r != null ? String(r) : '—';
   }
 
@@ -116,33 +79,10 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
-        this.loadProfile();
+        this.store.loadProfile();
         this.pro.loadStatus();
       }
     });
-  }
-
-  onAvatarError(): void {
-    this.avatarLoadFailed.set(true);
-  }
-
-  private async loadProfile(): Promise<void> {
-    const userId = this.auth.user()?.id;
-    if (!userId) return;
-    this.profileLoading.set(true);
-    try {
-      const [profileRes, blitzRes] = await Promise.all([
-        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null })),
-        firstValueFrom(this.blitzApi.getMyStats()).catch(() => null),
-      ]);
-      this.profile.set(profileRes?.profile ?? null);
-      this.blitzStats.set(blitzRes);
-    } catch {
-      this.profile.set(null);
-      this.blitzStats.set(null);
-    } finally {
-      this.profileLoading.set(false);
-    }
   }
 
   hasActive2PlayerGame(): boolean {
@@ -235,9 +175,5 @@ export class HomeComponent implements OnInit {
 
   goDaily(): void {
     this.router.navigate(['/daily']);
-  }
-
-  async signOut(): Promise<void> {
-    await this.auth.signOut();
   }
 }

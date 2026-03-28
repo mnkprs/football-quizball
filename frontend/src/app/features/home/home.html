@@ -1,19 +1,5 @@
 <div class="home-page" #homePage>
   <div class="home-content">
-@if (auth.isLoggedIn()) {
-      <app-auth-card
-        [avatarUrl]="avatarUrl()"
-        [avatarLoadFailed]="avatarLoadFailed()"
-        [displayName]="displayName()"
-        [initials]="initials()"
-        [statsText]="authStatsText()"
-        [statsLoading]="profileLoading()"
-        [signOutLabel]="lang.t().signOut"
-        (signOut)="signOut()"
-        (avatarError)="onAvatarError()"
-      />
-    }
-
     <!-- TIER 1: Logo Quiz Hub Hero -->
     <app-battle-hero
       title="Logo Quiz"
