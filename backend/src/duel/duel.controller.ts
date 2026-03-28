@@ -13,7 +13,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { DuelProGuard } from '../auth/duel-pro.guard';
 import { SupabaseService } from '../supabase/supabase.service';
 import { DuelService } from './duel.service';
-import { CreateDuelDto, JoinDuelByCodeDto, DuelAnswerDto, DuelTimeoutDto } from './duel.types';
+import { CreateDuelDto, JoinDuelByCodeDto, JoinQueueDto, DuelAnswerDto, DuelTimeoutDto } from './duel.types';
 
 type DuelRequest = { user: { id: string }; proStatus?: { is_pro: boolean; dailyDuelCount: number } };
 
@@ -47,9 +47,10 @@ export class DuelController {
   @Post('queue')
   async joinQueue(
     @Request() req: DuelRequest,
+    @Body() dto: JoinQueueDto,
   ) {
     // Daily duel increment is handled atomically by DuelProGuard
-    return this.service.joinQueue(req.user.id);
+    return this.service.joinQueue(req.user.id, dto);
   }
 
   /** POST /api/duel/join — Join a duel by invite code */

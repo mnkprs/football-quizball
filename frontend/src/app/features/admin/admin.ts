@@ -80,6 +80,9 @@ export class AdminComponent implements OnInit, OnDestroy {
   verifyPoolIntegrityResult = signal<VerifyPoolIntegrityResponse | null>(null);
   deleteByVersionResult = signal<DeleteByVersionResponse | null>(null);
 
+  botsPaused = signal<boolean | null>(null);
+  botsLoading = signal(false);
+
   activeTabIndex = 0;
   thresholdEasy = signal(0.30);
   thresholdMedium = signal(0.48);
@@ -202,6 +205,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.load();
       this.loadSessions();
       this.loadThresholds();
+      this.loadBotStatus();
     }
   }
 
@@ -243,6 +247,7 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.load();
       this.loadSessions();
       this.loadThresholds();
+      this.loadBotStatus();
     }
   }
 
@@ -634,6 +639,30 @@ export class AdminComponent implements OnInit, OnDestroy {
       this.setScriptResult('Heatmap HTML downloaded');
     } catch (err) {
       this.setScriptResult(err instanceof Error ? err.message : String(err), true);
+    }
+  }
+
+  async loadBotStatus(): Promise<void> {
+    if (!this.admin.hasApiKey()) return;
+    try {
+      const res = await firstValueFrom(this.admin.getBotStatus());
+      this.botsPaused.set(res.paused);
+    } catch {
+      this.botsPaused.set(null);
+    }
+  }
+
+  async toggleBots(): Promise<void> {
+    if (!this.admin.hasApiKey()) return;
+    this.botsLoading.set(true);
+    try {
+      const action = this.botsPaused() ? this.admin.resumeBots() : this.admin.pauseBots();
+      const res = await firstValueFrom(action);
+      this.botsPaused.set(res.paused);
+    } catch (err) {
+      this.error.set(err instanceof Error ? err.message : String(err));
+    } finally {
+      this.botsLoading.set(false);
     }
   }
 

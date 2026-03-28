@@ -13,6 +13,7 @@ import { GeneratedQuestion } from '../questions/question.types';
 import {
   CreateDuelDto,
   JoinDuelByCodeDto,
+  JoinQueueDto,
   DuelAnswerDto,
   DuelPublicView,
   DuelPublicQuestion,
@@ -20,7 +21,9 @@ import {
   DuelGameSummary,
   DuelGameRow,
   DuelQuestionResult,
+  DuelGameType,
 } from './duel.types';
+import { LogoQuizService } from '../logo-quiz/logo-quiz.service';
 
 /** First to WIN_TARGET correct answers wins the duel */
 const WIN_TARGET = 5;
@@ -41,14 +44,14 @@ export class DuelService {
     private supabaseService: SupabaseService,
     private questionPoolService: QuestionPoolService,
     private answerValidator: AnswerValidator,
+    private logoQuizService: LogoQuizService,
   ) {}
 
   // ── Create / Join ─────────────────────────────────────────────────────────
 
   async createGame(hostId: string, dto: CreateDuelDto): Promise<DuelPublicView> {
-    // Exclude questions the host has already seen to prevent duplicates from their perspective.
-    const seenIds = await this.supabaseService.getSeenQuestionIds(hostId).catch(() => [] as string[]);
-    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT, seenIds);
+    const gameType: DuelGameType = dto.gameType ?? 'standard';
+    const questions = await this.drawQuestionsForType(gameType, hostId);
     if (questions.length === 0) {
       throw new BadRequestException('Question pool is empty. Please try again later.');
     }
@@ -64,6 +67,7 @@ export class DuelService {
         questions,
         pool_question_ids: poolQuestionIds,
         status: 'waiting',
+        game_type: gameType,
       })
       .select('*')
       .single();
@@ -71,7 +75,9 @@ export class DuelService {
     if (error) throw new BadRequestException(`Failed to create duel: ${error.message}`);
 
     // Record drawn questions in host's history (fire-and-forget)
-    this.questionPoolService.recordBoardHistory(poolQuestionIds, [hostId]).catch(() => {});
+    if (gameType === 'standard') {
+      this.questionPoolService.recordBoardHistory(poolQuestionIds, [hostId]).catch(() => {});
+    }
 
     const hostUsername = await this.getUsername(hostId);
     return this.toPublicView(data as DuelGameRow, hostId, hostUsername, null);
@@ -103,8 +109,10 @@ export class DuelService {
     if (updErr || !updated) throw new ConflictException('Could not join — duel may have just been taken.');
 
     // Record the questions in the guest's history so they don't see them again in future games
-    const poolIds = ((updated as DuelGameRow).pool_question_ids ?? []);
-    this.questionPoolService.recordBoardHistory(poolIds, [guestId]).catch(() => {});
+    if ((updated as DuelGameRow).game_type === 'standard') {
+      const poolIds = ((updated as DuelGameRow).pool_question_ids ?? []);
+      this.questionPoolService.recordBoardHistory(poolIds, [guestId]).catch(() => {});
+    }
 
     const [hostUsername, guestUsername] = await Promise.all([
       this.getUsername(row.host_id),
@@ -114,13 +122,16 @@ export class DuelService {
     return this.toPublicView(updated as DuelGameRow, guestId, hostUsername, guestUsername);
   }
 
-  async joinQueue(userId: string): Promise<DuelPublicView> {
-    // Singleton guard: if the user is already waiting in queue or in an active duel,
-    // return that existing game instead of creating a second one.
+  async joinQueue(userId: string, dto?: JoinQueueDto): Promise<DuelPublicView> {
+    const gameType: DuelGameType = dto?.gameType ?? 'standard';
+
+    // Singleton guard: if the user is already waiting/active in a duel OF THIS TYPE,
+    // return that game instead of creating a second one.
     const { data: existing } = await this.supabaseService.client
       .from('duel_games')
       .select('*')
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
+      .eq('game_type', gameType)
       .in('status', ['waiting', 'active'])
       .order('created_at', { ascending: false })
       .limit(1)
@@ -135,11 +146,12 @@ export class DuelService {
       return this.toPublicView(row, userId, hostUsername, guestUsername);
     }
 
-    // Look for an open waiting game created by someone else
+    // Look for an open waiting game OF THIS TYPE created by someone else
     const { data: candidates } = await this.supabaseService.client
       .from('duel_games')
       .select('*')
       .eq('status', 'waiting')
+      .eq('game_type', gameType)
       .is('guest_id', null)
       .neq('host_id', userId)
       .order('created_at', { ascending: true })
@@ -158,8 +170,10 @@ export class DuelService {
 
       if (!error && joined) {
         // Record questions in guest's history (board was drawn by host)
-        const joinedPoolIds = (candidate.pool_question_ids ?? []);
-        this.questionPoolService.recordBoardHistory(joinedPoolIds, [userId]).catch(() => {});
+        if (gameType === 'standard') {
+          const joinedPoolIds = (candidate.pool_question_ids ?? []);
+          this.questionPoolService.recordBoardHistory(joinedPoolIds, [userId]).catch(() => {});
+        }
         const [hostUsername, guestUsername] = await Promise.all([
           this.getUsername(candidate.host_id),
           this.getUsername(userId),
@@ -170,8 +184,10 @@ export class DuelService {
     }
 
     // No open games — create one without an invite code (queue marker)
-    const seenIds = await this.supabaseService.getSeenQuestionIds(userId).catch(() => [] as string[]);
-    const questions = await this.questionPoolService.drawForDuel(PREFETCH_COUNT, seenIds);
+    const questions = await this.drawQuestionsForType(gameType, userId);
+    if (questions.length === 0) {
+      throw new BadRequestException('Question pool is empty. Please try again later.');
+    }
     const { data, error } = await this.supabaseService.client
       .from('duel_games')
       .insert({
@@ -180,13 +196,15 @@ export class DuelService {
         questions,
         pool_question_ids: questions.map((q) => q.id),
         status: 'waiting',
+        game_type: gameType,
       })
       .select('*')
       .single();
 
     if (error || !data) throw new BadRequestException('Failed to join queue.');
-    // Record drawn questions in user's history (fire-and-forget)
-    this.questionPoolService.recordBoardHistory(questions.map((q) => q.id), [userId]).catch(() => {});
+    if (gameType === 'standard') {
+      this.questionPoolService.recordBoardHistory(questions.map((q) => q.id), [userId]).catch(() => {});
+    }
     const hostUsername = await this.getUsername(userId);
     return this.toPublicView(data as DuelGameRow, userId, hostUsername, null);
   }
@@ -205,7 +223,7 @@ export class DuelService {
   async listMyGames(userId: string): Promise<DuelGameSummary[]> {
     const { data, error } = await this.supabaseService.client
       .from('duel_games')
-      .select('id, invite_code, status, scores, host_id, guest_id, updated_at')
+      .select('id, invite_code, status, scores, host_id, guest_id, game_type, updated_at')
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
       .in('status', ['waiting', 'active'])
       .order('updated_at', { ascending: false })
@@ -224,6 +242,7 @@ export class DuelService {
           scores: row.scores,
           opponentUsername,
           updatedAt: row.updated_at,
+          gameType: row.game_type,
         } as DuelGameSummary;
       }),
     );
@@ -285,8 +304,10 @@ export class DuelService {
 
     const role: 'host' | 'guest' = row.host_id === userId ? 'host' : 'guest';
 
-    // Validate answer (async path handles borderline fuzzy + LLM judge)
-    const correct = await this.answerValidator.validateAsync(question, dto.answer);
+    // Validate answer: logo duels use fuzzyMatch, standard duels use LLM-backed validator
+    const correct = row.game_type === 'logo'
+      ? this.logoQuizService.fuzzyMatch(dto.answer, question.correct_answer)
+      : await this.answerValidator.validateAsync(question, dto.answer);
 
     if (!correct) {
       return { correct: false };
@@ -428,6 +449,24 @@ export class DuelService {
     return row;
   }
 
+  private async drawQuestionsForType(gameType: DuelGameType, hostId: string): Promise<GeneratedQuestion[]> {
+    if (gameType === 'logo') {
+      const logos = await this.logoQuizService.drawLogosForTeamMode(PREFETCH_COUNT);
+      return logos.map((l) => ({
+        id: l.id,
+        question_text: 'Identify this football club',
+        correct_answer: l.correct_answer,
+        explanation: '',
+        category: 'LOGO_QUIZ',
+        difficulty: l.difficulty,
+        image_url: l.image_url,
+        original_image_url: l.original_image_url,
+      } as GeneratedQuestion & { image_url: string; original_image_url: string })) as any;
+    }
+    const seenIds = await this.supabaseService.getSeenQuestionIds(hostId).catch(() => [] as string[]);
+    return this.questionPoolService.drawForDuel(PREFETCH_COUNT, seenIds);
+  }
+
   private async getUsername(userId: string): Promise<string> {
     const profile = await this.supabaseService.getProfile(userId);
     return profile?.username ?? 'Unknown';
@@ -441,7 +480,8 @@ export class DuelService {
   ): DuelPublicView {
     const myRole: 'host' | 'guest' = row.host_id === myUserId ? 'host' : 'guest';
 
-    const currentQuestion = this.toPublicQuestion(row.questions, row.current_question_index);
+    const isLogo = row.game_type === 'logo';
+    const currentQuestion = this.toPublicQuestion(row.questions, row.current_question_index, isLogo);
 
     return {
       id: row.id,
@@ -457,12 +497,14 @@ export class DuelService {
       questionResults: row.question_results,
       hostReady: row.host_ready,
       guestReady: row.guest_ready,
+      gameType: row.game_type,
     };
   }
 
   private toPublicQuestion(
     questions: GeneratedQuestion[],
     index: number,
+    isLogo = false,
   ): DuelPublicQuestion | null {
     const q = questions[index];
     if (!q) return null;
@@ -472,6 +514,9 @@ export class DuelService {
       explanation: '', // revealed only after question is won
       category: q.category,
       difficulty: q.difficulty,
+      ...(isLogo && (q as any).image_url ? {
+        image_url: (q as any).image_url,
+      } : {}),
     };
   }
 }

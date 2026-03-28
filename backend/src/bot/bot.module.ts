@@ -13,5 +13,6 @@ import { BotOnlineGameRunner } from './bot-online-game-runner.service';
 @Module({
   imports: [ScheduleModule, SupabaseModule, DuelModule, BattleRoyaleModule, OnlineGameModule],
   providers: [BotService, BotMatchmakerService, BotDuelRunner, BotBattleRoyaleRunner, BotOnlineGameRunner],
+  exports: [BotMatchmakerService, BotOnlineGameRunner],
 })
 export class BotModule {}

@@ -12,6 +12,21 @@ const BOT_TURN_MIN_WAIT_SECONDS = 45;
 @Injectable()
 export class BotOnlineGameRunner {
   private readonly logger = new Logger(BotOnlineGameRunner.name);
+  private _paused = false;
+
+  get paused(): boolean {
+    return this._paused;
+  }
+
+  pause(): void {
+    this._paused = true;
+    this.logger.warn('[BotOnlineRunner] Bot turns PAUSED');
+  }
+
+  resume(): void {
+    this._paused = false;
+    this.logger.warn('[BotOnlineRunner] Bot turns RESUMED');
+  }
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -25,6 +40,7 @@ export class BotOnlineGameRunner {
    */
   @Cron('*/30 * * * * *')
   async executePendingBotTurns(): Promise<void> {
+    if (this._paused) return;
     const cutoff = new Date(Date.now() - BOT_TURN_MIN_WAIT_SECONDS * 1000).toISOString();
 
     const { data: games, error } = await this.supabaseService.client

@@ -6,9 +6,10 @@ import { DuelTimeoutService } from './duel-timeout.service';
 import { AuthModule } from '../auth/auth.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { QuestionsModule } from '../questions/questions.module';
+import { LogoQuizModule } from '../logo-quiz/logo-quiz.module';
 
 @Module({
-  imports: [AuthModule, SupabaseModule, QuestionsModule, ScheduleModule],
+  imports: [AuthModule, SupabaseModule, QuestionsModule, ScheduleModule, LogoQuizModule],
   controllers: [DuelController],
   providers: [DuelService, DuelTimeoutService],
   exports: [DuelService],

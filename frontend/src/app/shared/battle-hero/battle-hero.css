@@ -443,3 +443,136 @@
 .battle-hero__lock-strip--pro .battle-hero__lock-text {
   color: var(--color-pro);
 }
+
+/* ---- Purple theme variant ---- */
+
+.battle-hero--purple {
+  border-color: rgba(156, 39, 176, 0.15);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(156, 39, 176, 0.08);
+  animation: pulse-glow-purple 1s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-purple {
+  0%, 100% { box-shadow: 0 0 30px rgba(156, 39, 176, 0.15), 0 0 60px rgba(156, 39, 176, 0.05); }
+  50% { box-shadow: 0 0 40px rgba(156, 39, 176, 0.25), 0 0 80px rgba(156, 39, 176, 0.1); }
+}
+
+.battle-hero--purple::before {
+  background: linear-gradient(
+    135deg,
+    rgba(156, 39, 176, 0.4),
+    transparent 40%,
+    transparent 60%,
+    rgba(156, 39, 176, 0.2)
+  );
+}
+
+.battle-hero__overlay--purple {
+  background:
+    linear-gradient(180deg, rgba(19, 19, 19, 0.1) 0%, rgba(19, 19, 19, 0.95) 80%),
+    radial-gradient(ellipse at 30% 20%, rgba(156, 39, 176, 0.08) 0%, transparent 60%);
+}
+
+.battle-hero__featured--purple {
+  background: linear-gradient(164deg, rgb(156 39 176), rgb(34 4 39 / 55%));
+  border-color: rgba(206, 147, 216, 0.35);
+  color: var(--color-purple-light);
+  box-shadow: 0 0 16px 10px rgba(156, 39, 176, 0.2);
+}
+
+.battle-hero__featured--purple .battle-hero__featured-icon {
+  color: var(--color-purple-light);
+}
+
+/* ---- Mode buttons row ---- */
+
+.battle-hero__modes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.battle-hero__mode-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.625rem 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  color: #ffffff;
+  min-width: 0;
+}
+
+.battle-hero__mode-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.battle-hero__mode-btn:active {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(0.97);
+}
+
+.battle-hero__mode-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.battle-hero__mode-btn--purple {
+  border-color: rgba(206, 147, 216, 0.2);
+}
+
+.battle-hero__mode-btn--purple:hover {
+  background: rgba(156, 39, 176, 0.15);
+}
+
+.battle-hero__mode-btn--locked {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.battle-hero__mode-btn--locked:active {
+  transform: none;
+}
+
+.battle-hero__mode-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.battle-hero__mode-btn--purple .battle-hero__mode-icon {
+  color: var(--color-purple-light);
+}
+
+.battle-hero__mode-lock {
+  font-size: 1rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.battle-hero__mode-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.battle-hero__mode-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 500;
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-hero--purple { animation: none; }
+}

@@ -35,8 +35,6 @@ export class BotBattleRoyaleRunner {
     let correctAnswers = 0;
 
     for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-
       // Wait to simulate human reading/thinking time
       const thinkTime = this.botService.simulateThinkTimeMs('battle-royale');
       await this.sleep(thinkTime);
@@ -45,21 +43,37 @@ export class BotBattleRoyaleRunner {
       const currentRoom = await this.fetchRoom(roomId);
       if (!currentRoom || currentRoom.status !== 'active') break;
 
+      // Read the player's actual current_question_index from DB to avoid stale index
+      const playerIndex = await this.fetchPlayerIndex(roomId, botId);
+      if (playerIndex === null || playerIndex >= questions.length) break;
+
+      const q = questions[playerIndex];
       const correct = this.botService.shouldAnswerCorrectly(botSkill, q.difficulty);
       const answer = correct ? q.correct_answer : this.pickWrongChoice(q);
 
       try {
-        await this.brService.submitAnswer(roomId, botId, i, answer);
+        await this.brService.submitAnswer(roomId, botId, playerIndex, answer);
         questionsAnswered++;
         if (correct) correctAnswers++;
       } catch (err) {
-        this.logger.warn(`[BotBRRunner] Bot ${botId} answer error at q${i}: ${err}`);
+        this.logger.warn(`[BotBRRunner] Bot ${botId} answer error at q${playerIndex}: ${err}`);
         questionsAnswered++;
       }
     }
 
     this.botService.updateBotStats(botId, questionsAnswered, correctAnswers);
     this.logger.log(`[BotBRRunner] Bot ${botId} finished room ${roomId} (${correctAnswers}/${questionsAnswered} correct)`);
+  }
+
+  private async fetchPlayerIndex(roomId: string, botId: string): Promise<number | null> {
+    const { data, error } = await this.supabaseService.client
+      .from('battle_royale_players')
+      .select('current_question_index')
+      .eq('room_id', roomId)
+      .eq('user_id', botId)
+      .single<Pick<BRPlayerRow, 'current_question_index'>>();
+    if (error || !data) return null;
+    return data.current_question_index;
   }
 
   private async fetchRoom(roomId: string): Promise<Pick<BRRoomRow, 'status' | 'questions'> | null> {

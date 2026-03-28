@@ -1,9 +1,9 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { DuelApiService, DuelGameSummary } from './duel-api.service';
+import { DuelApiService, DuelGameSummary, DuelGameType } from './duel-api.service';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 
@@ -17,6 +17,7 @@ import { LanguageService } from '../../core/language.service';
 export class DuelLobbyComponent implements OnInit {
   private api = inject(DuelApiService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
@@ -24,8 +25,15 @@ export class DuelLobbyComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   inviteCode = '';
+  gameType = signal<DuelGameType>('standard');
+  isLogoMode = signal(false);
 
   ngOnInit(): void {
+    const mode = this.route.snapshot.queryParamMap.get('mode');
+    if (mode === 'logo') {
+      this.gameType.set('logo');
+      this.isLogoMode.set(true);
+    }
     this.loadGames();
   }
 
@@ -42,7 +50,7 @@ export class DuelLobbyComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const game = await firstValueFrom(this.api.createGame());
+      const game = await firstValueFrom(this.api.createGame(this.gameType()));
       this.router.navigate(['/duel', game.id]);
     } catch {
       this.error.set('Failed to create duel. Please try again.');
@@ -55,7 +63,7 @@ export class DuelLobbyComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const game = await firstValueFrom(this.api.joinQueue());
+      const game = await firstValueFrom(this.api.joinQueue(this.gameType()));
       this.router.navigate(['/duel', game.id]);
     } catch {
       this.error.set('Failed to join queue. Please try again.');

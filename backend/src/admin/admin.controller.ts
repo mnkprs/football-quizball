@@ -5,6 +5,8 @@ import { MigratePoolDifficultyService } from '../questions/migrate-pool-difficul
 import { ThresholdConfigService, type ScoreThresholds } from '../questions/threshold-config.service';
 import { AdminApiKeyGuard } from '../common/guards/admin-api-key.guard';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
+import { BotMatchmakerService } from '../bot/bot-matchmaker.service';
+import { BotOnlineGameRunner } from '../bot/bot-online-game-runner.service';
 
 @Controller('api/admin')
 export class AdminController {
@@ -15,6 +17,8 @@ export class AdminController {
     private adminScriptsService: AdminScriptsService,
     private migratePoolDifficultyService: MigratePoolDifficultyService,
     private thresholdConfig: ThresholdConfigService,
+    private botMatchmaker: BotMatchmakerService,
+    private botOnlineRunner: BotOnlineGameRunner,
   ) {}
 
   /**
@@ -266,5 +270,49 @@ export class AdminController {
       slot: slot?.trim() || undefined,
       range: range?.trim() || undefined,
     });
+  }
+
+  // ── Bot Control ──────────────────────────────────────────────────────────────
+
+  /**
+   * Get current bot activity status.
+   * Example: GET /api/admin/bots/status
+   */
+  @Get('bots/status')
+  @UseGuards(AdminApiKeyGuard)
+  getBotStatus() {
+    return {
+      paused: this.botMatchmaker.paused || this.botOnlineRunner.paused,
+      matchmaker: { paused: this.botMatchmaker.paused },
+      onlineGameRunner: { paused: this.botOnlineRunner.paused },
+    };
+  }
+
+  /**
+   * Pause ALL bot activity (matchmaking, room creation, queue joining, bot turns).
+   * Example: POST /api/admin/bots/pause
+   */
+  @Post('bots/pause')
+  @UseGuards(AdminApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  pauseBots() {
+    this.botMatchmaker.pause();
+    this.botOnlineRunner.pause();
+    this.logger.warn('[Admin] All bot activity PAUSED');
+    return { paused: true };
+  }
+
+  /**
+   * Resume ALL bot activity.
+   * Example: POST /api/admin/bots/resume
+   */
+  @Post('bots/resume')
+  @UseGuards(AdminApiKeyGuard)
+  @HttpCode(HttpStatus.OK)
+  resumeBots() {
+    this.botMatchmaker.resume();
+    this.botOnlineRunner.resume();
+    this.logger.warn('[Admin] All bot activity RESUMED');
+    return { paused: false };
   }
 }

@@ -38,6 +38,25 @@
       }
     </div>
 
+    <div class="admin-bot-control">
+      <span class="bot-status-label">Bots</span>
+      @if (botsPaused() === null) {
+        <span class="bot-status-badge bot-status-badge--unknown">unknown</span>
+      } @else if (botsPaused()) {
+        <span class="bot-status-badge bot-status-badge--paused">paused</span>
+      } @else {
+        <span class="bot-status-badge bot-status-badge--active">active</span>
+      }
+      <button
+        class="bot-toggle-btn"
+        [class.bot-toggle-btn--resume]="botsPaused()"
+        [disabled]="botsLoading() || botsPaused() === null"
+        (click)="toggleBots()"
+      >
+        {{ botsLoading() ? '...' : botsPaused() ? 'Resume' : 'Pause All' }}
+      </button>
+    </div>
+
     <div class="admin-filters-bar">
       <label class="admin-filter-label">
         <span>Generation version</span>
