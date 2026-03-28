@@ -27,15 +27,15 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTabsModule } from '@angular/material/tabs';
 
 @Component({
-  selector: 'app-admin',
+  selector: 'app-admin-legacy',
   standalone: true,
   imports: [JsonPipe, MatTableModule, MatPaginatorModule, MatTabsModule],
   host: { class: 'admin-host block' },
-  templateUrl: './admin.html',
-  styleUrl: './admin.css',
+  templateUrl: './admin-legacy.html',
+  styleUrl: './admin-legacy.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AdminComponent implements OnInit, OnDestroy {
+export class AdminLegacyComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   admin = inject(AdminApiService);
 
