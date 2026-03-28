@@ -1,12 +1,12 @@
 /**
  * Seed Logo Quiz questions with COMPOSITE difficulty scoring.
  *
- * Formula: question_elo = 600 + (800 * erasure) + (400 * league_score) + (400 * team_score)
+ * Formula: question_elo = 600 + (240 * erasure) + (560 * league_score) + (800 * team_score)
  *
  * Three factors:
- *   1. Erasure level (50% weight): how much of the logo is hidden
- *   2. League popularity (25% weight): how famous the competition is
- *   3. Team popularity (25% weight): how recognizable the team is
+ *   1. Erasure level (15% weight): how much of the logo is hidden
+ *   2. League popularity (35% weight): how famous the competition is
+ *   3. Team popularity (50% weight): how recognizable the team is
  *
  * Creates 3 questions per team (easy/medium/hard erasure), each with a unique question_elo.
  *
@@ -193,9 +193,9 @@ const ERASURE_LEVELS = [
 ] as const;
 
 // ─── Formula ─────────────────────────────────────────────────────
-// Weights: erasure 30%, league 25%, team 40% (team familiarity is the strongest factor)
+/// Weights: erasure 15%, league 35%, team 50% (team familiarity is the strongest factor)
 function computeQuestionElo(erasure: number, leagueScore: number, teamScore: number): number {
-  return Math.round(600 + (480 * erasure) + (400 * leagueScore) + (640 * teamScore));
+  return Math.round(600 + (240 * erasure) + (560 * leagueScore) + (800 * teamScore));
 }
 
 function elotoDifficulty(elo: number): 'EASY' | 'MEDIUM' | 'HARD' {

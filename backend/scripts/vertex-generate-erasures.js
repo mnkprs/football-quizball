@@ -1,6 +1,7 @@
 /**
  * Generate easy-difficulty logo erasures using Vertex AI (gemini-3-pro-image-preview).
  * Sends each original logo with a prompt to remove text/letters.
+ * Uses service account credentials via Google Auth Library.
  *
  * Usage: node scripts/vertex-generate-erasures.js [--offset=N] [--limit=N] [--dry-run]
  */
@@ -38,14 +39,6 @@ function download(url) {
   });
 }
 
-async function getAccessToken() {
-  const auth = new GoogleAuth({
-    keyFile: KEY_FILE,
-    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-  });
-  return auth.getAccessToken();
-}
-
 async function convertToPng(imgBuffer) {
   return sharp(imgBuffer)
     .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
@@ -54,14 +47,20 @@ async function convertToPng(imgBuffer) {
     .toBuffer();
 }
 
+async function getAccessToken() {
+  const auth = new GoogleAuth({
+    keyFile: KEY_FILE,
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+  });
+  return auth.getAccessToken();
+}
+
 async function editLogo(accessToken, slug, name, origUrl) {
-  // Download and convert to PNG
   const rawImg = await download(origUrl);
   const pngBuffer = await convertToPng(rawImg);
   const b64 = pngBuffer.toString('base64');
 
   const isNationalTeam = name.toLowerCase().includes('national team');
-  const isLeagueLogo = !name.includes(' ') || ['Liga', 'League', 'Cup', 'Serie', 'Ligue', 'Bundesliga', 'Eredivisie', 'Premiership'].some(w => name.includes(w));
 
   let prompt;
   if (isNationalTeam) {
@@ -106,7 +105,10 @@ async function editLogo(accessToken, slug, name, origUrl) {
               return;
             }
           }
-          reject(new Error('No image in response'));
+          // Log what we got instead
+          const textParts = parts.filter(p => p.text).map(p => p.text.substring(0, 80));
+          const finishReason = r.candidates?.[0]?.finishReason || 'unknown';
+          reject(new Error(`No image in response (finish: ${finishReason}, texts: ${textParts.length})`));
         } catch (e) { reject(e); }
       });
     });
@@ -143,6 +145,12 @@ async function main() {
 
   for (let i = 0; i < teams.length; i++) {
     const { slug, name, real: origUrl } = teams[i];
+
+    // Skip if already generated
+    if (fs.existsSync(path.join(OUTPUT_DIR, slug, 'easy.webp'))) {
+      results.success.push(slug);
+      continue;
+    }
 
     // Refresh token every 30 minutes
     if (Date.now() - tokenTime > 30 * 60 * 1000) {
@@ -183,6 +191,29 @@ async function main() {
       if (e.message.includes('429') || e.message.includes('RESOURCE_EXHAUSTED') || e.message.includes('quota')) {
         console.log(`  ... rate limited, waiting 30s`);
         await new Promise(r => setTimeout(r, 30000));
+        i--; // retry
+        results.failed.pop();
+        continue;
+      }
+
+      // No image returned — retry up to 2 times (model sometimes returns text only)
+      if (e.message.includes('No image in response')) {
+        const retryKey = `noimg_${slug}`;
+        const retryCount = (results._retries = results._retries || {})[retryKey] = ((results._retries || {})[retryKey] || 0) + 1;
+        if (retryCount <= 2) {
+          console.log(`  ... no image, retry ${retryCount}/2 in 5s`);
+          await new Promise(r => setTimeout(r, 5000));
+          i--; // retry
+          results.failed.pop();
+          continue;
+        }
+      }
+
+      // Network errors — retry with backoff and token refresh
+      if (e.message.includes('ECONNRESET') || e.message.includes('ETIMEDOUT') || e.message.includes('fetch') || e.message.includes('socket') || e.message.includes('reason:')) {
+        console.log(`  ... network error, refreshing token and retrying in 10s`);
+        await new Promise(r => setTimeout(r, 10000));
+        try { accessToken = await getAccessToken(); tokenTime = Date.now(); } catch (_) {}
         i--; // retry
         results.failed.pop();
         continue;
