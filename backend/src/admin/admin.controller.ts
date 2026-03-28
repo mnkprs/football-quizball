@@ -407,7 +407,7 @@ export class AdminController {
       .limit(10);
 
     return {
-      profile,
+      profile: { ...profile, is_pro: proStatus?.is_pro ?? false },
       proStatus,
       eloHistory,
       recentGames: recentMatches ?? [],
