@@ -410,7 +410,7 @@ export class AdminController {
       profile,
       proStatus,
       eloHistory,
-      recentMatches: recentMatches ?? [],
+      recentGames: recentMatches ?? [],
     };
   }
 

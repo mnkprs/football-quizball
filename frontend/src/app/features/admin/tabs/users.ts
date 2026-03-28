@@ -157,7 +157,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
           </div>
 
           <!-- ELO sparkline -->
-          @if (user.eloHistory.length > 1) {
+          @if (user.eloHistory?.length > 1) {
             <div class="sparkline-wrap">
               <span class="sparkline-label">ELO History</span>
               <svg class="sparkline" viewBox="0 0 200 40" preserveAspectRatio="none">
@@ -208,7 +208,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
           }
 
           <!-- Recent games -->
-          @if (user.recentGames.length > 0) {
+          @if (user.recentGames?.length > 0) {
             <div class="recent-games">
               <h4 class="section-title">Recent Games</h4>
               @for (game of user.recentGames.slice(0, 5); track game.id ?? $index) {
