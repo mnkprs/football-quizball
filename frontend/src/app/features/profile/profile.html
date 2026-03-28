@@ -1,4 +1,6 @@
 <div class="profile-page">
+  <!-- Spotlight background effect -->
+  <div class="profile-spotlight" aria-hidden="true"></div>
 
   <!-- Guest state -->
   @if (!auth.isLoggedIn()) {
@@ -8,7 +10,7 @@
       </div>
       <h1 class="profile-guest-title">{{ lang.t().profileTitle }}</h1>
       <p class="profile-guest-text">{{ lang.t().profileGuestText }}</p>
-      <button mat-flat-button color="primary" class="profile-guest-btn" (click)="goToLogin()">
+      <button mat-flat-button class="profile-guest-btn" (click)="goToLogin()">
         <span class="material-icons">login</span>
         {{ lang.t().profileSignIn }}
       </button>
@@ -20,38 +22,28 @@
     </div>
 
   } @else {
-    <!-- ─── RANK BANNER ─────────────────────────────────── -->
+    <!-- ─── HERO CARD ─────────────────────────────────── -->
     <div
-      class="rank-banner"
-      [class]="'rank-banner rank-banner--' + rankTier().tier"
-      [style.--tier-color]="rankTier().color"
-      [style.--tier-glow]="rankTier().glow"
-      [style.--border-w]="rankTier().borderWidth + 'px'"
+      class="profile-hero"
+      [class]="'profile-hero profile-hero--' + rankTier().tier"
     >
-      <!-- Decorative pitch-line pattern in bg -->
-      <div class="rank-banner__bg-pattern" aria-hidden="true">
-        <svg viewBox="0 0 360 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <circle cx="180" cy="60" r="42" stroke="currentColor" stroke-width="1" opacity="0.12"/>
-          <line x1="180" y1="0" x2="180" y2="120" stroke="currentColor" stroke-width="1" opacity="0.1"/>
-          <line x1="0" y1="60" x2="360" y2="60" stroke="currentColor" stroke-width="1" opacity="0.1"/>
-          <rect x="4" y="20" width="60" height="80" rx="2" stroke="currentColor" stroke-width="1" opacity="0.1"/>
-          <rect x="296" y="20" width="60" height="80" rx="2" stroke="currentColor" stroke-width="1" opacity="0.1"/>
-        </svg>
-      </div>
+      <!-- Animated grid pattern -->
+      <div class="profile-hero__grid" aria-hidden="true"></div>
 
       <!-- Back button (viewing other user) -->
       @if (!isOwnProfile()) {
-        <a routerLink="/leaderboard" class="rank-banner__back">
+        <a routerLink="/leaderboard" class="profile-hero__back">
           <span class="material-icons">arrow_back</span>
         </a>
       }
 
-      <!-- Rank label top-right -->
-      <div class="rank-banner__tier-label">
+      <!-- Tier badge -->
+      <div class="profile-hero__tier-badge">
+        <span class="profile-hero__tier-dot"></span>
         {{ rankTier().label }}
       </div>
 
-      <!-- Avatar -->
+      <!-- Hidden file input for avatar -->
       <input
         #avatarInput
         type="file"
@@ -59,295 +51,288 @@
         style="display:none"
         (change)="onAvatarFileChange($event)"
       />
-      <div
-        class="rank-banner__avatar-wrap"
-        [class.rank-banner__avatar-wrap--clickable]="isOwnProfile()"
-        (click)="triggerAvatarUpload()"
-      >
-        <div class="rank-banner__avatar">
-          @if (avatarUrl()) {
-            <img class="rank-banner__avatar-img" [src]="avatarUrl()!" alt="avatar" />
-          } @else {
-            {{ initials() }}
-          }
-          @if (isOwnProfile()) {
-            <div class="rank-banner__avatar-upload" [class.uploading]="avatarUploading()">
-              @if (avatarUploading()) {
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                </svg>
-              } @else {
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-              }
-            </div>
-          }
-        </div>
-        <!-- @if (isOwnProfile()) {
-          <div class="rank-banner__avatar-upload" [class.uploading]="avatarUploading()">
-            @if (avatarUploading()) {
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-              </svg>
+
+      <div class="profile-hero__content">
+        <!-- Avatar with glow effect -->
+        <div class="profile-hero__avatar-container" (click)="triggerAvatarUpload()">
+          <div class="profile-hero__avatar-glow" aria-hidden="true"></div>
+          <div
+            class="profile-hero__avatar"
+            [class.profile-hero__avatar--clickable]="isOwnProfile()"
+          >
+            @if (avatarUrl()) {
+              <img class="profile-hero__avatar-img" [src]="avatarUrl()!" alt="avatar" />
             } @else {
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
+              {{ initials() }}
+            }
+            @if (isOwnProfile()) {
+              <div class="profile-hero__avatar-upload" [class.uploading]="avatarUploading()">
+                @if (avatarUploading()) {
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                } @else {
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                }
+              </div>
             }
           </div>
-        } -->
-      </div>
+        </div>
 
-      <!-- Name + meta -->
-      <div class="rank-banner__info">
-        <h1 class="rank-banner__name">{{ displayName() }}</h1>
-        <div class="rank-banner__meta">
-          <span class="rank-banner__elo">{{ profile()?.elo ?? 1000 }} ELO</span>
-          <span class="rank-banner__separator">·</span>
-          <span class="rank-banner__rank">Rank #{{ profile()?.rank ?? '—' }}</span>
+        <!-- Name and meta info -->
+        <h1 class="profile-hero__name">{{ displayName() }}</h1>
+        <div class="profile-hero__meta">
+          <span class="profile-hero__elo">{{ profile()?.elo ?? 1000 }} ELO</span>
+          <span class="profile-hero__separator"></span>
+          <span class="profile-hero__rank">Rank #{{ profile()?.rank ?? '—' }}</span>
         </div>
         @if (memberSince()) {
-          <div class="rank-banner__member-since">Member since {{ memberSince() }}</div>
+          <div class="profile-hero__member-since">Member since {{ memberSince() }}</div>
         }
-      </div>
 
-      <!-- Quick stats row inside banner -->
-      <div class="rank-banner__stats">
-        <div class="rank-banner__stat">
-          <span class="rank-banner__stat-val">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
-          <span class="rank-banner__stat-lbl">Peak ELO</span>
-        </div>
-        <div class="rank-banner__stat-divider"></div>
-        <div class="rank-banner__stat">
-          <span class="rank-banner__stat-val">{{ profile()?.questions_answered ?? 0 }}</span>
-          <span class="rank-banner__stat-lbl">Questions</span>
+        <!-- Quick stats row -->
+        <div class="profile-hero__stats">
+          <div class="profile-hero__stat">
+            <span class="profile-hero__stat-value">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
+            <span class="profile-hero__stat-label">Peak ELO</span>
+          </div>
+          <div class="profile-hero__stat-divider"></div>
+          <div class="profile-hero__stat">
+            <span class="profile-hero__stat-value">{{ profile()?.questions_answered ?? 0 }}</span>
+            <span class="profile-hero__stat-label">Questions</span>
+          </div>
+          <div class="profile-hero__stat-divider"></div>
+          <div class="profile-hero__stat">
+            <span class="profile-hero__stat-value">{{ accuracy() }}%</span>
+            <span class="profile-hero__stat-label">Accuracy</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- ─── PRO STATUS ─────────────────────────────────── -->
-    @if (isOwnProfile()) {
-      <section class="profile-section pro-status-section">
-        @if (pro.isPro()) {
-          <div class="pro-badge-row">
-            <span class="pro-badge">STEPOVR Pro</span>
-            @if (pro.purchaseType() === 'lifetime') {
-              <span class="pro-type">Lifetime</span>
-            } @else if (pro.purchaseType() === 'subscription') {
-              <span class="pro-type">Monthly</span>
-              @if (pro.subscriptionExpiresAt()) {
-                <span class="pro-renews">Renews {{ formatDate(pro.subscriptionExpiresAt()!) }}</span>
-              }
-            }
-          </div>
-          @if (pro.purchaseType() === 'subscription') {
-            <a class="manage-subscription-link" href="javascript:void(0)" (click)="openSubscriptionManagement()">
-              Manage Subscription
-            </a>
-          }
-        } @else {
-          <button mat-flat-button class="upgrade-btn" (click)="pro.showUpgradeModal.set(true)">
-            Upgrade to Pro
-          </button>
-        }
-        <button mat-button class="restore-btn" (click)="restorePurchases()">
-          Restore Purchase
-        </button>
-      </section>
-    }
+    <!-- ─── PROFILE CONTENT ───────────────────────────── -->
+    <div class="profile-content">
 
-    <!-- ─── ELO SPARKLINE ───────────────────────────────── -->
-    @if (sparklineData(); as spark) {
-      <section class="profile-section">
-        <h2 class="profile-section-title">ELO Progression</h2>
-        <div class="elo-sparkline">
-          <div class="elo-sparkline__labels">
-            <span class="elo-sparkline__label-min">{{ spark.minElo }}</span>
-            <span class="elo-sparkline__label-max">{{ spark.maxElo }}</span>
-          </div>
-          <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="elo-sparkline__svg">
-            <defs>
-              <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.18"/>
-                <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <polygon [attr.points]="spark.points + ' ' + spark.lastX + ',40 3,40'" fill="url(#sparkGrad)"/>
-            <polyline [attr.points]="spark.points" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <circle [attr.cx]="spark.lastX" [attr.cy]="spark.lastY" r="2.5" fill="var(--color-accent)"/>
-          </svg>
-        </div>
-      </section>
-    }
-
-    <!-- ─── MODE STATS ────────────────────────────────── -->
-    <section class="profile-section">
-      <h2 class="profile-section-title">Mode Stats</h2>
-      <div class="mode-stats">
-
-        <div class="mode-stat-card mode-stat-card--solo">
-          <div class="mode-stat-card__header">
-            <span class="mode-stat-card__icon">⚡</span>
-            <span class="mode-stat-card__label">Solo</span>
-          </div>
-          <div class="mode-stat-card__rows">
-            <div class="mode-stat-card__row">
-              <span class="mode-stat-card__val">{{ profile()?.elo ?? 1000 }}</span>
-              <span class="mode-stat-card__key">ELO</span>
-            </div>
-            <div class="mode-stat-card__row">
-              <span class="mode-stat-card__val">{{ accuracy() }}%</span>
-              <span class="mode-stat-card__key">Accuracy</span>
-            </div>
-            <div class="mode-stat-card__row">
-              <span class="mode-stat-card__val">{{ profile()?.games_played ?? 0 }}</span>
-              <span class="mode-stat-card__key">Games</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mode-stat-card mode-stat-card--mayhem">
-          <div class="mode-stat-card__header">
-            <span class="mode-stat-card__icon">🌪️</span>
-            <span class="mode-stat-card__label">Mayhem</span>
-          </div>
-          @if (mayhemStats()) {
-            <div class="mode-stat-card__rows">
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ mayhemStats()!.best_session_score }}</span>
-                <span class="mode-stat-card__key">Best</span>
-              </div>
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ mayhemAccuracy() }}%</span>
-                <span class="mode-stat-card__key">Accuracy</span>
-              </div>
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ mayhemStats()!.games_played }}</span>
-                <span class="mode-stat-card__key">Games</span>
-              </div>
-            </div>
-          } @else {
-            <p class="mode-stat-card__empty">No games yet</p>
-          }
-        </div>
-
-        <div class="mode-stat-card mode-stat-card--blitz">
-          <div class="mode-stat-card__header">
-            <span class="mode-stat-card__icon">💨</span>
-            <span class="mode-stat-card__label">Blitz</span>
-          </div>
-          @if (blitzStats()?.bestScore) {
-            <div class="mode-stat-card__rows">
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ blitzStats()!.bestScore }}</span>
-                <span class="mode-stat-card__key">Best</span>
-              </div>
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ blitzStats()!.totalGames }}</span>
-                <span class="mode-stat-card__key">Games</span>
-              </div>
-              @if (blitzStats()!.rank) {
-                <div class="mode-stat-card__row">
-                  <span class="mode-stat-card__val">#{{ blitzStats()!.rank }}</span>
-                  <span class="mode-stat-card__key">Rank</span>
-                </div>
-              }
-            </div>
-          } @else {
-            <p class="mode-stat-card__empty">No games yet</p>
-          }
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ─── MATCH HISTORY ───────────────────────────────── -->
-    @if (matchHistory().length > 0) {
-      <section class="profile-section">
-        <div class="profile-section-header">
-          <h2 class="profile-section-title">Last 10 games</h2>
-          <div class="match-record">
-            <span class="match-record__chip match-record__chip--win">{{ winRecord().wins }}W</span>
-            <span class="match-record__sep">·</span>
-            <span class="match-record__chip match-record__chip--draw">{{ winRecord().draws }}D</span>
-            <span class="match-record__sep">·</span>
-            <span class="match-record__chip match-record__chip--loss">{{ winRecord().losses }}L</span>
-          </div>
-        </div>
-        <div class="match-list">
-          @for (match of matchHistory(); track match.id) {
-            <div class="match-row"
-                 [class.match-row--win]="match.match_mode !== 'battle_royale' && match.winner_id === currentUserId()"
-                 [class.match-row--loss]="match.match_mode !== 'battle_royale' && match.winner_id !== null && match.winner_id !== currentUserId()"
-                 [class.match-row--br]="match.match_mode === 'battle_royale'">
-              <div class="match-row__result">
-                @if (match.match_mode === 'battle_royale') {
-                  <span class="match-row__result-label match-row__result-label--br">BR</span>
-                } @else if (match.winner_id === null) {
-                  <span class="match-row__result-label match-row__result-label--draw">D</span>
-                } @else if (match.winner_id === currentUserId()) {
-                  <span class="match-row__result-label match-row__result-label--win">W</span>
-                } @else {
-                  <span class="match-row__result-label match-row__result-label--loss">L</span>
+      <!-- ─── PRO STATUS ────────────────────────────────── -->
+      @if (isOwnProfile()) {
+        <section class="profile-section pro-status-section">
+          <div class="pro-status-card">
+            @if (pro.isPro()) {
+              <div class="pro-badge-row">
+                <span class="pro-badge">STEPOVR Pro</span>
+                @if (pro.purchaseType() === 'lifetime') {
+                  <span class="pro-type">Lifetime</span>
+                } @else if (pro.purchaseType() === 'subscription') {
+                  <span class="pro-type">Monthly</span>
+                  @if (pro.subscriptionExpiresAt()) {
+                    <span class="pro-renews">Renews {{ formatDate(pro.subscriptionExpiresAt()!) }}</span>
+                  }
                 }
               </div>
-              <div class="match-row__body">
-                <div class="match-row__vs">
-                  <span class="match-row__p1">{{ match.player1_username }}</span>
-                  @if (match.match_mode === 'battle_royale') {
-                    <span class="match-row__score">{{ match.player1_score }} pts</span>
-                  } @else {
-                    <span class="match-row__score">{{ match.player1_score }} – {{ match.player2_score }}</span>
-                  }
-                  <span class="match-row__p2">{{ match.player2_username }}</span>
-                </div>
-                <div class="match-row__footer">
-                  <span class="match-badge"
-                        [class.match-badge--online]="match.match_mode === 'online'"
-                        [class.match-badge--local]="match.match_mode === 'local'"
-                        [class.match-badge--br]="match.match_mode === 'battle_royale'">
-                    {{ match.match_mode === 'online' ? 'Online' : match.match_mode === 'battle_royale' ? 'Battle Royale' : 'Local' }}
-                  </span>
-                  <span class="match-row__date">{{ formatDate(match.played_at) }}</span>
-                </div>
+              @if (pro.purchaseType() === 'subscription') {
+                <a class="manage-subscription-link" href="javascript:void(0)" (click)="openSubscriptionManagement()">
+                  Manage Subscription
+                </a>
+              }
+            } @else {
+              <button mat-flat-button class="upgrade-btn" (click)="pro.showUpgradeModal.set(true)">
+                Upgrade to Pro
+              </button>
+            }
+            <button mat-button class="restore-btn" (click)="restorePurchases()">
+              Restore Purchase
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ─── ELO SPARKLINE ─────────────────────────────── -->
+      @if (sparklineData(); as spark) {
+        <section class="profile-section">
+          <h2 class="profile-section-title">ELO Progression</h2>
+          <div class="elo-sparkline-card">
+            <div class="elo-sparkline__header">
+              <div class="elo-sparkline__labels">
+                <span class="elo-sparkline__label">{{ spark.minElo }}</span>
+                <span class="elo-sparkline__label elo-sparkline__label--max">{{ spark.maxElo }}</span>
               </div>
             </div>
-          }
-        </div>
-      </section>
-    }
+            <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="elo-sparkline__svg">
+              <defs>
+                <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <polygon [attr.points]="spark.points + ' ' + spark.lastX + ',40 3,40'" fill="url(#sparkGrad)"/>
+              <polyline [attr.points]="spark.points" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle [attr.cx]="spark.lastX" [attr.cy]="spark.lastY" r="3" fill="var(--color-accent)">
+                <animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite"/>
+              </circle>
+            </svg>
+          </div>
+        </section>
+      }
 
-    <!-- ─── ACHIEVEMENTS ───────────────────────────────── -->
-    @if (achievements().length > 0) {
+      <!-- ─── MODE STATS ──────────────────────────────── -->
       <section class="profile-section">
-        <div class="profile-section-header">
-          <h2 class="profile-section-title">{{ lang.t().achievements }}</h2>
-          <span class="achievements-count">{{ achievementsEarned() }} / {{ achievements().length }}</span>
-        </div>
-        <div class="achievements-grid">
-          @for (a of achievements(); track a.id) {
-            <div class="achievement-card" [class.achievement-card--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
-              <span class="achievement-card__icon">{{ a.icon }}</span>
-              <span class="achievement-card__name">{{ a.name }}</span>
+        <h2 class="profile-section-title">Mode Stats</h2>
+        <div class="mode-stats-grid">
+
+          <div class="mode-stat-card mode-stat-card--solo">
+            <div class="mode-stat-card__header">
+              <span class="mode-stat-card__icon">&#9889;</span>
+              <span class="mode-stat-card__label">Solo</span>
             </div>
-          }
+            <div class="mode-stat-card__rows">
+              <div class="mode-stat-card__row">
+                <span class="mode-stat-card__val">{{ profile()?.elo ?? 1000 }}</span>
+                <span class="mode-stat-card__key">ELO</span>
+              </div>
+              <div class="mode-stat-card__row">
+                <span class="mode-stat-card__val">{{ profile()?.games_played ?? 0 }}</span>
+                <span class="mode-stat-card__key">Games</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mode-stat-card mode-stat-card--mayhem">
+            <div class="mode-stat-card__header">
+              <span class="mode-stat-card__icon">&#127744;</span>
+              <span class="mode-stat-card__label">Mayhem</span>
+            </div>
+            @if (mayhemStats()) {
+              <div class="mode-stat-card__rows">
+                <div class="mode-stat-card__row">
+                  <span class="mode-stat-card__val">{{ mayhemStats()!.best_session_score }}</span>
+                  <span class="mode-stat-card__key">Best</span>
+                </div>
+                <div class="mode-stat-card__row">
+                  <span class="mode-stat-card__val">{{ mayhemStats()!.games_played }}</span>
+                  <span class="mode-stat-card__key">Games</span>
+                </div>
+              </div>
+            } @else {
+              <p class="mode-stat-card__empty">No games yet</p>
+            }
+          </div>
+
+          <div class="mode-stat-card mode-stat-card--blitz">
+            <div class="mode-stat-card__header">
+              <span class="mode-stat-card__icon">&#128168;</span>
+              <span class="mode-stat-card__label">Blitz</span>
+            </div>
+            @if (blitzStats()?.bestScore) {
+              <div class="mode-stat-card__rows">
+                <div class="mode-stat-card__row">
+                  <span class="mode-stat-card__val">{{ blitzStats()!.bestScore }}</span>
+                  <span class="mode-stat-card__key">Best</span>
+                </div>
+                <div class="mode-stat-card__row">
+                  <span class="mode-stat-card__val">{{ blitzStats()!.totalGames }}</span>
+                  <span class="mode-stat-card__key">Games</span>
+                </div>
+              </div>
+            } @else {
+              <p class="mode-stat-card__empty">No games yet</p>
+            }
+          </div>
+
         </div>
       </section>
-    }
 
-    <!-- ─── ACTIONS ────────────────────────────────────── -->
-    @if (isOwnProfile()) {
-      <div class="profile-actions">
-        <button mat-stroked-button class="profile-signout" (click)="signOut()">
-          <span class="material-icons">logout</span>
-          {{ lang.t().signOut }}
-        </button>
-      </div>
-    }
+      <!-- ─── MATCH HISTORY ─────────────────────────────── -->
+      @if (matchHistory().length > 0) {
+        <section class="profile-section">
+          <div class="profile-section-header">
+            <h2 class="profile-section-title">Recent Matches</h2>
+            <div class="match-record">
+              <span class="match-record__chip match-record__chip--win">{{ winRecord().wins }}W</span>
+              <span class="match-record__sep">/</span>
+              <span class="match-record__chip match-record__chip--draw">{{ winRecord().draws }}D</span>
+              <span class="match-record__sep">/</span>
+              <span class="match-record__chip match-record__chip--loss">{{ winRecord().losses }}L</span>
+            </div>
+          </div>
+          <div class="match-history-card">
+            <div class="match-list">
+              @for (match of matchHistory(); track match.id) {
+                <div class="match-row"
+                     [class.match-row--win]="match.match_mode !== 'battle_royale' && match.winner_id === currentUserId()"
+                     [class.match-row--loss]="match.match_mode !== 'battle_royale' && match.winner_id !== null && match.winner_id !== currentUserId()"
+                     [class.match-row--br]="match.match_mode === 'battle_royale'">
+                  <div class="match-row__result">
+                    @if (match.match_mode === 'battle_royale') {
+                      <span class="match-row__result-label match-row__result-label--br">BR</span>
+                    } @else if (match.winner_id === null) {
+                      <span class="match-row__result-label match-row__result-label--draw">D</span>
+                    } @else if (match.winner_id === currentUserId()) {
+                      <span class="match-row__result-label match-row__result-label--win">W</span>
+                    } @else {
+                      <span class="match-row__result-label match-row__result-label--loss">L</span>
+                    }
+                  </div>
+                  <div class="match-row__body">
+                    <div class="match-row__vs">
+                      <span class="match-row__p1">{{ match.player1_username }}</span>
+                      @if (match.match_mode === 'battle_royale') {
+                        <span class="match-row__score">{{ match.player1_score }} pts</span>
+                      } @else {
+                        <span class="match-row__score">{{ match.player1_score }} - {{ match.player2_score }}</span>
+                      }
+                      <span class="match-row__p2">{{ match.player2_username }}</span>
+                    </div>
+                    <div class="match-row__footer">
+                      <span class="match-badge"
+                            [class.match-badge--online]="match.match_mode === 'online'"
+                            [class.match-badge--local]="match.match_mode === 'local'"
+                            [class.match-badge--br]="match.match_mode === 'battle_royale'">
+                        {{ match.match_mode === 'online' ? 'Online' : match.match_mode === 'battle_royale' ? 'BR' : 'Local' }}
+                      </span>
+                      <span class="match-row__date">{{ formatDate(match.played_at) }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ─── ACHIEVEMENTS ─────────────────────────────── -->
+      @if (achievements().length > 0) {
+        <section class="profile-section">
+          <div class="profile-section-header">
+            <h2 class="profile-section-title">{{ lang.t().achievements }}</h2>
+            <span class="achievements-count">{{ achievementsEarned() }} / {{ achievements().length }}</span>
+          </div>
+          <div class="achievements-card">
+            <div class="achievements-grid">
+              @for (a of achievements(); track a.id) {
+                <div class="achievement-card" [class.achievement-card--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
+                  <span class="achievement-card__icon">{{ a.icon }}</span>
+                  <span class="achievement-card__name">{{ a.name }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ─── ACTIONS ──────────────────────────────────── -->
+      @if (isOwnProfile()) {
+        <div class="profile-actions">
+          <button mat-stroked-button class="profile-signout" (click)="signOut()">
+            <span class="material-icons">logout</span>
+            {{ lang.t().signOut }}
+          </button>
+        </div>
+      }
+
+    </div>
   }
 </div>
