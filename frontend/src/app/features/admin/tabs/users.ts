@@ -162,7 +162,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
               <span class="sparkline-label">ELO History</span>
               <svg class="sparkline" viewBox="0 0 200 40" preserveAspectRatio="none">
                 <polyline
-                  [attr.points]="sparklinePoints(user.eloHistory)"
+                  [attr.points]="sparklinePoints(user.eloHistory ?? [])"
                   fill="none"
                   stroke="var(--color-accent, #c3f400)"
                   stroke-width="1.5"
