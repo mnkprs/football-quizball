@@ -8,4 +8,268 @@
 .logo-quiz-root {
   flex: 1;
   min-height: 100dvh;
+  background: #131313;
+}
+
+.lq-container {
+  max-width: 28rem;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* ── Start Screen ─────────────────────────── */
+
+.lq-start {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Two spotlights from top corners */
+.lq-start::before,
+.lq-start::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  width: 240px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lq-start::before {
+  left: -60px;
+  background: radial-gradient(ellipse, rgba(168, 85, 247, 0.2) 0%, transparent 70%);
+}
+
+.lq-start::after {
+  right: -60px;
+  background: radial-gradient(ellipse, rgba(195, 244, 0, 0.14) 0%, transparent 70%);
+}
+
+/* Hero — full-width background image, fades into content */
+.lq-hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  z-index: 0;
+}
+
+.lq-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0.5;
+}
+
+.lq-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(19, 19, 19, 0) 0%,
+    rgba(19, 19, 19, 0.4) 50%,
+    rgba(19, 19, 19, 1) 85%
+  );
+}
+
+/* Content — centered vertically in the screen */
+.lq-start__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7.5rem);
+  position: relative;
+  z-index: 3;
+  gap: 1rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Title */
+.lq-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #e5e2e1;
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin: 0;
+}
+
+/* Subtitle */
+.lq-subtitle {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 20rem;
+  margin: 0;
+}
+
+/* ELO Card */
+.lq-elo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 2.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid;
+  border-radius: 1rem;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.lq-elo-card__label {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lq-elo-card__value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.lq-elo-card__tier {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Hardcore Toggle */
+.lq-hardcore {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lq-hardcore--active {
+  background: rgba(239, 68, 68, 0.08);
+  animation: pulse-danger 2s infinite;
+}
+
+.lq-hardcore__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lq-hardcore__label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color 0.3s;
+}
+
+.lq-hardcore--active .lq-hardcore__label {
+  color: #ef4444;
+}
+
+.lq-hardcore__desc {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Toggle Switch */
+.lq-toggle {
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+
+.lq-toggle--on {
+  background: #ef4444;
+}
+
+.lq-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.lq-toggle--on .lq-toggle__thumb {
+  transform: translateX(1.25rem);
+}
+
+/* Pulse Danger Animation */
+@keyframes pulse-danger {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    border-color: rgba(239, 68, 68, 0.8);
+  }
+}
+
+/* Start Button */
+.lq-start-btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 9999px;
+  background: #a855f7;
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  transition: box-shadow 0.3s, opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lq-start-btn:active {
+  opacity: 0.85;
+}
+
+.lq-start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
