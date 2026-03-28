@@ -268,7 +268,7 @@ export class SupabaseService {
 
   async setProStatus(userId: string, params: {
     isPro: boolean;
-    proSource?: 'subscription' | 'lifetime';
+    proSource?: 'subscription' | 'lifetime' | 'admin_grant';
     proLifetimeOwned?: boolean;
     proExpiresAt?: string | null;
     iapPlatform?: 'ios' | 'android';

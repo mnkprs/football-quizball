@@ -3,6 +3,56 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface OverviewStats {
+  gamesToday: number | null;
+  errorsLastHour: number | null;
+  proUsers: number | null;
+  activeGames: { duels: number; onlineGames: number; battleRoyale: number } | null;
+  fetchedAt: string;
+}
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  elo: number;
+  games_played: number;
+  questions_answered: number;
+  correct_answers: number;
+  is_pro: boolean;
+  created_at?: string;
+}
+
+export interface AdminUserDetail {
+  profile: AdminUser;
+  eloHistory?: { elo_before: number; elo_after: number; elo_change: number; created_at: string }[];
+  recentGames?: any[];
+  proStatus: { is_pro: boolean; purchase_type?: string; subscription_expires_at?: string } | null;
+}
+
+export interface ErrorLogEntry {
+  id: string;
+  level: string;
+  context: string;
+  message: string;
+  stack?: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface LiveGamesResponse {
+  duels: any[];
+  onlineGames: any[];
+  battleRoyale: any[];
+}
+
+export interface SystemInfo {
+  uptime: number;
+  memory: { rss: number; heapTotal: number; heapUsed: number };
+  nodeVersion: string;
+  gitSha: string;
+  timestamp: string;
+}
+
 export interface SlotRawStats {
   count: number;
   avg: number;
@@ -303,6 +353,115 @@ export class AdminApiService {
       null,
       { headers, params },
     );
+  }
+
+  /** Get high-level overview stats: games today, errors last hour, pro users, active games. */
+  getOverviewStats(apiKey?: string): Observable<OverviewStats> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.get<OverviewStats>(`${this.base}/api/admin/overview-stats`, { headers });
+  }
+
+  /** Search/paginate users. */
+  searchUsers(search = '', page = 1, limit = 25, apiKey?: string): Observable<{ data: AdminUser[]; total: number }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    const params: Record<string, string> = { page: String(page), limit: String(limit) };
+    if (search.trim()) params['search'] = search.trim();
+    return this.http.get<{ data: AdminUser[]; total: number }>(`${this.base}/api/admin/users`, { headers, params });
+  }
+
+  /** Get full detail for a single user. */
+  getUserDetail(id: string, apiKey?: string): Observable<AdminUserDetail> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.get<AdminUserDetail>(`${this.base}/api/admin/users/${id}`, { headers });
+  }
+
+  /** Grant Pro to a user. */
+  grantPro(id: string, apiKey?: string): Observable<{ changed: boolean; alreadyPro?: boolean }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.post<{ changed: boolean; alreadyPro?: boolean }>(
+      `${this.base}/api/admin/users/${id}/grant-pro`,
+      null,
+      { headers },
+    );
+  }
+
+  /** Revoke Pro from a user. */
+  revokePro(id: string, apiKey?: string): Observable<{ changed: boolean; warning?: string }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.post<{ changed: boolean; warning?: string }>(
+      `${this.base}/api/admin/users/${id}/revoke-pro`,
+      null,
+      { headers },
+    );
+  }
+
+  /** Reset ELO for a user. */
+  resetElo(id: string, apiKey?: string): Observable<{ changed?: boolean; blocked?: boolean; reason?: string }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.post<{ changed?: boolean; blocked?: boolean; reason?: string }>(
+      `${this.base}/api/admin/users/${id}/reset-elo`,
+      null,
+      { headers },
+    );
+  }
+
+  /** Get error logs with optional filters. */
+  getErrorLogs(
+    params: { level?: string; from?: string; to?: string; search?: string; page?: number; limit?: number } = {},
+    apiKey?: string,
+  ): Observable<{ data: ErrorLogEntry[]; total: number }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    const queryParams: Record<string, string> = {};
+    if (params.level?.trim()) queryParams['level'] = params.level.trim();
+    if (params.from?.trim()) queryParams['from'] = params.from.trim();
+    if (params.to?.trim()) queryParams['to'] = params.to.trim();
+    if (params.search?.trim()) queryParams['search'] = params.search.trim();
+    if (params.page != null) queryParams['page'] = String(params.page);
+    if (params.limit != null) queryParams['limit'] = String(params.limit);
+    return this.http.get<{ data: ErrorLogEntry[]; total: number }>(`${this.base}/api/admin/error-logs`, {
+      headers,
+      params: queryParams,
+    });
+  }
+
+  /** Clear error logs, optionally only those before a given ISO timestamp. */
+  clearErrorLogs(before?: string, apiKey?: string): Observable<{ cleared: boolean }> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    const params: Record<string, string> = {};
+    if (before?.trim()) params['before'] = before.trim();
+    return this.http.delete<{ cleared: boolean }>(`${this.base}/api/admin/error-logs`, { headers, params });
+  }
+
+  /** Get snapshot of currently active games across all modes. */
+  getLiveGames(apiKey?: string): Observable<LiveGamesResponse> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.get<LiveGamesResponse>(`${this.base}/api/admin/live-games`, { headers });
+  }
+
+  /** Get recently completed games. */
+  getRecentGames(limit = 20, apiKey?: string): Observable<any[]> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.get<any[]>(`${this.base}/api/admin/recent-games`, {
+      headers,
+      params: { limit: String(limit) },
+    });
+  }
+
+  /** Get server system info (uptime, memory, node version, git SHA). */
+  getSystemInfo(apiKey?: string): Observable<SystemInfo> {
+    const key = apiKey ?? this.apiKey;
+    const headers = key ? new HttpHeaders({ 'x-admin-key': key }) : undefined;
+    return this.http.get<SystemInfo>(`${this.base}/api/admin/system-info`, { headers });
   }
 }
 
