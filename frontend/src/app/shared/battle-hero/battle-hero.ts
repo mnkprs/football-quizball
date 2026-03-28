@@ -34,6 +34,7 @@ export class BattleHeroComponent {
   cardClick = output<void>();
   unlockClick = output<void>();
   modeClick = output<number>();
+  lockedModeClick = output<number>();
 
   tagColorFor = getTagColor;
   tagIconFor = getTagIcon;
@@ -52,7 +53,12 @@ export class BattleHeroComponent {
 
   onModeClick(index: number): void {
     const mode = this.modes()[index];
-    if (mode && !mode.locked && mode.trialRemaining !== 0) {
+    if (!mode) return;
+    if (mode.locked) {
+      this.lockedModeClick.emit(index);
+      return;
+    }
+    if (mode.trialRemaining !== 0) {
       this.modeClick.emit(index);
     }
   }

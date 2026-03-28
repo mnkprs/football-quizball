@@ -197,6 +197,10 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/battle-royale']);
   }
 
+  onLockedModeClick(): void {
+    this.router.navigate(['/login']);
+  }
+
   onLogoModeClick(index: number): void {
     switch (index) {
       case 0: this.goLogoQuiz(); break;
@@ -207,7 +211,7 @@ export class HomeComponent implements OnInit {
 
   goLogoDuel(): void {
     if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/duel' } });
+      this.router.navigate(['/login'], { queryParams: { redirect: '/duel?mode=logo' } });
       return;
     }
     this.router.navigate(['/duel'], { queryParams: { mode: 'logo' } });
