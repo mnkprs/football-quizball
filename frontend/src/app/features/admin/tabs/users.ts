@@ -213,11 +213,11 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
               <h4 class="section-title">Recent Games</h4>
               @for (game of user.recentGames.slice(0, 5); track game.id ?? $index) {
                 <div class="game-row">
-                  <span class="game-type">{{ game.game_type ?? game.type ?? 'game' }}</span>
+                  <span class="game-type">{{ game.match_mode ?? game.game_type ?? 'game' }}</span>
                   <span class="game-result" [class.game-result--win]="game.winner_id === user.profile.id">
                     {{ game.winner_id === user.profile.id ? 'W' : 'L' }}
                   </span>
-                  <span class="game-date">{{ formatDate(game.completed_at ?? game.created_at) }}</span>
+                  <span class="game-date">{{ formatDate(game.played_at ?? game.completed_at ?? game.created_at) }}</span>
                 </div>
               }
             </div>
