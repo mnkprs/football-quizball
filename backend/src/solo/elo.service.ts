@@ -35,8 +35,7 @@ export class EloService {
   }
 
   getDifficultyForElo(elo: number): Difficulty {
-    if (elo < 1100) return 'EASY';
-    if (elo < 1400) return 'MEDIUM';
+    if (elo < 1200) return 'EASY';
     return 'HARD';
   }
 }
