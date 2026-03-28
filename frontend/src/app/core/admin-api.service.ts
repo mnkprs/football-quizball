@@ -24,8 +24,8 @@ export interface AdminUser {
 
 export interface AdminUserDetail {
   profile: AdminUser;
-  eloHistory: { elo_before: number; elo_after: number; elo_change: number; created_at: string }[];
-  recentGames: any[];
+  eloHistory?: { elo_before: number; elo_after: number; elo_change: number; created_at: string }[];
+  recentGames?: any[];
   proStatus: { is_pro: boolean; purchase_type?: string; subscription_expires_at?: string } | null;
 }
 
