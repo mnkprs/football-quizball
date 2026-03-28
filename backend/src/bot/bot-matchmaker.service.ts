@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BotService } from './bot.service';
@@ -23,7 +23,7 @@ const BR_SEED_BOT_COUNT = 3;
 const STALE_BR_ROOM_MINUTES = 10;
 
 @Injectable()
-export class BotMatchmakerService {
+export class BotMatchmakerService implements OnModuleInit {
   private readonly logger = new Logger(BotMatchmakerService.name);
   private checkQueuesRunning = false;
   private _paused = false;
@@ -32,14 +32,16 @@ export class BotMatchmakerService {
     return this._paused;
   }
 
-  pause(): void {
+  async pause(): Promise<void> {
     this._paused = true;
-    this.logger.warn('[Matchmaker] Bot activity PAUSED');
+    await this.supabaseService.setSetting('bots_paused', 'true');
+    this.logger.warn('[Matchmaker] Bot activity PAUSED (persisted)');
   }
 
-  resume(): void {
+  async resume(): Promise<void> {
     this._paused = false;
-    this.logger.warn('[Matchmaker] Bot activity RESUMED');
+    await this.supabaseService.setSetting('bots_paused', 'false');
+    this.logger.warn('[Matchmaker] Bot activity RESUMED (persisted)');
   }
 
   constructor(
@@ -49,6 +51,14 @@ export class BotMatchmakerService {
     private readonly brRunner: BotBattleRoyaleRunner,
     private readonly brService: BattleRoyaleService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    const value = await this.supabaseService.getSetting('bots_paused');
+    this._paused = value === 'true';
+    if (this._paused) {
+      this.logger.warn('[Matchmaker] Bot activity PAUSED (restored from database)');
+    }
+  }
 
   @Cron('*/5 * * * * *') // every 5 seconds
   async checkQueues(): Promise<void> {

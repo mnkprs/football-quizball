@@ -303,8 +303,8 @@ export class AdminController {
   @Post('bots/pause')
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
-  pauseBots() {
-    this.botMatchmaker.pause();
+  async pauseBots() {
+    await this.botMatchmaker.pause();
     this.botOnlineRunner.pause();
     this.logger.warn('[Admin] All bot activity PAUSED');
     return { paused: true };
@@ -317,8 +317,8 @@ export class AdminController {
   @Post('bots/resume')
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
-  resumeBots() {
-    this.botMatchmaker.resume();
+  async resumeBots() {
+    await this.botMatchmaker.resume();
     this.botOnlineRunner.resume();
     this.logger.warn('[Admin] All bot activity RESUMED');
     return { paused: false };

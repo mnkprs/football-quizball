@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BotService } from './bot.service';
@@ -10,7 +10,7 @@ import { GeneratedQuestion } from '../questions/question.types';
 const BOT_TURN_MIN_WAIT_SECONDS = 45;
 
 @Injectable()
-export class BotOnlineGameRunner {
+export class BotOnlineGameRunner implements OnModuleInit {
   private readonly logger = new Logger(BotOnlineGameRunner.name);
   private _paused = false;
 
@@ -33,6 +33,14 @@ export class BotOnlineGameRunner {
     private readonly botService: BotService,
     private readonly onlineGameService: OnlineGameService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    const value = await this.supabaseService.getSetting('bots_paused');
+    this._paused = value === 'true';
+    if (this._paused) {
+      this.logger.warn('[BotOnlineRunner] Bot turns PAUSED (restored from database)');
+    }
+  }
 
   /**
    * Every 30 seconds: find active online games where the current player is a bot
