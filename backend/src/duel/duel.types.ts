@@ -1,9 +1,23 @@
-import { IsString, MaxLength, IsInt, Min } from 'class-validator';
+import { IsString, MaxLength, IsInt, Min, IsOptional, IsIn } from 'class-validator';
 import { GeneratedQuestion } from '../questions/question.types';
+
+export type DuelGameType = 'standard' | 'logo';
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
 
-export class CreateDuelDto {}
+export class CreateDuelDto {
+  @IsOptional()
+  @IsString()
+  @IsIn(['standard', 'logo'])
+  gameType?: DuelGameType;
+}
+
+export class JoinQueueDto {
+  @IsOptional()
+  @IsString()
+  @IsIn(['standard', 'logo'])
+  gameType?: DuelGameType;
+}
 
 export class JoinDuelByCodeDto {
   @IsString()
@@ -39,6 +53,8 @@ export interface DuelPublicQuestion {
   explanation: string;
   category: string;
   difficulty: string;
+  image_url?: string;
+  original_image_url?: string;
 }
 
 export interface DuelPublicView {
@@ -55,6 +71,7 @@ export interface DuelPublicView {
   questionResults: DuelQuestionResult[];
   hostReady: boolean;
   guestReady: boolean;
+  gameType: DuelGameType;
 }
 
 export interface DuelAnswerResult {
@@ -76,6 +93,7 @@ export interface DuelGameSummary {
   scores: { host: number; guest: number };
   opponentUsername: string | null;
   updatedAt: string;
+  gameType: DuelGameType;
 }
 
 export class DuelTimeoutDto {
@@ -100,6 +118,7 @@ export interface DuelGameRow {
   question_results: DuelQuestionResult[];
   pool_question_ids: string[];
   question_started_at: string | null;
+  game_type: DuelGameType;
   created_at: string;
   updated_at: string;
 }

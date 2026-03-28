@@ -1,5 +1,15 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { getTagColor, getTagIcon } from '../tag-colors';
+
+export interface HeroMode {
+  label: string;
+  sub: string;
+  icon: string;
+  iconClass?: string;
+  locked: boolean;
+  /** Number of free trials remaining. null = unlimited. 0 = rate limited. */
+  trialRemaining?: number | null;
+}
 
 @Component({
   selector: 'app-battle-hero',
@@ -18,18 +28,32 @@ export class BattleHeroComponent {
   proLocked = input(false);
   lockMessage = input('Sign in to join the arena');
   onlineCount = input<number | null>(null);
+  theme = input<'gold' | 'purple'>('gold');
+  modes = input<HeroMode[]>([]);
 
   cardClick = output<void>();
   unlockClick = output<void>();
+  modeClick = output<number>();
 
   tagColorFor = getTagColor;
   tagIconFor = getTagIcon;
 
+  titleChars = computed(() => this.title().split(''));
+  hasModes = computed(() => this.modes().length > 0);
+
   onCardClick(): void {
+    if (this.hasModes()) return;
     if (!this.locked() && !this.proLocked()) {
       this.cardClick.emit();
     } else {
       this.unlockClick.emit();
+    }
+  }
+
+  onModeClick(index: number): void {
+    const mode = this.modes()[index];
+    if (mode && !mode.locked && mode.trialRemaining !== 0) {
+      this.modeClick.emit(index);
     }
   }
 }

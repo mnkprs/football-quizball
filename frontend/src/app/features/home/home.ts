@@ -10,7 +10,7 @@ import { LanguageService } from '../../core/language.service';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
 import { AuthCardComponent } from '../../shared/auth-card/auth-card';
-import { BattleHeroComponent } from '../../shared/battle-hero/battle-hero';
+import { BattleHeroComponent, HeroMode } from '../../shared/battle-hero/battle-hero';
 
 @Component({
   selector: 'app-home',
@@ -40,6 +40,19 @@ export class HomeComponent implements OnInit {
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   avatarLoadFailed = signal(false);
   onlinePlayers = signal(Math.floor(Math.random() * 40) + 12);
+
+  logoModes = computed<HeroMode[]>(() => {
+    const loggedIn = this.auth.isLoggedIn();
+    const isPro = this.pro.isPro();
+    const duelsLeft = this.pro.dailyDuelsRemaining();
+    const trial = loggedIn && !isPro ? duelsLeft : null;
+
+    return [
+      { label: 'Solo', sub: 'Free', icon: 'person', locked: false },
+      { label: 'Duel', sub: '1v1', icon: 'swords', iconClass: 'material-symbols-outlined', locked: !loggedIn, trialRemaining: trial },
+      { label: 'Team', sub: 'PvP', icon: 'shield', iconClass: 'material-symbols-outlined', locked: !loggedIn, trialRemaining: trial },
+    ];
+  });
 
   authStatsText = computed(() => {
     const t = this.lang.t();
@@ -182,6 +195,22 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.router.navigate(['/battle-royale']);
+  }
+
+  onLogoModeClick(index: number): void {
+    switch (index) {
+      case 0: this.goLogoQuiz(); break;
+      case 1: this.goLogoDuel(); break;
+      case 2: this.goTeamLogoQuiz(); break;
+    }
+  }
+
+  goLogoDuel(): void {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/duel' } });
+      return;
+    }
+    this.router.navigate(['/duel'], { queryParams: { mode: 'logo' } });
   }
 
   goTeamLogoQuiz(): void {

@@ -1,62 +1,148 @@
-<span class="battle-hero__featured">
+<span class="battle-hero__featured" [class.battle-hero__featured--purple]="theme() === 'purple'">
   <span class="material-icons battle-hero__featured-icon">auto_awesome</span>
   Featured
 </span>
-<button type="button" class="battle-hero" (click)="onCardClick()" [attr.aria-label]="title()">
-  @if (backgroundImage(); as img) {
-    <img class="battle-hero__bg" [src]="img" alt="" aria-hidden="true" />
-    <span class="battle-hero__overlay" aria-hidden="true"></span>
-  }
 
-  <div class="battle-hero__top">
-    @if (tags().length > 0) {
-      <div class="battle-hero__tags">
-        @for (tag of tags(); track $index) {
-          <span class="battle-hero__tag"
-            [class.battle-hero__tag--red]="tagColorFor(tag) === 'red'"
-            [class.battle-hero__tag--blue]="tagColorFor(tag) === 'blue'"
-            [class.battle-hero__tag--lime]="tagColorFor(tag) === 'lime'"
-            [class.battle-hero__tag--orange]="tagColorFor(tag) === 'orange'"
-            [class.battle-hero__tag--purple]="tagColorFor(tag) === 'purple'"
-            [class.battle-hero__tag--white]="tagColorFor(tag) === 'white'"
-            [class.battle-hero__tag--gold]="tagColorFor(tag) === 'gold'"
-            [class.battle-hero__tag--cyan]="tagColorFor(tag) === 'cyan'"
-            [class.battle-hero__tag--pink]="tagColorFor(tag) === 'pink'"
-            [class.battle-hero__tag--amber]="tagColorFor(tag) === 'amber'"
-            [class.battle-hero__tag--mint]="tagColorFor(tag) === 'mint'"
-            [class.battle-hero__tag--coral]="tagColorFor(tag) === 'coral'"
-            [class.battle-hero__tag--teal]="tagColorFor(tag) === 'teal'"
-            [class.battle-hero__tag--dark]="tagColorFor(tag) === 'dark'"
-          >@if (tagIconFor(tag); as icon) {<span class="material-icons battle-hero__tag-icon">{{ icon }}</span>}{{ tag }}</span>
+@if (hasModes()) {
+  <!-- Multi-mode: outer is a div, each mode is its own button -->
+  <div class="battle-hero" [class.battle-hero--purple]="theme() === 'purple'" [attr.aria-label]="title()">
+    @if (backgroundImage(); as img) {
+      <img class="battle-hero__bg" [src]="img" alt="" aria-hidden="true" />
+      <span class="battle-hero__overlay" [class.battle-hero__overlay--purple]="theme() === 'purple'" aria-hidden="true"></span>
+    }
+
+    <div class="battle-hero__top">
+      @if (tags().length > 0) {
+        <div class="battle-hero__tags">
+          @for (tag of tags(); track $index) {
+            <span class="battle-hero__tag"
+              [class.battle-hero__tag--red]="tagColorFor(tag) === 'red'"
+              [class.battle-hero__tag--blue]="tagColorFor(tag) === 'blue'"
+              [class.battle-hero__tag--lime]="tagColorFor(tag) === 'lime'"
+              [class.battle-hero__tag--orange]="tagColorFor(tag) === 'orange'"
+              [class.battle-hero__tag--purple]="tagColorFor(tag) === 'purple'"
+              [class.battle-hero__tag--white]="tagColorFor(tag) === 'white'"
+              [class.battle-hero__tag--gold]="tagColorFor(tag) === 'gold'"
+              [class.battle-hero__tag--cyan]="tagColorFor(tag) === 'cyan'"
+              [class.battle-hero__tag--pink]="tagColorFor(tag) === 'pink'"
+              [class.battle-hero__tag--amber]="tagColorFor(tag) === 'amber'"
+              [class.battle-hero__tag--mint]="tagColorFor(tag) === 'mint'"
+              [class.battle-hero__tag--coral]="tagColorFor(tag) === 'coral'"
+              [class.battle-hero__tag--teal]="tagColorFor(tag) === 'teal'"
+              [class.battle-hero__tag--dark]="tagColorFor(tag) === 'dark'"
+            >@if (tagIconFor(tag); as icon) {<span class="material-icons battle-hero__tag-icon">{{ icon }}</span>}{{ tag }}</span>
+          }
+        </div>
+      }
+      @if (onlineCount() !== null && onlineCount()! > 0) {
+        <span class="battle-hero__online">
+          <span class="battle-hero__online-dot"></span>
+          {{ onlineCount() }} online
+        </span>
+      }
+    </div>
+
+    <div class="battle-hero__bottom">
+      <p class="battle-hero__subtitle">{{ subtitle() }}</p>
+      <h2 class="battle-hero__title" [attr.aria-label]="title()">
+        @for (char of titleChars(); track $index) {
+          <span class="battle-hero__wave" [style.--i]="$index">{{ char === ' ' ? '\u00A0' : char }}</span>
+        }
+      </h2>
+
+      <div class="battle-hero__modes">
+        @for (mode of modes(); track $index) {
+          <button
+            type="button"
+            class="battle-hero__mode-btn"
+            [class.battle-hero__mode-btn--locked]="mode.locked || mode.trialRemaining === 0"
+            [class.battle-hero__mode-btn--purple]="theme() === 'purple'"
+            [attr.aria-label]="mode.label + ' - ' + mode.sub + (mode.locked ? ' - Sign in to unlock' : mode.trialRemaining === 0 ? ' - Come back tomorrow' : '')"
+            [attr.aria-disabled]="mode.locked || mode.trialRemaining === 0"
+            (click)="onModeClick($index)"
+          >
+            @if (mode.locked) {
+              <span class="material-icons battle-hero__mode-lock">lock</span>
+            } @else if (mode.trialRemaining === 0) {
+              <span class="material-icons battle-hero__mode-lock">schedule</span>
+            } @else {
+              <span [class]="(mode.iconClass ?? 'material-icons') + ' battle-hero__mode-icon'">{{ mode.icon }}</span>
+            }
+            <span class="battle-hero__mode-label">{{ mode.label }}</span>
+            @if (mode.locked) {
+              <span class="battle-hero__mode-sub">Sign in</span>
+            } @else if (mode.trialRemaining === 0) {
+              <span class="battle-hero__mode-sub">Tomorrow</span>
+            } @else if (mode.trialRemaining != null) {
+              <span class="battle-hero__mode-sub">{{ mode.trialRemaining }} free</span>
+            } @else {
+              <span class="battle-hero__mode-sub">{{ mode.sub }}</span>
+            }
+          </button>
         }
       </div>
-    }
-    @if (onlineCount() !== null && onlineCount()! > 0) {
-      <span class="battle-hero__online">
-        <span class="battle-hero__online-dot"></span>
-        {{ onlineCount() }} online
-      </span>
-    }
+    </div>
   </div>
-
-  <div class="battle-hero__bottom">
-    <p class="battle-hero__subtitle">{{ subtitle() }}</p>
-    <h2 class="battle-hero__title" aria-label="Battle Royale">
-      <span class="battle-hero__wave" style="--i:0">B</span><span class="battle-hero__wave" style="--i:1">a</span><span class="battle-hero__wave" style="--i:2">t</span><span class="battle-hero__wave" style="--i:3">t</span><span class="battle-hero__wave" style="--i:4">l</span><span class="battle-hero__wave" style="--i:5">e</span><span class="battle-hero__wave" style="--i:6">&nbsp;</span><span class="battle-hero__wave" style="--i:7">R</span><span class="battle-hero__wave" style="--i:8">o</span><span class="battle-hero__wave" style="--i:9">y</span><span class="battle-hero__wave" style="--i:10">a</span><span class="battle-hero__wave" style="--i:11">l</span><span class="battle-hero__wave" style="--i:12">e</span>
-    </h2>
-
-    @if (locked()) {
-      <div class="battle-hero__lock-strip">
-        <span class="material-icons battle-hero__lock-icon">arrow_forward</span>
-        <span class="battle-hero__lock-text">{{ lockMessage() }}</span>
-      </div>
-    } @else if (proLocked()) {
-      <div class="battle-hero__lock-strip battle-hero__lock-strip--pro">
-        <span class="material-icons battle-hero__lock-crown">workspace_premium</span>
-        <span class="battle-hero__lock-text">Upgrade to Pro</span>
-      </div>
-    } @else {
-      <span class="battle-hero__cta">{{ actionLabel() }}</span>
+} @else {
+  <!-- Single-action: outer is a button (original behavior) -->
+  <button type="button" class="battle-hero" (click)="onCardClick()" [attr.aria-label]="title()">
+    @if (backgroundImage(); as img) {
+      <img class="battle-hero__bg" [src]="img" alt="" aria-hidden="true" />
+      <span class="battle-hero__overlay" aria-hidden="true"></span>
     }
-  </div>
-</button>
+
+    <div class="battle-hero__top">
+      @if (tags().length > 0) {
+        <div class="battle-hero__tags">
+          @for (tag of tags(); track $index) {
+            <span class="battle-hero__tag"
+              [class.battle-hero__tag--red]="tagColorFor(tag) === 'red'"
+              [class.battle-hero__tag--blue]="tagColorFor(tag) === 'blue'"
+              [class.battle-hero__tag--lime]="tagColorFor(tag) === 'lime'"
+              [class.battle-hero__tag--orange]="tagColorFor(tag) === 'orange'"
+              [class.battle-hero__tag--purple]="tagColorFor(tag) === 'purple'"
+              [class.battle-hero__tag--white]="tagColorFor(tag) === 'white'"
+              [class.battle-hero__tag--gold]="tagColorFor(tag) === 'gold'"
+              [class.battle-hero__tag--cyan]="tagColorFor(tag) === 'cyan'"
+              [class.battle-hero__tag--pink]="tagColorFor(tag) === 'pink'"
+              [class.battle-hero__tag--amber]="tagColorFor(tag) === 'amber'"
+              [class.battle-hero__tag--mint]="tagColorFor(tag) === 'mint'"
+              [class.battle-hero__tag--coral]="tagColorFor(tag) === 'coral'"
+              [class.battle-hero__tag--teal]="tagColorFor(tag) === 'teal'"
+              [class.battle-hero__tag--dark]="tagColorFor(tag) === 'dark'"
+            >@if (tagIconFor(tag); as icon) {<span class="material-icons battle-hero__tag-icon">{{ icon }}</span>}{{ tag }}</span>
+          }
+        </div>
+      }
+      @if (onlineCount() !== null && onlineCount()! > 0) {
+        <span class="battle-hero__online">
+          <span class="battle-hero__online-dot"></span>
+          {{ onlineCount() }} online
+        </span>
+      }
+    </div>
+
+    <div class="battle-hero__bottom">
+      <p class="battle-hero__subtitle">{{ subtitle() }}</p>
+      <h2 class="battle-hero__title" [attr.aria-label]="title()">
+        @for (char of titleChars(); track $index) {
+          <span class="battle-hero__wave" [style.--i]="$index">{{ char === ' ' ? '\u00A0' : char }}</span>
+        }
+      </h2>
+
+      @if (locked()) {
+        <div class="battle-hero__lock-strip">
+          <span class="material-icons battle-hero__lock-icon">arrow_forward</span>
+          <span class="battle-hero__lock-text">{{ lockMessage() }}</span>
+        </div>
+      } @else if (proLocked()) {
+        <div class="battle-hero__lock-strip battle-hero__lock-strip--pro">
+          <span class="material-icons battle-hero__lock-crown">workspace_premium</span>
+          <span class="battle-hero__lock-text">Upgrade to Pro</span>
+        </div>
+      } @else {
+        <span class="battle-hero__cta">{{ actionLabel() }}</span>
+      }
+    </div>
+  </button>
+}

@@ -14,19 +14,16 @@
       />
     }
 
-    <!-- TIER 1: Battle Royale Hero -->
+    <!-- TIER 1: Logo Quiz Hub Hero -->
     <app-battle-hero
-      title="Battle Royale"
-      subtitle="8-Player High-Speed Clash"
-      [tags]="['8 players', 'multi', 'pvp']"
-      backgroundImage="/royale.png"
-      actionLabel="Join Battle"
-      [locked]="!auth.isLoggedIn()"
-      [proLocked]="false"
-      lockMessage="Sign in to join the arena"
+      title="Logo Quiz"
+      subtitle="Guess the Club From Its Logo"
+      [tags]="['visual', 'logos', 'free']"
+      backgroundImage="/gemini-logo.png"
+      theme="purple"
       [onlineCount]="onlinePlayers()"
-      (cardClick)="goBattleRoyale()"
-      (unlockClick)="goBattleRoyale()"
+      [modes]="logoModes()"
+      (modeClick)="onLogoModeClick($event)"
     />
 
     <!-- TIER 3: Pro Arena -->
@@ -35,6 +32,22 @@
     />
 
     <div class="section-modes pro-arena-tier">
+      <app-mode-card
+        icon="military_tech"
+        iconClass="material-symbols-outlined"
+        iconBgColor="gold"
+        title="Battle Royale"
+        hint="8-Player High-Speed Clash"
+        [tags]="['8 players', 'multi', 'pvp']"
+        backgroundImage="/royale.png"
+        variant="accent"
+        actionLabel="Join Battle"
+        size="medium"
+        [velvetLock]="true"
+        [locked]="!auth.isLoggedIn()"
+        [onlineCount]="onlinePlayers()"
+        (cardClick)="goBattleRoyale()"
+      />
       <app-mode-card
         icon="swords"
         iconClass="material-symbols-outlined"
@@ -99,32 +112,6 @@
         [compact]="true"
         [locked]="false"
         (cardClick)="goMayhem()"
-      />
-      <app-mode-card
-        icon="image_search"
-        iconBgColor="purple"
-        title="Logo Quiz"
-        hint="Guess the club from its logo"
-        [tags]="['solo', 'visual', 'free']"
-        backgroundImage="/gemini-logo.png"
-        variant="accent"
-        [compact]="true"
-        [locked]="false"
-        (cardClick)="goLogoQuiz()"
-      />
-      <app-mode-card
-        icon="shield"
-        iconClass="material-symbols-outlined"
-        iconBgColor="lime"
-        title="Team Logo Quiz"
-        hint="Team vs Team · Logo Recognition"
-        [tags]="['teams', 'logos', 'pvp']"
-        backgroundImage="/royale.png"
-        variant="accent"
-        [compact]="true"
-        [locked]="!auth.isLoggedIn()"
-        [velvetLock]="true"
-        (cardClick)="goTeamLogoQuiz()"
       />
       <div class="two-player-card">
         <img class="two-player-card__bg-image" src="/football-field.png" alt="" aria-hidden="true" />

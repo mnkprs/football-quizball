@@ -6,12 +6,16 @@ import { AuthService } from '../../core/auth.service';
 
 // ── Types (mirror backend duel.types.ts) ─────────────────────────────────────
 
+export type DuelGameType = 'standard' | 'logo';
+
 export interface DuelPublicQuestion {
   index: number;
   question_text: string;
   explanation: string;
   category: string;
   difficulty: string;
+  image_url?: string;
+  original_image_url?: string;
 }
 
 export interface DuelQuestionResult {
@@ -35,6 +39,7 @@ export interface DuelPublicView {
   questionResults: DuelQuestionResult[];
   hostReady: boolean;
   guestReady: boolean;
+  gameType: DuelGameType;
 }
 
 export interface DuelAnswerResult {
@@ -55,6 +60,7 @@ export interface DuelGameSummary {
   scores: { host: number; guest: number };
   opponentUsername: string | null;
   updatedAt: string;
+  gameType: DuelGameType;
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -70,16 +76,16 @@ export class DuelApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  createGame(): Observable<DuelPublicView> {
-    return this.http.post<DuelPublicView>(this.base, {}, { headers: this.headers() });
+  createGame(gameType?: DuelGameType): Observable<DuelPublicView> {
+    return this.http.post<DuelPublicView>(this.base, { gameType }, { headers: this.headers() });
   }
 
   listMyGames(): Observable<DuelGameSummary[]> {
     return this.http.get<DuelGameSummary[]>(this.base, { headers: this.headers() });
   }
 
-  joinQueue(): Observable<DuelPublicView> {
-    return this.http.post<DuelPublicView>(`${this.base}/queue`, {}, { headers: this.headers() });
+  joinQueue(gameType?: DuelGameType): Observable<DuelPublicView> {
+    return this.http.post<DuelPublicView>(`${this.base}/queue`, { gameType }, { headers: this.headers() });
   }
 
   joinByCode(inviteCode: string): Observable<DuelPublicView> {

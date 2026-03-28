@@ -155,7 +155,14 @@
             <span class="text-xs font-bold text-muted-foreground uppercase tracking-wider">{{ q.category.replace('_', ' ') }}</span>
             <span [class]="difficultyColor(q.difficulty)" class="text-xs font-bold uppercase">{{ q.difficulty }}</span>
           </div>
-          <p class="text-foreground text-base font-semibold leading-snug">{{ q.question_text }}</p>
+          @if (q.image_url) {
+            <div class="flex justify-center my-2">
+              <img [src]="q.image_url" alt="Identify this club logo" class="w-40 h-40 object-contain rounded-xl" />
+            </div>
+            <p class="text-muted-foreground text-sm text-center mt-1">Name this football club</p>
+          } @else {
+            <p class="text-foreground text-base font-semibold leading-snug">{{ q.question_text }}</p>
+          }
         </div>
 
         <!-- Answer input -->

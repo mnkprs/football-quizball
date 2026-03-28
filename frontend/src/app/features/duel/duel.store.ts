@@ -3,7 +3,7 @@ import { inject, computed } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { AuthService } from '../../core/auth.service';
-import { DuelApiService, DuelPublicView, DuelAnswerResult, DuelQuestionResult } from './duel-api.service';
+import { DuelApiService, DuelPublicView, DuelAnswerResult, DuelQuestionResult, DuelGameType } from './duel-api.service';
 
 export type DuelPhase =
   | 'lobby'       // before joining / creating
@@ -153,10 +153,10 @@ export const DuelStore = signalStore(
         }
       },
 
-      async createGame(): Promise<string | null> {
+      async createGame(gameType?: DuelGameType): Promise<string | null> {
         patchState(store, { loading: true, error: null });
         try {
-          const view = await firstValueFrom(api.createGame());
+          const view = await firstValueFrom(api.createGame(gameType));
           patchState(store, {
             gameId: view.id,
             gameView: view,
@@ -189,10 +189,10 @@ export const DuelStore = signalStore(
         }
       },
 
-      async joinQueue(): Promise<string | null> {
+      async joinQueue(gameType?: DuelGameType): Promise<string | null> {
         patchState(store, { loading: true, error: null });
         try {
-          const view = await firstValueFrom(api.joinQueue());
+          const view = await firstValueFrom(api.joinQueue(gameType));
           patchState(store, {
             gameId: view.id,
             gameView: view,
