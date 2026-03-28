@@ -1,11 +1,9 @@
 /**
- * Re-seed Logo Quiz questions with difficulty based on team POPULARITY,
- * not erasure level. All questions show the easy-erased image.
+ * Re-seed Logo Quiz questions with difficulty based on team POPULARITY.
  *
- * Tiers:
- *   EASY   = World-famous teams (top 5 leagues, CL, iconic national teams)
- *   MEDIUM = Moderately known (mid-tier European, strong non-European)
- *   HARD   = Obscure (lower divisions, small leagues, unknown nations)
+ * Two tiers:
+ *   EASY = Well-known teams → shows text-removed logo (image_url)
+ *   HARD = Obscure teams    → shows flipped+grayscale logo (hard_image_url)
  *
  * Usage: npx ts-node scripts/reseed-logo-by-popularity.ts [--dry-run]
  */
@@ -22,7 +20,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const LOGOS_JSON = path.join(__dirname, '..', '..', 'footy-logos.json');
 
 // ─── Popularity tiers by competition ──────────────────────────
-// EASY: Everyone knows these teams
+// EASY: Well-known teams (top leagues + strong secondary leagues)
 const TIER_EASY: string[] = [
   'premier-league',
   'laliga',
@@ -32,50 +30,28 @@ const TIER_EASY: string[] = [
   'uefa-champions-league',
   'fifa-world-cup-2026',
   'fifa-world-cup-editions',
-];
-
-// MEDIUM: Football fans know these
-const TIER_MEDIUM: string[] = [
   'eredivisie',
   'liga-portugal',
-  'super-lig',
-  'scottish-premiership',
-  'belgian-pro-league',
-  'swiss-super-league',
-  'austrian-bundesliga',
-  'superliga-denmark',
-  'russian-premier-league',
-  'ukrainian-premier-league',
-  'super-league-greece',
   'efl-championship',
   'europa-league',
   'brasileirao-serie-a',
   'liga-mx',
   'mls',
-  'copa-libertadores',
   'saudi-pro-league',
-  'world-cup-2026-qualifiers',
-  'ekstraklasa',
-  'supersport-hnl',
-  'laliga-2',
-  'bundesliga-2',
-  'serie-b',
-  'ligue-2',
-  'k-league-1',
+  'copa-libertadores',
 ];
 
 // HARD: Everything else (lower divisions, obscure leagues, small nations)
-// Any competition not in EASY or MEDIUM is automatically HARD
+// Any competition not in EASY is automatically HARD
 
-type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+type Difficulty = 'EASY' | 'HARD';
 
 function getPopularityDifficulty(competition: string): Difficulty {
   if (TIER_EASY.includes(competition)) return 'EASY';
-  if (TIER_MEDIUM.includes(competition)) return 'MEDIUM';
   return 'HARD';
 }
 
-const POINTS: Record<Difficulty, number> = { EASY: 10, MEDIUM: 20, HARD: 30 };
+const POINTS: Record<Difficulty, number> = { EASY: 10, HARD: 30 };
 
 interface TeamLogo {
   team_name: string;
@@ -123,20 +99,30 @@ async function main() {
   // (more popular) version so users see the best-known variant first.
   const rows: any[] = [];
   const seenSlugs = new Map<string, { difficulty: Difficulty; index: number }>();
-  const stats = { EASY: 0, MEDIUM: 0, HARD: 0, skipped: 0, deduped: 0 };
+  const stats = { EASY: 0, HARD: 0, skipped: 0, deduped: 0 };
 
-  const DIFF_RANK: Record<Difficulty, number> = { EASY: 0, MEDIUM: 1, HARD: 2 };
+  const DIFF_RANK: Record<Difficulty, number> = { EASY: 0, HARD: 1 };
 
   for (const [comp, teams] of Object.entries(data.by_competition)) {
     const difficulty = getPopularityDifficulty(comp);
 
     for (const team of teams as TeamLogo[]) {
       // Must have an easy erasure image
-      const imageUrl = team.image_url;
-      if (!imageUrl || !imageUrl.includes('supabase.co')) {
+      const easyUrl = team.image_url;
+      if (!easyUrl || !easyUrl.includes('supabase.co')) {
         stats.skipped++;
         continue;
       }
+
+      // For HARD difficulty, must also have a hard image (flipped+grayscale)
+      const hardUrl = team.hard_image_url;
+      if (difficulty === 'HARD' && (!hardUrl || !hardUrl.includes('supabase.co'))) {
+        stats.skipped++;
+        continue;
+      }
+
+      // Select image based on difficulty
+      const imageUrl = difficulty === 'HARD' ? hardUrl! : easyUrl;
 
       // Dedup by slug — if already seen, keep the easier (more popular) version
       const existing = seenSlugs.get(team.slug);
@@ -176,6 +162,7 @@ async function main() {
             competition: comp,
             country: team.country ?? '',
             original_image_url: team.real_image_url,
+            easy_image_url: easyUrl,
           },
         },
       });
@@ -188,9 +175,8 @@ async function main() {
   const finalRows = rows.filter(Boolean);
 
   console.log(`\n  New questions to seed:`);
-  console.log(`    EASY:    ${stats.EASY} (famous teams)`);
-  console.log(`    MEDIUM:  ${stats.MEDIUM} (known teams)`);
-  console.log(`    HARD:    ${stats.HARD} (obscure teams)`);
+  console.log(`    EASY:    ${stats.EASY} (well-known teams, text-removed image)`);
+  console.log(`    HARD:    ${stats.HARD} (obscure teams, flipped+grayscale image)`);
   console.log(`    Skipped: ${stats.skipped} (no erasure image)`);
   console.log(`    Deduped: ${stats.deduped} (cross-competition duplicates)`);
   console.log(`    Total:   ${finalRows.length}`);
@@ -198,7 +184,7 @@ async function main() {
   if (dryRun) {
     console.log('\n  Dry run — not inserting.');
     // Show examples per tier
-    for (const diff of ['EASY', 'MEDIUM', 'HARD'] as Difficulty[]) {
+    for (const diff of ['EASY', 'HARD'] as Difficulty[]) {
       const examples = finalRows
         .filter((r) => r.difficulty === diff)
         .slice(0, 5)
