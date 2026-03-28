@@ -53,9 +53,211 @@
       />
 
       <div class="profile-hero__content">
-        <!-- Avatar with glow effect -->
+        <!-- Avatar with rank border frame -->
         <div class="profile-hero__avatar-container" (click)="triggerAvatarUpload()">
           <div class="profile-hero__avatar-glow" aria-hidden="true"></div>
+
+          <!-- Rank border frame (SVG overlay, tier-specific) -->
+          <div class="profile-hero__rank-frame" aria-hidden="true">
+            @switch (rankTier().tier) {
+
+              <!-- IRON — simple double-ring, plain grey -->
+              @case ('iron') {
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="rank-frame-svg">
+                  <circle cx="60" cy="60" r="55" stroke="#71717a" stroke-width="2" stroke-dasharray="4 3" opacity="0.5"/>
+                  <circle cx="60" cy="60" r="50" stroke="#71717a" stroke-width="1.5" opacity="0.8"/>
+                  <!-- 4 corner notches -->
+                  <rect x="56" y="3"  width="8" height="4" rx="1" fill="#71717a" opacity="0.7"/>
+                  <rect x="56" y="113" width="8" height="4" rx="1" fill="#71717a" opacity="0.7"/>
+                  <rect x="3"  y="56" width="4" height="8" rx="1" fill="#71717a" opacity="0.7"/>
+                  <rect x="113" y="56" width="4" height="8" rx="1" fill="#71717a" opacity="0.7"/>
+                </svg>
+              }
+
+              <!-- BRONZE — bold ring with shield spikes at top & bottom -->
+              @case ('bronze') {
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="rank-frame-svg">
+                  <defs>
+                    <linearGradient id="bronzeGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#cd7f32"/>
+                      <stop offset="0.5" stop-color="#e8a04c"/>
+                      <stop offset="1" stop-color="#a0531a"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="60" cy="60" r="51" stroke="url(#bronzeGrad)" stroke-width="3"/>
+                  <!-- Top spike -->
+                  <polygon points="60,4 54,14 60,11 66,14" fill="url(#bronzeGrad)"/>
+                  <!-- Bottom spike -->
+                  <polygon points="60,116 54,106 60,109 66,106" fill="url(#bronzeGrad)"/>
+                  <!-- Side diamonds -->
+                  <polygon points="4,60 10,55 13,60 10,65" fill="url(#bronzeGrad)"/>
+                  <polygon points="116,60 110,55 107,60 110,65" fill="url(#bronzeGrad)"/>
+                  <!-- Tick marks -->
+                  <line x1="60" y1="7"  x2="60" y2="12" stroke="url(#bronzeGrad)" stroke-width="1.5"/>
+                  <line x1="60" y1="108" x2="60" y2="113" stroke="url(#bronzeGrad)" stroke-width="1.5"/>
+                </svg>
+              }
+
+              <!-- SILVER — double ring with angular brackets at quarters -->
+              @case ('silver') {
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="rank-frame-svg">
+                  <defs>
+                    <linearGradient id="silverGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#c0c8d8"/>
+                      <stop offset="0.5" stop-color="#e2e8f0"/>
+                      <stop offset="1" stop-color="#7e8fa4"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="60" cy="60" r="53" stroke="url(#silverGrad)" stroke-width="1.5" opacity="0.5"/>
+                  <circle cx="60" cy="60" r="49" stroke="url(#silverGrad)" stroke-width="2.5"/>
+                  <!-- Top bracket -->
+                  <path d="M48,5 L60,2 L72,5" stroke="url(#silverGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                  <!-- Bottom bracket -->
+                  <path d="M48,115 L60,118 L72,115" stroke="url(#silverGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                  <!-- Left bracket -->
+                  <path d="M5,48 L2,60 L5,72" stroke="url(#silverGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                  <!-- Right bracket -->
+                  <path d="M115,48 L118,60 L115,72" stroke="url(#silverGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                  <!-- Corner dots -->
+                  <circle cx="22" cy="22" r="2.5" fill="url(#silverGrad)" opacity="0.6"/>
+                  <circle cx="98" cy="22" r="2.5" fill="url(#silverGrad)" opacity="0.6"/>
+                  <circle cx="22" cy="98" r="2.5" fill="url(#silverGrad)" opacity="0.6"/>
+                  <circle cx="98" cy="98" r="2.5" fill="url(#silverGrad)" opacity="0.6"/>
+                </svg>
+              }
+
+              <!-- GOLD — ornate shield ring with fleur tips and gem at top -->
+              @case ('gold') {
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="rank-frame-svg">
+                  <defs>
+                    <linearGradient id="goldGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#fbbf24"/>
+                      <stop offset="0.4" stop-color="#fde68a"/>
+                      <stop offset="1" stop-color="#d97706"/>
+                    </linearGradient>
+                    <radialGradient id="goldGem" cx="50%" cy="50%" r="50%">
+                      <stop stop-color="#fff7d6"/>
+                      <stop offset="1" stop-color="#f59e0b"/>
+                    </radialGradient>
+                  </defs>
+                  <!-- Outer glow ring -->
+                  <circle cx="60" cy="60" r="55" stroke="url(#goldGrad)" stroke-width="1" opacity="0.35"/>
+                  <!-- Main ring -->
+                  <circle cx="60" cy="60" r="50" stroke="url(#goldGrad)" stroke-width="3.5"/>
+                  <!-- Inner ring -->
+                  <circle cx="60" cy="60" r="45" stroke="url(#goldGrad)" stroke-width="1" opacity="0.4"/>
+                  <!-- Top crown / fleur -->
+                  <path d="M60,3 L56,10 L52,7 L55,14 L60,12 L65,14 L68,7 L64,10 Z" fill="url(#goldGrad)"/>
+                  <!-- Top gem -->
+                  <polygon points="60,14 57,18 60,22 63,18" fill="url(#goldGem)"/>
+                  <!-- Bottom drop -->
+                  <path d="M60,117 L56,110 L60,107 L64,110 Z" fill="url(#goldGrad)"/>
+                  <!-- Side ornaments -->
+                  <path d="M3,60 L8,55 L12,60 L8,65 Z" fill="url(#goldGrad)"/>
+                  <path d="M117,60 L112,55 L108,60 L112,65 Z" fill="url(#goldGrad)"/>
+                  <!-- Quarter-circle ticks -->
+                  <path d="M26,26 L30,30" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M94,26 L90,30" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M26,94 L30,90" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M94,94 L90,90" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              }
+
+              <!-- DIAMOND — hexagonal faceted frame with glowing nodes -->
+              @case ('diamond') {
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="rank-frame-svg rank-frame-svg--animated">
+                  <defs>
+                    <linearGradient id="diamondGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#c084fc"/>
+                      <stop offset="0.5" stop-color="#e879f9"/>
+                      <stop offset="1" stop-color="#7c3aed"/>
+                    </linearGradient>
+                    <linearGradient id="diamondGrad2" x1="120" y1="0" x2="0" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#a78bfa"/>
+                      <stop offset="1" stop-color="#ec4899"/>
+                    </linearGradient>
+                    <filter id="diamondGlow">
+                      <feGaussianBlur stdDeviation="2" result="blur"/>
+                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                  </defs>
+                  <!-- Outer hexagon-ish ring via dashed arc -->
+                  <circle cx="60" cy="60" r="55" stroke="url(#diamondGrad2)" stroke-width="1" stroke-dasharray="6 4" opacity="0.5"/>
+                  <!-- Main ring -->
+                  <circle cx="60" cy="60" r="49" stroke="url(#diamondGrad)" stroke-width="3" filter="url(#diamondGlow)"/>
+                  <!-- 6 facet lines like a hexagon outline -->
+                  <path d="M60,11 L93,30 L93,90 L60,109 L27,90 L27,30 Z" stroke="url(#diamondGrad2)" stroke-width="1" opacity="0.25" fill="none"/>
+                  <!-- 6 glowing nodes at hex vertices -->
+                  <circle cx="60"  cy="11"  r="4" fill="url(#diamondGrad)" filter="url(#diamondGlow)"/>
+                  <circle cx="93"  cy="30"  r="3" fill="url(#diamondGrad)" filter="url(#diamondGlow)"/>
+                  <circle cx="93"  cy="90"  r="3" fill="url(#diamondGrad)" filter="url(#diamondGlow)"/>
+                  <circle cx="60"  cy="109" r="4" fill="url(#diamondGrad)" filter="url(#diamondGlow)"/>
+                  <circle cx="27"  cy="90"  r="3" fill="url(#diamondGrad)" filter="url(#diamondGlow)"/>
+                  <circle cx="27"  cy="30"  r="3" fill="url(#diamondGrad)" filter="url(#diamondGlow)"/>
+                  <!-- Diamond gem at top -->
+                  <polygon points="60,4 55,11 60,14 65,11" fill="url(#diamondGrad)" filter="url(#diamondGlow)"/>
+                  <polygon points="60,4 55,11 60,8" fill="white" opacity="0.5"/>
+                </svg>
+              }
+
+              <!-- CHALLENGER — full crown with radiating light spikes and crown jewels -->
+              @case ('challenger') {
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="rank-frame-svg rank-frame-svg--animated rank-frame-svg--glow">
+                  <defs>
+                    <linearGradient id="chalGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#c3f400"/>
+                      <stop offset="0.5" stop-color="#e8ff7a"/>
+                      <stop offset="1" stop-color="#84cc16"/>
+                    </linearGradient>
+                    <linearGradient id="chalGrad2" x1="60" y1="0" x2="60" y2="120" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#e8ff7a"/>
+                      <stop offset="1" stop-color="#65a30d"/>
+                    </linearGradient>
+                    <radialGradient id="chalCore" cx="50%" cy="50%" r="50%">
+                      <stop stop-color="#f7ffe0"/>
+                      <stop offset="1" stop-color="#c3f400"/>
+                    </radialGradient>
+                    <filter id="chalGlow">
+                      <feGaussianBlur stdDeviation="3" result="blur"/>
+                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                    <filter id="chalGlowStrong">
+                      <feGaussianBlur stdDeviation="4" result="blur"/>
+                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                  </defs>
+                  <!-- Outer pulsing ring -->
+                  <circle cx="60" cy="60" r="56" stroke="url(#chalGrad)" stroke-width="0.75" opacity="0.4" class="rank-frame-pulse"/>
+                  <!-- Inner double ring -->
+                  <circle cx="60" cy="60" r="51" stroke="url(#chalGrad)" stroke-width="1" opacity="0.6"/>
+                  <circle cx="60" cy="60" r="48" stroke="url(#chalGrad)" stroke-width="3" filter="url(#chalGlow)"/>
+                  <!-- 8 radiating light spikes -->
+                  <line x1="60" y1="5"   x2="60" y2="13"  stroke="url(#chalGrad2)" stroke-width="2.5" stroke-linecap="round" filter="url(#chalGlow)"/>
+                  <line x1="60" y1="107" x2="60" y2="115" stroke="url(#chalGrad2)" stroke-width="2.5" stroke-linecap="round" filter="url(#chalGlow)"/>
+                  <line x1="5"  y1="60"  x2="13" y2="60"  stroke="url(#chalGrad2)" stroke-width="2.5" stroke-linecap="round" filter="url(#chalGlow)"/>
+                  <line x1="107" y1="60" x2="115" y2="60" stroke="url(#chalGrad2)" stroke-width="2.5" stroke-linecap="round" filter="url(#chalGlow)"/>
+                  <!-- Diagonal spikes (shorter) -->
+                  <line x1="22" y1="22"  x2="28" y2="28"  stroke="url(#chalGrad2)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                  <line x1="98" y1="22"  x2="92" y2="28"  stroke="url(#chalGrad2)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                  <line x1="22" y1="98"  x2="28" y2="92"  stroke="url(#chalGrad2)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                  <line x1="98" y1="98"  x2="92" y2="92"  stroke="url(#chalGrad2)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+                  <!-- Crown at top -->
+                  <path d="M45,22 L45,12 L52,18 L60,9 L68,18 L75,12 L75,22 Z" fill="url(#chalGrad)" filter="url(#chalGlowStrong)"/>
+                  <!-- Crown jewels -->
+                  <circle cx="60" cy="9"  r="3.5" fill="url(#chalCore)" filter="url(#chalGlowStrong)"/>
+                  <circle cx="45" cy="12" r="2"   fill="url(#chalCore)" filter="url(#chalGlow)"/>
+                  <circle cx="75" cy="12" r="2"   fill="url(#chalCore)" filter="url(#chalGlow)"/>
+                  <!-- Bottom anchor -->
+                  <path d="M54,112 L60,108 L66,112 L60,118 Z" fill="url(#chalGrad)" filter="url(#chalGlow)"/>
+                  <!-- Side wing ornaments -->
+                  <path d="M8,50 L14,55 L10,60 L14,65 L8,70" stroke="url(#chalGrad2)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+                  <path d="M112,50 L106,55 L110,60 L106,65 L112,70" stroke="url(#chalGrad2)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+                </svg>
+              }
+
+            }
+          </div>
+
           <div
             class="profile-hero__avatar"
             [class.profile-hero__avatar--clickable]="isOwnProfile()"
