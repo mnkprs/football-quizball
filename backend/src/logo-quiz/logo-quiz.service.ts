@@ -32,11 +32,14 @@ export class LogoQuizService {
   async getQuestion(
     userId: string,
     difficulty?: Difficulty,
+    hardcore = false,
   ): Promise<LogoQuestion> {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('Profile not found');
 
-    const logoElo = (profile as any).logo_quiz_elo ?? 1000;
+    const logoElo = hardcore
+      ? ((profile as any).logo_quiz_hardcore_elo ?? 1000)
+      : ((profile as any).logo_quiz_elo ?? 1000);
     const client = (this.supabaseService as any).client;
 
     // Try ELO-range-based draw with widening ranges
@@ -81,11 +84,14 @@ export class LogoQuizService {
     questionId: string,
     answer: string,
     timedOut = false,
+    hardcore = false,
   ): Promise<LogoQuizAnswerResult> {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new ForbiddenException('Profile not found');
 
-    const logoElo = (profile as any).logo_quiz_elo ?? 1000;
+    const logoElo = hardcore
+      ? ((profile as any).logo_quiz_hardcore_elo ?? 1000)
+      : ((profile as any).logo_quiz_elo ?? 1000);
 
     // Look up the question to get correct answer and question_elo
     const client = (this.supabaseService as any).client;
@@ -104,14 +110,17 @@ export class LogoQuizService {
     const correct = !timedOut && this.fuzzyMatch(answer, correctAnswer);
 
     // Calculate ELO change — use composite question_elo when available
-    const gamesPlayed = (profile as any).logo_quiz_games_played ?? 0;
+    const gamesPlayed = hardcore
+      ? ((profile as any).logo_quiz_hardcore_games_played ?? 0)
+      : ((profile as any).logo_quiz_games_played ?? 0);
     const eloChange = data.question_elo
       ? this.eloService.calculateWithQuestionElo(logoElo, data.question_elo, correct, timedOut, gamesPlayed)
       : this.eloService.calculate(logoElo, difficulty, correct, timedOut, gamesPlayed);
     const newElo = this.eloService.applyChange(logoElo, eloChange);
 
-    // Atomic DB update
-    const { error: rpcError } = await client.rpc('commit_logo_quiz_answer', {
+    // Atomic DB update — use the correct RPC for normal vs hardcore
+    const rpcName = hardcore ? 'commit_logo_quiz_hardcore_answer' : 'commit_logo_quiz_answer';
+    const { error: rpcError } = await client.rpc(rpcName, {
       p_user_id: userId,
       p_elo_before: logoElo,
       p_elo_after: newElo,
@@ -122,11 +131,13 @@ export class LogoQuizService {
     });
 
     if (rpcError) {
-      console.error('commit_logo_quiz_answer RPC failed:', rpcError);
+      console.error(`${rpcName} RPC failed:`, rpcError);
       // Fallback: direct update if RPC fails
+      const eloCol = hardcore ? 'logo_quiz_hardcore_elo' : 'logo_quiz_elo';
+      const gamesCol = hardcore ? 'logo_quiz_hardcore_games_played' : 'logo_quiz_games_played';
       await client
         .from('profiles')
-        .update({ logo_quiz_elo: newElo, logo_quiz_games_played: gamesPlayed + 1 })
+        .update({ [eloCol]: newElo, [gamesCol]: gamesPlayed + 1 })
         .eq('id', userId);
     }
 

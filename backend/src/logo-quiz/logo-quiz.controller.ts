@@ -29,11 +29,12 @@ export class LogoQuizController {
   async getQuestion(
     @Req() req: AuthenticatedRequest,
     @Query('difficulty') difficulty?: string,
+    @Query('hardcore') hardcore?: string,
   ) {
     const diff = ['EASY', 'HARD'].includes(difficulty?.toUpperCase() ?? '')
       ? (difficulty!.toUpperCase() as Difficulty)
       : undefined;
-    return this.logoQuizService.getQuestion(req.user.id, diff);
+    return this.logoQuizService.getQuestion(req.user.id, diff, hardcore === 'true');
   }
 
   /**
@@ -44,13 +45,14 @@ export class LogoQuizController {
   @UseGuards(AuthGuard)
   async submitAnswer(
     @Req() req: AuthenticatedRequest,
-    @Body() body: { question_id: string; answer: string; timed_out?: boolean },
+    @Body() body: { question_id: string; answer: string; timed_out?: boolean; hardcore?: boolean },
   ) {
     return this.logoQuizService.submitAnswer(
       req.user.id,
       body.question_id,
       body.answer,
       body.timed_out ?? false,
+      body.hardcore ?? false,
     );
   }
 

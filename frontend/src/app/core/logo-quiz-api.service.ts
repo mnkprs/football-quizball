@@ -40,10 +40,13 @@ export class LogoQuizApiService {
       : new HttpHeaders();
   }
 
-  getQuestion(difficulty?: string): Observable<LogoQuestionResponse> {
-    const params = difficulty ? `?difficulty=${difficulty}` : '';
+  getQuestion(difficulty?: string, hardcore = false): Observable<LogoQuestionResponse> {
+    const parts: string[] = [];
+    if (difficulty) parts.push(`difficulty=${difficulty}`);
+    if (hardcore) parts.push('hardcore=true');
+    const qs = parts.length ? `?${parts.join('&')}` : '';
     return this.http.get<LogoQuestionResponse>(
-      `${this.base}/question${params}`,
+      `${this.base}/question${qs}`,
       { headers: this.headers() },
     );
   }
@@ -52,10 +55,11 @@ export class LogoQuizApiService {
     questionId: string,
     answer: string,
     timedOut = false,
+    hardcore = false,
   ): Observable<LogoAnswerResponse> {
     return this.http.post<LogoAnswerResponse>(
       `${this.base}/answer`,
-      { question_id: questionId, answer, timed_out: timedOut },
+      { question_id: questionId, answer, timed_out: timedOut, hardcore },
       { headers: this.headers() },
     );
   }

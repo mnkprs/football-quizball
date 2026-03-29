@@ -94,6 +94,12 @@ export class LogoQuizComponent implements OnDestroy {
 
   toggleHardcore(): void {
     this.hardcoreMode.update(v => !v);
+    // Switch displayed ELO to the correct track
+    const elo = this.hardcoreMode()
+      ? this.profileStore.logoQuizHardcoreElo()
+      : this.profileStore.logoQuizElo();
+    this.currentElo.set(elo);
+    this.startElo.set(elo);
   }
 
   ngOnDestroy(): void {
@@ -114,8 +120,9 @@ export class LogoQuizComponent implements OnDestroy {
     this.revealResultData.set(null);
 
     try {
-      const diff = this.hardcoreMode() ? 'HARD' : undefined;
-      const q = await firstValueFrom(this.api.getQuestion(diff));
+      const hc = this.hardcoreMode();
+      const diff = hc ? 'HARD' : undefined;
+      const q = await firstValueFrom(this.api.getQuestion(diff, hc));
       this.currentQuestion.set(q);
       this.phase.set('question');
       this.startTimer(30);
@@ -134,7 +141,7 @@ export class LogoQuizComponent implements OnDestroy {
 
     try {
       const result = await firstValueFrom(
-        this.api.submitAnswer(q.id, answer),
+        this.api.submitAnswer(q.id, answer, false, this.hardcoreMode()),
       );
 
       this.questionsAnswered.update(v => v + 1);
@@ -162,7 +169,7 @@ export class LogoQuizComponent implements OnDestroy {
 
     try {
       const result = await firstValueFrom(
-        this.api.submitAnswer(q.id, 'TIMEOUT', true),
+        this.api.submitAnswer(q.id, 'TIMEOUT', true, this.hardcoreMode()),
       );
 
       this.questionsAnswered.update(v => v + 1);

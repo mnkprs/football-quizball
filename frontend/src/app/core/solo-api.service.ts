@@ -51,6 +51,7 @@ export interface LeaderboardEntry {
   username: string;
   elo: number;
   logo_quiz_elo?: number;
+  logo_quiz_hardcore_elo?: number;
   games_played: number;
   questions_answered: number;
   correct_answers: number;

@@ -8,7 +8,7 @@
       <div class="lq-start">
         <!-- Hero image -->
         <div class="lq-hero">
-          <img src="emblem.png" alt="Logo Quiz" class="lq-hero__img" />
+          <img [src]="hardcoreMode() ? 'emblem-hardcore.png' : 'emblem.png'" alt="Logo Quiz" class="lq-hero__img" />
           <div class="lq-hero__overlay"></div>
         </div>
 
