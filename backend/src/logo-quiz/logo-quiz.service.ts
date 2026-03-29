@@ -111,7 +111,7 @@ export class LogoQuizService {
     const newElo = this.eloService.applyChange(logoElo, eloChange);
 
     // Atomic DB update
-    await client.rpc('commit_logo_quiz_answer', {
+    const { error: rpcError } = await client.rpc('commit_logo_quiz_answer', {
       p_user_id: userId,
       p_elo_before: logoElo,
       p_elo_after: newElo,
@@ -120,6 +120,15 @@ export class LogoQuizService {
       p_correct: correct,
       p_timed_out: timedOut,
     });
+
+    if (rpcError) {
+      console.error('commit_logo_quiz_answer RPC failed:', rpcError);
+      // Fallback: direct update if RPC fails
+      await client
+        .from('profiles')
+        .update({ logo_quiz_elo: newElo, logo_quiz_games_played: gamesPlayed + 1 })
+        .eq('id', userId);
+    }
 
     return {
       correct,
