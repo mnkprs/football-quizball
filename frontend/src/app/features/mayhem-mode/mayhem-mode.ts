@@ -1,28 +1,30 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LanguageService } from '../../core/language.service';
 import { MayhemApiService, MayhemQuestion, MayhemAnswerResponse, MayhemSessionResponse } from '../../core/mayhem-api.service';
 import { AuthService } from '../../core/auth.service';
+import { getEloTier, type EloTier } from '../../core/elo-tier';
 
-type MayhemPhase = 'loading' | 'question' | 'result' | 'finished';
+type MayhemPhase = 'idle' | 'loading' | 'question' | 'result' | 'finished';
 
 @Component({
   selector: 'app-mayhem-mode',
   standalone: true,
-  imports: [],
+  imports: [DecimalPipe, UpperCasePipe],
   host: { class: 'mayhem-mode-host' },
   templateUrl: './mayhem-mode.html',
   styleUrl: './mayhem-mode.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MayhemModeComponent implements OnInit {
+export class MayhemModeComponent {
   lang = inject(LanguageService);
   private router = inject(Router);
   private mayhemApi = inject(MayhemApiService);
   private auth = inject(AuthService);
 
-  phase = signal<MayhemPhase>('loading');
+  phase = signal<MayhemPhase>('idle');
   questions = signal<MayhemQuestion[]>([]);
   currentIndex = signal(0);
   selectedOption = signal<string | null>(null);
@@ -43,7 +45,10 @@ export class MayhemModeComponent implements OnInit {
     return Math.round((this.correctCount() / total) * 100);
   });
 
-  ngOnInit(): void {
+  eloTier = computed<EloTier>(() => getEloTier(this.currentElo() ?? 1000));
+
+  startPlaying(): void {
+    this.phase.set('loading');
     this.loadQuestionsAndSession();
   }
 

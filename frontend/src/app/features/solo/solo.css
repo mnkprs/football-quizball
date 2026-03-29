@@ -8,3 +8,177 @@
   flex: 1;
   min-height: 0;
 }
+
+/* ── Start Screen ─────────────────────────── */
+
+.solo-start {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: #131313;
+  padding-bottom: 0;
+}
+
+/* Ensure nav bar is not covered */
+.solo-root {
+  position: relative;
+  z-index: 0;
+}
+
+/* Two spotlights from top corners */
+.solo-start::before,
+.solo-start::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  width: 240px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.solo-start::before {
+  left: -60px;
+  background: radial-gradient(ellipse, rgba(0, 122, 255, 0.22) 0%, transparent 70%);
+}
+
+.solo-start::after {
+  right: -60px;
+  background: radial-gradient(ellipse, rgba(0, 90, 200, 0.16) 0%, transparent 70%);
+}
+
+/* Hero — full-width background image, fades into content */
+.solo-hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  z-index: 0;
+}
+
+.solo-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0.5;
+}
+
+.solo-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(19, 19, 19, 0) 0%,
+    rgba(19, 19, 19, 0.4) 50%,
+    rgba(19, 19, 19, 1) 85%
+  );
+}
+
+/* Content — bottom-anchored */
+.solo-start__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7.5rem);
+  position: relative;
+  z-index: 3;
+  gap: 1rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Title */
+.solo-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #e5e2e1;
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin: 0;
+}
+
+/* Subtitle */
+.solo-subtitle {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 20rem;
+  margin: 0;
+}
+
+/* ELO Card */
+.solo-elo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 2.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid;
+  border-radius: 1rem;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.solo-elo-card__label {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.solo-elo-card__value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.solo-elo-card__tier {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Start Button */
+.solo-start-btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 9999px;
+  background: #007AFF;
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
+  transition: box-shadow 0.3s, opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.solo-start-btn:active {
+  opacity: 0.85;
+}
+
+.solo-start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

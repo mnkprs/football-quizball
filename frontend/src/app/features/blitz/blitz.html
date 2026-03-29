@@ -1,137 +1,144 @@
-<div class="blitz-root bg-background flex flex-col p-4">
-  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
+<div class="blitz-root bg-background flex flex-col">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6 pt-2">
-      <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().blitzBackBtn }}</button>
-      <div class="text-accent font-black text-xl">⚡ {{ lang.t().blitzTitle }}</div>
-      <div class="w-16"></div>
-    </div>
-
-    <!-- IDLE phase -->
-    @if (phase() === 'idle') {
-      <div class="flex-1 flex flex-col items-center justify-center">
-        <div class="text-6xl mb-6">⚡</div>
-        <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().blitzTitle }}</h2>
-        <p class="text-muted-foreground text-center mb-2">{{ lang.t().blitzSubtitle }}</p>
-        <ul class="text-muted-foreground text-sm text-center mb-8 space-y-1 max-w-xs">
-          <li>• {{ lang.t().blitzBullet1 }}</li>
-          <li>• {{ lang.t().blitzBullet2 }}</li>
-          <li>• {{ lang.t().blitzBullet3 }}</li>
-          <li>• {{ lang.t().blitzBullet4 }}</li>
-        </ul>
-        <button
-          (click)="startSession()"
-          [disabled]="loading()"
-          class="blitz-start-btn"
-        >
-          {{ loading() ? lang.t().dailyLoading : lang.t().blitzStart }}
+  <!-- IDLE phase — full-bleed start screen -->
+  @if (phase() === 'idle') {
+    <div class="blitz-start">
+      <div class="blitz-hero">
+        <img src="/blitz-mode-v2.png" alt="Blitz" class="blitz-hero__img" />
+        <div class="blitz-hero__overlay"></div>
+      </div>
+      <div class="blitz-start__content">
+        <h1 class="blitz-title">BLITZ</h1>
+        <p class="blitz-subtitle">
+          {{ lang.t().blitzSubtitle }}
+        </p>
+        <div class="blitz-info-card">
+          <span class="blitz-info-card__label">TIME LIMIT</span>
+          <span class="blitz-info-card__value">60</span>
+          <span class="blitz-info-card__hint">SECONDS</span>
+        </div>
+        <button class="blitz-start-btn" (click)="startSession()" [disabled]="loading()">
+          {{ loading() ? lang.t().dailyLoading : 'START BLITZ' }}
         </button>
         @if (error()) {
-          <p class="text-loss text-sm mt-4">{{ error() }}</p>
+          <p style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">{{ error() }}</p>
         }
       </div>
-    }
+    </div>
+  }
 
-    <!-- PLAYING phase -->
-    @if (phase() === 'playing') {
-      <div class="flex flex-col flex-1 relative">
-        <!-- Timer + Score bar -->
-        <div class="flex items-center justify-between mb-5">
-          <div class="flex items-center gap-3">
-            <div class="text-3xl font-black tabular-nums" [class]="timeLeft() <= 10 ? 'text-loss' : 'text-foreground'">
-              {{ timeLeft() }}
+  <!-- Non-idle phases in padded container -->
+  @if (phase() !== 'idle') {
+    <div class="max-w-2xl mx-auto w-full flex flex-col flex-1 p-4">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6 pt-2">
+        <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().blitzBackBtn }}</button>
+        <div class="text-accent font-black text-xl">⚡ {{ lang.t().blitzTitle }}</div>
+        <div class="w-16"></div>
+      </div>
+
+      <!-- PLAYING phase -->
+      @if (phase() === 'playing') {
+        <div class="flex flex-col flex-1 relative">
+          <!-- Timer + Score bar -->
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <div class="text-3xl font-black tabular-nums" [class]="timeLeft() <= 10 ? 'text-loss' : 'text-foreground'">
+                {{ timeLeft() }}
+              </div>
+              <div class="w-28 h-3 bg-muted rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-1000"
+                  [class]="timeLeft() <= 10 ? 'bg-loss' : 'bg-accent'"
+                  [style.width]="timerPercent() + '%'"
+                ></div>
+              </div>
             </div>
-            <div class="w-28 h-3 bg-muted rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full transition-all duration-1000"
-                [class]="timeLeft() <= 10 ? 'bg-loss' : 'bg-accent'"
-                [style.width]="timerPercent() + '%'"
-              ></div>
+            <div class="text-right">
+              <div class="text-accent font-black text-2xl tabular-nums">{{ score() }}</div>
+              <div class="text-muted-foreground text-xs">{{ totalAnswered() }} {{ lang.t().blitzAnswered }}</div>
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-accent font-black text-2xl tabular-nums">{{ score() }}</div>
-            <div class="text-muted-foreground text-xs">{{ totalAnswered() }} {{ lang.t().blitzAnswered }}</div>
+
+          <!-- Question -->
+          <div class="bg-card rounded-2xl p-5 mb-5 border border-border min-h-[110px] flex items-center">
+            <p class="text-foreground text-lg leading-relaxed">{{ currentQuestion()?.question_text }}</p>
           </div>
-        </div>
 
-        <!-- Question -->
-        <div class="bg-card rounded-2xl p-5 mb-5 border border-border min-h-[110px] flex items-center">
-          <p class="text-foreground text-lg leading-relaxed">{{ currentQuestion()?.question_text }}</p>
-        </div>
+          <!-- Choices -->
+          <div class="flex flex-col gap-3">
+            @for (choice of currentQuestion()?.choices ?? []; track $index) {
+              <button
+                (click)="selectChoice(choice)"
+                [disabled]="showFlash() || submitting()"
+                [class]="choiceClass(choice)"
+              >
+                {{ choice }}
+              </button>
+            }
+          </div>
 
-        <!-- Choices -->
-        <div class="flex flex-col gap-3">
-          @for (choice of currentQuestion()?.choices ?? []; track $index) {
+          <!-- Report problem -->
+          <div class="mt-auto pt-6">
             <button
-              (click)="selectChoice(choice)"
-              [disabled]="showFlash() || submitting()"
-              [class]="choiceClass(choice)"
+              (click)="reportQuestion()"
+              [disabled]="reportDisabled()"
+              class="w-full py-2 rounded-xl border border-border text-muted-foreground text-sm hover:bg-muted hover:border-border transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
             >
-              {{ choice }}
+              {{ reportDisabled() ? lang.t().reportCooldown : lang.t().reportProblem }}
             </button>
+          </div>
+
+          <!-- Result flash overlay -->
+          @if (showFlash()) {
+            <div
+              (click)="dismissFlash()"
+              class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl cursor-pointer"
+              [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
+            >
+              <div class="text-5xl mb-3">{{ flashCorrect() ? '✅' : '❌' }}</div>
+              <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
+              @if (!flashCorrect()) {
+                <div class="text-white/80 text-sm mb-2">{{ flashAnswer() }}</div>
+              }
+              <div class="text-white/70 text-xs">{{ lang.t().tapToContinue }}</div>
+            </div>
           }
         </div>
+      }
 
-        <!-- Report problem -->
-        <div class="mt-auto pt-6">
+      <!-- FINISHED phase -->
+      @if (phase() === 'finished') {
+        <div class="flex-1 flex flex-col items-center justify-center">
+          <div class="text-5xl mb-4">🏁</div>
+          <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().blitzTimesUp }}</h2>
+          <div class="text-6xl font-black text-accent mb-2 tabular-nums">{{ score() }}</div>
+          <p class="text-muted-foreground mb-8">{{ lang.t().blitzCorrectOutOf }} {{ totalAnswered() }} {{ lang.t().blitzAnswered }}</p>
+
+          <app-ad-display />
+          <div class="w-full max-w-xs space-y-3 mb-8">
+            <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+              <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>
+              <span class="text-foreground font-bold">{{ accuracy() }}%</span>
+            </div>
+          </div>
+
           <button
-            (click)="reportQuestion()"
-            [disabled]="reportDisabled()"
-            class="w-full py-2 rounded-xl border border-border text-muted-foreground text-sm hover:bg-muted hover:border-border transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+            (click)="resetToIdle()"
+            class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light transition mb-3 pressable"
           >
-            {{ reportDisabled() ? lang.t().reportCooldown : lang.t().reportProblem }}
+            {{ lang.t().playAgain }}
+          </button>
+          <button (click)="goHome()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
+            {{ lang.t().navHome }}
           </button>
         </div>
+      }
 
-        <!-- Result flash overlay -->
-        @if (showFlash()) {
-          <div
-            (click)="dismissFlash()"
-            class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl cursor-pointer"
-            [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
-          >
-            <div class="text-5xl mb-3">{{ flashCorrect() ? '✅' : '❌' }}</div>
-            <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
-            @if (!flashCorrect()) {
-              <div class="text-white/80 text-sm mb-2">{{ flashAnswer() }}</div>
-            }
-            <div class="text-white/70 text-xs">{{ lang.t().tapToContinue }}</div>
-          </div>
-        }
-      </div>
-    }
+    </div>
+  }
 
-    <!-- FINISHED phase -->
-    @if (phase() === 'finished') {
-      <div class="flex-1 flex flex-col items-center justify-center">
-        <div class="text-5xl mb-4">🏁</div>
-        <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().blitzTimesUp }}</h2>
-        <div class="text-6xl font-black text-accent mb-2 tabular-nums">{{ score() }}</div>
-        <p class="text-muted-foreground mb-8">{{ lang.t().blitzCorrectOutOf }} {{ totalAnswered() }} {{ lang.t().blitzAnswered }}</p>
-
-        <app-ad-display />
-        <div class="w-full max-w-xs space-y-3 mb-8">
-          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-            <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>
-            <span class="text-foreground font-bold">{{ accuracy() }}%</span>
-          </div>
-        </div>
-
-        <button
-          (click)="resetToIdle()"
-          class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light transition mb-3 pressable"
-        >
-          {{ lang.t().playAgain }}
-        </button>
-        <button (click)="goHome()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
-          {{ lang.t().navHome }}
-        </button>
-      </div>
-    }
-
-  </div>
 </div>
 
 <!-- Problem reported popup -->

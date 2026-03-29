@@ -1,95 +1,129 @@
-<div class="min-h-screen bg-background p-4 max-w-md mx-auto">
-  <div class="flex items-center gap-3 mb-6">
-    <button (click)="goBack()" class="text-muted-foreground hover:text-foreground transition text-sm font-medium">← Back</button>
-    <h1 class="text-xl font-black text-foreground">{{ isLogoMode() ? '🛡 Logo Duel' : '⚡ Duel' }}</h1>
-    <span class="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-bold">H2H</span>
-    @if (isLogoMode()) {
-      <span class="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-bold">Logo</span>
-    }
+<div class="duel-start">
+  <!-- Hero image -->
+  <div class="duel-hero">
+    <img src="/duel-mode.png" alt="Duel" class="duel-hero__img" />
+    <div class="duel-hero__overlay"></div>
   </div>
 
-  <div class="mb-5 p-4 rounded-2xl bg-card border border-border">
-    @if (isLogoMode()) {
-      <p class="text-sm text-muted-foreground leading-relaxed">
-        Both players see the same degraded logo. Type the club name — <strong class="text-foreground">first correct answer wins the point</strong>. First to <strong class="text-foreground">5 points</strong> wins.
-      </p>
-    } @else {
-      <p class="text-sm text-muted-foreground leading-relaxed">
-        Same question for both players. Type your answer — <strong class="text-foreground">first correct answer wins the point</strong>. First to <strong class="text-foreground">5 points</strong> wins the duel.
-      </p>
-    }
-  </div>
+  <!-- Content -->
+  <div class="duel-start__content">
+    <h1 class="duel-title">{{ isLogoMode() ? 'LOGO DUEL' : 'DUEL' }}</h1>
+    <p class="duel-subtitle">
+      {{ isLogoMode()
+        ? 'Race to identify the club. First correct answer scores the point.'
+        : 'Same question, two players. First correct answer wins the point.' }}
+    </p>
 
-  <!-- Active duels list -->
-  @if (activeGames().length > 0) {
-    <div class="mb-6">
-      <h2 class="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Active Duels</h2>
-      <div class="flex flex-col gap-2">
+    <!-- Badges -->
+    <div class="duel-badges">
+      <span class="duel-badge duel-badge--h2h">H2H</span>
+      @if (isLogoMode()) {
+        <span class="duel-badge duel-badge--logo">Logo</span>
+      }
+    </div>
+
+    <!-- Win Ratio Card -->
+    <div class="duel-stat-card">
+      <span class="duel-stat-card__label">WIN RATIO</span>
+      <span class="duel-stat-card__value">{{ winRatio() !== null ? winRatio() + '%' : '—' }}</span>
+      @if (totalGames() > 0) {
+        <div class="duel-stat-card__record">
+          <span class="duel-stat-card__record-win">{{ wins() }}W</span>
+          <span class="duel-stat-card__record-draw">{{ draws() }}D</span>
+          <span class="duel-stat-card__record-loss">{{ losses() }}L</span>
+        </div>
+      }
+    </div>
+
+    <!-- Active Duels -->
+    @if (activeGames().length > 0) {
+      <div class="duel-active-games">
+        <span class="duel-active-games__title">ACTIVE DUELS</span>
         @for (game of activeGames(); track game.id) {
-          <button
-            (click)="resumeDuel(game.id)"
-            class="w-full p-4 rounded-2xl bg-card border border-border text-left hover:border-accent transition"
-          >
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-sm font-bold text-foreground">
-                vs {{ game.opponentUsername ?? 'Waiting for opponent...' }}
+          <div class="duel-active-game" (click)="resumeDuel(game.id)">
+            <div class="duel-active-game__info">
+              <span class="duel-active-game__opponent">
+                vs {{ game.opponentUsername ?? 'Waiting...' }}
               </span>
-              <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-accent/20 text-accent">
-                {{ statusLabel(game) }}
-              </span>
+              <span class="duel-active-game__score">{{ scoreLine(game) }}</span>
             </div>
-            <div class="text-xs text-muted-foreground">Score: {{ scoreLine(game) }}</div>
-          </button>
+            <span class="duel-active-game__status">{{ statusLabel(game) }}</span>
+          </div>
         }
       </div>
-    </div>
-  }
-
-  <!-- Create duel -->
-  <div class="mb-4">
-    <button
-      (click)="createGame()"
-      [disabled]="loading()"
-      class="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light active:scale-95 transition disabled:opacity-40"
-    >
-      {{ loading() ? 'Creating...' : '⚔️ Create Duel' }}
-    </button>
-    <p class="text-center text-xs text-muted-foreground mt-2">You'll get an invite code to share</p>
-  </div>
-
-  <!-- Random matchmaking -->
-  <div class="mb-4">
-    <button
-      (click)="joinQueue()"
-      [disabled]="loading()"
-      class="w-full py-4 rounded-2xl border-2 border-border text-foreground font-bold text-base hover:border-accent hover:text-accent active:scale-95 transition disabled:opacity-40"
-    >
-      🎲 Find Random Opponent
-    </button>
-  </div>
-
-  <!-- Join by code -->
-  <div class="p-4 rounded-2xl bg-card border border-border">
-    <h2 class="text-sm font-bold text-foreground mb-3">Join with Invite Code</h2>
-    <div class="flex gap-2">
-      <input
-        [(ngModel)]="inviteCode"
-        maxlength="6"
-        placeholder="ABC123"
-        class="flex-1 px-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent uppercase tracking-widest font-mono text-center text-lg"
-        (input)="inviteCode = inviteCode.toUpperCase()"
-        (keyup.enter)="joinByCode()"
-      />
-      <button
-        (click)="joinByCode()"
-        [disabled]="inviteCode.length < 6 || loading()"
-        class="px-5 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light transition disabled:opacity-40"
-      >
-        Join
-      </button>
-    </div>
-    @if (error()) {
-      <p class="text-red-400 text-sm mt-2">{{ error() }}</p>
     }
+
+    <!-- Play Button -->
+    <button class="duel-start-btn" (click)="openPlaySheet()" [disabled]="loading()">
+      PLAY
+    </button>
   </div>
 </div>
+
+<!-- Bottom Sheet -->
+@if (showPlaySheet()) {
+  <div class="duel-sheet-backdrop" (click)="closePlaySheet()"></div>
+  <div class="duel-sheet">
+    <div class="duel-sheet__handle"></div>
+    <h3 class="duel-sheet__title">How do you want to play?</h3>
+
+    <div class="duel-sheet__options">
+      <!-- Create Duel -->
+      <button class="duel-sheet__option" (click)="createGame()" [disabled]="loading()">
+        <div class="duel-sheet__option-icon-box">
+          <span class="material-symbols-outlined">swords</span>
+        </div>
+        <div class="duel-sheet__option-text">
+          <span class="duel-sheet__option-title">Create Duel</span>
+          <span class="duel-sheet__option-desc">Get an invite code to share</span>
+        </div>
+      </button>
+
+      <!-- Random Opponent -->
+      <button class="duel-sheet__option" (click)="joinQueue()" [disabled]="loading()">
+        <div class="duel-sheet__option-icon-box">
+          <span class="material-symbols-outlined">casino</span>
+        </div>
+        <div class="duel-sheet__option-text">
+          <span class="duel-sheet__option-title">Random Opponent</span>
+          <span class="duel-sheet__option-desc">Match instantly</span>
+        </div>
+      </button>
+
+      <!-- Join With Code -->
+      <div class="duel-sheet__option duel-sheet__option--code">
+        <div class="duel-sheet__option-header">
+          <div class="duel-sheet__option-icon-box">
+            <span class="material-symbols-outlined">key</span>
+          </div>
+          <div class="duel-sheet__option-text">
+            <span class="duel-sheet__option-title">Join With Code</span>
+            <span class="duel-sheet__option-desc">Enter a shared duel code</span>
+          </div>
+        </div>
+        <div class="duel-sheet__code-input-row">
+          <input
+            class="duel-sheet__code-input"
+            type="text"
+            placeholder="XXXXXX"
+            maxlength="6"
+            [(ngModel)]="inviteCode"
+            (input)="inviteCode = inviteCode.toUpperCase()"
+            (keyup.enter)="joinByCode()"
+          />
+          <button
+            class="duel-sheet__code-btn"
+            (click)="joinByCode()"
+            [disabled]="loading() || inviteCode.length < 6"
+          >
+            Join
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="duel-sheet__error">{{ error() }}</p>
+    }
+  </div>
+}

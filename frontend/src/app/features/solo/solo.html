@@ -1,118 +1,126 @@
-<div class="solo-root bg-background flex flex-col p-4">
-  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1">
+<div class="solo-root bg-background flex flex-col">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6 pt-2">
-      <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().soloBackBtn }}</button>
-      <div class="text-center">
-        <div class="text-accent font-black text-2xl">{{ currentElo() }}</div>
-        <div class="text-muted-foreground text-xs">{{ lang.t().profileElo }}</div>
+  <!-- IDLE phase — full-bleed start screen -->
+  @if (phase() === 'idle') {
+    <div class="solo-start">
+      <div class="solo-hero">
+        <img src="/solo-mode.png" alt="Solo Ranked" class="solo-hero__img" />
+        <div class="solo-hero__overlay"></div>
       </div>
-      <div class="text-right">
-        <div class="text-foreground font-semibold">{{ correctAnswers() }}/{{ questionsAnswered() }}</div>
-        <div class="text-muted-foreground text-xs">{{ lang.t().soloCorrectCount }}</div>
-      </div>
-    </div>
-
-    <!-- IDLE phase -->
-    @if (phase() === 'idle') {
-      <div class="flex-1 flex flex-col items-center justify-center">
-        <div class="text-6xl mb-6">🏆</div>
-        <h2 class="text-2xl font-black text-foreground mb-2">{{ lang.t().soloTitle }}</h2>
-        <p class="text-muted-foreground text-center mb-2">{{ lang.t().soloSubtitle }}</p>
-        <ul class="text-muted-foreground text-sm text-center mb-4 space-y-1 max-w-xs">
-          <li>• {{ lang.t().soloBullet1 }}</li>
-          <li>• {{ lang.t().soloBullet2 }}</li>
-          <li>• {{ lang.t().soloBullet3 }}</li>
-          <li>• {{ lang.t().soloBullet4 }}</li>
-        </ul>
-        <p class="text-muted-foreground text-sm text-center mb-8">{{ lang.t().soloStartingElo }} <span class="text-accent font-bold">{{ startElo() }}</span></p>
-        <button
-          (click)="startSession()"
-          [disabled]="loading()"
-          class="w-full max-w-xs py-4 rounded-2xl bg-accent text-accent-foreground font-black text-xl hover:bg-accent-light active:scale-95 transition disabled:opacity-50 pressable"
-        >
-          {{ loading() ? lang.t().soloStarting : lang.t().soloStartPlaying }}
+      <div class="solo-start__content">
+        <h1 class="solo-title">SOLO RANKED</h1>
+        <p class="solo-subtitle">
+          {{ lang.t().soloSubtitle }}
+        </p>
+        <div class="solo-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+          <span class="solo-elo-card__label">ELO RATING</span>
+          <span class="solo-elo-card__value">{{ currentElo() | number }}</span>
+          <span class="solo-elo-card__tier" [style.color]="eloTier().color">
+            {{ eloTier().label | uppercase }}
+          </span>
+        </div>
+        <button class="solo-start-btn" (click)="startSession()" [disabled]="loading()">
+          {{ loading() ? lang.t().soloStarting : 'START PLAYING' }}
         </button>
         @if (error()) {
-          <p class="text-loss text-sm mt-4">{{ error() }}</p>
+          <p style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">{{ error() }}</p>
         }
       </div>
-    }
+    </div>
+  }
 
-    <!-- LOADING QUESTION phase -->
-    @if (phase() === 'loading-question') {
-      <div class="flex-1 flex items-center justify-center">
-        <div class="text-5xl animate-spin" style="animation: spin 1s linear infinite;">⚽</div>
-      </div>
-    }
+  <!-- Non-idle phases in padded container -->
+  @if (phase() !== 'idle') {
+    <div class="max-w-2xl mx-auto w-full flex flex-col flex-1 p-4">
 
-    <!-- QUESTION phase (includes in-place reveal) -->
-    @if (phase() === 'question' && currentQuestion()) {
-      <app-game-question
-        mode="solo"
-        [question]="questionData()"
-        [timeLeft]="revealing() ? -1 : timeLeft()"
-        [totalTime]="totalTimeLimit()"
-        [showPoints]="false"
-        [submitting]="submitting()"
-        [reportDisabled]="reportDisabled()"
-        [reveal]="revealing()"
-        [revealResult]="revealResultData()"
-        (answerSubmitted)="submitAnswer($event)"
-        (optionSelected)="submitAnswer($event)"
-        (holAnswered)="submitAnswer($event)"
-        (reportClicked)="reportQuestion()"
-        (nextClicked)="nextQuestion()"
-      />
-      @if (revealing()) {
-        <button
-          (click)="endSession()"
-          [disabled]="loading()"
-          class="mt-3 w-full py-3 rounded-xl border border-border text-muted-foreground font-semibold hover:bg-muted transition disabled:opacity-50"
-        >
-          {{ loading() ? '...' : lang.t().soloEnd }}
-        </button>
-      }
-      @if (error()) {
-        <p class="text-loss text-sm mt-2 text-center">{{ error() }}</p>
-      }
-    }
-
-    <!-- FINISHED phase -->
-    @if (phase() === 'finished') {
-      <div class="flex-1 flex flex-col items-center justify-center">
-        <div class="text-5xl mb-4">🏁</div>
-        <h2 class="text-2xl font-black text-foreground mb-6">{{ lang.t().soloSessionComplete }}</h2>
-        <app-ad-display />
-        <div class="w-full max-w-xs space-y-3 mb-8">
-          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-            <span class="text-muted-foreground">{{ lang.t().soloStartingEloLabel }}</span>
-            <span class="text-foreground font-bold">{{ startElo() }}</span>
-          </div>
-          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-            <span class="text-muted-foreground">{{ lang.t().soloFinalElo }}</span>
-            <span class="text-accent font-black text-lg">{{ currentElo() }}</span>
-          </div>
-          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-            <span class="text-muted-foreground">{{ lang.t().lbQuestions }}</span>
-            <span class="text-foreground font-bold">{{ questionsAnswered() }}</span>
-          </div>
-          <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
-            <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>
-            <span class="text-foreground font-bold">{{ accuracy() }}%</span>
-          </div>
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6 pt-2">
+        <button (click)="goHome()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ lang.t().soloBackBtn }}</button>
+        <div class="text-center">
+          <div class="text-accent font-black text-2xl">{{ currentElo() }}</div>
+          <div class="text-muted-foreground text-xs">{{ lang.t().profileElo }}</div>
         </div>
-        <a routerLink="/leaderboard" class="w-full max-w-xs py-3 rounded-2xl bg-accent text-accent-foreground font-black text-center block hover:bg-accent-light transition mb-3">
-          {{ lang.t().soloViewLeaderboard }}
-        </a>
-        <button (click)="resetToIdle()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
-          {{ lang.t().soloPlayAgain }}
-        </button>
+        <div class="text-right">
+          <div class="text-foreground font-semibold">{{ correctAnswers() }}/{{ questionsAnswered() }}</div>
+          <div class="text-muted-foreground text-xs">{{ lang.t().soloCorrectCount }}</div>
+        </div>
       </div>
-    }
 
-  </div>
+      <!-- LOADING QUESTION phase -->
+      @if (phase() === 'loading-question') {
+        <div class="flex-1 flex items-center justify-center">
+          <div class="text-5xl animate-spin" style="animation: spin 1s linear infinite;">⚽</div>
+        </div>
+      }
+
+      <!-- QUESTION phase (includes in-place reveal) -->
+      @if (phase() === 'question' && currentQuestion()) {
+        <app-game-question
+          mode="solo"
+          [question]="questionData()"
+          [timeLeft]="revealing() ? -1 : timeLeft()"
+          [totalTime]="totalTimeLimit()"
+          [showPoints]="false"
+          [submitting]="submitting()"
+          [reportDisabled]="reportDisabled()"
+          [reveal]="revealing()"
+          [revealResult]="revealResultData()"
+          (answerSubmitted)="submitAnswer($event)"
+          (optionSelected)="submitAnswer($event)"
+          (holAnswered)="submitAnswer($event)"
+          (reportClicked)="reportQuestion()"
+          (nextClicked)="nextQuestion()"
+        />
+        @if (revealing()) {
+          <button
+            (click)="endSession()"
+            [disabled]="loading()"
+            class="mt-3 w-full py-3 rounded-xl border border-border text-muted-foreground font-semibold hover:bg-muted transition disabled:opacity-50"
+          >
+            {{ loading() ? '...' : lang.t().soloEnd }}
+          </button>
+        }
+        @if (error()) {
+          <p class="text-loss text-sm mt-2 text-center">{{ error() }}</p>
+        }
+      }
+
+      <!-- FINISHED phase -->
+      @if (phase() === 'finished') {
+        <div class="flex-1 flex flex-col items-center justify-center">
+          <div class="text-5xl mb-4">🏁</div>
+          <h2 class="text-2xl font-black text-foreground mb-6">{{ lang.t().soloSessionComplete }}</h2>
+          <app-ad-display />
+          <div class="w-full max-w-xs space-y-3 mb-8">
+            <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+              <span class="text-muted-foreground">{{ lang.t().soloStartingEloLabel }}</span>
+              <span class="text-foreground font-bold">{{ startElo() }}</span>
+            </div>
+            <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+              <span class="text-muted-foreground">{{ lang.t().soloFinalElo }}</span>
+              <span class="text-accent font-black text-lg">{{ currentElo() }}</span>
+            </div>
+            <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+              <span class="text-muted-foreground">{{ lang.t().lbQuestions }}</span>
+              <span class="text-foreground font-bold">{{ questionsAnswered() }}</span>
+            </div>
+            <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+              <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>
+              <span class="text-foreground font-bold">{{ accuracy() }}%</span>
+            </div>
+          </div>
+          <a routerLink="/leaderboard" class="w-full max-w-xs py-3 rounded-2xl bg-accent text-accent-foreground font-black text-center block hover:bg-accent-light transition mb-3">
+            {{ lang.t().soloViewLeaderboard }}
+          </a>
+          <button (click)="resetToIdle()" class="w-full max-w-xs py-3 rounded-2xl border border-border text-muted-foreground font-semibold hover:bg-muted transition pressable">
+            {{ lang.t().soloPlayAgain }}
+          </button>
+        </div>
+      }
+
+    </div>
+  }
+
 </div>
 
 <!-- Problem reported popup -->
