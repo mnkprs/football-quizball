@@ -84,9 +84,9 @@ export class LogoQuizComponent implements OnDestroy {
   constructor() {
     // Preload team names
     this.api.getTeamNames().subscribe(names => this.teamNames.set(names));
-    // Load ELO from profile store
+    // Load logo quiz ELO from profile store (separate from solo ELO)
     this.profileStore.loadProfile().then(() => {
-      const elo = this.profileStore.elo();
+      const elo = this.profileStore.logoQuizElo();
       this.currentElo.set(elo);
       this.startElo.set(elo);
     });
@@ -195,6 +195,8 @@ export class LogoQuizComponent implements OnDestroy {
     this.phase.set('idle');
     this.currentQuestion.set(null);
     this.error.set(null);
+    // Sync startElo with currentElo for accurate delta on next session
+    this.startElo.set(this.currentElo());
   }
 
   goHome(): void {

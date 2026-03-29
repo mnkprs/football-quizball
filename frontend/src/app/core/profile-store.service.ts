@@ -23,6 +23,7 @@ export class ProfileStore {
   private loaded = false;
 
   readonly elo = computed(() => this.profile()?.elo ?? 1000);
+  readonly logoQuizElo = computed(() => this.profile()?.logo_quiz_elo ?? 1000);
   readonly rank = computed(() => this.profile()?.rank ?? null);
   readonly tier = computed(() => getEloTier(this.elo()));
   readonly tierProgressPct = computed(() => tierProgress(this.elo()));

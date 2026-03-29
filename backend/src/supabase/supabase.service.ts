@@ -22,19 +22,19 @@ export class SupabaseService {
     });
   }
 
-  async getProfile(userId: string): Promise<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number } | null> {
+  async getProfile(userId: string): Promise<{ id: string; username: string; elo: number; logo_quiz_elo: number; games_played: number; questions_answered: number; correct_answers: number } | null> {
     const { data: profile } = await this.client
       .from('profiles')
-      .select('id, username, elo, games_played, questions_answered, correct_answers')
+      .select('id, username, elo, logo_quiz_elo, games_played, questions_answered, correct_answers')
       .eq('id', userId)
       .maybeSingle();
-    if (profile) return profile;
+    if (profile) return profile as any;
     const { data: dummy } = await this.client
       .from('dummy_users')
       .select('id, username, elo, games_played, questions_answered, correct_answers')
       .eq('id', userId)
       .maybeSingle();
-    return dummy ?? null;
+    return dummy ? { ...dummy, logo_quiz_elo: 1000 } as any : null;
   }
 
   /** Returns max ELO ever reached (current elo or peak from history). */
