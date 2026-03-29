@@ -136,10 +136,23 @@ export class LogoQuizService {
    */
   async getTeamNames(): Promise<string[]> {
     const client = (this.supabaseService as any).client;
-    const { data } = await client
-      .from('question_pool')
-      .select('question')
-      .eq('category', 'LOGO_QUIZ');
+    // Supabase default limit is 1000 — we have 1100+ logo questions,
+    // so we must paginate to get all team names for the autocomplete.
+    let allData: any[] = [];
+    const pageSize = 1000;
+    let from = 0;
+    while (true) {
+      const { data: page } = await client
+        .from('question_pool')
+        .select('question')
+        .eq('category', 'LOGO_QUIZ')
+        .range(from, from + pageSize - 1);
+      if (!page || page.length === 0) break;
+      allData = allData.concat(page);
+      if (page.length < pageSize) break;
+      from += pageSize;
+    }
+    const data = allData;
 
     if (!data) return [];
     const names: string[] = data.map(
