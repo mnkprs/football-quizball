@@ -145,10 +145,6 @@ export class DuelLobbyComponent implements OnInit {
     this.router.navigate(['/duel', gameId]);
   }
 
-  goBack(): void {
-    this.router.navigate(['/']);
-  }
-
   scoreLine(game: DuelGameSummary): string {
     return `${game.scores.host} – ${game.scores.guest}`;
   }
