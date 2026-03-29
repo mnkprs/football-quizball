@@ -169,10 +169,10 @@
   border-color: rgba(33, 150, 243, 0.25);
 }
 
-.battle-hero__tag--lime {
+.battle-hero__tag--accent {
   color: var(--color-accent);
   background: var(--color-accent-bg);
-  border-color: rgba(195, 244, 0, 0.2);
+  border-color: rgba(0, 122, 255, 0.2);
 }
 
 .battle-hero__tag--orange {

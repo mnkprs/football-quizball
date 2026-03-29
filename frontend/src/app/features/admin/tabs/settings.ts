@@ -295,7 +295,7 @@ function toMb(bytes: number): string {
     .panel-desc {
       font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       margin: -0.5rem 0 1rem;
     }
 
@@ -303,14 +303,14 @@ function toMb(bytes: number): string {
     .loading-state {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
     .empty-state {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
@@ -341,7 +341,7 @@ function toMb(bytes: number): string {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--color-fg-muted, #8e9379);
+      background: var(--color-fg-muted, #6b7a8d);
     }
 
     .status-dot--active {
@@ -358,7 +358,7 @@ function toMb(bytes: number): string {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
     }
 
     /* ── Buttons ──────────────────────────────────────────── */
@@ -385,14 +385,14 @@ function toMb(bytes: number): string {
     }
 
     .action-btn--primary {
-      background: var(--color-accent, #c3f400);
-      color: var(--color-accent-fg, #161e00);
+      background: var(--color-accent, #007AFF);
+      color: var(--color-accent-fg, #ffffff);
       border-color: transparent;
     }
 
     .action-btn--primary:hover:not(:disabled) {
       opacity: 0.88;
-      background: var(--color-accent, #c3f400);
+      background: var(--color-accent, #007AFF);
     }
 
     .refresh-btn {
@@ -400,7 +400,7 @@ function toMb(bytes: number): string {
       border-radius: 8px;
       border: 1px solid var(--color-surface-highest, #3a3a3a);
       background: var(--color-surface-high, #2a2a2a);
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
       cursor: pointer;
@@ -449,7 +449,7 @@ function toMb(bytes: number): string {
       font-family: 'Lexend', sans-serif;
       font-size: 0.625rem;
       font-weight: 500;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       margin-bottom: 1rem;
@@ -474,7 +474,7 @@ function toMb(bytes: number): string {
     .slider-label {
       font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       white-space: nowrap;
     }
 
@@ -500,7 +500,7 @@ function toMb(bytes: number): string {
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: var(--color-accent, #c3f400);
+      background: var(--color-accent, #007AFF);
       cursor: pointer;
       transition: transform 0.1s;
     }
@@ -513,7 +513,7 @@ function toMb(bytes: number): string {
       width: 14px;
       height: 14px;
       border-radius: 50%;
-      background: var(--color-accent, #c3f400);
+      background: var(--color-accent, #007AFF);
       cursor: pointer;
       border: none;
     }
@@ -557,7 +557,7 @@ function toMb(bytes: number): string {
       font-family: 'Lexend', sans-serif;
       font-weight: 500;
       font-size: 0.75rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
@@ -565,7 +565,7 @@ function toMb(bytes: number): string {
     .info-val {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
     }
 
     .info-val--mono {

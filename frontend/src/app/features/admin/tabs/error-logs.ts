@@ -202,7 +202,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface-high, #2a2a2a);
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-family: 'Inter', sans-serif;
       font-weight: 600;
       font-size: 0.6875rem;
@@ -212,14 +212,14 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .pill:hover:not(.pill--active) {
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       background: var(--color-surface-highest, #3a3a3a);
     }
 
     .pill--active {
-      background: var(--color-accent, #c3f400);
-      color: var(--color-accent-fg, #161e00);
-      border-color: var(--color-accent, #c3f400);
+      background: var(--color-accent, #007AFF);
+      color: var(--color-accent-fg, #ffffff);
+      border-color: var(--color-accent, #007AFF);
     }
 
     .pill--error.pill--active {
@@ -249,7 +249,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .time-select:focus {
-      border-color: var(--color-accent, #c3f400);
+      border-color: var(--color-accent, #007AFF);
     }
 
     /* ── Text search ──────────────────────────────────────── */
@@ -273,11 +273,11 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .search-input:focus {
-      border-color: var(--color-accent, #c3f400);
+      border-color: var(--color-accent, #007AFF);
     }
 
     .search-input::placeholder {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     /* ── Clear button ─────────────────────────────────────── */
@@ -349,7 +349,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .log-entry--expanded {
-      background: rgba(195, 244, 0, 0.02);
+      background: rgba(0, 122, 255, 0.02);
     }
 
     .log-entry-main {
@@ -364,7 +364,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .log-time {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       white-space: nowrap;
       flex-shrink: 0;
       font-size: 0.75rem;
@@ -396,11 +396,11 @@ const TIME_RANGES: { label: string; value: string }[] = [
     .log-badge--debug,
     .log-badge--verbose {
       background: rgba(255, 255, 255, 0.06);
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     .log-context {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 0.75rem;
       flex-shrink: 0;
       white-space: nowrap;
@@ -410,7 +410,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .log-msg {
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -418,7 +418,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .expand-icon {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 0.5rem;
       flex-shrink: 0;
     }
@@ -434,7 +434,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       font-family: monospace;
       font-size: 0.75rem;
       line-height: 1.6;
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       background: var(--color-surface-lowest, #0e0e0e);
       border-radius: 6px;
       white-space: pre-wrap;
@@ -450,7 +450,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     .no-detail {
       font-family: 'Inter', sans-serif;
       font-size: 0.75rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-style: italic;
     }
 
@@ -461,7 +461,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       gap: 0.5rem;
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 2rem;
       justify-content: center;
       background: var(--color-surface-low, #1c1b1b);
@@ -515,7 +515,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     .page-info {
       font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     @media (min-width: 1200px) {

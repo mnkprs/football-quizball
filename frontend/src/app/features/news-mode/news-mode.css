@@ -45,9 +45,9 @@
 
 .news-progress-fill {
   height: 100%;
-  background: linear-gradient(to right, #daff6f, var(--color-accent));
+  background: linear-gradient(to right, #4da3ff, var(--color-accent));
   border-radius: var(--radius-full);
-  box-shadow: 0 0 15px rgba(195, 244, 0, 0.3);
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.3);
   transition: width 0.3s;
 }
 
@@ -66,10 +66,10 @@
   text-transform: uppercase;
   letter-spacing: .2em;
   color: var(--color-accent);
-  background: rgba(195, 244, 0, 0.1);
+  background: rgba(0, 122, 255, 0.1);
   padding: .375rem .75rem;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(195, 244, 0, 0.2);
+  border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
 /* Question text — bare headline, no card */
@@ -111,15 +111,15 @@
   width: 100%;
   padding: 1.25rem;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #daff6f 0%, var(--color-accent) 100%) !important;
-  color: #4c6200 !important;
+  background: linear-gradient(135deg, #4da3ff 0%, var(--color-accent) 100%) !important;
+  color: #ffffff !important;
   font-weight: 800;
   font-size: 1.125rem;
   text-transform: uppercase;
   letter-spacing: .1em;
   border: none;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(195, 244, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.2);
   transition: transform .15s;
   -webkit-appearance: none;
   display: flex;

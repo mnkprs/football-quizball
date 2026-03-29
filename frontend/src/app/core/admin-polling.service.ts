@@ -33,7 +33,7 @@ export class AdminPollingService implements OnDestroy {
   private admin = inject(AdminApiService);
   private destroyRef = inject(DestroyRef);
 
-  /** Whether any poll is currently active (drives the 2px lime indicator bar). */
+  /** Whether any poll is currently active (drives the 2px accent indicator bar). */
   readonly isPolling = signal(false);
 
   /** Latest overview stats. */

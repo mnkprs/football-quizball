@@ -22,9 +22,9 @@ This design system captures the electric tension of a midnight kickoff. It blend
 
 The experience is defined by **intentional asymmetry and depth**. We avoid flat design by using high-contrast typography scales and overlapping elements that break the grid — ensuring the app feels like a premium broadcast production, not a generic utility.
 
-**Decoration level:** Intentional — atmospheric background imagery (stadium, ball, crowd) with heavy overlays. Glass-surface navigation and selection containers. Neon lime glow on primary CTAs and progress indicators.
+**Decoration level:** Intentional — atmospheric background imagery (stadium, ball, crowd) with heavy overlays. Glass-surface navigation and selection containers. Neon accent glow on primary CTAs and progress indicators.
 
-**Emotional reaction in first 3 seconds:** Depth → Anticipation. The dark surfaces and glass layers make you feel inside the stadium. Then the lime accent fires like a floodlight coming on.
+**Emotional reaction in first 3 seconds:** Depth → Anticipation. The dark surfaces and glass layers make you feel inside the stadium. Then the accent color fires like a floodlight coming on.
 
 ---
 
@@ -67,7 +67,7 @@ https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&
 
 ## Color System
 
-**Philosophy:** One high-vis lime accent on a deep pitch-at-night base. Surface hierarchy creates elevation through tonal steps — not borders or shadows.
+**Philosophy:** One high-vis iOS blue accent on a deep pitch-at-night base. Surface hierarchy creates elevation through tonal steps — not borders or shadows.
 
 ### CSS Custom Properties
 
@@ -84,16 +84,16 @@ https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&
 
   /* ---- Text ---- */
   --color-fg:          #e5e2e1;  /* Primary text — warm off-white */
-  --color-fg-variant:  #c4c9ac;  /* Secondary text — muted sage */
-  --color-fg-muted:    #8e9379;  /* Outline, tertiary labels */
-  --color-fg-dim:      #444933;  /* Ghost borders (at 15% opacity) */
+  --color-fg-variant:  #a8b3c4;  /* Secondary text — muted cool grey */
+  --color-fg-muted:    #6b7a8d;  /* Outline, tertiary labels */
+  --color-fg-dim:      #2a3544;  /* Ghost borders (at 15% opacity) */
 
   /* ---- Brand Accent ---- */
-  --color-accent:      #c3f400;               /* Lime. The ONE brand color. */
-  --color-accent-dim:  #abd600;               /* Gradient endpoint, hover */
-  --color-accent-fg:   #161e00;               /* Text on lime */
-  --color-accent-bg:   rgba(195, 244, 0, 0.15); /* Accent tints, badges */
-  --color-accent-glow: rgba(195, 244, 0, 0.3);  /* Neon glow shadow */
+  --color-accent:      #007AFF;               /* iOS Blue. The ONE brand color. */
+  --color-accent-dim:  #0066d6;               /* Gradient endpoint, hover */
+  --color-accent-fg:   #ffffff;               /* Text on accent */
+  --color-accent-bg:   rgba(0, 122, 255, 0.15); /* Accent tints, badges */
+  --color-accent-glow: rgba(0, 122, 255, 0.3);  /* Neon accent glow shadow */
 
   /* ---- Semantic ---- */
   --color-error:       #ffb4ab;                /* Wrong answer, elimination */
@@ -123,9 +123,9 @@ https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&
 | `--color-surface-lowest` | `#0e0e0e` | Atmospheric overlays |
 | `--color-surface-high` | `#2a2a2a` | Interactive cards |
 | `--color-fg` | `#e5e2e1` | Primary text |
-| `--color-fg-variant` | `#c4c9ac` | Secondary text |
-| `--color-accent` | `#c3f400` | The ONE brand accent |
-| `--color-accent-dim` | `#abd600` | Gradient endpoint |
+| `--color-fg-variant` | `#a8b3c4` | Secondary text |
+| `--color-accent` | `#007AFF` | The ONE brand accent |
+| `--color-accent-dim` | `#0066d6` | Gradient endpoint |
 | `--color-error` | `#ffb4ab` | Wrong / elimination |
 | `--color-success` | `#22C55E` | Correct |
 
@@ -141,9 +141,9 @@ Stack surfaces from `--color-surface-lowest` up to `--color-surface-highest`. A 
 
 **Never use 1px solid, 100% opaque borders.** All boundaries defined via background color shifts.
 
-**Ghost Border Fallback:** If containment is strictly necessary, use `#444933` at **15% opacity only**:
+**Ghost Border Fallback:** If containment is strictly necessary, use `#2a3544` at **15% opacity only**:
 ```css
-box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
+box-shadow: inset 0 0 0 1px rgba(42, 53, 68, 0.15);
 ```
 
 ### Glassmorphism
@@ -161,8 +161,8 @@ Navigation bars and selection containers float above background imagery:
 
 Primary CTAs, progress fills, and key interactive elements:
 ```css
-.neon-glow    { box-shadow: 0 0 15px rgba(195, 244, 0, 0.3); }
-.floodlit-glow { box-shadow: 0 0 60px -15px rgba(195, 244, 0, 0.3); }
+.neon-glow    { box-shadow: 0 0 15px rgba(0, 122, 255, 0.3); }
+.floodlit-glow { box-shadow: 0 0 60px -15px rgba(0, 122, 255, 0.3); }
 ```
 
 ### Atmospheric Overlays
@@ -191,14 +191,14 @@ box-shadow: 0 4px 40px rgba(0, 0, 0, 0.06);
 
 ### Buttons
 
-**Primary (lime gradient):**
+**Primary (accent gradient):**
 ```css
-background: linear-gradient(135deg, #c3f400 0%, #abd600 100%);
-color: #161e00;
+background: linear-gradient(135deg, #007AFF 0%, #0066d6 100%);
+color: #ffffff;
 font: 600 0.875rem 'Inter';
 text-transform: uppercase;
 border-radius: var(--radius-lg);
-box-shadow: 0 0 15px rgba(195, 244, 0, 0.3);
+box-shadow: 0 0 15px rgba(0, 122, 255, 0.3);
 ```
 
 **Secondary (glass):**
@@ -207,14 +207,14 @@ background: rgba(53, 53, 52, 0.2);
 backdrop-filter: blur(10px);
 color: #ffffff;
 border-radius: var(--radius-lg);
-box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
+box-shadow: inset 0 0 0 1px rgba(42, 53, 68, 0.15);
 ```
 
 **Tertiary:**
 ```css
 background: transparent;
 color: #ffffff;
-border-bottom: 1px solid rgba(142, 147, 121, 0.3);
+border-bottom: 1px solid rgba(107, 122, 141, 0.3);
 ```
 
 ### Answer Cards (Multiple Choice)
@@ -226,8 +226,8 @@ Always 4 options (A / B / C / D). Cards are tappable; reveal fires on tap — no
 | State | Background | Border/Shadow | Text |
 |-------|-----------|---------------|------|
 | Default | `--color-surface-high` | none | `--color-fg` |
-| Selected (pre-reveal) | `--color-surface-highest` | `inset 0 0 0 2px rgba(195,244,0,0.4)` | `--color-fg` |
-| Correct (chosen) | `linear-gradient(135deg, #c3f400, #abd600)` | `0 0 20px rgba(195,244,0,0.35)` | `--color-accent-fg` `#161e00` |
+| Selected (pre-reveal) | `--color-surface-highest` | `inset 0 0 0 2px rgba(0,122,255,0.4)` | `--color-fg` |
+| Correct (chosen) | `linear-gradient(135deg, #007AFF, #0066d6)` | `0 0 20px rgba(0,122,255,0.35)` | `--color-accent-fg` `#ffffff` |
 | Wrong (chosen by user) | `--color-error-bg` `#93000a` | `inset 0 0 0 1px rgba(255,180,171,0.2)` | `--color-error` |
 | Correct (revealed, user chose wrong) | `--color-success-bg` `rgba(34,197,94,0.12)` | `inset 0 0 0 1px rgba(34,197,94,0.25)` | `--color-success` |
 | Wrong (unchosen, dimmed) | unchanged | none | `opacity: 0.45` |
@@ -241,13 +241,13 @@ font: 600 0.7rem 'Lexend';
 color: var(--color-fg-muted);
 
 /* Selected state */
-background: rgba(195, 244, 0, 0.15);
+background: rgba(0, 122, 255, 0.15);
 color: var(--color-accent);
 ```
 
 **Indicator icon (right side — visible on selected/revealed states only):**
 - Selected pre-reveal: filled dot `●`
-- Correct: checkmark `✓` in circle, `rgba(22,30,0,0.25)` bg
+- Correct: checkmark `✓` in circle, `rgba(0,122,255,0.25)` bg
 - Wrong chosen: × in circle, `rgba(255,180,171,0.1)` bg
 - Correct revealed: checkmark, `rgba(34,197,94,0.15)` bg
 
@@ -269,7 +269,7 @@ padding: 20px
 
 ```css
 .progress-track { background: var(--color-surface-lowest); height: 4px; }
-.progress-fill  { background: var(--color-accent); box-shadow: 0 0 8px rgba(195,244,0,0.5); }
+.progress-fill  { background: var(--color-accent); box-shadow: 0 0 8px rgba(0,122,255,0.5); }
 ```
 
 ### Game Chips / Pills
@@ -310,7 +310,7 @@ Questions where the user types an answer. Submit is explicit: user taps **Check 
 background: var(--color-surface-low);
 border-radius: var(--radius-md);
 padding: 18px 16px;
-box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
+box-shadow: inset 0 0 0 1px rgba(42, 53, 68, 0.15);
 font: 400 1rem 'Inter';
 color: var(--color-fg);
 
@@ -319,14 +319,14 @@ box-shadow: inset 0 0 0 2px var(--color-accent);
 
 /* Correct reveal */
 background: linear-gradient(135deg,
-  rgba(195, 244, 0, 0.12) 0%,
-  rgba(171, 214, 0, 0.08) 100%);
+  rgba(0, 122, 255, 0.12) 0%,
+  rgba(0, 102, 214, 0.08) 100%);
 box-shadow:
   inset 0 0 0 2px var(--color-accent),
-  0 0 12px rgba(195, 244, 0, 0.15);
+  0 0 12px rgba(0, 122, 255, 0.15);
 color: var(--color-accent);
 font-weight: 600;
-/* + checkmark icon right-aligned, rgba(195,244,0,0.2) circle bg */
+/* + checkmark icon right-aligned, rgba(0,122,255,0.2) circle bg */
 
 /* Wrong reveal */
 background: rgba(147, 0, 10, 0.15);
@@ -345,9 +345,9 @@ box-shadow: none;
 cursor: not-allowed;
 
 /* Enabled (has text) — standard primary button */
-background: linear-gradient(135deg, #c3f400 0%, #abd600 100%);
+background: linear-gradient(135deg, #007AFF 0%, #0066d6 100%);
 color: var(--color-accent-fg);
-box-shadow: 0 0 15px rgba(195, 244, 0, 0.3);
+box-shadow: 0 0 15px rgba(0, 122, 255, 0.3);
 ```
 
 **Button layout:** Stacked — input full-width above, "Check Answer" button full-width below. Apply to ALL free-text templates (default, logo, playerID, guessScore). The existing inline (side-by-side) layout in question.html should be updated.
@@ -445,7 +445,7 @@ The existing `result.html` route remains for game-over summary screens. Per-ques
 /* Default */
 background: var(--color-surface-low);
 border-radius: var(--radius-md);
-box-shadow: inset 0 0 0 1px rgba(68, 73, 51, 0.15);
+box-shadow: inset 0 0 0 1px rgba(42, 53, 68, 0.15);
 /* Focus */
 box-shadow: inset 0 0 0 2px var(--color-accent);
 ```
@@ -518,7 +518,7 @@ Mixed design: Screen 1's editorial hero + Screen 2's structured mode list.
 │  │  ● Most Popular        │  │    Stitch image: CLASSIC bg
 │  │  CLASSIC               │  │
 │  │  MODE                  │  │  ← Space Grotesk 36px/700
-│  │  [PLAY NOW ▶]          │  │  ← Lime gradient button + glow
+│  │  [PLAY NOW ▶]          │  │  ← Accent gradient button + glow
 │  └────────────────────────┘  │
 │  ┌────────────────────────┐  │
 │  │  Global Standing       │  │  ← Rank card (surface-high)
@@ -530,16 +530,16 @@ Mixed design: Screen 1's editorial hero + Screen 2's structured mode list.
 │  └────────────────────────┘  │
 │  GAME MODES                  │
 │  ┌────────────────────────┐  │
-│  │ 🎯 Solo Ranked    ›    │  │  ← Mode row, left lime border
+│  │ 🎯 Solo Ranked    ›    │  │  ← Mode row, left accent border
 │  └────────────────────────┘  │  ← bg: SOLO image + left-fade overlay
 │  ┌────────────────────────┐  │
 │  │ 💀 Mayhem Mode    ›    │  │  ← Mode row, left error border
 │  └────────────────────────┘  │  ← bg: MAYHEM image + left-fade overlay
 │  ┌────────────────────────┐  │
-│  │ 👑 Battle Royale  ›    │  │  ← Mode row featured, lime border
+│  │ 👑 Battle Royale  ›    │  │  ← Mode row featured, accent border
 │  └────────────────────────┘  │  ← bg: BATTLE image + left-fade overlay
 │  ┌────────────────────────┐  │
-│  │ ⚔️ Duel Mode      ›    │  │  ← Mode row, lime border
+│  │ ⚔️ Duel Mode      ›    │  │  ← Mode row, accent border
 │  └────────────────────────┘  │  ← bg: DUEL image + left-fade overlay
 │  SPECIAL MODES               │
 │  ┌──────────┐ ┌────────────┐ │
@@ -579,7 +579,7 @@ min-height: 80px;
 │  │  A  Brazil           │    │  ← Default: surface-high
 │  └──────────────────────┘    │
 │  ┌──────────────────────┐    │
-│  │  B  Uruguay   ✓      │    │  ← Correct: lime gradient
+│  │  B  Uruguay   ✓      │    │  ← Correct: accent gradient
 │  └──────────────────────┘    │
 │  ┌──────────────────────┐    │
 │  │  C  Argentina  ✕     │    │  ← Wrong chosen: error-bg
@@ -620,7 +620,7 @@ min-height: 80px;
 After correct submit:
 │  ✓ CORRECT                   │  ← Result badge
 │  ┌──────────────────────┐    │
-│  │  Iniesta          ✓  │    │  ← Input: lime state
+│  │  Iniesta          ✓  │    │  ← Input: accent state
 │  └──────────────────────┘    │
 │  +24 ELO gained              │  ← ELO delta card
 
@@ -695,11 +695,11 @@ Expressed via left-border color on rank cards — not background fills:
 
 | Tier | ELO | Color |
 |------|-----|-------|
-| Legend | 1800+ | `#c3f400` (lime) |
+| Legend | 1800+ | `#007AFF` (accent blue) |
 | Elite | 1600+ | `#C0C0C0` (silver) |
 | Challenger | 1400+ | `#CD7F32` (bronze) |
 | Contender | 1200+ | `#4A90D9` (steel blue) |
-| Grassroots | < 1200 | `#8e9379` (muted) |
+| Grassroots | < 1200 | `#6b7a8d` (muted) |
 
 ---
 
@@ -711,7 +711,7 @@ Expressed via left-border color on rank cards — not background fills:
 | Standard grey drop shadows | Ambient occlusion (40px blur, 6%) |
 | Inter for all headlines | Space Grotesk for display moments |
 | Dividers between content | Spacing + surface changes |
-| Purple, violet, teal | Lime as the only expressive color |
+| Purple, violet, teal | iOS blue as the only expressive accent color |
 | Per-mode background fills | Left-border accent + mode name |
 | Gradient backgrounds on surfaces | Gradients for CTAs + overlays only |
 | Decorative blobs, particles, orbs | Atmospheric imagery |
@@ -730,17 +730,17 @@ Expressed via left-border color on rank cards — not background fills:
 ### Color
 - [ ] Update all CSS custom properties
 - [ ] Replace `#0E0F0C` → `#131313` (bg)
-- [ ] Replace `#D4FF33` → `#c3f400` (accent)
-- [ ] Replace `#6B6E60` → `#8e9379` (muted)
+- [ ] Replace `#D4FF33` → `#007AFF` (accent)
+- [ ] Replace `#6B6E60` → `#6b7a8d` (muted)
 - [ ] Audit all hardcoded hex values → CSS variable tokens
 
 ### Components
-- [ ] Primary buttons: add lime gradient + neon glow
+- [ ] Primary buttons: add accent gradient + neon glow
 - [ ] Answer cards: radius 6px → 12px
 - [ ] Add glass effect (backdrop-blur) to nav bars + modals
 - [ ] Add atmospheric overlay system for hero backgrounds
-- [ ] Progress bars: add glowing lime fill
-- [ ] Input focus: ghost border → lime glow
+- [ ] Progress bars: add glowing accent fill
+- [ ] Input focus: ghost border → accent glow
 
 ### Pages still to design
 - [ ] Profile screen
@@ -787,10 +787,10 @@ DESIGN.md uses canonical token names. The Angular app uses Tailwind-mapped CSS v
 | `--color-fg` | `text-foreground` / `var(--color-foreground)` | Primary text |
 | `--color-fg-variant` | `text-muted-foreground` | Secondary text |
 | `--color-fg-muted` | `text-muted-foreground/70` | Tertiary labels |
-| `--color-accent` | `var(--color-accent)` / `bg-accent` | Lime — already in use |
-| `--color-accent-fg` | `text-accent-foreground` | Text on lime backgrounds |
+| `--color-accent` | `var(--color-accent)` / `bg-accent` | iOS blue — already in use |
+| `--color-accent-fg` | `text-accent-foreground` | Text on accent backgrounds |
 | `--color-accent-bg` | `bg-accent/15` | Tinted accent backgrounds |
-| `--color-accent-glow` | `rgba(204, 255, 0, 0.3)` | Used directly in box-shadow |
+| `--color-accent-glow` | `rgba(0, 122, 255, 0.3)` | Used directly in box-shadow |
 | `--color-error` | `var(--color-loss)` / `text-loss` | Wrong answer |
 | `--color-error-bg` | `bg-loss/80` or `#93000a` directly | Wrong answer container |
 | `--color-success` | `var(--color-win)` / `text-win` | Correct answer |

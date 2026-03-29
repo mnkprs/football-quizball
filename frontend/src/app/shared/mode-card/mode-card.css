@@ -59,10 +59,10 @@
   border-color: rgba(230, 168, 0, 0.25);
 }
 
-.mode-card__tag--lime {
+.mode-card__tag--accent {
   color: var(--color-accent);
   background: var(--color-accent-bg);
-  border-color: rgba(195, 244, 0, 0.2);
+  border-color: rgba(0, 122, 255, 0.2);
 }
 
 .mode-card__tag--orange {

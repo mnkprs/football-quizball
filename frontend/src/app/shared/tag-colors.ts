@@ -3,7 +3,7 @@ export const TAG_COLORS: Record<string, string> = {
   '1v1': 'red',
   'pvp': 'orange',
   'ranked': 'gold',
-  'elo': 'lime',
+  'elo': 'accent',
   'solo': 'white',
   'multi': 'blue',
   'speed run': 'cyan',

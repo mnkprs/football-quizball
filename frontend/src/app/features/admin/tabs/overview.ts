@@ -200,7 +200,7 @@ import { AdminPollingService } from '../../../core/admin-polling.service';
       font-family: 'Lexend', sans-serif;
       font-weight: 500;
       font-size: 0.75rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
@@ -268,7 +268,7 @@ import { AdminPollingService } from '../../../core/admin-polling.service';
     }
 
     .log-time {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       white-space: nowrap;
       flex-shrink: 0;
       font-size: 0.75rem;
@@ -295,11 +295,11 @@ import { AdminPollingService } from '../../../core/admin-polling.service';
     }
 
     .log-level--info {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     .log-msg {
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -310,7 +310,7 @@ import { AdminPollingService } from '../../../core/admin-polling.service';
     .empty-state {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
@@ -321,7 +321,7 @@ import { AdminPollingService } from '../../../core/admin-polling.service';
     .loading-state {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
@@ -387,7 +387,7 @@ import { AdminPollingService } from '../../../core/admin-polling.service';
     .mode-name {
       font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       white-space: nowrap;
     }
 
@@ -400,7 +400,7 @@ import { AdminPollingService } from '../../../core/admin-polling.service';
 
     .mode-bar-fill {
       height: 100%;
-      background: var(--color-accent, #c3f400);
+      background: var(--color-accent, #007AFF);
       border-radius: 3px;
       transition: width 0.4s ease;
       min-width: 2px;

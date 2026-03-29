@@ -28,7 +28,6 @@
         [tags]="['8 players', 'multi', 'pvp']"
         backgroundImage="/royale.png"
         variant="accent"
-        actionLabel="Join Battle"
         size="medium"
         [velvetLock]="true"
         [locked]="!auth.isLoggedIn()"
@@ -42,9 +41,8 @@
         title="Duel"
         [hint]="auth.isLoggedIn() ? (pro.isPro() ? '1v1 High-Stakes Face-off • Unlimited' : pro.dailyDuelsRemaining() > 0 ? '1v1 High-Stakes Face-off • ' + pro.dailyDuelsRemaining() + ' free today' : '1v1 High-Stakes Face-off • Come back tomorrow') : '1v1 High-Stakes Face-off • Login required'"
         [tags]="['pvp', 'ranked']"
-        backgroundImage="/duel_mode.png"
+        backgroundImage="/duel-mode.png"
         variant="accent"
-        actionLabel="Challenge Now"
         size="medium"
         [velvetLock]="true"
         [locked]="!auth.isLoggedIn()"
@@ -71,7 +69,7 @@
         [title]="lang.t().btnBlitz"
         [hint]="blitzHint()"
         [tags]="['solo', 'speed run', 'timed']"
-        backgroundImage="/blitz-mode.png"
+        backgroundImage="/blitz-mode-v2.png"
         variant="accent"
         size="medium"
         [velvetLock]="true"
@@ -94,14 +92,14 @@
         [title]="lang.t().btnMayhem"
         [hint]="lang.t().btnMayhemHint"
         [tags]="['solo', 'free', 'chaos']"
-        backgroundImage="/mayhem-mode.png"
+        backgroundImage="/mayhem.png"
         variant="accent"
         [compact]="true"
         [locked]="false"
         (cardClick)="goMayhem()"
       />
       <div class="two-player-card">
-        <img class="two-player-card__bg-image" src="/football-field.png" alt="" aria-hidden="true" />
+        <img class="two-player-card__bg-image" src="/2-player-mode.png" alt="" aria-hidden="true" />
         <span class="two-player-card__bg-overlay" aria-hidden="true"></span>
         <span class="two-player-card__badge">{{ lang.t().localMultiplayer }}</span>
         <h3 class="two-player-card__title">{{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</h3>

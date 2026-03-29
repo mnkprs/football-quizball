@@ -52,7 +52,7 @@
 
 .lq-start::after {
   right: -60px;
-  background: radial-gradient(ellipse, rgba(195, 244, 0, 0.14) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(0, 122, 255, 0.14) 0%, transparent 70%);
 }
 
 /* Hero — full-width background image, fades into content */

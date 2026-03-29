@@ -731,7 +731,7 @@
 }
 
 .br-play__team-score.team-1 {
-  background: rgba(195, 244, 0, 0.15);
+  background: rgba(0, 122, 255, 0.15);
   color: var(--color-accent);
 }
 

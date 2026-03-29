@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
@@ -10,6 +11,7 @@ import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
 import { PosthogService } from '../../core/posthog.service';
+import { getEloTier, type EloTier } from '../../core/elo-tier';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
 
@@ -17,7 +19,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
   selector: 'app-solo',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, AdDisplayComponent, GameQuestionComponent],
+  imports: [FormsModule, RouterLink, AdDisplayComponent, GameQuestionComponent, DecimalPipe, UpperCasePipe],
   host: { class: 'solo-host' },
   templateUrl: './solo.html',
   styleUrl: './solo.css',
@@ -68,6 +70,8 @@ export class SoloComponent implements OnDestroy {
     if (q === 0) return 0;
     return Math.round((this.correctAnswers() / q) * 100);
   });
+
+  eloTier = computed<EloTier>(() => getEloTier(this.currentElo()));
 
   questionData = computed<QuestionData | null>(() => {
     const q = this.currentQuestion();

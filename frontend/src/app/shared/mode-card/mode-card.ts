@@ -21,14 +21,14 @@ export class ModeCardComponent {
   title = input.required<string>();
   hint = input.required<string>();
   badge = input<string>();
-  badgeColor = input<'lime' | 'blue' | 'red' | 'purple' | 'gold'>('lime');
+  badgeColor = input<'accent' | 'blue' | 'red' | 'purple' | 'gold'>('accent');
   tags = input<string[]>([]);
   featured = input(false);
   onlineCount = input<number | null>(null);
   sectionLabel = input<string>();
   backgroundIcon = input<string>();
   backgroundImage = input<string>();
-  iconBgColor = input<'gold' | 'blue' | 'lime' | 'orange' |  'red' | 'purple'>();
+  iconBgColor = input<'gold' | 'blue' | 'accent' | 'orange' |  'red' | 'purple'>();
   footerText = input<string>();
   variant = input<ModeCardVariant>('outline');
   compact = input(false);
