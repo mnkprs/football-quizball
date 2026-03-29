@@ -330,21 +330,21 @@
 .gq__option-label { width:1.75rem; height:1.75rem; border-radius:.25rem; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; color:var(--color-muted-foreground); flex-shrink:0 }
 .gq__option-text { flex:1 }
 .gq__option-icon { width:1.25rem; height:1.25rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.65rem; flex-shrink:0 }
-.gq__option-icon--correct { background:rgba(22,30,0,.25); color:#161e00 }
+.gq__option-icon--correct { background:rgba(0,122,255,.15); color:#fff }
 .gq__option-icon--wrong { background:rgba(255,180,171,.15); color:#ffb4ab }
 .gq__option-icon--correct-revealed { background:rgba(34,197,94,.15); color:#22C55E }
 
 .gq__option-tag { font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:.1875rem .5rem; border-radius:999px; flex-shrink:0 }
-.gq__option-tag--correct { background:rgba(22,30,0,.25); color:#161e00 }
+.gq__option-tag--correct { background:rgba(0,122,255,.15); color:#fff }
 .gq__option-tag--wrong { background:rgba(255,180,171,.12); color:#ffb4ab }
 .gq__option-tag--correct-revealed { background:rgba(34,197,94,.12); color:#22C55E }
 
 .gq__option-btn--selected { background:rgba(255,255,255,.08); box-shadow:inset 0 0 0 2px var(--mode-color) }
-.gq__option-btn--selected .gq__option-label { background:rgba(195,244,0,.15); color:var(--mode-color) }
+.gq__option-btn--selected .gq__option-label { background:rgba(0,122,255,.15); color:var(--mode-color) }
 
-.gq__option-btn--correct { background:#c3f400!important; border-color:transparent!important; opacity:1!important }
-.gq__option-btn--correct .gq__option-label { background:rgba(22,30,0,.2); color:#161e00 }
-.gq__option-btn--correct .gq__option-text { color:#161e00; font-weight:700 }
+.gq__option-btn--correct { background:#007AFF!important; border-color:transparent!important; opacity:1!important }
+.gq__option-btn--correct .gq__option-label { background:rgba(255,255,255,.2); color:#fff }
+.gq__option-btn--correct .gq__option-text { color:#fff; font-weight:700 }
 
 .gq__option-btn--wrong-chosen { background:#93000a!important; border-color:transparent!important; opacity:1!important }
 .gq__option-btn--wrong-chosen .gq__option-label { background:rgba(255,180,171,.1); color:#ffb4ab }
@@ -357,10 +357,10 @@
 .gq__option-btn--dimmed { opacity:.35!important }
 
 /* ─── INPUT REVEAL STATES ───────────────────────────────── */
-.gq__input--correct { background:linear-gradient(135deg,rgba(195,244,0,.12),rgba(171,214,0,.08))!important; box-shadow:inset 0 0 0 2px var(--mode-color),0 0 12px rgba(195,244,0,.15)!important; color:var(--mode-color)!important; font-weight:600 }
+.gq__input--correct { background:linear-gradient(135deg,rgba(0,122,255,.12),rgba(0,102,214,.08))!important; box-shadow:inset 0 0 0 2px var(--mode-color),0 0 12px rgba(0,122,255,.15)!important; color:var(--mode-color)!important; font-weight:600 }
 .gq__input--wrong { background:rgba(147,0,10,.15)!important; box-shadow:inset 0 0 0 2px rgba(255,180,171,.4)!important; color:#ffb4ab!important }
 .gq__input-icon { position:absolute; right:1rem; top:50%; transform:translateY(-50%); width:1.25rem; height:1.25rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem }
-.gq__input-icon--correct { background:rgba(195,244,0,.2); color:var(--mode-color) }
+.gq__input-icon--correct { background:rgba(0,122,255,.2); color:var(--mode-color) }
 .gq__input-icon--wrong { background:rgba(255,180,171,.15); color:#ffb4ab }
 
 /* ─── RESULT BADGE ──────────────────────────────────────── */
@@ -383,7 +383,7 @@
 .gq__elo-delta-label { font-size:.75rem; color:var(--color-muted-foreground) }
 .gq__explanation { font-size:.875rem; color:var(--color-muted-foreground); line-height:1.5; padding:.5rem 0 }
 
-.gq__next-btn { width:100%; padding:1rem; background:#c3f400; color:#161e00; font-weight:700; font-size:1rem; text-transform:uppercase; letter-spacing:.05em; border:none; border-radius:.75rem; cursor:pointer; transition:filter .2s }
+.gq__next-btn { width:100%; padding:1rem; background:#007AFF; color:#fff; font-weight:700; font-size:1rem; text-transform:uppercase; letter-spacing:.05em; border:none; border-radius:.75rem; cursor:pointer; transition:filter .2s }
 .gq__next-btn:hover { filter:brightness(1.1) }
 
 .gq__hol-buttons {

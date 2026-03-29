@@ -50,7 +50,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--color-accent);
-  background: rgba(195, 244, 0, 0.1);
+  background: rgba(0, 122, 255, 0.1);
   width: 100%;
   height: 100%;
   display: flex;
@@ -112,7 +112,7 @@
 }
 
 .top-nav__delta--up {
-  color: var(--color-accent, #c3f400);
+  color: var(--color-accent, #007AFF);
 }
 
 .top-nav__delta--down {

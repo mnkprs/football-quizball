@@ -65,7 +65,7 @@ const STORAGE_KEY = 'admin-active-tab';
             <button class="dash-back-btn" (click)="goHome()">&#8592;</button>
             <span class="dash-title">QuizBall Admin</span>
           </div>
-          <!-- Polling indicator: 2px lime bar animates when any poll is active -->
+          <!-- Polling indicator: 2px accent bar animates when any poll is active -->
           @if (polling.isPolling()) {
             <div class="dash-poll-bar" aria-label="Polling…"></div>
           }
@@ -124,7 +124,7 @@ const STORAGE_KEY = 'admin-active-tab';
 
     .dash-key-card {
       background: var(--color-surface-low, #1c1b1b);
-      border: 1px solid rgba(195, 244, 0, 0.12);
+      border: 1px solid rgba(0, 122, 255, 0.12);
       border-radius: var(--radius-lg, 12px);
       padding: 2rem;
       width: 100%;
@@ -157,15 +157,15 @@ const STORAGE_KEY = 'admin-active-tab';
     }
 
     .dash-key-input:focus {
-      border-color: var(--color-accent, #c3f400);
+      border-color: var(--color-accent, #007AFF);
     }
 
     .dash-key-btn {
       padding: 0.5rem 1.25rem;
       border-radius: 8px;
       border: none;
-      background: var(--color-accent, #c3f400);
-      color: var(--color-accent-fg, #161e00);
+      background: var(--color-accent, #007AFF);
+      color: var(--color-accent-fg, #ffffff);
       font-family: 'Inter', sans-serif;
       font-weight: 600;
       font-size: 0.875rem;
@@ -177,7 +177,7 @@ const STORAGE_KEY = 'admin-active-tab';
 
     .dash-key-hint {
       font-size: 0.75rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     /* ── Shell ────────────────────────────────────────────── */
@@ -207,7 +207,7 @@ const STORAGE_KEY = 'admin-active-tab';
     .dash-back-btn {
       background: none;
       border: none;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 1.125rem;
       cursor: pointer;
       padding: 0.25rem 0.5rem;
@@ -229,7 +229,7 @@ const STORAGE_KEY = 'admin-active-tab';
       letter-spacing: -0.01em;
     }
 
-    /* 2px lime polling bar — absolutely positioned at bottom of topbar */
+    /* 2px accent polling bar — absolutely positioned at bottom of topbar */
     .dash-poll-bar {
       position: absolute;
       bottom: 0;
@@ -239,8 +239,8 @@ const STORAGE_KEY = 'admin-active-tab';
       background: linear-gradient(
         90deg,
         transparent,
-        var(--color-accent, #c3f400) 40%,
-        var(--color-accent, #c3f400) 60%,
+        var(--color-accent, #007AFF) 40%,
+        var(--color-accent, #007AFF) 60%,
         transparent
       );
       background-size: 200% 100%;
@@ -271,7 +271,7 @@ const STORAGE_KEY = 'admin-active-tab';
       padding: 0.75rem 1rem;
       background: none;
       border: none;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-family: 'Lexend', sans-serif;
       font-weight: 500;
       font-size: 0.875rem;
@@ -281,7 +281,7 @@ const STORAGE_KEY = 'admin-active-tab';
     }
 
     .dash-tab:hover {
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
     }
 
     .dash-tab--active {
@@ -297,7 +297,7 @@ const STORAGE_KEY = 'admin-active-tab';
       right: 0.5rem;
       height: 2px;
       border-radius: 2px 2px 0 0;
-      background: var(--color-accent, #c3f400);
+      background: var(--color-accent, #007AFF);
     }
 
     /* ── Content area ─────────────────────────────────────── */

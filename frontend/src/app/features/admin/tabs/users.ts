@@ -164,7 +164,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
                 <polyline
                   [attr.points]="sparklinePoints(user.eloHistory ?? [])"
                   fill="none"
-                  stroke="var(--color-accent, #c3f400)"
+                  stroke="var(--color-accent, #007AFF)"
                   stroke-width="1.5"
                   stroke-linejoin="round"
                 />
@@ -267,11 +267,11 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     }
 
     .search-input:focus {
-      border-color: var(--color-accent, #c3f400);
+      border-color: var(--color-accent, #007AFF);
     }
 
     .search-input::placeholder {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     .search-spinner {
@@ -281,8 +281,8 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
       transform: translateY(-50%);
       width: 14px;
       height: 14px;
-      border: 2px solid rgba(195, 244, 0, 0.3);
-      border-top-color: var(--color-accent, #c3f400);
+      border: 2px solid rgba(0, 122, 255, 0.3);
+      border-top-color: var(--color-accent, #007AFF);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
@@ -339,7 +339,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
       text-align: left;
       font-weight: 500;
       font-size: 0.75rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -356,7 +356,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     }
 
     .user-row--selected {
-      background: rgba(195, 244, 0, 0.04);
+      background: rgba(0, 122, 255, 0.04);
     }
 
     .user-row:last-child {
@@ -365,7 +365,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
 
     .user-table td {
       padding: 0.5625rem 0.75rem;
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
     }
 
     .user-name {
@@ -374,7 +374,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     }
 
     .user-games {
-      color: var(--color-fg-muted, #8e9379) !important;
+      color: var(--color-fg-muted, #6b7a8d) !important;
     }
 
     .elo-val {
@@ -391,7 +391,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     }
 
     .elo-val--default {
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
     }
 
     .pro-badge {
@@ -406,7 +406,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     }
 
     .no-pro {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     .view-btn {
@@ -466,14 +466,14 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     .page-info {
       font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
     }
 
     /* ── Empty / error states ─────────────────────────────── */
     .empty-state {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 1.5rem;
       text-align: center;
       background: var(--color-surface-low, #1c1b1b);
@@ -530,7 +530,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     .close-btn {
       background: none;
       border: none;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 1rem;
       cursor: pointer;
       padding: 0.25rem 0.5rem;
@@ -570,7 +570,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
       font-family: 'Lexend', sans-serif;
       font-weight: 500;
       font-size: 0.6875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
@@ -594,7 +594,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
       font-family: 'Lexend', sans-serif;
       font-size: 0.6875rem;
       font-weight: 500;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
@@ -631,12 +631,12 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
 
     .action-btn--grant {
       background: var(--color-surface-high, #2a2a2a);
-      border: 1px solid var(--color-accent, #c3f400);
-      color: var(--color-accent, #c3f400);
+      border: 1px solid var(--color-accent, #007AFF);
+      color: var(--color-accent, #007AFF);
     }
 
     .action-btn--grant:hover:not(:disabled) {
-      background: rgba(195, 244, 0, 0.1);
+      background: rgba(0, 122, 255, 0.1);
     }
 
     .action-btn--revoke {
@@ -704,7 +704,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
 
     .game-type {
       flex: 1;
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       text-transform: capitalize;
     }
 
@@ -723,7 +723,7 @@ import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin
     }
 
     .game-date {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 0.75rem;
     }
 

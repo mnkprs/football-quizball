@@ -39,7 +39,7 @@
             [class.mode-card__tag--red]="tagColor(tag) === 'red'"
             [class.mode-card__tag--blue]="tagColor(tag) === 'blue'"
             [class.mode-card__tag--gold]="tagColor(tag) === 'gold'"
-            [class.mode-card__tag--lime]="tagColor(tag) === 'lime'"
+            [class.mode-card__tag--accent]="tagColor(tag) === 'accent'"
             [class.mode-card__tag--orange]="tagColor(tag) === 'orange'"
             [class.mode-card__tag--purple]="tagColor(tag) === 'purple'"
             [class.mode-card__tag--white]="tagColor(tag) === 'white'"
@@ -84,7 +84,7 @@
 
   @if (badge(); as badgeText) {
     <span class="badge-pill badge-pill--default mode-card__badge-pill"
-      [class.badge-pill--accent]="badgeColor() === 'lime'"
+      [class.badge-pill--accent]="badgeColor() === 'accent'"
       [class.badge-pill--error]="badgeColor() === 'red'"
       [class.badge-pill--blue]="badgeColor() === 'blue'"
       [class.badge-pill--gold]="badgeColor() === 'gold'"

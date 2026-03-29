@@ -240,11 +240,11 @@ function shortId(id: string): string {
       white-space: nowrap;
     }
 
-    .mode-badge--duels .mode-badge-count { color: var(--color-accent, #c3f400); }
-    .mode-badge--duels .mode-badge-label { color: var(--color-accent, #c3f400); opacity: 0.75; }
+    .mode-badge--duels .mode-badge-count { color: var(--color-accent, #007AFF); }
+    .mode-badge--duels .mode-badge-label { color: var(--color-accent, #007AFF); opacity: 0.75; }
 
-    .mode-badge--online .mode-badge-count { color: var(--color-fg-variant, #c4c9ac); }
-    .mode-badge--online .mode-badge-label { color: var(--color-fg-muted, #8e9379); }
+    .mode-badge--online .mode-badge-count { color: var(--color-fg-variant, #a8b3c4); }
+    .mode-badge--online .mode-badge-label { color: var(--color-fg-muted, #6b7a8d); }
 
     .mode-badge--br .mode-badge-count { color: var(--color-warning, #fbbf24); }
     .mode-badge--br .mode-badge-label { color: var(--color-warning, #fbbf24); opacity: 0.75; }
@@ -262,7 +262,7 @@ function shortId(id: string): string {
       font-family: 'Lexend', sans-serif;
       font-weight: 500;
       font-size: 0.6875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       margin: 0 0 0.375rem;
@@ -284,7 +284,7 @@ function shortId(id: string): string {
     }
 
     .game-id {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 0.75rem;
       font-family: 'Space Mono', monospace, sans-serif;
       overflow: hidden;
@@ -293,20 +293,20 @@ function shortId(id: string): string {
     }
 
     .game-players {
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .game-status {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 0.75rem;
       text-align: right;
     }
 
     .game-time {
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-size: 0.75rem;
       text-align: right;
       white-space: nowrap;
@@ -316,14 +316,14 @@ function shortId(id: string): string {
     .empty-state {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
     .loading-state {
       font-family: 'Inter', sans-serif;
       font-size: 0.875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
@@ -340,7 +340,7 @@ function shortId(id: string): string {
       border-radius: 8px;
       border: 1px solid var(--color-surface-highest, #3a3a3a);
       background: var(--color-surface-high, #2a2a2a);
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       font-family: 'Inter', sans-serif;
       font-size: 0.8125rem;
       cursor: pointer;
@@ -375,7 +375,7 @@ function shortId(id: string): string {
       font-family: 'Lexend', sans-serif;
       font-weight: 500;
       font-size: 0.6875rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -384,7 +384,7 @@ function shortId(id: string): string {
 
     .recent-table td {
       padding: 0.5rem 0.5rem;
-      color: var(--color-fg-variant, #c4c9ac);
+      color: var(--color-fg-variant, #a8b3c4);
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       vertical-align: middle;
     }
@@ -408,7 +408,7 @@ function shortId(id: string): string {
 
     .date-cell {
       font-size: 0.75rem;
-      color: var(--color-fg-muted, #8e9379);
+      color: var(--color-fg-muted, #6b7a8d);
       white-space: nowrap;
     }
 
@@ -426,8 +426,8 @@ function shortId(id: string): string {
     }
 
     .mode-pill--standard, .mode-pill--duel {
-      background: rgba(195, 244, 0, 0.1);
-      color: var(--color-accent, #c3f400);
+      background: rgba(0, 122, 255, 0.1);
+      color: var(--color-accent, #007AFF);
     }
 
     .mode-pill--logo {

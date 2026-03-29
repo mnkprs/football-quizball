@@ -26,7 +26,7 @@
 .badge-pill--accent {
   color: var(--color-accent);
   background: var(--color-accent-bg);
-  border: 1px solid rgba(195, 244, 0, 0.2);
+  border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
 .badge-pill--error {
