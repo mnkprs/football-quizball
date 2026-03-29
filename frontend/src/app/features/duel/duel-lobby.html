@@ -45,7 +45,11 @@
               <span class="duel-active-game__opponent">
                 vs {{ game.opponentUsername ?? 'Waiting...' }}
               </span>
-              <span class="duel-active-game__score">{{ scoreLine(game) }}</span>
+              @if (game.status === 'waiting' && game.inviteCode && !game.opponentUsername) {
+                <span class="duel-active-game__code">CODE: {{ game.inviteCode }}</span>
+              } @else {
+                <span class="duel-active-game__score">{{ scoreLine(game) }}</span>
+              }
             </div>
             <span class="duel-active-game__status">{{ statusLabel(game) }}</span>
           </div>

@@ -51,6 +51,25 @@ export class DuelService {
 
   async createGame(hostId: string, dto: CreateDuelDto): Promise<DuelPublicView> {
     const gameType: DuelGameType = dto.gameType ?? 'standard';
+
+    // Singleton guard: if user already has a waiting invite-code duel of this type, return it
+    const { data: existingList } = await this.supabaseService.client
+      .from('duel_games')
+      .select('*')
+      .eq('host_id', hostId)
+      .eq('status', 'waiting')
+      .eq('game_type', gameType)
+      .not('invite_code', 'is', null)
+      .is('guest_id', null)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (existingList && existingList.length > 0) {
+      const row = existingList[0] as DuelGameRow;
+      const hostUsername = await this.getUsername(hostId);
+      return this.toPublicView(row, hostId, hostUsername, null);
+    }
+
     const questions = await this.drawQuestionsForType(gameType, hostId);
     if (questions.length === 0) {
       throw new BadRequestException('Question pool is empty. Please try again later.');
@@ -125,8 +144,9 @@ export class DuelService {
   async joinQueue(userId: string, dto?: JoinQueueDto): Promise<DuelPublicView> {
     const gameType: DuelGameType = dto?.gameType ?? 'standard';
 
-    // Singleton guard: if the user is already waiting/active in a duel OF THIS TYPE,
-    // return that game instead of creating a second one.
+    // Singleton guard: if the user is already in a queue game (no invite code) or active duel
+    // OF THIS TYPE, return that game instead of creating a second one.
+    // Excludes invite-code waiting games — those are a separate flow.
     const { data: existing } = await this.supabaseService.client
       .from('duel_games')
       .select('*')
@@ -139,20 +159,25 @@ export class DuelService {
 
     if (existing) {
       const row = existing as DuelGameRow;
-      const [hostUsername, guestUsername] = await Promise.all([
-        this.getUsername(row.host_id),
-        row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
-      ]);
-      return this.toPublicView(row, userId, hostUsername, guestUsername);
+      // Skip invite-code waiting games — user should be able to queue separately
+      const isInviteWaiting = row.status === 'waiting' && row.invite_code && !row.guest_id;
+      if (!isInviteWaiting) {
+        const [hostUsername, guestUsername] = await Promise.all([
+          this.getUsername(row.host_id),
+          row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
+        ]);
+        return this.toPublicView(row, userId, hostUsername, guestUsername);
+      }
     }
 
-    // Look for an open waiting game OF THIS TYPE created by someone else
+    // Look for an open waiting queue game (no invite code) OF THIS TYPE created by someone else
     const { data: candidates } = await this.supabaseService.client
       .from('duel_games')
       .select('*')
       .eq('status', 'waiting')
       .eq('game_type', gameType)
       .is('guest_id', null)
+      .is('invite_code', null)
       .neq('host_id', userId)
       .order('created_at', { ascending: true })
       .limit(1);

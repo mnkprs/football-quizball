@@ -228,6 +228,14 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
+.duel-active-game__code {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #007AFF;
+}
+
 .duel-active-game__status {
   font-size: 0.6875rem;
   font-weight: 700;

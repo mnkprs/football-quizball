@@ -151,7 +151,10 @@ export class DuelLobbyComponent implements OnInit {
   }
 
   statusLabel(game: DuelGameSummary): string {
-    if (game.status === 'waiting') return game.opponentUsername ? 'Ready Up' : 'Waiting';
+    if (game.status === 'waiting') {
+      if (game.opponentUsername) return 'Ready Up';
+      return game.inviteCode ? 'Invite' : 'Searching';
+    }
     if (game.status === 'active') return 'In Progress';
     return game.status;
   }

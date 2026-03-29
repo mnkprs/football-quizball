@@ -47,6 +47,12 @@
                 </div>
                 <span class="text-xs text-muted-foreground tabular-nums w-6">{{ 30 - queueSeconds() }}s</span>
               </div>
+              <button
+                (click)="abandon()"
+                class="mt-2 px-6 py-2.5 rounded-full border border-border text-muted-foreground text-sm font-medium hover:border-red-500/60 hover:text-red-400 transition"
+              >
+                Leave Queue
+              </button>
             }
           </div>
         }

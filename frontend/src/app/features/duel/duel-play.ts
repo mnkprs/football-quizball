@@ -148,6 +148,11 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
+    // If in queue mode (waiting, no invite code), abandon the game to clean up
+    if (this.inQueueMode()) {
+      void this.abandon();
+      return;
+    }
     this.router.navigate(['/duel']);
   }
 
