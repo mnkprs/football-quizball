@@ -87,6 +87,7 @@ export class DuelLobbyComponent implements OnInit {
   }
 
   openPlaySheet(): void {
+    this.error.set(null);
     this.showPlaySheet.set(true);
   }
 
