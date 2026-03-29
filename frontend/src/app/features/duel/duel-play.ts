@@ -144,7 +144,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
 
   async abandon(): Promise<void> {
     await this.store.abandonGame();
-    this.router.navigate(['/duel']);
+    this.navigateToLobby();
   }
 
   goBack(): void {
@@ -153,12 +153,17 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       void this.abandon();
       return;
     }
-    this.router.navigate(['/duel']);
+    this.navigateToLobby();
   }
 
   goToLobby(): void {
     this.store.reset();
-    this.router.navigate(['/duel']);
+    this.navigateToLobby();
+  }
+
+  private navigateToLobby(): void {
+    const queryParams = this.store.gameView()?.gameType === 'logo' ? { mode: 'logo' } : undefined;
+    this.router.navigate(['/duel'], { queryParams });
   }
 
   async copyCode(): Promise<void> {
