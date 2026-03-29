@@ -145,7 +145,7 @@ const KNOWN_TEAMS = new Set([
   'lazio', 'fiorentina', 'atalanta', 'torino', 'genoa',
   // Bundesliga
   'rb-leipzig', 'bayer-leverkusen', 'eintracht-frankfurt', 'vfl-wolfsburg',
-  'borussia-monchengladbach', 'monchengladbach', 'vfb-stuttgart', 'werder-bremen',
+  'borussia-monchengladbach', 'vfb-stuttgart', 'werder-bremen',
   'sc-freiburg', 'hamburger-sv', 'hamburger',
   // Ligue 1
   'olympique-de-marseille-om', 'olympique-de-marseille', 'lyon-ol',

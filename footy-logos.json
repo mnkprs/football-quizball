@@ -2375,19 +2375,6 @@
         "league_popularity": 0
       },
       {
-        "team_name": "Borussia Monchengladbach",
-        "slug": "borussia-monchengladbach",
-        "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/borussia-monchengladbach.webp",
-        "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/borussia-monchengladbach/easy.webp",
-        "medium_image_url": null,
-        "hard_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/borussia-monchengladbach/hard.webp",
-        "difficulty": null,
-        "league": "Bundesliga",
-        "country": "Germany",
-        "team_popularity": 0.4,
-        "league_popularity": 0
-      },
-      {
         "team_name": "RB Leipzig",
         "slug": "rb-leipzig",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/rb-leipzig.webp",
@@ -2414,8 +2401,8 @@
         "league_popularity": 0
       },
       {
-        "team_name": "Monchengladbach",
-        "slug": "monchengladbach",
+        "team_name": "Borussia Monchengladbach",
+        "slug": "borussia-monchengladbach",
         "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/monchengladbach.webp",
         "image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/monchengladbach/easy.webp",
         "medium_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/erasures/monchengladbach/medium.webp",
