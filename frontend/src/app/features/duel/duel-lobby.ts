@@ -56,7 +56,7 @@ export class DuelLobbyComponent implements OnInit {
 
   private async loadGames(): Promise<void> {
     try {
-      const games = await firstValueFrom(this.api.listMyGames());
+      const games = await firstValueFrom(this.api.listMyGames(this.gameType()));
       this.activeGames.set(games);
     } catch {
       // ignore
@@ -126,7 +126,7 @@ export class DuelLobbyComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const game = await firstValueFrom(this.api.joinByCode(this.inviteCode.trim()));
+      const game = await firstValueFrom(this.api.joinByCode(this.inviteCode.trim(), this.gameType()));
       this.router.navigate(['/duel', game.id]);
     } catch (err: unknown) {
       const msg = (err as { error?: { message?: string } })?.error?.message ?? '';
@@ -134,6 +134,10 @@ export class DuelLobbyComponent implements OnInit {
         this.error.set('Invite code not found. Check and try again.');
       } else if (msg.toLowerCase().includes('full') || msg.toLowerCase().includes('taken')) {
         this.error.set('This duel is already full.');
+      } else if (msg.toLowerCase().includes('invite code is for a')) {
+        // game_type mismatch — surface a clear message
+        const modeLabel = this.isLogoMode() ? 'Logo Duel' : 'Standard Duel';
+        this.error.set(`This code is not valid for ${modeLabel}. Check you are in the right mode.`);
       } else {
         this.error.set('Failed to join. Please try again.');
       }

@@ -116,6 +116,13 @@ export class DuelService {
     if (row.host_id === guestId) throw new BadRequestException('You cannot join your own duel.');
     if (row.guest_id && row.guest_id !== guestId) throw new ConflictException('This duel is already full.');
 
+    // Enforce game_type isolation: the joiner must be in the same mode as the duel
+    if (dto.gameType && dto.gameType !== row.game_type) {
+      throw new BadRequestException(
+        `This invite code is for a ${row.game_type} duel. You are trying to join from ${dto.gameType} mode.`,
+      );
+    }
+
     const { data: updated, error: updErr } = await this.supabaseService.client
       .from('duel_games')
       .update({ guest_id: guestId })
@@ -245,14 +252,20 @@ export class DuelService {
     return this.toPublicView(row, userId, hostUsername, guestUsername);
   }
 
-  async listMyGames(userId: string): Promise<DuelGameSummary[]> {
-    const { data, error } = await this.supabaseService.client
+  async listMyGames(userId: string, gameType?: DuelGameType): Promise<DuelGameSummary[]> {
+    let query = this.supabaseService.client
       .from('duel_games')
       .select('id, invite_code, status, scores, host_id, guest_id, game_type, updated_at')
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
       .in('status', ['waiting', 'active'])
       .order('updated_at', { ascending: false })
       .limit(20);
+
+    if (gameType) {
+      query = query.eq('game_type', gameType);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw new BadRequestException(error.message);
 
