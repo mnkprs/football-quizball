@@ -13,7 +13,8 @@ import { AuthGuard } from '../auth/auth.guard';
 import { DuelProGuard } from '../auth/duel-pro.guard';
 import { SupabaseService } from '../supabase/supabase.service';
 import { DuelService } from './duel.service';
-import { CreateDuelDto, JoinDuelByCodeDto, JoinQueueDto, DuelAnswerDto, DuelTimeoutDto, DuelGameType } from './duel.types';
+import { CreateDuelDto, JoinDuelByCodeDto, JoinQueueDto, DuelAnswerDto, DuelTimeoutDto } from './duel.types';
+import type { DuelGameType } from './duel.types';
 
 type DuelRequest = { user: { id: string }; proStatus?: { is_pro: boolean; dailyDuelCount: number } };
 
