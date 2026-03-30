@@ -391,16 +391,16 @@ export class SupabaseService {
       .eq('id', userId)
       .maybeSingle();
 
-    if (!data) return 3;
+    if (!data) return 1;
     if (data.is_pro) return -1; // -1 signals unlimited for pro users
 
     const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     const resetAt = data.daily_duels_reset_at as string | null;
 
     // If reset date is before today, counter is effectively 0
-    if (!resetAt || resetAt < today) return 3;
+    if (!resetAt || resetAt < today) return 1;
 
-    return Math.max(0, 3 - (data.daily_duels_played ?? 0));
+    return Math.max(0, 1 - (data.daily_duels_played ?? 0));
   }
 
   async incrementBattleRoyaleTrial(userId: string): Promise<void> {

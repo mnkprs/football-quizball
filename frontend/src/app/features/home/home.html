@@ -35,6 +35,7 @@
         [velvetLock]="true"
         [locked]="!auth.isLoggedIn()"
         [onlineCount]="onlinePlayers()"
+        [trialInfo]="auth.isLoggedIn() && !pro.isPro() ? { remaining: pro.trialBattleRoyaleRemaining(), total: 1 } : null"
         (cardClick)="goBattleRoyale()"
       />
       <app-mode-card
@@ -70,13 +71,12 @@
         icon="bolt"
         iconBgColor="blue"
         [title]="lang.t().btnBlitz"
-        [hint]="blitzHint()"
+        hint="60-Second Speed Run · Available Soon"
         [tags]="['solo', 'speed run', 'timed']"
         backgroundImage="/blitz-mode-v2.png"
         variant="accent"
         size="medium"
-        [velvetLock]="true"
-        [locked]="!auth.isLoggedIn()"
+        [locked]="true"
         (cardClick)="goBlitz()"
       />
     </div>
@@ -98,8 +98,7 @@
         backgroundImage="/mayhem.png"
         variant="accent"
         [compact]="true"
-        [velvetLock]="true"
-        [locked]="!auth.isLoggedIn()"
+        [locked]="true"
         (cardClick)="goMayhem()"
       />
       <div class="two-player-card">

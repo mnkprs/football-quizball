@@ -39,6 +39,14 @@ export class LogoQuizService {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('Profile not found');
 
+    // Free users limited to 150 logos; pro users get unlimited
+    const isPro = (profile as any).is_pro ?? false;
+    const totalPlayed = ((profile as any).logo_quiz_games_played ?? 0)
+      + ((profile as any).logo_quiz_hardcore_games_played ?? 0);
+    if (!isPro && totalPlayed >= 150) {
+      throw new ForbiddenException('Free logo limit reached. Upgrade to Pro for unlimited logos.');
+    }
+
     const logoElo = hardcore
       ? ((profile as any).logo_quiz_hardcore_elo ?? 1000)
       : ((profile as any).logo_quiz_elo ?? 1000);

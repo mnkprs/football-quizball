@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } 
 import { AuthService } from './auth.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
-const DAILY_DUEL_LIMIT = 3;
+const DAILY_DUEL_LIMIT = 1;
 
 @Injectable()
 export class DuelProGuard implements CanActivate {
@@ -18,10 +18,6 @@ export class DuelProGuard implements CanActivate {
     if (!request.user) {
       const authHeader = request.headers['authorization'];
       if (!authHeader?.startsWith('Bearer ')) {
-        if (process.env.AUTH_BYPASS === 'true') {
-          request.proStatus = { is_pro: true, dailyDuelCount: 0 };
-          return true;
-        }
         throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
       }
       request.user = await this.authService.validateToken(authHeader.slice(7));

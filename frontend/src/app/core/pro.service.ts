@@ -16,7 +16,7 @@ export class ProService {
   readonly showUpgradeModal = signal(false);
 
   /** Number of free duels remaining today (0 = limit reached, null = not loaded). */
-  readonly dailyDuelsRemaining = signal<number>(3);
+  readonly dailyDuelsRemaining = signal<number>(1);
   /** How the user purchased Pro: subscription, lifetime, or null (not pro). */
   readonly purchaseType = signal<'subscription' | 'lifetime' | null>(null);
   /** ISO date string for when the subscription expires (null for lifetime or non-pro). */
@@ -53,7 +53,7 @@ export class ProService {
       );
       this.isPro.set(status.is_pro);
       this.trialBattleRoyaleUsed.set(status.trial_battle_royale_used ?? 0);
-      this.dailyDuelsRemaining.set(status.daily_duels_remaining ?? 3);
+      this.dailyDuelsRemaining.set(status.daily_duels_remaining ?? 1);
       this.purchaseType.set(status.purchase_type ?? null);
       this.subscriptionExpiresAt.set(status.subscription_expires_at ?? null);
       this.loaded = true;
