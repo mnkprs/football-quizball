@@ -82,7 +82,7 @@ const TRANSLATIONS = {
     backToBoard: 'Back to Board →',
     // Results
     finalResults: 'Final Results',
-    gameComplete: 'Stepover Complete!',
+    gameComplete: 'STEPOVR. Complete!',
     itsDraw: "🤝 It's a Draw!",
     wins: 'wins!',
     points: 'points',
@@ -93,9 +93,9 @@ const TRANSLATIONS = {
     categoryBreakdown: 'Category Breakdown',
     playAgain: 'Play Again ⚽',
     // Home
-    appTitle: 'Stepover',
+    appTitle: 'STEPOVR.',
     appTitlePart1: '',
-    appTitlePart2: 'Stepover',
+    appTitlePart2: 'STEPOVR.',
     appSubtitle: 'The football trivia game',
     signOut: 'Sign out',
     settingsTitle: 'Settings',

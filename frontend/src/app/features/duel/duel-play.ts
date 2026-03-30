@@ -183,7 +183,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
     if (!code) return;
     const url = `${window.location.origin}/duel/join/${code}`;
     if (navigator.share) {
-      await navigator.share({ title: 'Stepover Duel', text: 'Challenge me to a football quiz duel!', url });
+      await navigator.share({ title: 'STEPOVR. Duel', text: 'Challenge me to a football quiz duel!', url });
     } else {
       await navigator.clipboard.writeText(url).catch(() => null);
       this.copied.set(true);
