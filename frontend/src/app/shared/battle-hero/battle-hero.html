@@ -43,12 +43,13 @@
     </div>
 
     <div class="battle-hero__bottom">
-      <p class="battle-hero__subtitle">{{ subtitle() }}</p>
       <h2 class="battle-hero__title" [attr.aria-label]="title()">
         @for (char of titleChars(); track $index) {
           <span class="battle-hero__wave" [style.--i]="$index">{{ char === ' ' ? '\u00A0' : char }}</span>
         }
       </h2>
+      <p class="battle-hero__subtitle">{{ subtitle() }}</p>
+
 
       <div class="battle-hero__modes">
         @for (mode of modes(); track $index) {
@@ -123,12 +124,12 @@
     </div>
 
     <div class="battle-hero__bottom">
-      <p class="battle-hero__subtitle">{{ subtitle() }}</p>
       <h2 class="battle-hero__title" [attr.aria-label]="title()">
         @for (char of titleChars(); track $index) {
           <span class="battle-hero__wave" [style.--i]="$index">{{ char === ' ' ? '\u00A0' : char }}</span>
         }
       </h2>
+      <p class="battle-hero__subtitle">{{ subtitle() }}</p>
 
       @if (locked()) {
         <div class="battle-hero__lock-strip">
