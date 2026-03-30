@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
+import { AchievementsService } from '../achievements/achievements.service';
 import type { Difficulty } from '../common/interfaces/question.interface';
 import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
 
@@ -22,6 +23,7 @@ export class LogoQuizService {
   constructor(
     private supabaseService: SupabaseService,
     private eloService: EloService,
+    private achievementsService: AchievementsService,
   ) {}
 
   /**
@@ -149,6 +151,22 @@ export class LogoQuizService {
       elo_after: newElo,
       elo_change: eloChange,
     };
+  }
+
+  async checkAchievements(userId: string): Promise<{
+    newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }>;
+  }> {
+    try {
+      const profile = await this.supabaseService.getProfile(userId);
+      if (!profile) return { newly_unlocked: [] };
+      const awardedIds = await this.achievementsService.checkAndAward(userId, {
+        currentElo: profile.logo_quiz_elo,
+      });
+      const newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
+      return { newly_unlocked: newlyUnlocked };
+    } catch {
+      return { newly_unlocked: [] };
+    }
   }
 
   /**

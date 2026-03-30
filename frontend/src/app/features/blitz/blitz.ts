@@ -4,6 +4,7 @@ import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { firstValueFrom } from 'rxjs';
 import { BlitzApiService, BlitzQuestionRef } from '../../core/blitz-api.service';
 import { DonateModalService } from '../../core/donate-modal.service';
+import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 
@@ -22,6 +23,7 @@ export class BlitzComponent implements OnDestroy {
   private api = inject(BlitzApiService);
   private router = inject(Router);
   private donateModal = inject(DonateModalService);
+  private achievementUnlock = inject(AchievementUnlockService);
   private gameApi = inject(GameApiService);
   lang = inject(LanguageService);
 
@@ -29,7 +31,7 @@ export class BlitzComponent implements OnDestroy {
 
   constructor() {
     effect(() => {
-      if (this.phase() === 'finished') {
+      if (this.phase() === 'finished' && !this.achievementUnlock.showModal()) {
         this.donateModal.considerShowing();
       }
     });
@@ -154,7 +156,10 @@ export class BlitzComponent implements OnDestroy {
   private async finishSession(sid: string): Promise<void> {
     this.showFlash.set(false);
     try {
-      await firstValueFrom(this.api.endSession(sid));
+      const result = await firstValueFrom(this.api.endSession(sid));
+      if (result.newly_unlocked?.length) {
+        this.achievementUnlock.show(result.newly_unlocked);
+      }
     } catch { /* score already saved by backend on time_up */ }
     this.phase.set('finished');
   }

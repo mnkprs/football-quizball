@@ -8,6 +8,8 @@ import { AuthModalComponent } from './shared/auth-modal/auth-modal';
 import { AuthModalService } from './core/auth-modal.service';
 import { UsernameModalComponent } from './shared/username-modal/username-modal';
 import { UsernameModalService } from './core/username-modal.service';
+import { AchievementUnlockModalComponent } from './shared/achievement-unlock-modal/achievement-unlock-modal';
+import { AchievementUnlockService } from './core/achievement-unlock.service';
 import { AuthService } from './core/auth.service';
 import { GoogleAdsService } from './core/google-ads.service';
 import { PosthogService } from './core/posthog.service';
@@ -17,7 +19,7 @@ import { CookieConsentComponent } from './shared/cookie-consent/cookie-consent';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, ToastComponent, CookieConsentComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, CookieConsentComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +28,7 @@ export class App implements OnInit, OnDestroy {
   donateService = inject(DonateModalService);
   authModal = inject(AuthModalService);
   usernameModal = inject(UsernameModalService);
+  achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
   private router = inject(Router);
   private googleAds = inject(GoogleAdsService);

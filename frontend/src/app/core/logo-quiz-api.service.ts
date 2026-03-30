@@ -64,6 +64,14 @@ export class LogoQuizApiService {
     );
   }
 
+  checkAchievements(): Observable<{ newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> }> {
+    return this.http.post<{ newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> }>(
+      `${this.base}/check-achievements`,
+      {},
+      { headers: this.headers() },
+    );
+  }
+
   getTeamNames(): Observable<string[]> {
     if (!this.teamNames$) {
       this.teamNames$ = this.http

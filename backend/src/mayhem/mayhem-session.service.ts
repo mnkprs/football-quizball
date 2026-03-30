@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nest
 import { SessionStoreService } from '../session/session-store.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
+import { AchievementsService } from '../achievements/achievements.service';
 import type { Difficulty } from '../questions/question.types';
 
 const SESSION_TTL = 7200;
@@ -34,6 +35,7 @@ export class MayhemSessionService {
     private sessionStore: SessionStoreService,
     private supabaseService: SupabaseService,
     private eloService: EloService,
+    private achievementsService: AchievementsService,
   ) {}
 
   private sessionKey(id: string) { return `mayhem:${id}`; }
@@ -136,6 +138,7 @@ export class MayhemSessionService {
     elo_start: number;
     elo_end: number;
     elo_delta: number;
+    newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }>;
   }> {
     const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
@@ -152,12 +155,22 @@ export class MayhemSessionService {
 
     await this.sessionStore.del(this.sessionKey(sessionId));
 
+    let newlyUnlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> = [];
+    try {
+      const updatedStats = await this.supabaseService.getMayhemStats(userId);
+      const awardedIds = await this.achievementsService.checkAndAward(userId, {
+        mayhemGamesPlayed: updatedStats?.games_played ?? 0,
+      });
+      newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
+    } catch { /* don't break session end if achievements fail */ }
+
     return {
       questions_answered: session.questionsAnswered,
       correct_answers: session.correctAnswers,
       elo_start: session.userElo,
       elo_end: session.currentElo,
       elo_delta: session.currentElo - session.userElo,
+      newly_unlocked: newlyUnlocked,
     };
   }
 

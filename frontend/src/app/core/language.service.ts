@@ -129,7 +129,7 @@ const TRANSLATIONS = {
     dailyChallenge: 'Daily Challenge',
     // Nav
     navHome: 'Home',
-    navToday: 'Today',
+    navToday: 'Casual',
     navInvite: 'Invite',
     navLeaderboard: 'Leaderboard',
     navRank: 'Rank',
@@ -234,6 +234,10 @@ const TRANSLATIONS = {
     profileBackToLeaderboard: 'Back to Leaderboard',
     matchHistory: 'Match History',
     achievements: 'Achievements',
+    // Achievement unlock modal
+    achievementUnlocked: 'Achievement Unlocked!',
+    achievementUnlockedSub: 'You earned new achievements this session',
+    achievementDismiss: 'Awesome!',
     // Donate modal
     donateModalTitle: 'Enjoying the game?',
     donateModalMessage: 'If you\'re having fun, consider supporting the creator with a coffee. Every bit helps!',

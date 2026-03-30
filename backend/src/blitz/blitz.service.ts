@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SessionStoreService } from '../session/session-store.service';
 import { SupabaseService } from '../supabase/supabase.service';
+import { AchievementsService } from '../achievements/achievements.service';
 import { BlitzSession, BlitzQuestion, BlitzQuestionRef, BlitzAnswerResult } from './blitz.types';
 
 const SESSION_TTL = 3600; // 1h
@@ -14,6 +15,7 @@ export class BlitzService {
   constructor(
     private sessionStore: SessionStoreService,
     private supabaseService: SupabaseService,
+    private achievementsService: AchievementsService,
   ) {}
 
   private sessionKey(id: string) { return `blitz:${id}`; }
@@ -138,6 +140,7 @@ export class BlitzService {
   async endSession(sessionId: string, userId: string): Promise<{
     score: number;
     total_answered: number;
+    newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }>;
   }> {
     const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
@@ -156,7 +159,16 @@ export class BlitzService {
 
     await this.sessionStore.del(this.sessionKey(sessionId));
     this.logger.log(JSON.stringify({ event: 'blitz_session_end', userId, score: session.score, totalAnswered: session.totalAnswered }));
-    return { score: session.score, total_answered: session.totalAnswered };
+
+    let newlyUnlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> = [];
+    try {
+      const awardedIds = await this.achievementsService.checkAndAward(userId, {
+        blitzBestScore: session.score,
+      });
+      newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
+    } catch { /* don't break session end if achievements fail */ }
+
+    return { score: session.score, total_answered: session.totalAnswered, newly_unlocked: newlyUnlocked };
   }
 
   async getLeaderboard(): Promise<any[]> {

@@ -38,12 +38,21 @@ export interface AnswerResponse {
   correct_answers: number;
 }
 
+export interface UnlockedAchievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+}
+
 export interface EndSessionResponse {
   questions_answered: number;
   correct_answers: number;
   elo_start: number;
   elo_end: number;
   elo_delta: number;
+  newly_unlocked?: UnlockedAchievement[];
 }
 
 export interface LeaderboardEntry {

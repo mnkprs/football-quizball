@@ -168,6 +168,7 @@ export class SoloService {
     elo_start: number;
     elo_end: number;
     elo_delta: number;
+    newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }>;
   }> {
     const session = await this.getSession(sessionId);
     if (session.userId !== userId) throw new ForbiddenException();
@@ -184,18 +185,22 @@ export class SoloService {
     await this.supabaseService.incrementGamesPlayed(userId, session.questionsAnswered, session.correctAnswers);
     await this.sessionStore.del(this.sessionKey(sessionId));
 
-    // Fire-and-forget achievement check
-    this.supabaseService.getProfile(userId).then(profile => {
-      if (!profile) return;
-      const accuracy = session.questionsAnswered > 0
-        ? Math.round((session.correctAnswers / session.questionsAnswered) * 100)
-        : 0;
-      this.achievementsService.checkAndAward(userId, {
-        currentElo: session.currentElo,
-        soloGamesPlayed: profile.games_played,
-        soloAccuracy: accuracy,
-      }).catch(() => {});
-    }).catch(() => {});
+    // Check achievements
+    let newlyUnlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> = [];
+    try {
+      const profile = await this.supabaseService.getProfile(userId);
+      if (profile) {
+        const accuracy = session.questionsAnswered > 0
+          ? Math.round((session.correctAnswers / session.questionsAnswered) * 100)
+          : 0;
+        const awardedIds = await this.achievementsService.checkAndAward(userId, {
+          currentElo: session.currentElo,
+          soloGamesPlayed: profile.games_played,
+          soloAccuracy: accuracy,
+        });
+        newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
+      }
+    } catch { /* don't break session end if achievements fail */ }
 
     this.logger.log(JSON.stringify({
       event: 'session_end',
@@ -213,6 +218,7 @@ export class SoloService {
       elo_start: session.userElo,
       elo_end: session.currentElo,
       elo_delta: session.currentElo - session.userElo,
+      newly_unlocked: newlyUnlocked,
     };
   }
 }

@@ -39,6 +39,7 @@ export interface MayhemEndSessionResponse {
   elo_start: number;
   elo_end: number;
   elo_delta: number;
+  newly_unlocked?: Array<{ id: string; name: string; description: string; icon: string; category: string }>;
 }
 
 export interface MayhemLeaderboardEntry {

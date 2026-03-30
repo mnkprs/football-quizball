@@ -1,5 +1,8 @@
 <div class="app-container" [class.app-container--full]="isAdminRoute()">
   <router-outlet />
+  @if (achievementUnlock.showModal()) {
+    <app-achievement-unlock-modal />
+  }
   @if (donateService.showModal()) {
     <app-donate-modal />
   }

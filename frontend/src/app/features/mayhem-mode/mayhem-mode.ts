@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LanguageService } from '../../core/language.service';
 import { MayhemApiService, MayhemQuestion, MayhemAnswerResponse, MayhemSessionResponse } from '../../core/mayhem-api.service';
+import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { AuthService } from '../../core/auth.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
 
@@ -22,6 +23,7 @@ export class MayhemModeComponent {
   lang = inject(LanguageService);
   private router = inject(Router);
   private mayhemApi = inject(MayhemApiService);
+  private achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
 
   phase = signal<MayhemPhase>('idle');
@@ -125,7 +127,12 @@ export class MayhemModeComponent {
   async finish(): Promise<void> {
     const sid = this.sessionId();
     if (sid) {
-      await firstValueFrom(this.mayhemApi.endSession(sid)).catch(() => {});
+      try {
+        const result = await firstValueFrom(this.mayhemApi.endSession(sid));
+        if (result.newly_unlocked?.length) {
+          this.achievementUnlock.show(result.newly_unlocked);
+        }
+      } catch { /* ignore */ }
       this.sessionId.set(null);
     }
     this.phase.set('finished');

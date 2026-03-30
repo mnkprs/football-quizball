@@ -57,6 +57,16 @@ export class LogoQuizController {
   }
 
   /**
+   * POST /api/logo-quiz/check-achievements
+   * Called when frontend ends a logo quiz session to check for newly unlocked achievements.
+   */
+  @Post('check-achievements')
+  @UseGuards(AuthGuard)
+  async checkAchievements(@Req() req: AuthenticatedRequest) {
+    return this.logoQuizService.checkAchievements(req.user.id);
+  }
+
+  /**
    * GET /api/logo-quiz/teams
    * Returns all team names for the searchable select field.
    * Public endpoint — no auth required (names are not sensitive).

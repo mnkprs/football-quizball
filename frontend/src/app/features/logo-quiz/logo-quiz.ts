@@ -11,6 +11,7 @@ import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { GameQuestionComponent, type QuestionData, type RevealResult } from '../../shared/game-question/game-question';
 import { LogoQuizApiService, type LogoQuestionResponse } from '../../core/logo-quiz-api.service';
+import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { ProfileStore } from '../../core/profile-store.service';
@@ -28,6 +29,7 @@ type Phase = 'idle' | 'loading' | 'question' | 'finished';
 })
 export class LogoQuizComponent implements OnDestroy {
   private api = inject(LogoQuizApiService);
+  private achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
   private profileStore = inject(ProfileStore);
   lang = inject(LanguageService);
@@ -196,6 +198,15 @@ export class LogoQuizComponent implements OnDestroy {
   endSession(): void {
     this.stopTimer();
     this.phase.set('finished');
+    if (this.auth.user()) {
+      this.api.checkAchievements().subscribe({
+        next: (res) => {
+          if (res.newly_unlocked?.length) {
+            this.achievementUnlock.show(res.newly_unlocked);
+          }
+        },
+      });
+    }
   }
 
   resetToIdle(): void {

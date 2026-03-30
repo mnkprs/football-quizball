@@ -1,0 +1,23 @@
+<div class="achievement-backdrop" (click)="onDismiss()">
+  <div class="achievement-dialog" (click)="$event.stopPropagation()">
+    <div class="achievement-header">
+      <div class="achievement-trophy">🏆</div>
+      <h3 class="achievement-title">{{ lang.t().achievementUnlocked }}</h3>
+      <p class="achievement-subtitle">{{ lang.t().achievementUnlockedSub }}</p>
+    </div>
+    <div class="achievement-list">
+      @for (a of unlockService.achievements(); track a.id) {
+        <div class="achievement-item">
+          <span class="achievement-icon">{{ a.icon }}</span>
+          <div class="achievement-info">
+            <span class="achievement-name">{{ a.name }}</span>
+            <span class="achievement-desc">{{ a.description }}</span>
+          </div>
+        </div>
+      }
+    </div>
+    <button type="button" class="achievement-btn" (click)="onDismiss()">
+      {{ lang.t().achievementDismiss }}
+    </button>
+  </div>
+</div>

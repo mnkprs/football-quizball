@@ -29,6 +29,15 @@ export class AchievementsService {
     return this.supabaseService.getAchievements(userId);
   }
 
+  async getByIds(ids: string[]): Promise<Array<{ id: string; name: string; description: string; icon: string; category: string }>> {
+    if (ids.length === 0) return [];
+    const { data } = await this.supabaseService.client
+      .from('achievements')
+      .select('id, name, description, icon, category')
+      .in('id', ids);
+    return data ?? [];
+  }
+
   async checkAndAward(userId: string, ctx: AchievementContext): Promise<string[]> {
     const alreadyEarned = await this.supabaseService.getUserAchievementIds(userId);
     const toAward: string[] = [];

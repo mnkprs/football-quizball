@@ -10,6 +10,7 @@ import { DonateModalService } from '../../core/donate-modal.service';
 import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
+import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { PosthogService } from '../../core/posthog.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
 import { ProfileStore } from '../../core/profile-store.service';
@@ -30,6 +31,7 @@ export class SoloComponent implements OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private donateModal = inject(DonateModalService);
+  private achievementUnlock = inject(AchievementUnlockService);
   private gameApi = inject(GameApiService);
   private posthog = inject(PosthogService);
   private profileStore = inject(ProfileStore);
@@ -46,7 +48,7 @@ export class SoloComponent implements OnDestroy {
 
   constructor() {
     effect(() => {
-      if (this.phase() === 'finished') {
+      if (this.phase() === 'finished' && !this.achievementUnlock.showModal()) {
         this.donateModal.considerShowing();
       }
     });
@@ -219,7 +221,10 @@ export class SoloComponent implements OnDestroy {
     if (!sid) { this.phase.set('finished'); return; }
     this.loading.set(true);
     try {
-      await firstValueFrom(this.api.endSession(sid));
+      const result = await firstValueFrom(this.api.endSession(sid));
+      if (result.newly_unlocked?.length) {
+        this.achievementUnlock.show(result.newly_unlocked);
+      }
     } catch { /* ignore */ }
     this.loading.set(false);
     this.posthog.track('session_ended', {

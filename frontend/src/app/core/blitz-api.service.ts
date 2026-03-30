@@ -30,6 +30,7 @@ export interface BlitzAnswerResponse {
 export interface BlitzEndResponse {
   score: number;
   total_answered: number;
+  newly_unlocked?: Array<{ id: string; name: string; description: string; icon: string; category: string }>;
 }
 
 export interface BlitzLeaderboardEntry {
