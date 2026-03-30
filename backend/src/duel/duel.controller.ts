@@ -13,7 +13,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { DuelProGuard } from '../auth/duel-pro.guard';
 import { SupabaseService } from '../supabase/supabase.service';
 import { DuelService } from './duel.service';
-import { CreateDuelDto, JoinDuelByCodeDto, JoinQueueDto, DuelAnswerDto, DuelTimeoutDto } from './duel.types';
+import { CreateDuelDto, JoinDuelByCodeDto, JoinQueueDto, DuelAnswerDto, DuelTimeoutDto, DuelGameType } from './duel.types';
 
 type DuelRequest = { user: { id: string }; proStatus?: { is_pro: boolean; dailyDuelCount: number } };
 
@@ -35,11 +35,14 @@ export class DuelController {
     return this.service.createGame(req.user.id, dto);
   }
 
-  /** GET /api/duel — List active duels for the current user */
+  /** GET /api/duel?gameType=standard|logo — List active duels for the current user, filtered by game type */
   @UseGuards(AuthGuard)
   @Get()
-  listMyGames(@Request() req: { user: { id: string } }) {
-    return this.service.listMyGames(req.user.id);
+  listMyGames(
+    @Request() req: { user: { id: string } },
+    @Query('gameType') gameType?: DuelGameType,
+  ) {
+    return this.service.listMyGames(req.user.id, gameType);
   }
 
   /** POST /api/duel/queue — Join random matchmaking queue */

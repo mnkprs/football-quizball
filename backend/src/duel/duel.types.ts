@@ -23,6 +23,12 @@ export class JoinDuelByCodeDto {
   @IsString()
   @MaxLength(10)
   inviteCode: string;
+
+  /** The game type the joining player expects — must match the duel's game_type */
+  @IsOptional()
+  @IsString()
+  @IsIn(['standard', 'logo'])
+  gameType?: DuelGameType;
 }
 
 export class DuelAnswerDto {

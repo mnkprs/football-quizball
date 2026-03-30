@@ -80,16 +80,17 @@ export class DuelApiService {
     return this.http.post<DuelPublicView>(this.base, { gameType }, { headers: this.headers() });
   }
 
-  listMyGames(): Observable<DuelGameSummary[]> {
-    return this.http.get<DuelGameSummary[]>(this.base, { headers: this.headers() });
+  listMyGames(gameType?: DuelGameType): Observable<DuelGameSummary[]> {
+    const params = gameType ? { gameType } : {};
+    return this.http.get<DuelGameSummary[]>(this.base, { headers: this.headers(), params });
   }
 
   joinQueue(gameType?: DuelGameType): Observable<DuelPublicView> {
     return this.http.post<DuelPublicView>(`${this.base}/queue`, { gameType }, { headers: this.headers() });
   }
 
-  joinByCode(inviteCode: string): Observable<DuelPublicView> {
-    return this.http.post<DuelPublicView>(`${this.base}/join`, { inviteCode }, { headers: this.headers() });
+  joinByCode(inviteCode: string, gameType?: DuelGameType): Observable<DuelPublicView> {
+    return this.http.post<DuelPublicView>(`${this.base}/join`, { inviteCode, gameType }, { headers: this.headers() });
   }
 
   getGame(gameId: string): Observable<DuelPublicView> {
