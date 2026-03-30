@@ -70,10 +70,10 @@ export class LeaderboardComponent implements OnInit {
             }))
           : Promise.resolve({ soloMe: null, blitzMe: null, logoQuizMe: null, duelMe: null }),
       ]);
-      this.entries.set(leaderboardRes.solo);
-      this.blitzEntries.set(leaderboardRes.blitz);
-      this.logoQuizEntries.set(leaderboardRes.logoQuiz);
-      this.duelEntries.set(leaderboardRes.duel);
+      this.entries.set(leaderboardRes.solo ?? []);
+      this.blitzEntries.set(leaderboardRes.blitz ?? []);
+      this.logoQuizEntries.set(leaderboardRes.logoQuiz ?? []);
+      this.duelEntries.set(leaderboardRes.duel ?? []);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.blitzMeEntry.set(meRes.blitzMe ?? null);
       this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
