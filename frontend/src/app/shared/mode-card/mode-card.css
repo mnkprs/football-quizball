@@ -214,6 +214,7 @@
   letter-spacing: -0.03em;
   text-transform: uppercase;
   font-style: italic;
+  z-index: 2;
 }
 
 /* Hint / description */
@@ -225,6 +226,7 @@
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.4;
   max-width: 80%;
+  z-index: 2;
 }
 
 /* CTA button — layout overrides (base styles from global .btn-accent) */
