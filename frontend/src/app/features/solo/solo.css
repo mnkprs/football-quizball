@@ -156,6 +156,65 @@
   letter-spacing: 0.1em;
 }
 
+/* Stats Row — ELO card + Rank card side by side */
+.solo-stats-row {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.solo-stats-row .solo-elo-card {
+  flex: 1;
+  padding: 1rem 1.25rem;
+}
+
+/* Rank Card */
+.solo-rank-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  flex: 1;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.solo-rank-card__label {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.solo-rank-card__value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.solo-rank-card__value--unranked {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.solo-rank-card__tier {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 /* Start Button */
 .solo-start-btn {
   width: 100%;

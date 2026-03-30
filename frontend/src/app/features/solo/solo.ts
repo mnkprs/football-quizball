@@ -12,6 +12,7 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
 import { PosthogService } from '../../core/posthog.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
+import { ProfileStore } from '../../core/profile-store.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
 
@@ -31,14 +32,30 @@ export class SoloComponent implements OnDestroy {
   private donateModal = inject(DonateModalService);
   private gameApi = inject(GameApiService);
   private posthog = inject(PosthogService);
+  private profileStore = inject(ProfileStore);
   lang = inject(LanguageService);
 
   phase = signal<SoloPhase>('idle');
+
+  /** Null = unranked (no games played or profile not loaded yet). */
+  myRank = computed<number | null>(() => {
+    const profile = this.profileStore.profile();
+    if (!profile || (profile.games_played ?? 0) === 0) return null;
+    return profile.rank ?? null;
+  });
 
   constructor() {
     effect(() => {
       if (this.phase() === 'finished') {
         this.donateModal.considerShowing();
+      }
+    });
+    // Load profile to get rank (also updates ELO if profile already cached)
+    this.profileStore.loadProfile().then(() => {
+      const elo = this.profileStore.elo();
+      if (elo !== 1000 || this.profileStore.profile() !== null) {
+        this.currentElo.set(elo);
+        this.startElo.set(elo);
       }
     });
   }

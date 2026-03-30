@@ -12,12 +12,23 @@
         <p class="solo-subtitle">
           {{ lang.t().soloSubtitle }}
         </p>
-        <div class="solo-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
-          <span class="solo-elo-card__label">ELO RATING</span>
-          <span class="solo-elo-card__value">{{ currentElo() | number }}</span>
-          <span class="solo-elo-card__tier" [style.color]="eloTier().color">
-            {{ eloTier().label | uppercase }}
-          </span>
+        <div class="solo-stats-row">
+          <div class="solo-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+            <span class="solo-elo-card__label">ELO RATING</span>
+            <span class="solo-elo-card__value">{{ currentElo() | number }}</span>
+            <span class="solo-elo-card__tier" [style.color]="eloTier().color">
+              {{ eloTier().label | uppercase }}
+            </span>
+          </div>
+          <div class="solo-rank-card">
+            <span class="solo-rank-card__label">RANK</span>
+            @if (myRank() !== null) {
+              <span class="solo-rank-card__value">#{{ myRank() }}</span>
+            } @else {
+              <span class="solo-rank-card__value solo-rank-card__value--unranked">—</span>
+            }
+            <span class="solo-rank-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+          </div>
         </div>
         <button class="solo-start-btn" (click)="startSession()" [disabled]="loading()">
           {{ loading() ? lang.t().soloStarting : 'START PLAYING' }}
