@@ -59,3 +59,17 @@ body {
 }
 
 /* .pressable and button/link tap styles moved to styles/base/_reset.css */
+
+/* =============================================
+   Global brand text — mirrors .top-nav__brand.
+   Use this class wherever "STEPOVR." appears
+   outside of the top nav.
+   ============================================= */
+.brand-text {
+  font-family: "Alfa Slab One", serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-fg);
+  font-style: italic;
+}
