@@ -18,40 +18,42 @@
       </a>
     </div>
 
-    <div class="top-nav__stats">
-      <!-- ELO + delta -->
-      <div class="top-nav__elo-group" aria-label="ELO {{ elo() }}{{ sessionDelta() > 0 ? ', up ' + sessionDelta() + ' today' : sessionDelta() < 0 ? ', down ' + (-sessionDelta()) + ' today' : '' }}">
-        @if (statsLoading()) {
-          <span class="top-nav__skeleton" style="width:3.5rem"></span>
-        } @else {
-          <span class="top-nav__elo-value">{{ eloDisplay() }}</span>
-          @if (sessionDelta() > 0) {
-            <span class="top-nav__delta top-nav__delta--up">▲{{ sessionDelta() }}</span>
-          } @else if (sessionDelta() < 0) {
-            <span class="top-nav__delta top-nav__delta--down">▼{{ -sessionDelta() }}</span>
-          }
-        }
-      </div>
-
-      <!-- Correct streak flame -->
-      @if (correctStreak() >= 2) {
-        <div class="top-nav__streak" aria-label="Correct streak {{ correctStreak() }}">
-          <span class="material-icons top-nav__streak-icon">local_fire_department</span>
-          <span class="top-nav__streak-count">{{ streakDisplay() }}</span>
-        </div>
-      }
-
-      <!-- Tier badge -->
-      @if (!statsLoading()) {
-        <a routerLink="/leaderboard" class="top-nav__tier-badge pressable"
-           [style.color]="tierColor()"
-           [style.background]="tierColor() + '26'"
-           [style.border-color]="tierColor() + '40'"
-           [attr.aria-label]="tierLabel() + ' tier, ' + store.tierProgressPct() + '% to next'">
-          {{ tierLabel() }}
-        </a>
+    <div class="top-nav__center">
+      @if (statsLoading()) {
+        <span class="top-nav__skeleton" style="width:5rem"></span>
       } @else {
-        <span class="top-nav__skeleton" style="width:2.5rem"></span>
+        <!-- Username -->
+        @if (username()) {
+          <a routerLink="/profile" class="top-nav__username">{{ username() }}</a>
+        }
+        <!-- Compact mode stats row -->
+        <div class="top-nav__mode-stats">
+          <a routerLink="/solo" class="top-nav__mode-chip" aria-label="Solo ELO {{ elo() }}">
+            <span class="top-nav__mode-label">Solo</span>
+            <span class="top-nav__mode-value">{{ eloDisplay() }}</span>
+            @if (sessionDelta() > 0) {
+              <span class="top-nav__delta top-nav__delta--up">▲{{ sessionDelta() }}</span>
+            } @else if (sessionDelta() < 0) {
+              <span class="top-nav__delta top-nav__delta--down">▼{{ -sessionDelta() }}</span>
+            }
+            |
+          </a>
+          <a routerLink="/logo-quiz" class="top-nav__mode-chip" aria-label="Logo Quiz ELO {{ logoQuizElo() }}">
+            <span class="top-nav__mode-label">Logo</span>
+            <span class="top-nav__mode-value">{{ logoQuizElo() }} | </span>
+          </a>
+          <a routerLink="/leaderboard" class="top-nav__mode-chip" aria-label="Win rate {{ winRatio() }}%">
+            <span class="top-nav__mode-label">W/L</span>
+            <span class="top-nav__mode-value">{{ winRatio() }}% |</span>
+          </a>
+          <a routerLink="/leaderboard" class="top-nav__tier-badge pressable"
+             [style.color]="tierColor()"
+             [style.background]="tierColor() + '26'"
+             [style.border-color]="tierColor() + '40'"
+             [attr.aria-label]="tierLabel() + ' tier'">
+            {{ tierLabel() }}
+          </a>
+        </div>
       }
     </div>
 

@@ -31,6 +31,8 @@ export class TopNavComponent implements OnInit {
   readonly buyMeACoffeeUrl = environment.buyMeACoffeeUrl;
 
   elo = computed(() => this.store.elo());
+  logoQuizElo = computed(() => this.store.logoQuizElo());
+  blitzBest = computed(() => this.store.blitzStats()?.bestScore ?? 0);
   rank = computed(() => this.store.rank() ?? '—');
   tierLabel = computed(() => this.store.tier().label);
   tierColor = computed(() => this.store.tier().color);
@@ -39,6 +41,12 @@ export class TopNavComponent implements OnInit {
   sessionDelta = computed(() => this.store.sessionDelta());
   correctStreak = computed(() => this.store.correctStreak());
   statsLoading = computed(() => this.store.loading());
+  username = computed(() => this.store.profile()?.username ?? '');
+  winRatio = computed(() => {
+    const p = this.store.profile();
+    if (!p || !p.questions_answered) return 0;
+    return Math.round((p.correct_answers / p.questions_answered) * 100);
+  });
 
   avatarUrl = computed(() => {
     const u = this.auth.user();
