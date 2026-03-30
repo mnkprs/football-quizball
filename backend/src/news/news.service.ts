@@ -167,12 +167,34 @@ export class NewsService {
   async getMetadata(userId?: string): Promise<{ count: number; updatesAt: string }> {
     let count: number;
     if (userId) {
-      const { count: userCount, error } = await this.supabaseService.client
+      // Count unanswered assigned questions
+      const { data: progress, error: progressError } = await this.supabaseService.client
         .from('user_news_progress')
-        .select('question_id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .is('answered_at', null);
-      count = error ? 0 : (userCount ?? 0);
+        .select('question_id, answered_at')
+        .eq('user_id', userId);
+
+      const allAssigned = progressError ? [] : (progress ?? []);
+      const assignedIds = allAssigned.map((r: { question_id: string }) => r.question_id);
+      const unansweredCount = allAssigned.filter((r: { answered_at: string | null }) => !r.answered_at).length;
+
+      // Count available unassigned pool questions the user hasn't seen yet
+      const capacity = USER_QUEUE_MAX - unansweredCount;
+      let availableNewCount = 0;
+      if (capacity > 0) {
+        let query = this.supabaseService.client
+          .from('news_questions')
+          .select('id', { count: 'exact', head: true })
+          .gt('expires_at', new Date().toISOString());
+
+        if (assignedIds.length > 0) {
+          query = query.not('id', 'in', `(${assignedIds.join(',')})`);
+        }
+
+        const { count: poolCount, error: poolError } = await query;
+        availableNewCount = poolError ? 0 : Math.min(poolCount ?? 0, capacity);
+      }
+
+      count = unansweredCount + availableNewCount;
     } else {
       count = await this.getNewsPoolCount();
     }
