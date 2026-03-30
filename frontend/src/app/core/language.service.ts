@@ -198,6 +198,8 @@ const TRANSLATIONS = {
     lbYou: '(you)',
     lbNoPlayers: 'No players yet. Be the first!',
     lbNoBlitz: 'No Blitz scores yet. Play now!',
+    lbNoLogoQuiz: 'No Logo Quiz scores yet. Play now!',
+    lbNoDuel: 'No Duel results yet. Challenge someone!',
     lbYourRank: 'Your rank',
     lbQuestions: 'questions',
     lbAnswered: 'answered',

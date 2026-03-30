@@ -132,6 +132,12 @@
 }
 .your-rank-card--logo-quiz .your-rank-icon { color: #a855f7; }
 
+.your-rank-card--duel {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+.your-rank-card--duel .your-rank-icon { color: #ef4444; }
+
 .your-rank-card:hover { opacity: 0.85; }
 
 .your-rank-icon {

@@ -249,6 +249,42 @@ export class SupabaseService {
     };
   }
 
+  // --- Duel Leaderboard ---
+
+  async getDuelLeaderboard(limit: number): Promise<Array<{
+    user_id: string; username: string; wins: number; losses: number; games_played: number;
+  }>> {
+    const cacheKey = `leaderboard:duel:${limit}`;
+    const cached = await this.redisService.get<Array<{ user_id: string; username: string; wins: number; losses: number; games_played: number }>>(cacheKey);
+    if (cached) return cached;
+
+    const { data } = await this.client.rpc('get_duel_leaderboard', { p_limit: limit });
+    const result = (data ?? []) as Array<{ user_id: string; username: string; wins: number; losses: number; games_played: number }>;
+    await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
+    return result;
+  }
+
+  async getDuelLeaderboardEntryForUser(userId: string): Promise<{
+    user_id: string; username: string; wins: number; losses: number; games_played: number; rank: number;
+  } | null> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return null;
+
+    const { data: stats } = await this.client.rpc('get_duel_user_stats', { p_user_id: userId });
+    const row = (stats as Array<{ wins: number; losses: number; games_played: number }> | null)?.[0];
+    if (!row || row.wins === 0) return null;
+
+    const { data: rank } = await this.client.rpc('get_duel_rank', { p_user_id: userId });
+    return {
+      user_id: userId,
+      username: profile.username,
+      wins: row.wins,
+      losses: row.losses,
+      games_played: row.games_played,
+      rank: (rank as number) ?? 0,
+    };
+  }
+
   async getBlitzStatsForUser(userId: string): Promise<{ bestScore: number; totalGames: number; rank: number | null } | null> {
     const { data: p } = await this.client
       .from('profiles')

@@ -7,6 +7,8 @@ import {
   LeaderboardApiService,
   LeaderboardEntry,
   BlitzLeaderboardEntry,
+  LogoQuizLeaderboardEntry,
+  DuelLeaderboardEntry,
 } from '../../core/leaderboard-api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,17 +35,21 @@ export class LeaderboardComponent implements OnInit {
 
   entries = signal<LeaderboardEntry[]>([]);
   blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
+  logoQuizEntries = signal<LogoQuizLeaderboardEntry[]>([]);
+  duelEntries = signal<DuelLeaderboardEntry[]>([]);
   soloMeEntry = signal<(LeaderboardEntry & { rank: number }) | null>(null);
   blitzMeEntry = signal<(BlitzLeaderboardEntry & { rank: number }) | null>(null);
+  logoQuizMeEntry = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
+  duelMeEntry = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
-  activeTab = signal<'solo' | 'blitz'>('solo');
+  activeTab = signal<'solo' | 'blitz' | 'logoQuiz' | 'duel'>('solo');
 
   ngOnInit(): void {
     this.load();
   }
 
-  setActiveTab(tab: 'solo' | 'blitz'): void {
+  setActiveTab(tab: 'solo' | 'blitz' | 'logoQuiz' | 'duel'): void {
     this.activeTab.set(tab);
   }
 
@@ -59,13 +65,19 @@ export class LeaderboardComponent implements OnInit {
           ? firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries()).catch(() => ({
               soloMe: null,
               blitzMe: null,
+              logoQuizMe: null,
+              duelMe: null,
             }))
-          : Promise.resolve({ soloMe: null, blitzMe: null }),
+          : Promise.resolve({ soloMe: null, blitzMe: null, logoQuizMe: null, duelMe: null }),
       ]);
       this.entries.set(leaderboardRes.solo);
       this.blitzEntries.set(leaderboardRes.blitz);
+      this.logoQuizEntries.set(leaderboardRes.logoQuiz);
+      this.duelEntries.set(leaderboardRes.duel);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.blitzMeEntry.set(meRes.blitzMe ?? null);
+      this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
+      this.duelMeEntry.set(meRes.duelMe ?? null);
     } catch (err: any) {
       this.error.set(this.lang.t().lbLoadFailed);
     } finally {
@@ -89,8 +101,25 @@ export class LeaderboardComponent implements OnInit {
     return !this.blitzEntries().some((entry) => entry.user_id === me.user_id);
   }
 
+  showLogoQuizMeBelow(): boolean {
+    const me = this.logoQuizMeEntry();
+    if (!me) return false;
+    return !this.logoQuizEntries().some((entry) => entry.id === me.id);
+  }
+
+  showDuelMeBelow(): boolean {
+    const me = this.duelMeEntry();
+    if (!me) return false;
+    return !this.duelEntries().some((entry) => entry.user_id === me.user_id);
+  }
+
   accuracy(entry: LeaderboardEntry): number {
     if (!entry.questions_answered) return 0;
     return Math.round((entry.correct_answers / entry.questions_answered) * 100);
+  }
+
+  winRate(entry: DuelLeaderboardEntry): number {
+    if (!entry.games_played) return 0;
+    return Math.round((entry.wins / entry.games_played) * 100);
   }
 }
