@@ -93,7 +93,7 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
     const url = this.shareUrl();
     if (!url) return;
     if (navigator.share) {
-      await navigator.share({ title: 'Stepover 1v1', text: 'Join my Stepover game!', url });
+      await navigator.share({ title: 'STEPOVR. 1v1', text: 'Join my STEPOVR. game!', url });
     } else {
       await navigator.clipboard.writeText(url);
       this.copied.set(true);
