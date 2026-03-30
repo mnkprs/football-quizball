@@ -81,8 +81,9 @@ export class DuelApiService {
   }
 
   listMyGames(gameType?: DuelGameType): Observable<DuelGameSummary[]> {
-    const params = gameType ? { gameType } : {};
-    return this.http.get<DuelGameSummary[]>(this.base, { headers: this.headers(), params });
+    const options: Record<string, unknown> = { headers: this.headers() };
+    if (gameType) options['params'] = { gameType };
+    return this.http.get<DuelGameSummary[]>(this.base, options);
   }
 
   joinQueue(gameType?: DuelGameType): Observable<DuelPublicView> {
