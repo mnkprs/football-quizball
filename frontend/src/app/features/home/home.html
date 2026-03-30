@@ -95,7 +95,8 @@
         backgroundImage="/mayhem.png"
         variant="accent"
         [compact]="true"
-        [locked]="false"
+        [velvetLock]="true"
+        [locked]="!auth.isLoggedIn()"
         (cardClick)="goMayhem()"
       />
       <div class="two-player-card">
