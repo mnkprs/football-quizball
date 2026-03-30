@@ -8,6 +8,7 @@ import { ProfileStore } from '../../core/profile-store.service';
 import { SectionHeaderComponent } from '../../shared/section-header/section-header';
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
 import { BattleHeroComponent, HeroMode } from '../../shared/battle-hero/battle-hero';
+import { NotificationBannerComponent } from '../../shared/notification-banner/notification-banner';
 
 @Component({
   selector: 'app-home',
@@ -18,6 +19,7 @@ import { BattleHeroComponent, HeroMode } from '../../shared/battle-hero/battle-h
     SectionHeaderComponent,
     ModeCardComponent,
     BattleHeroComponent,
+    NotificationBannerComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
