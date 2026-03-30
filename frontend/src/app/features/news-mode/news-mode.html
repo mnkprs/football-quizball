@@ -1,56 +1,48 @@
-<div class="news-root bg-background flex flex-col">
-  <!-- Background image — same pattern as daily -->
+<div class="news-root">
+  <!-- Background image -->
   <div class="news-bg">
     <img src="/news-mode.png" alt="" class="news-bg-img" />
     <div class="news-bg-overlay"></div>
   </div>
-  <div class="max-w-2xl mx-auto w-full flex flex-col flex-1 px-6 pt-6 pb-28 relative z-10">
+
+  <div class="news-container">
 
     <!-- LOADING -->
     @if (phase() === 'loading') {
-      <div class="flex-1 flex flex-col items-center justify-center">
-        <div class="text-6xl mb-6">📰</div>
-        <h2 class="text-2xl font-black text-foreground mb-2">News Mode</h2>
-        <p class="text-muted-foreground text-center mb-8">Test your knowledge on the latest football headlines.</p>
-        <div class="text-5xl" style="animation: spin 1s linear infinite;">⚽</div>
+      <div class="news-loading">
+        <div class="news-loading__icon">&#128240;</div>
+        <h2 class="news-loading__title">News Mode</h2>
+        <p class="news-loading__desc">Test your knowledge on the latest football headlines.</p>
+        <div class="news-loading__spinner">&#9917;</div>
       </div>
     }
 
     <!-- QUESTION -->
     @if (phase() === 'question' && currentQuestion()) {
-      <div class="flex flex-col flex-1">
-        <!-- Progress bar -->
-        <div class="news-progress-bar">
-          <div class="news-progress-fill" [style.width]="progressPercent() + '%'"></div>
+      <div class="news-phase">
+        <div class="news-progress">
+          <div class="news-progress__fill" [style.width]="progressPercent() + '%'"></div>
         </div>
 
-        <!-- Header: question counter + score -->
-        <div class="flex items-center justify-between mb-6">
-          <span class="text-muted-foreground text-sm">
-            Question {{ currentIndex() + 1 }} of {{ total() }}
-          </span>
+        <div class="news-header">
+          <span class="news-counter">Question {{ currentIndex() + 1 }} of {{ total() }}</span>
           <span class="news-score">{{ correctCount() }}/{{ total() }}</span>
         </div>
 
-        <!-- Category badge -->
-        <div class="mb-4">
-          <span class="news-category-badge">LATEST NEWS</span>
-        </div>
+        <span class="news-badge">
+          <span class="news-badge__dot"></span>
+          LATEST NEWS
+        </span>
 
-        <!-- Question text (bare headline — no card) -->
-        <h2 class="news-question-text">{{ currentQuestion()!.question_text }}</h2>
+        <h2 class="news-question">{{ currentQuestion()!.question_text }}</h2>
 
-        <!-- Answer input -->
-        <div class="mb-4">
-          <input
-            [(ngModel)]="answer"
-            (keydown.enter)="submitAnswer()"
-            placeholder="Type your answer..."
-            class="news-input"
-          />
-        </div>
+        <input
+          [(ngModel)]="answer"
+          (keydown.enter)="submitAnswer()"
+          placeholder="Type your answer..."
+          class="news-input"
+        />
 
-        <!-- Submit button -->
         <button
           (click)="submitAnswer()"
           [disabled]="!answer.trim() || submitting()"
@@ -63,72 +55,64 @@
 
     <!-- RESULT -->
     @if (phase() === 'result' && lastResult()) {
-      <div class="flex flex-col flex-1">
-        <!-- Progress bar -->
-        <div class="news-progress-bar">
-          <div class="news-progress-fill" [style.width]="progressPercent() + '%'"></div>
+      <div class="news-phase">
+        <div class="news-progress">
+          <div class="news-progress__fill" [style.width]="progressPercent() + '%'"></div>
         </div>
 
-        <!-- Header: question counter + result badge -->
-        <div class="flex items-center justify-between mb-6">
-          <span class="text-muted-foreground text-sm">
-            Question {{ currentIndex() + 1 }} of {{ total() }}
-          </span>
+        <div class="news-header">
+          <span class="news-counter">Question {{ currentIndex() + 1 }} of {{ total() }}</span>
           <span class="news-result-badge" [class]="lastResult()!.correct ? 'news-result-badge news-result-badge--correct' : 'news-result-badge news-result-badge--wrong'">
             {{ lastResult()!.correct ? 'CORRECT' : 'WRONG' }}
           </span>
         </div>
 
-        <!-- Category badge -->
-        <div class="mb-4">
-          <span class="news-category-badge">LATEST NEWS</span>
-        </div>
+        <span class="news-badge">
+          <span class="news-badge__dot"></span>
+          LATEST NEWS
+        </span>
 
-        <!-- Question text (bare headline) -->
-        <h2 class="news-question-text">{{ currentQuestion()!.question_text }}</h2>
+        <h2 class="news-question">{{ currentQuestion()!.question_text }}</h2>
 
         <!-- Your answer -->
         <div class="news-answer-reveal" [class]="lastResult()!.correct ? 'news-answer-reveal news-answer-reveal--correct' : 'news-answer-reveal news-answer-reveal--wrong'">
           <span class="news-answer-icon" [class]="lastResult()!.correct ? 'news-answer-icon news-answer-icon--correct' : 'news-answer-icon news-answer-icon--wrong'">{{ lastResult()!.correct ? '✓' : '✗' }}</span>
-          <span class="font-bold text-lg">{{ userAnswer() }}</span>
+          <span class="news-answer-text">{{ userAnswer() }}</span>
           <span class="news-answer-tag">{{ lastResult()!.correct ? 'CORRECT' : 'YOUR ANSWER' }}</span>
         </div>
 
         <!-- Correct answer (if wrong) -->
         @if (!lastResult()!.correct) {
-          <div class="mt-3">
-            <div class="news-answer-reveal news-answer-reveal--correct-revealed">
-              <span class="news-answer-icon news-answer-icon--revealed">✓</span>
-              <span class="font-bold text-lg">{{ lastResult()!.correct_answer }}</span>
-              <span class="news-answer-tag">CORRECT ANSWER</span>
-            </div>
+          <div class="news-answer-reveal news-answer-reveal--correct-revealed">
+            <span class="news-answer-icon news-answer-icon--revealed">✓</span>
+            <span class="news-answer-text">{{ lastResult()!.correct_answer }}</span>
+            <span class="news-answer-tag">CORRECT ANSWER</span>
           </div>
         }
 
         <!-- Explanation -->
         @if (lastResult()!.explanation) {
-          <div class="news-explanation mt-4">
-            <p class="text-muted-foreground text-sm leading-relaxed">{{ lastResult()!.explanation }}</p>
+          <div class="news-explanation">
+            <p class="news-explanation__text">{{ lastResult()!.explanation }}</p>
           </div>
         }
 
         <!-- Source -->
         @if (currentQuestion()!.source_url) {
-          <a [href]="currentQuestion()!.source_url" target="_blank" rel="noopener"
-             class="inline-block text-accent text-xs mt-2 underline opacity-60">
-            Source →
+          <a [href]="currentQuestion()!.source_url" target="_blank" rel="noopener" class="news-source">
+            Source &#8594;
           </a>
         }
 
         <!-- Actions -->
-        <div class="mt-auto pt-4">
+        <div class="news-phase__actions">
           @if (hasMore()) {
             <button (click)="nextQuestion()" class="news-action-btn">
-              NEXT QUESTION →
+              NEXT QUESTION &#8594;
             </button>
           } @else {
             <button (click)="finish()" class="news-action-btn">
-              SEE RESULTS →
+              SEE RESULTS &#8594;
             </button>
           }
         </div>
@@ -137,17 +121,12 @@
 
     <!-- FINISHED -->
     @if (phase() === 'finished') {
-      <div class="flex-1 flex flex-col items-center justify-center">
-        <div class="text-5xl mb-4">🏆</div>
-        <h2 class="text-2xl font-black text-foreground mb-2">Session Complete!</h2>
-        <div class="text-6xl font-black text-accent mb-2 tabular-nums">{{ correctCount() }}/{{ total() }}</div>
-        <p class="text-muted-foreground mb-8">{{ accuracy() }}% correct</p>
-
-        <button
-          (click)="goHome()"
-          class="news-action-btn mb-3"
-          style="max-width: 20rem;"
-        >
+      <div class="news-finished">
+        <div class="news-finished__icon">&#127942;</div>
+        <h2 class="news-finished__title">Session Complete!</h2>
+        <p class="news-finished__score">{{ correctCount() }}/{{ total() }}</p>
+        <p class="news-finished__accuracy">{{ accuracy() }}% correct</p>
+        <button (click)="goHome()" class="news-action-btn">
           Back to Home
         </button>
       </div>
@@ -155,15 +134,16 @@
 
     <!-- Empty state -->
     @if (phase() === 'question' && total() === 0) {
-      <div class="flex-1 flex flex-col items-center justify-center text-center">
-        <div class="text-6xl mb-6">📰</div>
-        <h2 class="text-2xl font-black text-foreground mb-2">No questions available</h2>
-        <p class="text-muted-foreground text-center mb-2">Check back later — news questions refresh every 6 hours.</p>
-        <p class="text-muted-foreground text-sm text-center mb-8 max-w-xs">New headlines are added throughout the day.</p>
-        <button (click)="goHome()" class="news-action-btn" style="max-width: 20rem;">
+      <div class="news-empty">
+        <div class="news-empty__icon">&#128240;</div>
+        <h2 class="news-empty__title">No questions available</h2>
+        <p class="news-empty__desc">Check back later — news questions refresh every 6 hours.</p>
+        <p class="news-empty__hint">New headlines are added throughout the day.</p>
+        <button (click)="goHome()" class="news-action-btn">
           Back to Home
         </button>
       </div>
     }
+
   </div>
 </div>

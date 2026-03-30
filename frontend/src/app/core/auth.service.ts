@@ -135,4 +135,14 @@ export class AuthService {
   async signOut(): Promise<void> {
     await this.supabase.auth.signOut();
   }
+
+  async updateEmail(email: string): Promise<void> {
+    const { error } = await this.supabase.auth.updateUser({ email });
+    if (error) throw error;
+  }
+
+  async resetPasswordForEmail(email: string): Promise<void> {
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
+  }
 }

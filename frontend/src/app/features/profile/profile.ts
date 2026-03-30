@@ -1,5 +1,7 @@
 import { Component, inject, signal, OnInit, computed, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { ProService } from '../../core/pro.service';
@@ -7,7 +9,9 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
-import { getEloTier } from '../../core/elo-tier';
+import { getEloTier, nextTierThreshold, tierProgress } from '../../core/elo-tier';
+import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
+import { environment } from '../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -15,7 +19,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +32,7 @@ export class ProfileComponent implements OnInit {
   lang = inject(LanguageService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private http = inject(HttpClient);
   private soloApi = inject(SoloApiService);
   private achievementsApi = inject(AchievementsApiService);
   private matchHistoryApi = inject(MatchHistoryApiService);
@@ -41,6 +46,17 @@ export class ProfileComponent implements OnInit {
   loading = signal(true);
   avatarUrl = signal<string | null>(null);
   avatarUploading = signal(false);
+
+  // Edit profile state
+  showEditSheet = signal(false);
+  editUsername = '';
+  editCountryCode = '';
+  editSaving = signal(false);
+  editError = signal<string | null>(null);
+
+  // Delete account state
+  showDeleteConfirm = signal(false);
+  deleting = signal(false);
 
   userId = signal<string | null>(null);
 
@@ -121,6 +137,15 @@ export class ProfileComponent implements OnInit {
   });
 
   rankTier = computed(() => getEloTier(this.profile()?.elo ?? 1000));
+
+  tierProgressPct = computed(() => tierProgress(this.profile()?.elo ?? 1000));
+
+  nextTierLabel = computed(() => {
+    const elo = this.profile()?.elo ?? 1000;
+    const next = nextTierThreshold(elo);
+    if (next === null) return null;
+    return getEloTier(next).label;
+  });
 
   ngOnInit(): void {
     this.userId.set(this.route.snapshot.paramMap.get('userId'));
@@ -208,5 +233,66 @@ export class ProfileComponent implements OnInit {
 
   goToLogin(): void {
     this.router.navigate(['/login']);
+  }
+
+  openEditSheet(): void {
+    this.editUsername = this.profile()?.username ?? '';
+    this.editCountryCode = (this.profile() as any)?.country_code ?? '';
+    this.editError.set(null);
+    this.showEditSheet.set(true);
+  }
+
+  closeEditSheet(): void {
+    this.showEditSheet.set(false);
+  }
+
+  async saveProfile(): Promise<void> {
+    this.editSaving.set(true);
+    this.editError.set(null);
+    const token = this.auth.accessToken();
+    const headers = { Authorization: `Bearer ${token}` };
+
+    try {
+      const trimmedUsername = this.editUsername.trim();
+      if (trimmedUsername && trimmedUsername !== this.profile()?.username) {
+        await firstValueFrom(
+          this.http.patch(`${environment.apiUrl}/api/profile/username`, { username: trimmedUsername }, { headers }),
+        );
+      }
+
+      const trimmedCountry = this.editCountryCode.trim().toUpperCase();
+      if (trimmedCountry !== ((this.profile() as any)?.country_code ?? '')) {
+        await firstValueFrom(
+          this.http.patch(`${environment.apiUrl}/api/profile/country`, { country_code: trimmedCountry }, { headers }),
+        );
+      }
+
+      this.closeEditSheet();
+      await this.loadProfile();
+    } catch (err: any) {
+      const msg = err?.error?.message ?? err?.message ?? 'Failed to save';
+      this.editError.set(msg);
+    } finally {
+      this.editSaving.set(false);
+    }
+  }
+
+  async confirmDeleteAccount(): Promise<void> {
+    this.deleting.set(true);
+    try {
+      const token = this.auth.accessToken();
+      await firstValueFrom(
+        this.http.delete(`${environment.apiUrl}/api/profile/account`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      );
+      await this.auth.signOut();
+      this.router.navigate(['/']);
+    } catch {
+      this.editError.set('Failed to delete account');
+    } finally {
+      this.deleting.set(false);
+      this.showDeleteConfirm.set(false);
+    }
   }
 }

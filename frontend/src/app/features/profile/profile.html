@@ -20,36 +20,37 @@
     </div>
 
   } @else {
-    <!-- ─── RANK BANNER ─────────────────────────────────── -->
+    <!-- ─── HERO BANNER ─────────────────────────────── -->
     <div
-      class="rank-banner"
-      [class]="'rank-banner rank-banner--' + rankTier().tier"
+      class="hero"
       [style.--tier-color]="rankTier().color"
       [style.--tier-glow]="rankTier().glow"
       [style.--border-w]="rankTier().borderWidth + 'px'"
     >
-      <!-- Decorative pitch-line pattern in bg -->
-      <div class="rank-banner__bg-pattern" aria-hidden="true">
-        <svg viewBox="0 0 360 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <circle cx="180" cy="60" r="42" stroke="currentColor" stroke-width="1" opacity="0.12"/>
-          <line x1="180" y1="0" x2="180" y2="120" stroke="currentColor" stroke-width="1" opacity="0.1"/>
-          <line x1="0" y1="60" x2="360" y2="60" stroke="currentColor" stroke-width="1" opacity="0.1"/>
-          <rect x="4" y="20" width="60" height="80" rx="2" stroke="currentColor" stroke-width="1" opacity="0.1"/>
-          <rect x="296" y="20" width="60" height="80" rx="2" stroke="currentColor" stroke-width="1" opacity="0.1"/>
+      <!-- Pitch pattern overlay -->
+      <div class="hero__pitch" aria-hidden="true">
+        <svg viewBox="0 0 360 180" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <circle cx="180" cy="90" r="50" stroke="currentColor" stroke-width="1"/>
+          <line x1="180" y1="0" x2="180" y2="180" stroke="currentColor" stroke-width="1"/>
+          <rect x="4" y="30" width="60" height="120" rx="2" stroke="currentColor" stroke-width="1"/>
+          <rect x="296" y="30" width="60" height="120" rx="2" stroke="currentColor" stroke-width="1"/>
         </svg>
       </div>
 
       <!-- Back button (viewing other user) -->
       @if (!isOwnProfile()) {
-        <a routerLink="/leaderboard" class="rank-banner__back">
+        <a routerLink="/leaderboard" class="hero__back">
           <span class="material-icons">arrow_back</span>
         </a>
       }
 
-      <!-- Rank label top-right -->
-      <div class="rank-banner__tier-label">
-        {{ rankTier().label }}
-      </div>
+      <!-- Pro badge (top-left) -->
+      @if (pro.isPro()) {
+        <div class="hero__pro-chip">PRO</div>
+      }
+
+      <!-- Tier chip -->
+      <div class="hero__tier-chip">{{ rankTier().label }}</div>
 
       <!-- Avatar -->
       <input
@@ -60,18 +61,18 @@
         (change)="onAvatarFileChange($event)"
       />
       <div
-        class="rank-banner__avatar-wrap"
-        [class.rank-banner__avatar-wrap--clickable]="isOwnProfile()"
+        class="hero__avatar-zone"
+        [class.hero__avatar-zone--clickable]="isOwnProfile()"
         (click)="triggerAvatarUpload()"
       >
-        <div class="rank-banner__avatar">
+        <div class="hero__avatar">
           @if (avatarUrl()) {
-            <img class="rank-banner__avatar-img" [src]="avatarUrl()!" alt="avatar" />
+            <img [src]="avatarUrl()!" alt="avatar" />
           } @else {
             {{ initials() }}
           }
           @if (isOwnProfile()) {
-            <div class="rank-banner__avatar-upload" [class.uploading]="avatarUploading()">
+            <div class="hero__upload-badge" [class.uploading]="avatarUploading()">
               @if (avatarUploading()) {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
                   <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
@@ -86,91 +87,63 @@
             </div>
           }
         </div>
-        <!-- @if (isOwnProfile()) {
-          <div class="rank-banner__avatar-upload" [class.uploading]="avatarUploading()">
-            @if (avatarUploading()) {
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
-                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-              </svg>
-            } @else {
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
-            }
-          </div>
-        } -->
       </div>
 
       <!-- Name + meta -->
-      <div class="rank-banner__info">
-        <h1 class="rank-banner__name">{{ displayName() }}</h1>
-        <div class="rank-banner__meta">
-          <span class="rank-banner__elo">{{ profile()?.elo ?? 1000 }} ELO</span>
-          <span class="rank-banner__separator">·</span>
-          <span class="rank-banner__rank">Rank #{{ profile()?.rank ?? '—' }}</span>
+      <div class="hero__identity">
+        <h1 class="hero__name">{{ displayName() }}</h1>
+        <div class="hero__subtitle">
+          <span class="hero__elo-badge">{{ profile()?.elo ?? 1000 }} ELO</span>
+          <span class="hero__sep">&middot;</span>
+          <span class="hero__rank">Rank #{{ profile()?.rank ?? '—' }}</span>
         </div>
         @if (memberSince()) {
-          <div class="rank-banner__member-since">Member since {{ memberSince() }}</div>
+          <div class="hero__member-since">Member since {{ memberSince() }}</div>
         }
       </div>
 
-      <!-- Quick stats row inside banner -->
-      <div class="rank-banner__stats">
-        <div class="rank-banner__stat">
-          <span class="rank-banner__stat-val">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
-          <span class="rank-banner__stat-lbl">Peak ELO</span>
+      <!-- Tier Progress -->
+      @if (nextTierLabel()) {
+        <div class="tier-progress">
+          <div class="tier-progress__labels">
+            <span class="tier-progress__current">{{ rankTier().label }}</span>
+            <span class="tier-progress__next">{{ nextTierLabel() }}</span>
+          </div>
+          <div class="tier-progress__track">
+            <div class="tier-progress__fill" [style.width.%]="tierProgressPct()"></div>
+          </div>
         </div>
-        <div class="rank-banner__stat-divider"></div>
-        <div class="rank-banner__stat">
-          <span class="rank-banner__stat-val">{{ profile()?.questions_answered ?? 0 }}</span>
-          <span class="rank-banner__stat-lbl">Questions</span>
+      }
+
+      <!-- Quick stats -->
+      <div class="hero__stats">
+        <div class="hero__stat">
+          <span class="hero__stat-val">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
+          <span class="hero__stat-lbl">Peak ELO</span>
+        </div>
+        <div class="hero__stat-div"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-val">{{ accuracy() }}%</span>
+          <span class="hero__stat-lbl">Accuracy</span>
+        </div>
+        <div class="hero__stat-div"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-val">{{ profile()?.questions_answered ?? 0 }}</span>
+          <span class="hero__stat-lbl">Questions</span>
         </div>
       </div>
     </div>
 
-    <!-- ─── PRO STATUS ─────────────────────────────────── -->
-    @if (isOwnProfile()) {
-      <section class="profile-section pro-status-section">
-        @if (pro.isPro()) {
-          <div class="pro-badge-row">
-            <span class="pro-badge">STEPOVR Pro</span>
-            @if (pro.purchaseType() === 'lifetime') {
-              <span class="pro-type">Lifetime</span>
-            } @else if (pro.purchaseType() === 'subscription') {
-              <span class="pro-type">Monthly</span>
-              @if (pro.subscriptionExpiresAt()) {
-                <span class="pro-renews">Renews {{ formatDate(pro.subscriptionExpiresAt()!) }}</span>
-              }
-            }
-          </div>
-          @if (pro.purchaseType() === 'subscription') {
-            <a class="manage-subscription-link" href="javascript:void(0)" (click)="openSubscriptionManagement()">
-              Manage Subscription
-            </a>
-          }
-        } @else {
-          <button mat-flat-button class="upgrade-btn" (click)="pro.showUpgradeModal.set(true)">
-            Upgrade to Pro
-          </button>
-        }
-        <button mat-button class="restore-btn" (click)="restorePurchases()">
-          Restore Purchase
-        </button>
-      </section>
-    }
-
-    <!-- ─── ELO SPARKLINE ───────────────────────────────── -->
+    <!-- ─── ELO SPARKLINE ───────────────────────────── -->
     @if (sparklineData(); as spark) {
-      <section class="profile-section">
-        <h2 class="profile-section-title">ELO Progression</h2>
-        <div class="elo-sparkline">
-          <div class="elo-sparkline__labels">
-            <span class="elo-sparkline__label-min">{{ spark.minElo }}</span>
-            <span class="elo-sparkline__label-max">{{ spark.maxElo }}</span>
+      <section class="section anim-fade-up anim-delay-2">
+        <h2 class="section__title">ELO Progression</h2>
+        <div class="sparkline-card">
+          <div class="sparkline__labels">
+            <span>{{ spark.minElo }}</span>
+            <span>{{ spark.maxElo }}</span>
           </div>
-          <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="elo-sparkline__svg">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="sparkline__svg">
             <defs>
               <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
                 <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.18"/>
@@ -185,97 +158,100 @@
       </section>
     }
 
-    <!-- ─── MODE STATS ────────────────────────────────── -->
-    <section class="profile-section">
-      <h2 class="profile-section-title">Mode Stats</h2>
-      <div class="mode-stats">
+    <!-- ─── MODE STATS ────────────────────────────── -->
+    <section class="section anim-fade-up anim-delay-3">
+      <h2 class="section__title">Mode Stats</h2>
+      <div class="mode-grid">
 
-        <div class="mode-stat-card mode-stat-card--solo">
-          <div class="mode-stat-card__header">
-            <span class="mode-stat-card__icon">⚡</span>
-            <span class="mode-stat-card__label">Solo</span>
+        <!-- Solo -->
+        <div class="mode-card mode-card--solo">
+          <div class="mode-card__head">
+            <span class="mode-card__icon">&#9889;</span>
+            <span class="mode-card__name">Solo</span>
           </div>
-          <div class="mode-stat-card__rows">
-            <div class="mode-stat-card__row">
-              <span class="mode-stat-card__val">{{ profile()?.elo ?? 1000 }}</span>
-              <span class="mode-stat-card__key">ELO</span>
+          <div class="mode-card__rows">
+            <div class="mode-card__row">
+              <span class="mode-card__val">{{ profile()?.elo ?? 1000 }}</span>
+              <span class="mode-card__key">ELO</span>
             </div>
-            <div class="mode-stat-card__row">
-              <span class="mode-stat-card__val">{{ accuracy() }}%</span>
-              <span class="mode-stat-card__key">Accuracy</span>
+            <div class="mode-card__row">
+              <span class="mode-card__val">{{ accuracy() }}%</span>
+              <span class="mode-card__key">Acc</span>
             </div>
-            <div class="mode-stat-card__row">
-              <span class="mode-stat-card__val">{{ profile()?.games_played ?? 0 }}</span>
-              <span class="mode-stat-card__key">Games</span>
+            <div class="mode-card__row">
+              <span class="mode-card__val">{{ profile()?.games_played ?? 0 }}</span>
+              <span class="mode-card__key">Games</span>
             </div>
           </div>
         </div>
 
-        <div class="mode-stat-card mode-stat-card--mayhem">
-          <div class="mode-stat-card__header">
-            <span class="mode-stat-card__icon">🌪️</span>
-            <span class="mode-stat-card__label">Mayhem</span>
+        <!-- Mayhem -->
+        <div class="mode-card mode-card--mayhem">
+          <div class="mode-card__head">
+            <span class="mode-card__icon">&#127744;</span>
+            <span class="mode-card__name">Mayhem</span>
           </div>
           @if (mayhemStats()) {
-            <div class="mode-stat-card__rows">
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ mayhemStats()!.best_session_score }}</span>
-                <span class="mode-stat-card__key">Best</span>
+            <div class="mode-card__rows">
+              <div class="mode-card__row">
+                <span class="mode-card__val">{{ mayhemStats()!.best_session_score }}</span>
+                <span class="mode-card__key">Best</span>
               </div>
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ mayhemAccuracy() }}%</span>
-                <span class="mode-stat-card__key">Accuracy</span>
+              <div class="mode-card__row">
+                <span class="mode-card__val">{{ mayhemAccuracy() }}%</span>
+                <span class="mode-card__key">Acc</span>
               </div>
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ mayhemStats()!.games_played }}</span>
-                <span class="mode-stat-card__key">Games</span>
+              <div class="mode-card__row">
+                <span class="mode-card__val">{{ mayhemStats()!.games_played }}</span>
+                <span class="mode-card__key">Games</span>
               </div>
             </div>
           } @else {
-            <p class="mode-stat-card__empty">No games yet</p>
+            <p class="mode-card__empty">No games yet</p>
           }
         </div>
 
-        <div class="mode-stat-card mode-stat-card--blitz">
-          <div class="mode-stat-card__header">
-            <span class="mode-stat-card__icon">💨</span>
-            <span class="mode-stat-card__label">Blitz</span>
+        <!-- Blitz -->
+        <div class="mode-card mode-card--blitz">
+          <div class="mode-card__head">
+            <span class="mode-card__icon">&#128168;</span>
+            <span class="mode-card__name">Blitz</span>
           </div>
           @if (blitzStats()?.bestScore) {
-            <div class="mode-stat-card__rows">
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ blitzStats()!.bestScore }}</span>
-                <span class="mode-stat-card__key">Best</span>
+            <div class="mode-card__rows">
+              <div class="mode-card__row">
+                <span class="mode-card__val">{{ blitzStats()!.bestScore }}</span>
+                <span class="mode-card__key">Best</span>
               </div>
-              <div class="mode-stat-card__row">
-                <span class="mode-stat-card__val">{{ blitzStats()!.totalGames }}</span>
-                <span class="mode-stat-card__key">Games</span>
+              <div class="mode-card__row">
+                <span class="mode-card__val">{{ blitzStats()!.totalGames }}</span>
+                <span class="mode-card__key">Games</span>
               </div>
               @if (blitzStats()!.rank) {
-                <div class="mode-stat-card__row">
-                  <span class="mode-stat-card__val">#{{ blitzStats()!.rank }}</span>
-                  <span class="mode-stat-card__key">Rank</span>
+                <div class="mode-card__row">
+                  <span class="mode-card__val">#{{ blitzStats()!.rank }}</span>
+                  <span class="mode-card__key">Rank</span>
                 </div>
               }
             </div>
           } @else {
-            <p class="mode-stat-card__empty">No games yet</p>
+            <p class="mode-card__empty">No games yet</p>
           }
         </div>
 
       </div>
     </section>
 
-    <!-- ─── MATCH HISTORY ───────────────────────────────── -->
+    <!-- ─── MATCH HISTORY ───────────────────────────── -->
     @if (matchHistory().length > 0) {
-      <section class="profile-section">
-        <div class="profile-section-header">
-          <h2 class="profile-section-title">Last 10 games</h2>
+      <section class="section anim-fade-up anim-delay-4">
+        <div class="section__head">
+          <h2 class="section__title">Last 10 games</h2>
           <div class="match-record">
             <span class="match-record__chip match-record__chip--win">{{ winRecord().wins }}W</span>
-            <span class="match-record__sep">·</span>
+            <span class="match-record__sep">&middot;</span>
             <span class="match-record__chip match-record__chip--draw">{{ winRecord().draws }}D</span>
-            <span class="match-record__sep">·</span>
+            <span class="match-record__sep">&middot;</span>
             <span class="match-record__chip match-record__chip--loss">{{ winRecord().losses }}L</span>
           </div>
         </div>
@@ -287,13 +263,13 @@
                  [class.match-row--br]="match.match_mode === 'battle_royale'">
               <div class="match-row__result">
                 @if (match.match_mode === 'battle_royale') {
-                  <span class="match-row__result-label match-row__result-label--br">BR</span>
+                  <span class="match-row__result-tag match-row__result-tag--br">BR</span>
                 } @else if (match.winner_id === null) {
-                  <span class="match-row__result-label match-row__result-label--draw">D</span>
+                  <span class="match-row__result-tag match-row__result-tag--draw">D</span>
                 } @else if (match.winner_id === currentUserId()) {
-                  <span class="match-row__result-label match-row__result-label--win">W</span>
+                  <span class="match-row__result-tag match-row__result-tag--win">W</span>
                 } @else {
-                  <span class="match-row__result-label match-row__result-label--loss">L</span>
+                  <span class="match-row__result-tag match-row__result-tag--loss">L</span>
                 }
               </div>
               <div class="match-row__body">
@@ -322,32 +298,99 @@
       </section>
     }
 
-    <!-- ─── ACHIEVEMENTS ───────────────────────────────── -->
+    <!-- ─── ACHIEVEMENTS ───────────────────────────── -->
     @if (achievements().length > 0) {
-      <section class="profile-section">
-        <div class="profile-section-header">
-          <h2 class="profile-section-title">{{ lang.t().achievements }}</h2>
-          <span class="achievements-count">{{ achievementsEarned() }} / {{ achievements().length }}</span>
+      <section class="section anim-fade-up anim-delay-5">
+        <div class="section__head">
+          <h2 class="section__title">{{ lang.t().achievements }}</h2>
+          <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
         </div>
         <div class="achievements-grid">
           @for (a of achievements(); track a.id) {
-            <div class="achievement-card" [class.achievement-card--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
-              <span class="achievement-card__icon">{{ a.icon }}</span>
-              <span class="achievement-card__name">{{ a.name }}</span>
+            <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
+              <span class="achievement-tile__icon">{{ a.icon }}</span>
+              <span class="achievement-tile__name">{{ a.name }}</span>
             </div>
           }
         </div>
       </section>
     }
 
-    <!-- ─── ACTIONS ────────────────────────────────────── -->
+    <!-- ─── ACCOUNT ACTIONS ─────────────────────────── -->
     @if (isOwnProfile()) {
-      <div class="profile-actions">
-        <button mat-stroked-button class="profile-signout" (click)="signOut()">
-          <span class="material-icons">logout</span>
-          {{ lang.t().signOut }}
+      <section class="section anim-fade-up anim-delay-5">
+        <div class="account-actions">
+          <button class="account-action-btn" (click)="openEditSheet()">
+            <span class="material-icons">edit</span>
+            Edit Profile
+          </button>
+          <button class="account-action-btn account-action-btn--danger" (click)="showDeleteConfirm.set(true)">
+            <span class="material-icons">delete_forever</span>
+            Delete Account
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- ─── EDIT PROFILE SHEET ──────────────────────── -->
+    @if (showEditSheet()) {
+      <div class="edit-backdrop" (click)="closeEditSheet()"></div>
+      <div class="edit-sheet">
+        <div class="edit-sheet__handle"></div>
+        <h3 class="edit-sheet__title">Edit Profile</h3>
+
+        @if (editError()) {
+          <div class="edit-sheet__error">{{ editError() }}</div>
+        }
+
+        <label class="edit-field">
+          <span class="edit-field__label">Username</span>
+          <input
+            class="edit-field__input"
+            type="text"
+            [(ngModel)]="editUsername"
+            placeholder="Username"
+            maxlength="20"
+          />
+        </label>
+
+        <label class="edit-field">
+          <span class="edit-field__label">Country</span>
+          <input
+            class="edit-field__input edit-field__input--short"
+            type="text"
+            [(ngModel)]="editCountryCode"
+            placeholder="e.g. GR"
+            maxlength="2"
+            style="text-transform: uppercase;"
+          />
+          <span class="edit-field__hint">2-letter country code (ISO 3166-1)</span>
+        </label>
+
+        <button
+          class="edit-sheet__save"
+          (click)="saveProfile()"
+          [disabled]="editSaving()"
+        >
+          @if (editSaving()) {
+            Saving...
+          } @else {
+            Save Changes
+          }
         </button>
       </div>
     }
+
+    <!-- ─── DELETE CONFIRM ──────────────────────────── -->
+    @if (showDeleteConfirm()) {
+      <app-confirm-modal
+        message="This will permanently delete your account and all data. This action cannot be undone."
+        confirmLabel="Delete My Account"
+        cancelLabel="Cancel"
+        (confirm)="confirmDeleteAccount()"
+        (cancel)="showDeleteConfirm.set(false)"
+      />
+    }
+
   }
 </div>

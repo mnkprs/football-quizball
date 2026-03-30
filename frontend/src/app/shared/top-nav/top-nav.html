@@ -103,70 +103,147 @@
 @if (settingsOpen()) {
   <div class="top-nav__overlay" (click)="closeSettings()" role="presentation"></div>
   <div class="top-nav__settings-panel" role="dialog" aria-label="Settings">
-    <div class="tsp__header">
-      <h2 class="tsp__title">{{ lang.t().settingsTitle }}</h2>
-      <button class="tsp__close" (click)="closeSettings()" aria-label="Close">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    @if (auth.isLoggedIn()) {
-      <div class="tsp__profile">
-        <div class="tsp__profile-avatar">
-          @if (avatarUrl() && !avatarFailed()) {
-            <img [src]="avatarUrl()" referrerpolicy="no-referrer" class="tsp__avatar-img" (error)="avatarFailed.set(true)" />
-          } @else {
-            <span class="tsp__avatar-fallback">{{ initials() }}</span>
-          }
-        </div>
-        <div>
-          <p class="tsp__profile-name">{{ displayName() }}</p>
-          <p class="tsp__profile-email">{{ auth.user()?.email }}</p>
-        </div>
-      </div>
-    }
-    <div class="tsp__cards">
-      <div class="tsp__card">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <div class="tsp__card-content">
-          <span class="tsp__card-label">{{ lang.t().settingsAppearance }}</span>
-          <span class="tsp__card-desc">{{ lang.t().settingsDarkMode }}</span>
-        </div>
-        <button
-          class="tsp__toggle"
-          [class.tsp__toggle--on]="theme.isDark()"
-          (click)="theme.toggle()"
-        >
-          <span class="tsp__toggle-thumb"></span>
+
+    <!-- ── Edit Profile sub-panel ── -->
+    @if (editPanelOpen()) {
+      <div class="tsp__header">
+        <button class="tsp__back" (click)="closeEditPanel()" aria-label="Back">
+          <span class="material-icons" style="font-size:1.25rem">arrow_back</span>
+        </button>
+        <h2 class="tsp__title">Edit Profile</h2>
+        <button class="tsp__close" (click)="closeSettings()" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      @if (auth.isLoggedIn() && pro.isPro()) {
-        <div class="tsp__card tsp__card--pro">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tsp__pro-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <div class="tsp__card-content">
-            <span class="tsp__card-label">Pro Member</span>
+
+      @if (editError()) {
+        <div class="tsp__error">{{ editError() }}</div>
+      }
+      @if (editSuccess()) {
+        <div class="tsp__success">{{ editSuccess() }}</div>
+      }
+
+      <div class="tsp__form">
+        <label class="tsp__field">
+          <span class="tsp__field-label">Username</span>
+          <input
+            class="tsp__field-input"
+            type="text"
+            [value]="editUsername"
+            (input)="editUsername = $any($event.target).value"
+            placeholder="Username"
+            maxlength="20"
+          />
+        </label>
+
+        <label class="tsp__field">
+          <span class="tsp__field-label">Email</span>
+          <input
+            class="tsp__field-input"
+            type="email"
+            [value]="editEmail"
+            (input)="editEmail = $any($event.target).value"
+            placeholder="Email"
+          />
+        </label>
+
+        <label class="tsp__field">
+          <span class="tsp__field-label">Country</span>
+          <input
+            class="tsp__field-input tsp__field-input--short"
+            type="text"
+            [value]="editCountryCode"
+            (input)="editCountryCode = $any($event.target).value"
+            placeholder="e.g. GR"
+            maxlength="2"
+            style="text-transform: uppercase;"
+          />
+          <span class="tsp__field-hint">2-letter code (ISO 3166-1)</span>
+        </label>
+
+        <button class="tsp__save-btn" (click)="saveProfile()" [disabled]="editSaving()">
+          @if (editSaving()) { Saving... } @else { Save Changes }
+        </button>
+
+        <div class="tsp__divider"></div>
+
+        <button class="tsp__reset-pw-btn" (click)="resetPassword()" [disabled]="resetSending()">
+          <span class="material-icons" style="font-size:1rem">lock_reset</span>
+          @if (resetSending()) { Sending... } @else { Reset Password }
+        </button>
+        <span class="tsp__field-hint" style="text-align:center">Sends a password reset link to your email</span>
+      </div>
+
+    <!-- ── Main settings panel ── -->
+    } @else {
+      <div class="tsp__header">
+        <h2 class="tsp__title">{{ lang.t().settingsTitle }}</h2>
+        <button class="tsp__close" (click)="closeSettings()" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      @if (auth.isLoggedIn()) {
+        <div class="tsp__profile">
+          <div class="tsp__profile-avatar">
+            @if (avatarUrl() && !avatarFailed()) {
+              <img [src]="avatarUrl()" referrerpolicy="no-referrer" class="tsp__avatar-img" (error)="avatarFailed.set(true)" />
+            } @else {
+              <span class="tsp__avatar-fallback">{{ initials() }}</span>
+            }
           </div>
-          <button class="tsp__pill-btn" [disabled]="upgrading()" (click)="managePlan()">
-            @if (upgrading()) { <span class="tsp__spinner"></span> } @else { Manage → }
-          </button>
+          <div>
+            <p class="tsp__profile-name">{{ displayName() }}</p>
+            <p class="tsp__profile-email">{{ auth.user()?.email }}</p>
+          </div>
         </div>
       }
-    </div>
-    @if (buyMeACoffeeUrl) {
-      <a
-        [href]="buyMeACoffeeUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="tsp__sign-out tsp__coffee-link"
-      >
-        <span class="material-icons" style="font-size:1.1rem">local_cafe</span>
-        Buy me a coffee
-      </a>
-    }
-    @if (auth.isLoggedIn()) {
-      <button class="tsp__sign-out" (click)="signOut()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        {{ lang.t().signOut }}
-      </button>
+      <div class="tsp__cards">
+        @if (auth.isLoggedIn() && pro.isPro()) {
+          <div class="tsp__card tsp__card--pro">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="tsp__pro-icon"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div class="tsp__card-content">
+              <span class="tsp__card-label">Pro Member</span>
+            </div>
+            <button class="tsp__pill-btn" [disabled]="upgrading()" (click)="managePlan()">
+              @if (upgrading()) { <span class="tsp__spinner"></span> } @else { Manage → }
+            </button>
+          </div>
+        }
+      </div>
+      @if (buyMeACoffeeUrl) {
+        <a
+          [href]="buyMeACoffeeUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="tsp__sign-out tsp__coffee-link"
+        >
+          <span class="material-icons" style="font-size:1.1rem">local_cafe</span>
+          Buy me a coffee
+        </a>
+      }
+      @if (auth.isLoggedIn()) {
+        <button class="tsp__link-btn" (click)="openEditPanel()">
+          <span class="material-icons" style="font-size:1.1rem">edit</span>
+          Edit Profile
+        </button>
+        <button class="tsp__sign-out" (click)="signOut()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          {{ lang.t().signOut }}
+        </button>
+        <button class="tsp__delete-btn" (click)="showDeleteConfirm.set(true)">
+          <span class="material-icons" style="font-size:1.1rem">delete_forever</span>
+          Delete Account
+        </button>
+      }
+      @if (showDeleteConfirm()) {
+        <app-confirm-modal
+          message="This will permanently delete your account and all data. This action cannot be undone."
+          confirmLabel="Delete My Account"
+          cancelLabel="Cancel"
+          (confirm)="confirmDeleteAccount()"
+          (cancel)="showDeleteConfirm.set(false)"
+        />
+      }
     }
   </div>
 }

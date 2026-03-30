@@ -22,10 +22,10 @@ export class SupabaseService {
     });
   }
 
-  async getProfile(userId: string): Promise<{ id: string; username: string; elo: number; logo_quiz_elo: number; logo_quiz_hardcore_elo: number; logo_quiz_games_played: number; logo_quiz_hardcore_games_played: number; games_played: number; questions_answered: number; correct_answers: number } | null> {
+  async getProfile(userId: string): Promise<{ id: string; username: string; elo: number; logo_quiz_elo: number; logo_quiz_hardcore_elo: number; logo_quiz_games_played: number; logo_quiz_hardcore_games_played: number; games_played: number; questions_answered: number; correct_answers: number; country_code: string | null } | null> {
     const { data: profile } = await this.client
       .from('profiles')
-      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers')
+      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code')
       .eq('id', userId)
       .maybeSingle();
     if (profile) return profile as any;
@@ -560,6 +560,14 @@ export class SupabaseService {
     const { error } = await this.client
       .from('profiles')
       .update({ username, username_set: true })
+      .eq('id', userId);
+    if (error) throw error;
+  }
+
+  async updateCountryCode(userId: string, countryCode: string): Promise<void> {
+    const { error } = await this.client
+      .from('profiles')
+      .update({ country_code: countryCode })
       .eq('id', userId);
     if (error) throw error;
   }

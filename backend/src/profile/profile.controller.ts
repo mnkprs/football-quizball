@@ -56,6 +56,26 @@ export class ProfileController {
     }
   }
 
+  @Patch('country')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async setCountry(
+    @Body() body: { country_code: string },
+    @Request() req: { user: { id: string } },
+  ): Promise<void> {
+    const { country_code } = body;
+
+    if (!country_code || typeof country_code !== 'string') {
+      throw new BadRequestException('country_code is required');
+    }
+
+    if (!/^[A-Z]{2}$/.test(country_code)) {
+      throw new BadRequestException('country_code must be a 2-character uppercase string (ISO 3166-1 alpha-2)');
+    }
+
+    await this.supabaseService.updateCountryCode(req.user.id, country_code);
+  }
+
   @Delete('account')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -38,22 +38,6 @@
         </div>
       }
       <div class="settings-panel__cards">
-        <div class="settings-card">
-          <span class="material-icons settings-card__icon">palette</span>
-          <div class="settings-card__content">
-            <span class="settings-card__label">{{ t().settingsAppearance }}</span>
-            <span class="settings-card__desc">{{ t().settingsDarkMode }}</span>
-          </div>
-          <button
-            type="button"
-            class="settings-card__toggle"
-            [class.settings-card__toggle--on]="theme.isDark()"
-            (click)="theme.toggle()"
-            [attr.aria-label]="theme.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
-          >
-            <span class="settings-card__toggle-thumb"></span>
-          </button>
-        </div>
         @if (auth.isLoggedIn()) {
           <div class="settings-card" [class.settings-card--pro]="pro.isPro()">
             @if (pro.isPro()) {
