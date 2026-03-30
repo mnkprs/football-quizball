@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, signal, effect, HostListener, OnInit, Injector } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -27,6 +27,7 @@ export class TopNavComponent implements OnInit {
   store = inject(ProfileStore);
   private authModal = inject(AuthModalService);
   private router = inject(Router);
+  private injector = inject(Injector);
 
   private http = inject(HttpClient);
 
@@ -99,6 +100,15 @@ export class TopNavComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    // Re-load profile when user signs in (e.g. via auth modal on home page)
+    effect(() => {
+      const loggedIn = this.auth.isLoggedIn();
+      if (loggedIn) {
+        this.store.loadProfile();
+        this.pro.loadStatus();
+      }
+    }, { injector: this.injector });
+
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
         this.store.loadProfile();
