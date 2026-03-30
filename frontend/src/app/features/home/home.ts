@@ -100,11 +100,7 @@ export class HomeComponent implements OnInit {
   }
 
   goOnline(): void {
-    if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/online-game']);
-    } else {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/online-game' } });
-    }
+    this.router.navigate(['/online-game']);
   }
 
   goSolo(): void {
@@ -124,23 +120,15 @@ export class HomeComponent implements OnInit {
   }
 
   goMayhem(): void {
-    if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/mayhem']);
-    } else {
-      this.router.navigate(['/login']);
-    }
+    this.router.navigate(['/mayhem']);
   }
 
   goBattleRoyale(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
-      return;
-    }
     this.router.navigate(['/battle-royale']);
   }
 
   onLockedModeClick(): void {
-    this.router.navigate(['/login']);
+    // TEMPORARY: no-op while auth is bypassed
   }
 
   onLogoModeClick(index: number): void {
@@ -152,27 +140,15 @@ export class HomeComponent implements OnInit {
   }
 
   goLogoDuel(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/duel?mode=logo' } });
-      return;
-    }
     this.router.navigate(['/duel'], { queryParams: { mode: 'logo' } });
   }
 
   goTeamLogoQuiz(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
-      return;
-    }
     this.router.navigate(['/battle-royale'], { queryParams: { mode: 'team_logo' } });
   }
 
   goDuel(): void {
-    if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/duel']);
-    } else {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/duel' } });
-    }
+    this.router.navigate(['/duel']);
   }
 
   goDaily(): void {
