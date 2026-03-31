@@ -14,21 +14,30 @@
 
       <div class="br-identity">
         <div class="br-identity__icon">
-          <span class="material-icons">public</span>
+          <span class="material-icons">{{ isTeamLogoMode() ? 'shield' : 'public' }}</span>
         </div>
-        <h1 class="br-identity__title">Battle Royale</h1>
-        <p class="br-identity__subtitle">20 players · 10 questions · Live leaderboard</p>
+        <h1 class="br-identity__title">{{ isTeamLogoMode() ? 'Team Logo Quiz' : 'Battle Royale' }}</h1>
+        <p class="br-identity__subtitle">{{ isTeamLogoMode() ? 'Team vs Team · Guess the logo · Invite friends' : '20 players · 10 questions · Live leaderboard' }}</p>
       </div>
 
       <details class="br-rules">
         <summary class="br-rules__summary">How it works</summary>
-        <ul class="br-rules__list">
-          <li><span class="material-icons">check_circle</span> Everyone answers the same 10 questions</li>
-          <li><span class="material-icons">check_circle</span> +100 points for each correct answer</li>
-          <li><span class="material-icons">check_circle</span> Speed bonus for fast answers</li>
-          <li><span class="material-icons">check_circle</span> Live leaderboard updates in real-time</li>
-          <li><span class="material-icons">check_circle</span> Highest score wins!</li>
-        </ul>
+        @if (isTeamLogoMode()) {
+          <ul class="br-rules__list">
+            <li><span class="material-icons">check_circle</span> Split into 2 teams automatically</li>
+            <li><span class="material-icons">check_circle</span> Guess 10 football team logos each</li>
+            <li><span class="material-icons">check_circle</span> +100 points per correct answer + speed bonus</li>
+            <li><span class="material-icons">check_circle</span> Team with highest average score wins!</li>
+          </ul>
+        } @else {
+          <ul class="br-rules__list">
+            <li><span class="material-icons">check_circle</span> Everyone answers the same 10 questions</li>
+            <li><span class="material-icons">check_circle</span> +100 points for each correct answer</li>
+            <li><span class="material-icons">check_circle</span> Speed bonus for fast answers</li>
+            <li><span class="material-icons">check_circle</span> Live leaderboard updates in real-time</li>
+            <li><span class="material-icons">check_circle</span> Highest score wins!</li>
+          </ul>
+        }
       </details>
     </div>
 
@@ -91,13 +100,15 @@
       <div class="br-sheet__handle"></div>
       <h3 class="br-sheet__title">How do you want to play?</h3>
 
-      <button class="br-sheet__option" (click)="quickJoin()" [disabled]="loading()">
-        <span class="br-sheet__option-icon">&#9889;</span>
-        <div class="br-sheet__option-text">
-          <span class="br-sheet__option-title">Quick Join</span>
-          <span class="br-sheet__option-desc">Jump into a public room with random players</span>
-        </div>
-      </button>
+      @if (!isTeamLogoMode()) {
+        <button class="br-sheet__option" (click)="quickJoin()" [disabled]="loading()">
+          <span class="br-sheet__option-icon">&#9889;</span>
+          <div class="br-sheet__option-text">
+            <span class="br-sheet__option-title">Quick Join</span>
+            <span class="br-sheet__option-desc">Jump into a public room with random players</span>
+          </div>
+        </button>
+      }
 
       <button class="br-sheet__option" (click)="createPrivateRoom()" [disabled]="loading()">
         <span class="br-sheet__option-icon">&#128274;</span>

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { BattleRoyaleStore } from './battle-royale.store';
 import { BattleRoyaleApiService } from './battle-royale-api.service';
@@ -27,8 +27,10 @@ export interface BRPublicRoom {
 export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
   protected store = inject(BattleRoyaleStore);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private api = inject(BattleRoyaleApiService);
   auth = inject(AuthService);
+  isTeamLogoMode = signal(false);
 
   loading = signal(false);
   error = signal<string | null>(null);
@@ -39,6 +41,11 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
+    const mode = this.route.snapshot.queryParamMap.get('mode');
+    if (mode === 'team_logo') {
+      this.isTeamLogoMode.set(true);
+    }
+
     this.fetchRooms();
     // Poll every 10 seconds — simple and sufficient for a lobby list
     this.pollTimer = setInterval(() => this.fetchRooms(), 10_000);
@@ -85,7 +92,9 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
   async createPrivateRoom(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
-    const roomId = await this.store.createRoom();
+    const roomId = this.isTeamLogoMode()
+      ? await this.store.createTeamLogoRoom()
+      : await this.store.createRoom();
     this.loading.set(false);
     if (roomId) {
       this.closePlaySheet();
