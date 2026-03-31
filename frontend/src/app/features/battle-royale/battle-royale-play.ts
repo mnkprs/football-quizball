@@ -110,6 +110,8 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
       setTimeout(() => {
         this.answerFeedback.set(null);
         this.selectedChoice.set(null);
+        this.textAnswer = '';
+        this.logoSearchQuery.set('');
       }, 1500);
     }
   }
