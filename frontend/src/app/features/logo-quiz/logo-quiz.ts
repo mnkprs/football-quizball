@@ -11,6 +11,7 @@ import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { GameQuestionComponent, type QuestionData, type RevealResult } from '../../shared/game-question/game-question';
 import { LogoQuizApiService, type LogoQuestionResponse } from '../../core/logo-quiz-api.service';
+import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
@@ -29,6 +30,7 @@ type Phase = 'idle' | 'loading' | 'question' | 'finished';
 })
 export class LogoQuizComponent implements OnDestroy {
   private api = inject(LogoQuizApiService);
+  private leaderboardApi = inject(LeaderboardApiService);
   private achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
   private profileStore = inject(ProfileStore);
@@ -52,6 +54,11 @@ export class LogoQuizComponent implements OnDestroy {
 
   // Team names for searchable select
   teamNames = signal<string[]>([]);
+
+  // Rank
+  myRank = signal<number | null>(null);
+  private normalRank = signal<number | null>(null);
+  private hardcoreRank = signal<number | null>(null);
 
   // Hardcore mode
   hardcoreMode = signal(false);
@@ -92,16 +99,26 @@ export class LogoQuizComponent implements OnDestroy {
       this.currentElo.set(elo);
       this.startElo.set(elo);
     });
+    // Load logo quiz ranks (normal + hardcore)
+    this.leaderboardApi.getMyLeaderboardEntries().subscribe({
+      next: (res) => {
+        this.normalRank.set(res.logoQuizMe?.rank ?? null);
+        this.hardcoreRank.set(res.logoQuizHardcoreMe?.rank ?? null);
+        this.myRank.set(this.hardcoreMode() ? this.hardcoreRank() : this.normalRank());
+      },
+    });
   }
 
   toggleHardcore(): void {
     this.hardcoreMode.update(v => !v);
-    // Switch displayed ELO to the correct track
-    const elo = this.hardcoreMode()
+    const isHardcore = this.hardcoreMode();
+    // Switch displayed ELO and rank to the correct track
+    const elo = isHardcore
       ? this.profileStore.logoQuizHardcoreElo()
       : this.profileStore.logoQuizElo();
     this.currentElo.set(elo);
     this.startElo.set(elo);
+    this.myRank.set(isHardcore ? this.hardcoreRank() : this.normalRank());
   }
 
   ngOnDestroy(): void {

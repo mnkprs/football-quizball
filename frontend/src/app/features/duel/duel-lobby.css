@@ -128,19 +128,74 @@
   color: #c084fc;
 }
 
+/* Stats Row — Win Ratio + Rank side by side */
+.duel-stats-row {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 /* Win Ratio Card */
 .duel-stat-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  padding: 1.25rem 2.5rem;
+  flex: 1;
+  padding: 1rem 1.25rem;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 2px solid rgba(0, 122, 255, 0.4);
   border-radius: 1rem;
   box-shadow: 0 0 16px rgba(0, 122, 255, 0.15);
+}
+
+/* Rank Card */
+.duel-rank-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.duel-rank-card__label {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.duel-rank-card__value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.duel-rank-card__value--unranked {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.duel-rank-card__tier {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .duel-stat-card__label {

@@ -20,13 +20,24 @@
             Difficulty adjusts based on your ELO rating.
           </p>
 
-          <!-- ELO Card -->
-          <div class="lq-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
-            <span class="lq-elo-card__label">ELO RATING</span>
-            <span class="lq-elo-card__value">{{ currentElo() | number }}</span>
-            <span class="lq-elo-card__tier" [style.color]="eloTier().color">
-              {{ eloTier().label | uppercase }}
-            </span>
+          <!-- Stats Row: ELO + Rank -->
+          <div class="lq-stats-row">
+            <div class="lq-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+              <span class="lq-elo-card__label">ELO RATING</span>
+              <span class="lq-elo-card__value">{{ currentElo() | number }}</span>
+              <span class="lq-elo-card__tier" [style.color]="eloTier().color">
+                {{ eloTier().label | uppercase }}
+              </span>
+            </div>
+            <div class="lq-rank-card">
+              <span class="lq-rank-card__label">RANK</span>
+              @if (myRank() !== null) {
+                <span class="lq-rank-card__value">#{{ myRank() }}</span>
+              } @else {
+                <span class="lq-rank-card__value lq-rank-card__value--unranked">—</span>
+              }
+              <span class="lq-rank-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+            </div>
           </div>
 
           <!-- Hardcore Toggle -->

@@ -8,6 +8,7 @@ import {
   LeaderboardEntry,
   BlitzLeaderboardEntry,
   LogoQuizLeaderboardEntry,
+  LogoQuizHardcoreLeaderboardEntry,
   DuelLeaderboardEntry,
 } from '../../core/leaderboard-api.service';
 import { MatCardModule } from '@angular/material/card';
@@ -36,14 +37,17 @@ export class LeaderboardComponent implements OnInit {
   entries = signal<LeaderboardEntry[]>([]);
   blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
   logoQuizEntries = signal<LogoQuizLeaderboardEntry[]>([]);
+  logoQuizHardcoreEntries = signal<LogoQuizHardcoreLeaderboardEntry[]>([]);
   duelEntries = signal<DuelLeaderboardEntry[]>([]);
   soloMeEntry = signal<(LeaderboardEntry & { rank: number }) | null>(null);
   blitzMeEntry = signal<(BlitzLeaderboardEntry & { rank: number }) | null>(null);
   logoQuizMeEntry = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
+  logoQuizHardcoreMeEntry = signal<(LogoQuizHardcoreLeaderboardEntry & { rank: number }) | null>(null);
   duelMeEntry = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
   activeTab = signal<'solo' | 'blitz' | 'logoQuiz' | 'duel'>('solo');
+  logoQuizSubTab = signal<'normal' | 'hardcore'>('normal');
 
   ngOnInit(): void {
     this.load();
@@ -51,6 +55,10 @@ export class LeaderboardComponent implements OnInit {
 
   setActiveTab(tab: 'solo' | 'blitz' | 'logoQuiz' | 'duel'): void {
     this.activeTab.set(tab);
+  }
+
+  setLogoQuizSubTab(sub: 'normal' | 'hardcore'): void {
+    this.logoQuizSubTab.set(sub);
   }
 
   async load(): Promise<void> {
@@ -66,17 +74,20 @@ export class LeaderboardComponent implements OnInit {
               soloMe: null,
               blitzMe: null,
               logoQuizMe: null,
+              logoQuizHardcoreMe: null,
               duelMe: null,
             }))
-          : Promise.resolve({ soloMe: null, blitzMe: null, logoQuizMe: null, duelMe: null }),
+          : Promise.resolve({ soloMe: null, blitzMe: null, logoQuizMe: null, logoQuizHardcoreMe: null, duelMe: null }),
       ]);
       this.entries.set(leaderboardRes.solo ?? []);
       this.blitzEntries.set(leaderboardRes.blitz ?? []);
       this.logoQuizEntries.set(leaderboardRes.logoQuiz ?? []);
+      this.logoQuizHardcoreEntries.set(leaderboardRes.logoQuizHardcore ?? []);
       this.duelEntries.set(leaderboardRes.duel ?? []);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.blitzMeEntry.set(meRes.blitzMe ?? null);
       this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
+      this.logoQuizHardcoreMeEntry.set(meRes.logoQuizHardcoreMe ?? null);
       this.duelMeEntry.set(meRes.duelMe ?? null);
     } catch (err: any) {
       this.error.set(this.lang.t().lbLoadFailed);
@@ -105,6 +116,12 @@ export class LeaderboardComponent implements OnInit {
     const me = this.logoQuizMeEntry();
     if (!me) return false;
     return !this.logoQuizEntries().some((entry) => entry.id === me.id);
+  }
+
+  showLogoQuizHardcoreMeBelow(): boolean {
+    const me = this.logoQuizHardcoreMeEntry();
+    if (!me) return false;
+    return !this.logoQuizHardcoreEntries().some((entry) => entry.id === me.id);
   }
 
   showDuelMeBelow(): boolean {

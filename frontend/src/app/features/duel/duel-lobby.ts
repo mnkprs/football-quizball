@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { DuelApiService, DuelGameSummary, DuelGameType } from './duel-api.service';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
+import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
 
 @Component({
@@ -22,6 +23,7 @@ export class DuelLobbyComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private matchHistory = inject(MatchHistoryApiService);
+  private leaderboardApi = inject(LeaderboardApiService);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
@@ -32,6 +34,9 @@ export class DuelLobbyComponent implements OnInit {
   gameType = signal<DuelGameType>('standard');
   isLogoMode = signal(false);
   showPlaySheet = signal(false);
+
+  // Rank
+  myRank = signal<number | null>(null);
 
   // Win ratio stats
   wins = signal(0);
@@ -52,6 +57,13 @@ export class DuelLobbyComponent implements OnInit {
     }
     this.loadGames();
     this.loadWinStats();
+    this.loadRank();
+  }
+
+  private loadRank(): void {
+    this.leaderboardApi.getMyLeaderboardEntries().subscribe({
+      next: (res) => this.myRank.set(res.duelMe?.rank ?? null),
+    });
   }
 
   private async loadGames(): Promise<void> {

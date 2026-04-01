@@ -22,17 +22,28 @@
       }
     </div>
 
-    <!-- Win Ratio Card -->
-    <div class="duel-stat-card">
-      <span class="duel-stat-card__label">WIN RATIO</span>
-      <span class="duel-stat-card__value">{{ winRatio() !== null ? winRatio() + '%' : '—' }}</span>
-      @if (totalGames() > 0) {
-        <div class="duel-stat-card__record">
-          <span class="duel-stat-card__record-win">{{ wins() }}W</span>
-          <span class="duel-stat-card__record-draw">{{ draws() }}D</span>
-          <span class="duel-stat-card__record-loss">{{ losses() }}L</span>
-        </div>
-      }
+    <!-- Stats Row: Win Ratio + Rank -->
+    <div class="duel-stats-row">
+      <div class="duel-stat-card">
+        <span class="duel-stat-card__label">WIN RATIO</span>
+        <span class="duel-stat-card__value">{{ winRatio() !== null ? winRatio() + '%' : '—' }}</span>
+        @if (totalGames() > 0) {
+          <div class="duel-stat-card__record">
+            <span class="duel-stat-card__record-win">{{ wins() }}W</span>
+            <span class="duel-stat-card__record-draw">{{ draws() }}D</span>
+            <span class="duel-stat-card__record-loss">{{ losses() }}L</span>
+          </div>
+        }
+      </div>
+      <div class="duel-rank-card">
+        <span class="duel-rank-card__label">RANK</span>
+        @if (myRank() !== null) {
+          <span class="duel-rank-card__value">#{{ myRank() }}</span>
+        } @else {
+          <span class="duel-rank-card__value duel-rank-card__value--unranked">—</span>
+        }
+        <span class="duel-rank-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+      </div>
     </div>
 
     <!-- Active Duels -->

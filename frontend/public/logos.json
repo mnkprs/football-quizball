@@ -11,17 +11,6 @@
     "country": "England"
   },
   {
-    "team_name": "Brighton & Hove Albion",
-    "slug": "brighton-hove-albion",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880800027_3johhnh.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880801292_5889vq6.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880800470_gtl6087.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880800772_vn679te.webp",
-    "difficulty": "easy",
-    "league": "Premier League",
-    "country": "England"
-  },
-  {
     "team_name": "Manchester United",
     "slug": "manchester-united",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880806901_y9zla4n.webp",
@@ -33,17 +22,6 @@
     "country": "England"
   },
   {
-    "team_name": "Levante",
-    "slug": "levante",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881367560_idooxfp.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881369385_f8nvh5v.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881368472_50t82k3.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881368983_5u1nxqm.webp",
-    "difficulty": "medium",
-    "league": "LaLiga",
-    "country": "Spain"
-  },
-  {
     "team_name": "Liverpool FC",
     "slug": "liverpool-fc",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880823777_f44pmkd.webp",
@@ -53,17 +31,6 @@
     "difficulty": "easy",
     "league": "Premier League, Champions League",
     "country": "England"
-  },
-  {
-    "team_name": "Espanyol",
-    "slug": "espanyol",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880830060_n0wrzzr.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880831366_xiys8s7.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880830474_cyu1m4o.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880830903_d6wuipm.webp",
-    "difficulty": "medium",
-    "league": "LaLiga",
-    "country": "Spain"
   },
   {
     "team_name": "Celta Vigo",
@@ -143,17 +110,6 @@
     "country": "England"
   },
   {
-    "team_name": "West Ham",
-    "slug": "west-ham",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880817275_qzk5hj4.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880818617_1o4mvdd.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880817650_8zhb0p5.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880818262_ti5wnqf.webp",
-    "difficulty": "easy",
-    "league": "Premier League",
-    "country": "England"
-  },
-  {
     "team_name": "Osasuna",
     "slug": "osasuna",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880805307_ngp3exx.webp",
@@ -207,17 +163,6 @@
     "difficulty": "medium",
     "league": "LaLiga",
     "country": "Spain"
-  },
-  {
-    "team_name": "Pafos",
-    "slug": "pafos",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881385252_echltt9.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881386164_ndtpap6.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881385649_psjd21l.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881385896_y3d03gl.webp",
-    "difficulty": "medium",
-    "league": "Champions League",
-    "country": "Cyprus"
   },
   {
     "team_name": "Oviedo",
@@ -295,17 +240,6 @@
     "difficulty": "medium",
     "league": "Premier League",
     "country": "England"
-  },
-  {
-    "team_name": "Benfica",
-    "slug": "benfica",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880878138_taa4gl4.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880879065_ec11js1.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880878455_ez1jj4t.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880878785_aaqvpy6.webp",
-    "difficulty": "easy",
-    "league": "Champions League, Liga Portugal",
-    "country": "Portugal"
   },
   {
     "team_name": "AS Roma",
@@ -462,17 +396,6 @@
     "country": "Italy"
   },
   {
-    "team_name": "Real Betis",
-    "slug": "real-betis",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880851704_cwc1qgg.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880853083_qx9ffza.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880852045_2fq7ozf.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880852572_kynuvxg.webp",
-    "difficulty": "medium",
-    "league": "LaLiga, Europa League",
-    "country": "Spain"
-  },
-  {
     "team_name": "Valencia",
     "slug": "valencia",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880838304_135zliw.webp",
@@ -572,39 +495,6 @@
     "country": "Spain"
   },
   {
-    "team_name": "PSV",
-    "slug": "psv",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880875511_w8gh6kb.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880876322_3dkey2o.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880875778_ctargdc.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880876054_hlf31en.webp",
-    "difficulty": "easy",
-    "league": "Champions League, Eredivisie",
-    "country": "Netherlands"
-  },
-  {
-    "team_name": "Sporting",
-    "slug": "sporting",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880879465_c9tv4q9.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880880337_zpji674.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880879776_zmpojh0.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880880041_al2fzs1.webp",
-    "difficulty": "easy",
-    "league": "Champions League, Liga Portugal",
-    "country": "Portugal"
-  },
-  {
-    "team_name": "Copenhagen",
-    "slug": "copenhagen",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880841463_cxgym1f.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880842267_9xjox42.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880841729_0ie2ek0.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880842006_6ofty86.webp",
-    "difficulty": "easy",
-    "league": "Champions League",
-    "country": "Denmark"
-  },
-  {
     "team_name": "Galatasaray",
     "slug": "galatasaray",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880880682_15kopwr.webp",
@@ -627,28 +517,6 @@
     "country": "England"
   },
   {
-    "team_name": "Tottenham",
-    "slug": "tottenham",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881379254_0qy6ji7.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881380225_g528f57.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881379551_q7709c2.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881379823_m1ey6od.webp",
-    "difficulty": "easy",
-    "league": "Premier League, Champions League",
-    "country": "England"
-  },
-  {
-    "team_name": "Athletic Bilbao",
-    "slug": "athletic-bilbao",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881381258_egmj4c0.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881382303_m6fk06q.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881381621_zb3r720.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881382062_yg43zq1.webp",
-    "difficulty": "easy",
-    "league": "LaLiga, Champions League",
-    "country": "Spain"
-  },
-  {
     "team_name": "Ajax",
     "slug": "ajax",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880876739_g7uen11.webp",
@@ -658,17 +526,6 @@
     "difficulty": "easy",
     "league": "Champions League, Eredivisie",
     "country": "Netherlands"
-  },
-  {
-    "team_name": "Qarabag",
-    "slug": "qarabag",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881382803_sasfbhi.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881383742_4il93j9.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881383191_74yga4i.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881383487_8yt2erg.webp",
-    "difficulty": "medium",
-    "league": "Champions League",
-    "country": "Azerbaijan"
   },
   {
     "team_name": "Cremonese",
@@ -704,17 +561,6 @@
     "country": "Belgium"
   },
   {
-    "team_name": "Marseille",
-    "slug": "marseille",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881402142_r7jg3ot.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881403139_hfzbe0b.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881402569_72dl3cw.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881402876_285gcur.webp",
-    "difficulty": "easy",
-    "league": "Champions League, Ligue 1",
-    "country": "France"
-  },
-  {
     "team_name": "Slavia Praha",
     "slug": "slavia-praha",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881384152_8ls4n5z.webp",
@@ -724,17 +570,6 @@
     "difficulty": "medium",
     "league": "Champions League",
     "country": "Czechia"
-  },
-  {
-    "team_name": "Monaco",
-    "slug": "monaco",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881403498_01jeqn6.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881404450_wgbdv3c.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881403880_an50371.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881404203_6h4p1wp.webp",
-    "difficulty": "easy",
-    "league": "Champions League, Ligue 1",
-    "country": "France"
   },
   {
     "team_name": "Sevilla",
@@ -768,17 +603,6 @@
     "difficulty": "medium",
     "league": "Serie A",
     "country": "Italy"
-  },
-  {
-    "team_name": "Dortmund",
-    "slug": "dortmund",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765034498149_hgbcezn.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765034480040_1ntxro1.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765034502445_n5az8aw.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765034510062_kk81v44.webp",
-    "difficulty": "easy",
-    "league": "Champions League, Bundesliga",
-    "country": "Germany"
   },
   {
     "team_name": "Eintracht Frankfurt",
@@ -867,17 +691,6 @@
     "difficulty": "easy",
     "league": "LaLiga, Champions League",
     "country": "Spain"
-  },
-  {
-    "team_name": "Vasco de Gama",
-    "slug": "vasco-de-gama",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765044490696_164jdbh.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765044474769_205t6xs.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765044498553_s0xm4z2.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765044504370_cuj20ah.webp",
-    "difficulty": "easy",
-    "league": "Brasileirao Serie A",
-    "country": "Brazil"
   },
   {
     "team_name": "Corinthians",
@@ -1078,17 +891,6 @@
     "country": "Mexico"
   },
   {
-    "team_name": "UNAM Pumas",
-    "slug": "unam-pumas",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765142633650_a8wn8je.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765142617344_ulsn28u.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765142676006_4hs6mln.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765142642455_xls7oak.webp",
-    "difficulty": "medium",
-    "league": "Liga MX",
-    "country": "Mexico"
-  },
-  {
     "team_name": "Santos Laguna",
     "slug": "santos-laguna",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765142795974_3pqb4yt.webp",
@@ -1265,17 +1067,6 @@
     "country": "Germany"
   },
   {
-    "team_name": "Hoffenheim",
-    "slug": "hoffenheim",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211196134_dck8j8x.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211177416_odj1b16.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211201806_5v8j53a.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211207527_y8nyiwz.webp",
-    "difficulty": "medium",
-    "league": "Bundesliga",
-    "country": "Bundesliga"
-  },
-  {
     "team_name": "Augsburg",
     "slug": "augsburg",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211260176_b6t8xuh.webp",
@@ -1386,34 +1177,12 @@
     "country": "France"
   },
   {
-    "team_name": "Strasbourg",
-    "slug": "strasbourg",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219403654_8u90784.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219391800_q6qfmq2.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219408767_togl9nn.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219414413_9fex9nz.webp",
-    "difficulty": "medium",
-    "league": "Ligue 1",
-    "country": "France"
-  },
-  {
     "team_name": "Toulouse",
     "slug": "toulouse",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219441181_cb7ble2.webp",
     "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219425607_er99u8i.webp",
     "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219446508_8sj1hb7.webp",
     "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219451651_umkteot.webp",
-    "difficulty": "medium",
-    "league": "Ligue 1",
-    "country": "France"
-  },
-  {
-    "team_name": "Brest",
-    "slug": "brest",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219477057_hkl9vcf.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219464169_2q56ico.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219483459_0k2ugtc.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219488039_nkbyomn.webp",
     "difficulty": "medium",
     "league": "Ligue 1",
     "country": "France"
@@ -1452,17 +1221,6 @@
     "country": "France"
   },
   {
-    "team_name": "Auxerre",
-    "slug": "auxerre",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219632551_e1w63tw.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219619987_884vmmq.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219640282_8sddxih.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219647545_9f9uqzx.webp",
-    "difficulty": "medium",
-    "league": "Ligue 1",
-    "country": "France"
-  },
-  {
     "team_name": "Paris FC",
     "slug": "paris-fc",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219678900_gyrjlmq.webp",
@@ -1472,28 +1230,6 @@
     "difficulty": "medium",
     "league": "Ligue 1",
     "country": "France"
-  },
-  {
-    "team_name": "Lille (LOSC)",
-    "slug": "lille-losc",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219140994_yrfcg9t.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219118829_oomu7b2.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219149458_e6sq3f3.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219155358_174by98.webp",
-    "difficulty": "medium",
-    "league": "Ligue 1, Europa League",
-    "country": "France"
-  },
-  {
-    "team_name": "Hamburger",
-    "slug": "hamburger",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211683204_dc63bkg.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211646130_wkv3wzv.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211675718_urrqref.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765211690820_l7y53ld.webp",
-    "difficulty": "easy",
-    "league": "Bundesliga",
-    "country": "Germany"
   },
   {
     "team_name": "Bayern Munich",
@@ -1524,17 +1260,6 @@
     "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219705999_kwsi9gy.webp",
     "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219727185_bzz2gmj.webp",
     "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219733015_nd5dr1s.webp",
-    "difficulty": "medium",
-    "league": "Ligue 1",
-    "country": "France"
-  },
-  {
-    "team_name": "Angers",
-    "slug": "angers",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219759664_4n2xxgp.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219746385_5dhv87e.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219771545_46j5222.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765219779989_gzfv7p3.webp",
     "difficulty": "medium",
     "league": "Ligue 1",
     "country": "France"
@@ -1991,28 +1716,6 @@
     "country": "Belgium"
   },
   {
-    "team_name": "Malmo",
-    "slug": "malmo",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377563894_fuy13ko.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377551598_jstl1g4.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377572718_c9d9w7u.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377583632_h28qxhv.webp",
-    "difficulty": "medium",
-    "league": "Europa League",
-    "country": "Sweden"
-  },
-  {
-    "team_name": "Brann",
-    "slug": "brann",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377619714_7nwtgva.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377597411_h7u7dq6.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377627209_vvkl6a8.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377633913_s6nkyzz.webp",
-    "difficulty": "medium",
-    "league": "Europa League",
-    "country": "Norway"
-  },
-  {
     "team_name": "Midtjylland",
     "slug": "midtjylland",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377688734_n6t926l.webp",
@@ -2022,17 +1725,6 @@
     "difficulty": "medium",
     "league": "Europa League",
     "country": "Denmark"
-  },
-  {
-    "team_name": "Sturm Graz",
-    "slug": "sturm-graz",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377794036_0a3wh84.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377777517_nkz35zo.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377801999_5j33wsp.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377813419_zefc8ju.webp",
-    "difficulty": "medium",
-    "league": "Europa League",
-    "country": "Austria"
   },
   {
     "team_name": "Young Boys",
@@ -2066,17 +1758,6 @@
     "difficulty": "medium",
     "league": "Europa League, Eredivisie",
     "country": "Netherlands"
-  },
-  {
-    "team_name": "Salzburg",
-    "slug": "salzburg",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377734232_zfp47qi.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377720202_n1st3hi.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377743491_q2zl4ei.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765377750594_nx1ilah.webp",
-    "difficulty": "easy",
-    "league": "Europa League",
-    "country": "Austria"
   },
   {
     "team_name": "Braga",
@@ -2618,17 +2299,6 @@
     "country": "USA"
   },
   {
-    "team_name": "San Jose Quakes",
-    "slug": "san-jose-quakes",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765544903697_e0r3ekz.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765544890501_xaxzkck.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765544908240_8mtlh5o.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765544913200_gq76a6z.webp",
-    "difficulty": "medium",
-    "league": "Major League Soccer (MLS)",
-    "country": "USA"
-  },
-  {
     "team_name": "Portland Timbers",
     "slug": "portland-timbers",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765544945179_d7wj1ko.webp",
@@ -2712,17 +2382,6 @@
     "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545211820_b4hsovu.webp",
     "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545231163_up5rnbp.webp",
     "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545236248_wpu507d.webp",
-    "difficulty": "medium",
-    "league": "Major League Soccer (MLS)",
-    "country": "USA"
-  },
-  {
-    "team_name": "St. Louis City",
-    "slug": "st-louis-city",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545290102_q88ftbk.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545247796_22pn7gj.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545348940_6psi9d0.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545355330_ifshi02.webp",
     "difficulty": "medium",
     "league": "Major League Soccer (MLS)",
     "country": "USA"
@@ -2849,17 +2508,6 @@
     "country": "USA"
   },
   {
-    "team_name": "Atlanta",
-    "slug": "atlanta",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545915320_jz5ubtl.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545902645_cs653lo.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545928951_3prouyr.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545935208_zgi5gto.webp",
-    "difficulty": "medium",
-    "league": "Major League Soccer (MLS)",
-    "country": "USA"
-  },
-  {
     "team_name": "Nashville",
     "slug": "nashville",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545963849_lkv0kzl.webp",
@@ -2913,17 +2561,6 @@
     "difficulty": "easy",
     "league": "Major League Soccer (MLS)",
     "country": "USA"
-  },
-  {
-    "team_name": "Utrecht",
-    "slug": "utrecht",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765376869636_k06uw18.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765376853744_40uzszr.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765376876698_cdqjwlu.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765376885533_crlkbh1.webp",
-    "difficulty": "medium",
-    "league": "Europa League, Eredivisie",
-    "country": "Netherlands"
   },
   {
     "team_name": "Twente",
@@ -3003,17 +2640,6 @@
     "country": "Netherlands"
   },
   {
-    "team_name": "Heracles",
-    "slug": "heracles",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765550842063_u9hsy0u.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765550827251_71r9jx7.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765550848544_nzt8x60.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765550854259_ge29x3c.webp",
-    "difficulty": "medium",
-    "league": "Eredivisie",
-    "country": "Netherlands"
-  },
-  {
     "team_name": "Volendam",
     "slug": "volendam",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765550877903_z3tb1cx.webp",
@@ -3067,17 +2693,6 @@
     "difficulty": "easy",
     "league": "Eredivisie",
     "country": "Netherlands"
-  },
-  {
-    "team_name": "Vitoria (PT)",
-    "slug": "vitoria-pt",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765649742733_08i1709.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765649723317_fzplgz5.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765649746252_ch41wuf.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765649750502_ux007f3.webp",
-    "difficulty": "medium",
-    "league": "Liga Portugal",
-    "country": "Portugal"
   },
   {
     "team_name": "Boavista",
@@ -3245,17 +2860,6 @@
     "country": "England"
   },
   {
-    "team_name": "Swansea",
-    "slug": "swansea",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672416448_bse2wdp.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672402379_qet87v3.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672421911_fecpf1e.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672427457_c2uqbld.webp",
-    "difficulty": "medium",
-    "league": "EFL Championship",
-    "country": "England"
-  },
-  {
     "team_name": "Bristol City",
     "slug": "bristol-city",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672449225_cuyq36p.webp",
@@ -3383,17 +2987,6 @@
     "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672908779_i212dvu.webp",
     "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672933780_f51yn5p.webp",
     "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672940508_2xpn4ud.webp",
-    "difficulty": "medium",
-    "league": "EFL Championship",
-    "country": "England"
-  },
-  {
-    "team_name": "Charlton",
-    "slug": "charlton",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672968250_fj8cykd.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672955070_yta3odw.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672974804_6p956um.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765672981170_206kkn6.webp",
     "difficulty": "medium",
     "league": "EFL Championship",
     "country": "England"
@@ -3773,17 +3366,6 @@
     "country": "England"
   },
   {
-    "team_name": "Bodo Glimt",
-    "slug": "bodo-glimt",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880840301_xqebt38.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880841122_rmeu5nu.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880840559_q1xnf9s.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764880840827_iy6sqjx.webp",
-    "difficulty": "medium",
-    "league": "Champions League",
-    "country": "Norway"
-  },
-  {
     "team_name": "Tigres UANL",
     "slug": "tigres-uanl",
     "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765142709932_yg0r7o7.webp",
@@ -3793,17 +3375,6 @@
     "difficulty": "easy",
     "league": "Liga MX",
     "country": "Mexico"
-  },
-  {
-    "team_name": "PSG",
-    "slug": "psg",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881400633_e9ypdhs.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881401753_mzdcbok.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881401032_1rt8cn9.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1764881401296_0qtywmq.webp",
-    "difficulty": "easy",
-    "league": "Champions League, Ligue 1",
-    "country": "France"
   },
   {
     "team_name": "Canada",
@@ -3837,28 +3408,6 @@
     "difficulty": "easy",
     "league": "Copa Libertadores",
     "country": "Argentina"
-  },
-  {
-    "team_name": "Red Star Belgrad",
-    "slug": "red-star-belgrad",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765380911610_50o3b3p.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765380886397_hv682ci.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765380919558_aqwvlg2.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765380924162_3x4odu8.webp",
-    "difficulty": "easy",
-    "league": "Europa League",
-    "country": "Serbia"
-  },
-  {
-    "team_name": "Red Bull NY",
-    "slug": "red-bull-ny",
-    "image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545748590_qepni4q.webp",
-    "real_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545727173_5wj75ll.webp",
-    "medium_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545761803_4cq3lkr.webp",
-    "hard_image_url": "https://polhepsikshzgwjwltgt.supabase.co/storage/v1/object/public/logos/1765545766941_f9ea85i.webp",
-    "difficulty": "easy",
-    "league": "Major League Soccer (MLS)",
-    "country": "USA"
   },
   {
     "team_name": "Feyenoord",

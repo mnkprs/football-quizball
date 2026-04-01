@@ -15,6 +15,13 @@ export interface LogoQuizLeaderboardEntry {
   logo_quiz_games_played: number;
 }
 
+export interface LogoQuizHardcoreLeaderboardEntry {
+  id: string;
+  username: string;
+  logo_quiz_hardcore_elo: number;
+  logo_quiz_hardcore_games_played: number;
+}
+
 export interface DuelLeaderboardEntry {
   user_id: string;
   username: string;
@@ -27,6 +34,7 @@ export interface LeaderboardResponse {
   solo: LeaderboardEntry[];
   blitz: BlitzLeaderboardEntry[];
   logoQuiz: LogoQuizLeaderboardEntry[];
+  logoQuizHardcore: LogoQuizHardcoreLeaderboardEntry[];
   duel: DuelLeaderboardEntry[];
 }
 
@@ -34,6 +42,7 @@ export interface MyLeaderboardEntriesResponse {
   soloMe: (LeaderboardEntry & { rank: number }) | null;
   blitzMe: (BlitzLeaderboardEntry & { rank: number }) | null;
   logoQuizMe: (LogoQuizLeaderboardEntry & { rank: number }) | null;
+  logoQuizHardcoreMe: (LogoQuizHardcoreLeaderboardEntry & { rank: number }) | null;
   duelMe: (DuelLeaderboardEntry & { rank: number }) | null;
 }
 

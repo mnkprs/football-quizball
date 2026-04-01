@@ -454,16 +454,39 @@ export class QuestionPoolService {
   async seedPool(
     count: number,
     force = false,
+    options?: { minDrawable?: number },
   ): Promise<{ results: { slot: string; added: number }[]; sessionId: string | null; questionIds: string[] }> {
     const passes = Math.min(500, Math.max(1, count));
+    const minDrawable = options?.minDrawable;
     const runSeedPool = async () => {
       const results: { slot: string; added: number }[] = [];
       const allQuestionIds: string[] = [];
       let completed = false;
-      this.logger.log(JSON.stringify({ event: 'seed_pool_start', passes }));
+      this.logger.log(JSON.stringify({ event: 'seed_pool_start', passes, minDrawable: minDrawable ?? null }));
 
       try {
-        const categories = this.getLiveCategories();
+        let categories = this.getLiveCategories();
+
+        // When minDrawable is set, skip categories where every slot already meets the threshold.
+        if (minDrawable != null) {
+          const stats = await this.getSeedPoolStats();
+          const belowThreshold = new Set<string>();
+          for (const row of stats) {
+            if (Number(row.drawable_unanswered ?? 0) < minDrawable) {
+              belowThreshold.add(row.category);
+            }
+          }
+          const before = categories.length;
+          categories = categories.filter((c) => belowThreshold.has(c));
+          const skipped = before - categories.length;
+          if (skipped > 0) {
+            this.logger.log(`[seedPool] minDrawable=${minDrawable}: skipped ${skipped} categories already at/above threshold`);
+          }
+          if (categories.length === 0) {
+            this.logger.log(`[seedPool] All categories at or above ${minDrawable} drawable_unanswered — nothing to seed`);
+          }
+        }
+
         // Process categories in parallel batches of SEED_CATEGORY_CONCURRENCY.
         // Each category has its own isolated existingKeys Set (loaded per-category from DB),
         // so there is no shared state between parallel category tasks.
