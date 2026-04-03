@@ -47,9 +47,9 @@ export class NotificationBannerComponent implements OnInit {
       const meta = await firstValueFrom(
         this.newsApi.getMetadata().pipe(catchError(() => of(null))),
       );
-      if (!meta || meta.count === 0) return;
+      if (!meta || meta.questions_remaining === 0) return;
 
-      const batchKey = meta.updatesAt;
+      const batchKey = meta.expires_at ?? '';
       const dismissed = this.readDismissed(LS_NEWS_DISMISS);
       if (dismissed !== batchKey) {
         this.news.set({ visible: true, batchKey });

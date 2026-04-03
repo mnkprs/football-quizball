@@ -472,6 +472,124 @@
   max-width: 18rem;
 }
 
+/* ── Round header (countdown + streak) ──────────────────── */
+
+.news-round-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.news-round-timer {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-fg-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.news-round-streak {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* ── Countdown card ─────────────────────────────────────── */
+
+.news-countdown-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-low);
+  border: 1px solid var(--color-border);
+  margin: 1rem 0;
+}
+
+.news-countdown-card--finished {
+  margin: 0.75rem 0 1.25rem;
+}
+
+.news-countdown-label {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-fg-dim);
+}
+
+.news-countdown-time {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-accent);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Streak display ─────────────────────────────────────── */
+
+.news-streak-info {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+}
+
+.news-streak-flame {
+  font-size: 1.25rem;
+}
+
+.news-streak-flame--large {
+  font-size: 2rem;
+}
+
+.news-streak-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.news-streak-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-lg);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  margin: 1rem 0 0.5rem;
+}
+
+.news-streak-count {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f59e0b;
+}
+
+.news-streak-label {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #f59e0b;
+  opacity: 0.7;
+}
+
+/* ── Finished CTA ───────────────────────────────────────── */
+
+.news-finished__cta {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+  margin: 0 0 1.5rem;
+}
+
 /* ── Phase sections (flex layout) ────────────────────────── */
 
 .news-phase {

@@ -5,14 +5,19 @@ import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
 export interface NewsMetadata {
-  count: number;
-  updatesAt: string;
+  round_id: string | null;
+  questions_total: number;
+  questions_remaining: number;
+  expires_at: string | null;
+  streak: number;
+  max_streak: number;
 }
 
 export interface NewsQuestion {
   id: string;
   question_text: string;
   fifty_fifty_hint: string | null;
+  wrong_choices: string[] | null;
   source_url: string | null;
 }
 

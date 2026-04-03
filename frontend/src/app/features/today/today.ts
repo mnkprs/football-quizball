@@ -48,13 +48,13 @@ export class TodayComponent implements OnInit, OnDestroy {
     return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   });
 
-  newsCount = computed(() => this.newsMeta()?.count ?? null);
+  newsCount = computed(() => this.newsMeta()?.questions_remaining ?? null);
 
   newsUpdatesIn = computed(() => {
     const meta = this.newsMeta();
     this.countdownTick();
-    if (!meta?.updatesAt) return '—';
-    const ms = new Date(meta.updatesAt).getTime() - Date.now();
+    if (!meta?.expires_at) return '—';
+    const ms = new Date(meta.expires_at).getTime() - Date.now();
     if (ms <= 0) return '0:00:00';
     const h = Math.floor(ms / 3600000);
     const m = Math.floor((ms % 3600000) / 60000);

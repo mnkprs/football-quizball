@@ -12,26 +12,62 @@
       <div class="news-loading">
         <div class="news-loading__icon">&#128240;</div>
         <h2 class="news-loading__title">News Mode</h2>
-        <p class="news-loading__desc">Test your knowledge on the latest football headlines.</p>
+        <p class="news-loading__desc">Today's football headlines, turned into trivia.</p>
         <div class="news-loading__spinner">&#9917;</div>
+      </div>
+    }
+
+    <!-- EMPTY STATE (no active round) -->
+    @if (phase() === 'empty') {
+      <div class="news-empty">
+        <div class="news-empty__icon">&#128240;</div>
+        <h2 class="news-empty__title">No round right now</h2>
+        <p class="news-empty__desc">New questions drop daily from the latest football headlines.</p>
+
+        @if (countdown()) {
+          <div class="news-countdown-card">
+            <span class="news-countdown-label">Next round in</span>
+            <span class="news-countdown-time">{{ countdown() }}</span>
+          </div>
+        }
+
+        @if (streak() > 0) {
+          <div class="news-streak-info">
+            <span class="news-streak-flame">&#128293;</span>
+            <span class="news-streak-text">{{ streak() }} day streak</span>
+          </div>
+        }
+
+        <button (click)="goHome()" class="news-action-btn">
+          Back to Home
+        </button>
       </div>
     }
 
     <!-- QUESTION -->
     @if (phase() === 'question' && currentQuestion()) {
       <div class="news-phase">
+        <div class="news-round-header">
+          @if (countdown()) {
+            <span class="news-round-timer">{{ countdown() }}</span>
+          }
+          @if (streak() > 0) {
+            <span class="news-round-streak">&#128293; {{ streak() }}</span>
+          }
+        </div>
+
         <div class="news-progress">
           <div class="news-progress__fill" [style.--progress]="progressPercent() / 100"></div>
         </div>
 
         <div class="news-header">
-          <span class="news-counter">Question {{ currentIndex() + 1 }} of {{ total() }}</span>
-          <span class="news-score">{{ correctCount() }}/{{ total() }}</span>
+          <span class="news-counter">Question {{ currentIndex() + 1 }} of {{ questionsTotal() }}</span>
+          <span class="news-score">{{ correctCount() }}/{{ questionsTotal() }}</span>
         </div>
 
         <span class="news-badge">
           <span class="news-badge__dot"></span>
-          LATEST NEWS
+          DAILY ROUND
         </span>
 
         <h2 class="news-question">{{ currentQuestion()!.question_text }}</h2>
@@ -61,7 +97,7 @@
         </div>
 
         <div class="news-header">
-          <span class="news-counter">Question {{ currentIndex() + 1 }} of {{ total() }}</span>
+          <span class="news-counter">Question {{ currentIndex() + 1 }} of {{ questionsTotal() }}</span>
           <span class="news-result-badge" [class]="lastResult()!.correct ? 'news-result-badge news-result-badge--correct' : 'news-result-badge news-result-badge--wrong'">
             {{ lastResult()!.correct ? 'CORRECT' : 'WRONG' }}
           </span>
@@ -69,14 +105,14 @@
 
         <span class="news-badge">
           <span class="news-badge__dot"></span>
-          LATEST NEWS
+          DAILY ROUND
         </span>
 
         <h2 class="news-question">{{ currentQuestion()!.question_text }}</h2>
 
         <!-- Your answer -->
         <div class="news-answer-reveal" [class]="lastResult()!.correct ? 'news-answer-reveal news-answer-reveal--correct' : 'news-answer-reveal news-answer-reveal--wrong'">
-          <span class="news-answer-icon" [class]="lastResult()!.correct ? 'news-answer-icon news-answer-icon--correct' : 'news-answer-icon news-answer-icon--wrong'">{{ lastResult()!.correct ? '✓' : '✗' }}</span>
+          <span class="news-answer-icon" [class]="lastResult()!.correct ? 'news-answer-icon news-answer-icon--correct' : 'news-answer-icon news-answer-icon--wrong'">{{ lastResult()!.correct ? '\u2713' : '\u2717' }}</span>
           <span class="news-answer-text">{{ userAnswer() }}</span>
           <span class="news-answer-tag">{{ lastResult()!.correct ? 'CORRECT' : 'YOUR ANSWER' }}</span>
         </div>
@@ -84,7 +120,7 @@
         <!-- Correct answer (if wrong) -->
         @if (!lastResult()!.correct) {
           <div class="news-answer-reveal news-answer-reveal--correct-revealed">
-            <span class="news-answer-icon news-answer-icon--revealed">✓</span>
+            <span class="news-answer-icon news-answer-icon--revealed">\u2713</span>
             <span class="news-answer-text">{{ lastResult()!.correct_answer }}</span>
             <span class="news-answer-tag">CORRECT ANSWER</span>
           </div>
@@ -119,26 +155,31 @@
       </div>
     }
 
-    <!-- FINISHED -->
+    <!-- FINISHED (round complete) -->
     @if (phase() === 'finished') {
       <div class="news-finished">
         <div class="news-finished__icon">&#127942;</div>
-        <h2 class="news-finished__title">Session Complete!</h2>
-        <p class="news-finished__score">{{ correctCount() }}/{{ total() }}</p>
+        <h2 class="news-finished__title">Round Complete!</h2>
+        <p class="news-finished__score">{{ correctCount() }}/{{ questionsTotal() || total() }}</p>
         <p class="news-finished__accuracy">{{ accuracy() }}% correct</p>
-        <button (click)="goHome()" class="news-action-btn">
-          Back to Home
-        </button>
-      </div>
-    }
 
-    <!-- Empty state -->
-    @if (phase() === 'question' && total() === 0) {
-      <div class="news-empty">
-        <div class="news-empty__icon">&#128240;</div>
-        <h2 class="news-empty__title">No questions available</h2>
-        <p class="news-empty__desc">Check back later — news questions refresh every 6 hours.</p>
-        <p class="news-empty__hint">New headlines are added throughout the day.</p>
+        @if (streak() > 0) {
+          <div class="news-streak-card">
+            <span class="news-streak-flame news-streak-flame--large">&#128293;</span>
+            <span class="news-streak-count">{{ streak() }}</span>
+            <span class="news-streak-label">day streak</span>
+          </div>
+        }
+
+        @if (countdown()) {
+          <div class="news-countdown-card news-countdown-card--finished">
+            <span class="news-countdown-label">Next round in</span>
+            <span class="news-countdown-time">{{ countdown() }}</span>
+          </div>
+        }
+
+        <p class="news-finished__cta">See you tomorrow!</p>
+
         <button (click)="goHome()" class="news-action-btn">
           Back to Home
         </button>
