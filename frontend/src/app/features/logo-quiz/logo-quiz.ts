@@ -19,6 +19,7 @@ import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { ProfileStore } from '../../core/profile-store.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
+import { createGameTimer } from '../../core/game-timer';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 
@@ -67,8 +68,8 @@ export class LogoQuizComponent implements OnDestroy {
   hardcoreMode = signal(false);
 
   // Timer
-  timeLeft = signal(30);
-  private timerInterval: ReturnType<typeof setInterval> | null = null;
+  private timer = createGameTimer();
+  timeLeft = this.timer.timeLeft;
 
   // Computed
   eloTier = computed<EloTier>(() => getEloTier(this.currentElo()));
@@ -125,7 +126,7 @@ export class LogoQuizComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopTimer();
+    this.timer.destroy();
   }
 
   async startPlaying(): Promise<void> {
@@ -147,7 +148,7 @@ export class LogoQuizComponent implements OnDestroy {
       const q = await firstValueFrom(this.api.getQuestion(diff, hc));
       this.currentQuestion.set(q);
       this.phase.set('question');
-      this.startTimer(30);
+      this.timer.start(30, () => void this.onTimeout());
     } catch (err: any) {
       this.error.set(err?.error?.message ?? 'No more questions available');
       this.phase.set('finished');
@@ -159,7 +160,7 @@ export class LogoQuizComponent implements OnDestroy {
   async submitAnswer(answer: string): Promise<void> {
     const q = this.currentQuestion();
     if (!q || this.revealing()) return;
-    this.stopTimer();
+    this.timer.stop();
 
     try {
       const result = await firstValueFrom(
@@ -187,7 +188,7 @@ export class LogoQuizComponent implements OnDestroy {
   async onTimeout(): Promise<void> {
     const q = this.currentQuestion();
     if (!q || this.revealing()) return;
-    this.stopTimer();
+    this.timer.stop();
 
     try {
       const result = await firstValueFrom(
@@ -216,7 +217,7 @@ export class LogoQuizComponent implements OnDestroy {
   }
 
   endSession(): void {
-    this.stopTimer();
+    this.timer.stop();
     this.phase.set('finished');
     if (this.auth.user()) {
       this.api.checkAchievements().subscribe({
@@ -238,29 +239,8 @@ export class LogoQuizComponent implements OnDestroy {
   }
 
   goHome(): void {
-    this.stopTimer();
+    this.timer.stop();
     window.history.back();
   }
 
-  private startTimer(seconds: number): void {
-    this.timeLeft.set(seconds);
-    this.stopTimer();
-    this.timerInterval = setInterval(() => {
-      this.timeLeft.update(v => {
-        if (v <= 1) {
-          this.stopTimer();
-          this.onTimeout();
-          return 0;
-        }
-        return v - 1;
-      });
-    }, 1000);
-  }
-
-  private stopTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-  }
 }

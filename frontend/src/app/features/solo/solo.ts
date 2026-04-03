@@ -13,6 +13,8 @@ import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { PosthogService } from '../../core/posthog.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
+import { createGameTimer } from '../../core/game-timer';
+import { createReportCooldown } from '../../core/report-cooldown';
 import { ProfileStore } from '../../core/profile-store.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
@@ -82,14 +84,13 @@ export class SoloComponent implements OnDestroy {
   revealing = signal(false);
   revealResultData = signal<RevealResult | null>(null);
 
-  reportDisabled = signal(false);
-  problemReported = signal(false);
-  private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
+  private reportCooldown = createReportCooldown();
+  reportDisabled = this.reportCooldown.disabled;
+  problemReported = this.reportCooldown.reported;
   private tierUpTimeout: ReturnType<typeof setTimeout> | null = null;
-  timeLeft = signal(35);
+  private timer = createGameTimer();
+  timeLeft = this.timer.timeLeft;
   totalTimeLimit = signal(35);
-
-  private timerInterval: ReturnType<typeof setInterval> | null = null;
 
   accuracy = computed(() => {
     const q = this.questionsAnswered();
@@ -158,33 +159,13 @@ export class SoloComponent implements OnDestroy {
       this.questionsAnswered.set(q.questions_answered);
       this.currentElo.set(q.current_elo);
       this.totalTimeLimit.set(q.time_limit);
-      this.timeLeft.set(q.time_limit);
       this.phase.set('question');
-      this.startTimer(q.time_limit);
+      this.timer.start(q.time_limit, () => this.submitTimeout());
     } catch (err: any) {
       this.error.set('Failed to load question');
       this.phase.set('idle');
     } finally {
       this.loading.set(false);
-    }
-  }
-
-  private startTimer(seconds: number): void {
-    this.stopTimer();
-    this.timerInterval = setInterval(() => {
-      const left = this.timeLeft() - 1;
-      this.timeLeft.set(left);
-      if (left <= 0) {
-        this.stopTimer();
-        this.submitTimeout();
-      }
-    }, 1000);
-  }
-
-  private stopTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
     }
   }
 
@@ -215,7 +196,7 @@ export class SoloComponent implements OnDestroy {
 
   async submitAnswer(answer: string): Promise<void> {
     if (!answer.trim() || this.submitting()) return;
-    this.stopTimer();
+    this.timer.stop();
     await this.doSubmit(answer.trim());
   }
 
@@ -311,49 +292,37 @@ export class SoloComponent implements OnDestroy {
   }
 
   goHome(): void {
-    this.stopTimer();
+    this.timer.stop();
     this.router.navigate(['/']);
   }
 
   async reportQuestion(): Promise<void> {
-    if (this.reportDisabled()) return;
+    if (this.reportCooldown.disabled()) return;
     const q = this.currentQuestion();
     if (!q) return;
 
-    this.reportDisabled.set(true);
-    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
-    this.reportCooldownTimeout = setTimeout(() => {
-      this.reportDisabled.set(false);
-      this.reportCooldownTimeout = null;
-    }, 60_000);
-
-    const payload = {
-      questionId: q.question_id,
-      category: q.category,
-      difficulty: q.difficulty,
-      points: q.points,
-      questionText: q.question_text,
-    };
-
+    this.reportCooldown.start();
     try {
-      await firstValueFrom(this.gameApi.reportProblem(payload));
-      this.problemReported.set(true);
+      await firstValueFrom(this.gameApi.reportProblem({
+        questionId: q.question_id,
+        category: q.category,
+        difficulty: q.difficulty,
+        points: q.points,
+        questionText: q.question_text,
+      }));
+      this.reportCooldown.markReported();
     } catch {
-      this.reportDisabled.set(false);
-      if (this.reportCooldownTimeout) {
-        clearTimeout(this.reportCooldownTimeout);
-        this.reportCooldownTimeout = null;
-      }
+      this.reportCooldown.cancel();
     }
   }
 
   dismissProblemReported(): void {
-    this.problemReported.set(false);
+    this.reportCooldown.dismiss();
   }
 
   ngOnDestroy(): void {
-    this.stopTimer();
-    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
+    this.timer.destroy();
+    this.reportCooldown.destroy();
     if (this.tierUpTimeout) clearTimeout(this.tierUpTimeout);
   }
 }
