@@ -7,7 +7,7 @@
   <!-- Multi-mode: outer is a div, each mode is its own button -->
   <div class="battle-hero" [class.battle-hero--purple]="theme() === 'purple'" [attr.aria-label]="title()">
     @if (backgroundImage(); as img) {
-      <img class="battle-hero__bg" [ngSrc]="img" alt="" aria-hidden="true" fill />
+      <img class="battle-hero__bg" [ngSrc]="img" alt="" aria-hidden="true" fill priority="high" />
       <span class="battle-hero__overlay" [class.battle-hero__overlay--purple]="theme() === 'purple'" aria-hidden="true"></span>
     }
 
@@ -88,7 +88,7 @@
   <!-- Single-action: outer is a button (original behavior) -->
   <button type="button" class="battle-hero" (click)="onCardClick()" [attr.aria-label]="title()">
     @if (backgroundImage(); as img) {
-      <img class="battle-hero__bg" [ngSrc]="img" alt="" aria-hidden="true" fill priority/>
+      <img class="battle-hero__bg" [ngSrc]="img" alt="" aria-hidden="true" fill priority="high"/>
       <span class="battle-hero__overlay" aria-hidden="true"></span>
     }
 

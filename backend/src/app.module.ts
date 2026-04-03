@@ -48,7 +48,7 @@ import { LogoQuizModule } from './logo-quiz/logo-quiz.module';
     }),
     LoggerModule.forRoot({
       pinoHttp: {
-        level: process.env['NODE_ENV'] === 'production' ? 'info' : 'debug',
+        level: process.env['LOG_LEVEL'] ?? (process.env['NODE_ENV'] === 'production' ? 'error' : 'debug'),
         transport: process.env['NODE_ENV'] !== 'production'
           ? { target: 'pino-pretty', options: { colorize: true } }
           : undefined,
