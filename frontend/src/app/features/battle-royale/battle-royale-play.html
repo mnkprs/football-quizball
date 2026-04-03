@@ -34,13 +34,19 @@
           <div class="br-play__team-column team-1">
             <h4>Team 1</h4>
             @for (p of team1Players(); track p.userId) {
-              <div class="br-play__team-player">{{ p.username }}</div>
+              <div class="br-play__team-player">
+                <div class="br-play__team-player-avatar">{{ p.username.charAt(0).toUpperCase() }}</div>
+                {{ p.username }}
+              </div>
             }
           </div>
           <div class="br-play__team-column team-2">
             <h4>Team 2</h4>
             @for (p of team2Players(); track p.userId) {
-              <div class="br-play__team-player">{{ p.username }}</div>
+              <div class="br-play__team-player">
+                <div class="br-play__team-player-avatar">{{ p.username.charAt(0).toUpperCase() }}</div>
+                {{ p.username }}
+              </div>
             }
           </div>
         </div>
@@ -246,6 +252,7 @@
             <div class="br-play__team-score team-1">
               Team 1: {{ store.roomView()?.teamScores?.team1Avg | number:'1.0-0' }}
             </div>
+            <span class="br-play__team-vs">VS</span>
             <div class="br-play__team-score team-2">
               Team 2: {{ store.roomView()?.teamScores?.team2Avg | number:'1.0-0' }}
             </div>
@@ -278,10 +285,14 @@
       <!-- Team Logo mode: MVP + winning team -->
       @if (store.roomView()?.mode === 'team_logo') {
         <div class="br-play__mvp">
-          <span>MVP: {{ store.roomView()?.mvp?.username }}</span>
-          <span>{{ store.roomView()?.mvp?.score }} pts</span>
+          <span class="material-icons br-play__mvp-icon">emoji_events</span>
+          <span>MVP:</span>
+          <span class="br-play__mvp-name">{{ store.roomView()?.mvp?.username }}</span>
+          <span class="br-play__mvp-score">{{ store.roomView()?.mvp?.score }} pts</span>
         </div>
-        <div class="br-play__winner">
+        <div class="br-play__winner"
+             [class.br-play__winner--team1]="(store.roomView()?.teamScores?.team1Avg ?? 0) > (store.roomView()?.teamScores?.team2Avg ?? 0)"
+             [class.br-play__winner--team2]="(store.roomView()?.teamScores?.team2Avg ?? 0) > (store.roomView()?.teamScores?.team1Avg ?? 0)">
           {{ (store.roomView()?.teamScores?.team1Avg ?? 0) > (store.roomView()?.teamScores?.team2Avg ?? 0)
             ? 'Team 1 Wins!' : 'Team 2 Wins!' }}
         </div>
@@ -293,10 +304,15 @@
                [class.br-play__result-row--winner]="i === 0"
                [class.br-play__result-row--me]="player.userId === store.myUserId()">
             <span class="br-play__result-rank">
-              @if (i === 0) { 🥇 }
-              @else if (i === 1) { 🥈 }
-              @else if (i === 2) { 🥉 }
-              @else { #{{ i + 1 }} }
+              @if (i === 0) {
+                <div class="br-play__result-medal br-play__result-medal--gold">1</div>
+              } @else if (i === 1) {
+                <div class="br-play__result-medal br-play__result-medal--silver">2</div>
+              } @else if (i === 2) {
+                <div class="br-play__result-medal br-play__result-medal--bronze">3</div>
+              } @else {
+                <span class="br-play__result-rank-number">#{{ i + 1 }}</span>
+              }
             </span>
             <span class="br-play__result-name">{{ player.username }}</span>
             <span class="br-play__result-score">{{ player.score }} pts</span>

@@ -18,13 +18,13 @@
   }
 
   @if (!loading() || entries().length > 0) {
-    <!-- Your Ranks Summary Card (only for logged in users) -->
+    <!-- Your Ranks — horizontal strip -->
     @if (auth.isLoggedIn() && (soloMeEntry() || blitzMeEntry() || logoQuizMeEntry() || logoQuizHardcoreMeEntry() || duelMeEntry())) {
       <section class="your-ranks-section">
         <div class="your-ranks-header">
           <span class="your-ranks-label">Your Rankings</span>
         </div>
-        <div class="your-ranks-grid">
+        <div class="your-ranks-strip">
           @if (soloMeEntry(); as me) {
             <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--solo">
               <div class="your-rank-icon">
@@ -105,9 +105,9 @@
     }
 
     <!-- Mode Tabs -->
-    <div class="mode-tabs">
-      <button 
-        class="mode-tab" 
+    <div class="mode-tabs glass-surface">
+      <button
+        class="mode-tab"
         [class.mode-tab--active]="activeTab() === 'solo'"
         (click)="setActiveTab('solo')">
         <mat-icon>military_tech</mat-icon>
@@ -136,45 +136,103 @@
       </button>
     </div>
 
-    <!-- Solo Tab Content -->
+    <!-- ============================================
+         Solo Tab
+         ============================================ -->
     @if (activeTab() === 'solo') {
       <section class="leaderboard-section">
         @if (entries().length > 0) {
+          <!-- Podium: Top 3 -->
+          @if (entries().length >= 3) {
+            <div class="podium">
+              <!-- 2nd Place (left) -->
+              <a [routerLink]="['/profile', entries()[1].id]" class="podium__spot podium__spot--silver">
+                <div class="podium__medal podium__medal--silver">2</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(entries()[1].id)">
+                  {{ entries()[1].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ entries()[1].username }}
+                  @if (isCurrentUser(entries()[1].id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ entries()[1].elo }}</div>
+                <div class="podium__score-label">ELO</div>
+                <div class="podium__pedestal podium__pedestal--silver"></div>
+              </a>
+              <!-- 1st Place (center) -->
+              <a [routerLink]="['/profile', entries()[0].id]" class="podium__spot podium__spot--gold">
+                <div class="podium__crown"><mat-icon>emoji_events</mat-icon></div>
+                <div class="podium__medal podium__medal--gold">1</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(entries()[0].id)">
+                  {{ entries()[0].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ entries()[0].username }}
+                  @if (isCurrentUser(entries()[0].id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ entries()[0].elo }}</div>
+                <div class="podium__score-label">ELO</div>
+                <div class="podium__pedestal podium__pedestal--gold"></div>
+              </a>
+              <!-- 3rd Place (right) -->
+              <a [routerLink]="['/profile', entries()[2].id]" class="podium__spot podium__spot--bronze">
+                <div class="podium__medal podium__medal--bronze">3</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(entries()[2].id)">
+                  {{ entries()[2].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ entries()[2].username }}
+                  @if (isCurrentUser(entries()[2].id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ entries()[2].elo }}</div>
+                <div class="podium__score-label">ELO</div>
+                <div class="podium__pedestal podium__pedestal--bronze"></div>
+              </a>
+            </div>
+          }
+
+          <!-- Remaining entries (#4+ or all if < 3) -->
           <div class="leaderboard-list">
             @for (entry of entries(); track entry.id; let i = $index) {
-              <a [routerLink]="['/profile', entry.id]" class="leaderboard-card-link">
-                <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.id)" [class.leaderboard-card--top3]="i < 3">
-                  <div class="leaderboard-rank" [attr.data-rank]="i + 1">
-                    @if (i === 0) {
-                      <div class="rank-medal rank-medal--gold">1</div>
-                    } @else if (i === 1) {
-                      <div class="rank-medal rank-medal--silver">2</div>
-                    } @else if (i === 2) {
-                      <div class="rank-medal rank-medal--bronze">3</div>
-                    } @else {
-                      <span class="rank-number">{{ i + 1 }}</span>
-                    }
-                  </div>
-                  <div class="leaderboard-avatar">
-                    {{ entry.username.charAt(0).toUpperCase() }}
-                  </div>
-                  <div class="leaderboard-info">
-                    <div class="leaderboard-name">
-                      {{ entry.username }}
-                      @if (isCurrentUser(entry.id)) { 
-                        <span class="leaderboard-you-badge">YOU</span> 
+              @if (entries().length < 3 || i >= 3) {
+                <a [routerLink]="['/profile', entry.id]" class="leaderboard-card-link">
+                  <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.id)">
+                    <div class="leaderboard-rank">
+                      @if (entries().length < 3) {
+                        @if (i === 0) {
+                          <div class="rank-medal rank-medal--gold">1</div>
+                        } @else if (i === 1) {
+                          <div class="rank-medal rank-medal--silver">2</div>
+                        } @else if (i === 2) {
+                          <div class="rank-medal rank-medal--bronze">3</div>
+                        } @else {
+                          <span class="rank-number">{{ i + 1 }}</span>
+                        }
+                      } @else {
+                        <span class="rank-number">{{ i + 1 }}</span>
                       }
                     </div>
-                    <div class="leaderboard-meta">
-                      {{ entry.questions_answered }} questions · {{ accuracy(entry) }}% accuracy
+                    <div class="leaderboard-avatar">
+                      {{ entry.username.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="leaderboard-info">
+                      <div class="leaderboard-name">
+                        {{ entry.username }}
+                        @if (isCurrentUser(entry.id)) {
+                          <span class="leaderboard-you-badge">YOU</span>
+                        }
+                      </div>
+                      <div class="leaderboard-meta">
+                        {{ entry.questions_answered }} questions · {{ accuracy(entry) }}% accuracy
+                      </div>
+                    </div>
+                    <div class="leaderboard-score">
+                      <span class="leaderboard-score-value">{{ entry.elo }}</span>
+                      <span class="leaderboard-score-label">ELO</span>
                     </div>
                   </div>
-                  <div class="leaderboard-score">
-                    <span class="leaderboard-score-value">{{ entry.elo }}</span>
-                    <span class="leaderboard-score-label">ELO</span>
-                  </div>
-                </div>
-              </a>
+                </a>
+              }
             }
           </div>
 
@@ -217,45 +275,98 @@
       </section>
     }
 
-    <!-- Blitz Tab Content -->
+    <!-- ============================================
+         Blitz Tab
+         ============================================ -->
     @if (activeTab() === 'blitz') {
       <section class="leaderboard-section">
         @if (blitzEntries().length > 0) {
+          @if (blitzEntries().length >= 3) {
+            <div class="podium">
+              <a [routerLink]="['/profile', blitzEntries()[1].user_id]" class="podium__spot podium__spot--silver">
+                <div class="podium__medal podium__medal--silver">2</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(blitzEntries()[1].user_id)">
+                  {{ blitzEntries()[1].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ blitzEntries()[1].username }}
+                  @if (isCurrentUser(blitzEntries()[1].user_id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ blitzEntries()[1].score }}</div>
+                <div class="podium__score-label">Best</div>
+                <div class="podium__pedestal podium__pedestal--silver"></div>
+              </a>
+              <a [routerLink]="['/profile', blitzEntries()[0].user_id]" class="podium__spot podium__spot--gold">
+                <div class="podium__crown"><mat-icon>emoji_events</mat-icon></div>
+                <div class="podium__medal podium__medal--gold">1</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(blitzEntries()[0].user_id)">
+                  {{ blitzEntries()[0].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ blitzEntries()[0].username }}
+                  @if (isCurrentUser(blitzEntries()[0].user_id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ blitzEntries()[0].score }}</div>
+                <div class="podium__score-label">Best</div>
+                <div class="podium__pedestal podium__pedestal--gold"></div>
+              </a>
+              <a [routerLink]="['/profile', blitzEntries()[2].user_id]" class="podium__spot podium__spot--bronze">
+                <div class="podium__medal podium__medal--bronze">3</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(blitzEntries()[2].user_id)">
+                  {{ blitzEntries()[2].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ blitzEntries()[2].username }}
+                  @if (isCurrentUser(blitzEntries()[2].user_id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ blitzEntries()[2].score }}</div>
+                <div class="podium__score-label">Best</div>
+                <div class="podium__pedestal podium__pedestal--bronze"></div>
+              </a>
+            </div>
+          }
+
           <div class="leaderboard-list">
             @for (entry of blitzEntries(); track entry.user_id; let i = $index) {
-              <a [routerLink]="['/profile', entry.user_id]" class="leaderboard-card-link">
-                <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.user_id)" [class.leaderboard-card--top3]="i < 3">
-                  <div class="leaderboard-rank" [attr.data-rank]="i + 1">
-                    @if (i === 0) {
-                      <div class="rank-medal rank-medal--gold">1</div>
-                    } @else if (i === 1) {
-                      <div class="rank-medal rank-medal--silver">2</div>
-                    } @else if (i === 2) {
-                      <div class="rank-medal rank-medal--bronze">3</div>
-                    } @else {
-                      <span class="rank-number">{{ i + 1 }}</span>
-                    }
-                  </div>
-                  <div class="leaderboard-avatar">
-                    {{ entry.username.charAt(0).toUpperCase() }}
-                  </div>
-                  <div class="leaderboard-info">
-                    <div class="leaderboard-name">
-                      {{ entry.username }}
-                      @if (isCurrentUser(entry.user_id)) { 
-                        <span class="leaderboard-you-badge">YOU</span> 
+              @if (blitzEntries().length < 3 || i >= 3) {
+                <a [routerLink]="['/profile', entry.user_id]" class="leaderboard-card-link">
+                  <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.user_id)">
+                    <div class="leaderboard-rank">
+                      @if (blitzEntries().length < 3) {
+                        @if (i === 0) {
+                          <div class="rank-medal rank-medal--gold">1</div>
+                        } @else if (i === 1) {
+                          <div class="rank-medal rank-medal--silver">2</div>
+                        } @else if (i === 2) {
+                          <div class="rank-medal rank-medal--bronze">3</div>
+                        } @else {
+                          <span class="rank-number">{{ i + 1 }}</span>
+                        }
+                      } @else {
+                        <span class="rank-number">{{ i + 1 }}</span>
                       }
                     </div>
-                    <div class="leaderboard-meta">
-                      {{ entry.total_answered }} answered
+                    <div class="leaderboard-avatar">
+                      {{ entry.username.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="leaderboard-info">
+                      <div class="leaderboard-name">
+                        {{ entry.username }}
+                        @if (isCurrentUser(entry.user_id)) {
+                          <span class="leaderboard-you-badge">YOU</span>
+                        }
+                      </div>
+                      <div class="leaderboard-meta">
+                        {{ entry.total_answered }} answered
+                      </div>
+                    </div>
+                    <div class="leaderboard-score">
+                      <span class="leaderboard-score-value">{{ entry.score }}</span>
+                      <span class="leaderboard-score-label">Best</span>
                     </div>
                   </div>
-                  <div class="leaderboard-score">
-                    <span class="leaderboard-score-value">{{ entry.score }}</span>
-                    <span class="leaderboard-score-label">Best</span>
-                  </div>
-                </div>
-              </a>
+                </a>
+              }
             }
           </div>
 
@@ -298,10 +409,11 @@
       </section>
     }
 
-    <!-- Logo Quiz Tab Content -->
+    <!-- ============================================
+         Logo Quiz Tab
+         ============================================ -->
     @if (activeTab() === 'logoQuiz') {
-      <!-- Sub-tabs: Normal / Hardcore -->
-      <div class="logo-sub-tabs">
+      <div class="logo-sub-tabs glass-surface">
         <button
           class="logo-sub-tab"
           [class.logo-sub-tab--active]="logoQuizSubTab() === 'normal'"
@@ -312,7 +424,8 @@
           class="logo-sub-tab logo-sub-tab--hardcore"
           [class.logo-sub-tab--active]="logoQuizSubTab() === 'hardcore'"
           (click)="setLogoQuizSubTab('hardcore')">
-          💀 Hardcore
+          <mat-icon>local_fire_department</mat-icon>
+          Hardcore
         </button>
       </div>
 
@@ -320,41 +433,92 @@
       @if (logoQuizSubTab() === 'normal') {
         <section class="leaderboard-section">
           @if (logoQuizEntries().length > 0) {
+            @if (logoQuizEntries().length >= 3) {
+              <div class="podium">
+                <a [routerLink]="['/profile', logoQuizEntries()[1].id]" class="podium__spot podium__spot--silver">
+                  <div class="podium__medal podium__medal--silver">2</div>
+                  <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(logoQuizEntries()[1].id)">
+                    {{ logoQuizEntries()[1].username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="podium__name">
+                    {{ logoQuizEntries()[1].username }}
+                    @if (isCurrentUser(logoQuizEntries()[1].id)) { <span class="podium__you-badge">YOU</span> }
+                  </div>
+                  <div class="podium__score">{{ logoQuizEntries()[1].logo_quiz_elo }}</div>
+                  <div class="podium__score-label">ELO</div>
+                  <div class="podium__pedestal podium__pedestal--silver"></div>
+                </a>
+                <a [routerLink]="['/profile', logoQuizEntries()[0].id]" class="podium__spot podium__spot--gold">
+                  <div class="podium__crown"><mat-icon>emoji_events</mat-icon></div>
+                  <div class="podium__medal podium__medal--gold">1</div>
+                  <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(logoQuizEntries()[0].id)">
+                    {{ logoQuizEntries()[0].username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="podium__name">
+                    {{ logoQuizEntries()[0].username }}
+                    @if (isCurrentUser(logoQuizEntries()[0].id)) { <span class="podium__you-badge">YOU</span> }
+                  </div>
+                  <div class="podium__score">{{ logoQuizEntries()[0].logo_quiz_elo }}</div>
+                  <div class="podium__score-label">ELO</div>
+                  <div class="podium__pedestal podium__pedestal--gold"></div>
+                </a>
+                <a [routerLink]="['/profile', logoQuizEntries()[2].id]" class="podium__spot podium__spot--bronze">
+                  <div class="podium__medal podium__medal--bronze">3</div>
+                  <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(logoQuizEntries()[2].id)">
+                    {{ logoQuizEntries()[2].username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="podium__name">
+                    {{ logoQuizEntries()[2].username }}
+                    @if (isCurrentUser(logoQuizEntries()[2].id)) { <span class="podium__you-badge">YOU</span> }
+                  </div>
+                  <div class="podium__score">{{ logoQuizEntries()[2].logo_quiz_elo }}</div>
+                  <div class="podium__score-label">ELO</div>
+                  <div class="podium__pedestal podium__pedestal--bronze"></div>
+                </a>
+              </div>
+            }
+
             <div class="leaderboard-list">
               @for (entry of logoQuizEntries(); track entry.id; let i = $index) {
-                <a [routerLink]="['/profile', entry.id]" class="leaderboard-card-link">
-                  <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.id)" [class.leaderboard-card--top3]="i < 3">
-                    <div class="leaderboard-rank" [attr.data-rank]="i + 1">
-                      @if (i === 0) {
-                        <div class="rank-medal rank-medal--gold">1</div>
-                      } @else if (i === 1) {
-                        <div class="rank-medal rank-medal--silver">2</div>
-                      } @else if (i === 2) {
-                        <div class="rank-medal rank-medal--bronze">3</div>
-                      } @else {
-                        <span class="rank-number">{{ i + 1 }}</span>
-                      }
-                    </div>
-                    <div class="leaderboard-avatar">
-                      {{ entry.username.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="leaderboard-info">
-                      <div class="leaderboard-name">
-                        {{ entry.username }}
-                        @if (isCurrentUser(entry.id)) {
-                          <span class="leaderboard-you-badge">YOU</span>
+                @if (logoQuizEntries().length < 3 || i >= 3) {
+                  <a [routerLink]="['/profile', entry.id]" class="leaderboard-card-link">
+                    <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.id)">
+                      <div class="leaderboard-rank">
+                        @if (logoQuizEntries().length < 3) {
+                          @if (i === 0) {
+                            <div class="rank-medal rank-medal--gold">1</div>
+                          } @else if (i === 1) {
+                            <div class="rank-medal rank-medal--silver">2</div>
+                          } @else if (i === 2) {
+                            <div class="rank-medal rank-medal--bronze">3</div>
+                          } @else {
+                            <span class="rank-number">{{ i + 1 }}</span>
+                          }
+                        } @else {
+                          <span class="rank-number">{{ i + 1 }}</span>
                         }
                       </div>
-                      <div class="leaderboard-meta">
-                        {{ entry.logo_quiz_games_played }} games played
+                      <div class="leaderboard-avatar">
+                        {{ entry.username.charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="leaderboard-info">
+                        <div class="leaderboard-name">
+                          {{ entry.username }}
+                          @if (isCurrentUser(entry.id)) {
+                            <span class="leaderboard-you-badge">YOU</span>
+                          }
+                        </div>
+                        <div class="leaderboard-meta">
+                          {{ entry.logo_quiz_games_played }} games played
+                        </div>
+                      </div>
+                      <div class="leaderboard-score">
+                        <span class="leaderboard-score-value">{{ entry.logo_quiz_elo }}</span>
+                        <span class="leaderboard-score-label">ELO</span>
                       </div>
                     </div>
-                    <div class="leaderboard-score">
-                      <span class="leaderboard-score-value">{{ entry.logo_quiz_elo }}</span>
-                      <span class="leaderboard-score-label">ELO</span>
-                    </div>
-                  </div>
-                </a>
+                  </a>
+                }
               }
             </div>
 
@@ -401,41 +565,92 @@
       @if (logoQuizSubTab() === 'hardcore') {
         <section class="leaderboard-section">
           @if (logoQuizHardcoreEntries().length > 0) {
+            @if (logoQuizHardcoreEntries().length >= 3) {
+              <div class="podium">
+                <a [routerLink]="['/profile', logoQuizHardcoreEntries()[1].id]" class="podium__spot podium__spot--silver">
+                  <div class="podium__medal podium__medal--silver">2</div>
+                  <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(logoQuizHardcoreEntries()[1].id)">
+                    {{ logoQuizHardcoreEntries()[1].username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="podium__name">
+                    {{ logoQuizHardcoreEntries()[1].username }}
+                    @if (isCurrentUser(logoQuizHardcoreEntries()[1].id)) { <span class="podium__you-badge">YOU</span> }
+                  </div>
+                  <div class="podium__score">{{ logoQuizHardcoreEntries()[1].logo_quiz_hardcore_elo }}</div>
+                  <div class="podium__score-label">ELO</div>
+                  <div class="podium__pedestal podium__pedestal--silver"></div>
+                </a>
+                <a [routerLink]="['/profile', logoQuizHardcoreEntries()[0].id]" class="podium__spot podium__spot--gold">
+                  <div class="podium__crown"><mat-icon>emoji_events</mat-icon></div>
+                  <div class="podium__medal podium__medal--gold">1</div>
+                  <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(logoQuizHardcoreEntries()[0].id)">
+                    {{ logoQuizHardcoreEntries()[0].username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="podium__name">
+                    {{ logoQuizHardcoreEntries()[0].username }}
+                    @if (isCurrentUser(logoQuizHardcoreEntries()[0].id)) { <span class="podium__you-badge">YOU</span> }
+                  </div>
+                  <div class="podium__score">{{ logoQuizHardcoreEntries()[0].logo_quiz_hardcore_elo }}</div>
+                  <div class="podium__score-label">ELO</div>
+                  <div class="podium__pedestal podium__pedestal--gold"></div>
+                </a>
+                <a [routerLink]="['/profile', logoQuizHardcoreEntries()[2].id]" class="podium__spot podium__spot--bronze">
+                  <div class="podium__medal podium__medal--bronze">3</div>
+                  <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(logoQuizHardcoreEntries()[2].id)">
+                    {{ logoQuizHardcoreEntries()[2].username.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="podium__name">
+                    {{ logoQuizHardcoreEntries()[2].username }}
+                    @if (isCurrentUser(logoQuizHardcoreEntries()[2].id)) { <span class="podium__you-badge">YOU</span> }
+                  </div>
+                  <div class="podium__score">{{ logoQuizHardcoreEntries()[2].logo_quiz_hardcore_elo }}</div>
+                  <div class="podium__score-label">ELO</div>
+                  <div class="podium__pedestal podium__pedestal--bronze"></div>
+                </a>
+              </div>
+            }
+
             <div class="leaderboard-list">
               @for (entry of logoQuizHardcoreEntries(); track entry.id; let i = $index) {
-                <a [routerLink]="['/profile', entry.id]" class="leaderboard-card-link">
-                  <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.id)" [class.leaderboard-card--top3]="i < 3">
-                    <div class="leaderboard-rank" [attr.data-rank]="i + 1">
-                      @if (i === 0) {
-                        <div class="rank-medal rank-medal--gold">1</div>
-                      } @else if (i === 1) {
-                        <div class="rank-medal rank-medal--silver">2</div>
-                      } @else if (i === 2) {
-                        <div class="rank-medal rank-medal--bronze">3</div>
-                      } @else {
-                        <span class="rank-number">{{ i + 1 }}</span>
-                      }
-                    </div>
-                    <div class="leaderboard-avatar">
-                      {{ entry.username.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="leaderboard-info">
-                      <div class="leaderboard-name">
-                        {{ entry.username }}
-                        @if (isCurrentUser(entry.id)) {
-                          <span class="leaderboard-you-badge">YOU</span>
+                @if (logoQuizHardcoreEntries().length < 3 || i >= 3) {
+                  <a [routerLink]="['/profile', entry.id]" class="leaderboard-card-link">
+                    <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.id)">
+                      <div class="leaderboard-rank">
+                        @if (logoQuizHardcoreEntries().length < 3) {
+                          @if (i === 0) {
+                            <div class="rank-medal rank-medal--gold">1</div>
+                          } @else if (i === 1) {
+                            <div class="rank-medal rank-medal--silver">2</div>
+                          } @else if (i === 2) {
+                            <div class="rank-medal rank-medal--bronze">3</div>
+                          } @else {
+                            <span class="rank-number">{{ i + 1 }}</span>
+                          }
+                        } @else {
+                          <span class="rank-number">{{ i + 1 }}</span>
                         }
                       </div>
-                      <div class="leaderboard-meta">
-                        {{ entry.logo_quiz_hardcore_games_played }} games played
+                      <div class="leaderboard-avatar">
+                        {{ entry.username.charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="leaderboard-info">
+                        <div class="leaderboard-name">
+                          {{ entry.username }}
+                          @if (isCurrentUser(entry.id)) {
+                            <span class="leaderboard-you-badge">YOU</span>
+                          }
+                        </div>
+                        <div class="leaderboard-meta">
+                          {{ entry.logo_quiz_hardcore_games_played }} games played
+                        </div>
+                      </div>
+                      <div class="leaderboard-score">
+                        <span class="leaderboard-score-value">{{ entry.logo_quiz_hardcore_elo }}</span>
+                        <span class="leaderboard-score-label">ELO</span>
                       </div>
                     </div>
-                    <div class="leaderboard-score">
-                      <span class="leaderboard-score-value">{{ entry.logo_quiz_hardcore_elo }}</span>
-                      <span class="leaderboard-score-label">ELO</span>
-                    </div>
-                  </div>
-                </a>
+                  </a>
+                }
               }
             </div>
 
@@ -479,45 +694,98 @@
       }
     }
 
-    <!-- Duel Tab Content -->
+    <!-- ============================================
+         Duel Tab
+         ============================================ -->
     @if (activeTab() === 'duel') {
       <section class="leaderboard-section">
         @if (duelEntries().length > 0) {
+          @if (duelEntries().length >= 3) {
+            <div class="podium">
+              <a [routerLink]="['/profile', duelEntries()[1].user_id]" class="podium__spot podium__spot--silver">
+                <div class="podium__medal podium__medal--silver">2</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(duelEntries()[1].user_id)">
+                  {{ duelEntries()[1].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ duelEntries()[1].username }}
+                  @if (isCurrentUser(duelEntries()[1].user_id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ duelEntries()[1].wins }}</div>
+                <div class="podium__score-label">Wins</div>
+                <div class="podium__pedestal podium__pedestal--silver"></div>
+              </a>
+              <a [routerLink]="['/profile', duelEntries()[0].user_id]" class="podium__spot podium__spot--gold">
+                <div class="podium__crown"><mat-icon>emoji_events</mat-icon></div>
+                <div class="podium__medal podium__medal--gold">1</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(duelEntries()[0].user_id)">
+                  {{ duelEntries()[0].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ duelEntries()[0].username }}
+                  @if (isCurrentUser(duelEntries()[0].user_id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ duelEntries()[0].wins }}</div>
+                <div class="podium__score-label">Wins</div>
+                <div class="podium__pedestal podium__pedestal--gold"></div>
+              </a>
+              <a [routerLink]="['/profile', duelEntries()[2].user_id]" class="podium__spot podium__spot--bronze">
+                <div class="podium__medal podium__medal--bronze">3</div>
+                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(duelEntries()[2].user_id)">
+                  {{ duelEntries()[2].username.charAt(0).toUpperCase() }}
+                </div>
+                <div class="podium__name">
+                  {{ duelEntries()[2].username }}
+                  @if (isCurrentUser(duelEntries()[2].user_id)) { <span class="podium__you-badge">YOU</span> }
+                </div>
+                <div class="podium__score">{{ duelEntries()[2].wins }}</div>
+                <div class="podium__score-label">Wins</div>
+                <div class="podium__pedestal podium__pedestal--bronze"></div>
+              </a>
+            </div>
+          }
+
           <div class="leaderboard-list">
             @for (entry of duelEntries(); track entry.user_id; let i = $index) {
-              <a [routerLink]="['/profile', entry.user_id]" class="leaderboard-card-link">
-                <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.user_id)" [class.leaderboard-card--top3]="i < 3">
-                  <div class="leaderboard-rank" [attr.data-rank]="i + 1">
-                    @if (i === 0) {
-                      <div class="rank-medal rank-medal--gold">1</div>
-                    } @else if (i === 1) {
-                      <div class="rank-medal rank-medal--silver">2</div>
-                    } @else if (i === 2) {
-                      <div class="rank-medal rank-medal--bronze">3</div>
-                    } @else {
-                      <span class="rank-number">{{ i + 1 }}</span>
-                    }
-                  </div>
-                  <div class="leaderboard-avatar">
-                    {{ entry.username.charAt(0).toUpperCase() }}
-                  </div>
-                  <div class="leaderboard-info">
-                    <div class="leaderboard-name">
-                      {{ entry.username }}
-                      @if (isCurrentUser(entry.user_id)) {
-                        <span class="leaderboard-you-badge">YOU</span>
+              @if (duelEntries().length < 3 || i >= 3) {
+                <a [routerLink]="['/profile', entry.user_id]" class="leaderboard-card-link">
+                  <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.user_id)">
+                    <div class="leaderboard-rank">
+                      @if (duelEntries().length < 3) {
+                        @if (i === 0) {
+                          <div class="rank-medal rank-medal--gold">1</div>
+                        } @else if (i === 1) {
+                          <div class="rank-medal rank-medal--silver">2</div>
+                        } @else if (i === 2) {
+                          <div class="rank-medal rank-medal--bronze">3</div>
+                        } @else {
+                          <span class="rank-number">{{ i + 1 }}</span>
+                        }
+                      } @else {
+                        <span class="rank-number">{{ i + 1 }}</span>
                       }
                     </div>
-                    <div class="leaderboard-meta">
-                      {{ entry.wins }}W - {{ entry.losses }}L · {{ winRate(entry) }}%
+                    <div class="leaderboard-avatar">
+                      {{ entry.username.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="leaderboard-info">
+                      <div class="leaderboard-name">
+                        {{ entry.username }}
+                        @if (isCurrentUser(entry.user_id)) {
+                          <span class="leaderboard-you-badge">YOU</span>
+                        }
+                      </div>
+                      <div class="leaderboard-meta">
+                        {{ entry.wins }}W - {{ entry.losses }}L · {{ winRate(entry) }}%
+                      </div>
+                    </div>
+                    <div class="leaderboard-score">
+                      <span class="leaderboard-score-value">{{ entry.wins }}</span>
+                      <span class="leaderboard-score-label">Wins</span>
                     </div>
                   </div>
-                  <div class="leaderboard-score">
-                    <span class="leaderboard-score-value">{{ entry.wins }}</span>
-                    <span class="leaderboard-score-label">Wins</span>
-                  </div>
-                </div>
-              </a>
+                </a>
+              }
             }
           </div>
 

@@ -29,7 +29,9 @@
   font-size: 2rem;
 }
 
-/* ── Waiting phase ── */
+/* ============================================
+   WAITING PHASE
+   ============================================ */
 .br-play__waiting {
   padding-top: 2rem;
 }
@@ -52,9 +54,12 @@
   margin: 0;
 }
 
+/* Invite code — glass card */
 .br-play__room-code {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--glass-border);
   border-radius: 1rem;
   padding: 1rem;
   text-align: center;
@@ -77,6 +82,7 @@
   letter-spacing: 0.25em;
   color: var(--color-accent);
   margin: 0 0 0.25rem;
+  text-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
 }
 
 .br-play__room-code-hint {
@@ -121,7 +127,7 @@
 .br-play__copy-btn:active { transform: scale(0.95); }
 .br-play__copy-btn:hover { opacity: 0.85; }
 
-/* ── Player list ── */
+/* ── Player list (classic mode) ── */
 .br-play__player-list {
   margin-bottom: 1.5rem;
 }
@@ -141,8 +147,9 @@
   gap: 0.5rem;
   padding: 0.625rem 0.75rem;
   border-radius: 0.625rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
   margin-bottom: 0.375rem;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -165,6 +172,75 @@
   border-radius: 0.375rem;
 }
 
+/* ── Team waiting columns — glass with team colors ── */
+.br-play__teams-waiting {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.br-play__team-column {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+}
+
+.br-play__team-column.team-1 {
+  border-color: rgba(0, 122, 255, 0.25);
+}
+
+.br-play__team-column.team-2 {
+  border-color: rgba(255, 149, 0, 0.25);
+}
+
+.br-play__team-column h4 {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.625rem;
+}
+
+.br-play__team-column.team-1 h4 { color: var(--color-accent); }
+.br-play__team-column.team-2 h4 { color: #FF9500; }
+
+.br-play__team-player {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.375rem 0;
+  color: var(--color-foreground);
+}
+
+.br-play__team-player-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.team-1 .br-play__team-player-avatar {
+  background: rgba(0, 122, 255, 0.2);
+  color: var(--color-accent);
+}
+
+.team-2 .br-play__team-player-avatar {
+  background: rgba(255, 149, 0, 0.2);
+  color: #FF9500;
+}
+
+/* ── Buttons ── */
 .br-play__start-btn {
   display: flex;
   align-items: center;
@@ -181,8 +257,9 @@
   cursor: pointer;
   margin-top: 1rem;
   transition: opacity 0.2s, transform 0.15s;
+  box-shadow: var(--glow-accent-sm);
 }
-.br-play__start-btn:disabled { opacity: 0.4; }
+.br-play__start-btn:disabled { opacity: 0.4; box-shadow: none; }
 .br-play__start-btn:not(:disabled):active { transform: scale(0.97); }
 
 .br-play__waiting-hint {
@@ -204,7 +281,7 @@
   color: var(--color-muted-foreground);
   font-size: 0.9375rem;
   font-weight: 700;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
   cursor: pointer;
   margin-top: 0.75rem;
   transition: color 0.2s, border-color 0.2s;
@@ -215,7 +292,9 @@
 }
 .br-play__leave-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── Game phase ── */
+/* ============================================
+   GAME PHASE — Header, Questions, Leaderboard
+   ============================================ */
 .br-play__game {
   display: flex;
   flex-direction: column;
@@ -247,7 +326,7 @@
 .br-play__progress {
   flex: 1;
   height: 6px;
-  background: var(--color-border);
+  background: var(--glass-bg-default);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -259,41 +338,34 @@
   border-radius: 3px;
   transform: scaleX(var(--progress, 0));
   transform-origin: left;
-  transition: transform 0.4s var(--ease-out-quart);
+  transition: transform 0.4s ease-out;
 }
 
-.br-play__score-pill {
+/* Header pills — glass */
+.br-play__score-pill,
+.br-play__timer-pill {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
   border-radius: 2rem;
   padding: 0.25rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.br-play__timer-pill {
+  min-width: 3.5rem;
+  justify-content: center;
 }
 
 .br-play__score-pill .material-icons {
   font-size: 1rem;
   color: var(--color-accent);
-}
-
-/* ── Question timer pill ── */
-.br-play__timer-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: 2rem;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 800;
-  white-space: nowrap;
-  min-width: 3.5rem;
-  justify-content: center;
 }
 
 .br-play__timer-pill .material-icons {
@@ -304,6 +376,7 @@
 .br-play__timer-pill--danger {
   color: #f87171;
   border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
 }
 
 .br-play__timer-pill--danger .material-icons {
@@ -331,7 +404,7 @@
   margin: 0 0 1rem;
 }
 
-/* ── Career path (PLAYER_ID) ── */
+/* ── Career path (PLAYER_ID — classic mode) ── */
 .br-play__q-label {
   font-size: 0.75rem;
   font-weight: 700;
@@ -348,8 +421,9 @@
   gap: 0;
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
   border-radius: 0.875rem;
 }
 
@@ -382,7 +456,108 @@
   opacity: 0.7;
 }
 
-/* ── Answer flash ── */
+/* ============================================
+   LOGO QUESTION — Glass frame + image showcase
+   ============================================ */
+.br-play__logo-question {
+  text-align: center;
+  margin-bottom: 1rem;
+  padding: 1.5rem;
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.08);
+}
+
+.br-play__logo-image {
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: var(--radius-lg);
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* Logo text input stack */
+.br-play__logo-input-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.br-play__logo-input {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
+  color: var(--color-foreground);
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.br-play__logo-input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 12px rgba(0, 122, 255, 0.15);
+}
+.br-play__logo-input:disabled { opacity: 0.5; cursor: default; }
+
+/* Dropdown — glass */
+.br-play__logo-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.br-play__logo-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.625rem 1rem;
+  border: none;
+  background: none;
+  color: var(--color-foreground);
+  cursor: pointer;
+  font-size: 0.9375rem;
+  transition: background 0.15s;
+}
+
+.br-play__logo-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Submit button */
+.br-play__submit-btn {
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: var(--glow-accent-sm);
+}
+
+.br-play__submit-btn:not(:disabled):active { transform: scale(0.97); }
+.br-play__submit-btn:disabled { opacity: 0.4; cursor: default; box-shadow: none; }
+
+/* ── Answer flash — glass with entrance animation ── */
 .br-play__answer-flash {
   display: flex;
   align-items: center;
@@ -392,12 +567,14 @@
   font-weight: 700;
   font-size: 0.9375rem;
   margin-bottom: 0.75rem;
+  backdrop-filter: blur(var(--glass-blur-sm));
+  animation: anim-scale-in 200ms ease-out;
 }
 
 .br-play__answer-flash--correct {
-  background: rgba(204, 255, 0, 0.15);
-  color: var(--color-accent);
-  border: 1px solid rgba(204, 255, 0, 0.3);
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success);
+  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .br-play__answer-flash--wrong {
@@ -413,7 +590,7 @@
   margin-left: 0.25rem;
 }
 
-/* ── Choices ── */
+/* ── Choices (classic mode) ── */
 .br-play__choices {
   display: flex;
   flex-direction: column;
@@ -424,8 +601,9 @@
   width: 100%;
   padding: 0.875rem 1rem;
   border-radius: 0.875rem;
-  background: var(--color-card);
-  border: 2px solid var(--color-border);
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 2px solid var(--glass-border);
   color: var(--color-foreground);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -442,13 +620,13 @@
 
 .br-play__choice-btn--selected {
   border-color: var(--color-accent);
-  background: rgba(204, 255, 0, 0.08);
+  background: rgba(0, 122, 255, 0.08);
 }
 
 .br-play__choice-btn--correct {
-  border-color: var(--color-accent) !important;
-  background: rgba(204, 255, 0, 0.18) !important;
-  color: var(--color-accent) !important;
+  border-color: var(--color-success) !important;
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: var(--color-success) !important;
 }
 
 .br-play__choice-btn--wrong {
@@ -457,10 +635,14 @@
   color: #f87171 !important;
 }
 
-/* ── Live leaderboard ── */
+/* ============================================
+   LIVE LEADERBOARD — Glass surface
+   ============================================ */
 .br-play__leaderboard {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--glass-border);
   border-radius: 1rem;
   padding: 0.875rem;
 }
@@ -482,6 +664,43 @@
   color: var(--color-accent);
 }
 
+/* Team scores banner — team_logo mode */
+.br-play__team-scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.br-play__team-score {
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  backdrop-filter: blur(var(--glass-blur-sm));
+}
+
+.br-play__team-score.team-1 {
+  background: rgba(0, 122, 255, 0.15);
+  color: var(--color-accent);
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.br-play__team-score.team-2 {
+  background: rgba(255, 149, 0, 0.15);
+  color: #FF9500;
+  border: 1px solid rgba(255, 149, 0, 0.2);
+}
+
+.br-play__team-vs {
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-muted-foreground);
+}
+
 .br-play__lb-row {
   display: flex;
   align-items: center;
@@ -494,8 +713,8 @@
 }
 
 .br-play__lb-row--me {
-  background: rgba(204, 255, 0, 0.08);
-  border: 1px solid rgba(204, 255, 0, 0.2);
+  background: rgba(0, 122, 255, 0.1);
+  border: 1px solid rgba(0, 122, 255, 0.2);
 }
 
 .br-play__lb-rank {
@@ -525,7 +744,9 @@
   color: var(--color-muted-foreground);
 }
 
-/* ── Results ── */
+/* ============================================
+   RESULTS PHASE — Glass, medals, MVP
+   ============================================ */
 .br-play__results {
   padding-top: 2rem;
   text-align: center;
@@ -541,7 +762,9 @@
 
 .br-play__trophy {
   font-size: 4rem;
-  color: var(--color-accent);
+  color: var(--color-pro);
+  filter: drop-shadow(0 0 20px rgba(230, 168, 0, 0.4));
+  animation: badge-pop 600ms ease-out 100ms both;
 }
 
 .br-play__results-header h2 {
@@ -550,8 +773,69 @@
   font-style: italic;
   text-transform: uppercase;
   margin: 0;
+  opacity: 0;
+  animation: anim-scale-in 400ms ease-out 300ms forwards;
 }
 
+/* MVP card — glass with gold accent */
+.br-play__mvp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1.25rem;
+  margin: 0 auto 0.75rem;
+  background: linear-gradient(135deg, rgba(230, 168, 0, 0.12), var(--glass-bg-default));
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid rgba(230, 168, 0, 0.3);
+  border-radius: var(--radius-xl);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-pro);
+  box-shadow: var(--glow-gold);
+  animation: anim-scale-in 400ms ease-out 400ms both;
+}
+
+.br-play__mvp-icon {
+  font-size: 1.25rem;
+  color: #ffd700;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
+}
+
+.br-play__mvp-name {
+  font-weight: 800;
+  color: var(--color-foreground);
+}
+
+.br-play__mvp-score {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+}
+
+/* Winning team */
+.br-play__winner {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  animation: anim-scale-in 400ms ease-out 500ms forwards;
+}
+
+.br-play__winner--team1 {
+  color: var(--color-accent);
+  text-shadow: 0 0 20px rgba(0, 122, 255, 0.4);
+}
+
+.br-play__winner--team2 {
+  color: #FF9500;
+  text-shadow: 0 0 20px rgba(255, 149, 0, 0.4);
+}
+
+/* Final leaderboard */
 .br-play__final-leaderboard {
   display: flex;
   flex-direction: column;
@@ -565,24 +849,74 @@
   gap: 0.75rem;
   padding: 0.875rem 1rem;
   border-radius: 0.875rem;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
   font-size: 0.9375rem;
+  opacity: 0;
+  animation: anim-stagger-in 350ms ease-out forwards;
 }
 
+.br-play__result-row:nth-child(1) { animation-delay: 600ms; }
+.br-play__result-row:nth-child(2) { animation-delay: 650ms; }
+.br-play__result-row:nth-child(3) { animation-delay: 700ms; }
+.br-play__result-row:nth-child(4) { animation-delay: 750ms; }
+.br-play__result-row:nth-child(5) { animation-delay: 800ms; }
+.br-play__result-row:nth-child(6) { animation-delay: 850ms; }
+.br-play__result-row:nth-child(7) { animation-delay: 900ms; }
+.br-play__result-row:nth-child(8) { animation-delay: 950ms; }
+.br-play__result-row:nth-child(n+9) { animation-delay: 1000ms; }
+
 .br-play__result-row--winner {
-  border-color: var(--color-accent);
-  background: rgba(204, 255, 0, 0.08);
+  border-color: rgba(230, 168, 0, 0.3);
+  background: linear-gradient(135deg, rgba(230, 168, 0, 0.1), var(--glass-bg-subtle));
+  box-shadow: var(--glow-gold);
 }
 
 .br-play__result-row--me {
-  border-color: rgba(204, 255, 0, 0.4);
+  border-color: rgba(0, 122, 255, 0.3);
 }
 
+/* Result medals — styled divs replacing emojis */
 .br-play__result-rank {
-  font-size: 1.25rem;
   width: 2rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.br-play__result-medal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #000000;
+}
+
+.br-play__result-medal--gold {
+  background: linear-gradient(135deg, #ffd700, var(--color-pro));
+  box-shadow: 0 2px 8px rgba(230, 168, 0, 0.4);
+}
+
+.br-play__result-medal--silver {
+  background: linear-gradient(135deg, #e8e8e8, #b8b8b8);
+  box-shadow: 0 2px 6px rgba(184, 184, 184, 0.3);
+}
+
+.br-play__result-medal--bronze {
+  background: linear-gradient(135deg, var(--color-tier-bronze), #a0522d);
+  box-shadow: 0 2px 6px rgba(205, 127, 50, 0.3);
+}
+
+.br-play__result-rank-number {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-muted-foreground);
 }
 
 .br-play__result-name {
@@ -596,14 +930,16 @@
   color: var(--color-accent);
 }
 
+/* Home button */
 .br-play__home-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 2rem;
   border-radius: 1rem;
-  background: var(--color-card);
-  border: 2px solid var(--color-border);
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  border: 1px solid var(--glass-border);
   color: var(--color-foreground);
   font-size: 0.9375rem;
   font-weight: 800;
@@ -612,156 +948,6 @@
 }
 .br-play__home-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
 .br-play__home-btn:active { transform: scale(0.97); }
-
-/* ── Team waiting columns (Step 8) ── */
-.br-play__teams-waiting {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.br-play__team-column h4 {
-  font-size: 0.8125rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.5rem;
-}
-
-.br-play__team-column.team-1 h4 { color: var(--color-accent); }
-.br-play__team-column.team-2 h4 { color: #FF9500; }
-
-.br-play__team-player {
-  font-size: 0.875rem;
-  padding: 0.25rem 0;
-  color: var(--color-foreground);
-}
-
-/* ── Logo question (Step 7) ── */
-.br-play__logo-question {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.br-play__logo-image {
-  max-width: 200px;
-  max-height: 200px;
-  border-radius: var(--radius-lg);
-  object-fit: contain;
-}
-
-/* Logo text input stack */
-.br-play__logo-input-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  position: relative;
-}
-
-.br-play__logo-input {
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-lg);
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  color: var(--color-foreground);
-  font-size: 1rem;
-  outline: none;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.br-play__logo-input:focus { border-color: var(--color-accent); }
-.br-play__logo-input:disabled { opacity: 0.5; cursor: default; }
-
-/* Dropdown */
-.br-play__logo-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  z-index: 10;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.br-play__logo-dropdown-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 0.625rem 1rem;
-  border: none;
-  background: none;
-  color: var(--color-foreground);
-  cursor: pointer;
-  font-size: 0.9375rem;
-}
-
-.br-play__logo-dropdown-item:hover { background: var(--color-surface-high, rgba(255,255,255,0.06)); }
-
-/* Submit button */
-.br-play__submit-btn {
-  padding: 0.75rem;
-  border-radius: var(--radius-lg);
-  background: var(--color-accent);
-  color: var(--color-accent-foreground);
-  font-weight: 700;
-  font-size: 1rem;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
-}
-
-.br-play__submit-btn:not(:disabled):active { transform: scale(0.97); }
-.br-play__submit-btn:disabled { opacity: 0.4; cursor: default; }
-
-/* Team scores banner in leaderboard */
-.br-play__team-scores {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.br-play__team-score {
-  padding: 0.375rem 0.75rem;
-  border-radius: var(--radius-full, 9999px);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.br-play__team-score.team-1 {
-  background: rgba(0, 122, 255, 0.15);
-  color: var(--color-accent);
-}
-
-.br-play__team-score.team-2 {
-  background: rgba(255, 149, 0, 0.15);
-  color: #FF9500;
-}
-
-/* MVP + winning team (finished phase) */
-.br-play__mvp {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-accent);
-  margin-bottom: 0.5rem;
-}
-
-.br-play__winner {
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-}
 
 /* ── Error banner ── */
 .br-play__error {
