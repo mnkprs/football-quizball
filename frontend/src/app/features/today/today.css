@@ -17,3 +17,12 @@
   text-transform: uppercase;
   letter-spacing: -0.02em;
 }
+
+/* Staggered entrance for today page children */
+.today-page > * {
+  opacity: 0;
+  animation: anim-stagger-in 400ms ease-out forwards;
+}
+.today-page > *:nth-child(1) { animation-delay: 0ms; }
+.today-page > *:nth-child(2) { animation-delay: 80ms; }
+.today-page > *:nth-child(3) { animation-delay: 160ms; }
