@@ -11,6 +11,9 @@
   gap: 0.75rem;
   padding: 0.75rem 0.875rem;
   border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
   box-shadow: var(--shadow-md);
   animation: banner-slide-in 0.3s ease-out both;
 }
@@ -32,7 +35,7 @@
   background: linear-gradient(
     120deg,
     rgba(0, 122, 255, 0.12) 0%,
-    rgba(58, 57, 57, 0.4) 60%
+    var(--glass-bg-default) 60%
   );
 }
 
@@ -42,7 +45,7 @@
   background: linear-gradient(
     120deg,
     rgba(34, 197, 94, 0.1) 0%,
-    rgba(58, 57, 57, 0.4) 60%
+    var(--glass-bg-default) 60%
   );
 }
 
