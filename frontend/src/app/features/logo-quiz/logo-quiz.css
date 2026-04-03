@@ -8,7 +8,7 @@
 .logo-quiz-root {
   flex: 1;
   min-height: 100dvh;
-  background: #131313;
+  background: var(--color-bg);
 }
 
 .lq-container {
