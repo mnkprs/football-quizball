@@ -213,14 +213,17 @@ export class NewsService {
     let streakInfo: { current_streak: number; max_streak: number } | null = null;
 
     if (userId) {
-      const { count, error } = await this.supabaseService.client
-        .from('user_news_progress')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .in('question_id', await this.getRoundQuestionIds(round.id));
+      const roundQuestionIds = await this.getRoundQuestionIds(round.id);
+      if (roundQuestionIds.length > 0) {
+        const { count, error } = await this.supabaseService.client
+          .from('user_news_progress')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .in('question_id', roundQuestionIds);
 
-      if (!error && count !== null) {
-        questionsRemaining = Math.max(0, round.question_count - count);
+        if (!error && count !== null) {
+          questionsRemaining = Math.max(0, round.question_count - count);
+        }
       }
 
       streakInfo = await this.getStreakInfo(userId);
@@ -305,16 +308,6 @@ export class NewsService {
     const q = (data as { question: Record<string, string>; round_id: string }).question;
     const roundId = (data as { round_id: string }).round_id;
 
-    // Check if already answered
-    const { data: existing } = await this.supabaseService.client
-      .from('user_news_progress')
-      .select('question_id')
-      .eq('user_id', userId)
-      .eq('question_id', questionId)
-      .maybeSingle();
-
-    if (existing) return null; // Already answered
-
     const mockQuestion = {
       category: 'NEWS' as const,
       correct_answer: q['correct_answer'],
@@ -323,15 +316,19 @@ export class NewsService {
 
     const correct = this.answerValidator.validate(mockQuestion, answer);
 
-    // Record answer
-    await this.supabaseService.client
+    // Record answer with ON CONFLICT DO NOTHING (prevents duplicate via unique constraint)
+    const { data: inserted, error: insertError } = await this.supabaseService.client
       .from('user_news_progress')
-      .insert({
+      .upsert({
         user_id: userId,
         question_id: questionId,
         answered_at: new Date().toISOString(),
         correct,
-      });
+      }, { onConflict: 'user_id,question_id', ignoreDuplicates: true })
+      .select('question_id');
+
+    // If no row was inserted (duplicate), return null
+    if (insertError || !inserted || inserted.length === 0) return null;
 
     // Update profile stats
     await this.incrementProfileStats(userId, correct);
@@ -386,6 +383,8 @@ export class NewsService {
   private async checkAndUpdateStreak(userId: string, roundId: string): Promise<void> {
     // Check if user has answered at least 1 question in this round
     const roundQuestionIds = await this.getRoundQuestionIds(roundId);
+    if (roundQuestionIds.length === 0) return;
+
     const { count } = await this.supabaseService.client
       .from('user_news_progress')
       .select('id', { count: 'exact', head: true })
@@ -459,41 +458,60 @@ export class NewsService {
   }
 
   private async incrementProfileStats(userId: string, correct: boolean): Promise<void> {
-    const { data: profile } = await this.supabaseService.client
-      .from('profiles')
-      .select('questions_answered, correct_answers')
-      .eq('id', userId)
-      .single();
+    // Atomic increment via RPC (same as Solo mode uses)
+    // Falls back to read-modify-write if RPC fails
+    const { error } = await this.supabaseService.client.rpc('increment_news_stats', {
+      p_user_id: userId,
+      p_correct: correct ? 1 : 0,
+    });
 
-    if (!profile) return;
+    if (error) {
+      // Fallback: read-modify-write (less safe under concurrency)
+      const { data: profile } = await this.supabaseService.client
+        .from('profiles')
+        .select('questions_answered, correct_answers')
+        .eq('id', userId)
+        .single();
 
-    await this.supabaseService.client
-      .from('profiles')
-      .update({
-        questions_answered: profile.questions_answered + 1,
-        correct_answers: profile.correct_answers + (correct ? 1 : 0),
-      })
-      .eq('id', userId);
+      if (!profile) return;
+
+      await this.supabaseService.client
+        .from('profiles')
+        .update({
+          questions_answered: profile.questions_answered + 1,
+          correct_answers: profile.correct_answers + (correct ? 1 : 0),
+        })
+        .eq('id', userId);
+    }
   }
 
   private async upsertModeStats(userId: string, correct: boolean): Promise<void> {
-    const { data: current } = await this.supabaseService.client
-      .from('user_mode_stats')
-      .select('questions_answered, correct_answers, games_played')
-      .eq('user_id', userId)
-      .eq('mode', 'news')
-      .maybeSingle();
+    // Atomic upsert with increment via RPC
+    const { error } = await this.supabaseService.client.rpc('upsert_news_mode_stats', {
+      p_user_id: userId,
+      p_correct: correct ? 1 : 0,
+    });
 
-    await this.supabaseService.client
-      .from('user_mode_stats')
-      .upsert({
-        user_id: userId,
-        mode: 'news',
-        questions_answered: ((current as { questions_answered: number } | null)?.questions_answered ?? 0) + 1,
-        correct_answers: ((current as { correct_answers: number } | null)?.correct_answers ?? 0) + (correct ? 1 : 0),
-        games_played: (current as { games_played: number } | null)?.games_played ?? 0,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,mode' });
+    if (error) {
+      // Fallback: read-modify-write
+      const { data: current } = await this.supabaseService.client
+        .from('user_mode_stats')
+        .select('questions_answered, correct_answers, games_played')
+        .eq('user_id', userId)
+        .eq('mode', 'news')
+        .maybeSingle();
+
+      await this.supabaseService.client
+        .from('user_mode_stats')
+        .upsert({
+          user_id: userId,
+          mode: 'news',
+          questions_answered: ((current as { questions_answered: number } | null)?.questions_answered ?? 0) + 1,
+          correct_answers: ((current as { correct_answers: number } | null)?.correct_answers ?? 0) + (correct ? 1 : 0),
+          games_played: (current as { games_played: number } | null)?.games_played ?? 0,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,mode' });
+    }
   }
 
   private async fetchHeadlinesWithRetry(): Promise<import('../common/interfaces/news.interface').NewsHeadline[]> {
