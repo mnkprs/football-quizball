@@ -7,7 +7,8 @@ import {
   computed,
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AdminApiService, AdminUser, AdminUserDetail } from '../../../core/admin-api.service';
+import { AdminApiService } from '../../../core/admin-api.service';
+import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
 
 @Component({
   selector: 'admin-users',

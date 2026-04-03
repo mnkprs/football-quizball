@@ -33,3 +33,4 @@ pipeline-context.md
 .seed-pool-last-ids.json
 .mcp.json
 .gstack
+.agents/

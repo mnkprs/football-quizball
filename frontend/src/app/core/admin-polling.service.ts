@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, DestroyRef, OnDestroy } from '@angular/core';
 import { interval, Subscription, switchMap, startWith } from 'rxjs';
-import { AdminApiService, ErrorLogEntry, OverviewStats } from './admin-api.service';
+import { AdminApiService } from './admin-api.service';
+import { ErrorLogEntry, OverviewStats } from './admin-api.types';
 
 /** Shape for live-game summary (used by Games tab). */
 export interface LiveGameSummary {

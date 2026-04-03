@@ -6,11 +6,8 @@ import {
   signal,
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import {
-  AdminApiService,
-  ScoreThresholds,
-  SystemInfo,
-} from '../../../core/admin-api.service';
+import { AdminApiService } from '../../../core/admin-api.service';
+import { ScoreThresholds, SystemInfo } from '../../../core/admin-api.types';
 
 /** Format seconds of uptime to "Xd Xh Xm". */
 function formatUptime(seconds: number): string {

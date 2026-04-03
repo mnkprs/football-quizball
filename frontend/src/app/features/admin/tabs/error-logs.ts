@@ -9,7 +9,8 @@ import {
   effect,
 } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AdminApiService, ErrorLogEntry } from '../../../core/admin-api.service';
+import { AdminApiService } from '../../../core/admin-api.service';
+import { ErrorLogEntry } from '../../../core/admin-api.types';
 import { AdminPollingService } from '../../../core/admin-polling.service';
 
 const PAGE_SIZE = 50;
