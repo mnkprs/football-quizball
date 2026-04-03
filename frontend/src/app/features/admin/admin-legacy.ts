@@ -8,8 +8,8 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { AdminApiService } from '../../core/admin-api.service';
 import {
-  AdminApiService,
   PoolRawScoreStats,
   PoolQuestionRow,
   SeedPoolSession,
@@ -20,7 +20,7 @@ import {
   VerifyPoolIntegrityResponse,
   DeleteByVersionResponse,
   ScoreThresholds,
-} from '../../core/admin-api.service';
+} from '../../core/admin-api.types';
 import { JsonPipe } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';

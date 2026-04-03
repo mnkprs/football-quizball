@@ -7,6 +7,8 @@ import { BlitzApiService, BlitzQuestionRef } from '../../core/blitz-api.service'
 import { DonateModalService } from '../../core/donate-modal.service';
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { GameApiService } from '../../core/game-api.service';
+import { createGameTimer } from '../../core/game-timer';
+import { createReportCooldown } from '../../core/report-cooldown';
 import { LanguageService } from '../../core/language.service';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
@@ -44,19 +46,20 @@ export class BlitzComponent implements OnDestroy {
   currentQuestion = signal<BlitzQuestionRef | null>(null);
   score = signal(0);
   totalAnswered = signal(0);
-  timeLeft = signal(60);
+
+  private timer = createGameTimer();
+  timeLeft = this.timer.timeLeft;
 
   /** True while waiting for API response after selecting an answer. */
   submitting = signal(false);
-  reportDisabled = signal(false);
-  problemReported = signal(false);
-  private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
+  private reportCooldown = createReportCooldown();
+  reportDisabled = this.reportCooldown.disabled;
+  problemReported = this.reportCooldown.reported;
   showFlash = signal(false);
   flashCorrect = signal(false);
   flashAnswer = signal('');
   selectedChoice = signal<string | null>(null);
 
-  private timerInterval: ReturnType<typeof setInterval> | null = null;
   private flashTimeout: ReturnType<typeof setTimeout> | null = null;
   private pendingNext: BlitzQuestionRef | null = null;
 
@@ -93,9 +96,11 @@ export class BlitzComponent implements OnDestroy {
       this.currentQuestion.set(res.first_question);
       this.score.set(0);
       this.totalAnswered.set(0);
-      this.timeLeft.set(60);
       this.phase.set('playing');
-      this.startTimer();
+      this.timer.start(60, () => {
+        const sid = this.sessionId();
+        if (sid) void this.finishSession(sid);
+      });
     } catch (err: any) {
       this.error.set(err?.error?.message ?? this.lang.t().blitzSessionFailed);
     } finally {
@@ -123,7 +128,7 @@ export class BlitzComponent implements OnDestroy {
       this.showFlash.set(true);
 
       if (result.time_up || !result.next_question) {
-        this.stopTimer();
+        this.timer.stop();
         await this.finishSession(sid);
         return;
       }
@@ -165,26 +170,6 @@ export class BlitzComponent implements OnDestroy {
     this.phase.set('finished');
   }
 
-  private startTimer(): void {
-    this.stopTimer();
-    this.timerInterval = setInterval(async () => {
-      const left = this.timeLeft() - 1;
-      this.timeLeft.set(left);
-      if (left <= 0) {
-        this.stopTimer();
-        const sid = this.sessionId();
-        if (sid) await this.finishSession(sid);
-      }
-    }, 1000);
-  }
-
-  private stopTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-  }
-
   private clearFlash(): void {
     if (this.flashTimeout) {
       clearTimeout(this.flashTimeout);
@@ -200,55 +185,42 @@ export class BlitzComponent implements OnDestroy {
     this.currentQuestion.set(null);
     this.showFlash.set(false);
     this.selectedChoice.set(null);
-    this.timeLeft.set(60);
     this.phase.set('idle');
   }
 
   goHome(): void {
-    this.stopTimer();
+    this.timer.stop();
     this.clearFlash();
     this.router.navigate(['/']);
   }
 
   async reportQuestion(): Promise<void> {
-    if (this.reportDisabled()) return;
+    if (this.reportCooldown.disabled()) return;
     const q = this.currentQuestion();
     if (!q) return;
 
-    this.reportDisabled.set(true);
-    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
-    this.reportCooldownTimeout = setTimeout(() => {
-      this.reportDisabled.set(false);
-      this.reportCooldownTimeout = null;
-    }, 60_000);
-
-    const payload = {
-      questionId: q.question_id,
-      category: q.category,
-      difficulty: q.difficulty,
-      points: 1,
-      questionText: q.question_text,
-    };
-
+    this.reportCooldown.start();
     try {
-      await firstValueFrom(this.gameApi.reportProblem(payload));
-      this.problemReported.set(true);
+      await firstValueFrom(this.gameApi.reportProblem({
+        questionId: q.question_id,
+        category: q.category,
+        difficulty: q.difficulty,
+        points: 1,
+        questionText: q.question_text,
+      }));
+      this.reportCooldown.markReported();
     } catch {
-      this.reportDisabled.set(false);
-      if (this.reportCooldownTimeout) {
-        clearTimeout(this.reportCooldownTimeout);
-        this.reportCooldownTimeout = null;
-      }
+      this.reportCooldown.cancel();
     }
   }
 
   dismissProblemReported(): void {
-    this.problemReported.set(false);
+    this.reportCooldown.dismiss();
   }
 
   ngOnDestroy(): void {
-    this.stopTimer();
+    this.timer.destroy();
     this.clearFlash();
-    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
+    this.reportCooldown.destroy();
   }
 }

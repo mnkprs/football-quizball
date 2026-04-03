@@ -11,6 +11,7 @@ import {
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { createGameTimer } from '../../core/game-timer';
 import { DuelStore } from './duel.store';
 
 const QUESTION_TIME = 30;
@@ -35,7 +36,10 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   wrongFeedback = signal(false);
   opponentFlash = signal(false);
   myFlash = signal(false);
-  timeLeft = signal(QUESTION_TIME);
+
+  private timer = createGameTimer();
+  timeLeft = this.timer.timeLeft;
+
   queueSeconds = signal(0);
   queueBotPhase = computed(() => this.queueSeconds() >= BOT_MATCH_THRESHOLD);
   inQueueMode = computed(() => this.store.phase() === 'waiting' && !this.store.inviteCode());
@@ -51,7 +55,6 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
 
   private opponentFlashTimer: ReturnType<typeof setTimeout> | null = null;
   private myFlashTimer: ReturnType<typeof setTimeout> | null = null;
-  private timerInterval: ReturnType<typeof setInterval> | null = null;
   private queueTimer: ReturnType<typeof setInterval> | null = null;
   private lastQIndex: number | null = null;
 
@@ -80,7 +83,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
           this.resetTimer();
         }
       } else {
-        this.stopTimer();
+        this.timer.stop();
       }
     });
   }
@@ -97,7 +100,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
     this.store.unsubscribeRealtime();
     if (this.opponentFlashTimer) clearTimeout(this.opponentFlashTimer);
     if (this.myFlashTimer) clearTimeout(this.myFlashTimer);
-    this.stopTimer();
+    this.timer.destroy();
     this.stopQueueTimer();
   }
 
@@ -201,27 +204,10 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   }
 
   private resetTimer(): void {
-    this.stopTimer();
-    this.timeLeft.set(QUESTION_TIME);
     const qIndex = this.store.currentQuestionIndex();
-    this.timerInterval = setInterval(() => {
-      const t = this.timeLeft();
-      if (t <= 1) {
-        this.timeLeft.set(0);
-        this.stopTimer();
-        // Notify server — advances question for both players. CAS-safe if called by both.
-        void this.store.timeoutQuestion(qIndex);
-      } else {
-        this.timeLeft.update(v => v - 1);
-      }
-    }, 1000);
-  }
-
-  private stopTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
+    this.timer.start(QUESTION_TIME, () => {
+      void this.store.timeoutQuestion(qIndex);
+    });
   }
 
   private showOpponentFlash(): void {

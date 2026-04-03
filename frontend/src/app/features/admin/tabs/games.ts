@@ -7,7 +7,8 @@ import {
   signal,
 } from '@angular/core';
 import { firstValueFrom, interval, Subscription, startWith, switchMap } from 'rxjs';
-import { AdminApiService, LiveGamesResponse } from '../../../core/admin-api.service';
+import { AdminApiService } from '../../../core/admin-api.service';
+import { LiveGamesResponse } from '../../../core/admin-api.types';
 
 /** Time-since helper: returns a short string like "2m ago" or "just now". */
 function timeSince(iso: string): string {

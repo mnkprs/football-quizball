@@ -320,9 +320,6 @@ details[open] .br-rules__summary::before {
   border: 1px solid rgba(179, 38, 30, 0.25);
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 .spinning {
   animation: spin 1s linear infinite;
   display: inline-block;

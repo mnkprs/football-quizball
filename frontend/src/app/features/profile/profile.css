@@ -197,7 +197,6 @@
 .hero__avatar-zone--clickable:hover .hero__upload-badge { opacity: 1; }
 .hero__upload-badge.uploading { opacity: 1; }
 
-@keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 0.9s linear infinite; }
 
 /* ── Identity ──────────────────────────── */

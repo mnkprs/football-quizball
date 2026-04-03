@@ -10,7 +10,7 @@
   @if (locked()) {
     <div class="mode-card__locked-overlay" [class.mode-card__locked-overlay--velvet]="velvetLock()">
       <span class="material-icons mode-card__lock-icon">lock</span>
-      <span class="mode-card__lock-text">{{ velvetLock() ? 'Sign in to unlock' : 'Available Soon' }}</span>
+      <span class="mode-card__lock-text glass-surface glass-surface--subtle">{{ velvetLock() ? 'Sign in to unlock' : 'Available Soon' }}</span>
     </div>
   }
   @if (proLocked()) {

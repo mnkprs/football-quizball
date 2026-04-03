@@ -17,7 +17,7 @@
   min-height: 100dvh;
   position: relative;
   overflow: hidden;
-  background: #131313;
+  background: var(--color-bg);
 }
 
 /* Spotlights — uses .spotlight utility from _glows.css */
@@ -100,7 +100,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #007AFF;
+  color: var(--color-accent);
 }
 
 /* Start Button */
@@ -108,7 +108,7 @@
   width: 100%;
   padding: 1rem;
   border-radius: 9999px;
-  background: #007AFF;
+  background: var(--color-accent);
   color: #ffffff;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1rem;

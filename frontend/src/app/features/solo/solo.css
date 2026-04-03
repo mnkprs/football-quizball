@@ -17,7 +17,7 @@
   min-height: 100dvh;
   position: relative;
   overflow: hidden;
-  background: #131313;
+  background: var(--color-bg);
   padding-bottom: 0;
 }
 
@@ -191,7 +191,7 @@
   width: 100%;
   padding: 1.125rem;
   border-radius: 9999px;
-  background: #007AFF;
+  background: var(--color-accent);
   color: #ffffff;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.0625rem;
@@ -219,7 +219,7 @@
   font-family: 'Space Grotesk', sans-serif;
   font-size: 1.125rem;
   font-weight: 800;
-  color: #ff9500;
+  color: var(--color-warning);
   text-shadow: 0 0 12px rgba(255, 149, 0, 0.4);
   animation: badge-pop 300ms var(--ease-out-quart);
   /* Match 2-line score counter height to prevent layout shift */
