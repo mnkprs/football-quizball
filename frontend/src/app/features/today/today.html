@@ -1,5 +1,15 @@
 <div class="today-page">
-  <h1 class="today-page__title">{{ lang.t().navCasual }}</h1>
+  <!-- Premium header -->
+  <div class="today-header">
+    <div class="today-header__date">{{ todayDate() }}</div>
+    <h1 class="today-header__title">{{ lang.t().navCasual }}</h1>
+    <p class="today-header__subtitle">Fresh questions every day — test your football knowledge</p>
+    <div class="today-header__divider">
+      <span class="today-header__divider-line"></span>
+      <span class="material-icons today-header__divider-icon">sports_soccer</span>
+      <span class="today-header__divider-line"></span>
+    </div>
+  </div>
 
   <app-daily-hero
     [title]="lang.t().btnDaily"

@@ -5,12 +5,13 @@ import { catchError, of } from 'rxjs';
 import { DailyApiService } from '../../core/daily-api.service';
 import { NewsApiService } from '../../core/news-api.service';
 import { LanguageService } from '../../core/language.service';
+import { MatIconModule } from '@angular/material/icon';
 import { DailyHeroComponent } from '../../shared/daily-hero/daily-hero';
 
 @Component({
   selector: 'app-today',
   standalone: true,
-  imports: [DailyHeroComponent],
+  imports: [DailyHeroComponent, MatIconModule],
   templateUrl: './today.html',
   styleUrl: './today.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +34,11 @@ export class TodayComponent implements OnInit, OnDestroy {
     this.newsApi.getMetadata().pipe(catchError(() => of(null))),
     { initialValue: null },
   );
+
+  todayDate = computed(() => {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  });
 
   dailyCount = computed(() => this.dailyMeta()?.count ?? null);
 
