@@ -57,6 +57,7 @@ export class SoloComponent implements OnDestroy {
       const elo = this.profileStore.elo();
       if (elo !== 1000 || this.profileStore.profile() !== null) {
         this.currentElo.set(elo);
+        this.displayElo.set(elo);
         this.startElo.set(elo);
       }
     });
@@ -68,8 +69,13 @@ export class SoloComponent implements OnDestroy {
   sessionId = signal<string | null>(null);
   startElo = signal(1000);
   currentElo = signal(1000);
+  displayElo = signal(1000);
+  eloBumping = signal(false);
   questionsAnswered = signal(0);
   correctAnswers = signal(0);
+  currentStreak = signal(0);
+  bestStreak = signal(0);
+  tierUpMessage = signal<string | null>(null);
 
   currentQuestion = signal<NextQuestionResponse | null>(null);
   lastResult = signal<AnswerResponse | null>(null);
@@ -79,6 +85,7 @@ export class SoloComponent implements OnDestroy {
   reportDisabled = signal(false);
   problemReported = signal(false);
   private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
+  private tierUpTimeout: ReturnType<typeof setTimeout> | null = null;
   timeLeft = signal(35);
   totalTimeLimit = signal(35);
 
@@ -91,6 +98,21 @@ export class SoloComponent implements OnDestroy {
   });
 
   eloTier = computed<EloTier>(() => getEloTier(this.currentElo()));
+
+  eloChange = computed(() => this.currentElo() - this.startElo());
+
+  sessionVerdict = computed(() => {
+    const change = this.eloChange();
+    const acc = this.accuracy();
+    const streak = this.bestStreak();
+    if (change >= 100) return 'Dominant performance.';
+    if (change >= 50) return 'Impressive session.';
+    if (change > 0 && acc >= 80) return 'Clinical accuracy.';
+    if (change > 0) return 'Solid work.';
+    if (change === 0) return 'Held your ground.';
+    if (streak >= 5) return 'Rough session, but that streak was fire.';
+    return 'Tough questions. Come back stronger.';
+  });
 
   questionData = computed<QuestionData | null>(() => {
     const q = this.currentQuestion();
@@ -166,6 +188,27 @@ export class SoloComponent implements OnDestroy {
     }
   }
 
+  private animateElo(from: number, to: number): void {
+    const duration = 600;
+    const start = performance.now();
+    const diff = to - from;
+    this.eloBumping.set(true);
+
+    const step = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out-quart
+      const eased = 1 - Math.pow(1 - progress, 4);
+      this.displayElo.set(Math.round(from + diff * eased));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        this.eloBumping.set(false);
+      }
+    };
+    requestAnimationFrame(step);
+  }
+
   private async submitTimeout(): Promise<void> {
     await this.doSubmit('TIMEOUT');
   }
@@ -185,7 +228,27 @@ export class SoloComponent implements OnDestroy {
       this.lastResult.set(result);
       this.correctAnswers.set(result.correct_answers);
       this.questionsAnswered.set(result.questions_answered);
+      // Streak tracking
+      if (result.correct) {
+        this.currentStreak.update(s => s + 1);
+        if (this.currentStreak() > this.bestStreak()) {
+          this.bestStreak.set(this.currentStreak());
+        }
+      } else {
+        this.currentStreak.set(0);
+      }
+
+      // Tier-up detection
+      const oldTier = getEloTier(result.elo_after - result.elo_change);
+      const newTier = getEloTier(result.elo_after);
+      if (newTier.tier !== oldTier.tier && result.elo_change > 0) {
+        this.tierUpMessage.set(`${newTier.label} Tier Reached!`);
+        if (this.tierUpTimeout) clearTimeout(this.tierUpTimeout);
+        this.tierUpTimeout = setTimeout(() => this.tierUpMessage.set(null), 3000);
+      }
+
       this.currentElo.set(result.elo_after);
+      this.animateElo(result.elo_after - result.elo_change, result.elo_after);
       this.posthog.track('question_answered', {
         correct: result.correct,
         elo_change: result.elo_change,
@@ -239,6 +302,9 @@ export class SoloComponent implements OnDestroy {
     this.sessionId.set(null);
     this.questionsAnswered.set(0);
     this.correctAnswers.set(0);
+    this.currentStreak.set(0);
+    this.bestStreak.set(0);
+    this.tierUpMessage.set(null);
     this.lastResult.set(null);
     this.currentQuestion.set(null);
     this.phase.set('idle');
@@ -288,5 +354,6 @@ export class SoloComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.stopTimer();
     if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
+    if (this.tierUpTimeout) clearTimeout(this.tierUpTimeout);
   }
 }

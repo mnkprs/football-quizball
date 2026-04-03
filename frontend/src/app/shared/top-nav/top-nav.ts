@@ -105,16 +105,9 @@ export class TopNavComponent implements OnInit {
       const loggedIn = this.auth.isLoggedIn();
       if (loggedIn) {
         this.store.loadProfile();
-        this.pro.loadStatus();
+        this.pro.ensureLoaded();
       }
     }, { injector: this.injector });
-
-    this.auth.sessionReady.then(() => {
-      if (this.auth.isLoggedIn()) {
-        this.store.loadProfile();
-        this.pro.loadStatus();
-      }
-    });
   }
 
   openAuth(): void { this.authModal.open(); }

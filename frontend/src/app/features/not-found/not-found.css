@@ -15,7 +15,7 @@
 .not-found__code {
   display: block;
   font-size: 5rem;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   background: linear-gradient(135deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 60%, #ff6b6b));
   -webkit-background-clip: text;

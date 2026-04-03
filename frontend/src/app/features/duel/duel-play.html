@@ -163,7 +163,7 @@
           </div>
           @if (q.image_url) {
             <div class="flex justify-center my-2">
-              <img [src]="q.image_url" alt="Identify this club logo" class="w-40 h-40 object-contain rounded-xl" />
+              <img [src]="q.image_url" alt="Identify this club logo" class="w-40 h-40 object-contain rounded-xl" loading="lazy" />
             </div>
             <p class="text-muted-foreground text-sm text-center mt-1">Name this football club</p>
           } @else {

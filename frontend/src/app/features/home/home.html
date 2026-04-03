@@ -20,7 +20,7 @@
 
     <!-- 2-Player Card -->
     <div class="two-player-card">
-      <img class="two-player-card__bg-image" src="/2-player-mode.png" alt="" aria-hidden="true" />
+      <img class="two-player-card__bg-image" src="/2-player-mode.png" alt="" aria-hidden="true" loading="lazy" />
       <span class="two-player-card__bg-overlay" aria-hidden="true"></span>
       <span class="two-player-card__badge">{{ lang.t().localMultiplayer }}</span>
       <h3 class="two-player-card__title">{{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</h3>
@@ -50,7 +50,7 @@
         iconClass="material-symbols-outlined"
         iconBgColor="gold"
         title="Battle Royale"
-        hint="8-Player High-Speed Clash"
+        hint="8-player elimination — last one standing wins"
         [tags]="['8 players', 'multi', 'pvp']"
         backgroundImage="/royale.png"
         variant="accent"

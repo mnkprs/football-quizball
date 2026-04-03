@@ -5,8 +5,10 @@ import {
   computed,
   OnInit,
   OnDestroy,
+  DestroyRef,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,6 +28,7 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private logoQuizApi = inject(LogoQuizApiService);
+  private destroyRef = inject(DestroyRef);
 
   selectedChoice = signal<string | null>(null);
   answerFeedback = signal<'correct' | 'wrong' | null>(null);
@@ -61,13 +64,9 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
     this.store.reset();
     this.store.loadRoom(roomId).then(() => {
       this.store.subscribeRealtime(roomId);
-      // Pre-load team names if this is a team logo room
-      if (this.store.roomView()?.mode === 'team_logo') {
-        this.logoQuizApi.getTeamNames().subscribe(names => this.teamNames.set(names));
-      }
     });
-    // Always load team names eagerly — cheap, cached, needed once mode is known
-    this.logoQuizApi.getTeamNames().subscribe(names => this.teamNames.set(names));
+    // Load team names eagerly — cheap, cached, needed for logo mode
+    this.logoQuizApi.getTeamNames().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(names => this.teamNames.set(names));
 
     // Start question timer tick
     this.timerInterval = setInterval(() => this.tickTimer(), 1000);

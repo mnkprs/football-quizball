@@ -91,7 +91,7 @@
        aria-valuemax="100"
        [attr.aria-label]="store.eloToNextTier() > 0 ? store.eloToNextTier() + ' ELO to ' + tierLabel() : tierLabel() + ' tier'">
     <div class="top-nav__tier-bar-fill"
-         [style.width.%]="tierPct()"
+         [style.--progress]="tierPct() / 100"
          [style.background]="tierColor()"
          [style.box-shadow]="'0 0 6px ' + tierGlow()"
          [class.top-nav__tier-bar-fill--max]="tierPct() >= 100">

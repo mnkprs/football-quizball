@@ -20,6 +20,15 @@
 
 .gq--mayhem { --mode-color: #ff6b2b; }
 
+/* ─── QUESTION TRANSITION ─────────────────────────────────── */
+.gq--entering .gq__body {
+  animation: question-enter 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1));
+}
+
+.gq--transitioning .gq__body {
+  animation: question-exit 150ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) forwards;
+}
+
 .gq__header {
   display: flex;
   justify-content: space-between;
@@ -105,9 +114,18 @@
   animation: timer-pulse .5s ease-in-out infinite;
 }
 
+.gq__timer--critical .gq__timer-value {
+  animation: timer-critical .3s ease-in-out infinite;
+}
+
 @keyframes timer-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: .6; }
+}
+
+@keyframes timer-critical {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.08); }
 }
 
 .gq__timer-bar {
@@ -120,9 +138,27 @@
 
 .gq__timer-fill {
   height: 100%;
+  width: 100%;
   background: linear-gradient(90deg, var(--mode-color), white);
   border-radius: inherit;
-  transition: width 1s linear;
+  transform: scaleX(var(--progress, 1));
+  transform-origin: left;
+  transition: transform 1s linear;
+  will-change: transform;
+  position: relative;
+}
+
+.gq__timer-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.6), 0 0 16px 4px var(--mode-color);
 }
 
 .gq__timer--low .gq__timer-fill {
@@ -170,9 +206,12 @@
 
 .gq__progress-fill {
   height: 100%;
+  width: 100%;
   background: linear-gradient(90deg, var(--mode-color), white);
   border-radius: inherit;
-  transition: width .3s;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+  transition: transform .3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .gq__hint {
@@ -286,6 +325,7 @@
   padding: 1rem 1.5rem;
   border-radius: .875rem;
   background: var(--mode-color);
+  will-change: transform;
   color: #000;
   font-weight: 700;
   font-size: 1rem;
@@ -297,6 +337,7 @@
 .gq__submit-btn:hover:not(:disabled) {
   filter: brightness(1.1);
 }
+.gq__submit-btn:active:not(:disabled) { transform: scale(0.97); }
 
 .gq__submit-btn:disabled { opacity: .4; cursor: not-allowed; }
 
@@ -315,7 +356,16 @@
   font-weight: 600;
   text-align: left;
   cursor: pointer;
-  transition: all .2s;
+  transition: transform var(--anim-feedback, 120ms) var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)),
+              background 200ms,
+              border-color 200ms,
+              box-shadow 200ms,
+              opacity 200ms;
+  will-change: transform;
+}
+
+.gq__option-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .gq__option-btn:hover:not(:disabled) {
@@ -334,56 +384,57 @@
 .gq__option-icon--wrong { background:rgba(255,180,171,.15); color:#ffb4ab }
 .gq__option-icon--correct-revealed { background:rgba(34,197,94,.15); color:#22C55E }
 
-.gq__option-tag { font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:.1875rem .5rem; border-radius:999px; flex-shrink:0 }
+.gq__option-tag { font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; padding:.1875rem .5rem; border-radius:999px; flex-shrink:0 }
 .gq__option-tag--correct { background:rgba(0,122,255,.15); color:#fff }
 .gq__option-tag--wrong { background:rgba(255,180,171,.12); color:#ffb4ab }
 .gq__option-tag--correct-revealed { background:rgba(34,197,94,.12); color:#22C55E }
 
-.gq__option-btn--selected { background:rgba(255,255,255,.08); box-shadow:inset 0 0 0 2px var(--mode-color) }
+.gq__option-btn--selected { background:rgba(255,255,255,.08); box-shadow:inset 0 0 0 2px var(--mode-color); animation: option-tap 200ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
 .gq__option-btn--selected .gq__option-label { background:rgba(0,122,255,.15); color:var(--mode-color) }
 
-.gq__option-btn--correct { background:#007AFF!important; border-color:transparent!important; opacity:1!important }
+.gq__option-btn--correct { background:#007AFF!important; border-color:transparent!important; opacity:1!important; animation: correct-flash 250ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
 .gq__option-btn--correct .gq__option-label { background:rgba(255,255,255,.2); color:#fff }
 .gq__option-btn--correct .gq__option-text { color:#fff; font-weight:700 }
 
-.gq__option-btn--wrong-chosen { background:#93000a!important; border-color:transparent!important; opacity:1!important }
+.gq__option-btn--wrong-chosen { background:#93000a!important; border-color:transparent!important; opacity:1!important; animation: wrong-shake-tight 400ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
 .gq__option-btn--wrong-chosen .gq__option-label { background:rgba(255,180,171,.1); color:#ffb4ab }
 .gq__option-btn--wrong-chosen .gq__option-text { color:#ffb4ab }
 
-.gq__option-btn--correct-revealed { background:rgba(34,197,94,.15)!important; border:1px solid rgba(34,197,94,.35)!important; opacity:1!important }
+.gq__option-btn--correct-revealed { background:rgba(34,197,94,.15)!important; border:1px solid rgba(34,197,94,.35)!important; opacity:1!important; animation: anim-fade-in 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
 .gq__option-btn--correct-revealed .gq__option-label { background:rgba(34,197,94,.15); color:#22C55E }
 .gq__option-btn--correct-revealed .gq__option-text { color:#22C55E }
 
-.gq__option-btn--dimmed { opacity:.35!important }
+.gq__option-btn--dimmed { opacity:.35!important; transition: opacity 250ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1))!important }
 
 /* ─── INPUT REVEAL STATES ───────────────────────────────── */
-.gq__input--correct { background:linear-gradient(135deg,rgba(0,122,255,.12),rgba(0,102,214,.08))!important; box-shadow:inset 0 0 0 2px var(--mode-color),0 0 12px rgba(0,122,255,.15)!important; color:var(--mode-color)!important; font-weight:600 }
-.gq__input--wrong { background:rgba(147,0,10,.15)!important; box-shadow:inset 0 0 0 2px rgba(255,180,171,.4)!important; color:#ffb4ab!important }
+.gq__input--correct { background:linear-gradient(135deg,rgba(0,122,255,.12),rgba(0,102,214,.08))!important; box-shadow:inset 0 0 0 2px var(--mode-color),0 0 12px rgba(0,122,255,.15)!important; color:var(--mode-color)!important; font-weight:600; animation: correct-flash 250ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
+.gq__input--wrong { background:rgba(147,0,10,.15)!important; box-shadow:inset 0 0 0 2px rgba(255,180,171,.4)!important; color:#ffb4ab!important; animation: wrong-shake-tight 400ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
 .gq__input-icon { position:absolute; right:1rem; top:50%; transform:translateY(-50%); width:1.25rem; height:1.25rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem }
 .gq__input-icon--correct { background:rgba(0,122,255,.2); color:var(--mode-color) }
 .gq__input-icon--wrong { background:rgba(255,180,171,.15); color:#ffb4ab }
 
 /* ─── RESULT BADGE ──────────────────────────────────────── */
-.gq__result-badge { display:inline-flex; align-items:center; padding:.5rem 1rem; border-radius:999px; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; width:fit-content }
+.gq__result-badge { display:inline-flex; align-items:center; padding:.5rem 1rem; border-radius:999px; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; width:fit-content; animation: badge-pop 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
 .gq__result-badge--correct { background:rgba(34,197,94,.12); color:#22C55E; box-shadow:inset 0 0 0 1px rgba(34,197,94,.2) }
 .gq__result-badge--wrong { background:rgba(147,0,10,.2); color:#ffb4ab; box-shadow:inset 0 0 0 1px rgba(255,180,171,.15) }
 
 /* ─── ANSWER REVEAL CARD ────────────────────────────────── */
-.gq__answer-reveal-card { background:rgba(34,197,94,.1); border-radius:.75rem; border:1px solid rgba(34,197,94,.25); padding:.875rem 1rem }
+.gq__answer-reveal-card { background:rgba(34,197,94,.1); border-radius:.75rem; border:1px solid rgba(34,197,94,.25); padding:.875rem 1rem; animation: anim-stagger-in 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
 .gq__answer-reveal-label { font-size:.65rem; font-weight:600; color:#22C55E; text-transform:uppercase; letter-spacing:.1em; margin-bottom:.25rem }
 .gq__answer-reveal-value { font-size:1rem; font-weight:600; color:var(--color-foreground) }
 
 /* ─── ELO DELTA + REVEAL FOOTER ─────────────────────────── */
-.gq__elo-delta { display:flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:.75rem }
+.gq__elo-delta { display:flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:.75rem; animation: anim-stagger-in 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) 100ms both }
 .gq__elo-delta--positive { background:rgba(34,197,94,.12); box-shadow:inset 0 0 0 1px rgba(34,197,94,.15) }
 .gq__elo-delta--negative { background:rgba(147,0,10,.15); box-shadow:inset 0 0 0 1px rgba(255,180,171,.15) }
 .gq__elo-delta-value { font-size:1.5rem; font-weight:700 }
 .gq__elo-delta--positive .gq__elo-delta-value { color:#22C55E }
 .gq__elo-delta--negative .gq__elo-delta-value { color:#ffb4ab }
 .gq__elo-delta-label { font-size:.75rem; color:var(--color-muted-foreground) }
-.gq__explanation { font-size:.875rem; color:var(--color-muted-foreground); line-height:1.5; padding:.5rem 0 }
+.gq__explanation { font-size:.875rem; color:var(--color-muted-foreground); line-height:1.5; padding:.5rem 0; animation: anim-stagger-in 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) 200ms both }
 
-.gq__next-btn { width:100%; padding:1rem; background:#007AFF; color:#fff; font-weight:700; font-size:1rem; text-transform:uppercase; letter-spacing:.05em; border:none; border-radius:.75rem; cursor:pointer; transition:filter .2s }
+.gq__next-btn { width:100%; padding:1rem; background:#007AFF; color:#fff; font-weight:700; font-size:1rem; text-transform:uppercase; letter-spacing:.05em; border:none; border-radius:.75rem; cursor:pointer; transition:filter .2s, transform var(--anim-feedback, 120ms) var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)); animation: anim-stagger-in 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) 300ms both }
+.gq__next-btn:active { transform: scale(0.97) }
 .gq__next-btn:hover { filter:brightness(1.1) }
 
 .gq__hol-buttons {
@@ -418,7 +469,7 @@
 }
 
 .gq__hol-btn:hover { filter: brightness(1.15); }
-.gq__hol-btn:active { filter: brightness(.95); }
+.gq__hol-btn:active { filter: brightness(.95); transform: scale(0.97); }
 
 .gq__hol-icon { width: 1.5rem; height: 1.5rem; }
 

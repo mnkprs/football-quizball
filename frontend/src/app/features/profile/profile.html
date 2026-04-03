@@ -67,7 +67,7 @@
       >
         <div class="hero__avatar">
           @if (avatarUrl()) {
-            <img [src]="avatarUrl()!" alt="avatar" />
+            <img [src]="avatarUrl()!" alt="avatar" loading="lazy" />
           } @else {
             {{ initials() }}
           }
@@ -110,7 +110,7 @@
             <span class="tier-progress__next">{{ nextTierLabel() }}</span>
           </div>
           <div class="tier-progress__track">
-            <div class="tier-progress__fill" [style.width.%]="tierProgressPct()"></div>
+            <div class="tier-progress__fill" [style.--progress]="tierProgressPct() / 100"></div>
           </div>
         </div>
       }

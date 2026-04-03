@@ -24,7 +24,7 @@ export class ProService {
   /** Which mode triggered the upgrade modal — used for contextual CTA in the modal. */
   readonly triggerContext = signal<'duel' | 'battle-royale' | 'general'>('general');
 
-  private loaded = false;
+  private inflight: Promise<void> | null = null;
 
   private headers(): HttpHeaders {
     const token = this.auth.accessToken();
@@ -32,12 +32,18 @@ export class ProService {
   }
 
   async ensureLoaded(): Promise<void> {
-    if (this.loaded) return;
-    await this.loadStatus();
+    if (this.inflight) return this.inflight;
+    return this.loadStatus();
   }
 
   async loadStatus(): Promise<void> {
     if (!this.auth.isLoggedIn()) return;
+    if (this.inflight) return this.inflight;
+    this.inflight = this.doLoadStatus();
+    return this.inflight;
+  }
+
+  private async doLoadStatus(): Promise<void> {
     try {
       const status = await firstValueFrom(
         this.http.get<{
@@ -56,13 +62,12 @@ export class ProService {
       this.dailyDuelsRemaining.set(status.daily_duels_remaining ?? 1);
       this.purchaseType.set(status.purchase_type ?? null);
       this.subscriptionExpiresAt.set(status.subscription_expires_at ?? null);
-      this.loaded = true;
     } catch {
       // Non-fatal: defaults stay
     }
   }
 
   resetLoaded(): void {
-    this.loaded = false;
+    this.inflight = null;
   }
 }

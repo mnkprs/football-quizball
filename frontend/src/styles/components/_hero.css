@@ -1,0 +1,36 @@
+/* ==========================================================
+   Hero Pattern — full-bleed background image with gradient overlay
+   Usage:
+     <div class="hero-bg">
+       <img class="hero-bg__img" src="..." alt="" loading="lazy" />
+       <div class="hero-bg__overlay"></div>
+     </div>
+   ========================================================== */
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  z-index: 0;
+}
+
+.hero-bg__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0.5;
+}
+
+.hero-bg__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(19, 19, 19, 0) 0%,
+    rgba(19, 19, 19, 0.4) 50%,
+    rgba(19, 19, 19, 1) 85%
+  );
+}

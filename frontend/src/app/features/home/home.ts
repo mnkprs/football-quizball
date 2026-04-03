@@ -82,7 +82,7 @@ export class HomeComponent implements OnInit {
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
         this.store.loadProfile();
-        this.pro.loadStatus();
+        this.pro.ensureLoaded();
       }
     });
   }

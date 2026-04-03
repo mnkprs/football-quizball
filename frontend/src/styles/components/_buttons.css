@@ -22,9 +22,10 @@
   min-height: 44px;
   box-shadow: var(--glow-accent-md);
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  transition: background 0.2s, transform var(--anim-feedback, 120ms) var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)), box-shadow 0.2s;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  will-change: transform;
 }
 .btn-accent:active { transform: scale(0.97); }
 
@@ -47,9 +48,10 @@
   padding: 0.875rem 1.5rem;
   min-height: 44px;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  transition: background 0.2s, transform var(--anim-feedback, 120ms) var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1));
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  will-change: transform;
 }
 .btn-secondary:active { transform: scale(0.97); }
 
@@ -68,9 +70,10 @@
   padding: 0.5rem 1rem;
   min-height: 44px;
   cursor: pointer;
-  transition: color 0.2s, transform 0.15s;
+  transition: color 0.2s, transform var(--anim-feedback, 120ms) var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1));
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  will-change: transform;
 }
 .btn-ghost:active { transform: scale(0.97); }
 .btn-ghost:hover { color: var(--color-fg); }

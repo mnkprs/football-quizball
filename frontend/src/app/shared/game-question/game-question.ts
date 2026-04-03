@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, input, output, computed, signal, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed, signal, effect, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../core/language.service';
+import { ParticleBurstService } from '../../core/particle-burst.service';
 import { inject } from '@angular/core';
 
 export type GameMode = 'solo' | '2p-local' | '2p-online' | 'mayhem' | 'news' | 'blitz';
@@ -84,6 +85,36 @@ export interface QuestionData {
 })
 export class GameQuestionComponent {
   lang = inject(LanguageService);
+  private particles = inject(ParticleBurstService);
+  private elRef = inject(ElementRef);
+
+  // Fire particles on correct reveal, vignette on wrong
+  private revealEffect = effect(() => {
+    const revealing = this.reveal();
+    const result = this.revealResult();
+    if (!revealing || !result) return;
+    if (result.correct) {
+      // Find the correct option button to use as particle origin
+      const el = this.elRef.nativeElement.querySelector('.gq__option-btn--correct, .gq__input--correct, .gq__result-badge--correct');
+      this.particles.burst(el ?? undefined);
+    } else {
+      // Flash red vignette
+      this.flashVignette();
+    }
+  });
+
+  private flashVignette(): void {
+    const v = document.createElement('div');
+    v.style.cssText =
+      'position:fixed;inset:0;pointer-events:none;z-index:9998;' +
+      'box-shadow:inset 0 0 120px 40px rgba(147,0,10,0.4);' +
+      'opacity:1;transition:opacity 500ms cubic-bezier(0.25,1,0.5,1)';
+    document.body.appendChild(v);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { v.style.opacity = '0'; });
+    });
+    setTimeout(() => v.remove(), 600);
+  }
 
   // ─── INPUTS ───────────────────────────────────────────────────
   mode = input.required<GameMode>();
@@ -121,6 +152,8 @@ export class GameQuestionComponent {
   textAnswer = '';
   top5Answer = '';
   selectedOption = signal<string | null>(null);
+  transitioning = signal(false);
+  entering = signal(false);
   logoSearchQuery = signal('');
   logoDropdownOpen = signal(false);
 
@@ -223,11 +256,18 @@ export class GameQuestionComponent {
   }
 
   onNextClicked(): void {
-    this.selectedOption.set(null);
-    this.textAnswer = '';
-    this.logoSearchQuery.set('');
-    this.logoDropdownOpen.set(false);
-    this.nextClicked.emit();
+    this.transitioning.set(true);
+    setTimeout(() => {
+      this.selectedOption.set(null);
+      this.textAnswer = '';
+      this.logoSearchQuery.set('');
+      this.logoDropdownOpen.set(false);
+      this.transitioning.set(false);
+      this.entering.set(true);
+      this.nextClicked.emit();
+      // Clear entering class after animation completes
+      setTimeout(() => this.entering.set(false), 300);
+    }, 150);
   }
 
   onLogoSearchInput(value: string): void {

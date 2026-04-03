@@ -27,7 +27,7 @@
   background: var(--color-card, #1a1a1a);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 2rem 1.5rem 3rem;
-  animation: am-slide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: am-slide 0.3s var(--ease-out-quart);
 }
 
 @keyframes am-slide {

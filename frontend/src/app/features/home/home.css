@@ -26,24 +26,37 @@
   width: 100%;
 }
 
+/* Stagger entrance for home content children */
+.home-content > * {
+  opacity: 0;
+  animation: anim-stagger-in 400ms var(--ease-out-quart) forwards;
+}
+.home-content > *:nth-child(1) { animation-delay: 0ms; }
+.home-content > *:nth-child(2) { animation-delay: 60ms; }
+.home-content > *:nth-child(3) { animation-delay: 120ms; }
+.home-content > *:nth-child(4) { animation-delay: 180ms; }
+.home-content > *:nth-child(5) { animation-delay: 240ms; }
+.home-content > *:nth-child(6) { animation-delay: 300ms; }
+.home-content > *:nth-child(n+7) { animation-delay: 360ms; }
+
 /* TIER 1: Battle hero */
 app-battle-hero {
   display: block;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
-/* Section header spacing */
+/* Section header spacing — larger gap above to separate tiers */
 :host app-section-header {
   display: block;
-  margin-top: 1.5rem;
+  margin-top: 2.25rem;
 }
 
 /* Shared section modes layout */
 .section-modes {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.875rem;
+  margin-bottom: 0;
 }
 
 /* TIER 3: Pro Arena — gold glass treatment */
@@ -57,6 +70,10 @@ app-battle-hero {
 /* TIER 4: Free modes */
 .free-tier {
   gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 1.25rem;
+  padding: 0.75rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 /* ============================================

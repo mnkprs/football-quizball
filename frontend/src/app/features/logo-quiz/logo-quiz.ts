@@ -4,8 +4,10 @@ import {
   signal,
   computed,
   inject,
+  DestroyRef,
   OnDestroy,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { DecimalPipe, UpperCasePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
@@ -34,6 +36,7 @@ export class LogoQuizComponent implements OnDestroy {
   private achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
   private profileStore = inject(ProfileStore);
+  private destroyRef = inject(DestroyRef);
   lang = inject(LanguageService);
 
   // State
@@ -92,7 +95,7 @@ export class LogoQuizComponent implements OnDestroy {
 
   constructor() {
     // Preload team names
-    this.api.getTeamNames().subscribe(names => this.teamNames.set(names));
+    this.api.getTeamNames().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(names => this.teamNames.set(names));
     // Load logo quiz ELO from profile store (separate from solo ELO)
     this.profileStore.loadProfile().then(() => {
       const elo = this.profileStore.logoQuizElo();
@@ -100,7 +103,7 @@ export class LogoQuizComponent implements OnDestroy {
       this.startElo.set(elo);
     });
     // Load logo quiz ranks (normal + hardcore)
-    this.leaderboardApi.getMyLeaderboardEntries().subscribe({
+    this.leaderboardApi.getMyLeaderboardEntries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.normalRank.set(res.logoQuizMe?.rank ?? null);
         this.hardcoreRank.set(res.logoQuizHardcoreMe?.rank ?? null);

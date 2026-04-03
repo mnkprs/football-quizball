@@ -5,11 +5,11 @@
     <!-- IDLE — Start Screen                         -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'idle') {
-      <div class="lq-start">
+      <div class="lq-start spotlight">
         <!-- Hero image -->
-        <div class="lq-hero">
-          <img [src]="hardcoreMode() ? 'emblem-hardcore.png' : 'emblem.png'" alt="Logo Quiz" class="lq-hero__img" />
-          <div class="lq-hero__overlay"></div>
+        <div class="hero-bg">
+          <img [src]="hardcoreMode() ? 'emblem-hardcore.png' : 'emblem.png'" alt="Logo Quiz" class="hero-bg__img" loading="lazy" />
+          <div class="hero-bg__overlay"></div>
         </div>
 
         <!-- Content -->

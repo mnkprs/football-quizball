@@ -1,7 +1,7 @@
 <div class="daily-root bg-background flex flex-col">
   <!-- Background image — Stitch: opacity-40, grayscale, gradient overlay -->
   <div class="daily-bg">
-    <img src="/today-in-football-bg.png" alt="" class="daily-bg-img" />
+    <img src="/today-in-football-bg.png" alt="" class="daily-bg-img" loading="lazy" />
     <div class="daily-bg-overlay"></div>
   </div>
   <div class="max-w-2xl mx-auto w-full flex flex-col flex-1 px-6 pt-6 pb-28 relative z-10">
@@ -33,7 +33,7 @@
       <div class="flex flex-col flex-1">
         <!-- Progress bar -->
         <div class="daily-progress-bar">
-          <div class="daily-progress-fill" [style.width]="((currentIndex() + 1) / questions().length * 100) + '%'"></div>
+          <div class="daily-progress-fill" [style.--progress]="(currentIndex() + 1) / questions().length"></div>
         </div>
 
         <!-- Header: question counter + score -->

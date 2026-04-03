@@ -10,3 +10,33 @@
 .glow-accent-xl { box-shadow: var(--glow-accent-xl); }
 .glow-gold      { box-shadow: var(--glow-gold); }
 .glow-error     { box-shadow: var(--glow-error); }
+
+/* ==========================================================
+   Spotlight Pattern — ambient glow pseudo-elements
+   Usage: add .spotlight to a positioned container, then set
+   --spotlight-left and --spotlight-right custom properties
+   for the radial-gradient colors.
+   ========================================================== */
+
+.spotlight::before,
+.spotlight::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  width: 240px;
+  height: 500px;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.spotlight::before {
+  left: -60px;
+  background: radial-gradient(ellipse, var(--spotlight-left, rgba(0, 122, 255, 0.22)) 0%, transparent 70%);
+}
+
+.spotlight::after {
+  right: -60px;
+  background: radial-gradient(ellipse, var(--spotlight-right, rgba(0, 90, 200, 0.16)) 0%, transparent 70%);
+}

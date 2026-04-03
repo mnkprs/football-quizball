@@ -1,4 +1,4 @@
-<div class="gq" [class]="'gq--' + mode()" [style.--mode-color]="modeColor()">
+<div class="gq" [class]="'gq--' + mode()" [class.gq--transitioning]="transitioning()" [class.gq--entering]="entering()" [style.--mode-color]="modeColor()">
 
   <!-- Header bar: mode badge, difficulty, points, optional timer -->
   <div class="gq__header">
@@ -15,10 +15,10 @@
         <span class="gq__points">{{ question()?.points }}<small>pts</small></span>
       }
       @if (timeLeft() !== null && timeLeft()! >= 0) {
-        <div class="gq__timer" [class.gq__timer--low]="timeLeft()! <= 10">
+        <div class="gq__timer" [class.gq__timer--low]="timeLeft()! <= 10" [class.gq__timer--critical]="timeLeft()! <= 5">
           <span class="gq__timer-value">{{ timeLeft() }}s</span>
           <div class="gq__timer-bar">
-            <div class="gq__timer-fill" [style.width]="timerPercent() + '%'"></div>
+            <div class="gq__timer-fill" [style.--progress]="timerPercent() / 100"></div>
           </div>
         </div>
       }
@@ -37,7 +37,7 @@
   <!-- Progress bar -->
   @if (progressPercent() !== null) {
     <div class="gq__progress">
-      <div class="gq__progress-fill" [style.width]="progressPercent() + '%'"></div>
+      <div class="gq__progress-fill" [style.--progress]="progressPercent()! / 100"></div>
     </div>
   }
 
@@ -214,9 +214,9 @@
   <div class="gq__question-card gq__question-card--logo">
     <p class="gq__question-subtext">{{ question()?.question_text }}</p>
     @if (reveal() && revealResult()?.original_image_url) {
-      <img [src]="revealResult()!.original_image_url" alt="Original Logo" class="gq__logo-image" />
+      <img [src]="revealResult()!.original_image_url" alt="Original Logo" class="gq__logo-image" loading="lazy" />
     } @else if (question()?.image_url) {
-      <img [src]="question()?.image_url" alt="Logo" class="gq__logo-image" />
+      <img [src]="question()?.image_url" alt="Logo" class="gq__logo-image" loading="lazy" />
     }
   </div>
   <div class="gq__input-stack">

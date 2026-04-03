@@ -171,7 +171,7 @@
   backdrop-filter: blur(var(--glass-blur-sm));
   -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   border: 1px solid rgba(255, 255, 255, 0.06);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 0.5625rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
@@ -309,7 +309,7 @@
 
 .mode-card__pro-lock-label {
   font-size: 0.875rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }

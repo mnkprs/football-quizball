@@ -11,6 +11,7 @@
 @import './base/_reset.css';
 @import './base/_typography.css';
 @import './base/_animations.css';
+@import './base/_animation-utils.css';
 
 /* Components — shared utility classes */
 @import './components/_glass.css';
@@ -19,3 +20,4 @@
 @import './components/_glows.css';
 @import './components/_shadows.css';
 @import './components/_states.css';
+@import './components/_hero.css';

@@ -26,6 +26,9 @@ backend/gen-lang-client-*.json
 *.p12
 *.key
 
+# Pipeline orchestration state (ephemeral)
+pipeline-context.md
+
 # Seed-pool handoff (written by pool:seed, read by pool:verify-integrity --from-last-seed)
 .seed-pool-last-ids.json
 .mcp.json

@@ -1,8 +1,8 @@
-<div class="duel-start">
+<div class="duel-start spotlight">
   <!-- Hero image -->
-  <div class="duel-hero">
-    <img src="/duel-mode.png" alt="Duel" class="duel-hero__img" />
-    <div class="duel-hero__overlay"></div>
+  <div class="hero-bg">
+    <img src="/duel-mode.png" alt="Duel" class="hero-bg__img" loading="lazy" />
+    <div class="hero-bg__overlay"></div>
   </div>
 
   <!-- Content -->
@@ -54,7 +54,7 @@
           <div class="duel-active-game" (click)="resumeDuel(game.id)">
             <div class="duel-active-game__info">
               <span class="duel-active-game__opponent">
-                vs {{ game.opponentUsername ?? 'Waiting...' }}
+                vs {{ game.opponentUsername ?? 'Opponent joining...' }}
               </span>
               @if (game.status === 'waiting' && game.inviteCode && !game.opponentUsername) {
                 <span class="duel-active-game__code">CODE: {{ game.inviteCode }}</span>
@@ -120,7 +120,7 @@
           <input
             class="duel-sheet__code-input"
             type="text"
-            placeholder="XXXXXX"
+            placeholder="e.g. AB12CD"
             maxlength="6"
             [(ngModel)]="inviteCode"
             (input)="inviteCode = inviteCode.toUpperCase()"
@@ -131,7 +131,7 @@
             (click)="joinByCode()"
             [disabled]="loading() || inviteCode.length < 6"
           >
-            Join
+            Join Duel
           </button>
         </div>
       </div>

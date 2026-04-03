@@ -8,7 +8,7 @@ import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
 
 export interface NavTab {
-  labelKey: 'navHome' | 'navToday' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
+  labelKey: 'navHome' | 'navCasual' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
   icon: string;
   href: string;
   match: string;
@@ -55,7 +55,7 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   readonly leftTabs: NavTab[] = [
     { labelKey: 'navHome', icon: 'home', href: '/', match: '/' },
-    { labelKey: 'navToday', icon: 'today', href: '/today', match: '/today' },
+    { labelKey: 'navCasual', icon: 'today', href: '/today', match: '/today' },
   ];
 
   readonly rightTabs: NavTab[] = [

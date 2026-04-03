@@ -1,7 +1,7 @@
 <div class="news-root">
   <!-- Background image -->
   <div class="news-bg">
-    <img src="/news-mode.png" alt="" class="news-bg-img" />
+    <img src="/news-mode.png" alt="" class="news-bg-img" loading="lazy" />
     <div class="news-bg-overlay"></div>
   </div>
 
@@ -21,7 +21,7 @@
     @if (phase() === 'question' && currentQuestion()) {
       <div class="news-phase">
         <div class="news-progress">
-          <div class="news-progress__fill" [style.width]="progressPercent() + '%'"></div>
+          <div class="news-progress__fill" [style.--progress]="progressPercent() / 100"></div>
         </div>
 
         <div class="news-header">
@@ -57,7 +57,7 @@
     @if (phase() === 'result' && lastResult()) {
       <div class="news-phase">
         <div class="news-progress">
-          <div class="news-progress__fill" [style.width]="progressPercent() + '%'"></div>
+          <div class="news-progress__fill" [style.--progress]="progressPercent() / 100"></div>
         </div>
 
         <div class="news-header">

@@ -27,57 +27,23 @@
   z-index: 0;
 }
 
-/* Two spotlights from top corners */
-.solo-start::before,
-.solo-start::after {
-  content: '';
-  position: absolute;
-  top: -60px;
-  width: 240px;
-  height: 500px;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 2;
+/* Spotlights — uses .spotlight utility from _glows.css + animation */
+.solo-start {
+  --spotlight-left: rgba(0, 122, 255, 0.38);
+  --spotlight-right: rgba(0, 90, 200, 0.28);
 }
 
 .solo-start::before {
-  left: -60px;
-  background: radial-gradient(ellipse, rgba(0, 122, 255, 0.22) 0%, transparent 70%);
+  animation: solo-spotlight 8s ease-in-out infinite;
 }
 
 .solo-start::after {
-  right: -60px;
-  background: radial-gradient(ellipse, rgba(0, 90, 200, 0.16) 0%, transparent 70%);
+  animation: solo-spotlight 8s ease-in-out 4s infinite;
 }
 
-/* Hero — full-width background image, fades into content */
-.solo-hero {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  z-index: 0;
-}
-
-.solo-hero__img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  opacity: 0.5;
-}
-
-.solo-hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(19, 19, 19, 0) 0%,
-    rgba(19, 19, 19, 0.4) 50%,
-    rgba(19, 19, 19, 1) 85%
-  );
+@keyframes solo-spotlight {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 /* Content — bottom-anchored */
@@ -132,11 +98,11 @@
 
 .solo-elo-card__label {
   font-family: 'Lexend', sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
 
 .solo-elo-card__value {
@@ -148,12 +114,17 @@
   line-height: 1;
 }
 
+.solo-elo-card__value--bumping {
+  animation: elo-bump 400ms var(--ease-out-quart);
+}
+
 .solo-elo-card__tier {
   font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  text-shadow: 0 0 12px currentColor;
 }
 
 /* Stats Row — ELO card + Rank card side by side */
@@ -218,18 +189,19 @@
 /* Start Button */
 .solo-start-btn {
   width: 100%;
-  padding: 1rem;
+  padding: 1.125rem;
   border-radius: 9999px;
   background: #007AFF;
   color: #ffffff;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 1.0625rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
   border: none;
   cursor: pointer;
-  box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
-  transition: box-shadow 0.3s, opacity 0.2s;
+  box-shadow: 0 0 30px rgba(0, 122, 255, 0.4), 0 0 60px rgba(0, 122, 255, 0.15);
+  transition: box-shadow 0.3s, opacity 0.2s, transform var(--anim-feedback, 120ms) var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1));
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -240,4 +212,57 @@
 .solo-start-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Streak badge ───────────────────────────── */
+.solo-streak-badge {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #ff9500;
+  text-shadow: 0 0 12px rgba(255, 149, 0, 0.4);
+  animation: badge-pop 300ms var(--ease-out-quart);
+  /* Match 2-line score counter height to prevent layout shift */
+  display: flex;
+  align-items: center;
+  min-height: 2.25rem;
+}
+
+/* ── Tier-up toast ──────────────────────────── */
+.solo-tier-toast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(0, 122, 255, 0.12);
+  border: 1px solid rgba(0, 122, 255, 0.25);
+  border-radius: var(--radius-full);
+  margin-bottom: 1rem;
+  animation: anim-scale-in 400ms var(--ease-out-quart);
+}
+
+.solo-tier-toast__icon {
+  font-size: 1rem;
+  color: var(--color-accent);
+}
+
+.solo-tier-toast__text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 12px rgba(0, 122, 255, 0.3);
+}
+
+/* ── Session verdict ────────────────────────── */
+.solo-verdict {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-fg-variant, #a8b3c4);
+  text-align: center;
+  margin-bottom: 1.5rem;
 }

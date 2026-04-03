@@ -112,10 +112,13 @@
 
 .news-progress__fill {
   height: 100%;
+  width: 100%;
   background: var(--color-accent);
   border-radius: 2px;
   box-shadow: 0 0 10px var(--color-accent-glow);
-  transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-out-quart);
 }
 
 /* ── Header row (counter + score) ────────────────────────── */

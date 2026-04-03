@@ -2,10 +2,10 @@
 
   <!-- IDLE phase — full-bleed start screen -->
   @if (phase() === 'idle') {
-    <div class="solo-start">
-      <div class="solo-hero">
-        <img src="/solo-mode.png" alt="Solo Ranked" class="solo-hero__img" />
-        <div class="solo-hero__overlay"></div>
+    <div class="solo-start spotlight">
+      <div class="hero-bg">
+        <img src="/solo-mode.png" alt="Solo Ranked" class="hero-bg__img" loading="lazy" />
+        <div class="hero-bg__overlay"></div>
       </div>
       <div class="solo-start__content">
         <h1 class="solo-title">SOLO RANKED</h1>
@@ -15,7 +15,7 @@
         <div class="solo-stats-row">
           <div class="solo-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
             <span class="solo-elo-card__label">ELO RATING</span>
-            <span class="solo-elo-card__value">{{ currentElo() | number }}</span>
+            <span class="solo-elo-card__value" [class.solo-elo-card__value--bumping]="eloBumping()">{{ displayElo() | number }}</span>
             <span class="solo-elo-card__tier" [style.color]="eloTier().color">
               {{ eloTier().label | uppercase }}
             </span>
@@ -52,10 +52,22 @@
           <div class="text-muted-foreground text-xs">{{ lang.t().profileElo }}</div>
         </div>
         <div class="text-right">
-          <div class="text-foreground font-semibold">{{ correctAnswers() }}/{{ questionsAnswered() }}</div>
-          <div class="text-muted-foreground text-xs">{{ lang.t().soloCorrectCount }}</div>
+          @if (currentStreak() >= 2) {
+            <div class="solo-streak-badge">🔥 {{ currentStreak() }}</div>
+          } @else {
+            <div class="text-foreground font-semibold">{{ correctAnswers() }}/{{ questionsAnswered() }}</div>
+            <div class="text-muted-foreground text-xs">{{ lang.t().soloCorrectCount }}</div>
+          }
         </div>
       </div>
+
+      <!-- Tier-up toast -->
+      @if (tierUpMessage()) {
+        <div class="solo-tier-toast">
+          <span class="solo-tier-toast__icon">⬆</span>
+          <span class="solo-tier-toast__text">{{ tierUpMessage() }}</span>
+        </div>
+      }
 
       <!-- LOADING QUESTION phase -->
       @if (phase() === 'loading-question') {
@@ -99,8 +111,9 @@
       <!-- FINISHED phase -->
       @if (phase() === 'finished') {
         <div class="flex-1 flex flex-col items-center justify-center">
-          <div class="text-5xl mb-4">🏁</div>
-          <h2 class="text-2xl font-black text-foreground mb-6">{{ lang.t().soloSessionComplete }}</h2>
+          <div class="text-5xl mb-2">🏁</div>
+          <h2 class="text-2xl font-black text-foreground mb-1">{{ lang.t().soloSessionComplete }}</h2>
+          <p class="solo-verdict">{{ sessionVerdict() }}</p>
           <app-ad-display />
           <div class="w-full max-w-xs space-y-3 mb-8">
             <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
@@ -119,6 +132,12 @@
               <span class="text-muted-foreground">{{ lang.t().accuracy }}</span>
               <span class="text-foreground font-bold">{{ accuracy() }}%</span>
             </div>
+            @if (bestStreak() >= 2) {
+              <div class="flex justify-between p-4 bg-card rounded-xl border border-border">
+                <span class="text-muted-foreground">Best Streak</span>
+                <span class="text-foreground font-bold">🔥 {{ bestStreak() }}</span>
+              </div>
+            }
           </div>
           <a routerLink="/leaderboard" class="w-full max-w-xs py-3 rounded-2xl bg-accent text-accent-foreground font-black text-center block hover:bg-accent-light transition mb-3">
             {{ lang.t().soloViewLeaderboard }}

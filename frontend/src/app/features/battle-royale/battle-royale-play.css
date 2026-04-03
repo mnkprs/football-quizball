@@ -254,9 +254,12 @@
 
 .br-play__progress-bar {
   height: 100%;
+  width: 100%;
   background: var(--color-accent);
   border-radius: 3px;
-  transition: width 0.4s ease;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+  transition: transform 0.4s var(--ease-out-quart);
 }
 
 .br-play__score-pill {

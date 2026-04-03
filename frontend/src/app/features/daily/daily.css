@@ -70,10 +70,13 @@
 
 .daily-progress-fill {
   height: 100%;
+  width: 100%;
   background: linear-gradient(to right, #4da3ff, var(--color-accent));
   border-radius: var(--radius-full);
   box-shadow: 0 0 15px rgba(0, 122, 255, 0.3);
-  transition: width 0.3s;
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+  transition: transform 0.3s var(--ease-out-quart);
 }
 
 /* Score */

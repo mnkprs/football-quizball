@@ -94,7 +94,7 @@
           <span class="material-icons">close</span>
         </button>
         <div class="br-play__progress">
-          <div class="br-play__progress-bar" [style.width.%]="progress"></div>
+          <div class="br-play__progress-bar" [style.--progress]="progress / 100"></div>
         </div>
         <div class="br-play__timer-pill" [class.br-play__timer-pill--danger]="timerSeconds() <= 10">
           <span class="material-icons">timer</span>
@@ -118,9 +118,9 @@
             <div class="br-play__logo-question">
               <!-- After answering, reveal original (unobscured) logo if available -->
               @if (store.phase() === 'answered' && store.lastAnswer()?.original_image_url) {
-                <img [src]="store.lastAnswer()!.original_image_url" alt="Answer" class="br-play__logo-image" />
+                <img [src]="store.lastAnswer()!.original_image_url" alt="Answer" class="br-play__logo-image" loading="lazy" />
               } @else {
-                <img [src]="q.image_url" alt="Logo" class="br-play__logo-image" />
+                <img [src]="q.image_url" alt="Logo" class="br-play__logo-image" loading="lazy" />
               }
             </div>
 

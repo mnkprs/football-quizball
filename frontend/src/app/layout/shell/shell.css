@@ -19,6 +19,11 @@
   padding-top: initial;
 }
 
+/* Page entrance animation for routed components */
+.shell-main > router-outlet + * {
+  animation: anim-fade-in 250ms var(--ease-out-quart);
+}
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -35,7 +40,10 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: var(--color-header);
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border-strong);
   border-radius: 2rem;
   padding: 0.5rem 0.25rem;
   box-shadow: 0 0 24px rgba(204, 255, 0, 0.15);
@@ -54,7 +62,7 @@
   justify-content: center;
   gap: 0.25rem;
   padding: 0.5rem 0.5rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   border-radius: 1rem;
   transition: color 0.2s, background-color 0.2s;
@@ -67,6 +75,7 @@
 .bottom-nav__tab--active,
 .bottom-nav__tab--active:hover {
   color: var(--color-accent);
+  background: rgba(0, 122, 255, 0.08);
 }
 
 .bottom-nav__tab .material-icons {
@@ -110,6 +119,12 @@
   border: 2px solid #000000;
   box-shadow: 0 0 24px rgba(204, 255, 0, 0.55), 0 0 48px rgba(204, 255, 0, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: pro-badge-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes pro-badge-pulse {
+  0%, 100% { box-shadow: 0 0 24px rgba(204, 255, 0, 0.55), 0 0 48px rgba(204, 255, 0, 0.25); }
+  50% { box-shadow: 0 0 32px rgba(204, 255, 0, 0.7), 0 0 64px rgba(204, 255, 0, 0.35); }
 }
 
 .bottom-nav__coffee:hover .bottom-nav__coffee-badge {

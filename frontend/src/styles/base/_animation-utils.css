@@ -1,0 +1,27 @@
+/* ==========================================================
+   Animation Utilities — shared timing, easing, utility classes
+   ========================================================== */
+
+:root {
+  /* Timing tokens */
+  --anim-feedback: 120ms;
+  --anim-state: 250ms;
+  --anim-entrance: 400ms;
+
+  /* Easing — ease-out-quart for natural deceleration */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Stagger delay utility: set --stagger-index via style binding */
+.anim-stagger {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: anim-stagger-in var(--anim-entrance) var(--ease-out-quart) forwards;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms);
+}
+
+/* Fade-slide-up entrance */
+.anim-enter {
+  animation: anim-stagger-in var(--anim-entrance) var(--ease-out-quart) forwards;
+}
