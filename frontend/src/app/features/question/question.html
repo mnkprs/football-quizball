@@ -2,7 +2,7 @@
   @if (store.loading()) {
     <div class="flex-1 flex items-center justify-center">
       <div class="question-loader">
-        <img src="/icons/quizball-unlimited-logo.png" alt="" class="w-12 h-12 object-contain" />
+        <img ngSrc="/icons/quizball-unlimited-logo.png" alt="" class="w-12 h-12 object-contain" width="48" height="48" />
       </div>
     </div>
   } @else if (question()) {
@@ -176,9 +176,10 @@
       @if (question()?.image_url) {
         <div class="relative inline-block">
           <img
-            [src]="question()?.image_url!"
+            [ngSrc]="question()!.image_url!"
             alt="Club badge"
             class="w-44 h-44 object-contain mx-auto drop-shadow-lg hover:scale-105 transition-transform duration-300"
+            width="176" height="176"
           />
         </div>
       }

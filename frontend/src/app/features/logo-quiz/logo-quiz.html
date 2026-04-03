@@ -8,7 +8,7 @@
       <div class="lq-start spotlight">
         <!-- Hero image -->
         <div class="hero-bg">
-          <img [src]="hardcoreMode() ? 'emblem-hardcore.png' : 'emblem.png'" alt="Logo Quiz" class="hero-bg__img" loading="lazy" />
+          <img [ngSrc]="hardcoreMode() ? '/emblem-hardcore.png' : '/emblem.png'" alt="Logo Quiz" class="hero-bg__img" fill />
           <div class="hero-bg__overlay"></div>
         </div>
 

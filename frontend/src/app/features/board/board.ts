@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { GameStore } from '../../core/game.store';
 import { GAME_STORE_TOKEN } from '../../core/game-store.token';
 import { LanguageService } from '../../core/language.service';
@@ -9,7 +9,7 @@ import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal'
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [CommonModule, ThemeToggleComponent, ConfirmModalComponent],
+  imports: [CommonModule, ThemeToggleComponent, ConfirmModalComponent, NgOptimizedImage],
   templateUrl: './board.html',
   styleUrl: './board.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

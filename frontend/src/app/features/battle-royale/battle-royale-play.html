@@ -118,9 +118,9 @@
             <div class="br-play__logo-question">
               <!-- After answering, reveal original (unobscured) logo if available -->
               @if (store.phase() === 'answered' && store.lastAnswer()?.original_image_url) {
-                <img [src]="store.lastAnswer()!.original_image_url" alt="Answer" class="br-play__logo-image" loading="lazy" />
+                <img [ngSrc]="store.lastAnswer()!.original_image_url!" alt="Answer" class="br-play__logo-image" width="200" height="200" />
               } @else {
-                <img [src]="q.image_url" alt="Logo" class="br-play__logo-image" loading="lazy" />
+                <img [ngSrc]="q.image_url!" alt="Logo" class="br-play__logo-image" width="200" height="200" />
               }
             </div>
 

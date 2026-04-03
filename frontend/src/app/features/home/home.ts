@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
@@ -16,6 +16,7 @@ import { NotificationBannerComponent } from '../../shared/notification-banner/no
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
+    NgOptimizedImage,
     SectionHeaderComponent,
     ModeCardComponent,
     BattleHeroComponent,

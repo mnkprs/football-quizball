@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { getTagColor, getTagIcon } from '../tag-colors';
 
 export interface HeroMode {
@@ -14,6 +15,7 @@ export interface HeroMode {
 @Component({
   selector: 'app-battle-hero',
   standalone: true,
+  imports: [NgOptimizedImage],
   templateUrl: './battle-hero.html',
   styleUrl: './battle-hero.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

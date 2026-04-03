@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, signal, effect, ChangeDetectionStrategy } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { SwUpdate } from '@angular/service-worker';
@@ -19,7 +20,7 @@ import { CookieConsentComponent } from './shared/cookie-consent/cookie-consent';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, CookieConsentComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, CookieConsentComponent, NgOptimizedImage],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

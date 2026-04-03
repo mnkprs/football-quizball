@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, computed, signal, effect, HostListener, OnInit, Injector } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -14,7 +15,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-top-nav',
   standalone: true,
-  imports: [RouterLink, ConfirmModalComponent],
+  imports: [RouterLink, ConfirmModalComponent, NgOptimizedImage],
   templateUrl: './top-nav.html',
   styleUrl: './top-nav.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

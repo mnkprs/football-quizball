@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -10,7 +11,7 @@ type NewsPhase = 'loading' | 'question' | 'result' | 'finished';
 @Component({
   selector: 'app-news-mode',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NgOptimizedImage],
   host: { class: 'news-mode-host' },
   templateUrl: './news-mode.html',
   styleUrl: './news-mode.css',

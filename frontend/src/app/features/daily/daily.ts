@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { DailyApiService, DailyQuestionRef } from '../../core/daily-api.service';
@@ -10,7 +11,7 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
 @Component({
   selector: 'app-daily',
   standalone: true,
-  imports: [],
+  imports: [NgOptimizedImage],
   host: { class: 'daily-host' },
   templateUrl: './daily.html',
   styleUrl: './daily.css',

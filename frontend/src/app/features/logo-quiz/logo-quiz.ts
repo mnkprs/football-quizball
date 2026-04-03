@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { DecimalPipe, UpperCasePipe } from '@angular/common';
+import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { GameQuestionComponent, type QuestionData, type RevealResult } from '../../shared/game-question/game-question';
 import { LogoQuizApiService, type LogoQuestionResponse } from '../../core/logo-quiz-api.service';
@@ -26,7 +26,7 @@ type Phase = 'idle' | 'loading' | 'question' | 'finished';
   selector: 'app-logo-quiz',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DecimalPipe, UpperCasePipe, GameQuestionComponent],
+  imports: [RouterLink, DecimalPipe, UpperCasePipe, GameQuestionComponent, NgOptimizedImage],
   templateUrl: './logo-quiz.html',
   styleUrl: './logo-quiz.css',
 })

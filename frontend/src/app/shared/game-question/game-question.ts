@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, output, computed, signal, effect, HostListener, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../core/language.service';
 import { ParticleBurstService } from '../../core/particle-burst.service';
@@ -78,7 +78,7 @@ export interface QuestionData {
 @Component({
   selector: 'app-game-question',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgOptimizedImage],
   templateUrl: './game-question.html',
   styleUrl: './game-question.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

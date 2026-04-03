@@ -8,7 +8,7 @@ import {
   ChangeDetectionStrategy,
   effect,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DuelStore } from './duel.store';
@@ -20,7 +20,7 @@ const BOT_MATCH_THRESHOLD = 30;
 @Component({
   selector: 'app-duel-play',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgOptimizedImage],
   providers: [DuelStore],
   templateUrl: './duel-play.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

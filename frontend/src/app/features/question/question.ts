@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { GameStore } from '../../core/game.store';
@@ -10,7 +10,7 @@ import { LanguageService } from '../../core/language.service';
 @Component({
   selector: 'app-question',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgOptimizedImage],
   templateUrl: './question.html',
   styleUrl: './question.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

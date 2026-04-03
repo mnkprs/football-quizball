@@ -9,7 +9,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BattleRoyaleStore } from './battle-royale.store';
@@ -18,7 +18,7 @@ import { LogoQuizApiService } from '../../core/logo-quiz-api.service';
 @Component({
   selector: 'app-battle-royale-play',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgOptimizedImage],
   templateUrl: './battle-royale-play.html',
   styleUrl: './battle-royale-play.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

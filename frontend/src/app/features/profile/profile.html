@@ -67,7 +67,7 @@
       >
         <div class="hero__avatar">
           @if (avatarUrl()) {
-            <img [src]="avatarUrl()!" alt="avatar" loading="lazy" />
+            <img [ngSrc]="avatarUrl()!" alt="avatar" width="80" height="80" />
           } @else {
             {{ initials() }}
           }

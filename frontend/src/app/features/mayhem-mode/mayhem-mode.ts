@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { DecimalPipe, UpperCasePipe } from '@angular/common';
+import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { LanguageService } from '../../core/language.service';
@@ -13,7 +13,7 @@ type MayhemPhase = 'idle' | 'loading' | 'question' | 'result' | 'finished';
 @Component({
   selector: 'app-mayhem-mode',
   standalone: true,
-  imports: [DecimalPipe, UpperCasePipe],
+  imports: [DecimalPipe, UpperCasePipe, NgOptimizedImage],
   host: { class: 'mayhem-mode-host' },
   templateUrl: './mayhem-mode.html',
   styleUrl: './mayhem-mode.css',

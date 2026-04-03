@@ -214,9 +214,9 @@
   <div class="gq__question-card gq__question-card--logo">
     <p class="gq__question-subtext">{{ question()?.question_text }}</p>
     @if (reveal() && revealResult()?.original_image_url) {
-      <img [src]="revealResult()!.original_image_url" alt="Original Logo" class="gq__logo-image" loading="lazy" />
+      <img [ngSrc]="revealResult()!.original_image_url!" alt="Original Logo" class="gq__logo-image" width="192" height="192" />
     } @else if (question()?.image_url) {
-      <img [src]="question()?.image_url" alt="Logo" class="gq__logo-image" loading="lazy" />
+      <img [ngSrc]="question()!.image_url!" alt="Logo" class="gq__logo-image" width="192" height="192" />
     }
   </div>
   <div class="gq__input-stack">

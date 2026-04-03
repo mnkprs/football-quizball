@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -12,7 +12,7 @@ import { MatchHistoryApiService } from '../../core/match-history-api.service';
 @Component({
   selector: 'app-duel-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgOptimizedImage],
   host: { class: 'duel-lobby-host' },
   templateUrl: './duel-lobby.html',
   styleUrl: './duel-lobby.css',
