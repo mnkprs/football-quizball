@@ -10,10 +10,6 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0.875rem;
-  border-radius: var(--radius-lg);
-  background: var(--glass-bg-default);
-  backdrop-filter: blur(var(--glass-blur-md));
-  -webkit-backdrop-filter: blur(var(--glass-blur-md));
   border: 1px solid var(--glass-border-strong);
   box-shadow: var(--shadow-md);
   animation: banner-slide-in 0.3s ease-out both;

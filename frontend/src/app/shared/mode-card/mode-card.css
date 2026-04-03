@@ -278,9 +278,6 @@
 .mode-card__locked-overlay--velvet .mode-card__lock-text {
   padding: 0.5rem 1rem;
   border-radius: var(--radius-full);
-  background: var(--glass-bg-subtle);
-  backdrop-filter: blur(var(--glass-blur-md));
-  -webkit-backdrop-filter: blur(var(--glass-blur-md));
   border: 1px solid var(--glass-border-strong);
   opacity: 1;
 }
