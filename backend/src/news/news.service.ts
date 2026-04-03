@@ -10,7 +10,9 @@ import { GeneratedQuestion } from '../questions/question.types';
 import { GENERATION_VERSION } from '../questions/config/generation-version.config';
 import { RedisService } from '../redis/redis.service';
 
-const USER_QUEUE_MAX = 20;
+const QUESTIONS_PER_ROUND = 10;
+const GRACE_PERIOD_MINUTES = 10;
+const MAX_RSS_RETRIES = 3;
 
 @Injectable()
 export class NewsService {
@@ -28,34 +30,43 @@ export class NewsService {
   ) {}
 
   /**
-   * Fetches headlines, generates questions, and inserts into news_questions.
-   * Always runs — no early-exit pool-size guard.
+   * Fetches headlines, generates questions, and creates a new daily round.
+   * Skips if an active round already exists.
    */
-  async ingestNews(): Promise<{ added: number; skipped: number }> {
+  async ingestNews(): Promise<{ added: number; skipped: number; roundId: string | null }> {
     if (this.isIngesting) {
       this.logger.warn('[ingestNews] Already ingesting, skipping');
-      return { added: 0, skipped: 0 };
+      return { added: 0, skipped: 0, roundId: null };
+    }
+
+    // Check for active round
+    const activeRound = await this.getActiveRound();
+    if (activeRound) {
+      this.logger.log(`[ingestNews] Active round ${activeRound.id} exists, skipping`);
+      return { added: 0, skipped: 0, roundId: activeRound.id };
     }
 
     this.isIngesting = true;
     let added = 0;
     let skipped = 0;
+    let roundId: string | null = null;
 
     try {
-      const allHeadlines = await this.newsFetcher.fetchHeadlines();
+      // Fetch headlines with retry
+      const allHeadlines = await this.fetchHeadlinesWithRetry();
       if (allHeadlines.length === 0) {
-        this.logger.warn('[ingestNews] No headlines fetched');
-        return { added: 0, skipped: 0 };
+        this.logger.warn('[ingestNews] No headlines fetched after retries');
+        return { added: 0, skipped: 0, roundId: null };
       }
 
-      // Filter out headlines we've already processed
+      // Filter out already-processed URLs
       const processedUrls = await this.getProcessedHeadlineUrls();
       const headlines = allHeadlines.filter((h) => !processedUrls.has(h.url));
       if (headlines.length === 0) {
         this.logger.log('[ingestNews] All headlines already processed');
-        return { added: 0, skipped: 0 };
+        return { added: 0, skipped: 0, roundId: null };
       }
-      this.logger.log(`[ingestNews] ${headlines.length} new headlines (${allHeadlines.length - headlines.length} already processed)`);
+      this.logger.log(`[ingestNews] ${headlines.length} new headlines`);
 
       const questions = await this.newsGenerator.generateFromHeadlines(headlines);
       const existingKeys = await this.getExistingQuestionKeys();
@@ -78,55 +89,81 @@ export class NewsService {
         const rejected = integrityResults.filter((r) => !r.result.valid);
         if (rejected.length > 0) {
           skipped += rejected.length;
-          this.logger.log(`[ingestNews] Integrity rejected ${rejected.length} NEWS questions`);
+          this.logger.log(`[ingestNews] Integrity rejected ${rejected.length} questions`);
         }
       }
 
-      const rows = validQuestions
-        .filter((q) => {
-          const key = this.normalizeKey(q.question_text, q.correct_answer);
-          if (existingKeys.has(key)) {
-            skipped++;
-            return false;
-          }
-          existingKeys.add(key);
-          return true;
-        })
-        .map((q) => ({
-          generation_version: GENERATION_VERSION,
-          question: this.toPoolQuestion(q),
-          headline_url: q.source_url ?? null,
-        }));
+      // Deduplicate
+      const dedupedQuestions = validQuestions.filter((q) => {
+        const key = this.normalizeKey(q.question_text, q.correct_answer);
+        if (existingKeys.has(key)) {
+          skipped++;
+          return false;
+        }
+        existingKeys.add(key);
+        return true;
+      });
 
-      if (rows.length === 0) {
+      // Cap at QUESTIONS_PER_ROUND
+      const roundQuestions = dedupedQuestions.slice(0, QUESTIONS_PER_ROUND);
+
+      if (roundQuestions.length === 0) {
         this.logger.warn('[ingestNews] No valid questions to insert');
-        return { added: 0, skipped };
+        return { added: 0, skipped, roundId: null };
       }
 
-      const { error } = await this.supabaseService.client
+      if (roundQuestions.length < 5) {
+        this.logger.warn(`[ingestNews] Only ${roundQuestions.length} questions, below minimum threshold`);
+      }
+
+      // Create the round
+      const expiresAt = this.getEndOfUtcDay();
+      const { data: roundData, error: roundError } = await this.supabaseService.client
+        .from('news_rounds')
+        .insert({ expires_at: expiresAt, question_count: roundQuestions.length })
+        .select('id')
+        .single();
+
+      if (roundError || !roundData) {
+        this.logger.error(`[ingestNews] Round insert error: ${roundError?.message}`);
+        return { added: 0, skipped, roundId: null };
+      }
+
+      roundId = roundData.id;
+
+      // Insert questions for the round
+      const rows = roundQuestions.map((q) => ({
+        generation_version: GENERATION_VERSION,
+        question: this.toPoolQuestion(q),
+        headline_url: q.source_url ?? null,
+        round_id: roundId,
+        expires_at: expiresAt,
+      }));
+
+      const { error: insertError } = await this.supabaseService.client
         .from('news_questions')
         .insert(rows);
 
-      if (error) {
-        this.logger.error(`[ingestNews] Insert error: ${error.message}`);
-        return { added: 0, skipped };
+      if (insertError) {
+        this.logger.error(`[ingestNews] Question insert error: ${insertError.message}`);
+        return { added: 0, skipped, roundId };
       }
 
       added = rows.length;
-      this.logger.log(`[ingestNews] Inserted ${added} NEWS questions (${skipped} skipped)`);
+      this.logger.log(`[ingestNews] Round ${roundId}: ${added} questions (${skipped} skipped)`);
     } finally {
       this.isIngesting = false;
     }
 
-    return { added, skipped };
+    return { added, skipped, roundId };
   }
 
-  @Cron(CronExpression.EVERY_6_HOURS)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async scheduledIngest() {
     const acquired = await this.redisService.acquireLock('lock:cron:news-ingest', 600);
     if (!acquired) return;
     try {
-      this.logger.log('[CRON] News ingest (every 6h): expiring old, then ingesting...');
+      this.logger.log('[CRON] Daily news ingest: expiring old, then ingesting...');
       await this.expireOldNews();
       await this.ingestNews();
     } finally {
@@ -134,7 +171,7 @@ export class NewsService {
     }
   }
 
-  /** Deletes NEWS questions older than 7 days. */
+  /** Deletes expired NEWS questions and empty rounds. */
   async expireOldNews(): Promise<number> {
     const { data, error } = await this.supabaseService.client.rpc('expire_news_questions');
     if (error) {
@@ -143,9 +180,363 @@ export class NewsService {
     }
     const deleted = (data as number) ?? 0;
     if (deleted > 0) {
-      this.logger.log(`[expireOldNews] Deleted ${deleted} NEWS questions older than 7 days`);
+      this.logger.log(`[expireOldNews] Deleted ${deleted} expired NEWS questions`);
     }
     return deleted;
+  }
+
+  /**
+   * Returns metadata about the current round and user's progress.
+   */
+  async getMetadata(userId?: string): Promise<{
+    round_id: string | null;
+    questions_total: number;
+    questions_remaining: number;
+    expires_at: string | null;
+    streak: number;
+    max_streak: number;
+  }> {
+    const round = await this.getActiveRound();
+    if (!round) {
+      const streakInfo = userId ? await this.getStreakInfo(userId) : null;
+      return {
+        round_id: null,
+        questions_total: 0,
+        questions_remaining: 0,
+        expires_at: null,
+        streak: streakInfo?.current_streak ?? 0,
+        max_streak: streakInfo?.max_streak ?? 0,
+      };
+    }
+
+    let questionsRemaining = round.question_count;
+    let streakInfo: { current_streak: number; max_streak: number } | null = null;
+
+    if (userId) {
+      const roundQuestionIds = await this.getRoundQuestionIds(round.id);
+      if (roundQuestionIds.length > 0) {
+        const { count, error } = await this.supabaseService.client
+          .from('user_news_progress')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .in('question_id', roundQuestionIds);
+
+        if (!error && count !== null) {
+          questionsRemaining = Math.max(0, round.question_count - count);
+        }
+      }
+
+      streakInfo = await this.getStreakInfo(userId);
+    }
+
+    return {
+      round_id: round.id,
+      questions_total: round.question_count,
+      questions_remaining: questionsRemaining,
+      expires_at: round.expires_at,
+      streak: streakInfo?.current_streak ?? 0,
+      max_streak: streakInfo?.max_streak ?? 0,
+    };
+  }
+
+  /**
+   * Returns unanswered questions from the current active round.
+   */
+  async getNewsQuestions(userId: string): Promise<Array<{
+    id: string;
+    question_text: string;
+    fifty_fifty_hint: string | null;
+    wrong_choices: string[] | null;
+    source_url: string | null;
+  }>> {
+    const round = await this.getActiveRound();
+    if (!round) return [];
+
+    // Get IDs user already answered in this round
+    const roundQuestionIds = await this.getRoundQuestionIds(round.id);
+    const { data: answered } = await this.supabaseService.client
+      .from('user_news_progress')
+      .select('question_id')
+      .eq('user_id', userId)
+      .in('question_id', roundQuestionIds);
+
+    const answeredIds = new Set((answered ?? []).map((r: { question_id: string }) => r.question_id));
+
+    // Fetch unanswered questions
+    const unansweredIds = roundQuestionIds.filter((id) => !answeredIds.has(id));
+    if (unansweredIds.length === 0) return [];
+
+    const { data, error } = await this.supabaseService.client
+      .from('news_questions')
+      .select('id, question')
+      .in('id', unansweredIds);
+
+    if (error) {
+      this.logger.error(`[getNewsQuestions] Error: ${error.message}`);
+      return [];
+    }
+
+    return (data ?? []).map((r: { id: string; question: Record<string, unknown> }) => ({
+      id: r.id,
+      question_text: r.question['question_text'] as string,
+      fifty_fifty_hint: (r.question['fifty_fifty_hint'] as string | null) ?? null,
+      wrong_choices: (r.question['wrong_choices'] as string[] | null) ?? null,
+      source_url: (r.question['source_url'] as string | null) ?? null,
+    }));
+  }
+
+  /**
+   * Validates an answer, marks it answered, updates stats and streaks.
+   * Includes a grace period for answers submitted shortly after round expiry.
+   */
+  async checkNewsAnswer(
+    userId: string,
+    questionId: string,
+    answer: string,
+  ): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
+    // Fetch question with grace period
+    const graceTime = new Date(Date.now() - GRACE_PERIOD_MINUTES * 60 * 1000).toISOString();
+    const { data, error } = await this.supabaseService.client
+      .from('news_questions')
+      .select('question, round_id')
+      .eq('id', questionId)
+      .gt('expires_at', graceTime)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    const q = (data as { question: Record<string, string>; round_id: string }).question;
+    const roundId = (data as { round_id: string }).round_id;
+
+    const mockQuestion = {
+      category: 'NEWS' as const,
+      correct_answer: q['correct_answer'],
+      question_text: q['question_text'],
+    } as GeneratedQuestion;
+
+    const correct = this.answerValidator.validate(mockQuestion, answer);
+
+    // Record answer with ON CONFLICT DO NOTHING (prevents duplicate via unique constraint)
+    const { data: inserted, error: insertError } = await this.supabaseService.client
+      .from('user_news_progress')
+      .upsert({
+        user_id: userId,
+        question_id: questionId,
+        answered_at: new Date().toISOString(),
+        correct,
+      }, { onConflict: 'user_id,question_id', ignoreDuplicates: true })
+      .select('question_id');
+
+    // If no row was inserted (duplicate), return null
+    if (insertError || !inserted || inserted.length === 0) return null;
+
+    // Update profile stats
+    await this.incrementProfileStats(userId, correct);
+
+    // Update mode stats
+    await this.upsertModeStats(userId, correct);
+
+    // Check if round is complete and update streak
+    await this.checkAndUpdateStreak(userId, roundId);
+
+    return {
+      correct,
+      correct_answer: q['correct_answer'],
+      explanation: q['explanation'] ?? '',
+    };
+  }
+
+  // ── Private helpers ──────────────────────────────────────────────
+
+  private async getActiveRound(): Promise<{ id: string; expires_at: string; question_count: number } | null> {
+    const { data, error } = await this.supabaseService.client
+      .from('news_rounds')
+      .select('id, expires_at, question_count')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data as { id: string; expires_at: string; question_count: number };
+  }
+
+  private async getRoundQuestionIds(roundId: string): Promise<string[]> {
+    const { data } = await this.supabaseService.client
+      .from('news_questions')
+      .select('id')
+      .eq('round_id', roundId);
+
+    return (data ?? []).map((r: { id: string }) => r.id);
+  }
+
+  private async getStreakInfo(userId: string): Promise<{ current_streak: number; max_streak: number } | null> {
+    const { data } = await this.supabaseService.client
+      .from('user_news_streaks')
+      .select('current_streak, max_streak')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    return data as { current_streak: number; max_streak: number } | null;
+  }
+
+  private async checkAndUpdateStreak(userId: string, roundId: string): Promise<void> {
+    // Check if user has answered at least 1 question in this round
+    const roundQuestionIds = await this.getRoundQuestionIds(roundId);
+    if (roundQuestionIds.length === 0) return;
+
+    const { count } = await this.supabaseService.client
+      .from('user_news_progress')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .in('question_id', roundQuestionIds);
+
+    if (!count || count === 0) return;
+
+    // Get current streak state
+    const { data: streak } = await this.supabaseService.client
+      .from('user_news_streaks')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const currentStreak = streak as {
+      current_streak: number;
+      max_streak: number;
+      last_round_id: string | null;
+      total_rounds_played: number;
+      total_correct: number;
+      total_answered: number;
+    } | null;
+
+    // If already counted this round, skip
+    if (currentStreak?.last_round_id === roundId) return;
+
+    // Count correct answers in this round
+    const { data: answers } = await this.supabaseService.client
+      .from('user_news_progress')
+      .select('correct')
+      .eq('user_id', userId)
+      .in('question_id', roundQuestionIds);
+
+    const roundCorrect = (answers ?? []).filter((a: { correct: boolean }) => a.correct).length;
+    const roundAnswered = (answers ?? []).length;
+
+    // Determine if streak continues
+    // Streak continues if the previous round was yesterday's round
+    let newStreak = 1;
+    if (currentStreak && currentStreak.last_round_id) {
+      const { data: lastRound } = await this.supabaseService.client
+        .from('news_rounds')
+        .select('created_at')
+        .eq('id', currentStreak.last_round_id)
+        .maybeSingle();
+
+      if (lastRound) {
+        const lastDate = new Date(lastRound.created_at).toISOString().slice(0, 10);
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        if (lastDate === yesterday) {
+          newStreak = currentStreak.current_streak + 1;
+        }
+      }
+    }
+
+    const newMax = Math.max(newStreak, currentStreak?.max_streak ?? 0);
+
+    await this.supabaseService.client
+      .from('user_news_streaks')
+      .upsert({
+        user_id: userId,
+        current_streak: newStreak,
+        max_streak: newMax,
+        last_round_id: roundId,
+        total_rounds_played: (currentStreak?.total_rounds_played ?? 0) + 1,
+        total_correct: (currentStreak?.total_correct ?? 0) + roundCorrect,
+        total_answered: (currentStreak?.total_answered ?? 0) + roundAnswered,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+  }
+
+  private async incrementProfileStats(userId: string, correct: boolean): Promise<void> {
+    // Atomic increment via RPC (same as Solo mode uses)
+    // Falls back to read-modify-write if RPC fails
+    const { error } = await this.supabaseService.client.rpc('increment_news_stats', {
+      p_user_id: userId,
+      p_correct: correct ? 1 : 0,
+    });
+
+    if (error) {
+      // Fallback: read-modify-write (less safe under concurrency)
+      const { data: profile } = await this.supabaseService.client
+        .from('profiles')
+        .select('questions_answered, correct_answers')
+        .eq('id', userId)
+        .single();
+
+      if (!profile) return;
+
+      await this.supabaseService.client
+        .from('profiles')
+        .update({
+          questions_answered: profile.questions_answered + 1,
+          correct_answers: profile.correct_answers + (correct ? 1 : 0),
+        })
+        .eq('id', userId);
+    }
+  }
+
+  private async upsertModeStats(userId: string, correct: boolean): Promise<void> {
+    // Atomic upsert with increment via RPC
+    const { error } = await this.supabaseService.client.rpc('upsert_news_mode_stats', {
+      p_user_id: userId,
+      p_correct: correct ? 1 : 0,
+    });
+
+    if (error) {
+      // Fallback: read-modify-write
+      const { data: current } = await this.supabaseService.client
+        .from('user_mode_stats')
+        .select('questions_answered, correct_answers, games_played')
+        .eq('user_id', userId)
+        .eq('mode', 'news')
+        .maybeSingle();
+
+      await this.supabaseService.client
+        .from('user_mode_stats')
+        .upsert({
+          user_id: userId,
+          mode: 'news',
+          questions_answered: ((current as { questions_answered: number } | null)?.questions_answered ?? 0) + 1,
+          correct_answers: ((current as { correct_answers: number } | null)?.correct_answers ?? 0) + (correct ? 1 : 0),
+          games_played: (current as { games_played: number } | null)?.games_played ?? 0,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,mode' });
+    }
+  }
+
+  private async fetchHeadlinesWithRetry(): Promise<import('../common/interfaces/news.interface').NewsHeadline[]> {
+    for (let attempt = 1; attempt <= MAX_RSS_RETRIES; attempt++) {
+      const headlines = await this.newsFetcher.fetchHeadlines();
+      if (headlines.length > 0) return headlines;
+      if (attempt < MAX_RSS_RETRIES) {
+        const delay = Math.pow(2, attempt) * 1000;
+        this.logger.warn(`[fetchHeadlinesWithRetry] Attempt ${attempt} failed, retrying in ${delay}ms`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+    this.logger.error('[fetchHeadlinesWithRetry] All retries exhausted');
+    return [];
+  }
+
+  private getEndOfUtcDay(): string {
+    const now = new Date();
+    const endOfDay = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      23, 59, 59, 999,
+    ));
+    return endOfDay.toISOString();
   }
 
   private toPoolQuestion(q: GeneratedQuestion): object {
@@ -161,172 +552,6 @@ export class NewsService {
       difficulty: q.difficulty,
       points: q.points,
       wrong_choices: q.wrong_choices,
-    };
-  }
-
-  async getMetadata(userId?: string): Promise<{ count: number; updatesAt: string }> {
-    let count: number;
-    if (userId) {
-      // Count unanswered assigned questions
-      const { data: progress, error: progressError } = await this.supabaseService.client
-        .from('user_news_progress')
-        .select('question_id, answered_at')
-        .eq('user_id', userId);
-
-      const allAssigned = progressError ? [] : (progress ?? []);
-      const assignedIds = allAssigned.map((r: { question_id: string }) => r.question_id);
-      const unansweredCount = allAssigned.filter((r: { answered_at: string | null }) => !r.answered_at).length;
-
-      // Count available unassigned pool questions the user hasn't seen yet
-      const capacity = USER_QUEUE_MAX - unansweredCount;
-      let availableNewCount = 0;
-      if (capacity > 0) {
-        let query = this.supabaseService.client
-          .from('news_questions')
-          .select('id', { count: 'exact', head: true })
-          .gt('expires_at', new Date().toISOString());
-
-        if (assignedIds.length > 0) {
-          query = query.not('id', 'in', `(${assignedIds.join(',')})`);
-        }
-
-        const { count: poolCount, error: poolError } = await query;
-        availableNewCount = poolError ? 0 : Math.min(poolCount ?? 0, capacity);
-      }
-
-      count = unansweredCount + availableNewCount;
-    } else {
-      count = await this.getNewsPoolCount();
-    }
-
-    const now = new Date();
-    const nextHour = (Math.floor(now.getUTCHours() / 6) + 1) * 6;
-    const updatesAt = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), nextHour));
-    return { count, updatesAt: updatesAt.toISOString() };
-  }
-
-  private async getNewsPoolCount(): Promise<number> {
-    const { count, error } = await this.supabaseService.client
-      .from('news_questions')
-      .select('id', { count: 'exact', head: true })
-      .gt('expires_at', new Date().toISOString());
-
-    if (error) {
-      this.logger.error(`[getNewsPoolCount] Error: ${error.message}`);
-      return 0;
-    }
-    return count ?? 0;
-  }
-
-  /**
-   * Returns assigned unanswered news questions for the user.
-   * Assigns new questions (up to USER_QUEUE_MAX) if the user has capacity.
-   */
-  async getNewsQuestions(userId: string): Promise<Array<{ id: string; question_text: string; fifty_fifty_hint: string | null; source_url: string | null }>> {
-    // Fetch current assignment state for this user
-    const { data: progress, error: progressError } = await this.supabaseService.client
-      .from('user_news_progress')
-      .select('question_id, answered_at')
-      .eq('user_id', userId);
-
-    if (progressError) {
-      this.logger.error(`[getNewsQuestions] Progress fetch error: ${progressError.message}`);
-      return [];
-    }
-
-    const allAssigned = progress ?? [];
-    const assignedIds = allAssigned.map((r: { question_id: string }) => r.question_id);
-    const unansweredIds = allAssigned
-      .filter((r: { answered_at: string | null }) => !r.answered_at)
-      .map((r: { question_id: string }) => r.question_id);
-
-    const capacity = USER_QUEUE_MAX - unansweredIds.length;
-
-    // Assign new questions if user has capacity
-    if (capacity > 0) {
-      let query = this.supabaseService.client
-        .from('news_questions')
-        .select('id')
-        .gt('expires_at', new Date().toISOString())
-        .limit(capacity);
-
-      if (assignedIds.length > 0) {
-        query = query.not('id', 'in', `(${assignedIds.join(',')})`);
-      }
-
-      const { data: newQs } = await query;
-      if (newQs && newQs.length > 0) {
-        const insertRows = (newQs as Array<{ id: string }>).map((q) => ({
-          user_id: userId,
-          question_id: q.id,
-        }));
-        const { error: insertError } = await this.supabaseService.client
-          .from('user_news_progress')
-          .insert(insertRows);
-        if (insertError) {
-          this.logger.error(`[getNewsQuestions] Assignment insert error: ${insertError.message}`);
-        } else {
-          unansweredIds.push(...(newQs as Array<{ id: string }>).map((q) => q.id));
-        }
-      }
-    }
-
-    if (unansweredIds.length === 0) return [];
-
-    // Fetch question details for unanswered assigned questions
-    const { data, error } = await this.supabaseService.client
-      .from('news_questions')
-      .select('id, question')
-      .in('id', unansweredIds)
-      .gt('expires_at', new Date().toISOString());
-
-    if (error) {
-      this.logger.error(`[getNewsQuestions] Question fetch error: ${error.message}`);
-      return [];
-    }
-
-    return (data ?? []).map((r: { id: string; question: Record<string, string | null> }) => ({
-      id: r.id,
-      question_text: r.question['question_text'] as string,
-      fifty_fifty_hint: (r.question['fifty_fifty_hint'] as string | null) ?? null,
-      source_url: (r.question['source_url'] as string | null) ?? null,
-    }));
-  }
-
-  /**
-   * Validates an answer for a news question and marks it as answered.
-   * Returns null if question not found or expired.
-   */
-  async checkNewsAnswer(userId: string, questionId: string, answer: string): Promise<{ correct: boolean; correct_answer: string; explanation: string } | null> {
-    const { data, error } = await this.supabaseService.client
-      .from('news_questions')
-      .select('question')
-      .eq('id', questionId)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle();
-
-    if (error || !data) return null;
-
-    const q = (data as { question: Record<string, string> }).question;
-    const mockQuestion = {
-      category: 'NEWS' as const,
-      correct_answer: q['correct_answer'],
-      question_text: q['question_text'],
-    } as import('../questions/question.types').GeneratedQuestion;
-
-    const correct = this.answerValidator.validate(mockQuestion, answer);
-
-    // Mark as answered in user progress
-    await this.supabaseService.client
-      .from('user_news_progress')
-      .update({ answered_at: new Date().toISOString() })
-      .eq('user_id', userId)
-      .eq('question_id', questionId);
-
-    return {
-      correct,
-      correct_answer: q['correct_answer'],
-      explanation: q['explanation'] ?? '',
     };
   }
 
@@ -363,7 +588,6 @@ export class NewsService {
     );
   }
 
-  /** Normalize question+answer to catch near-duplicate phrasings */
   private normalizeKey(questionText: string, correctAnswer: string): string {
     const norm = (s: string) =>
       s.toLowerCase()

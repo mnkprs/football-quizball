@@ -11,9 +11,9 @@ export class NewsController {
   ) {}
 
   /**
-   * Manually trigger news ingestion. Useful for testing.
-   * In production, ingestion runs via cron every 6 hours.
+   * Manually trigger news ingestion. Admin only.
    */
+  @UseGuards(AuthGuard)
   @Post('ingest')
   async ingest() {
     const result = await this.newsService.ingestNews();
@@ -21,9 +21,9 @@ export class NewsController {
   }
 
   /**
-   * Manually expire NEWS questions older than 7 days.
-   * Runs automatically before each scheduled ingest.
+   * Manually expire old NEWS questions. Admin only.
    */
+  @UseGuards(AuthGuard)
   @Post('expire')
   async expire() {
     const deleted = await this.newsService.expireOldNews();
@@ -31,8 +31,8 @@ export class NewsController {
   }
 
   /**
-   * Returns metadata. Logged-in users get their personal unanswered count;
-   * anonymous users get the global pool count.
+   * Returns round metadata. Logged-in users get personal progress + streak;
+   * anonymous users get global round info.
    */
   @Get('metadata')
   async getMetadata(@Req() req: { headers: Record<string, string> }) {
@@ -43,14 +43,14 @@ export class NewsController {
         const user = await this.authService.validateToken(authHeader.slice(7));
         userId = (user as { id: string } | null)?.id;
       } catch {
-        // unauthenticated — return global count
+        // unauthenticated — return global info
       }
     }
     return this.newsService.getMetadata(userId);
   }
 
   /**
-   * Returns the user's assigned unanswered news questions.
+   * Returns the user's unanswered questions from the current active round.
    */
   @UseGuards(AuthGuard)
   @Get('mode/questions')
@@ -59,7 +59,7 @@ export class NewsController {
   }
 
   /**
-   * Validates a submitted answer for a news question and marks it answered.
+   * Validates a submitted answer, records it, and updates stats/streaks.
    */
   @UseGuards(AuthGuard)
   @Post('mode/answer')
@@ -68,7 +68,7 @@ export class NewsController {
     @Body() body: { questionId: string; answer: string },
   ) {
     const result = await this.newsService.checkNewsAnswer(req.user.id, body.questionId, body.answer);
-    if (!result) throw new NotFoundException('Question not found or expired');
+    if (!result) throw new NotFoundException('Question not found, expired, or already answered');
     return result;
   }
 }
