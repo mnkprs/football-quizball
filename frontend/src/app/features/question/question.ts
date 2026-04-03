@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { GameStore } from '../../core/game.store';
 import { GAME_STORE_TOKEN } from '../../core/game-store.token';
 import { GameApiService } from '../../core/game-api.service';
+import { createReportCooldown } from '../../core/report-cooldown';
 import { LanguageService } from '../../core/language.service';
 
 @Component({
@@ -21,9 +22,9 @@ export class QuestionComponent implements OnDestroy {
   lang = inject(LanguageService);
   answer = '';
 
-  reportDisabled = signal(false);
-  problemReported = signal(false);
-  private reportCooldownTimeout: ReturnType<typeof setTimeout> | null = null;
+  private reportCooldown = createReportCooldown();
+  reportDisabled = this.reportCooldown.disabled;
+  problemReported = this.reportCooldown.reported;
 
   question = this.store.currentQuestion;
 
@@ -112,47 +113,35 @@ export class QuestionComponent implements OnDestroy {
   }
 
   async reportQuestion(): Promise<void> {
-    if (this.reportDisabled()) return;
+    if (this.reportCooldown.disabled()) return;
     const q = this.question();
     const gameId = this.store.gameId();
     if (!q) return;
 
-    this.reportDisabled.set(true);
-    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
-    this.reportCooldownTimeout = setTimeout(() => {
-      this.reportDisabled.set(false);
-      this.reportCooldownTimeout = null;
-    }, 60_000);
-
-    const payload = {
-      questionId: q.id,
-      gameId: gameId ?? undefined,
-      category: q.category,
-      difficulty: q.difficulty,
-      points: q.points,
-      questionText: q.question_text,
-      fiftyFiftyApplicable: q.fifty_fifty_applicable,
-      imageUrl: q.image_url ?? undefined,
-      meta: q.meta ?? undefined,
-    };
-
+    this.reportCooldown.start();
     try {
-      await firstValueFrom(this.gameApi.reportProblem(payload));
-      this.problemReported.set(true);
+      await firstValueFrom(this.gameApi.reportProblem({
+        questionId: q.id,
+        gameId: gameId ?? undefined,
+        category: q.category,
+        difficulty: q.difficulty,
+        points: q.points,
+        questionText: q.question_text,
+        fiftyFiftyApplicable: q.fifty_fifty_applicable,
+        imageUrl: q.image_url ?? undefined,
+        meta: q.meta ?? undefined,
+      }));
+      this.reportCooldown.markReported();
     } catch {
-      this.reportDisabled.set(false);
-      if (this.reportCooldownTimeout) {
-        clearTimeout(this.reportCooldownTimeout);
-        this.reportCooldownTimeout = null;
-      }
+      this.reportCooldown.cancel();
     }
   }
 
   dismissProblemReported(): void {
-    this.problemReported.set(false);
+    this.reportCooldown.dismiss();
   }
 
   ngOnDestroy(): void {
-    if (this.reportCooldownTimeout) clearTimeout(this.reportCooldownTimeout);
+    this.reportCooldown.destroy();
   }
 }
