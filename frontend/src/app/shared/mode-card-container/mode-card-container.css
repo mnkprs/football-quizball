@@ -10,7 +10,7 @@
   padding: 1.5rem;
   border-radius: 2rem;
   overflow: hidden;
-  border: none;
+  border: 1px solid var(--glass-border);
   background: var(--color-surface, #131313);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
   cursor: pointer;

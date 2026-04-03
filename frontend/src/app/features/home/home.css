@@ -62,18 +62,22 @@ app-battle-hero {
 /* TIER 3: Pro Arena — gold glass treatment */
 .pro-arena-tier {
   background: linear-gradient(160deg, rgba(230, 168, 0, 0.08) 0%, rgba(230, 168, 0, 0.02) 40%, transparent 60%);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   border-radius: 1.25rem;
   padding: 0.75rem;
-  box-shadow: inset 0 0 0 1px rgba(230, 168, 0, 0.1);
+  border: 1px solid rgba(230, 168, 0, 0.1);
 }
 
 /* TIER 4: Free modes */
 .free-tier {
   gap: 0.75rem;
   background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(var(--glass-blur-sm));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   border-radius: 1.25rem;
   padding: 0.75rem;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
 }
 
 /* ============================================
@@ -89,7 +93,7 @@ app-battle-hero {
   padding: 1.25rem;
   border-radius: var(--radius-xl);
   overflow: hidden;
-  border: none;
+  border: 1px solid var(--glass-border);
   background: var(--color-surface, #131313);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
   cursor: pointer;
