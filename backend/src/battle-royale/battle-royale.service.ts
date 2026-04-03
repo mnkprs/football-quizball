@@ -520,6 +520,9 @@ export class BattleRoyaleService {
       };
     }
 
+    // Increment profile-level questions_answered / correct_answers
+    this.supabaseService.incrementQuestionStats(userId, correct ? 1 : 0).catch(() => {});
+
     // Check if all players are done and record match history for this player
     if (isLastQuestion) {
       await this.checkAndFinishRoom(roomId);

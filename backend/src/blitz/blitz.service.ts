@@ -157,6 +157,9 @@ export class BlitzService {
       await this.supabaseService.upsertMaxBlitzScore(userId, session.score, session.totalAnswered);
     }
 
+    // Increment profile-level questions_answered / correct_answers
+    await this.supabaseService.incrementQuestionStats(userId, session.score, session.totalAnswered);
+
     await this.sessionStore.del(this.sessionKey(sessionId));
     this.logger.log(JSON.stringify({ event: 'blitz_session_end', userId, score: session.score, totalAnswered: session.totalAnswered }));
 

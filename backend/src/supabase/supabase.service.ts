@@ -468,6 +468,30 @@ export class SupabaseService {
     }
   }
 
+  /**
+   * Increment only questions_answered and correct_answers on the profile (no games_played bump).
+   * Used by modes that track questions individually (logo quiz, duel, battle royale, etc.).
+   */
+  async incrementQuestionStats(userId: string, correctAnswers: number, questionsAnswered = 1): Promise<void> {
+    const { error } = await this.client.rpc('increment_question_stats', {
+      p_user_id: userId,
+      p_questions: questionsAnswered,
+      p_correct: correctAnswers,
+    });
+    if (error) {
+      const { data: profile } = await this.client
+        .from('profiles')
+        .select('questions_answered, correct_answers')
+        .eq('id', userId)
+        .single();
+      if (!profile) return;
+      await this.client.from('profiles').update({
+        questions_answered: profile.questions_answered + questionsAnswered,
+        correct_answers: profile.correct_answers + correctAnswers,
+      }).eq('id', userId);
+    }
+  }
+
   // --- Mayhem Mode Stats ---
 
   async getMayhemStats(userId: string): Promise<{

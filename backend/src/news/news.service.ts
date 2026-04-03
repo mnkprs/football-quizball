@@ -331,7 +331,7 @@ export class NewsService {
     if (insertError || !inserted || inserted.length === 0) return null;
 
     // Update profile stats
-    await this.incrementProfileStats(userId, correct);
+    await this.supabaseService.incrementQuestionStats(userId, correct ? 1 : 0);
 
     // Update mode stats
     await this.upsertModeStats(userId, correct);
@@ -455,34 +455,6 @@ export class NewsService {
         total_answered: (currentStreak?.total_answered ?? 0) + roundAnswered,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
-  }
-
-  private async incrementProfileStats(userId: string, correct: boolean): Promise<void> {
-    // Atomic increment via RPC (same as Solo mode uses)
-    // Falls back to read-modify-write if RPC fails
-    const { error } = await this.supabaseService.client.rpc('increment_news_stats', {
-      p_user_id: userId,
-      p_correct: correct ? 1 : 0,
-    });
-
-    if (error) {
-      // Fallback: read-modify-write (less safe under concurrency)
-      const { data: profile } = await this.supabaseService.client
-        .from('profiles')
-        .select('questions_answered, correct_answers')
-        .eq('id', userId)
-        .single();
-
-      if (!profile) return;
-
-      await this.supabaseService.client
-        .from('profiles')
-        .update({
-          questions_answered: profile.questions_answered + 1,
-          correct_answers: profile.correct_answers + (correct ? 1 : 0),
-        })
-        .eq('id', userId);
-    }
   }
 
   private async upsertModeStats(userId: string, correct: boolean): Promise<void> {

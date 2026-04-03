@@ -151,6 +151,9 @@ export class LogoQuizService {
         .eq('id', userId);
     }
 
+    // Increment profile-level questions_answered / correct_answers
+    await this.supabaseService.incrementQuestionStats(userId, correct ? 1 : 0);
+
     return {
       correct,
       timed_out: timedOut,

@@ -348,6 +348,8 @@ export class DuelService {
       : await this.answerValidator.validateAsync(question, dto.answer);
 
     if (!correct) {
+      // Increment profile-level questions_answered (wrong answer still counts as answered)
+      this.supabaseService.incrementQuestionStats(userId, 0).catch(() => {});
       return { correct: false };
     }
 
@@ -390,6 +392,9 @@ export class DuelService {
       // Another player claimed it first (race condition — both were correct simultaneously)
       return { correct: true, lostRace: true };
     }
+
+    // Increment profile-level questions_answered / correct_answers
+    this.supabaseService.incrementQuestionStats(userId, 1).catch(() => {});
 
     const gameWinner: 'host' | 'guest' | 'draw' | undefined = gameFinished ? role : undefined;
 

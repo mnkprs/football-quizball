@@ -153,6 +153,9 @@ export class MayhemSessionService {
       correct_increment: session.correctAnswers,
     });
 
+    // Increment profile-level questions_answered / correct_answers
+    await this.supabaseService.incrementQuestionStats(userId, session.correctAnswers, session.questionsAnswered);
+
     await this.sessionStore.del(this.sessionKey(sessionId));
 
     let newlyUnlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> = [];
