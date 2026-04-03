@@ -11,9 +11,9 @@
   justify-content: space-between;
   padding: 0 1.25rem;
   z-index: 50;
-  background: rgba(58, 57, 57, 0.4);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
   overflow: hidden;
 }
@@ -224,7 +224,7 @@
   width: 100%;
   max-width: 28rem;
   height: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   z-index: 50;
 }
 
@@ -348,7 +348,10 @@
   bottom: 0;
   width: min(20rem, 100%);
   z-index: 101;
-  background: var(--color-card, #1a1a1a);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border-left: 1px solid var(--glass-border);
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
@@ -368,7 +371,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .tsp__title {
@@ -404,8 +407,8 @@
   padding: 1.25rem 1.5rem;
   margin: 1rem 1.5rem 0;
   border-radius: 1rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg-subtle);
+  border: 1px solid var(--glass-border);
 }
 
 .tsp__profile-avatar {
@@ -463,8 +466,8 @@
   gap: 1rem;
   padding: 1rem 1.25rem;
   border-radius: 1rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg-subtle);
+  border: 1px solid var(--glass-border);
   color: rgba(255,255,255,0.7);
 }
 
@@ -569,7 +572,7 @@
   margin: 0 1.5rem 0.5rem;
   padding: 0.875rem 1.25rem;
   border-radius: 1rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
   background: transparent;
   color: var(--color-fg);
   font-size: 0.875rem;
@@ -591,7 +594,7 @@
   margin: 0 1.5rem 0.5rem;
   padding: 0.875rem 1.25rem;
   border-radius: 1rem;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--glass-border);
   background: transparent;
   color: var(--color-fg-muted);
   font-size: 0.875rem;
@@ -697,8 +700,8 @@
 .tsp__field-input {
   padding: 0.625rem 0.75rem;
   border-radius: 0.5rem;
-  background: var(--color-surface-low);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg-default);
+  border: 1px solid var(--glass-border);
   color: var(--color-fg);
   font-size: 0.875rem;
   font-weight: 600;
@@ -740,7 +743,7 @@
 
 .tsp__divider {
   height: 1px;
-  background: var(--color-border);
+  background: var(--glass-border);
   margin: 0.25rem 0;
 }
 
@@ -752,7 +755,7 @@
   width: 100%;
   padding: 0.75rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
   background: transparent;
   color: var(--color-fg-muted);
   font-size: 0.8125rem;
