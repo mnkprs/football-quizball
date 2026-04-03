@@ -15,9 +15,6 @@
   backdrop-filter: blur(var(--glass-blur-md));
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
   border: 1px solid var(--glass-border-strong);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(var(--glass-blur-md));
-  -webkit-backdrop-filter: blur(var(--glass-blur-md));
   box-shadow: var(--shadow-md);
   animation: banner-slide-in 0.3s ease-out both;
 }
