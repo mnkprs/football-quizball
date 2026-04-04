@@ -16,16 +16,19 @@
   background: var(--color-accent);
   border-radius: var(--radius-xl);
   box-shadow:
-    0 0 0 3px rgba(204, 255, 0, 0.15),
-    0 8px 32px rgba(204, 255, 0, 0.25),
+    0 0 0 3px rgba(0, 122, 255, 0.15),
+    0 8px 32px rgba(0, 122, 255, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: anim-scale-in 500ms ease-out;
 }
 
 .setup-card {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -2px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: var(--shadow-lg);
+  animation: anim-stagger-in 400ms ease-out 100ms both;
 }
 
 .setup-player-dot {
@@ -56,7 +59,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  background: linear-gradient(90deg, transparent, var(--glass-border-strong), transparent);
 }
 
 .setup-divider-text {
@@ -68,17 +71,17 @@
 }
 
 .setup-kickoff-btn {
-  background: linear-gradient(135deg, var(--color-accent) 0%, #b8e600 100%);
+  background: var(--color-accent);
   color: var(--color-accent-foreground);
   box-shadow:
-    0 4px 14px rgba(204, 255, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    var(--glow-accent-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .setup-kickoff-btn:hover:not(:disabled) {
   box-shadow:
-    0 6px 20px rgba(204, 255, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    var(--glow-accent-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   transform: translateY(-1px);
 }
 
