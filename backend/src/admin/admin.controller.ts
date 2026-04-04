@@ -10,8 +10,11 @@ import { BotOnlineGameRunner } from '../bot/bot-online-game-runner.service';
 import { AdminStatsService } from './admin-stats.service';
 import { ErrorLogService } from './error-log.service';
 import { SupabaseService } from '../supabase/supabase.service';
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { AdminUserService } from './admin-user.service';
+import { PoolQuestionsQueryDto } from './dto/pool-questions-query.dto';
+import { SeedPoolQueryDto } from './dto/seed-pool-query.dto';
+import { VerifyIntegrityQueryDto, VerifyIntegrityBodyDto } from './dto/verify-integrity-query.dto';
+import { GenerationVersionQueryDto, DeleteByVersionQueryDto } from './dto/generation-version-query.dto';
 
 @Controller('api/admin')
 export class AdminController {
@@ -27,6 +30,7 @@ export class AdminController {
     private adminStatsService: AdminStatsService,
     private errorLogService: ErrorLogService,
     private supabaseService: SupabaseService,
+    private adminUserService: AdminUserService,
   ) {}
 
   /**
@@ -35,25 +39,10 @@ export class AdminController {
    */
   @Get('pool-questions')
   @UseGuards(AdminApiKeyGuard)
-  async getPoolQuestions(
-    @Query('min') minRaw?: string,
-    @Query('max') maxRaw?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('search') search?: string,
-    @Query('category') category?: string,
-    @Query('difficulty') difficulty?: string,
-    @Query('generation_version') generationVersion?: string,
-  ) {
-    const min = parseFloat(minRaw ?? '0');
-    const max = parseFloat(maxRaw ?? '0.1');
-    const p = Math.max(1, parseInt(page ?? '1', 10));
-    const l = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10)));
-    const q = (search ?? '').trim() || undefined;
-    const cat = (category ?? '').trim() || undefined;
-    const diff = (difficulty ?? '').trim() || undefined;
-    const ver = (generationVersion ?? '').trim() || undefined;
-    return this.questionPoolService.getPoolQuestionsByRange(min, max, p, l, q, cat, diff, ver);
+  async getPoolQuestions(@Query() dto: PoolQuestionsQueryDto) {
+    return this.questionPoolService.getPoolQuestionsByRange(
+      dto.min!, dto.max!, dto.page, dto.limit, dto.search, dto.category, dto.difficulty, dto.generation_version,
+    );
   }
 
   /**
@@ -63,9 +52,8 @@ export class AdminController {
    */
   @Get('seed-pool-sessions')
   @UseGuards(AdminApiKeyGuard)
-  async getSeedPoolSessions(@Query('generation_version') generationVersion?: string) {
-    const ver = (generationVersion ?? '').trim() || undefined;
-    return this.questionPoolService.getSeedPoolSessions(ver);
+  async getSeedPoolSessions(@Query() dto: GenerationVersionQueryDto) {
+    return this.questionPoolService.getSeedPoolSessions(dto.generation_version);
   }
 
   /**
@@ -97,11 +85,10 @@ export class AdminController {
    */
   @Get('pool-stats')
   @UseGuards(AdminApiKeyGuard)
-  async getPoolStats(@Query('generation_version') generationVersion?: string) {
-    const version = (generationVersion ?? '').trim() || undefined;
+  async getPoolStats(@Query() dto: GenerationVersionQueryDto) {
     const [rawScoreStats, seedPoolStats] = await Promise.all([
-      this.questionPoolService.getPoolRawScoreStats(version),
-      this.questionPoolService.getSeedPoolStats(version),
+      this.questionPoolService.getPoolRawScoreStats(dto.generation_version),
+      this.questionPoolService.getSeedPoolStats(dto.generation_version),
     ]);
     return {
       ...rawScoreStats,
@@ -117,9 +104,8 @@ export class AdminController {
   @Post('seed-pool')
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
-  async seedPool(@Query('target') target?: string) {
-    const n = parseInt(String(target || '100').replace(/^--/, ''), 10);
-    const count = Number.isNaN(n) ? 100 : Math.min(500, Math.max(1, n));
+  async seedPool(@Query() dto: SeedPoolQueryDto) {
+    const count = dto.target!;
     this.logger.log(`[seed-pool] Request received: target=${count}`);
     const { results, sessionId, questionIds } = await this.questionPoolService.seedPool(count, true);
     return {
@@ -144,23 +130,16 @@ export class AdminController {
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
   async verifyPoolIntegrity(
-    @Query('limit') limitRaw?: string,
-    @Query('category') category?: string,
-    @Query('version') version?: string,
-    @Query('apply') applyRaw?: string,
-    @Body() body?: { questionIds?: string[] },
+    @Query() query: VerifyIntegrityQueryDto,
+    @Body() body?: VerifyIntegrityBodyDto,
   ) {
-    const limit = Math.min(1000, Math.max(1, parseInt(limitRaw ?? '100', 10) || 100));
-    const apply = applyRaw === 'true' || applyRaw === '1';
-    const cat = (category ?? '').trim().toUpperCase() || undefined;
-    const ver = (version ?? '').trim() || undefined;
-    const questionIds = Array.isArray(body?.questionIds) ? body.questionIds.filter(Boolean) : undefined;
+    const questionIds = body?.questionIds?.filter(Boolean);
     return this.questionPoolService.verifyPoolIntegrity({
-      limit,
-      category: cat as import('../common/interfaces/question.interface').QuestionCategory | undefined,
-      version: ver,
-      apply,
-      questionIds,
+      limit: query.limit,
+      category: query.category as import('../common/interfaces/question.interface').QuestionCategory | undefined,
+      version: query.version,
+      apply: query.apply,
+      questionIds: questionIds?.length ? questionIds : undefined,
     });
   }
 
@@ -173,13 +152,9 @@ export class AdminController {
   @Post('delete-by-version')
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
-  async deleteQuestionsByVersion(
-    @Query('version') versionRaw?: string,
-    @Query('apply') applyRaw?: string,
-  ) {
-    const version = versionRaw ?? GENERATION_VERSION;
-    const apply = applyRaw === 'true' || applyRaw === '1';
-    return this.questionPoolService.deleteQuestionsExceptVersion(version, !apply);
+  async deleteQuestionsByVersion(@Query() dto: DeleteByVersionQueryDto) {
+    const version = dto.version ?? GENERATION_VERSION;
+    return this.questionPoolService.deleteQuestionsExceptVersion(version, !dto.apply);
   }
 
   /**
@@ -242,7 +217,7 @@ export class AdminController {
   @Get('thresholds')
   @UseGuards(AdminApiKeyGuard)
   async getThresholds() {
-    return this.thresholdConfig.getThresholds();
+    return await this.thresholdConfig.getThresholds();
   }
 
   /**
@@ -351,34 +326,9 @@ export class AdminController {
     @Query('limit') limit?: string,
   ) {
     const searchTerm = (search ?? '').trim();
-    const p = Math.max(1, parseInt(page ?? '1', 10));
-    const l = Math.min(100, Math.max(1, parseInt(limit ?? '20', 10)));
-    const offset = (p - 1) * l;
-
-    let query = this.supabaseService.client
-      .from('profiles')
-      .select('id, username, elo, games_played, questions_answered, correct_answers, is_pro, purchase_type, created_at', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + l - 1);
-
-    if (searchTerm.length >= 2) {
-      // UUID pattern: exact match on id; otherwise ILIKE on username
-      if (/^[0-9a-f]{8}-/i.test(searchTerm)) {
-        query = query.eq('id', searchTerm);
-      } else {
-        const escaped = searchTerm.replace(/%/g, '\\%').replace(/_/g, '\\_');
-        query = query.ilike('username', `%${escaped}%`);
-      }
-    }
-
-    const { data, count, error } = await query;
-
-    if (error) {
-      this.logger.error(`[getUsers] Query failed: ${error.message}`);
-      return { data: [], total: 0, page: p, limit: l };
-    }
-
-    return { data: data ?? [], total: count ?? 0, page: p, limit: l };
+    const p = parseInt(page ?? '1', 10);
+    const l = parseInt(limit ?? '20', 10);
+    return this.adminUserService.getUsers(searchTerm, p, l);
   }
 
   /**
@@ -388,33 +338,16 @@ export class AdminController {
   @Get('users/:id')
   @UseGuards(AdminApiKeyGuard)
   async getUserById(@Param('id') id: string) {
-    if (!UUID_RE.test(id)) {
+    if (!this.adminUserService.isValidUuid(id)) {
       throw new NotFoundException('Invalid user id');
     }
 
-    const [profile, eloHistory, proStatus] = await Promise.all([
-      this.supabaseService.getProfile(id),
-      this.supabaseService.getEloHistory(id, 20),
-      this.supabaseService.getProStatus(id),
-    ]);
-
-    if (!profile) {
+    const result = await this.adminUserService.getUserById(id);
+    if (!result) {
       throw new NotFoundException(`User ${id} not found`);
     }
 
-    const { data: recentMatches } = await this.supabaseService.client
-      .from('match_history')
-      .select('id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at')
-      .or(`player1_id.eq.${id},player2_id.eq.${id}`)
-      .order('played_at', { ascending: false })
-      .limit(10);
-
-    return {
-      profile: { ...profile, is_pro: proStatus?.is_pro ?? false },
-      proStatus,
-      eloHistory,
-      recentGames: recentMatches ?? [],
-    };
+    return result;
   }
 
   /**
@@ -425,20 +358,11 @@ export class AdminController {
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
   async grantPro(@Param('id') id: string) {
-    if (!UUID_RE.test(id)) throw new NotFoundException('Invalid user id');
+    if (!this.adminUserService.isValidUuid(id)) throw new NotFoundException('Invalid user id');
     const profile = await this.supabaseService.getProfile(id);
     if (!profile) throw new NotFoundException(`User ${id} not found`);
 
-    const proStatus = await this.supabaseService.getProStatus(id);
-    if (proStatus?.is_pro) {
-      return { changed: false, alreadyPro: true };
-    }
-
-    await this.supabaseService.setProStatus(id, { isPro: true, proSource: 'admin_grant' });
-    await this.errorLogService.writeAuditLog('grant-pro', id, {});
-    this.logger.warn(`[Admin] Granted Pro to user ${id}`);
-
-    return { changed: true };
+    return this.adminUserService.grantPro(id);
   }
 
   /**
@@ -449,22 +373,11 @@ export class AdminController {
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
   async revokePro(@Param('id') id: string) {
-    if (!UUID_RE.test(id)) throw new NotFoundException('Invalid user id');
+    if (!this.adminUserService.isValidUuid(id)) throw new NotFoundException('Invalid user id');
     const profile = await this.supabaseService.getProfile(id);
     if (!profile) throw new NotFoundException(`User ${id} not found`);
 
-    const proStatus = await this.supabaseService.getProStatus(id);
-
-    let warning: string | undefined;
-    if (proStatus?.purchase_type === 'subscription' || proStatus?.purchase_type === 'lifetime') {
-      warning = `User has a paid ${proStatus.purchase_type} — revoking admin override only; subscription may re-activate on next webhook.`;
-    }
-
-    await this.supabaseService.setProStatus(id, { isPro: false });
-    await this.errorLogService.writeAuditLog('revoke-pro', id, { hadWarning: !!warning });
-    this.logger.warn(`[Admin] Revoked Pro for user ${id}${warning ? ' (paid source warning)' : ''}`);
-
-    return { changed: true, ...(warning ? { warning } : {}) };
+    return this.adminUserService.revokePro(id);
   }
 
   /**
@@ -475,51 +388,11 @@ export class AdminController {
   @UseGuards(AdminApiKeyGuard)
   @HttpCode(HttpStatus.OK)
   async resetElo(@Param('id') id: string) {
-    if (!UUID_RE.test(id)) throw new NotFoundException('Invalid user id');
+    if (!this.adminUserService.isValidUuid(id)) throw new NotFoundException('Invalid user id');
     const profile = await this.supabaseService.getProfile(id);
     if (!profile) throw new NotFoundException(`User ${id} not found`);
 
-    // Block reset if the user is in an active game
-    const [{ count: activeDuels }, { count: activeOnline }, { count: activeBR }] = await Promise.all([
-      this.supabaseService.client
-        .from('duel_games')
-        .select('id', { count: 'exact', head: true })
-        .or(`host_id.eq.${id},guest_id.eq.${id}`)
-        .eq('status', 'active'),
-      this.supabaseService.client
-        .from('online_games')
-        .select('id', { count: 'exact', head: true })
-        .or(`host_id.eq.${id},guest_id.eq.${id}`)
-        .eq('status', 'active'),
-      this.supabaseService.client
-        .from('battle_royale_players')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', id)
-        .is('finished_at', null),
-    ]);
-
-    if ((activeDuels ?? 0) > 0 || (activeOnline ?? 0) > 0 || (activeBR ?? 0) > 0) {
-      return { blocked: true, reason: 'User has active games' };
-    }
-
-    const eloBefore = profile.elo;
-    const eloAfter = 1000;
-
-    await this.supabaseService.updateElo(id, eloAfter);
-    await this.supabaseService.insertEloHistory({
-      user_id: id,
-      elo_before: eloBefore,
-      elo_after: eloAfter,
-      elo_change: eloAfter - eloBefore,
-      question_difficulty: 'ADMIN_RESET',
-      correct: false,
-      timed_out: false,
-    });
-
-    await this.errorLogService.writeAuditLog('reset-elo', id, { eloBefore });
-    this.logger.warn(`[Admin] Reset ELO for user ${id}: ${eloBefore} → ${eloAfter}`);
-
-    return { changed: true, eloBefore, eloAfter };
+    return this.adminUserService.resetElo(id, profile.elo);
   }
 
   // ── Error Logs ───────────────────────────────────────────────────────────────

@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { QuestionsService } from './questions.service';
 import { QuestionPoolService } from './question-pool.service';
+import { QuestionDrawService } from './question-draw.service';
+import { PoolSeedService } from './pool-seed.service';
+import { PoolAdminService } from './pool-admin.service';
+import { PoolIntegrityVerifierService } from './pool-integrity-verifier.service';
 import { AnswerValidator } from './validators/answer.validator';
 import { QuestionValidator } from './validators/question.validator';
 import { QuestionIntegrityService } from './validators/question-integrity.service';
@@ -25,6 +29,10 @@ import { LlmModule } from '../llm/llm.module';
     ThresholdConfigService,
     QuestionsService,
     QuestionPoolService,
+    QuestionDrawService,
+    PoolSeedService,
+    PoolAdminService,
+    PoolIntegrityVerifierService,
     AnswerValidator,
     QuestionValidator,
     QuestionIntegrityService,
@@ -38,6 +46,19 @@ import { LlmModule } from '../llm/llm.module';
     GossipGenerator,
     MigratePoolDifficultyService,
   ],
-  exports: [QuestionsService, QuestionPoolService, AnswerValidator, QuestionValidator, QuestionIntegrityService, ThresholdConfigService, MigratePoolDifficultyService, DifficultyScorer],
+  exports: [
+    QuestionsService,
+    QuestionPoolService,
+    QuestionDrawService,
+    PoolSeedService,
+    PoolAdminService,
+    PoolIntegrityVerifierService,
+    AnswerValidator,
+    QuestionValidator,
+    QuestionIntegrityService,
+    ThresholdConfigService,
+    MigratePoolDifficultyService,
+    DifficultyScorer,
+  ],
 })
 export class QuestionsModule {}

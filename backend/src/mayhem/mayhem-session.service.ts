@@ -87,7 +87,7 @@ export class MayhemSessionService {
     if (session.userId !== userId) throw new ForbiddenException();
 
     // Fetch the question to verify answer
-    const { data, error } = await (this.supabaseService.client as any)
+    const { data, error } = await this.supabaseService.client
       .from('mayhem_questions')
       .select('question')
       .eq('id', questionId)

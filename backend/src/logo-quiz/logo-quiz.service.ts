@@ -7,6 +7,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
 import { AchievementsService } from '../achievements/achievements.service';
 import type { Difficulty } from '../common/interfaces/question.interface';
+import type { Profile } from '../common/interfaces/profile.interface';
 import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
 
 /**
@@ -40,17 +41,16 @@ export class LogoQuizService {
     if (!profile) throw new NotFoundException('Profile not found');
 
     // Free users limited to 150 logos; pro users get unlimited
-    const isPro = (profile as any).is_pro ?? false;
-    const totalPlayed = ((profile as any).logo_quiz_games_played ?? 0)
-      + ((profile as any).logo_quiz_hardcore_games_played ?? 0);
+    // NOTE: is_pro is not fetched by getProfile — this check relies on the field being undefined (= false).
+    // For proper enforcement, call getProStatus() separately.
+    const isPro = (profile as Profile & { is_pro?: boolean }).is_pro ?? false;
+    const totalPlayed = profile.logo_quiz_games_played + profile.logo_quiz_hardcore_games_played;
     if (!isPro && totalPlayed >= 150) {
       throw new ForbiddenException('Free logo limit reached. Upgrade to Pro for unlimited logos.');
     }
 
-    const logoElo = hardcore
-      ? ((profile as any).logo_quiz_hardcore_elo ?? 1000)
-      : ((profile as any).logo_quiz_elo ?? 1000);
-    const client = (this.supabaseService as any).client;
+    const logoElo = hardcore ? profile.logo_quiz_hardcore_elo : profile.logo_quiz_elo;
+    const client = this.supabaseService.client;
 
     // Try ELO-range-based draw with widening ranges
     for (const range of [200, 400, 800]) {
@@ -99,12 +99,10 @@ export class LogoQuizService {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new ForbiddenException('Profile not found');
 
-    const logoElo = hardcore
-      ? ((profile as any).logo_quiz_hardcore_elo ?? 1000)
-      : ((profile as any).logo_quiz_elo ?? 1000);
+    const logoElo = hardcore ? profile.logo_quiz_hardcore_elo : profile.logo_quiz_elo;
 
     // Look up the question to get correct answer and question_elo
-    const client = (this.supabaseService as any).client;
+    const client = this.supabaseService.client;
     const { data } = await client
       .from('question_pool')
       .select('question, difficulty, question_elo')
@@ -120,9 +118,7 @@ export class LogoQuizService {
     const correct = !timedOut && this.fuzzyMatch(answer, correctAnswer);
 
     // Calculate ELO change — use composite question_elo when available
-    const gamesPlayed = hardcore
-      ? ((profile as any).logo_quiz_hardcore_games_played ?? 0)
-      : ((profile as any).logo_quiz_games_played ?? 0);
+    const gamesPlayed = hardcore ? profile.logo_quiz_hardcore_games_played : profile.logo_quiz_games_played;
     const eloChange = data.question_elo
       ? this.eloService.calculateWithQuestionElo(logoElo, data.question_elo, correct, timedOut, gamesPlayed)
       : this.eloService.calculate(logoElo, difficulty, correct, timedOut, gamesPlayed);
@@ -184,7 +180,7 @@ export class LogoQuizService {
    * Get all team names for the searchable select.
    */
   async getTeamNames(): Promise<string[]> {
-    const client = (this.supabaseService as any).client;
+    const client = this.supabaseService.client;
     // Supabase default limit is 1000 — we have 1100+ logo questions,
     // so we must paginate to get all team names for the autocomplete.
     let allData: any[] = [];
@@ -224,7 +220,7 @@ export class LogoQuizService {
       meta: { slug: string; league: string; country: string };
     }>
   > {
-    const client = (this.supabaseService as any).client;
+    const client = this.supabaseService.client;
 
     // Over-fetch so the random shuffle has enough candidates.
     const { data, error } = await client
@@ -246,7 +242,9 @@ export class LogoQuizService {
     const seenSlugs = new Set<string>();
     const picked: typeof shuffled = [];
     for (const row of shuffled) {
-      const slug = (row.question as any)?.meta?.slug ?? '';
+      const q = row.question as Record<string, unknown>;
+      const meta = q?.meta as Record<string, unknown> | undefined;
+      const slug = (meta?.slug as string) ?? '';
       if (slug && seenSlugs.has(slug)) continue;
       if (slug) seenSlugs.add(slug);
       picked.push(row);
@@ -254,18 +252,18 @@ export class LogoQuizService {
     }
 
     return picked.map((row) => {
-      const q = row.question as any;
+      const q = row.question as Record<string, unknown>;
+      const meta = q?.meta as Record<string, unknown> | undefined;
       return {
         id: row.id,
-        correct_answer: q.correct_answer as string,
-        image_url: q.image_url as string,
-        // Original un-degraded image for the reveal.
-        original_image_url: (q.meta?.original_image_url ?? q.image_url) as string,
-        difficulty: (q.difficulty ?? 'EASY') as string,
+        correct_answer: (q.correct_answer as string) ?? '',
+        image_url: (q.image_url as string) ?? '',
+        original_image_url: ((meta?.original_image_url ?? q.image_url) as string) ?? '',
+        difficulty: ((q.difficulty as string) ?? 'EASY'),
         meta: {
-          slug: (q.meta?.slug ?? '') as string,
-          league: (q.meta?.league ?? '') as string,
-          country: (q.meta?.country ?? '') as string,
+          slug: ((meta?.slug as string) ?? ''),
+          league: ((meta?.league as string) ?? ''),
+          country: ((meta?.country as string) ?? ''),
         },
       };
     });

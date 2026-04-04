@@ -2,6 +2,23 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { RedisService } from '../redis/redis.service';
+import type { Profile, ProStatus, SetProParams } from '../common/interfaces/profile.interface';
+import type {
+  SoloLeaderboardEntry,
+  SoloLeaderboardEntryWithRank,
+  LogoQuizLeaderboardEntry,
+  LogoQuizLeaderboardEntryWithRank,
+  LogoQuizHardcoreLeaderboardEntry,
+  LogoQuizHardcoreLeaderboardEntryWithRank,
+  DuelLeaderboardEntry,
+  DuelLeaderboardEntryWithRank,
+  MayhemLeaderboardEntry,
+} from '../common/interfaces/leaderboard.interface';
+import type { BlitzLeaderboardEntry, BlitzLeaderboardEntryWithRank } from '../common/interfaces/blitz.interface';
+import type { EloHistoryEntry, CommitSoloAnswerParams } from '../common/interfaces/elo.interface';
+import type { MatchResult, MatchHistoryEntry } from '../common/interfaces/match.interface';
+import type { Achievement } from '../common/interfaces/achievement.interface';
+import type { MayhemStats, UpsertMayhemStatsParams, BlitzStats } from '../common/interfaces/stats.interface';
 
 const RANK_TTL = 60;        // 60s — stale rank is fine
 const LEADERBOARD_TTL = 60; // 60s — leaderboard refreshes every minute
@@ -22,19 +39,28 @@ export class SupabaseService {
     });
   }
 
-  async getProfile(userId: string): Promise<{ id: string; username: string; elo: number; logo_quiz_elo: number; logo_quiz_hardcore_elo: number; logo_quiz_games_played: number; logo_quiz_hardcore_games_played: number; games_played: number; questions_answered: number; correct_answers: number; country_code: string | null } | null> {
+  async getProfile(userId: string): Promise<Profile | null> {
     const { data: profile } = await this.client
       .from('profiles')
       .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code')
       .eq('id', userId)
       .maybeSingle();
-    if (profile) return profile as any;
+    if (profile) return profile as Profile;
     const { data: dummy } = await this.client
       .from('dummy_users')
       .select('id, username, elo, games_played, questions_answered, correct_answers')
       .eq('id', userId)
       .maybeSingle();
-    return dummy ? { ...dummy, logo_quiz_elo: 1000, logo_quiz_hardcore_elo: 1000, logo_quiz_games_played: 0, logo_quiz_hardcore_games_played: 0 } as any : null;
+    if (!dummy) return null;
+    const d = dummy as { id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number };
+    return {
+      ...d,
+      logo_quiz_elo: 1000,
+      logo_quiz_hardcore_elo: 1000,
+      logo_quiz_games_played: 0,
+      logo_quiz_hardcore_games_played: 0,
+      country_code: null,
+    };
   }
 
   /** Returns max ELO ever reached (current elo or peak from history). */
@@ -75,21 +101,13 @@ export class SupabaseService {
     await this.redisService.del(`rank:solo:${userId}`);
   }
 
-  async insertEloHistory(entry: {
-    user_id: string;
-    elo_before: number;
-    elo_after: number;
-    elo_change: number;
-    question_difficulty: string;
-    correct: boolean;
-    timed_out: boolean;
-  }): Promise<void> {
+  async insertEloHistory(entry: EloHistoryEntry): Promise<void> {
     await this.client.from('elo_history').insert(entry);
   }
 
-  async getLeaderboard(limit: number): Promise<Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>> {
+  async getLeaderboard(limit: number): Promise<SoloLeaderboardEntry[]> {
     const cacheKey = `leaderboard:solo:${limit}`;
-    const cached = await this.redisService.get<Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>>(cacheKey);
+    const cached = await this.redisService.get<SoloLeaderboardEntry[]>(cacheKey);
     if (cached) return cached;
 
     const cols = 'id, username, elo, games_played, questions_answered, correct_answers';
@@ -99,22 +117,22 @@ export class SupabaseService {
       .order('elo', { ascending: false })
       .limit(limit);
 
-    const result = (data ?? []) as Array<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number }>;
+    const result = (data ?? []) as SoloLeaderboardEntry[];
     await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
     return result;
   }
 
   /** Returns current user's solo leaderboard entry with rank, for display below top 5. */
-  async getLeaderboardEntryForUser(userId: string): Promise<{ id: string; username: string; elo: number; games_played: number; questions_answered: number; correct_answers: number; rank: number } | null> {
+  async getLeaderboardEntryForUser(userId: string): Promise<SoloLeaderboardEntryWithRank | null> {
     const profile = await this.getProfile(userId);
     if (!profile) return null;
     const rank = await this.getSoloRank(userId);
     return { ...profile, rank: rank ?? 0 };
   }
 
-  async getLogoQuizLeaderboard(limit: number): Promise<Array<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number }>> {
+  async getLogoQuizLeaderboard(limit: number): Promise<LogoQuizLeaderboardEntry[]> {
     const cacheKey = `leaderboard:logo-quiz:${limit}`;
-    const cached = await this.redisService.get<Array<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number }>>(cacheKey);
+    const cached = await this.redisService.get<LogoQuizLeaderboardEntry[]>(cacheKey);
     if (cached) return cached;
 
     const cols = 'id, username, logo_quiz_elo, logo_quiz_games_played';
@@ -125,19 +143,20 @@ export class SupabaseService {
       .order('logo_quiz_elo', { ascending: false })
       .limit(limit);
 
-    const result = (data ?? []) as Array<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number }>;
+    const result = (data ?? []) as LogoQuizLeaderboardEntry[];
     await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
     return result;
   }
 
-  async getLogoQuizLeaderboardEntryForUser(userId: string): Promise<{ id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number; rank: number } | null> {
+  async getLogoQuizLeaderboardEntryForUser(userId: string): Promise<LogoQuizLeaderboardEntryWithRank | null> {
     const { data: p } = await this.client
       .from('profiles')
       .select('id, username, logo_quiz_elo, logo_quiz_games_played')
       .eq('id', userId)
       .maybeSingle();
-    if (!p || (p as any).logo_quiz_games_played === 0) return null;
-    const profile = p as { id: string; username: string; logo_quiz_elo: number; logo_quiz_games_played: number };
+    if (!p) return null;
+    const profile = p as LogoQuizLeaderboardEntry;
+    if (profile.logo_quiz_games_played === 0) return null;
 
     // Count how many players have higher ELO
     const { count } = await this.client
@@ -149,9 +168,9 @@ export class SupabaseService {
     return { ...profile, rank: (count ?? 0) + 1 };
   }
 
-  async getLogoQuizHardcoreLeaderboard(limit: number): Promise<Array<{ id: string; username: string; logo_quiz_hardcore_elo: number; logo_quiz_hardcore_games_played: number }>> {
+  async getLogoQuizHardcoreLeaderboard(limit: number): Promise<LogoQuizHardcoreLeaderboardEntry[]> {
     const cacheKey = `leaderboard:logo-quiz-hardcore:${limit}`;
-    const cached = await this.redisService.get<Array<{ id: string; username: string; logo_quiz_hardcore_elo: number; logo_quiz_hardcore_games_played: number }>>(cacheKey);
+    const cached = await this.redisService.get<LogoQuizHardcoreLeaderboardEntry[]>(cacheKey);
     if (cached) return cached;
 
     const cols = 'id, username, logo_quiz_hardcore_elo, logo_quiz_hardcore_games_played';
@@ -162,19 +181,20 @@ export class SupabaseService {
       .order('logo_quiz_hardcore_elo', { ascending: false })
       .limit(limit);
 
-    const result = (data ?? []) as Array<{ id: string; username: string; logo_quiz_hardcore_elo: number; logo_quiz_hardcore_games_played: number }>;
+    const result = (data ?? []) as LogoQuizHardcoreLeaderboardEntry[];
     await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
     return result;
   }
 
-  async getLogoQuizHardcoreLeaderboardEntryForUser(userId: string): Promise<{ id: string; username: string; logo_quiz_hardcore_elo: number; logo_quiz_hardcore_games_played: number; rank: number } | null> {
+  async getLogoQuizHardcoreLeaderboardEntryForUser(userId: string): Promise<LogoQuizHardcoreLeaderboardEntryWithRank | null> {
     const { data: p } = await this.client
       .from('profiles')
       .select('id, username, logo_quiz_hardcore_elo, logo_quiz_hardcore_games_played')
       .eq('id', userId)
       .maybeSingle();
-    if (!p || (p as any).logo_quiz_hardcore_games_played === 0) return null;
-    const profile = p as { id: string; username: string; logo_quiz_hardcore_elo: number; logo_quiz_hardcore_games_played: number };
+    if (!p) return null;
+    const profile = p as LogoQuizHardcoreLeaderboardEntry;
+    if (profile.logo_quiz_hardcore_games_played === 0) return null;
 
     const { count } = await this.client
       .from('profiles')
@@ -253,18 +273,13 @@ export class SupabaseService {
       .or(`max_blitz_score.is.null,max_blitz_score.lt.${score}`);
   }
 
-  async getBlitzLeaderboard(limit: number): Promise<Array<{
-    user_id: string;
-    username: string;
-    score: number;
-    total_answered: number;
-  }>> {
+  async getBlitzLeaderboard(limit: number): Promise<BlitzLeaderboardEntry[]> {
     const { data } = await this.client.rpc('get_blitz_leaderboard', { p_limit: limit });
     return data ?? [];
   }
 
   /** Returns current user's best blitz entry with rank, for display below top 5. */
-  async getBlitzLeaderboardEntryForUser(userId: string): Promise<{ user_id: string; username: string; score: number; total_answered: number; rank: number } | null> {
+  async getBlitzLeaderboardEntryForUser(userId: string): Promise<BlitzLeaderboardEntryWithRank | null> {
     const profile = await this.getProfile(userId);
     if (!profile) return null;
     const { data: p } = await this.client
@@ -287,22 +302,18 @@ export class SupabaseService {
 
   // --- Duel Leaderboard ---
 
-  async getDuelLeaderboard(limit: number): Promise<Array<{
-    user_id: string; username: string; wins: number; losses: number; games_played: number;
-  }>> {
+  async getDuelLeaderboard(limit: number): Promise<DuelLeaderboardEntry[]> {
     const cacheKey = `leaderboard:duel:${limit}`;
-    const cached = await this.redisService.get<Array<{ user_id: string; username: string; wins: number; losses: number; games_played: number }>>(cacheKey);
+    const cached = await this.redisService.get<DuelLeaderboardEntry[]>(cacheKey);
     if (cached) return cached;
 
     const { data } = await this.client.rpc('get_duel_leaderboard', { p_limit: limit });
-    const result = (data ?? []) as Array<{ user_id: string; username: string; wins: number; losses: number; games_played: number }>;
+    const result = (data ?? []) as DuelLeaderboardEntry[];
     await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
     return result;
   }
 
-  async getDuelLeaderboardEntryForUser(userId: string): Promise<{
-    user_id: string; username: string; wins: number; losses: number; games_played: number; rank: number;
-  } | null> {
+  async getDuelLeaderboardEntryForUser(userId: string): Promise<DuelLeaderboardEntryWithRank | null> {
     const profile = await this.getProfile(userId);
     if (!profile) return null;
 
@@ -321,7 +332,7 @@ export class SupabaseService {
     };
   }
 
-  async getBlitzStatsForUser(userId: string): Promise<{ bestScore: number; totalGames: number; rank: number | null } | null> {
+  async getBlitzStatsForUser(userId: string): Promise<BlitzStats | null> {
     const { data: p } = await this.client
       .from('profiles')
       .select('max_blitz_score')
@@ -348,16 +359,7 @@ export class SupabaseService {
    *      WHERE id = p_user_id;
    *    $$;
    */
-  async getProStatus(userId: string): Promise<{
-    is_pro: boolean;
-    trial_battle_royale_used: number;
-    purchase_type: string | null;
-    pro_lifetime_owned: boolean;
-    subscription_expires_at: string | null;
-    daily_duels_played: number;
-    daily_duels_reset_at: string | null;
-    stripe_customer_id: string | null;
-  } | null> {
+  async getProStatus(userId: string): Promise<ProStatus | null> {
     const { data } = await this.client
       .from('profiles')
       .select('is_pro, trial_battle_royale_used, purchase_type, pro_lifetime_owned, subscription_expires_at, daily_duels_played, daily_duels_reset_at, stripe_customer_id')
@@ -366,14 +368,7 @@ export class SupabaseService {
     return data ?? null;
   }
 
-  async setProStatus(userId: string, params: {
-    isPro: boolean;
-    proSource?: 'subscription' | 'lifetime' | 'admin_grant';
-    proLifetimeOwned?: boolean;
-    proExpiresAt?: string | null;
-    iapPlatform?: 'ios' | 'android';
-    iapOriginalTransactionId?: string;
-  }): Promise<void> {
+  async setProStatus(userId: string, params: SetProParams): Promise<void> {
     const update: Record<string, unknown> = { is_pro: params.isPro };
 
     if (params.proSource !== undefined) {
@@ -494,10 +489,7 @@ export class SupabaseService {
 
   // --- Mayhem Mode Stats ---
 
-  async getMayhemStats(userId: string): Promise<{
-    current_elo: number; max_elo: number; best_session_score: number;
-    games_played: number; questions_answered: number; correct_answers: number;
-  } | null> {
+  async getMayhemStats(userId: string): Promise<MayhemStats | null> {
     const { data } = await this.client
       .from('user_mode_stats')
       .select('current_elo, max_elo, best_session_score, games_played, questions_answered, correct_answers')
@@ -507,10 +499,7 @@ export class SupabaseService {
     return data ?? null;
   }
 
-  async upsertMayhemStats(userId: string, stats: {
-    current_elo: number; max_elo: number; best_session_score: number;
-    games_played_increment: number; questions_increment: number; correct_increment: number;
-  }): Promise<void> {
+  async upsertMayhemStats(userId: string, stats: UpsertMayhemStatsParams): Promise<void> {
     // Read current stats first to compute cumulative values
     const current = await this.getMayhemStats(userId);
     const newRow = {
@@ -527,9 +516,7 @@ export class SupabaseService {
     await this.client.from('user_mode_stats').upsert(newRow, { onConflict: 'user_id,mode' });
   }
 
-  async getMayhemLeaderboard(limit: number): Promise<Array<{
-    user_id: string; username: string; current_elo: number; max_elo: number; games_played: number;
-  }>> {
+  async getMayhemLeaderboard(limit: number): Promise<MayhemLeaderboardEntry[]> {
     const { data } = await this.client.rpc('get_mayhem_leaderboard', { p_limit: limit });
     return data ?? [];
   }
@@ -541,10 +528,7 @@ export class SupabaseService {
 
   // --- Achievements ---
 
-  async getAchievements(userId: string): Promise<Array<{
-    id: string; name: string; description: string; icon: string; category: string; earned_at: string | null;
-  }>> {
-    // Get all achievements + which ones the user has earned
+  async getAchievements(userId: string): Promise<Achievement[]> {
     const [allRes, earnedRes] = await Promise.all([
       this.client.from('achievements').select('id, name, description, icon, category'),
       this.client.from('user_achievements').select('achievement_id, earned_at').eq('user_id', userId),
@@ -575,13 +559,7 @@ export class SupabaseService {
 
   // --- Match History ---
 
-  async saveMatchResult(match: {
-    player1_id: string; player2_id: string | null;
-    player1_username: string; player2_username: string;
-    winner_id: string | null; player1_score: number; player2_score: number;
-    match_mode: 'local' | 'online' | 'battle_royale' | 'team_logo_battle';
-    is_bot_match?: boolean;
-  }): Promise<boolean> {
+  async saveMatchResult(match: MatchResult): Promise<boolean> {
     const { error } = await this.client.from('match_history').insert(match);
     if (error) this.logger.error(`[saveMatchResult] Insert failed: ${error.message}`);
     return !error;
@@ -632,12 +610,7 @@ export class SupabaseService {
     if (error) throw error;
   }
 
-  async getMatchHistory(userId: string, limit = 20): Promise<Array<{
-    id: string; player1_id: string | null; player2_id: string | null;
-    player1_username: string; player2_username: string;
-    winner_id: string | null; player1_score: number; player2_score: number;
-    match_mode: string; played_at: string;
-  }>> {
+  async getMatchHistory(userId: string, limit = 20): Promise<MatchHistoryEntry[]> {
     const sel = 'id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at';
     const [asP1, asP2] = await Promise.all([
       this.client.from('match_history').select(sel).eq('player1_id', userId).order('played_at', { ascending: false }).limit(limit),
@@ -649,15 +622,7 @@ export class SupabaseService {
   }
 
   /** Atomically updates ELO and inserts history in a single DB transaction. */
-  async commitSoloAnswer(params: {
-    user_id: string;
-    elo_before: number;
-    elo_after: number;
-    elo_change: number;
-    difficulty: string;
-    correct: boolean;
-    timed_out: boolean;
-  }): Promise<void> {
+  async commitSoloAnswer(params: CommitSoloAnswerParams): Promise<void> {
     const { error } = await this.client.rpc('commit_solo_answer', {
       p_user_id: params.user_id,
       p_elo_before: params.elo_before,

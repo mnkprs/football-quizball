@@ -43,5 +43,9 @@ export interface BlitzLeaderboardEntry {
   username: string;
   score: number;
   total_answered: number;
-  created_at: string;
+  created_at?: string;
+}
+
+export interface BlitzLeaderboardEntryWithRank extends BlitzLeaderboardEntry {
+  rank: number;
 }

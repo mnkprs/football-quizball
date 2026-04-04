@@ -504,7 +504,7 @@ export class DuelService {
         difficulty: l.difficulty,
         image_url: l.image_url,
         original_image_url: l.original_image_url,
-      } as GeneratedQuestion & { image_url: string; original_image_url: string })) as any;
+      } as GeneratedQuestion & { image_url: string; original_image_url: string }));
     }
     const seenIds = await this.supabaseService.getSeenQuestionIds(hostId).catch(() => [] as string[]);
     return this.questionPoolService.drawForDuel(PREFETCH_COUNT, seenIds);
@@ -557,8 +557,8 @@ export class DuelService {
       explanation: '', // revealed only after question is won
       category: q.category,
       difficulty: q.difficulty,
-      ...(isLogo && (q as any).image_url ? {
-        image_url: (q as any).image_url,
+      ...(isLogo && (q as GeneratedQuestion & { image_url?: string }).image_url ? {
+        image_url: (q as GeneratedQuestion & { image_url?: string }).image_url,
       } : {}),
     };
   }
