@@ -106,8 +106,15 @@ export class BotMatchmakerService implements OnModuleInit {
       this.supabaseService.client
         .from('battle_royale_rooms')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'waiting'),
+        .eq('status', 'waiting')
+        .eq('is_private', false),
     ]);
+
+    // Fail open: if any query errored, assume there's work to do
+    if (online.error || duel.error || br.error) {
+      this.logger.warn('Queue count check failed — assuming work exists');
+      return true;
+    }
 
     return (online.count ?? 0) + (duel.count ?? 0) + (br.count ?? 0) > 0;
   }

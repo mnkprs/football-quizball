@@ -10,26 +10,24 @@ const BOT_LOG_LEVEL = (process.env.BOT_LOG_LEVEL ?? 'warn').toLowerCase();
  */
 export class BotLogger {
   private readonly inner: Logger;
-  private readonly prefix: string;
   private readonly debugEnabled: boolean;
 
   constructor(context: string) {
     this.inner = new Logger(`BOT:${context}`);
-    this.prefix = `[BOT:${context}]`;
     this.debugEnabled = BOT_LOG_LEVEL === 'debug';
   }
 
   debug(message: string): void {
     if (this.debugEnabled) {
-      this.inner.debug(`${this.prefix} ${message}`);
+      this.inner.debug(message);
     }
   }
 
   warn(message: string): void {
-    this.inner.warn(`${this.prefix} ${message}`);
+    this.inner.warn(message);
   }
 
   error(message: string, trace?: string): void {
-    this.inner.error(`${this.prefix} ${message}`, trace);
+    this.inner.error(message, trace);
   }
 }
