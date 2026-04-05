@@ -23,6 +23,10 @@ export const environment = {
   adSenseClientId: 'ca-pub-7781323448253047',
   /** AdSense ad slot ID (numeric). Create in AdSense → Ads → By ad unit. */
   adSenseSlotId: '9966834671',
+  /** AdMob interstitial ad unit ID for iOS. Get from AdMob console → Ad units. Replace before release. */
+  admobInterstitialIos: '',
+  /** AdMob interstitial ad unit ID for Android. Get from AdMob console → Ad units. Replace before release. */
+  admobInterstitialAndroid: '',
   /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
   adminApiKey: undefined as string | undefined,
   /** PostHog project API key. Set in environment.prod.ts or build pipeline. */

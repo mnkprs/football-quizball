@@ -26,6 +26,7 @@ export interface IAPProduct {
 }
 
 const PRODUCT_MONTHLY = 'stepovr_pro_monthly';
+const PRODUCT_YEARLY = 'stepovr_pro_yearly';
 const PRODUCT_LIFETIME = 'stepovr_pro_lifetime';
 
 @Injectable({ providedIn: 'root' })
@@ -75,6 +76,11 @@ export class IapService {
         platform,
       },
       {
+        id: PRODUCT_YEARLY,
+        type: CdvPurchase.ProductType.PAID_SUBSCRIPTION,
+        platform,
+      },
+      {
         id: PRODUCT_LIFETIME,
         type: CdvPurchase.ProductType.NON_CONSUMABLE,
         platform,
@@ -103,6 +109,11 @@ export class IapService {
   /** Trigger native monthly subscription purchase. */
   async purchaseMonthly(): Promise<void> {
     await this.purchase(PRODUCT_MONTHLY);
+  }
+
+  /** Trigger native yearly subscription purchase. */
+  async purchaseYearly(): Promise<void> {
+    await this.purchase(PRODUCT_YEARLY);
   }
 
   /** Trigger native lifetime purchase. */
@@ -197,8 +208,22 @@ export class IapService {
         id: PRODUCT_MONTHLY,
         title: monthly.title || 'STEPOVR Pro Monthly',
         description: monthly.description || 'Monthly subscription',
-        price: pricing?.price || '$2.99',
-        priceMicros: pricing?.priceMicros || 2990000,
+        price: pricing?.price || '$3.99',
+        priceMicros: pricing?.priceMicros || 3990000,
+        currency: pricing?.currency || 'USD',
+        type: 'subscription',
+      });
+    }
+
+    const yearly = this.store.get(PRODUCT_YEARLY);
+    if (yearly) {
+      const pricing = yearly.pricing;
+      mapped.push({
+        id: PRODUCT_YEARLY,
+        title: yearly.title || 'STEPOVR Pro Yearly',
+        description: yearly.description || 'Annual subscription',
+        price: pricing?.price || '$14.99',
+        priceMicros: pricing?.priceMicros || 14990000,
         currency: pricing?.currency || 'USD',
         type: 'subscription',
       });
@@ -211,8 +236,8 @@ export class IapService {
         id: PRODUCT_LIFETIME,
         title: lifetime.title || 'STEPOVR Pro Lifetime',
         description: lifetime.description || 'One-time purchase',
-        price: pricing?.price || '$9.99',
-        priceMicros: pricing?.priceMicros || 9990000,
+        price: pricing?.price || '$19.99',
+        priceMicros: pricing?.priceMicros || 19990000,
         currency: pricing?.currency || 'USD',
         type: 'non-consumable',
       });

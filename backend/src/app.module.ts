@@ -32,6 +32,7 @@ import { MatchHistoryModule } from './match-history/match-history.module';
 import { ProfileModule } from './profile/profile.module';
 import { BotModule } from './bot/bot.module';
 import { LogoQuizModule } from './logo-quiz/logo-quiz.module';
+import { AppConfigModule } from './config/config.module';
 
 @Module({
   imports: [
@@ -80,6 +81,7 @@ import { LogoQuizModule } from './logo-quiz/logo-quiz.module';
     ProfileModule,
     BotModule,
     LogoQuizModule,
+    AppConfigModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

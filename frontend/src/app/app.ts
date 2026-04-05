@@ -14,6 +14,8 @@ import { AchievementUnlockService } from './core/achievement-unlock.service';
 import { AuthService } from './core/auth.service';
 import { GoogleAdsService } from './core/google-ads.service';
 import { PosthogService } from './core/posthog.service';
+import { ConfigApiService } from './core/config-api.service';
+import { AdService } from './core/ad.service';
 import { ToastComponent } from './shared/toast/toast';
 import { CookieConsentComponent } from './shared/cookie-consent/cookie-consent';
 
@@ -36,6 +38,8 @@ export class App implements OnInit, OnDestroy {
   private swUpdate = inject(SwUpdate, { optional: true });
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
   private posthog = inject(PosthogService);
+  private configApi = inject(ConfigApiService);
+  private adService = inject(AdService);
   isAdminRoute = signal(false);
 
   showSplash = signal(true);
@@ -66,6 +70,8 @@ export class App implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    void this.configApi.loadAdConfig();
+    void this.adService.initialize();
     this.isAdminRoute.set(this.router.url.startsWith('/admin'));
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
