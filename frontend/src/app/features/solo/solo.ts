@@ -16,6 +16,7 @@ import { getEloTier, type EloTier } from '../../core/elo-tier';
 import { createGameTimer } from '../../core/game-timer';
 import { createReportCooldown } from '../../core/report-cooldown';
 import { ProfileStore } from '../../core/profile-store.service';
+import { AdService } from '../../core/ad.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
 
@@ -37,6 +38,7 @@ export class SoloComponent implements OnDestroy {
   private gameApi = inject(GameApiService);
   private posthog = inject(PosthogService);
   private profileStore = inject(ProfileStore);
+  private adService = inject(AdService);
   lang = inject(LanguageService);
 
   phase = signal<SoloPhase>('idle');
@@ -133,6 +135,7 @@ export class SoloComponent implements OnDestroy {
   });
 
   async startSession(): Promise<void> {
+    this.adService.resetQuestionCounter();
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -247,6 +250,7 @@ export class SoloComponent implements OnDestroy {
         timed_out: result.timed_out,
       });
       this.revealing.set(true);
+      await this.adService.onAnswerSubmitted();
     } catch (err: any) {
       this.error.set('Failed to submit answer');
     } finally {
@@ -277,6 +281,8 @@ export class SoloComponent implements OnDestroy {
       accuracy: this.accuracy(),
     });
     this.phase.set('finished');
+    this.adService.markFirstSessionComplete();
+    await this.adService.onGameEnd();
   }
 
   resetToIdle(): void {

@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { createGameTimer } from '../../core/game-timer';
 import { DuelStore } from './duel.store';
+import { AdService } from '../../core/ad.service';
 
 const QUESTION_TIME = 30;
 /** Seconds to wait before a bot is guaranteed to be matched. */
@@ -30,6 +31,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   store = inject(DuelStore);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private adService = inject(AdService);
 
   answer = signal('');
   copied = signal(false);
@@ -63,6 +65,15 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       const phase = this.store.phase();
       if (phase === 'opponent-answered') {
         this.showOpponentFlash();
+      }
+    });
+
+    // Show end-game ad when duel finishes
+    effect(() => {
+      const phase = this.store.phase();
+      if (phase === 'finished') {
+        this.adService.markFirstSessionComplete();
+        void this.adService.onGameEnd();
       }
     });
 

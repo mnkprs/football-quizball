@@ -20,6 +20,7 @@ import { LanguageService } from '../../core/language.service';
 import { ProfileStore } from '../../core/profile-store.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
 import { createGameTimer } from '../../core/game-timer';
+import { AdService } from '../../core/ad.service';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 
@@ -38,6 +39,7 @@ export class LogoQuizComponent implements OnDestroy {
   private auth = inject(AuthService);
   private profileStore = inject(ProfileStore);
   private destroyRef = inject(DestroyRef);
+  private adService = inject(AdService);
   lang = inject(LanguageService);
 
   // State
@@ -130,6 +132,7 @@ export class LogoQuizComponent implements OnDestroy {
   }
 
   async startPlaying(): Promise<void> {
+    this.adService.resetQuestionCounter();
     this.error.set(null);
     this.questionsAnswered.set(0);
     this.correctAnswers.set(0);
@@ -180,6 +183,7 @@ export class LogoQuizComponent implements OnDestroy {
         original_image_url: q.original_image_url,
       });
       this.revealing.set(true);
+      await this.adService.onAnswerSubmitted();
     } catch (err: any) {
       this.error.set('Failed to submit answer');
     }
@@ -216,9 +220,10 @@ export class LogoQuizComponent implements OnDestroy {
     this.loadNextQuestion();
   }
 
-  endSession(): void {
+  async endSession(): Promise<void> {
     this.timer.stop();
     this.phase.set('finished');
+    this.adService.markFirstSessionComplete();
     if (this.auth.user()) {
       this.api.checkAchievements().subscribe({
         next: (res) => {
@@ -228,6 +233,7 @@ export class LogoQuizComponent implements OnDestroy {
         },
       });
     }
+    await this.adService.onGameEnd();
   }
 
   resetToIdle(): void {
