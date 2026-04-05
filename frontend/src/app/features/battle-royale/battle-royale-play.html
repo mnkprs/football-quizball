@@ -213,7 +213,7 @@
             }
 
             <div class="br-play__choices">
-              @for (choice of q.choices; track $index) {
+              @for (choice of q.choices; track choice) {
                 <button
                   class="br-play__choice-btn"
                   [class.br-play__choice-btn--selected]="selectedChoice() === choice"
