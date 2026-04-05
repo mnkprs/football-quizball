@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { AdMob, AdOptions } from '@capacitor-community/admob';
 import { ProService } from './pro.service';
+import { PosthogService } from './posthog.service';
 import { environment } from '../../environments/environment';
 
 export interface AdConfig {
@@ -30,6 +31,7 @@ const MIN_AD_INTERVAL_MS = 30_000;
 @Injectable({ providedIn: 'root' })
 export class AdService {
   private pro = inject(ProService);
+  private posthog = inject(PosthogService);
   private config = signal<AdConfig>(DEFAULT_AD_CONFIG);
   private questionsSinceLastAd = 0;
   private lastAdShownAt = 0;
@@ -63,7 +65,7 @@ export class AdService {
     this.questionsSinceLastAd++;
     const frequency = this.config().answerReveal.everyNthQuestion;
     if (this.questionsSinceLastAd >= frequency) {
-      return this.tryShowInterstitial();
+      return this.tryShowInterstitial('answer_reveal');
     }
     return false;
   }
@@ -74,7 +76,7 @@ export class AdService {
    */
   async onGameEnd(): Promise<boolean> {
     if (!this.config().endGame.enabled) return false;
-    return this.tryShowInterstitial();
+    return this.tryShowInterstitial('game_end');
   }
 
   /** Mark first session as complete — future sessions will show ads. */
@@ -91,7 +93,7 @@ export class AdService {
   // Private helpers
   // ------------------------------------------------------------------
 
-  private async tryShowInterstitial(): Promise<boolean> {
+  private async tryShowInterstitial(trigger: 'answer_reveal' | 'game_end'): Promise<boolean> {
     if (this.pro.isPro()) return false;
     if (this.config().firstSessionAdsDisabled && this.isFirstSession) return false;
     if (!this.initialized) return false;
@@ -105,6 +107,7 @@ export class AdService {
       this.lastAdShownAt = Date.now();
       this.questionsSinceLastAd = 0;
       this.adLoaded = false;
+      this.posthog.track('ad_interstitial_shown', { trigger });
       // Fire-and-forget preload for next impression
       void this.preloadInterstitial();
       return true;
