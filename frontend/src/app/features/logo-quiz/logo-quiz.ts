@@ -223,6 +223,7 @@ export class LogoQuizComponent implements OnDestroy {
   async endSession(): Promise<void> {
     this.timer.stop();
     this.phase.set('finished');
+    await this.adService.onGameEnd();
     this.adService.markFirstSessionComplete();
     if (this.auth.user()) {
       this.api.checkAchievements().subscribe({
@@ -233,7 +234,6 @@ export class LogoQuizComponent implements OnDestroy {
         },
       });
     }
-    await this.adService.onGameEnd();
   }
 
   resetToIdle(): void {

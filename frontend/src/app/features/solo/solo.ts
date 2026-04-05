@@ -284,8 +284,8 @@ export class SoloComponent implements OnDestroy {
       accuracy: this.accuracy(),
     });
     this.phase.set('finished');
-    this.adService.markFirstSessionComplete();
     await this.adService.onGameEnd();
+    this.adService.markFirstSessionComplete();
   }
 
   resetToIdle(): void {

@@ -74,8 +74,8 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       const phase = this.store.phase();
       if (phase === 'finished' && !this.endGameAdTriggered) {
         this.endGameAdTriggered = true;
-        this.adService.markFirstSessionComplete();
         void this.adService.onGameEnd();
+        this.adService.markFirstSessionComplete();
       }
     });
 

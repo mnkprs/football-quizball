@@ -172,8 +172,8 @@ export class BlitzComponent implements OnDestroy {
       }
     } catch { /* score already saved by backend on time_up */ }
     this.phase.set('finished');
-    this.adService.markFirstSessionComplete();
     await this.adService.onGameEnd();
+    this.adService.markFirstSessionComplete();
   }
 
   private clearFlash(): void {
