@@ -949,3 +949,33 @@
 .anim-delay-3 { animation-delay: 0.24s; }
 .anim-delay-4 { animation-delay: 0.32s; }
 .anim-delay-5 { animation-delay: 0.4s; }
+
+.achievement-tile__progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.achievement-tile__progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.achievement-tile__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #eab308);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.achievement-tile__progress-text {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+}

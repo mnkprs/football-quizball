@@ -10,6 +10,14 @@ export interface Profile {
   questions_answered: number;
   correct_answers: number;
   country_code: string | null;
+  max_correct_streak: number;
+  logo_quiz_correct: number;
+  duel_wins: number;
+  br_wins: number;
+  last_active_date: string | null;
+  current_daily_streak: number;
+  total_questions_all_modes: number;
+  modes_played: string[];
 }
 
 export interface ProStatus {

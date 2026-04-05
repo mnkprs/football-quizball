@@ -42,7 +42,7 @@ export class SupabaseService {
   async getProfile(userId: string): Promise<Profile | null> {
     const { data: profile } = await this.client
       .from('profiles')
-      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code')
+      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code, max_correct_streak, logo_quiz_correct, duel_wins, br_wins, last_active_date, current_daily_streak, total_questions_all_modes, modes_played')
       .eq('id', userId)
       .maybeSingle();
     if (profile) return profile as Profile;
@@ -60,6 +60,14 @@ export class SupabaseService {
       logo_quiz_games_played: 0,
       logo_quiz_hardcore_games_played: 0,
       country_code: null,
+      max_correct_streak: 0,
+      logo_quiz_correct: 0,
+      duel_wins: 0,
+      br_wins: 0,
+      last_active_date: null,
+      current_daily_streak: 0,
+      total_questions_all_modes: 0,
+      modes_played: [],
     };
   }
 
@@ -530,14 +538,24 @@ export class SupabaseService {
 
   async getAchievements(userId: string): Promise<Achievement[]> {
     const [allRes, earnedRes] = await Promise.all([
-      this.client.from('achievements').select('id, name, description, icon, category'),
+      this.client.from('achievements').select('id, name, description, icon, category, condition_value'),
       this.client.from('user_achievements').select('achievement_id, earned_at').eq('user_id', userId),
     ]);
-    const earned = new Map((earnedRes.data ?? []).map((e: { achievement_id: string; earned_at: string }) => [e.achievement_id, e.earned_at]));
-    return (allRes.data ?? []).map((a: { id: string; name: string; description: string; icon: string; category: string }) => ({
-      ...a,
-      earned_at: earned.get(a.id) ?? null,
-    }));
+    const earned = new Map(
+      (earnedRes.data ?? []).map((e: { achievement_id: string; earned_at: string }) => [e.achievement_id, e.earned_at]),
+    );
+    return (allRes.data ?? []).map(
+      (a: { id: string; name: string; description: string; icon: string; category: string; condition_value: { min?: number } | null }) => ({
+        id: a.id,
+        name: a.name,
+        description: a.description,
+        icon: a.icon,
+        category: a.category,
+        earned_at: earned.get(a.id) ?? null,
+        current: 0,
+        target: a.condition_value?.min ?? 1,
+      }),
+    );
   }
 
   async awardAchievement(userId: string, achievementId: string): Promise<boolean> {
@@ -555,6 +573,186 @@ export class SupabaseService {
       .select('achievement_id')
       .eq('user_id', userId);
     return new Set((data ?? []).map((r: { achievement_id: string }) => r.achievement_id));
+  }
+
+  async getDuelWinCount(userId: string): Promise<number> {
+    const { data } = await this.client
+      .from('duel_games')
+      .select('id, host_id, guest_id, scores')
+      .eq('status', 'finished')
+      .or(`host_id.eq.${userId},guest_id.eq.${userId}`);
+    if (!data) return 0;
+    return data.filter((g: { host_id: string; guest_id: string; scores: { host: number; guest: number } }) => {
+      const isHost = g.host_id === userId;
+      return isHost ? g.scores.host > g.scores.guest : g.scores.guest > g.scores.host;
+    }).length;
+  }
+
+  async getDuelGameCount(userId: string): Promise<number> {
+    const { count } = await this.client
+      .from('duel_games')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'finished')
+      .or(`host_id.eq.${userId},guest_id.eq.${userId}`);
+    return count ?? 0;
+  }
+
+  async getBrGameCount(userId: string): Promise<number> {
+    const { count } = await this.client
+      .from('match_history')
+      .select('*', { count: 'exact', head: true })
+      .eq('player1_id', userId)
+      .in('match_mode', ['battle_royale', 'team_logo_battle']);
+    return count ?? 0;
+  }
+
+  async getModesPlayed(userId: string): Promise<string[]> {
+    const modes: string[] = [];
+
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('games_played, logo_quiz_games_played, max_blitz_score')
+      .eq('id', userId)
+      .maybeSingle();
+    if (profile?.games_played > 0) modes.push('solo');
+    if (profile?.logo_quiz_games_played > 0) modes.push('logo_quiz');
+    if (profile?.max_blitz_score && profile.max_blitz_score > 0) modes.push('blitz');
+
+    const { data: mayhem } = await this.client
+      .from('user_mode_stats')
+      .select('games_played')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (mayhem?.games_played > 0) modes.push('mayhem');
+
+    const { count: duelCount } = await this.client
+      .from('duel_games')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'finished')
+      .or(`host_id.eq.${userId},guest_id.eq.${userId}`);
+    if ((duelCount ?? 0) > 0) modes.push('duel');
+
+    const { count: brCount } = await this.client
+      .from('match_history')
+      .select('*', { count: 'exact', head: true })
+      .eq('player1_id', userId)
+      .in('match_mode', ['battle_royale', 'team_logo_battle']);
+    if ((brCount ?? 0) > 0) modes.push('battle_royale');
+
+    return modes;
+  }
+
+  async updateDailyStreak(userId: string): Promise<{ current_daily_streak: number }> {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('last_active_date, current_daily_streak')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (!profile) return { current_daily_streak: 0 };
+
+    const lastActive = profile.last_active_date;
+    let newStreak = 1;
+
+    if (lastActive === today) {
+      return { current_daily_streak: profile.current_daily_streak };
+    }
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+    if (lastActive === yesterdayStr) {
+      newStreak = profile.current_daily_streak + 1;
+    }
+
+    await this.client
+      .from('profiles')
+      .update({ last_active_date: today, current_daily_streak: newStreak })
+      .eq('id', userId);
+
+    return { current_daily_streak: newStreak };
+  }
+
+  async updateMaxCorrectStreak(userId: string, currentStreak: number): Promise<void> {
+    await this.client
+      .from('profiles')
+      .update({ max_correct_streak: currentStreak })
+      .eq('id', userId)
+      .lt('max_correct_streak', currentStreak);
+  }
+
+  async incrementLogoQuizCorrect(userId: string): Promise<number> {
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('logo_quiz_correct')
+      .eq('id', userId)
+      .maybeSingle();
+    const current = (profile?.logo_quiz_correct ?? 0) + 1;
+    await this.client
+      .from('profiles')
+      .update({ logo_quiz_correct: current })
+      .eq('id', userId);
+    return current;
+  }
+
+  async incrementTotalQuestions(userId: string, count: number): Promise<number> {
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('total_questions_all_modes')
+      .eq('id', userId)
+      .maybeSingle();
+    const newTotal = (profile?.total_questions_all_modes ?? 0) + count;
+    await this.client
+      .from('profiles')
+      .update({ total_questions_all_modes: newTotal })
+      .eq('id', userId);
+    return newTotal;
+  }
+
+  async incrementDuelWins(userId: string): Promise<number> {
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('duel_wins')
+      .eq('id', userId)
+      .maybeSingle();
+    const newCount = (profile?.duel_wins ?? 0) + 1;
+    await this.client
+      .from('profiles')
+      .update({ duel_wins: newCount })
+      .eq('id', userId);
+    return newCount;
+  }
+
+  async incrementBrWins(userId: string): Promise<number> {
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('br_wins')
+      .eq('id', userId)
+      .maybeSingle();
+    const newCount = (profile?.br_wins ?? 0) + 1;
+    await this.client
+      .from('profiles')
+      .update({ br_wins: newCount })
+      .eq('id', userId);
+    return newCount;
+  }
+
+  async addModePlayed(userId: string, mode: string): Promise<string[]> {
+    const { data: profile } = await this.client
+      .from('profiles')
+      .select('modes_played')
+      .eq('id', userId)
+      .maybeSingle();
+    const current: string[] = profile?.modes_played ?? [];
+    if (current.includes(mode)) return current;
+    const updated = [...current, mode];
+    await this.client
+      .from('profiles')
+      .update({ modes_played: updated })
+      .eq('id', userId);
+    return updated;
   }
 
   // --- Match History ---

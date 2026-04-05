@@ -24,6 +24,7 @@ import {
   DuelGameType,
 } from './duel.types';
 import { LogoQuizService } from '../logo-quiz/logo-quiz.service';
+import { AchievementsService } from '../achievements/achievements.service';
 
 /** First to WIN_TARGET correct answers wins the duel */
 const WIN_TARGET = 5;
@@ -45,6 +46,7 @@ export class DuelService {
     private readonly questionPoolService: QuestionPoolService,
     private readonly answerValidator: AnswerValidator,
     private readonly logoQuizService: LogoQuizService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   // ── Create / Join ─────────────────────────────────────────────────────────
@@ -409,6 +411,36 @@ export class DuelService {
     );
 
     const gameWinner: 'host' | 'guest' | 'draw' | undefined = gameFinished ? role : undefined;
+
+    // Award achievements when game finishes
+    if (gameFinished) {
+      const winnerId = newScores.host > newScores.guest ? row.host_id : newScores.guest > newScores.host ? row.guest_id : null;
+
+      // Award achievements to both players
+      for (const playerId of ([row.host_id, row.guest_id].filter(Boolean) as string[])) {
+        void (async () => {
+          try {
+            const isWinner = playerId === winnerId;
+            if (isWinner) {
+              await this.supabaseService.incrementDuelWins(playerId);
+            }
+            const duelWins = isWinner ? (await this.supabaseService.getDuelWinCount(playerId)) : undefined;
+            const duelGames = await this.supabaseService.getDuelGameCount(playerId);
+            const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(playerId);
+            const modesPlayed = await this.supabaseService.addModePlayed(playerId, 'duel');
+
+            await this.achievementsService.checkAndAward(playerId, {
+              duelWins,
+              duelGamesPlayed: duelGames,
+              dailyStreak,
+              modesPlayed,
+            });
+          } catch (e) {
+            this.logger.warn(`[submitAnswer] Achievement check failed for ${playerId}: ${(e as Error)?.message}`);
+          }
+        })();
+      }
+    }
 
     return {
       correct: true,

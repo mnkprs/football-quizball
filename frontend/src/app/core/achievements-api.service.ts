@@ -9,6 +9,8 @@ export interface Achievement {
   icon: string;
   category: string;
   earned_at: string | null;
+  current: number;
+  target: number;
 }
 
 @Injectable({ providedIn: 'root' })

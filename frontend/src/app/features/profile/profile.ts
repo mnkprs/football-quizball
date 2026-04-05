@@ -112,6 +112,12 @@ export class ProfileComponent implements OnInit {
 
   achievementsEarned = computed(() => this.achievements().filter(a => a.earned_at).length);
 
+  progressPercent(a: Achievement): number {
+    if (a.earned_at) return 100;
+    if (a.target <= 0) return 0;
+    return Math.round((a.current / a.target) * 100);
+  }
+
   memberSince = computed(() => {
     const p = this.profile();
     if (!p?.created_at) return null;

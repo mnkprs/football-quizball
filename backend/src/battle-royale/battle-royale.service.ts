@@ -10,6 +10,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { BlitzService } from '../blitz/blitz.service';
 import { BlitzQuestion } from '../blitz/blitz.types';
 import { LogoQuizService } from '../logo-quiz/logo-quiz.service';
+import { AchievementsService } from '../achievements/achievements.service';
 import {
   BRRoomRow,
   BRPlayerRow,
@@ -33,6 +34,7 @@ export class BattleRoyaleService {
     private readonly supabaseService: SupabaseService,
     private readonly blitzService: BlitzService,
     private readonly logoQuizService: LogoQuizService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   // ── Create room ─────────────────────────────────────────────────────────────
@@ -544,6 +546,23 @@ export class BattleRoyaleService {
         player2_score: 0,
         match_mode: isTeamLogoMode ? 'team_logo_battle' : 'battle_royale',
       }).catch((e) => this.logger.warn(`[br] match history save failed: ${e?.message}`));
+
+      // Achievement tracking for Battle Royale
+      void (async () => {
+        try {
+          const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(userId);
+          const modesPlayed = await this.supabaseService.addModePlayed(userId, 'battle_royale');
+          const brGames = await this.supabaseService.getBrGameCount(userId);
+
+          await this.achievementsService.checkAndAward(userId, {
+            brGamesPlayed: brGames,
+            dailyStreak,
+            modesPlayed,
+          });
+        } catch (e) {
+          this.logger.warn(`[br] Achievement check failed: ${(e as Error)?.message}`);
+        }
+      })();
     }
 
     // Build the next question reference depending on mode

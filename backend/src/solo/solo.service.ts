@@ -195,10 +195,24 @@ export class SoloService {
         const accuracy = session.questionsAnswered > 0
           ? Math.round((session.correctAnswers / session.questionsAnswered) * 100)
           : 0;
+
+        const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(userId);
+        const totalQuestions = await this.supabaseService.incrementTotalQuestions(userId, session.questionsAnswered);
+        const currentStreak = await this.supabaseService.getCorrectStreak(userId);
+        await this.supabaseService.updateMaxCorrectStreak(userId, currentStreak);
+        const modesPlayed = await this.supabaseService.addModePlayed(userId, 'solo');
+        const perfectSession = session.questionsAnswered >= 5 && session.correctAnswers === session.questionsAnswered;
+
         const awardedIds = await this.achievementsService.checkAndAward(userId, {
           currentElo: session.currentElo,
           soloGamesPlayed: profile.games_played,
           soloAccuracy: accuracy,
+          currentStreak,
+          maxCorrectStreak: currentStreak,
+          dailyStreak,
+          totalQuestionsAllModes: totalQuestions,
+          modesPlayed,
+          perfectSoloSession: perfectSession,
         });
         newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
       }

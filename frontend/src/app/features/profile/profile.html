@@ -310,6 +310,14 @@
             <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
               <span class="achievement-tile__icon">{{ a.icon }}</span>
               <span class="achievement-tile__name">{{ a.name }}</span>
+              @if (!a.earned_at && a.target > 1) {
+                <div class="achievement-tile__progress">
+                  <div class="achievement-tile__progress-bar">
+                    <div class="achievement-tile__progress-fill" [style.width.%]="progressPercent(a)"></div>
+                  </div>
+                  <span class="achievement-tile__progress-text">{{ a.current }} / {{ a.target }}</span>
+                </div>
+              }
             </div>
           }
         </div>

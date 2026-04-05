@@ -7,6 +7,6 @@ export class AchievementsController {
 
   @Get(':userId')
   async getForUser(@Param('userId') userId: string) {
-    return this.achievementsService.getForUser(userId);
+    return this.achievementsService.getForUserWithProgress(userId);
   }
 }

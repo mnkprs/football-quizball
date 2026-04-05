@@ -165,8 +165,15 @@ export class BlitzService {
 
     let newlyUnlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> = [];
     try {
+      const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(userId);
+      const totalQuestions = await this.supabaseService.incrementTotalQuestions(userId, session.totalAnswered);
+      const modesPlayed = await this.supabaseService.addModePlayed(userId, 'blitz');
+
       const awardedIds = await this.achievementsService.checkAndAward(userId, {
         blitzBestScore: session.score,
+        dailyStreak,
+        totalQuestionsAllModes: totalQuestions,
+        modesPlayed,
       });
       newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
     } catch { /* don't break session end if achievements fail */ }

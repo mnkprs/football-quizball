@@ -161,8 +161,13 @@ export class MayhemSessionService {
     let newlyUnlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> = [];
     try {
       const updatedStats = await this.supabaseService.getMayhemStats(userId);
+      const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(userId);
+      const modesPlayed = await this.supabaseService.addModePlayed(userId, 'mayhem');
+
       const awardedIds = await this.achievementsService.checkAndAward(userId, {
         mayhemGamesPlayed: updatedStats?.games_played ?? 0,
+        dailyStreak,
+        modesPlayed,
       });
       newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
     } catch { /* don't break session end if achievements fail */ }

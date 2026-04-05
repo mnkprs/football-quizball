@@ -150,6 +150,11 @@ export class LogoQuizService {
     // Increment profile-level questions_answered / correct_answers
     await this.supabaseService.incrementQuestionStats(userId, correct ? 1 : 0);
 
+    // Track logo quiz correct count for achievements
+    if (correct) {
+      void this.supabaseService.incrementLogoQuizCorrect(userId).catch(() => {});
+    }
+
     return {
       correct,
       timed_out: timedOut,
@@ -166,8 +171,14 @@ export class LogoQuizService {
     try {
       const profile = await this.supabaseService.getProfile(userId);
       if (!profile) return { newly_unlocked: [] };
+      const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(userId);
+      const modesPlayed = await this.supabaseService.addModePlayed(userId, 'logo_quiz');
+
       const awardedIds = await this.achievementsService.checkAndAward(userId, {
         currentElo: profile.logo_quiz_elo,
+        logoQuizCorrect: profile.logo_quiz_correct,
+        dailyStreak,
+        modesPlayed,
       });
       const newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
       return { newly_unlocked: newlyUnlocked };

@@ -36,6 +36,14 @@ export class ProfileRepository {
       logo_quiz_games_played: 0,
       logo_quiz_hardcore_games_played: 0,
       country_code: null,
+      max_correct_streak: 0,
+      logo_quiz_correct: 0,
+      duel_wins: 0,
+      br_wins: 0,
+      last_active_date: null,
+      current_daily_streak: 0,
+      total_questions_all_modes: 0,
+      modes_played: [],
     };
   }
 
