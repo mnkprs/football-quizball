@@ -1,30 +1,25 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Interval } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BotService } from './bot.service';
 import { BotDuelRunner } from './bot-duel-runner.service';
 import { BotBattleRoyaleRunner } from './bot-battle-royale-runner.service';
 import { BattleRoyaleService } from '../battle-royale/battle-royale.service';
-
-/** Seconds a game must be waiting before a bot is injected. */
-const QUEUE_TIMEOUT_SECONDS = 30;
-
-/** Minimum and maximum number of bots to fill into a Battle Royale room. */
-const BR_BOT_MIN = 3;
-const BR_BOT_MAX = 7;
-
-/** Minimum number of public waiting BR rooms the matchmaker will maintain. */
-const BR_MIN_WAITING_ROOMS = 2;
-
-/** Number of seed bots to add when the matchmaker creates a new bot-hosted room. */
-const BR_SEED_BOT_COUNT = 3;
-
-/** Minutes a BR room can stay in 'waiting' before being deleted as stale. */
-const STALE_BR_ROOM_MINUTES = 10;
+import { BotLogger } from './bot-logger';
+import {
+  BOT_MATCHMAKER_INTERVAL_MS,
+  BOT_STALE_CLEANUP_INTERVAL_MS,
+  QUEUE_TIMEOUT_SECONDS,
+  BR_BOT_MIN,
+  BR_BOT_MAX,
+  BR_MIN_WAITING_ROOMS,
+  BR_SEED_BOT_COUNT,
+  STALE_BR_ROOM_MINUTES,
+} from './bot-config';
 
 @Injectable()
 export class BotMatchmakerService implements OnModuleInit {
-  private readonly logger = new Logger(BotMatchmakerService.name);
+  private readonly logger = new BotLogger('Matchmaker');
   private checkQueuesRunning = false;
   private _paused = false;
 
@@ -35,13 +30,13 @@ export class BotMatchmakerService implements OnModuleInit {
   async pause(): Promise<void> {
     this._paused = true;
     await this.supabaseService.setSetting('bots_paused', 'true');
-    this.logger.warn('[Matchmaker] Bot activity PAUSED (persisted)');
+    this.logger.warn('Bot activity PAUSED (persisted)');
   }
 
   async resume(): Promise<void> {
     this._paused = false;
     await this.supabaseService.setSetting('bots_paused', 'false');
-    this.logger.warn('[Matchmaker] Bot activity RESUMED (persisted)');
+    this.logger.warn('Bot activity RESUMED (persisted)');
   }
 
   constructor(
@@ -56,25 +51,65 @@ export class BotMatchmakerService implements OnModuleInit {
     const value = await this.supabaseService.getSetting('bots_paused');
     this._paused = value === 'true';
     if (this._paused) {
-      this.logger.warn('[Matchmaker] Bot activity PAUSED (restored from database)');
+      this.logger.warn('Bot activity PAUSED (restored from database)');
     }
   }
 
-  @Cron('*/5 * * * * *') // every 5 seconds
+  @Interval(BOT_MATCHMAKER_INTERVAL_MS)
   async checkQueues(): Promise<void> {
     if (this._paused || this.checkQueuesRunning) return;
     this.checkQueuesRunning = true;
     try {
+      // Lightweight idle check — skip cycle if nothing is waiting
+      const hasWork = await this.hasQueuedWork();
+      if (!hasWork) {
+        this.logger.debug('No queued work — skipping cycle');
+        return;
+      }
+
       await Promise.allSettled([
         this.injectBotsIntoOnlineQueues(),
         this.injectBotsIntoDuelQueues(),
         this.injectBotsIntoBattleRoyaleRooms(),
         this.createBotBRRooms(),
-        this.cleanStaleBRRooms(),
       ]);
     } finally {
       this.checkQueuesRunning = false;
     }
+  }
+
+  /**
+   * Stale BR room cleanup on its own slower interval (every 60s).
+   */
+  @Interval(BOT_STALE_CLEANUP_INTERVAL_MS)
+  async cleanupStaleRooms(): Promise<void> {
+    if (this._paused) return;
+    await this.cleanStaleBRRooms();
+  }
+
+  /**
+   * Quick count check: are there any queued online games, waiting duels,
+   * or waiting BR rooms? Returns true if any queue has work.
+   */
+  private async hasQueuedWork(): Promise<boolean> {
+    const [online, duel, br] = await Promise.all([
+      this.supabaseService.client
+        .from('online_games')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'queued')
+        .is('guest_id', null),
+      this.supabaseService.client
+        .from('duel_games')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'waiting')
+        .is('guest_id', null),
+      this.supabaseService.client
+        .from('battle_royale_rooms')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'waiting'),
+    ]);
+
+    return (online.count ?? 0) + (duel.count ?? 0) + (br.count ?? 0) > 0;
   }
 
   // ── Online Game ─────────────────────────────────────────────────────────────
@@ -94,7 +129,7 @@ export class BotMatchmakerService implements OnModuleInit {
 
     for (const game of games) {
       await this.matchBotForOnlineGame(game.id, game.host_id).catch((err) => {
-        this.logger.warn(`[Matchmaker] Online game ${game.id} bot inject failed: ${err}`);
+        this.logger.warn(`Online game ${game.id} bot inject failed: ${err}`);
       });
     }
   }
@@ -105,7 +140,7 @@ export class BotMatchmakerService implements OnModuleInit {
 
     const bot = await this.botService.selectBot(playerElo);
     if (!bot) {
-      this.logger.warn(`[Matchmaker] No bot available for online game ${gameId}`);
+      this.logger.warn(`No bot available for online game ${gameId}`);
       return;
     }
 
@@ -125,11 +160,11 @@ export class BotMatchmakerService implements OnModuleInit {
       .is('guest_id', null);
 
     if (error) {
-      this.logger.warn(`[Matchmaker] Failed to inject bot into online game ${gameId}: ${error.message}`);
+      this.logger.warn(`Failed to inject bot into online game ${gameId}: ${error.message}`);
       return;
     }
 
-    this.logger.debug(`[Matchmaker] Bot "${bot.username}" matched into online game ${gameId}`);
+    this.logger.debug(`Bot "${bot.username}" matched into online game ${gameId}`);
   }
 
   // ── Duel ────────────────────────────────────────────────────────────────────
@@ -151,7 +186,7 @@ export class BotMatchmakerService implements OnModuleInit {
 
     for (const game of games) {
       await this.matchBotForDuel(game.id, game.host_id).catch((err) => {
-        this.logger.warn(`[Matchmaker] Duel ${game.id} bot inject failed: ${err}`);
+        this.logger.warn(`Duel ${game.id} bot inject failed: ${err}`);
       });
     }
   }
@@ -162,7 +197,7 @@ export class BotMatchmakerService implements OnModuleInit {
 
     const bot = await this.botService.selectBot(playerElo);
     if (!bot) {
-      this.logger.warn(`[Matchmaker] No bot available for duel ${gameId}`);
+      this.logger.warn(`No bot available for duel ${gameId}`);
       return;
     }
 
@@ -182,11 +217,11 @@ export class BotMatchmakerService implements OnModuleInit {
       .single();
 
     if (error || !updated) {
-      this.logger.warn(`[Matchmaker] Failed to inject bot into duel ${gameId}: ${error?.message}`);
+      this.logger.warn(`Failed to inject bot into duel ${gameId}: ${error?.message}`);
       return;
     }
 
-    this.logger.debug(`[Matchmaker] Bot "${bot.username}" matched into duel ${gameId}`);
+    this.logger.debug(`Bot "${bot.username}" matched into duel ${gameId}`);
     this.duelRunner.runDuelBot(gameId, bot.id, bot.bot_skill);
   }
 
@@ -207,7 +242,7 @@ export class BotMatchmakerService implements OnModuleInit {
 
     for (const room of rooms) {
       await this.fillAndStartBRRoom(room.id, room.host_id).catch((err) => {
-        this.logger.warn(`[Matchmaker] BR room ${room.id} bot fill failed: ${err}`);
+        this.logger.warn(`BR room ${room.id} bot fill failed: ${err}`);
       });
     }
   }
@@ -244,21 +279,21 @@ export class BotMatchmakerService implements OnModuleInit {
 
     const bots = await this.botService.selectBotsForRoom(botsNeeded, avgElo);
     if (bots.length === 0) {
-      this.logger.warn(`[Matchmaker] No bots available for BR room ${roomId}`);
+      this.logger.warn(`No bots available for BR room ${roomId}`);
       return;
     }
 
     // Add each bot as a player in the room
     for (const bot of bots) {
       await this.brService.addBotToRoom(roomId, bot.id, bot.username).catch((err) => {
-        this.logger.warn(`[Matchmaker] Could not add bot ${bot.id} to BR room ${roomId}: ${err}`);
+        this.logger.warn(`Could not add bot ${bot.id} to BR room ${roomId}: ${err}`);
       });
     }
 
     // Force-start the room
     await this.brService.forceStartRoom(roomId);
 
-    this.logger.debug(`[Matchmaker] Started BR room ${roomId} with ${bots.length} bots (${realPlayers} real player(s))`);
+    this.logger.debug(`Started BR room ${roomId} with ${bots.length} bots (${realPlayers} real player(s))`);
 
     // Kick off bot answer chains
     this.brRunner.runBotsForRoom(
@@ -285,7 +320,7 @@ export class BotMatchmakerService implements OnModuleInit {
       .eq('mode', 'classic');
 
     if (error) {
-      this.logger.warn(`[Matchmaker] Could not count waiting BR rooms: ${error.message}`);
+      this.logger.warn(`Could not count waiting BR rooms: ${error.message}`);
       return;
     }
 
@@ -293,11 +328,11 @@ export class BotMatchmakerService implements OnModuleInit {
     if (waiting >= BR_MIN_WAITING_ROOMS) return;
 
     const roomsToCreate = BR_MIN_WAITING_ROOMS - waiting;
-    this.logger.debug(`[Matchmaker] Only ${waiting} waiting BR room(s) — creating ${roomsToCreate} bot-hosted room(s)`);
+    this.logger.debug(`Only ${waiting} waiting BR room(s) — creating ${roomsToCreate} bot-hosted room(s)`);
 
     for (let i = 0; i < roomsToCreate; i++) {
       await this.createOneBotBRRoom().catch((err) => {
-        this.logger.warn(`[Matchmaker] Failed to create bot BR room: ${err}`);
+        this.logger.warn(`Failed to create bot BR room: ${err}`);
       });
     }
   }
@@ -306,23 +341,23 @@ export class BotMatchmakerService implements OnModuleInit {
     // Pick the host bot at average skill
     const hostBot = await this.botService.selectBot(1000);
     if (!hostBot) {
-      this.logger.warn('[Matchmaker] No host bot available to create BR room');
+      this.logger.warn('No host bot available to create BR room');
       return;
     }
 
     const { roomId } = await this.brService.createRoomForBot(hostBot.id, hostBot.username);
-    this.logger.debug(`[Matchmaker] Bot "${hostBot.username}" created BR room ${roomId}`);
+    this.logger.debug(`Bot "${hostBot.username}" created BR room ${roomId}`);
 
     // Seed the room with additional bots so it looks lively in the lobby
     const seedBots = await this.botService.selectBotsForRoom(BR_SEED_BOT_COUNT, 1000);
     for (const bot of seedBots) {
       if (bot.id === hostBot.id) continue; // host is already in the room
       await this.brService.addBotToRoom(roomId, bot.id, bot.username).catch((err) => {
-        this.logger.warn(`[Matchmaker] Could not seed bot ${bot.id} into new BR room ${roomId}: ${err}`);
+        this.logger.warn(`Could not seed bot ${bot.id} into new BR room ${roomId}: ${err}`);
       });
     }
 
-    this.logger.debug(`[Matchmaker] BR room ${roomId} seeded with ${seedBots.length} bot(s) — waiting for humans`);
+    this.logger.debug(`BR room ${roomId} seeded with ${seedBots.length} bot(s) — waiting for humans`);
   }
 
   // ── Stale room cleanup ───────────────────────────────────────────────────────
@@ -337,7 +372,7 @@ export class BotMatchmakerService implements OnModuleInit {
       .lt('created_at', staleAt);
 
     if (error) {
-      this.logger.warn(`[Matchmaker] Stale BR room cleanup failed: ${error.message}`);
+      this.logger.warn(`Stale BR room cleanup failed: ${error.message}`);
     }
   }
 }
