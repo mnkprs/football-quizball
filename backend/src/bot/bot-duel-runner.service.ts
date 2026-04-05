@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { BotLogger } from './bot-logger';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BotService } from './bot.service';
 import { DuelService } from '../duel/duel.service';
@@ -10,7 +11,7 @@ const MAX_QUESTIONS = 60;
 
 @Injectable()
 export class BotDuelRunner {
-  private readonly logger = new Logger(BotDuelRunner.name);
+  private readonly logger = new BotLogger('DuelRunner');
 
   constructor(
     private readonly supabaseService: SupabaseService,

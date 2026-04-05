@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { BotLogger } from './bot-logger';
 import { SupabaseService } from '../supabase/supabase.service';
 
 export interface BotProfile {
@@ -35,7 +36,7 @@ function targetSkillForElo(playerElo: number): number {
 
 @Injectable()
 export class BotService {
-  private readonly logger = new Logger(BotService.name);
+  private readonly logger = new BotLogger('Service');
 
   constructor(private readonly supabaseService: SupabaseService) {}
 

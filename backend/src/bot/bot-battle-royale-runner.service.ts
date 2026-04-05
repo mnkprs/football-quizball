@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { BotLogger } from './bot-logger';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BotService } from './bot.service';
 import { BattleRoyaleService } from '../battle-royale/battle-royale.service';
@@ -7,7 +8,7 @@ import { BlitzQuestion } from '../blitz/blitz.types';
 
 @Injectable()
 export class BotBattleRoyaleRunner {
-  private readonly logger = new Logger(BotBattleRoyaleRunner.name);
+  private readonly logger = new BotLogger('BRRunner');
 
   /**
    * Launch concurrent bot answer chains for all bots in a room.
