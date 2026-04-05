@@ -1,31 +1,32 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Interval } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BotService } from './bot.service';
 import { OnlineGameService } from '../online-game/online-game.service';
 import { OnlineBoardCell, OnlineBoardState } from '../online-game/online-game.types';
 import { GeneratedQuestion } from '../questions/question.types';
-
-/** Minimum seconds a bot waits before taking its online game turn (simulates async human). */
-const BOT_TURN_MIN_WAIT_SECONDS = 45;
+import { BotLogger } from './bot-logger';
+import { BOT_ONLINE_RUNNER_INTERVAL_MS, BOT_TURN_MIN_WAIT_SECONDS } from './bot-config';
 
 @Injectable()
 export class BotOnlineGameRunner implements OnModuleInit {
-  private readonly logger = new Logger(BotOnlineGameRunner.name);
+  private readonly logger = new BotLogger('OnlineRunner');
   private _paused = false;
 
   get paused(): boolean {
     return this._paused;
   }
 
-  pause(): void {
+  async pause(): Promise<void> {
     this._paused = true;
-    this.logger.warn('[BotOnlineRunner] Bot turns PAUSED');
+    await this.supabaseService.setSetting('bots_paused', 'true');
+    this.logger.warn('Bot turns PAUSED (persisted)');
   }
 
-  resume(): void {
+  async resume(): Promise<void> {
     this._paused = false;
-    this.logger.warn('[BotOnlineRunner] Bot turns RESUMED');
+    await this.supabaseService.setSetting('bots_paused', 'false');
+    this.logger.warn('Bot turns RESUMED (persisted)');
   }
 
   constructor(
@@ -38,7 +39,7 @@ export class BotOnlineGameRunner implements OnModuleInit {
     const value = await this.supabaseService.getSetting('bots_paused');
     this._paused = value === 'true';
     if (this._paused) {
-      this.logger.warn('[BotOnlineRunner] Bot turns PAUSED (restored from database)');
+      this.logger.warn('Bot turns PAUSED (restored from database)');
     }
   }
 
@@ -46,7 +47,7 @@ export class BotOnlineGameRunner implements OnModuleInit {
    * Every 30 seconds: find active online games where the current player is a bot
    * and the turn has been pending long enough, then execute the bot's move.
    */
-  @Cron('*/30 * * * * *')
+  @Interval(BOT_ONLINE_RUNNER_INTERVAL_MS)
   async executePendingBotTurns(): Promise<void> {
     if (this._paused) return;
     const cutoff = new Date(Date.now() - BOT_TURN_MIN_WAIT_SECONDS * 1000).toISOString();
