@@ -13,11 +13,11 @@ export interface IapValidationResult {
 }
 
 // Apple product IDs
-const APPLE_SUBSCRIPTION_PRODUCT = 'stepovr_pro_monthly';
+const APPLE_SUBSCRIPTION_PRODUCTS = ['stepovr_pro_monthly', 'stepovr_pro_yearly'];
 const APPLE_LIFETIME_PRODUCT = 'stepovr_pro_lifetime';
 
 // Google product IDs (same naming)
-const GOOGLE_SUBSCRIPTION_PRODUCT = 'stepovr_pro_monthly';
+const GOOGLE_SUBSCRIPTION_PRODUCTS = ['stepovr_pro_monthly', 'stepovr_pro_yearly'];
 const GOOGLE_LIFETIME_PRODUCT = 'stepovr_pro_lifetime';
 
 @Injectable()
@@ -137,7 +137,7 @@ export class IapValidationService {
   }
 
   private getApplePurchaseType(productId: string): 'subscription' | 'lifetime' {
-    if (productId === APPLE_SUBSCRIPTION_PRODUCT) return 'subscription';
+    if (APPLE_SUBSCRIPTION_PRODUCTS.includes(productId)) return 'subscription';
     if (productId === APPLE_LIFETIME_PRODUCT) return 'lifetime';
     // Default to subscription for unknown products
     this.logger.warn(`Unknown Apple productId: ${productId}, defaulting to subscription`);
@@ -234,7 +234,7 @@ export class IapValidationService {
   }
 
   private getGooglePurchaseType(productId: string): 'subscription' | 'lifetime' {
-    if (productId === GOOGLE_SUBSCRIPTION_PRODUCT) return 'subscription';
+    if (GOOGLE_SUBSCRIPTION_PRODUCTS.includes(productId)) return 'subscription';
     if (productId === GOOGLE_LIFETIME_PRODUCT) return 'lifetime';
     this.logger.warn(`Unknown Google productId: ${productId}, defaulting to subscription`);
     return 'subscription';
