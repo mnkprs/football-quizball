@@ -24,6 +24,7 @@
     "@angular/platform-browser": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@angular/service-worker": "^20.0.0",
+    "@capacitor-community/admob": "^8.0.0",
     "@capacitor-community/apple-sign-in": "^7.1.0",
     "@capacitor/android": "^7.6.0",
     "@capacitor/app": "^7.1.2",
