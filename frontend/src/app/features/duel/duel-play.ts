@@ -59,6 +59,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   private myFlashTimer: ReturnType<typeof setTimeout> | null = null;
   private queueTimer: ReturnType<typeof setInterval> | null = null;
   private lastQIndex: number | null = null;
+  private endGameAdTriggered = false;
 
   constructor() {
     effect(() => {
@@ -68,10 +69,11 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Show end-game ad when duel finishes
+    // Show end-game ad when duel finishes (guard prevents re-fire)
     effect(() => {
       const phase = this.store.phase();
-      if (phase === 'finished') {
+      if (phase === 'finished' && !this.endGameAdTriggered) {
+        this.endGameAdTriggered = true;
         this.adService.markFirstSessionComplete();
         void this.adService.onGameEnd();
       }

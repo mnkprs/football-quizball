@@ -250,11 +250,14 @@ export class SoloComponent implements OnDestroy {
         timed_out: result.timed_out,
       });
       this.revealing.set(true);
-      await this.adService.onAnswerSubmitted();
     } catch (err: any) {
       this.error.set('Failed to submit answer');
     } finally {
       this.submitting.set(false);
+    }
+    // Show ad after submitting flag is cleared (interstitial overlays natively)
+    if (this.revealing()) {
+      await this.adService.onAnswerSubmitted();
     }
   }
 
