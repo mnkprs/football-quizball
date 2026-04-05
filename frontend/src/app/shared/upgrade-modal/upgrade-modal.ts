@@ -81,8 +81,20 @@ export class UpgradeModalComponent implements OnInit {
     const monthlyPrice = this.monthlyProduct()?.priceMicros ?? 3990000;
     const yearlyPrice = this.yearlyProduct()?.priceMicros ?? 14990000;
     const monthlyEquiv = yearlyPrice / 12;
-    const savings = Math.round((1 - monthlyEquiv / monthlyPrice) * 100);
+    const savings = Math.max(0, Math.round((1 - monthlyEquiv / monthlyPrice) * 100));
     return `Save ${savings}%`;
+  }
+
+  /** Per-month cost of the yearly plan, formatted as currency string. */
+  get yearlyPerMonthLabel(): string {
+    const yearlyMicros = this.yearlyProduct()?.priceMicros ?? 14990000;
+    const currency = this.yearlyProduct()?.currency ?? 'USD';
+    const perMonth = yearlyMicros / 12 / 1000000;
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(perMonth);
+    } catch {
+      return `$${perMonth.toFixed(2)}`;
+    }
   }
 
   async subscribe(): Promise<void> {

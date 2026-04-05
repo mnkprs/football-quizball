@@ -1,6 +1,6 @@
 @if (pro.showUpgradeModal()) {
-  <div class="modal-backdrop" (click)="onBackdropClick()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" (click)="onBackdropClick()" (keydown.escape)="onBackdropClick()">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="upgrade-title" (click)="$event.stopPropagation()">
 
       <!-- SUCCESS STATE -->
       @if (state() === 'success') {
@@ -21,17 +21,28 @@
       } @else {
         <!-- PRICING STATE (idle / loading / purchasing / error) -->
         <div class="modal-header">
-          <span class="modal-icon">&#9889;</span>
-          <h2 class="modal-title">STEPOVR Pro</h2>
+          <svg class="modal-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="url(#icon-gradient)" stroke="url(#icon-gradient)" stroke-width="1" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="icon-gradient" x1="2" y1="2" x2="22" y2="21">
+                <stop offset="0%" stop-color="#60a5fa"/>
+                <stop offset="100%" stop-color="#a78bfa"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <h2 class="modal-title" id="upgrade-title">STEPOVR Pro</h2>
           <p class="modal-hook">Unlock every mode. No limits.</p>
         </div>
 
         <!-- Pricing cards -->
-        <div class="pricing-cards">
+        <div class="pricing-cards" role="radiogroup" aria-label="Choose a plan">
           <!-- Monthly -->
           <button class="pricing-card"
+            role="radio"
+            [attr.aria-checked]="selectedPlan() === 'monthly'"
             [class.pricing-card--selected]="selectedPlan() === 'monthly'"
-            (click)="selectPlan('monthly')">
+            (click)="selectPlan('monthly')"
+            aria-label="Monthly plan">
             @if (state() === 'loading') {
               <span class="price-skeleton"></span>
               <span class="label-skeleton"></span>
@@ -43,29 +54,35 @@
 
           <!-- Yearly (recommended) -->
           <button class="pricing-card pricing-card--featured"
+            role="radio"
+            [attr.aria-checked]="selectedPlan() === 'yearly'"
             [class.pricing-card--selected]="selectedPlan() === 'yearly'"
-            (click)="selectPlan('yearly')">
+            (click)="selectPlan('yearly')"
+            aria-label="Yearly plan, best value">
             <span class="best-value-pill">BEST VALUE</span>
             @if (state() === 'loading') {
               <span class="price-skeleton"></span>
               <span class="label-skeleton"></span>
             } @else {
-              <span class="pricing-card__price">{{ yearlyProduct()?.price ?? '$14.99' }}</span>
-              <span class="pricing-card__label">/ year</span>
+              <span class="pricing-card__per-month">{{ yearlyPerMonthLabel }}<span class="pricing-card__per-month-unit">/mo</span></span>
+              <span class="pricing-card__billed">billed yearly {{ yearlyProduct()?.price ?? '$14.99' }}</span>
               <span class="pricing-card__savings">{{ yearlySavingsLabel }}</span>
             }
           </button>
 
           <!-- Lifetime -->
           <button class="pricing-card"
+            role="radio"
+            [attr.aria-checked]="selectedPlan() === 'lifetime'"
             [class.pricing-card--selected]="selectedPlan() === 'lifetime'"
-            (click)="selectPlan('lifetime')">
+            (click)="selectPlan('lifetime')"
+            aria-label="Lifetime plan, one-time purchase">
             @if (state() === 'loading') {
               <span class="price-skeleton"></span>
               <span class="label-skeleton"></span>
             } @else {
               <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$19.99' }}</span>
-              <span class="pricing-card__label">one time</span>
+              <span class="pricing-card__label">forever</span>
             }
           </button>
         </div>
