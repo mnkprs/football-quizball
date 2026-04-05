@@ -29,32 +29,42 @@
         <!-- Pricing cards -->
         <div class="pricing-cards">
           <!-- Monthly -->
-          <button
-            class="pricing-card"
+          <button class="pricing-card"
             [class.pricing-card--selected]="selectedPlan() === 'monthly'"
-            (click)="selectPlan('monthly')"
-          >
+            (click)="selectPlan('monthly')">
             @if (state() === 'loading') {
               <span class="price-skeleton"></span>
               <span class="label-skeleton"></span>
             } @else {
-              <span class="pricing-card__price">{{ monthlyProduct()?.price ?? '$2.99' }}</span>
+              <span class="pricing-card__price">{{ monthlyProduct()?.price ?? '$3.99' }}</span>
               <span class="pricing-card__label">/ month</span>
             }
           </button>
 
-          <!-- Lifetime -->
-          <button
-            class="pricing-card"
-            [class.pricing-card--selected]="selectedPlan() === 'lifetime'"
-            (click)="selectPlan('lifetime')"
-          >
+          <!-- Yearly (recommended) -->
+          <button class="pricing-card pricing-card--featured"
+            [class.pricing-card--selected]="selectedPlan() === 'yearly'"
+            (click)="selectPlan('yearly')">
             <span class="best-value-pill">BEST VALUE</span>
             @if (state() === 'loading') {
               <span class="price-skeleton"></span>
               <span class="label-skeleton"></span>
             } @else {
-              <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$9.99' }}</span>
+              <span class="pricing-card__price">{{ yearlyProduct()?.price ?? '$14.99' }}</span>
+              <span class="pricing-card__label">/ year</span>
+              <span class="pricing-card__savings">{{ yearlySavingsLabel }}</span>
+            }
+          </button>
+
+          <!-- Lifetime -->
+          <button class="pricing-card"
+            [class.pricing-card--selected]="selectedPlan() === 'lifetime'"
+            (click)="selectPlan('lifetime')">
+            @if (state() === 'loading') {
+              <span class="price-skeleton"></span>
+              <span class="label-skeleton"></span>
+            } @else {
+              <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$19.99' }}</span>
               <span class="pricing-card__label">one time</span>
             }
           </button>

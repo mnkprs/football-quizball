@@ -116,6 +116,22 @@
   border-radius: var(--radius-full);
 }
 
+/* Featured card (yearly) — slightly larger */
+.pricing-card--featured {
+  transform: scale(1.05);
+  border-color: var(--color-accent);
+  background: rgba(0, 122, 255, 0.06);
+}
+
+/* Savings badge inside yearly card */
+.pricing-card__savings {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  margin-top: 0.125rem;
+}
+
 /* Skeleton loaders */
 .price-skeleton {
   display: block;

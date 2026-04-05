@@ -15,12 +15,13 @@ export class UpgradeModalComponent implements OnInit {
   iap = inject(IapService);
   private router = inject(Router);
 
-  selectedPlan = signal<'monthly' | 'lifetime'>('lifetime');
+  selectedPlan = signal<'monthly' | 'yearly' | 'lifetime'>('yearly');
   state = signal<'idle' | 'loading' | 'purchasing' | 'success' | 'error'>('loading');
   errorMessage = signal('');
 
   /** Localized product info from the native store. */
   monthlyProduct = signal<IAPProduct | null>(null);
+  yearlyProduct = signal<IAPProduct | null>(null);
   lifetimeProduct = signal<IAPProduct | null>(null);
 
   ngOnInit(): void {
@@ -34,8 +35,9 @@ export class UpgradeModalComponent implements OnInit {
         await this.iap.initialize();
       }
       const products = this.iap.getProducts();
-      this.monthlyProduct.set(products.find(p => p.type === 'subscription') ?? null);
-      this.lifetimeProduct.set(products.find(p => p.type === 'non-consumable') ?? null);
+      this.monthlyProduct.set(products.find(p => p.id === 'stepovr_pro_monthly') ?? null);
+      this.yearlyProduct.set(products.find(p => p.id === 'stepovr_pro_yearly') ?? null);
+      this.lifetimeProduct.set(products.find(p => p.id === 'stepovr_pro_lifetime') ?? null);
       this.state.set('idle');
     } catch {
       // Fallback — show hardcoded prices
@@ -43,24 +45,41 @@ export class UpgradeModalComponent implements OnInit {
     }
   }
 
-  selectPlan(plan: 'monthly' | 'lifetime'): void {
+  selectPlan(plan: 'monthly' | 'yearly' | 'lifetime'): void {
     this.selectedPlan.set(plan);
   }
 
   get selectedPrice(): string {
-    if (this.selectedPlan() === 'monthly') {
-      return this.monthlyProduct()?.price ?? '$2.99/mo';
+    switch (this.selectedPlan()) {
+      case 'monthly': return this.monthlyProduct()?.price ?? '$3.99/mo';
+      case 'yearly': return this.yearlyProduct()?.price ?? '$14.99/yr';
+      case 'lifetime': return this.lifetimeProduct()?.price ?? '$19.99';
     }
-    return this.lifetimeProduct()?.price ?? '$9.99';
   }
 
   get selectedCtaLabel(): string {
-    if (this.selectedPlan() === 'monthly') {
-      const price = this.monthlyProduct()?.price ?? '$2.99';
-      return `Continue — ${price}/mo`;
+    switch (this.selectedPlan()) {
+      case 'monthly': {
+        const price = this.monthlyProduct()?.price ?? '$3.99';
+        return `Continue — ${price}/mo`;
+      }
+      case 'yearly': {
+        const price = this.yearlyProduct()?.price ?? '$14.99';
+        return `Continue — ${price}/yr`;
+      }
+      case 'lifetime': {
+        const price = this.lifetimeProduct()?.price ?? '$19.99';
+        return `Continue — ${price}`;
+      }
     }
-    const price = this.lifetimeProduct()?.price ?? '$9.99';
-    return `Continue — ${price}`;
+  }
+
+  get yearlySavingsLabel(): string {
+    const monthlyPrice = this.monthlyProduct()?.priceMicros ?? 3990000;
+    const yearlyPrice = this.yearlyProduct()?.priceMicros ?? 14990000;
+    const monthlyEquiv = yearlyPrice / 12;
+    const savings = Math.round((1 - monthlyEquiv / monthlyPrice) * 100);
+    return `Save ${savings}%`;
   }
 
   async subscribe(): Promise<void> {
@@ -69,10 +88,10 @@ export class UpgradeModalComponent implements OnInit {
     this.errorMessage.set('');
 
     try {
-      if (this.selectedPlan() === 'monthly') {
-        await this.iap.purchaseMonthly();
-      } else {
-        await this.iap.purchaseLifetime();
+      switch (this.selectedPlan()) {
+        case 'monthly': await this.iap.purchaseMonthly(); break;
+        case 'yearly': await this.iap.purchaseYearly(); break;
+        case 'lifetime': await this.iap.purchaseLifetime(); break;
       }
       // Refresh pro status from backend
       await this.pro.loadStatus();
