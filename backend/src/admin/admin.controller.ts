@@ -280,7 +280,7 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async pauseBots() {
     await this.botMatchmaker.pause();
-    this.botOnlineRunner.pause();
+    await this.botOnlineRunner.pause();
     this.logger.warn('[Admin] All bot activity PAUSED');
     return { paused: true };
   }
@@ -294,7 +294,7 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async resumeBots() {
     await this.botMatchmaker.resume();
-    this.botOnlineRunner.resume();
+    await this.botOnlineRunner.resume();
     this.logger.warn('[Admin] All bot activity RESUMED');
     return { paused: false };
   }
