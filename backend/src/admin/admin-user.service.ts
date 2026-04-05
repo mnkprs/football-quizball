@@ -169,6 +169,7 @@ export class AdminUserService {
       question_difficulty: 'ADMIN_RESET',
       correct: false,
       timed_out: false,
+      mode: 'solo',
     });
 
     await this.errorLogService.writeAuditLog('reset-elo', id, { eloBefore });

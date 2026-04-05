@@ -1,3 +1,5 @@
+export type EloMode = 'solo' | 'logo_quiz' | 'logo_quiz_hardcore';
+
 export interface EloHistoryEntry {
   user_id: string;
   elo_before: number;
@@ -6,6 +8,7 @@ export interface EloHistoryEntry {
   question_difficulty: string;
   correct: boolean;
   timed_out: boolean;
+  mode: EloMode;
   created_at?: string;
 }
 

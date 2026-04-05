@@ -230,6 +230,7 @@ export class SupabaseService {
       .from('elo_history')
       .select('elo_change')
       .eq('user_id', userId)
+      .eq('mode', 'solo')
       .gte('created_at', today.toISOString());
     if (!data || data.length === 0) return 0;
     return data.reduce((sum, row) => sum + (row.elo_change ?? 0), 0);
@@ -240,6 +241,7 @@ export class SupabaseService {
       .from('elo_history')
       .select('correct, timed_out')
       .eq('user_id', userId)
+      .eq('mode', 'solo')
       .order('created_at', { ascending: false })
       .limit(50);
     if (!data) return 0;
