@@ -15,7 +15,7 @@ export class BotBattleRoyaleRunner {
    * Called once after the room is activated with bots as participants.
    */
   runBotsForRoom(roomId: string, bots: Array<{ id: string; skill: number }>): void {
-    this.logger.debug(`[BotBRRunner] Starting ${bots.length} bots for room ${roomId}`);
+    this.logger.debug(`Starting ${bots.length} bots for room ${roomId}`);
     for (const bot of bots) {
       void this.runSingleBot(roomId, bot.id, bot.skill);
     }
@@ -57,13 +57,13 @@ export class BotBattleRoyaleRunner {
         questionsAnswered++;
         if (correct) correctAnswers++;
       } catch (err) {
-        this.logger.warn(`[BotBRRunner] Bot ${botId} answer error at q${playerIndex}: ${err}`);
+        this.logger.warn(`Bot ${botId} answer error at q${playerIndex}: ${err}`);
         questionsAnswered++;
       }
     }
 
     this.botService.updateBotStats(botId, questionsAnswered, correctAnswers);
-    this.logger.debug(`[BotBRRunner] Bot ${botId} finished room ${roomId} (${correctAnswers}/${questionsAnswered} correct)`);
+    this.logger.debug(`Bot ${botId} finished room ${roomId} (${correctAnswers}/${questionsAnswered} correct)`);
   }
 
   private async fetchPlayerIndex(roomId: string, botId: string): Promise<number | null> {

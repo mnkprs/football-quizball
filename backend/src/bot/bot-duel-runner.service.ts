@@ -25,7 +25,7 @@ export class BotDuelRunner {
    * The bot will answer questions until the game ends.
    */
   runDuelBot(gameId: string, botId: string, botSkill: number): void {
-    this.logger.debug(`[BotDuelRunner] Starting bot ${botId} for duel ${gameId}`);
+    this.logger.debug(`Starting bot ${botId} for duel ${gameId}`);
     void this.botLoop(gameId, botId, botSkill, 0, 0, 0);
   }
 
@@ -38,7 +38,7 @@ export class BotDuelRunner {
     attempts: number,
   ): Promise<void> {
     if (attempts > MAX_QUESTIONS) {
-      this.logger.warn(`[BotDuelRunner] Max attempts reached for duel ${gameId}, stopping bot ${botId}`);
+      this.logger.warn(`Max attempts reached for duel ${gameId}, stopping bot ${botId}`);
       this.botService.updateBotStats(botId, questionsAnswered, correctAnswers);
       return;
     }
@@ -47,7 +47,7 @@ export class BotDuelRunner {
     if (!row) return;
 
     if (row.status === 'finished' || row.status === 'abandoned') {
-      this.logger.debug(`[BotDuelRunner] Duel ${gameId} ended, bot ${botId} stopping`);
+      this.logger.debug(`Duel ${gameId} ended, bot ${botId} stopping`);
       this.botService.updateBotStats(botId, questionsAnswered, correctAnswers);
       return;
     }

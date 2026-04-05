@@ -117,7 +117,7 @@ export class BotService {
   /** Update bot stats after participating in a game (fire-and-forget). */
   updateBotStats(botId: string, questionsAnswered: number, correctAnswers: number): void {
     void this.supabaseService.updateDummyUserStats(botId, questionsAnswered, correctAnswers).catch((err) => {
-      this.logger.warn(`[updateBotStats] Failed for bot ${botId}: ${err}`);
+      this.logger.warn(`Stats update failed for bot ${botId}: ${err}`);
     });
   }
 }

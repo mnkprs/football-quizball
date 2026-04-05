@@ -72,7 +72,7 @@ export class BotOnlineGameRunner implements OnModuleInit {
         currentPlayerId,
         game.board_state as OnlineBoardState,
       ).catch((err) => {
-        this.logger.warn(`[BotOnlineRunner] Turn failed for game ${game.id}: ${err}`);
+        this.logger.warn(`Turn failed for game ${game.id}: ${err}`);
       });
     }
   }
@@ -109,7 +109,7 @@ export class BotOnlineGameRunner implements OnModuleInit {
     await this.onlineGameService.submitAnswer(botId, gameId, { questionId, answer });
 
     this.logger.debug(
-      `[BotOnlineRunner] Bot ${botId} answered "${questionId}" in game ${gameId} (${correct ? 'correct' : 'wrong'})`,
+      `Bot ${botId} answered "${questionId}" in game ${gameId} (${correct ? 'correct' : 'wrong'})`,
     );
   }
 
