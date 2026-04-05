@@ -10,7 +10,6 @@ export const LIVE_CATEGORIES: BoardCategory[] = [
   'GUESS_SCORE',
   'TOP_5',
   'GEOGRAPHY',
-  'GOSSIP',
 ];
 
 /**
@@ -20,7 +19,7 @@ export const DUEL_CATEGORIES: QuestionCategory[] = [
   'HISTORY',
   'PLAYER_ID',
   'GEOGRAPHY',
-  'GOSSIP',
+  'LOGO_QUIZ',
   'GUESS_SCORE',
 ];
 
@@ -31,7 +30,7 @@ export const SOLO_DRAW_CATEGORY_ORDER: QuestionCategory[] = [
   'HISTORY',
   'PLAYER_ID',
   'GEOGRAPHY',
-  'GOSSIP',
+  'LOGO_QUIZ',
   'HIGHER_OR_LOWER',
   'GUESS_SCORE',
 ];
@@ -47,7 +46,7 @@ export const CATEGORY_DIFFICULTY_SLOTS: Record<BoardCategory, readonly Difficult
   GUESS_SCORE: ['EASY', 'MEDIUM', 'HARD'],
   TOP_5: ['HARD', 'HARD'],
   GEOGRAPHY: ['EASY', 'MEDIUM', 'HARD'],
-  GOSSIP: ['MEDIUM', 'MEDIUM'],
+  LOGO_QUIZ: ['EASY', 'EASY', 'HARD'],
 };
 
 /**
@@ -60,7 +59,6 @@ export const CATEGORY_BATCH_SIZES: Partial<Record<QuestionCategory, number>> = {
   GUESS_SCORE: 5,
   TOP_5: 5,
   GEOGRAPHY: 5,
-  GOSSIP: 5,
 };
 
 /**
@@ -70,5 +68,13 @@ export const CATEGORY_FIXED_DIFFICULTY: Partial<Record<QuestionCategory, Difficu
   PLAYER_ID: 'MEDIUM',
   HIGHER_OR_LOWER: 'MEDIUM',
   TOP_5: 'HARD',
-  GOSSIP: 'MEDIUM',
+};
+
+/**
+ * Per-slot point overrides for categories where slots of the same difficulty
+ * should award different points. Index matches CATEGORY_DIFFICULTY_SLOTS order.
+ * LOGO_QUIZ: slot 0 (EASY)=1pt, slot 1 (EASY)=2pt, slot 2 (HARD)=3pt.
+ */
+export const CATEGORY_SLOT_POINTS: Partial<Record<BoardCategory, number[]>> = {
+  LOGO_QUIZ: [1, 2, 3],
 };

@@ -166,6 +166,7 @@ export class QuestionsService {
       case 'GEOGRAPHY':       return this.geographyGenerator.generate(genOpts);
       case 'GOSSIP':          return this.gossipGenerator.generate(genOpts);
       case 'NEWS':            throw new Error('NEWS has no live generator — use news ingestion service');
+      case 'LOGO_QUIZ':       throw new Error('LOGO_QUIZ has no live generator — seed via logo scripts');
       default:                throw new Error(`Unknown category: ${category}`);
     }
   }
@@ -191,6 +192,8 @@ export class QuestionsService {
         return this.gossipGenerator.generateBatch(options);
       case 'NEWS':
         throw new Error('NEWS has no live generator — use news ingestion service');
+      case 'LOGO_QUIZ':
+        throw new Error('LOGO_QUIZ has no live generator — seed via logo scripts');
       default:
         throw new Error(`Unknown category: ${category}`);
     }

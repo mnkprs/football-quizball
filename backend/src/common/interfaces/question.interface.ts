@@ -6,10 +6,10 @@ export type BoardCategory =
   | 'GUESS_SCORE'
   | 'TOP_5'
   | 'GEOGRAPHY'
-  | 'GOSSIP';
+  | 'LOGO_QUIZ';
 
 /** All question categories, including standalone modes that don't use the shared pool. */
-export type QuestionCategory = BoardCategory | 'NEWS' | 'MAYHEM' | 'LOGO_QUIZ';
+export type QuestionCategory = BoardCategory | 'NEWS' | 'MAYHEM' | 'GOSSIP';
 
 export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 

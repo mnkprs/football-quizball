@@ -12,7 +12,20 @@ export type { ValidationResult };
 export class QuestionValidator {
   private readonly MAX_QUESTION_LENGTH = 500;
   private readonly MAX_ANSWER_LENGTH = 300;
+  private readonly MAX_PLAYABLE_ANSWER_LENGTH = 60;
   private readonly SCORE_REGEX = /^\d{1,2}-\d{1,2}$/;
+
+  /**
+   * Detects LLM hallucination patterns where the model generates a question about
+   * a fictitious event and then says "this didn't happen" in the answer.
+   */
+  private readonly HALLUCINATION_PATTERNS = [
+    /^No\s+(prominent|Italian|German|French|English|Spanish|Brazilian|Dutch|Argentine|Portuguese|manager|player|football|high-profile|credible|definitive|specific|club)/i,
+    /premise.*(incorrect|wrong|false)/i,
+    /^(Yes|No),?\s+.{50,}/i,
+    /\bdid\s+not\s+(depart|happen|occur|take\s+place|announce|officially)\b/i,
+    /\bhas\s+not\s+(officially|actually|been\s+confirmed)\b/i,
+  ];
 
   validate(question: GeneratedQuestion): ValidationResult {
     if (!question.question_text?.trim()) {
@@ -29,6 +42,30 @@ export class QuestionValidator {
     }
     if (question.correct_answer.length > this.MAX_ANSWER_LENGTH) {
       return { valid: false, reason: `correct_answer too long (${question.correct_answer.length})` };
+    }
+
+    // Reject hallucinated questions (LLM said "this didn't happen" as the answer)
+    const answer = question.correct_answer.trim();
+    for (const pattern of this.HALLUCINATION_PATTERNS) {
+      if (pattern.test(answer)) {
+        return { valid: false, reason: `correct_answer matches hallucination pattern: "${answer.slice(0, 60)}..."` };
+      }
+    }
+
+    // Reject answers too long to be playable (>60 chars), except TOP_5 which uses comma-separated names
+    if (question.category !== 'TOP_5' && answer.length > this.MAX_PLAYABLE_ANSWER_LENGTH) {
+      return { valid: false, reason: `correct_answer too long to be playable (${answer.length} chars): "${answer.slice(0, 60)}..."` };
+    }
+
+    // Reject answers containing correct_answer in wrong_choices
+    if (Array.isArray(question.wrong_choices) && question.wrong_choices.length > 0) {
+      const normCorrect = answer.toLowerCase();
+      const duplicateInChoices = question.wrong_choices.some(
+        (choice) => typeof choice === 'string' && choice.trim().toLowerCase() === normCorrect,
+      );
+      if (duplicateInChoices) {
+        return { valid: false, reason: 'correct_answer appears in wrong_choices' };
+      }
     }
 
     if (question.fifty_fifty_applicable && typeof question.fifty_fifty_hint === 'string' && question.fifty_fifty_hint.trim()) {

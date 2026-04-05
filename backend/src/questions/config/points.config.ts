@@ -14,7 +14,6 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
  */
 const CATEGORY_POINT_OVERRIDES: Partial<Record<QuestionCategory, number>> = {
   TOP_5: 3,
-  GOSSIP: 2,
 };
 
 /**

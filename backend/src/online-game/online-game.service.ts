@@ -16,6 +16,7 @@ import {
   CATEGORY_LABELS,
   DIFFICULTY_POINTS,
   CATEGORY_DIFFICULTY_SLOTS,
+  CATEGORY_SLOT_POINTS,
   GeneratedQuestion,
 } from '../questions/question.types';
 import {
@@ -35,7 +36,7 @@ import {
 } from './online-game.types';
 import { Top5Entry } from '../questions/question.types';
 
-const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'GOSSIP'] as const;
+const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'LOGO_QUIZ'] as const;
 const TURN_DEADLINE_HOURS = 24;
 
 function generateInviteCode(): string {
@@ -75,16 +76,18 @@ export class OnlineGameService {
     const usedIds = new Set<string>();
     const cells: OnlineBoardCell[][] = CATEGORIES_ORDER.map((category) => {
       const slots = CATEGORY_DIFFICULTY_SLOTS[category];
-      return slots.map((difficulty) => {
+      const slotPts = CATEGORY_SLOT_POINTS[category];
+      return slots.map((difficulty, slotIndex) => {
         const question = questions.find(
           (q: GeneratedQuestion) => q.category === category && q.difficulty === difficulty && !usedIds.has(q.id),
         );
         if (question) usedIds.add(question.id);
+        const points = slotPts?.[slotIndex] ?? question?.points ?? DIFFICULTY_POINTS[difficulty];
         return {
           question_id: question?.id || '',
           category,
           difficulty,
-          points: question?.points ?? DIFFICULTY_POINTS[difficulty],
+          points,
           answered: false,
         };
       });

@@ -65,12 +65,15 @@ export class QuestionDrawService {
       if (category === 'NEWS') {
         this.logger.warn(`[drawBoard] NEWS pool empty — run POST /api/news/ingest to populate`);
       }
+      if (category === 'LOGO_QUIZ') {
+        this.logger.warn(`[drawBoard] LOGO_QUIZ pool empty — seed logo quiz questions to populate`);
+      }
     }
 
-    // Generate missing categories in parallel (NEWS has no live generator)
+    // Generate missing categories in parallel (NEWS and LOGO_QUIZ have no live generators)
     const fallbackResults = await Promise.all(
       Array.from(missingByCategory.entries())
-        .filter(([cat]) => cat !== 'NEWS')
+        .filter(([cat]) => cat !== 'NEWS' && cat !== 'LOGO_QUIZ')
         .map(([category, difficulties]) =>
           this.generateCategoryFallback(category, difficulties),
         ),

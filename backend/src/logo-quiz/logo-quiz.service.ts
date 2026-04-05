@@ -64,7 +64,7 @@ export class LogoQuizService {
         const row = data[0];
         const q = row.question;
         return {
-          ...this.mapQuestion(q, row.difficulty as Difficulty),
+          ...this.mapQuestion(q, row.difficulty as Difficulty, hardcore),
           question_elo: row.question_elo,
         };
       }
@@ -80,7 +80,7 @@ export class LogoQuizService {
       });
       if (fb?.length) {
         const q = fb[0].question;
-        return this.mapQuestion(q, fallback);
+        return this.mapQuestion(q, fallback, hardcore);
       }
     }
     throw new NotFoundException('No logo questions available');
@@ -280,7 +280,10 @@ export class LogoQuizService {
     });
   }
 
-  private mapQuestion(q: any, difficulty: Difficulty): LogoQuestion {
+  private mapQuestion(q: any, difficulty: Difficulty, hardcore = false): LogoQuestion {
+    const imageUrl = hardcore
+      ? (q.meta?.hard_image_url ?? q.image_url)
+      : (q.meta?.easy_image_url ?? q.image_url);
     return {
       id: q.id,
       team_name: q.correct_answer,
@@ -288,7 +291,7 @@ export class LogoQuizService {
       league: q.meta?.league ?? '',
       country: q.meta?.country ?? '',
       difficulty,
-      image_url: q.image_url,
+      image_url: imageUrl,
       original_image_url: q.meta?.original_image_url ?? '',
     };
   }

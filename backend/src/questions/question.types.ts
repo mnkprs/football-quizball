@@ -22,6 +22,7 @@ import {
   DIFFICULTY_POINTS,
   resolveQuestionPoints,
   CATEGORY_LABELS,
+  CATEGORY_SLOT_POINTS,
 } from './config';
 
 export type { BoardCategory, QuestionCategory, Difficulty, AnswerType, DifficultyFactors, GeneratedQuestion, BoardCell, Top5Entry, Top5Progress };
@@ -35,4 +36,5 @@ export {
   DIFFICULTY_POINTS,
   resolveQuestionPoints,
   CATEGORY_LABELS,
+  CATEGORY_SLOT_POINTS,
 };

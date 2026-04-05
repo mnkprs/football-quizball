@@ -11,6 +11,7 @@ import {
   CATEGORY_LABELS,
   Difficulty,
   CATEGORY_DIFFICULTY_SLOTS,
+  CATEGORY_SLOT_POINTS,
 } from '../questions/question.types';
 import {
   GameSession,
@@ -25,7 +26,7 @@ import {
 } from './game.types';
 import { Top5Entry, Top5Progress } from '../questions/question.types';
 
-const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'GOSSIP'] as const;
+const CATEGORIES_ORDER = ['HISTORY', 'PLAYER_ID', 'HIGHER_OR_LOWER', 'GUESS_SCORE', 'TOP_5', 'GEOGRAPHY', 'LOGO_QUIZ'] as const;
 
 @Injectable()
 export class GameService {
@@ -60,21 +61,22 @@ export class GameService {
       { name: dto.player2Name, score: 0, lifelineUsed: false, doubleUsed: false },
     ];
 
-    // Build board grid: varies by category (GOSSIP has 2 MEDIUM slots, others have 3)
     const usedQuestionIds = new Set<string>();
     const board = CATEGORIES_ORDER.map((category) => {
       const slots = CATEGORY_DIFFICULTY_SLOTS[category];
-      return slots.map((difficulty) => {
+      const slotPoints = CATEGORY_SLOT_POINTS[category];
+      return slots.map((difficulty, slotIndex) => {
         const question = questions.find(
           (q) => q.category === category && q.difficulty === difficulty && !usedQuestionIds.has(q.id),
         );
         if (!question) this.logger.warn(`Missing question for ${category}/${difficulty}`);
         if (question) usedQuestionIds.add(question.id);
+        const points = slotPoints?.[slotIndex] ?? question?.points ?? DIFFICULTY_POINTS[difficulty];
         return {
           question_id: question?.id || '',
           category,
           difficulty,
-          points: question?.points ?? DIFFICULTY_POINTS[difficulty],
+          points,
           answered: false,
         };
       });

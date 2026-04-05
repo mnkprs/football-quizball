@@ -8,7 +8,7 @@ const JUDGE_MAX_SCORE = 0.75;
 const JUDGE_TIMEOUT_MS = 2000;
 
 /** Categories where deterministic rules are sufficient — skip LLM judge. */
-const SKIP_JUDGE_CATEGORIES = new Set(['HIGHER_OR_LOWER', 'GUESS_SCORE', 'PLAYER_ID', 'TOP_5']);
+const SKIP_JUDGE_CATEGORIES = new Set(['HIGHER_OR_LOWER', 'GUESS_SCORE', 'PLAYER_ID', 'TOP_5', 'LOGO_QUIZ']);
 
 @Injectable()
 export class AnswerValidator {

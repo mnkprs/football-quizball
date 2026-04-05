@@ -10,7 +10,7 @@ const CATEGORY_MAP: Record<string, QuestionCategory> = {
   GUESSTHESCORE: 'GUESS_SCORE',
   TOP_5: 'TOP_5',
   GEOGRAPHY: 'GEOGRAPHY',
-  GOSSIP: 'GOSSIP',
+  LOGO_QUIZ: 'LOGO_QUIZ',
   NEWS: 'NEWS',
 };
 
