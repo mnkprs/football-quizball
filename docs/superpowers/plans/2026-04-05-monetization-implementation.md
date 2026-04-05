@@ -526,8 +526,8 @@ if (yearly) {
     id: PRODUCT_YEARLY,
     title: yearly.title || 'STEPOVR Pro Yearly',
     description: yearly.description || 'Annual subscription',
-    price: pricing?.price || '$19.99',
-    priceMicros: pricing?.priceMicros || 19990000,
+    price: pricing?.price || '$14.99',
+    priceMicros: pricing?.priceMicros || 14990000,
     currency: pricing?.currency || 'USD',
     type: 'subscription',
   });
@@ -542,10 +542,10 @@ price: pricing?.price || '$3.99',
 priceMicros: pricing?.priceMicros || 3990000,
 ```
 
-Update the lifetime fallback price from `$9.99` to `$24.99` (line ~213):
+Update the lifetime fallback price from `$9.99` to `$19.99` (line ~213):
 ```typescript
-price: pricing?.price || '$24.99',
-priceMicros: pricing?.priceMicros || 24990000,
+price: pricing?.price || '$19.99',
+priceMicros: pricing?.priceMicros || 19990000,
 ```
 
 - [ ] **Step 5: Commit**
@@ -600,8 +600,8 @@ Update `selectedPrice` getter:
 get selectedPrice(): string {
   switch (this.selectedPlan()) {
     case 'monthly': return this.monthlyProduct()?.price ?? '$3.99/mo';
-    case 'yearly': return this.yearlyProduct()?.price ?? '$19.99/yr';
-    case 'lifetime': return this.lifetimeProduct()?.price ?? '$24.99';
+    case 'yearly': return this.yearlyProduct()?.price ?? '$14.99/yr';
+    case 'lifetime': return this.lifetimeProduct()?.price ?? '$19.99';
   }
 }
 ```
@@ -615,11 +615,11 @@ get selectedCtaLabel(): string {
       return `Continue — ${price}/mo`;
     }
     case 'yearly': {
-      const price = this.yearlyProduct()?.price ?? '$19.99';
+      const price = this.yearlyProduct()?.price ?? '$14.99';
       return `Continue — ${price}/yr`;
     }
     case 'lifetime': {
-      const price = this.lifetimeProduct()?.price ?? '$24.99';
+      const price = this.lifetimeProduct()?.price ?? '$19.99';
       return `Continue — ${price}`;
     }
   }
@@ -639,7 +639,7 @@ Add a computed for monthly-equivalent price display:
 ```typescript
 get yearlySavingsLabel(): string {
   const monthlyPrice = this.monthlyProduct()?.priceMicros ?? 3990000;
-  const yearlyPrice = this.yearlyProduct()?.priceMicros ?? 19990000;
+  const yearlyPrice = this.yearlyProduct()?.priceMicros ?? 14990000;
   const monthlyEquiv = yearlyPrice / 12;
   const savings = Math.round((1 - monthlyEquiv / monthlyPrice) * 100);
   return `Save ${savings}%`;
@@ -679,7 +679,7 @@ Replace the `pricing-cards` section in `frontend/src/app/shared/upgrade-modal/up
       <span class="price-skeleton"></span>
       <span class="label-skeleton"></span>
     } @else {
-      <span class="pricing-card__price">{{ yearlyProduct()?.price ?? '$19.99' }}</span>
+      <span class="pricing-card__price">{{ yearlyProduct()?.price ?? '$14.99' }}</span>
       <span class="pricing-card__label">/ year</span>
       <span class="pricing-card__savings">{{ yearlySavingsLabel }}</span>
     }
@@ -695,7 +695,7 @@ Replace the `pricing-cards` section in `frontend/src/app/shared/upgrade-modal/up
       <span class="price-skeleton"></span>
       <span class="label-skeleton"></span>
     } @else {
-      <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$24.99' }}</span>
+      <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$19.99' }}</span>
       <span class="pricing-card__label">one time</span>
     }
   </button>
@@ -741,17 +741,17 @@ This is a manual task — no code changes, but critical for IAP to work.
 
 1. Go to App Store Connect → Your App → Subscriptions
 2. Create subscription group "STEPOVR Pro" if not exists
-3. Add product `stepovr_pro_yearly` as auto-renewable subscription at $19.99/year
+3. Add product `stepovr_pro_yearly` as auto-renewable subscription at $14.99/year
 4. Update `stepovr_pro_monthly` price to $3.99/month
-5. Update `stepovr_pro_lifetime` (non-consumable) price to $24.99
+5. Update `stepovr_pro_lifetime` (non-consumable) price to $19.99
 6. Submit for review if pricing changes require it
 
 - [ ] **Step 2: Google Play Console**
 
 1. Go to Google Play Console → Your App → Monetize → Products
-2. Add subscription `stepovr_pro_yearly` at $19.99/year with base plan
+2. Add subscription `stepovr_pro_yearly` at $14.99/year with base plan
 3. Update `stepovr_pro_monthly` base plan to $3.99/month
-4. Update `stepovr_pro_lifetime` (one-time product) to $24.99
+4. Update `stepovr_pro_lifetime` (one-time product) to $19.99
 
 - [ ] **Step 3: Update environment files with real AdMob IDs**
 

@@ -89,14 +89,14 @@ Europe-wide — UK, Spain, Germany, Italy, France, Greece and surrounding market
 |------|-------|---------------|
 | **Free** | $0 | All game modes, 1 duel/day, 1 BR trial, ads at answer reveal + end game |
 | **Pro Monthly** | $3.99/mo | Unlimited duels + BR, zero ads, auto-renewing |
-| **Pro Yearly** | $19.99/yr | Same as monthly, ~58% savings displayed, recommended default |
-| **Pro Lifetime** | $24.99 | Same as monthly, one-time, never expires |
+| **Pro Yearly** | $14.99/yr | Same as monthly, ~69% savings displayed, recommended default |
+| **Pro Lifetime** | $19.99 | Same as monthly, one-time, never expires |
 
 **Pricing Rationale:**
 
 - $3.99/month: sweet spot for casual gaming in Europe — low enough for impulse, high enough to matter
-- $19.99/year ($1.67/month): makes monthly feel expensive by comparison (anchoring effect). Always display as the "recommended" option with a savings badge
-- $24.99 lifetime: equals ~6 months of monthly — users feel they're getting a deal, but meaningful revenue is captured. Previous $9.99 was only 3.3 months' worth and cannibalized subscriptions
+- $14.99/year ($1.25/month): makes monthly feel expensive by comparison (anchoring effect). Always display as the "recommended" option with a savings badge
+- $19.99 lifetime: equals ~5 months of monthly — users feel they're getting a deal, but meaningful revenue is captured. Previous $9.99 was only 3.3 months' worth and cannibalized subscriptions
 
 **Paywall UI:**
 
