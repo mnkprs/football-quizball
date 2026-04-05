@@ -59,7 +59,7 @@ export class QuestionsService {
       }
     });
 
-    this.logger.log(`Generated ${scored.length} scoreable batch questions`);
+    this.logger.debug(`Generated ${scored.length} scoreable batch questions`);
     const board: GeneratedQuestion[] = [];
     const usedIndices = new Set<number>();
 
@@ -93,7 +93,7 @@ export class QuestionsService {
       }
     }
 
-    this.logger.log(`Board assembled: ${board.length} questions`);
+    this.logger.debug(`Board assembled: ${board.length} questions`);
     return board;
   }
 
@@ -256,7 +256,7 @@ export class QuestionsService {
       ]
         .filter(Boolean)
         .join(' ');
-      this.logger.log(
+      this.logger.debug(
         `${colorize('[scored]', ANSI.boldWhite)} ${colorize(`"${scoredQuestion.question_text}"`, ANSI.boldWhite)} ${colorize(factorsStr, ANSI.dim)}`,
       );
     }

@@ -42,7 +42,7 @@ export class NewsService {
     // Check for active round
     const activeRound = await this.getActiveRound();
     if (activeRound) {
-      this.logger.log(`[ingestNews] Active round ${activeRound.id} exists, skipping`);
+      this.logger.debug(`[ingestNews] Active round ${activeRound.id} exists, skipping`);
       return { added: 0, skipped: 0, roundId: activeRound.id };
     }
 
@@ -63,10 +63,10 @@ export class NewsService {
       const processedUrls = await this.getProcessedHeadlineUrls();
       const headlines = allHeadlines.filter((h) => !processedUrls.has(h.url));
       if (headlines.length === 0) {
-        this.logger.log('[ingestNews] All headlines already processed');
+        this.logger.debug('[ingestNews] All headlines already processed');
         return { added: 0, skipped: 0, roundId: null };
       }
-      this.logger.log(`[ingestNews] ${headlines.length} new headlines`);
+      this.logger.debug(`[ingestNews] ${headlines.length} new headlines`);
 
       const questions = await this.newsGenerator.generateFromHeadlines(headlines);
       const existingKeys = await this.getExistingQuestionKeys();
@@ -89,7 +89,7 @@ export class NewsService {
         const rejected = integrityResults.filter((r) => !r.result.valid);
         if (rejected.length > 0) {
           skipped += rejected.length;
-          this.logger.log(`[ingestNews] Integrity rejected ${rejected.length} questions`);
+          this.logger.debug(`[ingestNews] Integrity rejected ${rejected.length} questions`);
         }
       }
 
@@ -150,7 +150,7 @@ export class NewsService {
       }
 
       added = rows.length;
-      this.logger.log(`[ingestNews] Round ${roundId}: ${added} questions (${skipped} skipped)`);
+      this.logger.debug(`[ingestNews] Round ${roundId}: ${added} questions (${skipped} skipped)`);
     } finally {
       this.isIngesting = false;
     }
@@ -163,7 +163,7 @@ export class NewsService {
     const acquired = await this.redisService.acquireLock('lock:cron:news-ingest', 600);
     if (!acquired) return;
     try {
-      this.logger.log('[CRON] Daily news ingest: expiring old, then ingesting...');
+      this.logger.debug('[CRON] Daily news ingest: expiring old, then ingesting...');
       await this.expireOldNews();
       await this.ingestNews();
     } finally {
@@ -180,7 +180,7 @@ export class NewsService {
     }
     const deleted = (data as number) ?? 0;
     if (deleted > 0) {
-      this.logger.log(`[expireOldNews] Deleted ${deleted} expired NEWS questions`);
+      this.logger.debug(`[expireOldNews] Deleted ${deleted} expired NEWS questions`);
     }
     return deleted;
   }

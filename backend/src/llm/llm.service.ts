@@ -99,14 +99,14 @@ export class LlmService {
     // Vertex AI only. VERTEX_AI_KEY takes priority (no ADC needed); falls back to ADC via GOOGLE_CLOUD_PROJECT.
     if (vertexKey) {
       this.gemini = new GoogleGenAI({ vertexai: true, apiKey: vertexKey });
-      this.logger.log(`LlmService — Gemini ready via Vertex AI (API key)`);
+      this.logger.debug(`LlmService — Gemini ready via Vertex AI (API key)`);
     } else if (vertexProject) {
       this.gemini = new GoogleGenAI({
         vertexai: true,
         project: vertexProject,
         location: vertexLocation,
       });
-      this.logger.log(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation}) [ADC auth]`);
+      this.logger.debug(`LlmService — Gemini ready via Vertex AI (${vertexProject}/${vertexLocation}) [ADC auth]`);
     } else {
       this.logger.warn('Gemini disabled — set VERTEX_AI_KEY or GOOGLE_CLOUD_PROJECT to enable Vertex AI');
     }
@@ -116,7 +116,7 @@ export class LlmService {
         apiKey: deepseekKey,
         baseURL: 'https://api.deepseek.com/v1',
       });
-      this.logger.log(`LlmService — DeepSeek ready (generation)`);
+      this.logger.debug(`LlmService — DeepSeek ready (generation)`);
     } else {
       this.logger.debug('DEEPSEEK_API_KEY not set — using Gemini for generation');
     }

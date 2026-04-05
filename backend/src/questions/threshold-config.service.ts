@@ -97,7 +97,7 @@ export class ThresholdConfigService {
         'utf-8',
       );
       this.invalidateCache();
-      this.logger.log(`Updated thresholds: easy=${next.rawThresholdEasy}, medium=${next.rawThresholdMedium}, tolerance=${next.boundaryTolerance}`);
+      this.logger.debug(`Updated thresholds: easy=${next.rawThresholdEasy}, medium=${next.rawThresholdMedium}, tolerance=${next.boundaryTolerance}`);
       return this.getThresholds();
     } catch (err) {
       this.logger.error(`Failed to write score-thresholds.json: ${err}`);

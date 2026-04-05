@@ -129,7 +129,7 @@ export class BotMatchmakerService implements OnModuleInit {
       return;
     }
 
-    this.logger.log(`[Matchmaker] Bot "${bot.username}" matched into online game ${gameId}`);
+    this.logger.debug(`[Matchmaker] Bot "${bot.username}" matched into online game ${gameId}`);
   }
 
   // ── Duel ────────────────────────────────────────────────────────────────────
@@ -186,7 +186,7 @@ export class BotMatchmakerService implements OnModuleInit {
       return;
     }
 
-    this.logger.log(`[Matchmaker] Bot "${bot.username}" matched into duel ${gameId}`);
+    this.logger.debug(`[Matchmaker] Bot "${bot.username}" matched into duel ${gameId}`);
     this.duelRunner.runDuelBot(gameId, bot.id, bot.bot_skill);
   }
 
@@ -258,7 +258,7 @@ export class BotMatchmakerService implements OnModuleInit {
     // Force-start the room
     await this.brService.forceStartRoom(roomId);
 
-    this.logger.log(`[Matchmaker] Started BR room ${roomId} with ${bots.length} bots (${realPlayers} real player(s))`);
+    this.logger.debug(`[Matchmaker] Started BR room ${roomId} with ${bots.length} bots (${realPlayers} real player(s))`);
 
     // Kick off bot answer chains
     this.brRunner.runBotsForRoom(
@@ -293,7 +293,7 @@ export class BotMatchmakerService implements OnModuleInit {
     if (waiting >= BR_MIN_WAITING_ROOMS) return;
 
     const roomsToCreate = BR_MIN_WAITING_ROOMS - waiting;
-    this.logger.log(`[Matchmaker] Only ${waiting} waiting BR room(s) — creating ${roomsToCreate} bot-hosted room(s)`);
+    this.logger.debug(`[Matchmaker] Only ${waiting} waiting BR room(s) — creating ${roomsToCreate} bot-hosted room(s)`);
 
     for (let i = 0; i < roomsToCreate; i++) {
       await this.createOneBotBRRoom().catch((err) => {
@@ -311,7 +311,7 @@ export class BotMatchmakerService implements OnModuleInit {
     }
 
     const { roomId } = await this.brService.createRoomForBot(hostBot.id, hostBot.username);
-    this.logger.log(`[Matchmaker] Bot "${hostBot.username}" created BR room ${roomId}`);
+    this.logger.debug(`[Matchmaker] Bot "${hostBot.username}" created BR room ${roomId}`);
 
     // Seed the room with additional bots so it looks lively in the lobby
     const seedBots = await this.botService.selectBotsForRoom(BR_SEED_BOT_COUNT, 1000);
@@ -322,7 +322,7 @@ export class BotMatchmakerService implements OnModuleInit {
       });
     }
 
-    this.logger.log(`[Matchmaker] BR room ${roomId} seeded with ${seedBots.length} bot(s) — waiting for humans`);
+    this.logger.debug(`[Matchmaker] BR room ${roomId} seeded with ${seedBots.length} bot(s) — waiting for humans`);
   }
 
   // ── Stale room cleanup ───────────────────────────────────────────────────────

@@ -41,7 +41,7 @@ export class GameService {
   async createGame(dto: CreateGameDto): Promise<GameSession> {
     clearLogFile();
     const gameId = crypto.randomUUID();
-    this.logger.log(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
+    this.logger.debug(`Creating game ${gameId} for ${dto.player1Name} vs ${dto.player2Name}`);
 
     const excludeNewsQuestionIds = dto.excludeNewsQuestionIds?.filter(Boolean).slice(0, 100) ?? [];
     const playerIds = dto.playerIds?.filter(Boolean) ?? [];
@@ -512,7 +512,7 @@ export class GameService {
     session.status = 'FINISHED';
     const poolIds = (session.poolQuestionIds ?? []).filter(Boolean);
     if (poolIds.length > 0) {
-      this.logger.log(`[finishSession] Returning ${poolIds.length} questions to pool`);
+      this.logger.debug(`[finishSession] Returning ${poolIds.length} questions to pool`);
       await this.questionPoolService.returnUnansweredToPool(poolIds).catch((err) =>
         this.logger.error(`[finishSession] Failed to return questions to pool: ${(err as Error).message}`),
       );

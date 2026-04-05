@@ -24,7 +24,7 @@ export class BotDuelRunner {
    * The bot will answer questions until the game ends.
    */
   runDuelBot(gameId: string, botId: string, botSkill: number): void {
-    this.logger.log(`[BotDuelRunner] Starting bot ${botId} for duel ${gameId}`);
+    this.logger.debug(`[BotDuelRunner] Starting bot ${botId} for duel ${gameId}`);
     void this.botLoop(gameId, botId, botSkill, 0, 0, 0);
   }
 
@@ -46,7 +46,7 @@ export class BotDuelRunner {
     if (!row) return;
 
     if (row.status === 'finished' || row.status === 'abandoned') {
-      this.logger.log(`[BotDuelRunner] Duel ${gameId} ended, bot ${botId} stopping`);
+      this.logger.debug(`[BotDuelRunner] Duel ${gameId} ended, bot ${botId} stopping`);
       this.botService.updateBotStats(botId, questionsAnswered, correctAnswers);
       return;
     }

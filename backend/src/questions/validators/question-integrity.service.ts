@@ -32,7 +32,7 @@ export class QuestionIntegrityService {
       this.configService.get<string>('ENABLE_INTEGRITY_VERIFICATION') === 'true' ||
       this.configService.get<string>('ENABLE_INTEGRITY_VERIFICATION') === '1';
     if (this.enabled) {
-      this.logger.log('QuestionIntegrityService enabled — factual verification via LLM');
+      this.logger.debug('QuestionIntegrityService enabled — factual verification via LLM');
     }
   }
 
@@ -122,7 +122,7 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
 
         // GUESS_SCORE: reject empty correctedAnswer — never "fix" to empty
         if (question.category === 'GUESS_SCORE' && correctedAnswer === '') {
-          this.logger.log(
+          this.logger.debug(
             `[integrity] Rejected: GUESS_SCORE correction would set empty answer. Provide correct score or reject.`,
           );
           return { valid: false, reason: 'Correction would set empty answer; provide correct score or reject' };
@@ -136,7 +136,7 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
         const hasMetaCorrection = finalCorrectedMeta && Object.keys(finalCorrectedMeta).length > 0;
 
         if (hasAnswerCorrection || hasTextCorrection || hasExplanationCorrection || hasMetaCorrection) {
-          this.logger.log(
+          this.logger.debug(
             `[integrity] Corrections: ${hasAnswerCorrection ? `answer→${correctedAnswer}` : ''} ${hasTextCorrection ? 'question_text' : ''} ${hasExplanationCorrection ? 'explanation' : ''} ${hasMetaCorrection ? 'meta' : ''}${sourceUrl ? ' source_url' : ''}`,
           );
           return {
@@ -154,7 +154,7 @@ ACCEPT (valid: true, no correction) when both question and answer are correct.`;
       }
 
       const reason = result.reason ?? 'Factual verification failed';
-      this.logger.log(`[integrity] Rejected: ${reason}`);
+      this.logger.debug(`[integrity] Rejected: ${reason}`);
       return { valid: false, reason };
     } catch (err) {
       const rawResponse = (err as Error & { rawResponse?: string }).rawResponse;

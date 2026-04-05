@@ -777,7 +777,7 @@ export class BattleRoyaleService {
     });
 
     await Promise.all(updates);
-    this.logger.log(`[br] rebalanceTeams: assigned teams for ${players.length} players in room ${roomId}`);
+    this.logger.debug(`[br] rebalanceTeams: assigned teams for ${players.length} players in room ${roomId}`);
   }
 
   private toPublicQuestion(q: BlitzQuestion, index: number): BRPublicQuestion {
@@ -814,7 +814,7 @@ export class BattleRoyaleService {
       .single<Pick<BRRoomRow, 'status'>>();
 
     if (room?.status === 'active') {
-      this.logger.log(`[br] Auto-finishing room ${roomId} after timeout`);
+      this.logger.debug(`[br] Auto-finishing room ${roomId} after timeout`);
       await this.supabaseService.client
         .from('battle_royale_rooms')
         .update({ status: 'finished', finished_at: new Date().toISOString(), updated_at: new Date().toISOString() })

@@ -58,7 +58,7 @@ export class SubscriptionService {
     const eventKey = `apple:notification:${notificationUUID}`;
     const acquired = await this.redisService.acquireLock(eventKey, 86400);
     if (!acquired) {
-      this.logger.log(`Apple notification already processed: ${eventKey}`);
+      this.logger.debug(`Apple notification already processed: ${eventKey}`);
       return;
     }
 
@@ -69,7 +69,7 @@ export class SubscriptionService {
       return;
     }
 
-    this.logger.log(`Apple notification: type=${notificationType}, subtype=${subtype ?? 'none'}, user=${userId}`);
+    this.logger.debug(`Apple notification: type=${notificationType}, subtype=${subtype ?? 'none'}, user=${userId}`);
 
     switch (notificationType) {
       case 'REFUND': {
@@ -83,7 +83,7 @@ export class SubscriptionService {
           proLifetimeOwned: isLifetimeRefund ? false : undefined,
           proExpiresAt: null,
         });
-        this.logger.log(`User ${userId} pro revoked via Apple REFUND`);
+        this.logger.debug(`User ${userId} pro revoked via Apple REFUND`);
         break;
       }
 
@@ -97,7 +97,7 @@ export class SubscriptionService {
           proSource: 'subscription',
           proExpiresAt: expiresAt,
         });
-        this.logger.log(`User ${userId} subscription renewed via Apple DID_RENEW, expires=${expiresAt}`);
+        this.logger.debug(`User ${userId} subscription renewed via Apple DID_RENEW, expires=${expiresAt}`);
         break;
       }
 
@@ -106,7 +106,7 @@ export class SubscriptionService {
         const status = await this.supabaseService.getProStatus(userId);
         if (status?.pro_lifetime_owned) {
           // Lifetime owns forever — subscription expiry doesn't affect pro status
-          this.logger.log(`User ${userId} subscription expired but lifetime owned — staying pro`);
+          this.logger.debug(`User ${userId} subscription expired but lifetime owned — staying pro`);
           await this.supabaseService.setProStatus(userId, {
             isPro: true,
             proSource: 'lifetime',
@@ -117,7 +117,7 @@ export class SubscriptionService {
             isPro: false,
             proExpiresAt: null,
           });
-          this.logger.log(`User ${userId} pro revoked via Apple EXPIRED`);
+          this.logger.debug(`User ${userId} pro revoked via Apple EXPIRED`);
         }
         break;
       }
@@ -126,25 +126,25 @@ export class SubscriptionService {
         // Grace period ended — same as EXPIRED
         const status = await this.supabaseService.getProStatus(userId);
         if (status?.pro_lifetime_owned) {
-          this.logger.log(`User ${userId} grace period expired but lifetime owned — staying pro`);
+          this.logger.debug(`User ${userId} grace period expired but lifetime owned — staying pro`);
         } else {
           await this.supabaseService.setProStatus(userId, {
             isPro: false,
             proExpiresAt: null,
           });
-          this.logger.log(`User ${userId} pro revoked via Apple GRACE_PERIOD_EXPIRED`);
+          this.logger.debug(`User ${userId} pro revoked via Apple GRACE_PERIOD_EXPIRED`);
         }
         break;
       }
 
       case 'DID_CHANGE_RENEWAL_STATUS': {
         // User toggled auto-renew — informational only, no action needed
-        this.logger.log(`User ${userId} changed renewal status: subtype=${subtype}`);
+        this.logger.debug(`User ${userId} changed renewal status: subtype=${subtype}`);
         break;
       }
 
       default:
-        this.logger.log(`Apple notification unhandled: ${notificationType}`);
+        this.logger.debug(`Apple notification unhandled: ${notificationType}`);
         break;
     }
   }
@@ -181,7 +181,7 @@ export class SubscriptionService {
     } else if (oneTimeProductNotification) {
       await this.handleGoogleOneTimeProductNotification(oneTimeProductNotification, notification.packageName);
     } else {
-      this.logger.log('Google notification: no subscription or one-time product data');
+      this.logger.debug('Google notification: no subscription or one-time product data');
     }
   }
 
@@ -192,7 +192,7 @@ export class SubscriptionService {
     const eventKey = `google:sub:${notificationType}:${purchaseToken}`;
     const acquired = await this.redisService.acquireLock(eventKey, 86400);
     if (!acquired) {
-      this.logger.log(`Google subscription notification already processed: ${eventKey}`);
+      this.logger.debug(`Google subscription notification already processed: ${eventKey}`);
       return;
     }
 
@@ -203,7 +203,7 @@ export class SubscriptionService {
       return;
     }
 
-    this.logger.log(`Google subscription notification: type=${notificationType}, user=${userId}, product=${subscriptionId}`);
+    this.logger.debug(`Google subscription notification: type=${notificationType}, user=${userId}, product=${subscriptionId}`);
 
     // Google subscription notification types:
     // 1 = RECOVERED, 2 = RENEWED, 3 = CANCELED, 4 = PURCHASED,
@@ -218,20 +218,20 @@ export class SubscriptionService {
           isPro: true,
           proSource: 'subscription',
         });
-        this.logger.log(`User ${userId} subscription active via Google type=${notificationType}`);
+        this.logger.debug(`User ${userId} subscription active via Google type=${notificationType}`);
         break;
 
       case 12: // REVOKED (refund/chargeback)
       case 13: { // EXPIRED
         const status = await this.supabaseService.getProStatus(userId);
         if (status?.pro_lifetime_owned) {
-          this.logger.log(`User ${userId} subscription revoked/expired but lifetime owned — staying pro`);
+          this.logger.debug(`User ${userId} subscription revoked/expired but lifetime owned — staying pro`);
         } else {
           await this.supabaseService.setProStatus(userId, {
             isPro: false,
             proExpiresAt: null,
           });
-          this.logger.log(`User ${userId} pro revoked via Google type=${notificationType}`);
+          this.logger.debug(`User ${userId} pro revoked via Google type=${notificationType}`);
         }
         break;
       }
@@ -239,15 +239,15 @@ export class SubscriptionService {
       case 5: // ON_HOLD
       case 6: // IN_GRACE_PERIOD
         // Keep pro active during grace period
-        this.logger.log(`User ${userId} subscription in grace/hold period — keeping pro`);
+        this.logger.debug(`User ${userId} subscription in grace/hold period — keeping pro`);
         break;
 
       case 3: // CANCELED — user won't auto-renew but still active until expiry
-        this.logger.log(`User ${userId} canceled subscription — still active until expiry`);
+        this.logger.debug(`User ${userId} canceled subscription — still active until expiry`);
         break;
 
       default:
-        this.logger.log(`Google subscription notification unhandled: type=${notificationType}`);
+        this.logger.debug(`Google subscription notification unhandled: type=${notificationType}`);
         break;
     }
   }
@@ -265,7 +265,7 @@ export class SubscriptionService {
       return;
     }
 
-    this.logger.log(`Google one-time product notification: type=${notificationType}, user=${userId}, sku=${sku}`);
+    this.logger.debug(`Google one-time product notification: type=${notificationType}, user=${userId}, sku=${sku}`);
 
     // One-time product notification types:
     // 1 = PURCHASED, 2 = CANCELED (voided/refunded)
@@ -277,7 +277,7 @@ export class SubscriptionService {
           proLifetimeOwned: true,
           iapPlatform: 'android',
         });
-        this.logger.log(`User ${userId} lifetime purchased via Google`);
+        this.logger.debug(`User ${userId} lifetime purchased via Google`);
         break;
 
       case 2: // CANCELED (voided/refunded)
@@ -286,11 +286,11 @@ export class SubscriptionService {
           proLifetimeOwned: false,
           proExpiresAt: null,
         });
-        this.logger.log(`User ${userId} lifetime revoked via Google refund`);
+        this.logger.debug(`User ${userId} lifetime revoked via Google refund`);
         break;
 
       default:
-        this.logger.log(`Google one-time product notification unhandled: type=${notificationType}`);
+        this.logger.debug(`Google one-time product notification unhandled: type=${notificationType}`);
         break;
     }
   }
@@ -316,7 +316,7 @@ export class SubscriptionService {
   //   const eventKey = `stripe:event:${event.id}`;
   //   const alreadyProcessed = await this.redisService.acquireLock(eventKey, 86400);
   //   if (!alreadyProcessed) {
-  //     this.logger.log(`Stripe event ${event.id} already processed, skipping`);
+  //     this.logger.debug(`Stripe event ${event.id} already processed, skipping`);
   //     return;
   //   }
   //
@@ -332,7 +332,7 @@ export class SubscriptionService {
   //       const isActive = sub.status === 'active' || sub.status === 'trialing';
   //       // NOTE: old setProStatus signature — update if re-enabling
   //       // await this.supabaseService.setProStatus(userId, isActive, sub.customer as string, sub.id);
-  //       this.logger.log(`User ${userId} pro status set to ${isActive} via ${event.type}`);
+  //       this.logger.debug(`User ${userId} pro status set to ${isActive} via ${event.type}`);
   //       break;
   //     }
   //     case 'customer.subscription.deleted': {
@@ -344,7 +344,7 @@ export class SubscriptionService {
   //       }
   //       // NOTE: old setProStatus signature — update if re-enabling
   //       // await this.supabaseService.setProStatus(userId, false);
-  //       this.logger.log(`User ${userId} pro status revoked via subscription.deleted`);
+  //       this.logger.debug(`User ${userId} pro status revoked via subscription.deleted`);
   //       break;
   //     }
   //     default:

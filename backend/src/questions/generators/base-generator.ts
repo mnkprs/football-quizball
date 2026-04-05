@@ -99,6 +99,6 @@ export abstract class BaseGenerator {
 
   /** Logs the diversity constraints applied to a single-question generation call. */
   protected logConstraints(category: QuestionCategory, slotIndex?: number, constraints?: unknown): void {
-    this.logger.log(`[${category}] slotIndex=${slotIndex} constraints=${JSON.stringify(constraints)}`);
+    this.logger.debug(`[${category}] slotIndex=${slotIndex} constraints=${JSON.stringify(constraints)}`);
   }
 }

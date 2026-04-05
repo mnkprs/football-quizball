@@ -16,7 +16,7 @@ export class DailyService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.logger.log('[INIT] Daily: checking today\'s questions...');
+    this.logger.debug('[INIT] Daily: checking today\'s questions...');
     void this.pregenerateToday().catch((err) =>
       this.logger.error(`[INIT] Daily pre-generate failed: ${(err as Error).message}`),
     );
@@ -34,7 +34,7 @@ export class DailyService implements OnModuleInit {
       return existing;
     }
 
-    this.logger.log(`[getTodaysQuestions] No questions for ${today}, generating...`);
+    this.logger.debug(`[getTodaysQuestions] No questions for ${today}, generating...`);
     const generated = await this.todayGenerator.generateForDate(
       new Date().getDate(),
       new Date().getMonth() + 1,
@@ -53,7 +53,7 @@ export class DailyService implements OnModuleInit {
     const acquired = await this.redisService.acquireLock('lock:cron:daily-pregenerate', 600);
     if (!acquired) return;
     try {
-      this.logger.log('[CRON] Daily pre-generate (1AM): running...');
+      this.logger.debug('[CRON] Daily pre-generate (1AM): running...');
       return this.pregenerateToday();
     } finally {
       await this.redisService.releaseLock('lock:cron:daily-pregenerate');
@@ -64,11 +64,11 @@ export class DailyService implements OnModuleInit {
     const today = this.getTodayDateStr();
     const existing = await this.fetchForDate(today);
     if (existing.length > 0) {
-      this.logger.log(`[pregenerateToday] ${today} already has questions, skipping`);
+      this.logger.debug(`[pregenerateToday] ${today} already has questions, skipping`);
       return;
     }
 
-    this.logger.log(`[pregenerateToday] generating for ${today}`);
+    this.logger.debug(`[pregenerateToday] generating for ${today}`);
     const generated = await this.todayGenerator.generateForDate(
       new Date().getDate(),
       new Date().getMonth() + 1,
@@ -76,7 +76,7 @@ export class DailyService implements OnModuleInit {
 
     if (generated.length > 0) {
       await this.saveForDate(today, generated);
-      this.logger.log(`[pregenerateToday] saved ${generated.length} questions for ${today}`);
+      this.logger.debug(`[pregenerateToday] saved ${generated.length} questions for ${today}`);
     }
   }
 

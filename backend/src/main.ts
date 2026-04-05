@@ -38,7 +38,7 @@ async function bootstrap() {
 
   const port = process.env['PORT'] ?? 3000;
   await app.listen(port, '0.0.0.0');
-  console.log(`Stepover backend running on port ${port}`);
+  console.info(`Stepover backend running on port ${port}`);
 }
 
 // Cluster mode: use all CPU cores in production (Railway provides multi-core instances).
@@ -52,7 +52,7 @@ const isClustered =
 if (isClustered) {
   const maxWorkers = parseInt(process.env['MAX_WORKERS'] ?? '2', 10);
   const numWorkers = Math.min(os.cpus().length, maxWorkers);
-  console.log(`Primary ${process.pid} starting ${numWorkers} workers`);
+  console.info(`Primary ${process.pid} starting ${numWorkers} workers`);
   for (let i = 0; i < numWorkers; i++) cluster.fork();
   cluster.on('exit', (worker) => {
     console.warn(`Worker ${worker.process.pid} died — restarting`);

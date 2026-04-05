@@ -34,7 +34,7 @@ export class MatchHistoryService {
 
     // Always check achievements after saving (win count query is efficient)
     const wins = await this.supabaseService.getMatchWinCount(requestingUserId);
-    this.logger.log(`[saveMatch] User ${requestingUserId} has ${wins} match wins — checking achievements`);
+    this.logger.debug(`[saveMatch] User ${requestingUserId} has ${wins} match wins — checking achievements`);
     await this.achievementsService.checkAndAward(requestingUserId, { matchWins: wins });
   }
 

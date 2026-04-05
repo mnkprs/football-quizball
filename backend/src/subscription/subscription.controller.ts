@@ -72,7 +72,7 @@ export class SubscriptionController {
       iapOriginalTransactionId: result.originalTransactionId ?? result.transactionId,
     });
 
-    this.logger.log(`User ${req.user.id} validated ${platform} receipt: ${result.purchaseType} (${result.productId})`);
+    this.logger.debug(`User ${req.user.id} validated ${platform} receipt: ${result.purchaseType} (${result.productId})`);
 
     return {
       success: true,

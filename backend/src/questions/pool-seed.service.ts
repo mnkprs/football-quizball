@@ -65,7 +65,7 @@ export class PoolSeedService {
     const toAdd = Math.min(500, Math.max(1, count));
     const run = async () => {
       const key = `${category}/${difficulty}`;
-      this.logger.log(`[seedSlot] ${key}: adding ${toAdd} questions (batch logic)`);
+      this.logger.debug(`[seedSlot] ${key}: adding ${toAdd} questions (batch logic)`);
       const { added, questionIds } = await this.seedSlotPasses(category, difficulty, toAdd);
       return { slot: key, added, questions: questionIds };
     };
@@ -88,7 +88,7 @@ export class PoolSeedService {
       const results: { slot: string; added: number }[] = [];
       const allQuestionIds: string[] = [];
       let completed = false;
-      this.logger.log(JSON.stringify({ event: 'seed_pool_start', passes, minDrawable: minDrawable ?? null }));
+      this.logger.debug(JSON.stringify({ event: 'seed_pool_start', passes, minDrawable: minDrawable ?? null }));
 
       try {
         let categories = this.getLiveCategories();
@@ -106,10 +106,10 @@ export class PoolSeedService {
           categories = categories.filter((c) => belowThreshold.has(c));
           const skipped = before - categories.length;
           if (skipped > 0) {
-            this.logger.log(`[seedPool] minDrawable=${minDrawable}: skipped ${skipped} categories already at/above threshold`);
+            this.logger.debug(`[seedPool] minDrawable=${minDrawable}: skipped ${skipped} categories already at/above threshold`);
           }
           if (categories.length === 0) {
-            this.logger.log(`[seedPool] All categories at or above ${minDrawable} drawable_unanswered — nothing to seed`);
+            this.logger.debug(`[seedPool] All categories at or above ${minDrawable} drawable_unanswered — nothing to seed`);
           }
         }
 
@@ -120,10 +120,10 @@ export class PoolSeedService {
           const batch = categories.slice(i, i + SEED_CATEGORY_CONCURRENCY);
           const batchResults = await Promise.all(
             batch.map(async (category) => {
-              this.logger.log(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
+              this.logger.debug(`[seedPool] Starting ${category}: ${passes} pass${passes === 1 ? '' : 'es'}`);
               const { addedTotals, questionIds } = await this.seedCategoryPasses(category, passes);
               const totalAdded = Object.values(addedTotals).reduce((sum, value) => sum + value, 0);
-              this.logger.log(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
+              this.logger.debug(`[seedPool] Finished ${category}: added ${totalAdded} questions`);
               return { category, addedTotals, questionIds };
             }),
           );
@@ -135,7 +135,7 @@ export class PoolSeedService {
           }
         }
         completed = true;
-        this.logger.log(JSON.stringify({ event: 'seed_pool_end', questionsAdded: allQuestionIds.length }));
+        this.logger.debug(JSON.stringify({ event: 'seed_pool_end', questionsAdded: allQuestionIds.length }));
       } finally {
         // Always store a session record so every run appears in the admin panel,
         // even when 0 questions were added or run was cancelled/failed.
@@ -156,7 +156,7 @@ export class PoolSeedService {
     const acquired = await this.redisService.acquireLock('lock:cron:pool-refill', 600);
     if (!acquired) return;
     try {
-      this.logger.log('[cron] Proactive pool refill check');
+      this.logger.debug('[cron] Proactive pool refill check');
       await this.refillIfNeeded();
     } finally {
       await this.redisService.releaseLock('lock:cron:pool-refill');
@@ -169,7 +169,7 @@ export class PoolSeedService {
   async refillIfNeeded(): Promise<void> {
     const counts = await this.getPoolCounts();
 
-    this.logger.log(`[refill] Pool counts (unanswered per slot): ${JSON.stringify(counts)}`);
+    this.logger.debug(`[refill] Pool counts (unanswered per slot): ${JSON.stringify(counts)}`);
 
     const needsByCategory = new Map<QuestionCategory, Partial<Record<Difficulty, number>>>();
     for (const { category, difficulty } of this.getUniqueSlots()) {
@@ -186,11 +186,11 @@ export class PoolSeedService {
     }
 
     if (needsByCategory.size === 0) {
-      this.logger.log(`[refill] All slots at or above target (${DEFAULT_POOL_TARGET}), skipping — no LLM calls`);
+      this.logger.debug(`[refill] All slots at or above target (${DEFAULT_POOL_TARGET}), skipping — no LLM calls`);
       return;
     }
 
-    this.logger.log(JSON.stringify({ event: 'pool_refill_start', categories: needsByCategory.size }));
+    this.logger.debug(JSON.stringify({ event: 'pool_refill_start', categories: needsByCategory.size }));
     await this.withRefillLock(async () => {
       const sorted = [...needsByCategory.entries()].sort((a, b) => {
         const totalA = Object.values(a[1]).reduce<number>((s, value) => s + (value ?? 0), 0);
@@ -201,7 +201,7 @@ export class PoolSeedService {
       for (const [category, needs] of sorted) {
         await this.fillCategoryUntilSatisfied(category, { ...needs });
       }
-      this.logger.log(JSON.stringify({ event: 'pool_refill_end' }));
+      this.logger.debug(JSON.stringify({ event: 'pool_refill_end' }));
     }).catch((err: Error) => {
       this.logger.warn(`[refillIfNeeded] ${err.message}`);
     });
@@ -243,7 +243,7 @@ export class PoolSeedService {
     for (let pass = 0; pass < passes; pass += 1) {
       // Refresh avoid list each pass so questions added in previous passes are excluded
       const avoidQuestions = await this.getPoolSampleTexts(category);
-      this.logger.log(`[seedPool] ${category} pass ${pass + 1}/${passes}`);
+      this.logger.debug(`[seedPool] ${category} pass ${pass + 1}/${passes}`);
       // Sequential to avoid race conditions on shared existingKeys and addedTotals
       for (const difficulty of uniqueDifficulties) {
         // eslint-disable-next-line no-await-in-loop
@@ -304,7 +304,7 @@ export class PoolSeedService {
 
           if (allDuplicates && attempt < DUPLICATE_RETRY_ATTEMPTS) {
             attempt += 1;
-            this.logger.log(
+            this.logger.debug(
               `[seedPool] ${category}/${difficulty}: retrying (attempt ${attempt}/${DUPLICATE_RETRY_ATTEMPTS})`,
             );
             await new Promise((resolve) => setTimeout(resolve, BATCH_THROTTLE_MS));
@@ -322,7 +322,7 @@ export class PoolSeedService {
             addedTotals[difficulty] += 1;
             questionIds.push(q.id);
           }
-          this.logger.log(
+          this.logger.debug(
             `[seedPool] ${category}/${difficulty} pass ${pass + 1}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'}`,
           );
         }
@@ -334,7 +334,7 @@ export class PoolSeedService {
     // Retry: if any level unfilled, rerun targeted generation for those slots
     const missing = uniqueDifficulties.filter((d) => addedTotals[d] === 0);
     if (missing.length > 0) {
-      this.logger.log(`[seedPool] ${category}: retry for unfilled levels: ${missing.join(', ')}`);
+      this.logger.debug(`[seedPool] ${category}: retry for unfilled levels: ${missing.join(', ')}`);
       for (const difficulty of missing) {
         const { added, questionIds: retryIds } = await this.seedSlotPasses(category, difficulty, 1);
         addedTotals[difficulty] += added;
@@ -363,7 +363,7 @@ export class PoolSeedService {
 
     while (added < targetCount && pass < MAX_CATEGORY_BATCH_ATTEMPTS) {
       pass += 1;
-      this.logger.log(`[seedSlot] ${category}/${difficulty} pass ${pass}`);
+      this.logger.debug(`[seedSlot] ${category}/${difficulty} pass ${pass}`);
       const batch = await this.questionsService.generateBatch(category, {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
         targetDifficulty: difficulty,
@@ -431,7 +431,7 @@ export class PoolSeedService {
         added += 1;
         questionIds.push(q.id);
       }
-      this.logger.log(
+      this.logger.debug(
         `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'} (total: ${added}/${targetCount})`,
       );
     }
@@ -483,7 +483,7 @@ export class PoolSeedService {
     const filtered = candidates.filter((q) => {
       const key = `${q.question_text}|||${q.correct_answer}`;
       if (existingKeys.has(key)) {
-        this.logger.log(`[fillSlot] Skipping duplicate — LLM output: "${q.question_text}"`);
+        this.logger.debug(`[fillSlot] Skipping duplicate — LLM output: "${q.question_text}"`);
         return false;
       }
       existingKeys.add(key);
@@ -507,7 +507,7 @@ export class PoolSeedService {
       this.logger.error(`[fillSlot] ${(err as Error).message}`);
       return [];
     }
-    this.logger.log(`[fillSlot] Inserted ${semanticFiltered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - semanticFiltered.length} duplicates/near-dups skipped)`);
+    this.logger.debug(`[fillSlot] Inserted ${semanticFiltered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - semanticFiltered.length} duplicates/near-dups skipped)`);
     return semanticFiltered.map((q) => q.question_text);
   }
 
@@ -707,7 +707,7 @@ export class PoolSeedService {
     }
 
     if (rejectedReasons.length > 0) {
-      this.logger.log(`[fillSlot] Integrity rejected ${rejectedReasons.length}: ${rejectedReasons.join('; ')}`);
+      this.logger.debug(`[fillSlot] Integrity rejected ${rejectedReasons.length}: ${rejectedReasons.join('; ')}`);
     }
     return passed;
   }
@@ -734,7 +734,7 @@ export class PoolSeedService {
       }
       const isDup = await this.isNearDuplicate(emb, category);
       if (isDup) {
-        this.logger.log(`[semanticDedup] Near-duplicate skipped: "${candidates[i].question_text?.slice(0, 60)}"`);
+        this.logger.debug(`[semanticDedup] Near-duplicate skipped: "${candidates[i].question_text?.slice(0, 60)}"`);
       } else {
         (candidates[i] as GeneratedQuestion & { _embedding?: number[] })._embedding = emb;
         results.push(candidates[i]);

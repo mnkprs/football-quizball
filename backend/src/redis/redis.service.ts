@@ -14,13 +14,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     // on connection errors rather than failing commands immediately.
     this.client = new Redis(url, { maxRetriesPerRequest: null });
     this.client.on('error', (err) => this.logger.error(`Redis error: ${err.message}`));
-    this.client.on('connect', () => this.logger.log('Redis connected'));
+    this.client.on('connect', () => this.logger.debug('Redis connected'));
   }
 
   async onModuleInit() {
     try {
       await this.client.ping();
-      this.logger.log('Redis ping OK');
+      this.logger.debug('Redis ping OK');
     } catch (err) {
       this.logger.error(`Redis ping failed: ${(err as Error).message}`);
     }

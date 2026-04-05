@@ -25,7 +25,7 @@ export class PoolAdminService {
     const deletedInvalid = Number(row?.deleted_invalid ?? 0);
     const deletedDuplicates = Number(row?.deleted_duplicates ?? 0);
     if (deletedInvalid > 0 || deletedDuplicates > 0) {
-      this.logger.log(`[cleanupPool] Removed ${deletedInvalid} invalid, ${deletedDuplicates} duplicates`);
+      this.logger.debug(`[cleanupPool] Removed ${deletedInvalid} invalid, ${deletedDuplicates} duplicates`);
     }
     return { deletedInvalid, deletedDuplicates };
   }
@@ -51,12 +51,12 @@ export class PoolAdminService {
 
     const ids = (toDelete ?? []).map((r: { id: string }) => r.id);
     if (ids.length === 0) {
-      this.logger.log(`[deleteQuestionsExceptVersion] No questions to delete (all are ${keepVersion})`);
+      this.logger.debug(`[deleteQuestionsExceptVersion] No questions to delete (all are ${keepVersion})`);
       return { deleted: 0, wouldDelete: 0 };
     }
 
     if (dryRun) {
-      this.logger.log(`[deleteQuestionsExceptVersion] DRY RUN: would delete ${ids.length} questions`);
+      this.logger.debug(`[deleteQuestionsExceptVersion] DRY RUN: would delete ${ids.length} questions`);
       return { deleted: 0, wouldDelete: ids.length };
     }
 
@@ -69,7 +69,7 @@ export class PoolAdminService {
       throw new Error(`[deleteQuestionsExceptVersion] Delete error: ${delErr.message}`);
     }
 
-    this.logger.log(`[deleteQuestionsExceptVersion] Deleted ${ids.length} questions (kept only ${keepVersion})`);
+    this.logger.debug(`[deleteQuestionsExceptVersion] Deleted ${ids.length} questions (kept only ${keepVersion})`);
     return { deleted: ids.length };
   }
 

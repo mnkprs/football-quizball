@@ -51,7 +51,7 @@ export class BlitzService {
     ]);
     if (totalCount > 0 && seenCount / totalCount >= 0.95) {
       await this.supabaseService.client.rpc('reset_blitz_seen_for_user', { p_user_id: userId });
-      this.logger.log(`[blitz] Reset seen pool for ${userId} (exhausted ${seenCount}/${totalCount})`);
+      this.logger.debug(`[blitz] Reset seen pool for ${userId} (exhausted ${seenCount}/${totalCount})`);
     }
 
     const questions = await this.drawBlitzQuestions(userId);
@@ -73,7 +73,7 @@ export class BlitzService {
       saved: false,
     };
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
-    this.logger.log(JSON.stringify({ event: 'blitz_session_start', userId, questionCount: questions.length }));
+    this.logger.debug(JSON.stringify({ event: 'blitz_session_start', userId, questionCount: questions.length }));
 
     return {
       session_id: sessionId,
@@ -122,7 +122,7 @@ export class BlitzService {
         });
       }
       await this.supabaseService.upsertMaxBlitzScore(userId, session.score, session.totalAnswered);
-      this.logger.log(`[blitz] Saved score for ${session.username}: ${session.score}/${session.totalAnswered}`);
+      this.logger.debug(`[blitz] Saved score for ${session.username}: ${session.score}/${session.totalAnswered}`);
     }
 
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
@@ -161,7 +161,7 @@ export class BlitzService {
     await this.supabaseService.incrementQuestionStats(userId, session.score, session.totalAnswered);
 
     await this.sessionStore.del(this.sessionKey(sessionId));
-    this.logger.log(JSON.stringify({ event: 'blitz_session_end', userId, score: session.score, totalAnswered: session.totalAnswered }));
+    this.logger.debug(JSON.stringify({ event: 'blitz_session_end', userId, score: session.score, totalAnswered: session.totalAnswered }));
 
     let newlyUnlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> = [];
     try {

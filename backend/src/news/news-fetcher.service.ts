@@ -21,7 +21,7 @@ export class NewsFetcherService {
       });
 
       const headlines = this.parseRssItems(data);
-      this.logger.log(`[fetchHeadlines] Fetched ${headlines.length} headlines`);
+      this.logger.debug(`[fetchHeadlines] Fetched ${headlines.length} headlines`);
       return headlines.slice(0, MAX_HEADLINES);
     } catch (err) {
       this.logger.error(`[fetchHeadlines] Failed: ${(err as Error).message}`);

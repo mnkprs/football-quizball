@@ -174,7 +174,7 @@ export class MigratePoolDifficultyService {
       question_version: rowById.get(u.id)?.generation_version ?? null,
     }));
 
-    this.logger.log(
+    this.logger.debug(
       `[migrate-pool-difficulty] scanned=${rows.length} updates=${updates.length} rejected=${rejectedIds.length} apply=${apply}`,
     );
 

@@ -91,7 +91,7 @@ export class ErrorLogService implements OnModuleInit, OnModuleDestroy {
         this.circuitOpen = false;
         this.circuitOpenedAt = null;
         this.consecutiveFailures = 0;
-        this.logger.log('[ErrorLogService] Circuit breaker reset — resuming writes');
+        this.logger.debug('[ErrorLogService] Circuit breaker reset — resuming writes');
       } else {
         // Still open; drop the buffer to avoid unbounded memory growth
         this.logger.warn(
@@ -250,9 +250,9 @@ export class ErrorLogService implements OnModuleInit, OnModuleDestroy {
   @Cron('0 3 * * *')
   async purgeOldLogs(): Promise<void> {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    this.logger.log(`[purgeOldLogs] Deleting entries older than ${thirtyDaysAgo}`);
+    this.logger.debug(`[purgeOldLogs] Deleting entries older than ${thirtyDaysAgo}`);
     await this.clearErrors(thirtyDaysAgo);
-    this.logger.log('[purgeOldLogs] Complete');
+    this.logger.debug('[purgeOldLogs] Complete');
   }
 
   /**

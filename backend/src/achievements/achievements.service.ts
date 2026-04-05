@@ -73,7 +73,7 @@ export class AchievementsService {
 
     if (toAward.length > 0) {
       await Promise.allSettled(toAward.map(id => this.supabaseService.awardAchievement(userId, id)));
-      this.logger.log(`[checkAndAward] Awarded to ${userId}: ${toAward.join(', ')}`);
+      this.logger.debug(`[checkAndAward] Awarded to ${userId}: ${toAward.join(', ')}`);
     }
 
     return toAward;

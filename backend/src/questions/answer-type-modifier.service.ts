@@ -77,7 +77,7 @@ export class AnswerTypeModifierService implements OnModuleInit {
     }
 
     await this.refreshCache();
-    this.logger.log(`[ensureAnswerType] Added "${key}" with modifier 0`);
+    this.logger.debug(`[ensureAnswerType] Added "${key}" with modifier 0`);
   }
 
   private async refreshCache(): Promise<void> {

@@ -113,7 +113,7 @@ export class PoolIntegrityVerifierService {
           vr.sourceUrl && 'source_url',
         ].filter(Boolean) as string[];
         corrections.push({ id: row.id, from, to, fields });
-        this.logger.log(`[verifyPoolIntegrity] Fix: ${row.id} — ${fields.join(', ')} (answer: "${from}" → "${to}")`);
+        this.logger.debug(`[verifyPoolIntegrity] Fix: ${row.id} — ${fields.join(', ')} (answer: "${from}" → "${to}")`);
 
         if (options.apply) {
           const baseMeta = { ...(q.meta ?? {}) };
@@ -172,7 +172,7 @@ export class PoolIntegrityVerifierService {
         deleted += batch.length;
       }
       if (deleted > 0) {
-        this.logger.log(`[verifyPoolIntegrity] Deleted ${deleted} hallucinated questions`);
+        this.logger.debug(`[verifyPoolIntegrity] Deleted ${deleted} hallucinated questions`);
       }
       if (deleteErrors.length > 0) {
         this.logger.warn(`[verifyPoolIntegrity] ${deleteErrors.length} delete batch(es) failed — some hallucinated questions may remain`);
@@ -180,7 +180,7 @@ export class PoolIntegrityVerifierService {
     }
 
     if (options.apply && corrections.length > 0) {
-      this.logger.log(`[verifyPoolIntegrity] Fixed ${corrections.length} questions with wrong answers`);
+      this.logger.debug(`[verifyPoolIntegrity] Fixed ${corrections.length} questions with wrong answers`);
     }
 
     return {
@@ -205,7 +205,7 @@ export class PoolIntegrityVerifierService {
     const acquired = await this.redisService.acquireLock('lock:cron:reverify-careers', 1800);
     if (!acquired) return;
     try {
-      this.logger.log('[cron] Re-verifying active-career PLAYER_ID questions');
+      this.logger.debug('[cron] Re-verifying active-career PLAYER_ID questions');
 
       const { data: rows, error } = await this.supabaseService.client
         .from('question_pool')
@@ -224,14 +224,14 @@ export class PoolIntegrityVerifierService {
       });
 
       if (activeRows.length === 0) {
-        this.logger.log('[cron] reverifyActiveCareer: no active-career questions found');
+        this.logger.debug('[cron] reverifyActiveCareer: no active-career questions found');
         return;
       }
 
-      this.logger.log(`[cron] reverifyActiveCareer: checking ${activeRows.length} questions`);
+      this.logger.debug(`[cron] reverifyActiveCareer: checking ${activeRows.length} questions`);
       const ids = activeRows.map((r) => r.id);
       const result = await this.verifyPoolIntegrity({ questionIds: ids, apply: true });
-      this.logger.log(
+      this.logger.debug(
         `[cron] reverifyActiveCareer done — scanned: ${result.scanned}, fixed: ${result.fixed}, deleted: ${result.deleted}`,
       );
     } finally {

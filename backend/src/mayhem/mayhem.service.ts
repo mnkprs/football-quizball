@@ -43,7 +43,7 @@ export class MayhemService {
     try {
       const current = await this.getMayhemPoolCount();
       if (current >= MAYHEM_POOL_TARGET) {
-        this.logger.log(`[ingestMayhem] Pool has ${current} MAYHEM questions, skipping`);
+        this.logger.debug(`[ingestMayhem] Pool has ${current} MAYHEM questions, skipping`);
         return { added: 0, skipped: 0 };
       }
       return await this.runIngestBatch();
@@ -107,7 +107,7 @@ export class MayhemService {
           await new Promise((r) => setTimeout(r, 2000));
         }
         if (integrityRejected > 0) {
-          this.logger.log(`[ingestMayhem] Integrity rejected ${integrityRejected} MAYHEM questions`);
+          this.logger.debug(`[ingestMayhem] Integrity rejected ${integrityRejected} MAYHEM questions`);
         }
         validQuestions = passed;
       }
@@ -143,7 +143,7 @@ export class MayhemService {
       }
 
       added = rows.length;
-      this.logger.log(`[ingestMayhem] Inserted ${added} MAYHEM questions (${skipped} skipped)`);
+      this.logger.debug(`[ingestMayhem] Inserted ${added} MAYHEM questions (${skipped} skipped)`);
     } catch (err) {
       this.logger.error(`[runIngestBatch] Unexpected error: ${(err as Error).message}`);
     }
@@ -225,7 +225,7 @@ export class MayhemService {
     }
     const deleted = (data as number) ?? 0;
     if (deleted > 0) {
-      this.logger.log(`[expireOldMayhem] Deleted ${deleted} MAYHEM questions older than 30 days`);
+      this.logger.debug(`[expireOldMayhem] Deleted ${deleted} MAYHEM questions older than 30 days`);
     }
     return deleted;
   }

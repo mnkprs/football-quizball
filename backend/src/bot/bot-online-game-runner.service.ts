@@ -107,7 +107,7 @@ export class BotOnlineGameRunner implements OnModuleInit {
 
     await this.onlineGameService.submitAnswer(botId, gameId, { questionId, answer });
 
-    this.logger.log(
+    this.logger.debug(
       `[BotOnlineRunner] Bot ${botId} answered "${questionId}" in game ${gameId} (${correct ? 'correct' : 'wrong'})`,
     );
   }

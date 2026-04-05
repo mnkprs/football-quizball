@@ -163,7 +163,7 @@ export class QuestionDrawService {
     }
     const count = (data as number) ?? 0;
     if (count > 0) {
-      this.logger.log(`[returnUnansweredToPool] Returned ${count} unanswered questions to pool`);
+      this.logger.debug(`[returnUnansweredToPool] Returned ${count} unanswered questions to pool`);
     } else if (questionIds.length > 0) {
       this.logger.warn(`[returnUnansweredToPool] RPC returned 0 updated rows for ${questionIds.length} ids — check id format matches question_pool`);
     }

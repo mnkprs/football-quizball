@@ -106,7 +106,7 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async seedPool(@Query() dto: SeedPoolQueryDto) {
     const count = dto.target!;
-    this.logger.log(`[seed-pool] Request received: target=${count}`);
+    this.logger.debug(`[seed-pool] Request received: target=${count}`);
     const { results, sessionId, questionIds } = await this.questionPoolService.seedPool(count, true);
     return {
       target: count,
@@ -245,7 +245,7 @@ export class AdminController {
     @Query('range') range?: string,
   ) {
     const applyFlag = apply === 'true' || apply === '1';
-    this.logger.log(
+    this.logger.debug(
       `[migrate-pool-difficulty] Request: apply=${applyFlag} slot=${slot ?? 'all'} range=${range ?? 'all'}`,
     );
     return this.migratePoolDifficultyService.migrate({

@@ -162,7 +162,7 @@ export class OnlineGameService {
         match_mode: 'online',
         is_bot_match: isBotMatch,
       });
-      this.logger.log(JSON.stringify({
+      this.logger.debug(JSON.stringify({
         event: 'game_finished',
         gameId: row['id'],
         winnerId,
@@ -270,7 +270,7 @@ export class OnlineGameService {
       .single();
 
     if (error || !data) throw new BadRequestException('Failed to create online game');
-    this.logger.log(JSON.stringify({ event: 'game_created', gameId: (data as Record<string,unknown>)['id'], userId }));
+    this.logger.debug(JSON.stringify({ event: 'game_created', gameId: (data as Record<string,unknown>)['id'], userId }));
     const { host, guest } = await this.getUsernames(userId, null);
     return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
   }
@@ -356,7 +356,7 @@ export class OnlineGameService {
       .select()
       .single();
     if (error || !data) throw new BadRequestException('Failed to join game');
-    this.logger.log(JSON.stringify({ event: 'game_joined', gameId: row['id'], userId, via: 'invite_code' }));
+    this.logger.debug(JSON.stringify({ event: 'game_joined', gameId: row['id'], userId, via: 'invite_code' }));
     // Record the existing pool questions in the guest's history (board was drawn by host)
     const existingPoolIds = (row['pool_question_ids'] as string[] | null) ?? [];
     void this.questionPoolService.recordBoardHistory(existingPoolIds, [userId]).catch((err) =>
@@ -466,7 +466,7 @@ export class OnlineGameService {
       throw new ConflictException('Turn already taken');
     }
 
-    this.logger.log(JSON.stringify({
+    this.logger.debug(JSON.stringify({
       event: 'answer_submitted',
       gameId,
       userId,
@@ -802,7 +802,7 @@ export class OnlineGameService {
         .lt('turn_deadline', new Date().toISOString());
 
       if (!expired || expired.length === 0) return;
-      this.logger.log(`[processExpiredTurns] Processing ${expired.length} expired turns`);
+      this.logger.debug(`[processExpiredTurns] Processing ${expired.length} expired turns`);
 
       for (const game of expired as { id: string }[]) {
         await this.processTurnExpiry(game.id).catch((err: Error) =>

@@ -37,7 +37,7 @@ export class SoloService {
     if (!profile) throw new NotFoundException('User profile not found');
 
     const sessionId = crypto.randomUUID();
-    this.logger.log(JSON.stringify({ event: 'session_start', userId, userElo: profile.elo }));
+    this.logger.debug(JSON.stringify({ event: 'session_start', userId, userElo: profile.elo }));
     const session: SoloSession = {
       id: sessionId,
       userId,
@@ -141,7 +141,7 @@ export class SoloService {
         timed_out: timedOut,
       }),
     ]);
-    this.logger.log(JSON.stringify({
+    this.logger.debug(JSON.stringify({
       event: 'answer_submitted',
       userId,
       correct,
@@ -179,7 +179,7 @@ export class SoloService {
     if (session.drawnQuestionIds.length > 0) {
       const returned = await this.questionPoolService.returnUnansweredToPool(session.drawnQuestionIds);
       if (returned > 0) {
-        this.logger.log(`[endSession] Returned ${returned} questions to pool for reuse`);
+        this.logger.debug(`[endSession] Returned ${returned} questions to pool for reuse`);
       }
     }
 
@@ -204,7 +204,7 @@ export class SoloService {
       }
     } catch { /* don't break session end if achievements fail */ }
 
-    this.logger.log(JSON.stringify({
+    this.logger.debug(JSON.stringify({
       event: 'session_end',
       userId,
       questionsAnswered: session.questionsAnswered,
