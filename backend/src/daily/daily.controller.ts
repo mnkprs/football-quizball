@@ -3,7 +3,7 @@ import { DailyService } from './daily.service';
 
 @Controller('api/daily')
 export class DailyController {
-  constructor(private dailyService: DailyService) {}
+  constructor(private readonly dailyService: DailyService) {}
 
   /**
    * Returns today's "On this day in football" questions.

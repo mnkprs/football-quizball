@@ -83,7 +83,7 @@ function convertToOutlines(svg: string, keep: Set<number>): string {
   return new dom.window.XMLSerializer().serializeToString(doc);
 }
 
-async function svgToPng(svg: string | Buffer, size = 512): Promise<Buffer> {
+function svgToPng(svg: string | Buffer, size = 512): Promise<Buffer> {
   return sharp(typeof svg === 'string' ? Buffer.from(svg) : svg)
     .resize(size, size, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
     .png().toBuffer();

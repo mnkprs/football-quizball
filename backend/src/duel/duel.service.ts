@@ -41,10 +41,10 @@ export class DuelService {
   private readonly logger = new Logger(DuelService.name);
 
   constructor(
-    private supabaseService: SupabaseService,
-    private questionPoolService: QuestionPoolService,
-    private answerValidator: AnswerValidator,
-    private logoQuizService: LogoQuizService,
+    private readonly supabaseService: SupabaseService,
+    private readonly questionPoolService: QuestionPoolService,
+    private readonly answerValidator: AnswerValidator,
+    private readonly logoQuizService: LogoQuizService,
   ) {}
 
   // ── Create / Join ─────────────────────────────────────────────────────────
@@ -95,7 +95,9 @@ export class DuelService {
 
     // Record drawn questions in host's history (fire-and-forget)
     if (gameType === 'standard') {
-      this.questionPoolService.recordBoardHistory(poolQuestionIds, [hostId]).catch(() => {});
+      void this.questionPoolService.recordBoardHistory(poolQuestionIds, [hostId]).catch((err) =>
+        this.logger.warn(`[createGame] recordBoardHistory failed: ${err?.message}`),
+      );
     }
 
     const hostUsername = await this.getUsername(hostId);
@@ -137,7 +139,9 @@ export class DuelService {
     // Record the questions in the guest's history so they don't see them again in future games
     if ((updated as DuelGameRow).game_type === 'standard') {
       const poolIds = ((updated as DuelGameRow).pool_question_ids ?? []);
-      this.questionPoolService.recordBoardHistory(poolIds, [guestId]).catch(() => {});
+      void this.questionPoolService.recordBoardHistory(poolIds, [guestId]).catch((err) =>
+        this.logger.warn(`[joinByCode] recordBoardHistory failed: ${err?.message}`),
+      );
     }
 
     const [hostUsername, guestUsername] = await Promise.all([
@@ -204,7 +208,9 @@ export class DuelService {
         // Record questions in guest's history (board was drawn by host)
         if (gameType === 'standard') {
           const joinedPoolIds = (candidate.pool_question_ids ?? []);
-          this.questionPoolService.recordBoardHistory(joinedPoolIds, [userId]).catch(() => {});
+          void this.questionPoolService.recordBoardHistory(joinedPoolIds, [userId]).catch((err) =>
+            this.logger.warn(`[joinQueue] recordBoardHistory failed: ${err?.message}`),
+          );
         }
         const [hostUsername, guestUsername] = await Promise.all([
           this.getUsername(candidate.host_id),
@@ -235,7 +241,9 @@ export class DuelService {
 
     if (error || !data) throw new BadRequestException('Failed to join queue.');
     if (gameType === 'standard') {
-      this.questionPoolService.recordBoardHistory(questions.map((q) => q.id), [userId]).catch(() => {});
+      void this.questionPoolService.recordBoardHistory(questions.map((q) => q.id), [userId]).catch((err) =>
+        this.logger.warn(`[joinQueue] recordBoardHistory failed: ${err?.message}`),
+      );
     }
     const hostUsername = await this.getUsername(userId);
     return this.toPublicView(data as DuelGameRow, userId, hostUsername, null);
@@ -349,7 +357,9 @@ export class DuelService {
 
     if (!correct) {
       // Increment profile-level questions_answered (wrong answer still counts as answered)
-      this.supabaseService.incrementQuestionStats(userId, 0).catch(() => {});
+      void this.supabaseService.incrementQuestionStats(userId, 0).catch((err) =>
+        this.logger.warn(`[submitAnswer] incrementQuestionStats failed: ${err?.message}`),
+      );
       return { correct: false };
     }
 
@@ -394,7 +404,9 @@ export class DuelService {
     }
 
     // Increment profile-level questions_answered / correct_answers
-    this.supabaseService.incrementQuestionStats(userId, 1).catch(() => {});
+    void this.supabaseService.incrementQuestionStats(userId, 1).catch((err) =>
+      this.logger.warn(`[submitAnswer] incrementQuestionStats failed: ${err?.message}`),
+    );
 
     const gameWinner: 'host' | 'guest' | 'draw' | undefined = gameFinished ? role : undefined;
 
@@ -420,7 +432,7 @@ export class DuelService {
     // Return ALL pool questions so they can be drawn in future games.
     const poolIds = (row.pool_question_ids ?? []).filter(Boolean);
     if (poolIds.length > 0) {
-      this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
+      void this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
         this.logger.warn(`[abandonGame] Failed to return questions to pool: ${err.message}`),
       );
     }

@@ -17,7 +17,7 @@ export class AnswerTypeModifierService implements OnModuleInit {
   /** Cache: key = normalized answer_type, or "category:answer_type" for category-specific. Value = modifier. */
   private cache = new Map<string, number>();
 
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private readonly supabaseService: SupabaseService) {}
 
   async onModuleInit(): Promise<void> {
     await this.refreshCache();

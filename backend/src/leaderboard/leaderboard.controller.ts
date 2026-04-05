@@ -6,7 +6,7 @@ const LIMIT = 5;
 
 @Controller('api/leaderboard')
 export class LeaderboardController {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private readonly supabaseService: SupabaseService) {}
 
   @Get()
   async getLeaderboard() {

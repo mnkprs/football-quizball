@@ -14,7 +14,7 @@ const SKIP_JUDGE_CATEGORIES = new Set(['HIGHER_OR_LOWER', 'GUESS_SCORE', 'PLAYER
 export class AnswerValidator {
   private readonly logger = new Logger(AnswerValidator.name);
 
-  constructor(private llmService: LlmService) {}
+  constructor(private readonly llmService: LlmService) {}
 
   validate(question: GeneratedQuestion, submittedAnswer: string): boolean {
     switch (question.category) {
@@ -137,7 +137,7 @@ export class AnswerValidator {
   }
 
   /** Calls LLM to judge if submitted is an acceptable alternative for correct. Times out after JUDGE_TIMEOUT_MS. */
-  private async validateWithJudge(question: GeneratedQuestion, correct: string, submitted: string): Promise<boolean> {
+  private validateWithJudge(question: GeneratedQuestion, correct: string, submitted: string): Promise<boolean> {
     const systemPrompt = 'You are an answer validation judge for a football quiz. Reply with only "yes" or "no".';
     const userPrompt = `Question: ${question.question_text}\nCorrect answer: ${correct}\nUser submitted: ${submitted}\nIs the submitted answer an acceptable alternative for the correct answer?`;
 

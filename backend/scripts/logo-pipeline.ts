@@ -81,7 +81,7 @@ async function downloadBuffer(url: string): Promise<Buffer> {
   return Buffer.from(await res.arrayBuffer());
 }
 
-async function svgToWebp(svgBuffer: Buffer): Promise<Buffer> {
+function svgToWebp(svgBuffer: Buffer): Promise<Buffer> {
   return sharp(svgBuffer)
     .resize(OUTPUT_SIZE, OUTPUT_SIZE, {
       fit: 'contain',
@@ -92,7 +92,7 @@ async function svgToWebp(svgBuffer: Buffer): Promise<Buffer> {
     .toBuffer();
 }
 
-async function pngToWebp(pngBuffer: Buffer): Promise<Buffer> {
+function pngToWebp(pngBuffer: Buffer): Promise<Buffer> {
   return sharp(pngBuffer)
     .resize(OUTPUT_SIZE, OUTPUT_SIZE, {
       fit: 'contain',
@@ -121,7 +121,7 @@ async function uploadToSupabase(
   return data.publicUrl;
 }
 
-async function sleep(ms: number): Promise<void> {
+function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 

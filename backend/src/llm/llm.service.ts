@@ -88,8 +88,8 @@ export class LlmService {
   private readonly deepseek: OpenAI | null = null;
 
   constructor(
-    private configService: ConfigService,
-    private redisService: RedisService,
+    private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {
     const vertexKey = this.configService.get<string>('VERTEX_AI_KEY');
     const vertexProject = this.configService.get<string>('GOOGLE_CLOUD_PROJECT');
@@ -135,7 +135,7 @@ export class LlmService {
   /**
    * Generates structured JSON. Uses DeepSeek when configured, else Gemini.
    */
-  async generateStructuredJson<T>(
+  generateStructuredJson<T>(
     systemPrompt: string,
     userPrompt: string,
     maxRetries = 3,
@@ -147,7 +147,7 @@ export class LlmService {
    * Generates structured JSON with Google Search grounding for factual verification.
    * Always uses Gemini (DeepSeek has no web search). Used by QuestionIntegrityService.
    */
-  async generateStructuredJsonWithWebSearch<T>(
+  generateStructuredJsonWithWebSearch<T>(
     systemPrompt: string,
     userPrompt: string,
     options?: { useWebSearch?: boolean; maxRetries?: number },

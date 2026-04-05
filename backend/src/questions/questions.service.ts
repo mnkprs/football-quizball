@@ -26,15 +26,15 @@ export class QuestionsService {
   private readonly logger = new Logger(QuestionsService.name);
 
   constructor(
-    private answerTypeModifierService: AnswerTypeModifierService,
-    private difficultyScorer: DifficultyScorer,
-    private historyGenerator: HistoryGenerator,
-    private playerIdGenerator: PlayerIdGenerator,
-    private higherOrLowerGenerator: HigherOrLowerGenerator,
-    private guessScoreGenerator: GuessScoreGenerator,
-    private top5Generator: Top5Generator,
-    private geographyGenerator: GeographyGenerator,
-    private gossipGenerator: GossipGenerator,
+    private readonly answerTypeModifierService: AnswerTypeModifierService,
+    private readonly difficultyScorer: DifficultyScorer,
+    private readonly historyGenerator: HistoryGenerator,
+    private readonly playerIdGenerator: PlayerIdGenerator,
+    private readonly higherOrLowerGenerator: HigherOrLowerGenerator,
+    private readonly guessScoreGenerator: GuessScoreGenerator,
+    private readonly top5Generator: Top5Generator,
+    private readonly geographyGenerator: GeographyGenerator,
+    private readonly gossipGenerator: GossipGenerator,
   ) {}
 
   /**
@@ -225,9 +225,9 @@ export class QuestionsService {
       ? { ...question.difficulty_factors, category: options.categoryOverride }
       : question.difficulty_factors;
     const result = this.difficultyScorer.score(factors);
-    this.answerTypeModifierService
+    void this.answerTypeModifierService
       .ensureAnswerType(factors.answer_type, factors.category)
-      .catch(() => {});
+      .catch((err) => this.logger.warn(`[scoreQuestion] ensureAnswerType failed: ${err?.message}`));
     if (result.rejected) {
       this.logger.debug(`[scoreQuestion] Rejected ${question.category}: ${result.rejectReason}`);
       return {

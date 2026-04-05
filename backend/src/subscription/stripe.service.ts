@@ -5,10 +5,10 @@ import Stripe from 'stripe';
 @Injectable()
 export class StripeService {
   private stripe: Stripe | null = null;
-  private webhookSecret: string;
-  private priceId: string;
+  private readonly webhookSecret: string;
+  private readonly priceId: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     this.webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET') ?? '';
     this.priceId = this.configService.get<string>('STRIPE_PRICE_ID') ?? '';

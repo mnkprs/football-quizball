@@ -47,10 +47,10 @@ export class OnlineGameService {
   private readonly logger = new Logger(OnlineGameService.name);
 
   constructor(
-    private supabaseService: SupabaseService,
-    private questionPoolService: QuestionPoolService,
-    private answerValidator: AnswerValidator,
-    private redisService: RedisService,
+    private readonly supabaseService: SupabaseService,
+    private readonly questionPoolService: QuestionPoolService,
+    private readonly answerValidator: AnswerValidator,
+    private readonly redisService: RedisService,
   ) {}
 
   // ── Premium enforcement ─────────────────────────────────────────────────────
@@ -140,7 +140,7 @@ export class OnlineGameService {
     // Return ALL pool questions — user_question_history handles per-user dedup going forward.
     const poolIds = (row['pool_question_ids'] as string[] | null) ?? [];
     if (poolIds.length > 0) {
-      this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
+      void this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
         this.logger.warn(`[saveMatchHistoryIfFinished] Failed to return questions to pool: ${err.message}`),
       );
     }
@@ -304,7 +304,9 @@ export class OnlineGameService {
         .single();
       if (error || !data) throw new BadRequestException('Failed to join queued game');
       const existingPoolIds = (existing['pool_question_ids'] as string[] | null) ?? [];
-      this.questionPoolService.recordBoardHistory(existingPoolIds, [userId]).catch(() => {});
+      void this.questionPoolService.recordBoardHistory(existingPoolIds, [userId]).catch((err) =>
+        this.logger.warn(`[joinQueue] recordBoardHistory failed: ${err?.message}`),
+      );
       const { host, guest } = await this.getUsernames(existing['host_id'] as string, userId);
       return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
     }
@@ -357,7 +359,9 @@ export class OnlineGameService {
     this.logger.log(JSON.stringify({ event: 'game_joined', gameId: row['id'], userId, via: 'invite_code' }));
     // Record the existing pool questions in the guest's history (board was drawn by host)
     const existingPoolIds = (row['pool_question_ids'] as string[] | null) ?? [];
-    this.questionPoolService.recordBoardHistory(existingPoolIds, [userId]).catch(() => {});
+    void this.questionPoolService.recordBoardHistory(existingPoolIds, [userId]).catch((err) =>
+      this.logger.warn(`[joinByCode] recordBoardHistory failed: ${err?.message}`),
+    );
     const { host, guest } = await this.getUsernames(row['host_id'] as string, userId);
     return this.toPublicView(data as Record<string, unknown>, userId, host, guest);
   }

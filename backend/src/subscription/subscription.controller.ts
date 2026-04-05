@@ -11,11 +11,11 @@ export class SubscriptionController {
   private readonly logger = new Logger(SubscriptionController.name);
 
   constructor(
-    private stripeService: StripeService,
-    private subscriptionService: SubscriptionService,
-    private iapValidationService: IapValidationService,
-    private supabaseService: SupabaseService,
-    private configService: ConfigService,
+    private readonly stripeService: StripeService,
+    private readonly subscriptionService: SubscriptionService,
+    private readonly iapValidationService: IapValidationService,
+    private readonly supabaseService: SupabaseService,
+    private readonly configService: ConfigService,
   ) {}
 
   // ─── IAP Endpoints ──────────────────────────────────────────────────

@@ -15,13 +15,13 @@ export class SoloService {
   private readonly logger = new Logger(SoloService.name);
 
   constructor(
-    private sessionStore: SessionStoreService,
-    private supabaseService: SupabaseService,
-    private questionPoolService: QuestionPoolService,
-    private eloService: EloService,
-    private generator: SoloQuestionGenerator,
-    private answerValidator: AnswerValidator,
-    private achievementsService: AchievementsService,
+    private readonly sessionStore: SessionStoreService,
+    private readonly supabaseService: SupabaseService,
+    private readonly questionPoolService: QuestionPoolService,
+    private readonly eloService: EloService,
+    private readonly generator: SoloQuestionGenerator,
+    private readonly answerValidator: AnswerValidator,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   private sessionKey(id: string) { return `solo:${id}`; }
@@ -80,7 +80,9 @@ export class SoloService {
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
 
     // Fire-and-forget: record this question as seen for user dedup
-    this.supabaseService.recordSeenQuestion(userId, question.id).catch(() => {});
+    void this.supabaseService.recordSeenQuestion(userId, question.id).catch((err) =>
+      this.logger.warn(`[getNextQuestion] recordSeenQuestion failed: ${err?.message}`),
+    );
 
     return {
       question_id: question.id,

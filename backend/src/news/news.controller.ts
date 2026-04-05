@@ -6,8 +6,8 @@ import { AuthService } from '../auth/auth.service';
 @Controller('api/news')
 export class NewsController {
   constructor(
-    private newsService: NewsService,
-    private authService: AuthService,
+    private readonly newsService: NewsService,
+    private readonly authService: AuthService,
   ) {}
 
   /**

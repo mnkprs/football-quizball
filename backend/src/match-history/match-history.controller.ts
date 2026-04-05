@@ -4,7 +4,7 @@ import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('api/match-history')
 export class MatchHistoryController {
-  constructor(private matchHistoryService: MatchHistoryService) {}
+  constructor(private readonly matchHistoryService: MatchHistoryService) {}
 
   @Post()
   @UseGuards(AuthGuard)

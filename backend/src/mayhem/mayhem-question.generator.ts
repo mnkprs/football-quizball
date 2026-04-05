@@ -70,7 +70,7 @@ Distribute questions across ALL THREE anchors. Do NOT put more than 3 questions 
 export class MayhemQuestionGenerator {
   private readonly logger = new Logger(MayhemQuestionGenerator.name);
 
-  constructor(private llmService: LlmService) {}
+  constructor(private readonly llmService: LlmService) {}
 
   async generateBatch(): Promise<GeneratedQuestion[]> {
     const diversityAnchor = buildMayhemDiversityAnchor();

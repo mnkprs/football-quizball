@@ -46,7 +46,7 @@ export class ErrorLogService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): void {
     this.flushTimer = setInterval(() => {
-      this.flushBuffer().catch((err) =>
+      void this.flushBuffer().catch((err) =>
         this.logger.error(`[flushBuffer interval] ${(err as Error).message}`),
       );
     }, this.FLUSH_INTERVAL_MS);
@@ -58,7 +58,7 @@ export class ErrorLogService implements OnModuleInit, OnModuleDestroy {
       this.flushTimer = null;
     }
     // Best-effort final flush on shutdown
-    this.flushBuffer().catch(() => void 0);
+    void this.flushBuffer().catch(() => void 0);
   }
 
   /**
@@ -68,7 +68,7 @@ export class ErrorLogService implements OnModuleInit, OnModuleDestroy {
   bufferError(entry: BufferedEntry): void {
     this.buffer.push(entry);
     if (this.buffer.length >= this.BUFFER_FLUSH_THRESHOLD) {
-      this.flushBuffer().catch((err) =>
+      void this.flushBuffer().catch((err) =>
         this.logger.error(`[flushBuffer trigger] ${(err as Error).message}`),
       );
     }

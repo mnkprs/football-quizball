@@ -29,8 +29,8 @@ export class SupabaseService {
   private readonly logger = new Logger(SupabaseService.name);
 
   constructor(
-    private configService: ConfigService,
-    private redisService: RedisService,
+    private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
   ) {
     const url = this.configService.get<string>('SUPABASE_URL')!;
     const key = this.configService.get<string>('SUPABASE_SERVICE_ROLE_KEY')!;

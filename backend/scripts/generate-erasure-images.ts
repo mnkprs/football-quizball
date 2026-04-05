@@ -167,7 +167,7 @@ function removeSvgElements(svgContent: string, indicesToRemove: Set<number>): st
   });
 }
 
-async function svgToPng(svgContent: string, size: number = 512): Promise<Buffer> {
+function svgToPng(svgContent: string, size: number = 512): Promise<Buffer> {
   return sharp(Buffer.from(svgContent))
     .resize(size, size, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
     .png()

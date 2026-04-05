@@ -4,7 +4,7 @@ import { ReportProblemDto } from './dto/report-problem.dto';
 
 @Injectable()
 export class ReportsService {
-  constructor(private supabase: SupabaseService) {}
+  constructor(private readonly supabase: SupabaseService) {}
 
   async reportProblem(dto: ReportProblemDto): Promise<void> {
     await this.supabase.client.from('problem_reports').insert({

@@ -20,13 +20,13 @@ export class NewsService {
   private isIngesting = false;
 
   constructor(
-    private newsFetcher: NewsFetcherService,
-    private newsGenerator: NewsQuestionGenerator,
-    private supabaseService: SupabaseService,
-    private questionValidator: QuestionValidator,
-    private questionIntegrity: QuestionIntegrityService,
-    private answerValidator: AnswerValidator,
-    private redisService: RedisService,
+    private readonly newsFetcher: NewsFetcherService,
+    private readonly newsGenerator: NewsQuestionGenerator,
+    private readonly supabaseService: SupabaseService,
+    private readonly questionValidator: QuestionValidator,
+    private readonly questionIntegrity: QuestionIntegrityService,
+    private readonly answerValidator: AnswerValidator,
+    private readonly redisService: RedisService,
   ) {}
 
   /**

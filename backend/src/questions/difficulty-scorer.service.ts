@@ -190,8 +190,8 @@ function getRejectReason(factors: DifficultyFactors, tier: number): string | nul
 @Injectable()
 export class DifficultyScorer {
   constructor(
-    private answerTypeModifierService: AnswerTypeModifierService,
-    private thresholdConfig: ThresholdConfigService,
+    private readonly answerTypeModifierService: AnswerTypeModifierService,
+    private readonly thresholdConfig: ThresholdConfigService,
   ) {}
 
   score(factors: DifficultyFactors): DifficultyScoreResult {

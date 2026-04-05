@@ -25,8 +25,8 @@ export class QuestionIntegrityService {
   private readonly enabled: boolean;
 
   constructor(
-    private configService: ConfigService,
-    private llmService: LlmService,
+    private readonly configService: ConfigService,
+    private readonly llmService: LlmService,
   ) {
     this.enabled =
       this.configService.get<string>('ENABLE_INTEGRITY_VERIFICATION') === 'true' ||

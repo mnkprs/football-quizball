@@ -53,7 +53,7 @@ interface LogosJson {
   by_competition: Record<string, TeamLogo[]>;
 }
 
-async function sleep(ms: number) {
+function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 

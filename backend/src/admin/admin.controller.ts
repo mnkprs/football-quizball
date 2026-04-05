@@ -21,16 +21,16 @@ export class AdminController {
   private readonly logger = new Logger(AdminController.name);
 
   constructor(
-    private questionPoolService: QuestionPoolService,
-    private adminScriptsService: AdminScriptsService,
-    private migratePoolDifficultyService: MigratePoolDifficultyService,
-    private thresholdConfig: ThresholdConfigService,
-    private botMatchmaker: BotMatchmakerService,
-    private botOnlineRunner: BotOnlineGameRunner,
-    private adminStatsService: AdminStatsService,
-    private errorLogService: ErrorLogService,
-    private supabaseService: SupabaseService,
-    private adminUserService: AdminUserService,
+    private readonly questionPoolService: QuestionPoolService,
+    private readonly adminScriptsService: AdminScriptsService,
+    private readonly migratePoolDifficultyService: MigratePoolDifficultyService,
+    private readonly thresholdConfig: ThresholdConfigService,
+    private readonly botMatchmaker: BotMatchmakerService,
+    private readonly botOnlineRunner: BotOnlineGameRunner,
+    private readonly adminStatsService: AdminStatsService,
+    private readonly errorLogService: ErrorLogService,
+    private readonly supabaseService: SupabaseService,
+    private readonly adminUserService: AdminUserService,
   ) {}
 
   /**

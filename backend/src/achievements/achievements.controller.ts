@@ -3,7 +3,7 @@ import { AchievementsService } from './achievements.service';
 
 @Controller('api/achievements')
 export class AchievementsController {
-  constructor(private achievementsService: AchievementsService) {}
+  constructor(private readonly achievementsService: AchievementsService) {}
 
   @Get(':userId')
   async getForUser(@Param('userId') userId: string) {

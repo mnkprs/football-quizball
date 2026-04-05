@@ -22,9 +22,9 @@ import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
 @Injectable()
 export class LogoQuizService {
   constructor(
-    private supabaseService: SupabaseService,
-    private eloService: EloService,
-    private achievementsService: AchievementsService,
+    private readonly supabaseService: SupabaseService,
+    private readonly eloService: EloService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   /**

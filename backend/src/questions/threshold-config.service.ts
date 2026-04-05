@@ -33,7 +33,7 @@ export class ThresholdConfigService {
   private readonly logger = new Logger(ThresholdConfigService.name);
   private cached: ScoreThresholds | null = null;
 
-  constructor(private configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   private getConfigPath(): string {
     const root = process.cwd();

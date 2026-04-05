@@ -113,7 +113,7 @@ function extractSvgColors(svgContent: string): string[] {
   return [...new Set(colors.filter(Boolean))];
 }
 
-async function svgToPng(svgBuffer: Buffer): Promise<Buffer> {
+function svgToPng(svgBuffer: Buffer): Promise<Buffer> {
   return sharp(svgBuffer)
     .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
     .png()

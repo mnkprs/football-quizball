@@ -6,8 +6,8 @@ import { AuthGuard } from '../auth/auth.guard';
 @Controller('api/mayhem')
 export class MayhemController {
   constructor(
-    private mayhemService: MayhemService,
-    private mayhemSessionService: MayhemSessionService,
+    private readonly mayhemService: MayhemService,
+    private readonly mayhemSessionService: MayhemSessionService,
   ) {}
 
   @Post('ingest')

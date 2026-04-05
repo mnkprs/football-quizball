@@ -32,10 +32,10 @@ export class MayhemSessionService {
   private readonly logger = new Logger(MayhemSessionService.name);
 
   constructor(
-    private sessionStore: SessionStoreService,
-    private supabaseService: SupabaseService,
-    private eloService: EloService,
-    private achievementsService: AchievementsService,
+    private readonly sessionStore: SessionStoreService,
+    private readonly supabaseService: SupabaseService,
+    private readonly eloService: EloService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   private sessionKey(id: string) { return `mayhem:${id}`; }
@@ -177,7 +177,7 @@ export class MayhemSessionService {
     };
   }
 
-  async getLeaderboard(): Promise<Array<{
+  getLeaderboard(): Promise<Array<{
     user_id: string; username: string; current_elo: number; max_elo: number; games_played: number;
   }>> {
     return this.supabaseService.getMayhemLeaderboard(10);

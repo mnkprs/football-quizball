@@ -365,7 +365,9 @@ export class BattleRoyaleService {
       .eq('room_id', roomId);
 
     // Schedule auto-finish
-    setTimeout(() => this.autoFinishRoom(roomId), ROOM_TIMEOUT_MS);
+    setTimeout(() => void this.autoFinishRoom(roomId).catch((err) =>
+      this.logger.warn(`[br] autoFinishRoom failed: ${err?.message}`),
+    ), ROOM_TIMEOUT_MS);
   }
 
   // ── Deal logo questions to each player (team_logo mode) ──────────────────────
@@ -521,14 +523,18 @@ export class BattleRoyaleService {
     }
 
     // Increment profile-level questions_answered / correct_answers
-    this.supabaseService.incrementQuestionStats(userId, correct ? 1 : 0).catch(() => {});
+    void this.supabaseService.incrementQuestionStats(userId, correct ? 1 : 0).catch((err) =>
+      this.logger.warn(`[submitAnswer] incrementQuestionStats failed: ${err?.message}`),
+    );
 
     // Check if all players are done and record match history for this player
     if (isLastQuestion) {
       await this.checkAndFinishRoom(roomId);
       // Force-finish room 30s after any player completes, in case bots stall
-      setTimeout(() => this.autoFinishRoom(roomId), 30_000);
-      this.supabaseService.saveMatchResult({
+      setTimeout(() => void this.autoFinishRoom(roomId).catch((err) =>
+        this.logger.warn(`[br] autoFinishRoom failed: ${err?.message}`),
+      ), 30_000);
+      void this.supabaseService.saveMatchResult({
         player1_id: userId,
         player2_id: null,
         player1_username: player.username,

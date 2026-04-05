@@ -8,11 +8,11 @@ export class FootballApiService {
   private readonly logger = new Logger(FootballApiService.name);
   private readonly sportsDbBase = 'https://www.thesportsdb.com/api/v1/json/3';
   private readonly apiFootballBase = 'https://v3.football.api-sports.io';
-  private apiFootballKey: string;
+  private readonly apiFootballKey: string;
 
   constructor(
-    private configService: ConfigService,
-    private cacheService: CacheService,
+    private readonly configService: ConfigService,
+    private readonly cacheService: CacheService,
   ) {
     this.apiFootballKey =
       this.configService.get<string>('API_FOOTBALL_KEY') || '';
@@ -74,35 +74,35 @@ export class FootballApiService {
   }
 
   // TheSportsDB methods
-  async searchPlayer(name: string): Promise<any> {
+  searchPlayer(name: string): Promise<any> {
     return this.sportsDbGet<any>('searchplayers.php', { p: name });
   }
 
-  async getPlayerById(id: string): Promise<any> {
+  getPlayerById(id: string): Promise<any> {
     return this.sportsDbGet<any>('lookupplayer.php', { id });
   }
 
-  async getTeamByName(name: string): Promise<any> {
+  getTeamByName(name: string): Promise<any> {
     return this.sportsDbGet<any>('searchteams.php', { t: name });
   }
 
-  async getTeamById(id: string): Promise<any> {
+  getTeamById(id: string): Promise<any> {
     return this.sportsDbGet<any>('lookupteam.php', { id });
   }
 
-  async getAllLeagues(): Promise<any> {
+  getAllLeagues(): Promise<any> {
     return this.sportsDbGet<any>('all_leagues.php');
   }
 
-  async getLeagueTeams(leagueId: string): Promise<any> {
+  getLeagueTeams(leagueId: string): Promise<any> {
     return this.sportsDbGet<any>('lookup_all_teams.php', { id: leagueId });
   }
 
-  async getPlayerContracts(playerId: string): Promise<any> {
+  getPlayerContracts(playerId: string): Promise<any> {
     return this.sportsDbGet<any>('lookupcontracts.php', { id: playerId });
   }
 
-  async searchTeamPlayers(teamId: string): Promise<any> {
+  searchTeamPlayers(teamId: string): Promise<any> {
     return this.sportsDbGet<any>('lookup_all_players.php', { id: teamId });
   }
 
@@ -122,18 +122,18 @@ export class FootballApiService {
   }
 
   // API-Football methods
-  async getTopScorers(leagueId: number, season: number): Promise<any> {
+  getTopScorers(leagueId: number, season: number): Promise<any> {
     return this.apiFootballGet<any>('players/topscorers', {
       league: leagueId,
       season,
     });
   }
 
-  async getFixtures(params: Record<string, string | number>): Promise<any> {
+  getFixtures(params: Record<string, string | number>): Promise<any> {
     return this.apiFootballGet<any>('fixtures', params);
   }
 
-  async getPlayerStats(playerId: number, season: number, leagueId: number): Promise<any> {
+  getPlayerStats(playerId: number, season: number, leagueId: number): Promise<any> {
     return this.apiFootballGet<any>('players', {
       id: playerId,
       season,
@@ -141,7 +141,7 @@ export class FootballApiService {
     });
   }
 
-  async getStandings(leagueId: number, season: number): Promise<any> {
+  getStandings(leagueId: number, season: number): Promise<any> {
     return this.apiFootballGet<any>('standings', {
       league: leagueId,
       season,

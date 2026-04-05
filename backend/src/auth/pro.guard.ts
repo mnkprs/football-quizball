@@ -5,8 +5,8 @@ import { SupabaseService } from '../supabase/supabase.service';
 @Injectable()
 export class ProGuard implements CanActivate {
   constructor(
-    private authService: AuthService,
-    private supabaseService: SupabaseService,
+    private readonly authService: AuthService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

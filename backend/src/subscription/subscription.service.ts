@@ -11,8 +11,8 @@ export class SubscriptionService {
   private readonly logger = new Logger(SubscriptionService.name);
 
   constructor(
-    private supabaseService: SupabaseService,
-    private redisService: RedisService,
+    private readonly supabaseService: SupabaseService,
+    private readonly redisService: RedisService,
   ) {}
 
   // ─── Apple Server Notifications v2 ──────────────────────────────────

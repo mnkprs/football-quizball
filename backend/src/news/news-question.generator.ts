@@ -8,7 +8,7 @@ import type { NewsHeadline } from '../common/interfaces/news.interface';
 export class NewsQuestionGenerator {
   private readonly logger = new Logger(NewsQuestionGenerator.name);
 
-  constructor(private llmService: LlmService) {}
+  constructor(private readonly llmService: LlmService) {}
 
   /**
    * Generates trivia questions from a batch of news headlines.

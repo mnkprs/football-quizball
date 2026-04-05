@@ -12,7 +12,7 @@ import { CreateGameDto, SubmitAnswerDto, UseLifelineDto, Top5GuessDto } from './
 
 @Controller('api/games')
 export class GameController {
-  constructor(private gameService: GameService) {}
+  constructor(private readonly gameService: GameService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

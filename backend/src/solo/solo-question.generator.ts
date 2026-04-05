@@ -15,8 +15,8 @@ export class SoloQuestionGenerator {
   private readonly logger = new Logger(SoloQuestionGenerator.name);
 
   constructor(
-    private llmService: LlmService,
-    private questionPoolService: QuestionPoolService,
+    private readonly llmService: LlmService,
+    private readonly questionPoolService: QuestionPoolService,
   ) {}
 
   async generate(difficulty: Difficulty, elo: number = 1000, excludeIds: string[] = []): Promise<SoloQuestion> {

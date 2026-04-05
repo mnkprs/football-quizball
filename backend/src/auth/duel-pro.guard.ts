@@ -7,8 +7,8 @@ const DAILY_DUEL_LIMIT = 1;
 @Injectable()
 export class DuelProGuard implements CanActivate {
   constructor(
-    private authService: AuthService,
-    private supabaseService: SupabaseService,
+    private readonly authService: AuthService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

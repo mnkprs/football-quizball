@@ -55,7 +55,7 @@ interface StatGuessPayload {
 export class MayhemStatGuessGenerator {
   private readonly logger = new Logger(MayhemStatGuessGenerator.name);
 
-  constructor(private llmService: LlmService) {}
+  constructor(private readonly llmService: LlmService) {}
 
   async generateBatch(): Promise<GeneratedQuestion[]> {
     const topic = pickRandom(STAT_GUESS_TOPIC_SEEDS);

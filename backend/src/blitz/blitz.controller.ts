@@ -6,8 +6,8 @@ import { SupabaseService } from '../supabase/supabase.service';
 @Controller('api/blitz')
 export class BlitzController {
   constructor(
-    private blitzService: BlitzService,
-    private supabaseService: SupabaseService,
+    private readonly blitzService: BlitzService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   @Post('session')

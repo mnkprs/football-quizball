@@ -7,7 +7,7 @@ import type { DailyQuestion } from '../common/interfaces/daily.interface';
 export class TodayGenerator {
   private readonly logger = new Logger(TodayGenerator.name);
 
-  constructor(private llmService: LlmService) {}
+  constructor(private readonly llmService: LlmService) {}
 
   /**
    * Generates 8-10 trivia questions about events that happened on this day in football history.

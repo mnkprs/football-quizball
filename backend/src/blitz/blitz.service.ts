@@ -13,9 +13,9 @@ export class BlitzService {
   private readonly logger = new Logger(BlitzService.name);
 
   constructor(
-    private sessionStore: SessionStoreService,
-    private supabaseService: SupabaseService,
-    private achievementsService: AchievementsService,
+    private readonly sessionStore: SessionStoreService,
+    private readonly supabaseService: SupabaseService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   private sessionKey(id: string) { return `blitz:${id}`; }
@@ -174,11 +174,11 @@ export class BlitzService {
     return { score: session.score, total_answered: session.totalAnswered, newly_unlocked: newlyUnlocked };
   }
 
-  async getLeaderboard(): Promise<any[]> {
+  getLeaderboard(): Promise<any[]> {
     return this.supabaseService.getBlitzLeaderboard(5);
   }
 
-  async getMyLeaderboardEntry(userId: string): Promise<any> {
+  getMyLeaderboardEntry(userId: string): Promise<any> {
     return this.supabaseService.getBlitzLeaderboardEntryForUser(userId);
   }
 

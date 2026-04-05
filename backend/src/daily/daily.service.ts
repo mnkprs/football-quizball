@@ -10,14 +10,14 @@ export class DailyService implements OnModuleInit {
   private readonly logger = new Logger(DailyService.name);
 
   constructor(
-    private supabaseService: SupabaseService,
-    private todayGenerator: TodayGenerator,
-    private redisService: RedisService,
+    private readonly supabaseService: SupabaseService,
+    private readonly todayGenerator: TodayGenerator,
+    private readonly redisService: RedisService,
   ) {}
 
   onModuleInit() {
     this.logger.log('[INIT] Daily: checking today\'s questions...');
-    this.pregenerateToday().catch((err) =>
+    void this.pregenerateToday().catch((err) =>
       this.logger.error(`[INIT] Daily pre-generate failed: ${(err as Error).message}`),
     );
   }

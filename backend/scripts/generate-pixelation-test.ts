@@ -21,7 +21,7 @@ const LOGOS = [
 
 const OUTPUT_SIZE = 512;
 
-async function renderSvg(svgBuffer: Buffer): Promise<Buffer> {
+function renderSvg(svgBuffer: Buffer): Promise<Buffer> {
   return sharp(svgBuffer)
     .resize(OUTPUT_SIZE, OUTPUT_SIZE, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } })
     .png()
@@ -42,7 +42,7 @@ async function pixelate(png: Buffer, pixelSize: number): Promise<Buffer> {
 }
 
 /** Blur effect */
-async function blur(png: Buffer, sigma: number): Promise<Buffer> {
+function blur(png: Buffer, sigma: number): Promise<Buffer> {
   return sharp(png)
     .blur(sigma)
     .png()
@@ -50,7 +50,7 @@ async function blur(png: Buffer, sigma: number): Promise<Buffer> {
 }
 
 /** Grayscale */
-async function grayscale(png: Buffer): Promise<Buffer> {
+function grayscale(png: Buffer): Promise<Buffer> {
   return sharp(png)
     .grayscale()
     .png()
@@ -58,7 +58,7 @@ async function grayscale(png: Buffer): Promise<Buffer> {
 }
 
 /** Silhouette: convert all non-white pixels to black */
-async function silhouette(png: Buffer): Promise<Buffer> {
+function silhouette(png: Buffer): Promise<Buffer> {
   // Threshold: anything not near-white becomes black
   return sharp(png)
     .threshold(240)

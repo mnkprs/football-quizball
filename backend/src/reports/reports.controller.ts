@@ -4,7 +4,7 @@ import { ReportProblemDto } from './dto/report-problem.dto';
 
 @Controller('api/reports')
 export class ReportsController {
-  constructor(private reportsService: ReportsService) {}
+  constructor(private readonly reportsService: ReportsService) {}
 
   @Post('problem')
   @HttpCode(HttpStatus.NO_CONTENT)

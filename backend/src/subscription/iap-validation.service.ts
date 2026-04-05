@@ -31,7 +31,7 @@ export class IapValidationService {
   private readonly googleServiceAccountKey: string;
   private readonly isProduction: boolean;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this.appleKeyId = this.configService.get<string>('APPLE_IAP_KEY_ID') ?? '';
     this.appleIssuerId = this.configService.get<string>('APPLE_IAP_ISSUER_ID') ?? '';
     this.applePrivateKey = this.configService.get<string>('APPLE_IAP_PRIVATE_KEY') ?? '';

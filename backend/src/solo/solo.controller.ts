@@ -8,8 +8,8 @@ import type { AuthenticatedRequest } from '../common/interfaces/request.interfac
 @Controller('api/solo')
 export class SoloController {
   constructor(
-    private soloService: SoloService,
-    private supabaseService: SupabaseService,
+    private readonly soloService: SoloService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   @Post('session')

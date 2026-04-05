@@ -25,12 +25,12 @@ export class MayhemService {
   private isIngesting = false;
 
   constructor(
-    private mayhemGenerator: MayhemQuestionGenerator,
-    private mayhemStatGuessGenerator: MayhemStatGuessGenerator,
-    private supabaseService: SupabaseService,
-    private questionValidator: QuestionValidator,
-    private questionIntegrity: QuestionIntegrityService,
-    private difficultyScorer: DifficultyScorer,
+    private readonly mayhemGenerator: MayhemQuestionGenerator,
+    private readonly mayhemStatGuessGenerator: MayhemStatGuessGenerator,
+    private readonly supabaseService: SupabaseService,
+    private readonly questionValidator: QuestionValidator,
+    private readonly questionIntegrity: QuestionIntegrityService,
+    private readonly difficultyScorer: DifficultyScorer,
   ) {}
 
   async ingestMayhem(): Promise<{ added: number; skipped: number }> {

@@ -17,7 +17,7 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('api/logo-quiz')
 export class LogoQuizController {
-  constructor(private logoQuizService: LogoQuizService) {}
+  constructor(private readonly logoQuizService: LogoQuizService) {}
 
   /**
    * GET /api/logo-quiz/question?difficulty=EASY

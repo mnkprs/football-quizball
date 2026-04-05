@@ -144,10 +144,10 @@ export class MigratePoolDifficultyService {
   private readonly logger = new Logger(MigratePoolDifficultyService.name);
 
   constructor(
-    private supabase: SupabaseService,
-    private questionsService: QuestionsService,
-    private questionValidator: QuestionValidator,
-    private thresholdConfig: ThresholdConfigService,
+    private readonly supabase: SupabaseService,
+    private readonly questionsService: QuestionsService,
+    private readonly questionValidator: QuestionValidator,
+    private readonly thresholdConfig: ThresholdConfigService,
   ) {}
 
   async migrate(options: MigratePoolDifficultyOptions = {}): Promise<MigratePoolDifficultyResult> {

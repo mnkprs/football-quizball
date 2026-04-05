@@ -32,10 +32,10 @@ export class GameService {
   private readonly logger = new Logger(GameService.name);
 
   constructor(
-    private cacheService: CacheService,
-    private questionsService: QuestionsService,
-    private questionPoolService: QuestionPoolService,
-    private answerValidator: AnswerValidator,
+    private readonly cacheService: CacheService,
+    private readonly questionsService: QuestionsService,
+    private readonly questionPoolService: QuestionPoolService,
+    private readonly answerValidator: AnswerValidator,
   ) {}
 
   async createGame(dto: CreateGameDto): Promise<GameSession> {
@@ -51,7 +51,7 @@ export class GameService {
     questions = questions.map((question) => this.ensureQuestionLocaleState(question));
 
     // Refill pool in background after drawing
-    this.questionPoolService.refillIfNeeded().catch((err) =>
+    void this.questionPoolService.refillIfNeeded().catch((err) =>
       this.logger.error(`[createGame] Pool refill failed: ${(err as Error).message}`),
     );
 

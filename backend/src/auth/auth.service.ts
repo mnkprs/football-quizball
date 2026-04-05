@@ -3,7 +3,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private readonly supabaseService: SupabaseService) {}
 
   async validateToken(token: string): Promise<{ id: string; email: string }> {
     const { data, error } = await this.supabaseService.client.auth.getUser(token);

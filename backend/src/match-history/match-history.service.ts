@@ -7,8 +7,8 @@ export class MatchHistoryService {
   private readonly logger = new Logger(MatchHistoryService.name);
 
   constructor(
-    private supabaseService: SupabaseService,
-    private achievementsService: AchievementsService,
+    private readonly supabaseService: SupabaseService,
+    private readonly achievementsService: AchievementsService,
   ) {}
 
   async saveMatch(
@@ -38,7 +38,7 @@ export class MatchHistoryService {
     await this.achievementsService.checkAndAward(requestingUserId, { matchWins: wins });
   }
 
-  async getHistory(userId: string) {
+  getHistory(userId: string) {
     return this.supabaseService.getMatchHistory(userId, 20);
   }
 }

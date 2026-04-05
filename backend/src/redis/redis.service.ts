@@ -7,7 +7,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
   readonly client: Redis;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     const url = this.configService.get<string>('REDIS_URL') ?? 'redis://localhost:6379';
     // No lazyConnect — eager connect at startup so TLS handshake (Upstash) happens once,
     // not on the first real request. maxRetriesPerRequest: null lets ioredis retry indefinitely

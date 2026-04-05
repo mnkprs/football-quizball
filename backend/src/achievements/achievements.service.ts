@@ -23,9 +23,9 @@ export function getEloTier(elo: number): { tier: string; color: string; label: s
 export class AchievementsService {
   private readonly logger = new Logger(AchievementsService.name);
 
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private readonly supabaseService: SupabaseService) {}
 
-  async getForUser(userId: string) {
+  getForUser(userId: string) {
     return this.supabaseService.getAchievements(userId);
   }
 
