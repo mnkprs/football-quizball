@@ -165,8 +165,14 @@ export class FeedbackService {
     this.spriteLoading = (async (): Promise<AudioBuffer | null> => {
       try {
         this.audioCtx = new AudioContext();
+        if (this.audioCtx.state === 'suspended') {
+          await this.audioCtx.resume();
+        }
         const response = await fetch('/assets/audio/sfx-sprite.webm');
-        if (!response.ok) return null;
+        if (!response.ok) {
+          this.spriteLoading = null;
+          return null;
+        }
         const arrayBuffer = await response.arrayBuffer();
         this.spriteBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
         return this.spriteBuffer;

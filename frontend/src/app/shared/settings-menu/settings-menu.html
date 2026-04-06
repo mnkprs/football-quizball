@@ -123,7 +123,7 @@
             <span class="settings-toggle__slider"></span>
           </label>
         </div>
-        @if (auth.isLoggedIn()) {
+        @if (auth.isLoggedIn() && isEmailUser()) {
           <div class="settings-card settings-card--link" (click)="changePassword()">
             <span class="material-icons settings-card__icon">lock_reset</span>
             <div class="settings-card__content">

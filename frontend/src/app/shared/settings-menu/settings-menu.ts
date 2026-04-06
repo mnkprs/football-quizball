@@ -81,6 +81,11 @@ export class SettingsMenuComponent {
     return String(name).slice(0, 2).toUpperCase();
   });
 
+  isEmailUser = computed(() => {
+    const provider = this.auth.user()?.app_metadata?.['provider'];
+    return provider === 'email' || !provider;
+  });
+
   signOut = output<void>();
 
   toggle(): void {
