@@ -15,6 +15,7 @@ import { ThemeService } from '../../core/theme.service';
 import { LanguageService } from '../../core/language.service';
 import { ProService } from '../../core/pro.service';
 import { ToastService } from '../../core/toast.service';
+import { FeedbackService } from '../../core/feedback.service';
 import { MatIconModule } from '@angular/material/icon';
 import { ConfirmModalComponent } from '../confirm-modal/confirm-modal';
 import { environment } from '../../../environments/environment';
@@ -32,6 +33,7 @@ export class SettingsMenuComponent {
   theme = inject(ThemeService);
   lang = inject(LanguageService);
   pro = inject(ProService);
+  feedback = inject(FeedbackService);
   private router = inject(Router);
   private http = inject(HttpClient);
   private toast = inject(ToastService);
@@ -162,6 +164,20 @@ export class SettingsMenuComponent {
     } finally {
       this.deleting.set(false);
       this.showDeleteConfirm.set(false);
+    }
+  }
+
+  async changePassword(): Promise<void> {
+    const email = this.auth.user()?.email;
+    if (!email) {
+      this.toast.show('No email associated with account');
+      return;
+    }
+    try {
+      await this.auth.resetPasswordForEmail(email);
+      this.toast.show('Password reset email sent', 'success');
+    } catch {
+      this.toast.show('Failed to send reset email');
     }
   }
 
