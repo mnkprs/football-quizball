@@ -65,10 +65,11 @@
           }
         </div>
       } @else {
-        <div class="br-empty">
-          <span class="material-icons">stadium</span>
-          <p>No active rooms — start one!</p>
-        </div>
+        <app-empty-state
+          icon="stadium"
+          title="No active rooms"
+          subtitle="Start a room and others will join"
+        />
       }
     </div>
 

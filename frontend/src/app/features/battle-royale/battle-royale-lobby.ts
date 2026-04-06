@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { BattleRoyaleStore } from './battle-royale.store';
 import { BattleRoyaleApiService } from './battle-royale-api.service';
 import { AuthService } from '../../core/auth.service';
+import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 
 export interface BRPublicRoom {
   id: string;
@@ -19,7 +20,7 @@ export interface BRPublicRoom {
 @Component({
   selector: 'app-battle-royale-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EmptyStateComponent],
   templateUrl: './battle-royale-lobby.html',
   styleUrl: './battle-royale-lobby.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
