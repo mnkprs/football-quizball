@@ -12,10 +12,12 @@ export interface IapValidationResult {
   expiresAt?: string;
 }
 
+// TODO(subscription-refinement): Remove 'stepovr_pro_yearly' once all existing yearly subscriptions have fully lapsed.
 // Apple product IDs
 const APPLE_SUBSCRIPTION_PRODUCTS = ['stepovr_pro_monthly', 'stepovr_pro_yearly'];
 const APPLE_LIFETIME_PRODUCT = 'stepovr_pro_lifetime';
 
+// TODO(subscription-refinement): Remove 'stepovr_pro_yearly' once all existing yearly subscriptions have fully lapsed.
 // Google product IDs (same naming)
 const GOOGLE_SUBSCRIPTION_PRODUCTS = ['stepovr_pro_monthly', 'stepovr_pro_yearly'];
 const GOOGLE_LIFETIME_PRODUCT = 'stepovr_pro_lifetime';
