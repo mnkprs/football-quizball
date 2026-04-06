@@ -17,13 +17,12 @@ export class UpgradeModalComponent implements OnInit {
   private router = inject(Router);
   private posthog = inject(PosthogService);
 
-  selectedPlan = signal<'monthly' | 'yearly' | 'lifetime'>('yearly');
+  selectedPlan = signal<'monthly' | 'lifetime'>('lifetime');
   state = signal<'idle' | 'loading' | 'purchasing' | 'success' | 'error'>('loading');
   errorMessage = signal('');
 
   /** Localized product info from the native store. */
   monthlyProduct = signal<IAPProduct | null>(null);
-  yearlyProduct = signal<IAPProduct | null>(null);
   lifetimeProduct = signal<IAPProduct | null>(null);
 
   ngOnInit(): void {
@@ -38,7 +37,6 @@ export class UpgradeModalComponent implements OnInit {
       }
       const products = this.iap.getProducts();
       this.monthlyProduct.set(products.find(p => p.id === 'stepovr_pro_monthly') ?? null);
-      this.yearlyProduct.set(products.find(p => p.id === 'stepovr_pro_yearly') ?? null);
       this.lifetimeProduct.set(products.find(p => p.id === 'stepovr_pro_lifetime') ?? null);
       this.state.set('idle');
     } catch {
@@ -48,15 +46,14 @@ export class UpgradeModalComponent implements OnInit {
     this.posthog.track('paywall_viewed', { context: this.pro.triggerContext() });
   }
 
-  selectPlan(plan: 'monthly' | 'yearly' | 'lifetime'): void {
+  selectPlan(plan: 'monthly' | 'lifetime'): void {
     this.selectedPlan.set(plan);
   }
 
   get selectedPrice(): string {
     switch (this.selectedPlan()) {
       case 'monthly': return this.monthlyProduct()?.price ?? '$3.99/mo';
-      case 'yearly': return this.yearlyProduct()?.price ?? '$14.99/yr';
-      case 'lifetime': return this.lifetimeProduct()?.price ?? '$19.99';
+      case 'lifetime': return this.lifetimeProduct()?.price ?? '$14.99';
     }
   }
 
@@ -66,34 +63,10 @@ export class UpgradeModalComponent implements OnInit {
         const price = this.monthlyProduct()?.price ?? '$3.99';
         return `Continue — ${price}/mo`;
       }
-      case 'yearly': {
-        const price = this.yearlyProduct()?.price ?? '$14.99';
-        return `Continue — ${price}/yr`;
-      }
       case 'lifetime': {
-        const price = this.lifetimeProduct()?.price ?? '$19.99';
+        const price = this.lifetimeProduct()?.price ?? '$14.99';
         return `Continue — ${price}`;
       }
-    }
-  }
-
-  get yearlySavingsLabel(): string {
-    const monthlyPrice = this.monthlyProduct()?.priceMicros ?? 3990000;
-    const yearlyPrice = this.yearlyProduct()?.priceMicros ?? 14990000;
-    const monthlyEquiv = yearlyPrice / 12;
-    const savings = Math.max(0, Math.round((1 - monthlyEquiv / monthlyPrice) * 100));
-    return `Save ${savings}%`;
-  }
-
-  /** Per-month cost of the yearly plan, formatted as currency string. */
-  get yearlyPerMonthLabel(): string {
-    const yearlyMicros = this.yearlyProduct()?.priceMicros ?? 14990000;
-    const currency = this.yearlyProduct()?.currency ?? 'USD';
-    const perMonth = yearlyMicros / 12 / 1000000;
-    try {
-      return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2 }).format(perMonth);
-    } catch {
-      return `$${perMonth.toFixed(2)}`;
     }
   }
 
@@ -106,7 +79,6 @@ export class UpgradeModalComponent implements OnInit {
       this.posthog.track('paywall_purchase_started', { plan: this.selectedPlan() });
       switch (this.selectedPlan()) {
         case 'monthly': await this.iap.purchaseMonthly(); break;
-        case 'yearly': await this.iap.purchaseYearly(); break;
         case 'lifetime': await this.iap.purchaseLifetime(); break;
       }
       // Refresh pro status from backend
