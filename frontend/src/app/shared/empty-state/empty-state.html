@@ -1,0 +1,10 @@
+<div class="empty-state">
+  <span class="material-icons empty-state__icon">{{ icon() }}</span>
+  <p class="empty-state__title">{{ title() }}</p>
+  @if (subtitle()) {
+    <p class="empty-state__subtitle">{{ subtitle() }}</p>
+  }
+  @if (ctaLabel()) {
+    <button class="empty-state__cta" (click)="onCta()">{{ ctaLabel() }}</button>
+  }
+</div>
