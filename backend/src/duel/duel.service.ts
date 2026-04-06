@@ -69,7 +69,8 @@ export class DuelService {
     if (existingList && existingList.length > 0) {
       const row = existingList[0] as DuelGameRow;
       const hostUsername = await this.getUsername(hostId);
-      return this.toPublicView(row, hostId, hostUsername, null);
+      const freePoolCutoff = row.game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+      return this.toPublicView(row, hostId, hostUsername, null, freePoolCutoff);
     }
 
     const questions = await this.drawQuestionsForType(gameType, hostId);
@@ -103,7 +104,8 @@ export class DuelService {
     }
 
     const hostUsername = await this.getUsername(hostId);
-    return this.toPublicView(data as DuelGameRow, hostId, hostUsername, null);
+    const freePoolCutoff = gameType === 'logo' ? await this.getLogoPoolCutoff() : null;
+    return this.toPublicView(data as DuelGameRow, hostId, hostUsername, null, freePoolCutoff);
   }
 
   async joinByCode(guestId: string, dto: JoinDuelByCodeDto): Promise<DuelPublicView> {
@@ -151,7 +153,8 @@ export class DuelService {
       this.getUsername(guestId),
     ]);
 
-    return this.toPublicView(updated as DuelGameRow, guestId, hostUsername, guestUsername);
+    const freePoolCutoff = (updated as DuelGameRow).game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+    return this.toPublicView(updated as DuelGameRow, guestId, hostUsername, guestUsername, freePoolCutoff);
   }
 
   async joinQueue(userId: string, dto?: JoinQueueDto): Promise<DuelPublicView> {
@@ -179,7 +182,8 @@ export class DuelService {
           this.getUsername(row.host_id),
           row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
         ]);
-        return this.toPublicView(row, userId, hostUsername, guestUsername);
+        const freePoolCutoff = row.game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+        return this.toPublicView(row, userId, hostUsername, guestUsername, freePoolCutoff);
       }
     }
 
@@ -218,7 +222,8 @@ export class DuelService {
           this.getUsername(candidate.host_id),
           this.getUsername(userId),
         ]);
-        return this.toPublicView(joined as DuelGameRow, userId, hostUsername, guestUsername);
+        const freePoolCutoff = (joined as DuelGameRow).game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+        return this.toPublicView(joined as DuelGameRow, userId, hostUsername, guestUsername, freePoolCutoff);
       }
       // Race condition — someone else grabbed it; fall through to create own
     }
@@ -248,7 +253,8 @@ export class DuelService {
       );
     }
     const hostUsername = await this.getUsername(userId);
-    return this.toPublicView(data as DuelGameRow, userId, hostUsername, null);
+    const freePoolCutoff = gameType === 'logo' ? await this.getLogoPoolCutoff() : null;
+    return this.toPublicView(data as DuelGameRow, userId, hostUsername, null, freePoolCutoff);
   }
 
   // ── Read ──────────────────────────────────────────────────────────────────
@@ -259,7 +265,8 @@ export class DuelService {
       this.getUsername(row.host_id),
       row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
     ]);
-    return this.toPublicView(row, userId, hostUsername, guestUsername);
+    const freePoolCutoff = row.game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+    return this.toPublicView(row, userId, hostUsername, guestUsername, freePoolCutoff);
   }
 
   async listMyGames(userId: string, gameType?: DuelGameType): Promise<DuelGameSummary[]> {
@@ -330,7 +337,8 @@ export class DuelService {
       this.getUsername(row.host_id),
       row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
     ]);
-    return this.toPublicView(updated as DuelGameRow, userId, hostUsername, guestUsername);
+    const freePoolCutoff = (updated as DuelGameRow).game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+    return this.toPublicView(updated as DuelGameRow, userId, hostUsername, guestUsername, freePoolCutoff);
   }
 
   // ── Answer submission ─────────────────────────────────────────────────────
@@ -548,7 +556,8 @@ export class DuelService {
         difficulty: l.difficulty,
         image_url: l.image_url,
         original_image_url: l.original_image_url,
-      } as GeneratedQuestion & { image_url: string; original_image_url: string }));
+        question_elo: l.question_elo,
+      } as GeneratedQuestion & { image_url: string; original_image_url: string; question_elo?: number }));
     }
     const seenIds = await this.supabaseService.getSeenQuestionIds(hostId).catch(() => [] as string[]);
     return this.questionPoolService.drawForDuel(PREFETCH_COUNT, seenIds);
@@ -559,16 +568,33 @@ export class DuelService {
     return profile?.username ?? 'Unknown';
   }
 
+  private async getLogoPoolCutoff(): Promise<number | null> {
+    return this.logoQuizService.getFreePoolCutoff();
+  }
+
   private toPublicView(
     row: DuelGameRow,
     myUserId: string,
     hostUsername: string,
     guestUsername: string | null,
+    freePoolCutoff?: number | null,
   ): DuelPublicView {
     const myRole: 'host' | 'guest' = row.host_id === myUserId ? 'host' : 'guest';
 
     const isLogo = row.game_type === 'logo';
     const currentQuestion = this.toPublicQuestion(row.questions, row.current_question_index, isLogo);
+
+    // Enrich question results with is_pro_logo for logo duels
+    const questionResults = isLogo && freePoolCutoff != null
+      ? row.question_results.map((r, i) => {
+          const q = row.questions[i] as any;
+          const qElo = q?.question_elo as number | undefined;
+          return {
+            ...r,
+            is_pro_logo: qElo != null ? qElo > freePoolCutoff : false,
+          };
+        })
+      : row.question_results;
 
     return {
       id: row.id,
@@ -581,7 +607,7 @@ export class DuelService {
       scores: row.scores,
       currentQuestion,
       currentQuestionIndex: row.current_question_index,
-      questionResults: row.question_results,
+      questionResults,
       hostReady: row.host_ready,
       guestReady: row.guest_ready,
       gameType: row.game_type,

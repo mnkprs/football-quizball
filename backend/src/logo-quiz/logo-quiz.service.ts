@@ -258,6 +258,7 @@ export class LogoQuizService {
       image_url: string;
       original_image_url: string;
       difficulty: string;
+      question_elo?: number;
       meta: { slug: string; league: string; country: string };
     }>
   > {
@@ -266,7 +267,7 @@ export class LogoQuizService {
     // Over-fetch so the random shuffle has enough candidates.
     const { data, error } = await client
       .from('question_pool')
-      .select('id, question')
+      .select('id, question, question_elo')
       .eq('category', 'LOGO_QUIZ')
       .limit(count * 4);
 
@@ -301,6 +302,7 @@ export class LogoQuizService {
         image_url: (q.image_url as string) ?? '',
         original_image_url: ((meta?.original_image_url ?? q.image_url) as string) ?? '',
         difficulty: ((q.difficulty as string) ?? 'EASY'),
+        question_elo: (row as any).question_elo ?? undefined,
         meta: {
           slug: ((meta?.slug as string) ?? ''),
           league: ((meta?.league as string) ?? ''),

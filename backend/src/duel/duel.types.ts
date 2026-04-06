@@ -49,6 +49,7 @@ export interface DuelQuestionResult {
   winner: 'host' | 'guest' | null;
   question_text: string;
   correct_answer: string;
+  is_pro_logo?: boolean;
 }
 
 // ── Public view (correct_answer stripped) ────────────────────────────────────
