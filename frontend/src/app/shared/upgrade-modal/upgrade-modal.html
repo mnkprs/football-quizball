@@ -49,39 +49,23 @@
             } @else {
               <span class="pricing-card__price">{{ monthlyProduct()?.price ?? '$3.99' }}</span>
               <span class="pricing-card__label">/ month</span>
+              <span class="pricing-card__trial">3-day free trial</span>
             }
           </button>
 
-          <!-- Yearly (recommended) -->
+          <!-- Lifetime (featured) -->
           <button class="pricing-card pricing-card--featured"
             role="radio"
-            [attr.aria-checked]="selectedPlan() === 'yearly'"
-            [class.pricing-card--selected]="selectedPlan() === 'yearly'"
-            (click)="selectPlan('yearly')"
-            aria-label="Yearly plan, best value">
+            [attr.aria-checked]="selectedPlan() === 'lifetime'"
+            [class.pricing-card--selected]="selectedPlan() === 'lifetime'"
+            (click)="selectPlan('lifetime')"
+            aria-label="Lifetime plan, best value, one-time purchase">
             <span class="best-value-pill">BEST VALUE</span>
             @if (state() === 'loading') {
               <span class="price-skeleton"></span>
               <span class="label-skeleton"></span>
             } @else {
-              <span class="pricing-card__per-month">{{ yearlyPerMonthLabel }}<span class="pricing-card__per-month-unit">/mo</span></span>
-              <span class="pricing-card__billed">billed yearly {{ yearlyProduct()?.price ?? '$14.99' }}</span>
-              <span class="pricing-card__savings">{{ yearlySavingsLabel }}</span>
-            }
-          </button>
-
-          <!-- Lifetime -->
-          <button class="pricing-card"
-            role="radio"
-            [attr.aria-checked]="selectedPlan() === 'lifetime'"
-            [class.pricing-card--selected]="selectedPlan() === 'lifetime'"
-            (click)="selectPlan('lifetime')"
-            aria-label="Lifetime plan, one-time purchase">
-            @if (state() === 'loading') {
-              <span class="price-skeleton"></span>
-              <span class="label-skeleton"></span>
-            } @else {
-              <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$19.99' }}</span>
+              <span class="pricing-card__price">{{ lifetimeProduct()?.price ?? '$14.99' }}</span>
               <span class="pricing-card__label">forever</span>
             }
           </button>

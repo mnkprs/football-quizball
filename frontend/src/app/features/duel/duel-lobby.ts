@@ -8,11 +8,12 @@ import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
+import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 
 @Component({
   selector: 'app-duel-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgOptimizedImage],
+  imports: [CommonModule, FormsModule, NgOptimizedImage, EmptyStateComponent],
   host: { class: 'duel-lobby-host' },
   templateUrl: './duel-lobby.html',
   styleUrl: './duel-lobby.css',

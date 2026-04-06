@@ -93,6 +93,53 @@
             }
           </div>
         }
+        <div class="settings-card settings-card--toggle">
+          <span class="material-icons settings-card__icon">dark_mode</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">Dark Mode</span>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" [checked]="theme.isDark()" (change)="theme.toggle()" />
+            <span class="settings-toggle__slider"></span>
+          </label>
+        </div>
+        <div class="settings-card settings-card--toggle">
+          <span class="material-icons settings-card__icon">volume_up</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">Sound Effects</span>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" [checked]="feedback.soundEnabled()" (change)="feedback.toggleSound()" />
+            <span class="settings-toggle__slider"></span>
+          </label>
+        </div>
+        <div class="settings-card settings-card--toggle">
+          <span class="material-icons settings-card__icon">vibration</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">Haptic Feedback</span>
+          </div>
+          <label class="settings-toggle">
+            <input type="checkbox" [checked]="feedback.hapticEnabled()" (change)="feedback.toggleHaptic()" />
+            <span class="settings-toggle__slider"></span>
+          </label>
+        </div>
+        @if (auth.isLoggedIn() && isEmailUser()) {
+          <div class="settings-card settings-card--link" (click)="changePassword()">
+            <span class="material-icons settings-card__icon">lock_reset</span>
+            <div class="settings-card__content">
+              <span class="settings-card__label">Change Password</span>
+              <span class="settings-card__desc">Send a reset link to your email</span>
+            </div>
+            <span class="material-icons settings-card__chevron">chevron_right</span>
+          </div>
+        }
+        <div class="settings-card">
+          <span class="material-icons settings-card__icon">notifications</span>
+          <div class="settings-card__content">
+            <span class="settings-card__label">Notifications</span>
+            <span class="settings-card__desc">Coming soon</span>
+          </div>
+        </div>
         <div class="settings-card settings-card--link" (click)="goToTerms()">
           <span class="material-icons settings-card__icon">gavel</span>
           <div class="settings-card__content">

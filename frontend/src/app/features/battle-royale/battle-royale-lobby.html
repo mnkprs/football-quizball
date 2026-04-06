@@ -65,10 +65,11 @@
           }
         </div>
       } @else {
-        <div class="br-empty">
-          <span class="material-icons">stadium</span>
-          <p>No active rooms — start one!</p>
-        </div>
+        <app-empty-state
+          icon="stadium"
+          title="No active rooms"
+          subtitle="Start a room and others will join"
+        />
       }
     </div>
 
@@ -80,10 +81,10 @@
       </div>
     }
     @if (error()) {
-      <div class="br-feedback br-feedback--error">
-        <span class="material-icons">error_outline</span>
-        <span>{{ error() }}</span>
-      </div>
+      <app-error-state
+        [message]="error()!"
+        [retryable]="false"
+      />
     }
 
     <!-- Play button (pinned to bottom) -->

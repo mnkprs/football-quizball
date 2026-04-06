@@ -3,6 +3,7 @@ import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../core/language.service';
 import { ParticleBurstService } from '../../core/particle-burst.service';
+import { FeedbackService } from '../../core/feedback.service';
 import { inject } from '@angular/core';
 
 export type GameMode = 'solo' | '2p-local' | '2p-online' | 'mayhem' | 'news' | 'blitz';
@@ -86,6 +87,7 @@ export interface QuestionData {
 export class GameQuestionComponent {
   lang = inject(LanguageService);
   private particles = inject(ParticleBurstService);
+  private feedback = inject(FeedbackService);
   private elRef = inject(ElementRef);
 
   // Fire particles on correct reveal, vignette on wrong
@@ -97,9 +99,11 @@ export class GameQuestionComponent {
       // Find the correct option button to use as particle origin
       const el = this.elRef.nativeElement.querySelector('.gq__option-btn--correct, .gq__input--correct, .gq__result-badge--correct');
       this.particles.burst(el ?? undefined);
+      this.feedback.correctAnswer();
     } else {
       // Flash red vignette
       this.flashVignette();
+      this.feedback.wrongAnswer();
     }
   });
 
@@ -247,6 +251,7 @@ export class GameQuestionComponent {
 
   selectOption(option: string): void {
     if (this.reveal()) return;
+    this.feedback.tapLight();
     if (this.interactionMode() === 'blitz') {
       this.optionSelected.emit(option);
       return;

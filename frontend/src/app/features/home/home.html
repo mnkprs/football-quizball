@@ -90,38 +90,6 @@
         [locked]="!auth.isLoggedIn()"
         (cardClick)="goSolo()"
       />
-      <app-mode-card
-        icon="bolt"
-        iconBgColor="blue"
-        [title]="lang.t().btnBlitz"
-        hint="60-Second Speed Run · Available Soon"
-        [tags]="['solo', 'speed run', 'timed']"
-        backgroundImage="/blitz-mode-v2.png"
-        variant="accent"
-        size="medium"
-        [locked]="true"
-        (cardClick)="goBlitz()"
-      />
-    </div>
-
-    <!-- TIER 4: Free Modes -->
-    <app-section-header
-      [title]="lang.t().compete"
-    />
-
-    <div class="section-modes free-tier">
-      <app-mode-card
-        icon="local_fire_department"
-        iconBgColor="orange"
-        [title]="lang.t().btnMayhem"
-        [hint]="lang.t().btnMayhemHint"
-        [tags]="['solo', 'free', 'chaos']"
-        backgroundImage="/mayhem.png"
-        variant="accent"
-        [compact]="true"
-        [locked]="true"
-        (cardClick)="goMayhem()"
-      />
     </div>
   </div>
 </div>

@@ -8,13 +8,15 @@
 
   @if (loading() && entries().length === 0) {
     <div class="leaderboard-loading">
-      <mat-spinner diameter="32"></mat-spinner>
-      <span>{{ lang.t().lbLoading }}</span>
+      <app-skeleton variant="row" [count]="8" />
     </div>
   }
 
   @if (error()) {
-    <div class="leaderboard-error">{{ error() }}</div>
+    <app-error-state
+      [message]="error()!"
+      (retry)="load()"
+    />
   }
 
   @if (!loading() || entries().length > 0) {

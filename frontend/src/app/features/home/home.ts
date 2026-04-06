@@ -52,18 +52,8 @@ export class HomeComponent implements OnInit {
     return this.store.elo();
   }
 
-  private blitzBest(): string {
-    const stats = this.store.blitzStats();
-    return stats ? String(stats.bestScore) : '—';
-  }
-
   private eloRank(): string {
     const r = this.store.rank();
-    return r != null ? String(r) : '—';
-  }
-
-  private blitzRank(): string {
-    const r = this.store.blitzStats()?.rank;
     return r != null ? String(r) : '—';
   }
 
@@ -71,12 +61,6 @@ export class HomeComponent implements OnInit {
     const t = this.lang.t();
     if (!this.auth.isLoggedIn()) return `${t.btnSoloDesc} · ${t.loginRequired}`;
     return `${t.soloStatsHint} ${this.userElo()} · ${t.rankLabel} #${this.eloRank()}`;
-  });
-
-  blitzHint = computed(() => {
-    const t = this.lang.t();
-    if (!this.auth.isLoggedIn()) return `${t.btnBlitzDesc} · ${t.loginRequired}`;
-    return `${t.blitzStatsHint} ${this.blitzBest()} · ${t.rankLabel} #${this.blitzRank()}`;
   });
 
   ngOnInit(): void {
@@ -112,20 +96,12 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/solo']);
   }
 
-  goBlitz(): void {
-    // Locked: Available Soon for all users
-  }
-
   goLogoQuiz(): void {
     this.router.navigate(['/logo-quiz']);
   }
 
   goNews(): void {
     this.router.navigate(['/news']);
-  }
-
-  goMayhem(): void {
-    // Locked: Available Soon for all users
   }
 
   goBattleRoyale(): void {
