@@ -261,6 +261,18 @@
         </div>
       }
 
+      @if (showProLogoBanner()) {
+        <div class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-between gap-3">
+          <p class="text-xs text-purple-300/80">You faced logos from the Pro collection. Unlock 1,000+ logos with Pro.</p>
+          <button
+            (click)="openProUpgrade()"
+            class="shrink-0 px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-300 text-xs font-bold hover:bg-purple-500/30 transition"
+          >
+            Upgrade
+          </button>
+        </div>
+      }
+
       <button
         (click)="goToLobby()"
         class="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light active:scale-95 transition"

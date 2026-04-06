@@ -14,6 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { createGameTimer } from '../../core/game-timer';
 import { DuelStore } from './duel.store';
 import { AdService } from '../../core/ad.service';
+import { ProService } from '../../core/pro.service';
 
 const QUESTION_TIME = 30;
 /** Seconds to wait before a bot is guaranteed to be matched. */
@@ -32,6 +33,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private adService = inject(AdService);
+  private proService = inject(ProService);
 
   answer = signal('');
   copied = signal(false);
@@ -54,6 +56,14 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   });
 
   timerUrgent = computed(() => this.timeLeft() <= 5);
+
+  showProLogoBanner = computed(() => {
+    const view = this.store.gameView();
+    if (!view || view.gameType !== 'logo') return false;
+    if (this.proService.isPro()) return false;
+    if (this.store.gameWinner() === 'me') return false;
+    return view.questionResults.some(r => r.is_pro_logo);
+  });
 
   private opponentFlashTimer: ReturnType<typeof setTimeout> | null = null;
   private myFlashTimer: ReturnType<typeof setTimeout> | null = null;
@@ -214,6 +224,11 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       case 'HARD': return 'text-red-400';
       default: return 'text-muted-foreground';
     }
+  }
+
+  openProUpgrade(): void {
+    this.proService.triggerContext.set('duel');
+    this.proService.showUpgradeModal.set(true);
   }
 
   private resetTimer(): void {
