@@ -107,6 +107,25 @@
         (nextClicked)="nextQuestion()"
       />
       @if (revealing()) {
+        @if (showMasteryUpsell()) {
+          <div class="mx-4 mt-3 p-4 rounded-xl bg-purple-500/15 border border-purple-500/30">
+            <p class="text-sm text-purple-300 font-medium mb-2">You've mastered the free logos! Unlock 1,000+ more with Pro.</p>
+            <div class="flex gap-2">
+              <button
+                (click)="openProUpgrade()"
+                class="px-4 py-2 rounded-lg bg-purple-500 text-white text-xs font-bold hover:bg-purple-400 transition"
+              >
+                Upgrade
+              </button>
+              <button
+                (click)="dismissMasteryUpsell()"
+                class="px-4 py-2 rounded-lg bg-transparent text-purple-400 text-xs font-medium hover:text-purple-300 transition"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        }
         <button
           class="mt-3 px-6 py-2 rounded-lg border border-border text-muted-foreground text-sm mx-auto block"
           (click)="endSession()"

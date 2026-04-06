@@ -21,6 +21,7 @@ import { ProfileStore } from '../../core/profile-store.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
 import { createGameTimer } from '../../core/game-timer';
 import { AdService } from '../../core/ad.service';
+import { ProService } from '../../core/pro.service';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 
@@ -40,6 +41,7 @@ export class LogoQuizComponent implements OnDestroy {
   private profileStore = inject(ProfileStore);
   private destroyRef = inject(DestroyRef);
   private adService = inject(AdService);
+  private proService = inject(ProService);
   lang = inject(LanguageService);
 
   // State
@@ -65,6 +67,10 @@ export class LogoQuizComponent implements OnDestroy {
   myRank = signal<number | null>(null);
   private normalRank = signal<number | null>(null);
   private hardcoreRank = signal<number | null>(null);
+
+  // Mastery upsell
+  showMasteryUpsell = signal(false);
+  private readonly MASTERY_DISMISSED_KEY = 'logo_mastery_upsell_dismissed';
 
   // Hardcore mode
   hardcoreMode = signal(false);
@@ -183,6 +189,9 @@ export class LogoQuizComponent implements OnDestroy {
         original_image_url: q.original_image_url,
       });
       this.revealing.set(true);
+      if (result.elo_capped && !localStorage.getItem(this.MASTERY_DISMISSED_KEY)) {
+        this.showMasteryUpsell.set(true);
+      }
       await this.adService.onAnswerSubmitted();
     } catch (err: any) {
       this.error.set('Failed to submit answer');
@@ -211,9 +220,22 @@ export class LogoQuizComponent implements OnDestroy {
         original_image_url: q.original_image_url,
       });
       this.revealing.set(true);
+      if (result.elo_capped && !localStorage.getItem(this.MASTERY_DISMISSED_KEY)) {
+        this.showMasteryUpsell.set(true);
+      }
     } catch {
       this.error.set('Failed to submit timeout');
     }
+  }
+
+  dismissMasteryUpsell(): void {
+    localStorage.setItem(this.MASTERY_DISMISSED_KEY, 'true');
+    this.showMasteryUpsell.set(false);
+  }
+
+  openProUpgrade(): void {
+    this.proService.triggerContext.set('general');
+    this.proService.showUpgradeModal.set(true);
   }
 
   nextQuestion(): void {

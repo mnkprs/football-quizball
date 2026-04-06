@@ -22,6 +22,7 @@ export interface LogoAnswerResponse {
   elo_before: number;
   elo_after: number;
   elo_change: number;
+  elo_capped?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
