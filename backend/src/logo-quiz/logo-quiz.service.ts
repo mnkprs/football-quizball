@@ -6,8 +6,8 @@ import {
 import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { CacheService } from '../cache/cache.service';
 import type { Difficulty } from '../common/interfaces/question.interface';
-import type { Profile } from '../common/interfaces/profile.interface';
 import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
 
 /**
@@ -21,11 +21,30 @@ import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
  */
 @Injectable()
 export class LogoQuizService {
+  private static readonly FREE_LOGO_POOL_SIZE = 100;
+  private static readonly CUTOFF_CACHE_KEY = 'logo:free_pool_cutoff';
+  private static readonly CUTOFF_CACHE_TTL = 3600; // 1 hour
+
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly eloService: EloService,
     private readonly achievementsService: AchievementsService,
+    private readonly cacheService: CacheService,
   ) {}
+
+  async getFreePoolCutoff(): Promise<number | null> {
+    const cached = await this.cacheService.get<number>(LogoQuizService.CUTOFF_CACHE_KEY);
+    if (cached !== undefined) return cached;
+
+    const { data, error } = await this.supabaseService.client.rpc('get_free_logo_cutoff', {
+      p_pool_size: LogoQuizService.FREE_LOGO_POOL_SIZE,
+    });
+
+    if (error || data === null || data === undefined) return null;
+    const cutoff = data as number;
+    await this.cacheService.set(LogoQuizService.CUTOFF_CACHE_KEY, cutoff, LogoQuizService.CUTOFF_CACHE_TTL);
+    return cutoff;
+  }
 
   /**
    * Get a random logo question matched to the player's ELO.
@@ -40,14 +59,10 @@ export class LogoQuizService {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('Profile not found');
 
-    // Free users limited to 150 logos; pro users get unlimited
-    // NOTE: is_pro is not fetched by getProfile — this check relies on the field being undefined (= false).
-    // For proper enforcement, call getProStatus() separately.
-    const isPro = (profile as Profile & { is_pro?: boolean }).is_pro ?? false;
-    const totalPlayed = profile.logo_quiz_games_played + profile.logo_quiz_hardcore_games_played;
-    if (!isPro && totalPlayed >= 150) {
-      throw new ForbiddenException('Free logo limit reached. Upgrade to Pro for unlimited logos.');
-    }
+    // Determine if user is pro — if not, restrict to free pool
+    const proStatus = await this.supabaseService.getProStatus(userId);
+    const isPro = proStatus?.is_pro ?? false;
+    const maxElo = isPro ? null : await this.getFreePoolCutoff();
 
     const logoElo = hardcore ? profile.logo_quiz_hardcore_elo : profile.logo_quiz_elo;
     const client = this.supabaseService.client;
@@ -58,6 +73,7 @@ export class LogoQuizService {
         p_target_elo: logoElo,
         p_range: range,
         p_count: 1,
+        p_max_elo: maxElo,
       });
 
       if (!error && data?.length) {
@@ -77,6 +93,7 @@ export class LogoQuizService {
         p_category: 'LOGO_QUIZ',
         p_difficulty: fallback,
         p_count: 1,
+        p_max_elo: maxElo,
       });
       if (fb?.length) {
         const q = fb[0].question;
@@ -122,7 +139,19 @@ export class LogoQuizService {
     const eloChange = data.question_elo
       ? this.eloService.calculateWithQuestionElo(logoElo, data.question_elo, correct, timedOut, gamesPlayed)
       : this.eloService.calculate(logoElo, difficulty, correct, timedOut, gamesPlayed);
-    const newElo = this.eloService.applyChange(logoElo, eloChange);
+    let newElo = this.eloService.applyChange(logoElo, eloChange);
+
+    // Clamp ELO at free pool cutoff for non-pro users
+    let eloCapped = false;
+    const proStatus = await this.supabaseService.getProStatus(userId);
+    const isPro = proStatus?.is_pro ?? false;
+    if (!isPro) {
+      const cutoff = await this.getFreePoolCutoff();
+      if (cutoff !== null && newElo > cutoff) {
+        newElo = cutoff;
+        eloCapped = true;
+      }
+    }
 
     // Atomic DB update — use the correct RPC for normal vs hardcore
     const rpcName = hardcore ? 'commit_logo_quiz_hardcore_answer' : 'commit_logo_quiz_answer';
@@ -130,7 +159,7 @@ export class LogoQuizService {
       p_user_id: userId,
       p_elo_before: logoElo,
       p_elo_after: newElo,
-      p_elo_change: eloChange,
+      p_elo_change: newElo - logoElo,
       p_difficulty: difficulty,
       p_correct: correct,
       p_timed_out: timedOut,
@@ -161,7 +190,8 @@ export class LogoQuizService {
       correct_answer: correctAnswer,
       elo_before: logoElo,
       elo_after: newElo,
-      elo_change: eloChange,
+      elo_change: newElo - logoElo,
+      ...(eloCapped ? { elo_capped: true } : {}),
     };
   }
 
