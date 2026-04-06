@@ -305,6 +305,17 @@
           }
         </div>
       </section>
+    } @else {
+      <section class="section anim-fade-up anim-delay-4">
+        <h2 class="section__title">Last 10 games</h2>
+        <app-empty-state
+          icon="history"
+          title="No matches played"
+          subtitle="Your game results will appear here"
+          ctaLabel="Start a Duel"
+          ctaRoute="/duel"
+        />
+      </section>
     }
 
     <!-- ─── ACHIEVEMENTS ───────────────────────────── -->
@@ -330,6 +341,17 @@
             </div>
           }
         </div>
+      </section>
+    } @else {
+      <section class="section anim-fade-up anim-delay-5">
+        <h2 class="section__title">{{ lang.t().achievements }}</h2>
+        <app-empty-state
+          icon="emoji_events"
+          title="No achievements yet"
+          subtitle="Play some games to start earning badges"
+          ctaLabel="Play Solo"
+          ctaRoute="/solo"
+        />
       </section>
     }
 
