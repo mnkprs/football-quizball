@@ -43,20 +43,28 @@ export class FeedbackService {
   // ─── Preference helpers ───────────────────────────────────────────────────
 
   private readPref(key: string): boolean {
-    const stored = localStorage.getItem(key);
-    return stored === null ? true : stored === 'true';
+    try {
+      const stored = localStorage.getItem(key);
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true;
+    }
   }
 
   toggleSound(): void {
     const next = !this.soundEnabled();
     this.soundEnabled.set(next);
-    localStorage.setItem(this.SOUND_KEY, String(next));
+    try {
+      localStorage.setItem(this.SOUND_KEY, String(next));
+    } catch { /* iOS WKWebView SecurityError — preference not persisted */ }
   }
 
   toggleHaptic(): void {
     const next = !this.hapticEnabled();
     this.hapticEnabled.set(next);
-    localStorage.setItem(this.HAPTIC_KEY, String(next));
+    try {
+      localStorage.setItem(this.HAPTIC_KEY, String(next));
+    } catch { /* iOS WKWebView SecurityError — preference not persisted */ }
   }
 
   // ─── Haptic primitives ────────────────────────────────────────────────────
@@ -114,22 +122,22 @@ export class FeedbackService {
   }
 
   timerTick(): void {
-    this.tapLight();
+    this.tapWarning();
     this.playSound('tick');
   }
 
   timerExpired(): void {
-    this.tapHeavy();
+    this.tapError();
     this.playSound('timeout');
   }
 
   achievementUnlock(): void {
-    this.tapSuccess();
+    this.tapHeavy();
     this.playSound('achievement');
   }
 
   streakMilestone(): void {
-    this.tapMedium();
+    this.tapHeavy();
     this.playSound('streak');
   }
 
@@ -163,6 +171,7 @@ export class FeedbackService {
         this.spriteBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
         return this.spriteBuffer;
       } catch {
+        this.spriteLoading = null;
         return null;
       }
     })();
