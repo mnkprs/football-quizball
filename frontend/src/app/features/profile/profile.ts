@@ -12,6 +12,7 @@ import { AchievementsApiService, Achievement } from '../../core/achievements-api
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
 import { getEloTier, nextTierThreshold, tierProgress } from '../../core/elo-tier';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
+import { SkeletonComponent } from '../../shared/skeleton/skeleton';
 import { environment } from '../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,7 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent, NgOptimizedImage],
+  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent, NgOptimizedImage, SkeletonComponent],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

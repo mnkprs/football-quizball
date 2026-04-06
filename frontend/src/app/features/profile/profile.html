@@ -16,7 +16,16 @@
 
   } @else if (loading()) {
     <div class="profile-loading">
-      <mat-spinner diameter="36"></mat-spinner>
+      <app-skeleton variant="circle" width="80px" height="80px" />
+      <app-skeleton variant="line" width="60%" height="20px" />
+      <app-skeleton variant="line" width="40%" height="14px" />
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:16px;">
+        <app-skeleton variant="card" height="80px" />
+        <app-skeleton variant="card" height="80px" />
+        <app-skeleton variant="card" height="80px" />
+        <app-skeleton variant="card" height="80px" />
+      </div>
+      <app-skeleton variant="row" [count]="3" />
     </div>
 
   } @else {

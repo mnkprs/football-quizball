@@ -15,6 +15,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
+import { SkeletonComponent } from '../../shared/skeleton/skeleton';
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
@@ -24,6 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatButtonModule,
     MatProgressSpinnerModule,
     MatIconModule,
+    SkeletonComponent,
   ],
   templateUrl: './leaderboard.html',
   styleUrl: './leaderboard.css',

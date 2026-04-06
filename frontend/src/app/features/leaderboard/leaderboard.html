@@ -8,8 +8,7 @@
 
   @if (loading() && entries().length === 0) {
     <div class="leaderboard-loading">
-      <mat-spinner diameter="32"></mat-spinner>
-      <span>{{ lang.t().lbLoading }}</span>
+      <app-skeleton variant="row" [count]="8" />
     </div>
   }
 
