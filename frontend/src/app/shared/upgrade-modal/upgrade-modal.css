@@ -206,10 +206,9 @@
 
 .pricing-card--featured.pricing-card--selected {
   border-color: rgba(99, 102, 241, 0.6);
-  animation: stagger-in 350ms cubic-bezier(0.25, 1, 0.5, 1) 280ms both,
+  animation: stagger-in 350ms cubic-bezier(0.25, 1, 0.5, 1) 300ms both,
              featured-glow 3s ease-in-out 800ms infinite;
 }
-
 
 /* ── Skeleton loaders ── */
 .price-skeleton {
