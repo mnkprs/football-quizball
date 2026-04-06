@@ -13,7 +13,10 @@
   }
 
   @if (error()) {
-    <div class="leaderboard-error">{{ error() }}</div>
+    <app-error-state
+      [message]="error()!"
+      (retry)="load()"
+    />
   }
 
   @if (!loading() || entries().length > 0) {
