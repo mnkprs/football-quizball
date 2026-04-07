@@ -3,11 +3,11 @@
 
 INSERT INTO achievements (id, name, description, icon, category, condition_type, condition_value)
 VALUES
-  ('elo_750',  'Bronze Tier',      'Reach 750 ELO',        '🥉', 'rank', 'elo_threshold', '{"min":750}'),
-  ('elo_1000', 'Iron Tier',        'Reach 1000 ELO',       '⚙️', 'rank', 'elo_threshold', '{"min":1000}'),
-  ('elo_1300', 'Gold Tier',        'Reach 1300 ELO',       '🥇', 'rank', 'elo_threshold', '{"min":1300}'),
-  ('elo_1650', 'Platinum Tier',    'Reach 1650 ELO',       '💎', 'rank', 'elo_threshold', '{"min":1650}'),
-  ('elo_2400', 'Challenger Tier',  'Reach 2400 ELO',       '🏆', 'rank', 'elo_threshold', '{"min":2400}')
+  ('elo_750',  'Bronze Tier',      'Reach Bronze tier (750 ELO)',      '🥉', 'rank', 'elo_threshold', '{"min":750}'),
+  ('elo_1000', 'Silver Tier',      'Reach Silver tier (1000 ELO)',     '🥈', 'rank', 'elo_threshold', '{"min":1000}'),
+  ('elo_1300', 'Gold Tier',        'Reach Gold tier (1300 ELO)',       '🥇', 'rank', 'elo_threshold', '{"min":1300}'),
+  ('elo_1650', 'Platinum Tier',    'Reach Platinum tier (1650 ELO)',   '💎', 'rank', 'elo_threshold', '{"min":1650}'),
+  ('elo_2400', 'Challenger Tier',  'Reach Challenger tier (2400 ELO)', '🏆', 'rank', 'elo_threshold', '{"min":2400}')
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   description = EXCLUDED.description,
