@@ -9,6 +9,6 @@ export interface GeneratorBatchOptions {
   avoidAnswers?: string[];
   avoidQuestions?: string[];
   questionCount?: number;
-  /** When seeding a specific slot, pass target difficulty so prompts can bias toward HARD/MEDIUM/EASY. */
-  targetDifficulty?: 'EASY' | 'MEDIUM' | 'HARD';
+  /** When seeding a specific slot, pass target difficulty so prompts can bias toward the target level. */
+  targetDifficulty?: 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
 }
