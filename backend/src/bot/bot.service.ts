@@ -23,15 +23,17 @@ const DIFFICULTY_MULTIPLIER: Record<string, number> = {
   EASY:   1.2,
   MEDIUM: 1.0,
   HARD:   0.8,
+  EXPERT: 0.65,
 };
 
-/** Skill thresholds by player ELO. */
+/** Skill thresholds by player ELO — aligned to tier system. */
 function targetSkillForElo(playerElo: number): number {
-  if (playerElo < 900)  return 0.25;
-  if (playerElo < 1100) return 0.35;
-  if (playerElo < 1400) return 0.45;
-  if (playerElo < 1600) return 0.55;
-  return 0.65;
+  if (playerElo < 750)  return 0.20;  // Iron
+  if (playerElo < 1000) return 0.30;  // Bronze
+  if (playerElo < 1300) return 0.40;  // Silver
+  if (playerElo < 1650) return 0.50;  // Gold
+  if (playerElo < 2000) return 0.60;  // Platinum
+  return 0.70;                         // Diamond/Challenger
 }
 
 @Injectable()
