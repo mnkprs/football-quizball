@@ -7,6 +7,7 @@ export const DIFFICULTY_POINTS: Record<Difficulty, number> = {
   EASY: 1,
   MEDIUM: 2,
   HARD: 3,
+  EXPERT: 4,
 };
 
 /**
