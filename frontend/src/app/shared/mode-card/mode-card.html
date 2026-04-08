@@ -14,27 +14,27 @@
     </div>
   }
   @if (proLocked()) {
-    <div class="mode-card__locked-overlay mode-card__locked-overlay--pro" (click)="onProOverlayClick($event)">
+    <button type="button" class="mode-card__locked-overlay mode-card__locked-overlay--pro" (click)="onProOverlayClick($event)" aria-label="Upgrade to Pro to unlock">
       <div class="mode-card__pro-lock-badge">
         <span class="material-icons mode-card__pro-lock-crown">workspace_premium</span>
         <span class="mode-card__pro-lock-label">Pro</span>
       </div>
       <span class="mode-card__pro-lock-text">Upgrade to unlock</span>
-    </div>
+    </button>
   }
   @if (trialInfo()?.remaining === 0 && !proLocked()) {
-    <div class="mode-card__locked-overlay mode-card__locked-overlay--rate-limit" (click)="onProOverlayClick($event)">
+    <button type="button" class="mode-card__locked-overlay mode-card__locked-overlay--rate-limit" (click)="onProOverlayClick($event)" aria-label="Free trial used — upgrade to Pro for unlimited">
       <span class="material-icons mode-card__lock-icon">block</span>
       <span class="mode-card__lock-text">Free trial used</span>
       <span class="mode-card__rate-limit-hint">Upgrade to Pro for unlimited</span>
-    </div>
+    </button>
   }
   @if (rateLimit() === 0 && !proLocked()) {
-    <div class="mode-card__locked-overlay mode-card__locked-overlay--rate-limit" (click)="onProOverlayClick($event)">
+    <button type="button" class="mode-card__locked-overlay mode-card__locked-overlay--rate-limit" (click)="onProOverlayClick($event)" aria-label="Come back tomorrow or upgrade for unlimited">
       <span class="material-icons mode-card__lock-icon">schedule</span>
       <span class="mode-card__lock-text">Come back tomorrow</span>
       <span class="mode-card__rate-limit-hint">or upgrade for unlimited</span>
-    </div>
+    </button>
   }
 
   <!-- Header bar: tags (left) | featured (center) | info (right) -->

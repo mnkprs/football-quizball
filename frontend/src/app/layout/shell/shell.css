@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  max-width: 28rem;
+  max-width: var(--app-max-width);
   margin: 0 auto;
   position: relative;
 }
@@ -21,7 +21,7 @@
 
 /* Page entrance animation for routed components */
 .shell-main > router-outlet + * {
-  animation: anim-fade-in 250ms var(--ease-out-quart);
+  animation: anim-stagger-in 350ms var(--ease-out-quart);
 }
 
 .bottom-nav {
@@ -30,7 +30,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 28rem;
+  max-width: var(--app-max-width);
   z-index: 40;
   padding: 0.5rem 1rem;
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));

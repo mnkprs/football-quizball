@@ -19,6 +19,27 @@ button:not([disabled]) {
 button:not([disabled]):active { transform: scale(0.97); }
 a[href] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
+/* Focus-visible — global baseline for all interactive elements */
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-accent, #007AFF);
+  outline-offset: 2px;
+}
+
+/* Reduced motion — global safety net for all animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Pressable utility */
 .pressable {
   -webkit-tap-highlight-color: transparent;

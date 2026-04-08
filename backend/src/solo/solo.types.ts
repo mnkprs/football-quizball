@@ -4,13 +4,15 @@ import { SoloSession, SoloQuestion, SoloAnswerResult } from '../common/interface
 export type { SoloSession, SoloQuestion, SoloAnswerResult };
 
 export const DIFFICULTY_ELO: Record<Difficulty, number> = {
-  EASY: 1000,
-  MEDIUM: 1400, // kept for non-logo game modes
-  HARD: 1600,
+  EASY: 700,
+  MEDIUM: 1100,
+  HARD: 1550,
+  EXPERT: 2100,
 };
 
 export const TIME_LIMITS: Record<Difficulty, number> = {
-  EASY: 10,
+  EASY: 12,
   MEDIUM: 15,
-  HARD: 20,
+  HARD: 18,
+  EXPERT: 20,
 };

@@ -3,19 +3,44 @@
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
-  max-width: 24.375rem;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   width: 100%;
 }
 
-/* Staggered entrance for today page children */
-.today-page > * {
-  opacity: 0;
-  animation: anim-stagger-in 400ms ease-out forwards;
+/* Tablet+ : hero cards sit side-by-side */
+.today-heroes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
-.today-page > *:nth-child(1) { animation-delay: 0ms; }
-.today-page > *:nth-child(2) { animation-delay: 80ms; }
-.today-page > *:nth-child(3) { animation-delay: 160ms; }
+
+@media (min-width: 540px) {
+  .today-page {
+    padding: clamp(1rem, 3vw, 2rem);
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+  }
+
+  .today-header__title {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+  }
+
+  .today-header__subtitle {
+    font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
+  }
+
+  .today-heroes {
+    flex-direction: row;
+    gap: clamp(0.75rem, 2vw, 1.25rem);
+  }
+
+  .today-heroes > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+}
+
 
 /* ============================================
    Premium Header

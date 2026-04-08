@@ -8,7 +8,7 @@
 }
 
 .invite-content {
-  max-width: 28rem;
+  max-width: var(--content-narrow-width);
   width: 100%;
 }
 

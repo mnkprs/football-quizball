@@ -1,4 +1,4 @@
-<div class="br-lobby">
+<div class="br-lobby page-stagger">
 
   <!-- ── Atmospheric background ── -->
   <div class="br-hero-bg" aria-hidden="true"></div>
@@ -96,7 +96,7 @@
 
   <!-- ── Bottom sheet ── -->
   @if (showPlaySheet()) {
-    <div class="br-sheet-backdrop" (click)="closePlaySheet()"></div>
+    <div class="br-sheet-backdrop" (click)="closePlaySheet()" aria-hidden="true"></div>
     <div class="br-sheet">
       <div class="br-sheet__handle"></div>
       <h3 class="br-sheet__title">How do you want to play?</h3>

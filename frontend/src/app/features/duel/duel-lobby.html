@@ -1,4 +1,4 @@
-<div class="duel-start spotlight">
+<div class="duel-start spotlight page-stagger">
   <!-- Hero image -->
   <div class="hero-bg">
     <img ngSrc="/duel-mode.png" alt="Duel" class="hero-bg__img" fill />
@@ -51,7 +51,7 @@
       <div class="duel-active-games">
         <span class="duel-active-games__title">ACTIVE DUELS</span>
         @for (game of activeGames(); track game.id) {
-          <div class="duel-active-game" (click)="resumeDuel(game.id)">
+          <button type="button" class="duel-active-game" (click)="resumeDuel(game.id)">
             <div class="duel-active-game__info">
               <span class="duel-active-game__opponent">
                 vs {{ game.opponentUsername ?? 'Opponent joining...' }}
@@ -63,7 +63,7 @@
               }
             </div>
             <span class="duel-active-game__status">{{ statusLabel(game) }}</span>
-          </div>
+          </button>
         }
       </div>
     } @else {
@@ -83,7 +83,7 @@
 
 <!-- Bottom Sheet -->
 @if (showPlaySheet()) {
-  <div class="duel-sheet-backdrop" (click)="closePlaySheet()"></div>
+  <div class="duel-sheet-backdrop" (click)="closePlaySheet()" aria-hidden="true"></div>
   <div class="duel-sheet">
     <div class="duel-sheet__handle"></div>
     <h3 class="duel-sheet__title">How do you want to play?</h3>

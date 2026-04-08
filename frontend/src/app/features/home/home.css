@@ -1,9 +1,10 @@
+/* GPU-friendly bg drift using transform on pseudo-element */
 @keyframes bg-drift {
-  0%   { background-position: 50% 50%; background-size: 110%; }
-  25%  { background-position: 58% 44%; background-size: 112%; }
-  50%  { background-position: 50% 56%; background-size: 108%; }
-  75%  { background-position: 42% 50%; background-size: 111%; }
-  100% { background-position: 50% 50%; background-size: 110%; }
+  0%   { transform: translate(0, 0) scale(1.1); }
+  25%  { transform: translate(2%, -2%) scale(1.12); }
+  50%  { transform: translate(0, 2%) scale(1.08); }
+  75%  { transform: translate(-2%, 0) scale(1.11); }
+  100% { transform: translate(0, 0) scale(1.1); }
 }
 
 .home-page {
@@ -15,40 +16,135 @@
   padding: 1rem;
   padding-bottom: 7.5rem;
   padding-top: 5.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page::before {
+  content: '';
+  position: absolute;
+  inset: -12%;
   background-image: url(/header-banner-bg.jpg);
-  background-size: 110%;
-  background-position: 50% 50%;
+  background-size: cover;
+  background-position: center;
   animation: bg-drift 18s ease-in-out infinite;
+  will-change: transform;
+  z-index: -1;
 }
 
 .home-content {
-  max-width: 24.375rem;
+  max-width: var(--content-narrow-width);
   width: 100%;
 }
 
-/* Stagger entrance for home content children */
+/* ============================================
+   Entrance stagger — fast, snappy reveals
+   ============================================ */
 .home-content > * {
   opacity: 0;
-  animation: anim-stagger-in 400ms var(--ease-out-quart) forwards;
+  animation: anim-stagger-in 300ms var(--ease-out-quart) forwards;
 }
 .home-content > *:nth-child(1) { animation-delay: 0ms; }
-.home-content > *:nth-child(2) { animation-delay: 60ms; }
-.home-content > *:nth-child(3) { animation-delay: 120ms; }
-.home-content > *:nth-child(4) { animation-delay: 180ms; }
-.home-content > *:nth-child(5) { animation-delay: 240ms; }
-.home-content > *:nth-child(6) { animation-delay: 300ms; }
-.home-content > *:nth-child(n+7) { animation-delay: 360ms; }
+.home-content > *:nth-child(2) { animation-delay: 50ms; }
+.home-content > *:nth-child(3) { animation-delay: 100ms; }
+.home-content > *:nth-child(4) { animation-delay: 150ms; }
+.home-content > *:nth-child(5) { animation-delay: 200ms; }
+.home-content > *:nth-child(n+6) { animation-delay: 250ms; }
 
-/* TIER 1: Battle hero */
-app-battle-hero {
-  display: block;
-  margin-bottom: 1.25rem;
+/* ============================================
+   Tablet — 768px+
+   ============================================ */
+@media (min-width: 768px) {
+  .home-page {
+    padding: 1.5rem;
+    padding-top: 5.5rem;
+    padding-bottom: 7.5rem;
+  }
+
+  .home-content {
+    max-width: 44rem;
+  }
+
+  .section-modes {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  /* Last odd child spans full width */
+  .section-modes > :only-child,
+  .section-modes > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* More generous tier container padding */
+  .pro-arena-tier,
+  .free-tier {
+    padding: 1rem;
+    border-radius: 1.5rem;
+  }
+
+  /* 2-Player card scales proportionally */
+  .two-player-card {
+    min-height: 14rem;
+    padding: 1.75rem;
+  }
+
+  /* Type scales naturally via clamp() — no font-size overrides needed */
 }
 
-/* Section header spacing — larger gap above to separate tiers */
+/* ============================================
+   Large tablet — 1024px+
+   ============================================ */
+@media (min-width: 1024px) {
+  .home-content {
+    max-width: 56rem;
+  }
+
+  /* Pro Arena → 3-column grid at large tablet */
+  .section-modes.pro-arena-tier {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .section-modes.pro-arena-tier > :last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+
+  .pro-arena-tier,
+  .free-tier {
+    padding: 1.25rem;
+  }
+
+  .two-player-card {
+    min-height: 16rem;
+    padding: 2rem;
+  }
+
+  .two-player-card__actions {
+    gap: 0.75rem;
+  }
+
+  .two-player-card__btn {
+    padding: 0.75rem 1rem;
+  }
+}
+
+
+/* TIER 1: Battle hero — generous bottom space to separate from 2-player card */
+app-battle-hero {
+  display: block;
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+/* 2-Player card — its own tier, needs breathing room below */
+.two-player-card {
+  margin-bottom: 0;
+}
+
+/* Section header spacing — generous tier separation */
 :host app-section-header {
   display: block;
-  margin-top: 2.25rem;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
 }
 
 /* Shared section modes layout */
@@ -58,6 +154,15 @@ app-battle-hero {
   gap: 0.875rem;
   margin-bottom: 0;
 }
+
+/* Pro Arena mode cards — micro-stagger within the tier */
+.pro-arena-tier > app-mode-card {
+  opacity: 0;
+  animation: anim-stagger-in 250ms var(--ease-out-quart) forwards;
+}
+.pro-arena-tier > app-mode-card:nth-child(1) { animation-delay: 200ms; }
+.pro-arena-tier > app-mode-card:nth-child(2) { animation-delay: 280ms; }
+.pro-arena-tier > app-mode-card:nth-child(3) { animation-delay: 360ms; }
 
 /* TIER 3: Pro Arena — gold glass treatment */
 .pro-arena-tier {
@@ -97,11 +202,11 @@ app-battle-hero {
   background: var(--color-surface, #131313);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform var(--anim-feedback) var(--ease-out-quart);
 }
 
 .two-player-card:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .two-player-card__bg-image {
@@ -148,7 +253,7 @@ app-battle-hero {
   position: relative;
   z-index: 1;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.375rem;
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
   font-weight: 700;
   line-height: 1.05;
   margin: 0;
@@ -184,9 +289,10 @@ app-battle-hero {
   align-items: center;
   gap: 0.125rem;
   padding: 0.5rem 0.75rem;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass-bg-subtle);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  border: 1px solid var(--glass-border-strong);
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
@@ -200,6 +306,11 @@ app-battle-hero {
 .two-player-card__btn:active {
   background: rgba(255, 255, 255, 0.18);
   transform: scale(0.97);
+}
+
+.two-player-card__btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .two-player-card__btn-icon {
@@ -219,4 +330,15 @@ app-battle-hero {
   font-weight: 500;
   opacity: 0.5;
   letter-spacing: 0.02em;
+}
+
+/* ============================================
+   Reduced motion — respect user preferences
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .home-page::before { animation: none; }
+  .home-content > * { animation: none; opacity: 1; }
+  .pro-arena-tier > app-mode-card { animation: none; opacity: 1; }
+  .two-player-card { transition: none; }
+  .two-player-card__bg-image { transition: none; }
 }

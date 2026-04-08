@@ -23,11 +23,12 @@ export interface AchievementContext {
 }
 
 export function getEloTier(elo: number): { tier: string; color: string; label: string } {
-  if (elo >= 1800) return { tier: 'diamond', color: '#a855f7', label: 'Diamond' };
-  if (elo >= 1600) return { tier: 'platinum', color: '#06b6d4', label: 'Platinum' };
-  if (elo >= 1400) return { tier: 'gold', color: '#eab308', label: 'Gold' };
-  if (elo >= 1200) return { tier: 'silver', color: '#94a3b8', label: 'Silver' };
-  if (elo >= 1000) return { tier: 'bronze', color: '#b45309', label: 'Bronze' };
+  if (elo >= 2400) return { tier: 'challenger', color: '#e8ff7a', label: 'Challenger' };
+  if (elo >= 2000) return { tier: 'diamond', color: '#a855f7', label: 'Diamond' };
+  if (elo >= 1650) return { tier: 'platinum', color: '#06b6d4', label: 'Platinum' };
+  if (elo >= 1300) return { tier: 'gold', color: '#f59e0b', label: 'Gold' };
+  if (elo >= 1000) return { tier: 'silver', color: '#94a3b8', label: 'Silver' };
+  if (elo >= 750) return { tier: 'bronze', color: '#b45309', label: 'Bronze' };
   return { tier: 'iron', color: '#6b7280', label: 'Iron' };
 }
 
@@ -95,11 +96,16 @@ export class AchievementsService {
       blitz_100: maxBlitzScore,
       blitz_150: maxBlitzScore,
       mayhem_master: mayhemStats?.games_played ?? 0,
+      elo_750: profile.elo,
+      elo_1000: profile.elo,
+      elo_1300: profile.elo,
+      elo_1650: profile.elo,
+      elo_2000: profile.elo,
+      elo_2400: profile.elo,
       elo_1200: profile.elo,
       elo_1400: profile.elo,
       elo_1600: profile.elo,
       elo_1800: profile.elo,
-      elo_2000: profile.elo,
       match_winner: matchWins,
       match_10_wins: matchWins,
       match_50_wins: matchWins,
@@ -169,7 +175,15 @@ export class AchievementsService {
     // Mayhem games
     check('mayhem_master', (ctx.mayhemGamesPlayed ?? 0) >= 10);
 
-    // ELO rank thresholds
+    // ELO rank thresholds (new tier system)
+    check('elo_750', (ctx.currentElo ?? 0) >= 750);
+    check('elo_1000', (ctx.currentElo ?? 0) >= 1000);
+    check('elo_1300', (ctx.currentElo ?? 0) >= 1300);
+    check('elo_1650', (ctx.currentElo ?? 0) >= 1650);
+    check('elo_2000', (ctx.currentElo ?? 0) >= 2000);
+    check('elo_2400', (ctx.currentElo ?? 0) >= 2400);
+
+    // Legacy thresholds — still award if reached (backwards compat)
     check('elo_1200', (ctx.currentElo ?? 0) >= 1200);
     check('elo_1400', (ctx.currentElo ?? 0) >= 1400);
     check('elo_1600', (ctx.currentElo ?? 0) >= 1600);
@@ -188,9 +202,6 @@ export class AchievementsService {
 
     // Blitz 150
     check('blitz_150', (ctx.blitzBestScore ?? 0) >= 150);
-
-    // ELO 2000
-    check('elo_2000', (ctx.currentElo ?? 0) >= 2000);
 
     // Streaks
     const bestStreak = ctx.maxCorrectStreak ?? ctx.currentStreak ?? 0;

@@ -235,7 +235,7 @@ export class PoolSeedService {
     category: BoardCategory,
     passes: number,
   ): Promise<{ addedTotals: Record<Difficulty, number>; questionIds: string[] }> {
-    const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0, EXPERT: 0 };
     const questionIds: string[] = [];
     const existingKeys = await this.getExistingQuestionKeys(category);
     const uniqueDifficulties = [...new Set(CATEGORY_DIFFICULTY_SLOTS[category])] as Difficulty[];
@@ -515,7 +515,7 @@ export class PoolSeedService {
     category: QuestionCategory,
     needs: Partial<Record<Difficulty, number>>,
   ): Promise<Record<Difficulty, number>> {
-    const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0 };
+    const addedTotals: Record<Difficulty, number> = { EASY: 0, MEDIUM: 0, HARD: 0, EXPERT: 0 };
     const existingKeys = await this.getExistingQuestionKeys(category);
     const avoidQuestions = await this.getPoolSampleTexts(category);
     let attempts = 0;

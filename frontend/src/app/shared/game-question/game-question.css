@@ -13,6 +13,9 @@
   gap: 1rem;
   padding: 1rem;
   min-height: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
   background:
     radial-gradient(ellipse 80% 50% at 50% -20%, var(--_m10), transparent 50%),
     linear-gradient(180deg, transparent, rgba(0,0,0,.02));
@@ -842,4 +845,26 @@
 :root:not(.dark) .gq__fifty-fifty-btn {
   background: rgba(255,255,255,.9);
   border: 1px solid rgba(0,0,0,.08);
+}
+
+/* ─── TABLET ADAPTATIONS ─────────────────────────────────── */
+@media (min-width: 768px) {
+  .gq {
+    padding: 1.5rem;
+  }
+
+  .gq__options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gq__question-card {
+    padding: 2rem;
+    min-height: 7rem;
+  }
+
+  .gq__logo-image {
+    width: 16rem;
+    height: 16rem;
+  }
 }

@@ -26,6 +26,9 @@ export const RAW_THRESHOLD_EASY = 0.26;
 /** Raw score below this → MEDIUM (above → HARD) */
 export const RAW_THRESHOLD_MEDIUM = 0.44;
 
+/** Raw score above this → EXPERT (hardest tier) */
+export const RAW_THRESHOLD_EXPERT = 0.62;
+
 /** Distance from threshold within which a question can be used in the adjacent easier level. */
 export const BOUNDARY_TOLERANCE = 0.08;
 

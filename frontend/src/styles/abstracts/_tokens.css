@@ -4,6 +4,11 @@
    ========================================================== */
 
 :root {
+  /* ---- Layout ---- */
+  --app-max-width: 1200px;
+  --content-max-width: 40rem;       /* gameplay / focused content */
+  --content-narrow-width: 28rem;    /* modals, start screens */
+
   /* ---- Surfaces ---- */
   --color-bg: #131313;
   --color-surface-lowest: #0e0e0e;
@@ -51,6 +56,38 @@
   --color-gold-bg: rgba(230, 168, 0, 0.15);
   --color-purple-light: #ce93d8;
   --color-purple-bg: rgba(156, 39, 176, 0.15);
+
+  /* ---- Tag palette (shared across mode-card + battle-hero) ---- */
+  --color-tag-red: #ff6b6b;
+  --color-tag-red-bg: rgba(239, 68, 68, 0.15);
+  --color-tag-red-border: rgba(239, 68, 68, 0.25);
+  --color-tag-orange: #ffb74d;
+  --color-tag-orange-bg: rgba(255, 152, 0, 0.15);
+  --color-tag-orange-border: rgba(255, 152, 0, 0.25);
+  --color-tag-cyan: #67e8f9;
+  --color-tag-cyan-bg: rgba(34, 211, 238, 0.15);
+  --color-tag-cyan-border: rgba(34, 211, 238, 0.25);
+  --color-tag-pink: #f9a8d4;
+  --color-tag-pink-bg: rgba(236, 72, 153, 0.15);
+  --color-tag-pink-border: rgba(236, 72, 153, 0.25);
+  --color-tag-amber: #fbbf24;
+  --color-tag-amber-bg: rgba(245, 158, 11, 0.15);
+  --color-tag-amber-border: rgba(245, 158, 11, 0.25);
+  --color-tag-dark: #9ca3af;
+  --color-tag-dark-bg: rgba(0, 0, 0, 0.5);
+  --color-tag-dark-border: rgba(75, 75, 75, 0.4);
+  --color-tag-mint: #6ee7b7;
+  --color-tag-mint-bg: rgba(52, 211, 153, 0.15);
+  --color-tag-mint-border: rgba(52, 211, 153, 0.25);
+  --color-tag-coral: #fca5a5;
+  --color-tag-coral-bg: rgba(248, 113, 113, 0.12);
+  --color-tag-coral-border: rgba(248, 113, 113, 0.22);
+  --color-tag-teal: #5eead4;
+  --color-tag-teal-bg: rgba(20, 184, 166, 0.15);
+  --color-tag-teal-border: rgba(20, 184, 166, 0.25);
+  --color-tag-white: rgba(255, 255, 255, 0.8);
+  --color-tag-white-bg: rgba(255, 255, 255, 0.1);
+  --color-tag-white-border: rgba(255, 255, 255, 0.15);
 
   /* ---- Radius ---- */
   --radius-sm: 0.25rem;
