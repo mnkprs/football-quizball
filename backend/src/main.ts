@@ -17,6 +17,8 @@ async function bootstrap() {
     : [
         'http://localhost:4200',
         'http://localhost:4300',
+        'https://localhost',
+        'capacitor://localhost',
         ...(process.env['NODE_ENV'] === 'production' ? ['https://football-quizball.vercel.app'] : []),
       ];
 
