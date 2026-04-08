@@ -217,20 +217,26 @@ export class LogoQuizService {
     }
   }
 
+  private static readonly TEAM_NAMES_CACHE_KEY = 'logo:team_names';
+  private static readonly TEAM_NAMES_CACHE_TTL = 3600; // 1 hour
+
   /**
    * Get all team names for the searchable select.
+   * Cached in Redis for 1 hour to avoid repeated full-table scans.
    */
   async getTeamNames(): Promise<string[]> {
+    const cached = await this.cacheService.get<string[]>(LogoQuizService.TEAM_NAMES_CACHE_KEY);
+    if (cached) return cached;
+
     const client = this.supabaseService.client;
-    // Supabase default limit is 1000 — we have 1100+ logo questions,
-    // so we must paginate to get all team names for the autocomplete.
+    // Select only the correct_answer field from the JSONB — not the entire question object.
     let allData: any[] = [];
     const pageSize = 1000;
     let from = 0;
     while (true) {
       const { data: page } = await client
         .from('question_pool')
-        .select('question')
+        .select('correct_answer:question->correct_answer')
         .eq('category', 'LOGO_QUIZ')
         .range(from, from + pageSize - 1);
       if (!page || page.length === 0) break;
@@ -238,13 +244,14 @@ export class LogoQuizService {
       if (page.length < pageSize) break;
       from += pageSize;
     }
-    const data = allData;
 
-    if (!data) return [];
-    const names: string[] = data.map(
-      (row: any) => row.question?.correct_answer as string,
+    if (!allData.length) return [];
+    const names: string[] = allData.map(
+      (row: any) => row.correct_answer as string,
     );
-    return [...new Set(names)].sort();
+    const sorted = [...new Set(names)].sort();
+    await this.cacheService.set(LogoQuizService.TEAM_NAMES_CACHE_KEY, sorted, LogoQuizService.TEAM_NAMES_CACHE_TTL);
+    return sorted;
   }
 
   /**
@@ -265,9 +272,10 @@ export class LogoQuizService {
     const client = this.supabaseService.client;
 
     // Over-fetch so the random shuffle has enough candidates.
+    // Select only the JSONB fields we need instead of the entire question object.
     const { data, error } = await client
       .from('question_pool')
-      .select('id, question, question_elo')
+      .select('id, question_elo, correct_answer:question->correct_answer, image_url:question->image_url, difficulty:question->difficulty, meta:question->meta')
       .eq('category', 'LOGO_QUIZ')
       .limit(count * 4);
 
@@ -276,16 +284,16 @@ export class LogoQuizService {
     }
 
     // Fisher-Yates shuffle for unbiased randomness, then dedup by team slug and take `count`.
-    const shuffled: Array<{ id: string; question: any }> = (data as Array<{ id: string; question: any }>).slice();
+    // With the flattened select, JSONB fields are at the top level (correct_answer, image_url, etc.)
+    const shuffled = (data as any[]).slice();
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     const seenSlugs = new Set<string>();
-    const picked: typeof shuffled = [];
+    const picked: any[] = [];
     for (const row of shuffled) {
-      const q = row.question as Record<string, unknown>;
-      const meta = q?.meta as Record<string, unknown> | undefined;
+      const meta = row.meta as Record<string, unknown> | undefined;
       const slug = (meta?.slug as string) ?? '';
       if (slug && seenSlugs.has(slug)) continue;
       if (slug) seenSlugs.add(slug);
@@ -294,15 +302,14 @@ export class LogoQuizService {
     }
 
     return picked.map((row) => {
-      const q = row.question as Record<string, unknown>;
-      const meta = q?.meta as Record<string, unknown> | undefined;
+      const meta = row.meta as Record<string, unknown> | undefined;
       return {
-        id: row.id,
-        correct_answer: (q.correct_answer as string) ?? '',
-        image_url: (q.image_url as string) ?? '',
-        original_image_url: ((meta?.original_image_url ?? q.image_url) as string) ?? '',
-        difficulty: ((q.difficulty as string) ?? 'EASY'),
-        question_elo: (row as any).question_elo ?? undefined,
+        id: (row.id as string) ?? '',
+        correct_answer: (row.correct_answer as string) ?? '',
+        image_url: (row.image_url as string) ?? '',
+        original_image_url: ((meta?.original_image_url ?? row.image_url) as string) ?? '',
+        difficulty: ((row.difficulty as string) ?? 'EASY'),
+        question_elo: row.question_elo ?? undefined,
         meta: {
           slug: ((meta?.slug as string) ?? ''),
           league: ((meta?.league as string) ?? ''),

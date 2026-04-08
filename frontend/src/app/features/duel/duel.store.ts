@@ -138,8 +138,8 @@ export const DuelStore = signalStore(
             () => { this.refreshGame(); },
           )
           .subscribe();
-        // Fallback polling every 5s (fast-paced game needs quick sync)
-        pollTimer = setInterval(() => { this.refreshGame(); }, 5_000);
+        // Fallback polling every 15s — Realtime handles fast updates, this is just a safety net
+        pollTimer = setInterval(() => { this.refreshGame(); }, 15_000);
       },
 
       unsubscribeRealtime(): void {

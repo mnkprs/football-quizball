@@ -14,9 +14,9 @@ export interface LiveGameSummary {
 export type { ErrorLogEntry };
 
 const POLL_INTERVAL: Record<string, number> = {
-  overview: 10_000,
-  'error-logs': 10_000,
-  games: 5_000,
+  overview: 30_000,
+  'error-logs': 30_000,
+  games: 30_000,
 };
 
 /**

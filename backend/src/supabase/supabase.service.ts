@@ -810,15 +810,18 @@ export class SupabaseService {
     if (error) throw error;
   }
 
+  private static readonly UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   async getMatchHistory(userId: string, limit = 20): Promise<MatchHistoryEntry[]> {
+    if (!SupabaseService.UUID_RE.test(userId)) return [];
     const sel = 'id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at';
-    const [asP1, asP2] = await Promise.all([
-      this.client.from('match_history').select(sel).eq('player1_id', userId).order('played_at', { ascending: false }).limit(limit),
-      this.client.from('match_history').select(sel).eq('player2_id', userId).order('played_at', { ascending: false }).limit(limit),
-    ]);
-    const combined = [...(asP1.data ?? []), ...(asP2.data ?? [])];
-    combined.sort((a, b) => new Date(b.played_at).getTime() - new Date(a.played_at).getTime());
-    return combined.slice(0, limit);
+    const { data } = await this.client
+      .from('match_history')
+      .select(sel)
+      .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
+      .order('played_at', { ascending: false })
+      .limit(limit);
+    return data ?? [];
   }
 
   /** Atomically updates ELO and inserts history in a single DB transaction. */
