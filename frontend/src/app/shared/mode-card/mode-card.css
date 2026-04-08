@@ -30,7 +30,7 @@
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
   white-space: nowrap;
 }
 
@@ -41,89 +41,20 @@
 }
 
 
-.mode-card__tag--red {
-  color: #ff6b6b;
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.25);
-}
-
-.mode-card__tag--blue {
-  color: var(--color-blue-light);
-  background: var(--color-blue-bg);
-  border-color: rgba(33, 150, 243, 0.25);
-}
-
-.mode-card__tag--gold {
-  color: var(--color-gold-light);
-  background: var(--color-gold-bg);
-  border-color: rgba(230, 168, 0, 0.25);
-}
-
-.mode-card__tag--accent {
-  color: var(--color-accent);
-  background: var(--color-accent-bg);
-  border-color: rgba(0, 122, 255, 0.2);
-}
-
-.mode-card__tag--orange {
-  color: #ffb74d;
-  background: rgba(255, 152, 0, 0.15);
-  border-color: rgba(255, 152, 0, 0.25);
-}
-
-.mode-card__tag--purple {
-  color: var(--color-purple-light);
-  background: var(--color-purple-bg);
-  border-color: rgba(156, 39, 176, 0.25);
-}
-
-.mode-card__tag--white {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.mode-card__tag--cyan {
-  color: #67e8f9;
-  background: rgba(34, 211, 238, 0.15);
-  border-color: rgba(34, 211, 238, 0.25);
-}
-
-.mode-card__tag--pink {
-  color: #f9a8d4;
-  background: rgba(236, 72, 153, 0.15);
-  border-color: rgba(236, 72, 153, 0.25);
-}
-
-.mode-card__tag--amber {
-  color: #fbbf24;
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.25);
-}
-
-.mode-card__tag--dark {
-  color: #9ca3af;
-  background: rgba(0, 0, 0, 0.5);
-  border-color: rgba(75, 75, 75, 0.4);
-}
-
-.mode-card__tag--mint {
-  color: #6ee7b7;
-  background: rgba(52, 211, 153, 0.15);
-  border-color: rgba(52, 211, 153, 0.25);
-}
-
-.mode-card__tag--coral {
-  color: #fca5a5;
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.22);
-}
-
-.mode-card__tag--teal {
-  color: #5eead4;
-  background: rgba(20, 184, 166, 0.15);
-  border-color: rgba(20, 184, 166, 0.25);
-}
+.mode-card__tag--red { color: var(--color-tag-red); background: var(--color-tag-red-bg); border-color: var(--color-tag-red-border); }
+.mode-card__tag--blue { color: var(--color-blue-light); background: var(--color-blue-bg); border-color: rgba(33, 150, 243, 0.25); }
+.mode-card__tag--gold { color: var(--color-gold-light); background: var(--color-gold-bg); border-color: rgba(230, 168, 0, 0.25); }
+.mode-card__tag--accent { color: var(--color-accent); background: var(--color-accent-bg); border-color: rgba(0, 122, 255, 0.2); }
+.mode-card__tag--orange { color: var(--color-tag-orange); background: var(--color-tag-orange-bg); border-color: var(--color-tag-orange-border); }
+.mode-card__tag--purple { color: var(--color-purple-light); background: var(--color-purple-bg); border-color: rgba(156, 39, 176, 0.25); }
+.mode-card__tag--white { color: var(--color-tag-white); background: var(--color-tag-white-bg); border-color: var(--color-tag-white-border); }
+.mode-card__tag--cyan { color: var(--color-tag-cyan); background: var(--color-tag-cyan-bg); border-color: var(--color-tag-cyan-border); }
+.mode-card__tag--pink { color: var(--color-tag-pink); background: var(--color-tag-pink-bg); border-color: var(--color-tag-pink-border); }
+.mode-card__tag--amber { color: var(--color-tag-amber); background: var(--color-tag-amber-bg); border-color: var(--color-tag-amber-border); }
+.mode-card__tag--dark { color: var(--color-tag-dark); background: var(--color-tag-dark-bg); border-color: var(--color-tag-dark-border); }
+.mode-card__tag--mint { color: var(--color-tag-mint); background: var(--color-tag-mint-bg); border-color: var(--color-tag-mint-border); }
+.mode-card__tag--coral { color: var(--color-tag-coral); background: var(--color-tag-coral-bg); border-color: var(--color-tag-coral-border); }
+.mode-card__tag--teal { color: var(--color-tag-teal); background: var(--color-tag-teal-bg); border-color: var(--color-tag-teal-border); }
 
 /* Featured — center zone (absolute center, immune to sibling layout) */
 .mode-card__featured {
@@ -235,7 +166,7 @@
   width: 100%;
 }
 
-/* Locked overlay */
+/* Locked overlay — button reset for keyboard accessibility */
 .mode-card__locked-overlay {
   position: absolute;
   inset: 0;
@@ -247,6 +178,9 @@
   background: rgba(0, 0, 0, 0.62);
   backdrop-filter: blur(2px);
   border-radius: inherit;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   z-index: 10;
 }
 
@@ -332,5 +266,16 @@
   font-weight: 400;
   color: var(--color-accent);
   opacity: 0.85;
+}
+
+/* ── Tablet — adapt for narrower cards in grid ── */
+@media (min-width: 1024px) {
+  .mode-card__title {
+    font-size: clamp(1.25rem, 2.5vw, 1.875rem);
+  }
+
+  .mode-card__hint {
+    max-width: 100%;
+  }
 }
 

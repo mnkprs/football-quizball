@@ -1,6 +1,6 @@
 .app-container {
   min-height: 100dvh;
-  max-width: 28rem;
+  max-width: var(--app-max-width);
   margin: 0 auto;
   background: var(--mat-sys-surface);
 }

@@ -25,3 +25,20 @@
 .anim-enter {
   animation: anim-stagger-in var(--anim-entrance) var(--ease-out-quart) forwards;
 }
+
+/* Page-stagger: auto-stagger direct children on route entrance.
+   Uses `both` fill mode so late-rendered @if blocks still animate in.
+   The keyframe itself handles opacity 0→1 — no static opacity:0 that
+   would stick on elements whose animation already ran. */
+.page-stagger > * {
+  animation: anim-stagger-in 400ms ease-out both;
+}
+.page-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.page-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.page-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.page-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.page-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.page-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.page-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.page-stagger > *:nth-child(8) { animation-delay: 420ms; }
+.page-stagger > *:nth-child(n+9) { animation-delay: 480ms; }

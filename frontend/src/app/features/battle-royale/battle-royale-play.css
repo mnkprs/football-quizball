@@ -3,7 +3,7 @@
   background: var(--color-background);
   color: var(--color-foreground);
   padding: 1rem;
-  max-width: 28rem;
+  max-width: var(--content-max-width);
   margin: 0 auto;
 }
 

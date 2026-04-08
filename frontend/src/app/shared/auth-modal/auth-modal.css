@@ -23,7 +23,7 @@
 .auth-modal-sheet {
   position: relative;
   width: 100%;
-  max-width: 28rem;
+  max-width: var(--content-narrow-width);
   background: var(--color-card, #1a1a1a);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 2rem 1.5rem 3rem;

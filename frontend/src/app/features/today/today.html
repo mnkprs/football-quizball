@@ -1,4 +1,4 @@
-<div class="today-page">
+<div class="today-page page-stagger">
   <!-- Premium header -->
   <div class="today-header">
     <div class="today-header__date">{{ todayDate() }}</div>
@@ -11,28 +11,30 @@
     </div>
   </div>
 
-  <app-daily-hero
-    [title]="lang.t().btnDaily"
-    [badgeLabel]="lang.t().dailyChallenge"
-    [questionCount]="dailyCount() ?? '—'"
-    [resetsIn]="dailyResetsIn()"
-    [questionsLabel]="lang.t().dailyQuestionsLabel"
-    [resetsLabel]="lang.t().dailyResetsIn"
-    [playLabel]="lang.t().dailyPlay"
-    backgroundImage="/football-field.png"
-    (play)="goDaily()"
-  />
+  <div class="today-heroes">
+    <app-daily-hero
+      [title]="lang.t().btnDaily"
+      [badgeLabel]="lang.t().dailyChallenge"
+      [questionCount]="dailyCount() ?? '—'"
+      [resetsIn]="dailyResetsIn()"
+      [questionsLabel]="lang.t().dailyQuestionsLabel"
+      [resetsLabel]="lang.t().dailyResetsIn"
+      [playLabel]="lang.t().dailyPlay"
+      backgroundImage="/football-field.png"
+      (play)="goDaily()"
+    />
 
-  <app-daily-hero
-    [title]="lang.t().btnNews"
-    [badgeLabel]="lang.t().newsDailyBadge"
-    [questionCount]="newsCount() ?? '—'"
-    [resetsIn]="newsUpdatesIn()"
-    questionsLabel="articles"
-    resetsLabel="Updates in"
-    playLabel="Play"
-    backgroundImage="/news-mode.png"
-    variant="sky"
-    (play)="goNews()"
-  />
+    <app-daily-hero
+      [title]="lang.t().btnNews"
+      [badgeLabel]="lang.t().newsDailyBadge"
+      [questionCount]="newsCount() ?? '—'"
+      [resetsIn]="newsUpdatesIn()"
+      questionsLabel="articles"
+      resetsLabel="Updates in"
+      playLabel="Play"
+      backgroundImage="/news-mode.png"
+      variant="sky"
+      (play)="goNews()"
+    />
+  </div>
 </div>
