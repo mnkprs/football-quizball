@@ -16,10 +16,12 @@ import { LogoQuizApiService, type LogoQuestionResponse } from '../../core/logo-q
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { AuthService } from '../../core/auth.service';
+import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 import { ProfileStore } from '../../core/profile-store.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
 import { createGameTimer } from '../../core/game-timer';
+import { createReportCooldown } from '../../core/report-cooldown';
 import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
 
@@ -38,6 +40,7 @@ export class LogoQuizComponent implements OnDestroy {
   private leaderboardApi = inject(LeaderboardApiService);
   private achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
+  private gameApi = inject(GameApiService);
   private profileStore = inject(ProfileStore);
   private destroyRef = inject(DestroyRef);
   private adService = inject(AdService);
@@ -67,6 +70,11 @@ export class LogoQuizComponent implements OnDestroy {
   myRank = signal<number | null>(null);
   private normalRank = signal<number | null>(null);
   private hardcoreRank = signal<number | null>(null);
+
+  // Report
+  private reportCooldown = createReportCooldown();
+  reportDisabled = this.reportCooldown.disabled;
+  problemReported = this.reportCooldown.reported;
 
   // Mastery upsell
   showMasteryUpsell = signal(false);
@@ -133,8 +141,34 @@ export class LogoQuizComponent implements OnDestroy {
     this.myRank.set(isHardcore ? this.hardcoreRank() : this.normalRank());
   }
 
+  async reportQuestion(): Promise<void> {
+    if (this.reportCooldown.disabled()) return;
+    const q = this.currentQuestion();
+    if (!q) return;
+
+    this.reportCooldown.start();
+    try {
+      await firstValueFrom(this.gameApi.reportProblem({
+        questionId: q.id,
+        category: 'LOGO_QUIZ',
+        difficulty: q.difficulty,
+        points: q.difficulty === 'HARD' ? 30 : 10,
+        questionText: 'Identify this football club from its logo',
+        imageUrl: q.image_url,
+      }));
+      this.reportCooldown.markReported();
+    } catch {
+      this.reportCooldown.cancel();
+    }
+  }
+
+  dismissProblemReported(): void {
+    this.reportCooldown.dismiss();
+  }
+
   ngOnDestroy(): void {
     this.timer.destroy();
+    this.reportCooldown.destroy();
   }
 
   async startPlaying(): Promise<void> {

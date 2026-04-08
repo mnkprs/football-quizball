@@ -100,10 +100,12 @@
         [totalTime]="30"
         [showPoints]="false"
         [submitting]="loading()"
+        [reportDisabled]="reportDisabled()"
         [reveal]="revealing()"
         [revealResult]="revealResultData()"
         [teamNames]="teamNames()"
         (answerSubmitted)="submitAnswer($event)"
+        (reportClicked)="reportQuestion()"
         (nextClicked)="nextQuestion()"
       />
       @if (revealing()) {
@@ -180,3 +182,18 @@
 
   </div>
 </div>
+
+<!-- Problem reported popup -->
+@if (problemReported()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
+    <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
+      <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
+      <button
+        (click)="dismissProblemReported()"
+        class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
+      >
+        OK
+      </button>
+    </div>
+  </div>
+}
