@@ -150,7 +150,7 @@ export class PoolSeedService {
     return force ? runSeedPool() : this.withRefillLock(runSeedPool);
   }
 
-  @Cron('*/15 * * * *')
+  @Cron('0 */2 * * *')
   async scheduledRefill(): Promise<void> {
     if (this.configService.get<string>('DISABLE_POOL_CRON') === '1') return;
     const acquired = await this.redisService.acquireLock('lock:cron:pool-refill', 600);

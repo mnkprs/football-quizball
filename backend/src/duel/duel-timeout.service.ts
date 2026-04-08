@@ -19,13 +19,20 @@ export class DuelTimeoutService {
     private readonly redisService: RedisService,
   ) {}
 
-  /** Runs every 15 seconds. Finds active duels whose current question has been open for >30s
+  /** Runs every 30 seconds. Finds active duels whose current question has been open for >30s
    *  and advances them. Handles the AFK case where neither player's browser calls the timeout endpoint. */
   @Cron('*/30 * * * * *')
   async advanceTimedOutQuestions(): Promise<void> {
     const acquired = await this.redisService.acquireLock('lock:cron:duel-timeout', 10);
     if (!acquired) return;
     try {
+      // Lightweight count check first — avoid full select when no active duels exist
+      const { count } = await this.supabaseService.client
+        .from('duel_games')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+      if (!count || count === 0) return;
+
       const cutoff = new Date(Date.now() - QUESTION_TIME_MS - GRACE_MS).toISOString();
 
       const { data: stuckGames, error } = await this.supabaseService.client

@@ -50,6 +50,14 @@ export class BotOnlineGameRunner implements OnModuleInit {
   @Interval(BOT_ONLINE_RUNNER_INTERVAL_MS)
   async executePendingBotTurns(): Promise<void> {
     if (this._paused) return;
+
+    // Lightweight count check — skip full query when no active online games
+    const { count } = await this.supabaseService.client
+      .from('online_games')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active');
+    if (!count || count === 0) return;
+
     const cutoff = new Date(Date.now() - BOT_TURN_MIN_WAIT_SECONDS * 1000).toISOString();
 
     const { data: games, error } = await this.supabaseService.client

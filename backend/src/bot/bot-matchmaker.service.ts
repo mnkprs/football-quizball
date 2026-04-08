@@ -95,17 +95,17 @@ export class BotMatchmakerService implements OnModuleInit {
     const [online, duel, br] = await Promise.all([
       this.supabaseService.client
         .from('online_games')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('status', 'queued')
         .is('guest_id', null),
       this.supabaseService.client
         .from('duel_games')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('status', 'waiting')
         .is('guest_id', null),
       this.supabaseService.client
         .from('battle_royale_rooms')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('status', 'waiting')
         .eq('is_private', false),
     ]);
@@ -258,7 +258,7 @@ export class BotMatchmakerService implements OnModuleInit {
     // Count real players already in the room
     const { count: playerCount } = await this.supabaseService.client
       .from('battle_royale_players')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('room_id', roomId);
 
     const realPlayers = playerCount ?? 1;
@@ -321,7 +321,7 @@ export class BotMatchmakerService implements OnModuleInit {
   private async createBotBRRooms(): Promise<void> {
     const { count, error } = await this.supabaseService.client
       .from('battle_royale_rooms')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('status', 'waiting')
       .eq('is_private', false)
       .eq('mode', 'classic');
