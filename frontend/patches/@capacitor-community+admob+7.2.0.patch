@@ -1,0 +1,763 @@
+diff --git a/node_modules/@capacitor-community/admob/android/build.gradle b/node_modules/@capacitor-community/admob/android/build.gradle
+index 80b828d..b7f68fa 100644
+--- a/node_modules/@capacitor-community/admob/android/build.gradle
++++ b/node_modules/@capacitor-community/admob/android/build.gradle
+@@ -37,7 +37,7 @@ android {
+     buildTypes {
+         release {
+             minifyEnabled false
+-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
++            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+         }
+     }
+     lintOptions {
+diff --git a/node_modules/@capacitor-community/admob/android/build/.transforms/d58233518f37bf501eb749f1320a0dba/results.bin b/node_modules/@capacitor-community/admob/android/build/.transforms/d58233518f37bf501eb749f1320a0dba/results.bin
+new file mode 100644
+index 0000000..0d259dd
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/.transforms/d58233518f37bf501eb749f1320a0dba/results.bin
+@@ -0,0 +1 @@
++o/classes
+diff --git a/node_modules/@capacitor-community/admob/android/build/.transforms/d58233518f37bf501eb749f1320a0dba/transformed/classes/classes_dex/classes.dex b/node_modules/@capacitor-community/admob/android/build/.transforms/d58233518f37bf501eb749f1320a0dba/transformed/classes/classes_dex/classes.dex
+new file mode 100644
+index 0000000..d71c138
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/.transforms/d58233518f37bf501eb749f1320a0dba/transformed/classes/classes_dex/classes.dex differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/AndroidManifest.xml b/node_modules/@capacitor-community/admob/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/AndroidManifest.xml
+new file mode 100644
+index 0000000..bf30ce5
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/AndroidManifest.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.getcapacitor.community.admob.admob" >
++
++    <uses-sdk android:minSdkVersion="23" />
++
++    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
++    <uses-permission android:name="android.permission.INTERNET" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/output-metadata.json b/node_modules/@capacitor-community/admob/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/output-metadata.json
+new file mode 100644
+index 0000000..22090ed
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/output-metadata.json
+@@ -0,0 +1,18 @@
++{
++  "version": 3,
++  "artifactType": {
++    "type": "AAPT_FRIENDLY_MERGED_MANIFESTS",
++    "kind": "Directory"
++  },
++  "applicationId": "com.getcapacitor.community.admob.admob",
++  "variantName": "release",
++  "elements": [
++    {
++      "type": "SINGLE",
++      "filters": [],
++      "attributes": [],
++      "outputFile": "AndroidManifest.xml"
++    }
++  ],
++  "elementType": "File"
++}
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/aar_metadata/release/writeReleaseAarMetadata/aar-metadata.properties b/node_modules/@capacitor-community/admob/android/build/intermediates/aar_metadata/release/writeReleaseAarMetadata/aar-metadata.properties
+new file mode 100644
+index 0000000..1211b1e
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/aar_metadata/release/writeReleaseAarMetadata/aar-metadata.properties
+@@ -0,0 +1,6 @@
++aarFormatVersion=1.0
++aarMetadataVersion=1.0
++minCompileSdk=1
++minCompileSdkExtension=0
++minAndroidGradlePluginVersion=1.0.0
++coreLibraryDesugaringEnabled=false
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/annotation_processor_list/release/javaPreCompileRelease/annotationProcessors.json b/node_modules/@capacitor-community/admob/android/build/intermediates/annotation_processor_list/release/javaPreCompileRelease/annotationProcessors.json
+new file mode 100644
+index 0000000..9e26dfe
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/annotation_processor_list/release/javaPreCompileRelease/annotationProcessors.json
+@@ -0,0 +1 @@
++{}
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/compile_library_classes_jar/release/bundleLibCompileToJarRelease/classes.jar b/node_modules/@capacitor-community/admob/android/build/intermediates/compile_library_classes_jar/release/bundleLibCompileToJarRelease/classes.jar
+new file mode 100644
+index 0000000..e0c0118
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/compile_library_classes_jar/release/bundleLibCompileToJarRelease/classes.jar differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar b/node_modules/@capacitor-community/admob/android/build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar
+new file mode 100644
+index 0000000..29acbd8
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/compile_symbol_list/release/generateReleaseRFile/R.txt b/node_modules/@capacitor-community/admob/android/build/intermediates/compile_symbol_list/release/generateReleaseRFile/R.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/mergeReleaseJniLibFolders/merger.xml b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/mergeReleaseJniLibFolders/merger.xml
+new file mode 100644
+index 0000000..c67563a
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/mergeReleaseJniLibFolders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/jniLibs"/></dataSet><dataSet config="release" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/release/jniLibs"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/mergeReleaseShaders/merger.xml b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/mergeReleaseShaders/merger.xml
+new file mode 100644
+index 0000000..a890a55
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/mergeReleaseShaders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/shaders"/></dataSet><dataSet config="release" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/release/shaders"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/packageReleaseAssets/merger.xml b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/packageReleaseAssets/merger.xml
+new file mode 100644
+index 0000000..e2b870d
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/packageReleaseAssets/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/assets"/></dataSet><dataSet config="release" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/release/assets"/></dataSet><dataSet config="generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/build/intermediates/shader_assets/release/compileReleaseShaders/out"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/release/packageReleaseResources/compile-file-map.properties b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/release/packageReleaseResources/compile-file-map.properties
+new file mode 100644
+index 0000000..11186fa
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/release/packageReleaseResources/compile-file-map.properties
+@@ -0,0 +1 @@
++#Wed Apr 08 16:23:23 EEST 2026
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/release/packageReleaseResources/merger.xml b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/release/packageReleaseResources/merger.xml
+new file mode 100644
+index 0000000..ee049fe
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/incremental/release/packageReleaseResources/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main" generated-set="main$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="release$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/release/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="release" generated-set="release$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/release/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/build/generated/res/resValues/release"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/build/generated/res/resValues/release"/></dataSet><mergedItems/></merger>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/java_res/release/processReleaseJavaRes/out/META-INF/capacitor-community-admob_release.kotlin_module b/node_modules/@capacitor-community/admob/android/build/intermediates/java_res/release/processReleaseJavaRes/out/META-INF/capacitor-community-admob_release.kotlin_module
+new file mode 100644
+index 0000000..9dbc290
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/java_res/release/processReleaseJavaRes/out/META-INF/capacitor-community-admob_release.kotlin_module differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/AdMob$1.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/AdMob$1.class
+new file mode 100644
+index 0000000..a464d60
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/AdMob$1.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/AdMob.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/AdMob.class
+new file mode 100644
+index 0000000..42b99f8
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/AdMob.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/banner/BannerExecutor$1.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/banner/BannerExecutor$1.class
+new file mode 100644
+index 0000000..7edbe6b
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/banner/BannerExecutor$1.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/banner/BannerExecutor.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/banner/BannerExecutor.class
+new file mode 100644
+index 0000000..b772aa1
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/banner/BannerExecutor.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/consent/AdConsentExecutor.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/consent/AdConsentExecutor.class
+new file mode 100644
+index 0000000..e0fb8f2
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/consent/AdConsentExecutor.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/helpers/AdViewIdHelper.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/helpers/AdViewIdHelper.class
+new file mode 100644
+index 0000000..ff83737
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/helpers/AdViewIdHelper.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/helpers/RequestHelper.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/helpers/RequestHelper.class
+new file mode 100644
+index 0000000..4bee19e
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/helpers/RequestHelper.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/interstitial/AdInterstitialExecutor.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/interstitial/AdInterstitialExecutor.class
+new file mode 100644
+index 0000000..1db9d29
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/interstitial/AdInterstitialExecutor.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$1.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$1.class
+new file mode 100644
+index 0000000..ae37d71
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$1.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$2.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$2.class
+new file mode 100644
+index 0000000..f01e429
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$2.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$3.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$3.class
+new file mode 100644
+index 0000000..933164a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$3.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$4.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$4.class
+new file mode 100644
+index 0000000..4ac4fdf
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$4.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$5.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$5.class
+new file mode 100644
+index 0000000..4471ea4
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory$5.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory.class
+new file mode 100644
+index 0000000..0606a2a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$AdOptionsFactory.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$TesterAdOptionsBuilder$1.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$TesterAdOptionsBuilder$1.class
+new file mode 100644
+index 0000000..ddd5125
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$TesterAdOptionsBuilder$1.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$TesterAdOptionsBuilder.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$TesterAdOptionsBuilder.class
+new file mode 100644
+index 0000000..55d040f
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions$TesterAdOptionsBuilder.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions.class
+new file mode 100644
+index 0000000..6feed2e
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/AdOptions.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/Executor.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/Executor.class
+new file mode 100644
+index 0000000..e70385c
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/models/Executor.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/rewarded/AdRewardExecutor.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/rewarded/AdRewardExecutor.class
+new file mode 100644
+index 0000000..354574a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/rewarded/AdRewardExecutor.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/rewardedinterstitial/AdRewardInterstitialExecutor.class b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/rewardedinterstitial/AdRewardInterstitialExecutor.class
+new file mode 100644
+index 0000000..613127c
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/getcapacitor/community/admob/rewardedinterstitial/AdRewardInterstitialExecutor.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/local_only_symbol_list/release/parseReleaseLocalResources/R-def.txt b/node_modules/@capacitor-community/admob/android/build/intermediates/local_only_symbol_list/release/parseReleaseLocalResources/R-def.txt
+new file mode 100644
+index 0000000..78ac5b8
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/local_only_symbol_list/release/parseReleaseLocalResources/R-def.txt
+@@ -0,0 +1,2 @@
++R_DEF: Internal format may change without notice
++local
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/manifest_merge_blame_file/release/processReleaseManifest/manifest-merger-blame-release-report.txt b/node_modules/@capacitor-community/admob/android/build/intermediates/manifest_merge_blame_file/release/processReleaseManifest/manifest-merger-blame-release-report.txt
+new file mode 100644
+index 0000000..68202b1
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/manifest_merge_blame_file/release/processReleaseManifest/manifest-merger-blame-release-report.txt
+@@ -0,0 +1,14 @@
++1<?xml version="1.0" encoding="utf-8"?>
++2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++3    package="com.getcapacitor.community.admob.admob" >
++4
++5    <uses-sdk android:minSdkVersion="23" />
++6
++7    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
++7-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:3:5-78
++7-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:3:22-76
++8    <uses-permission android:name="android.permission.INTERNET" />
++8-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:4:5-66
++8-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:4:22-64
++9
++10</manifest>
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml b/node_modules/@capacitor-community/admob/android/build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml
+new file mode 100644
+index 0000000..bf30ce5
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.getcapacitor.community.admob.admob" >
++
++    <uses-sdk android:minSdkVersion="23" />
++
++    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
++    <uses-permission android:name="android.permission.INTERNET" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/navigation_json/release/extractDeepLinksRelease/navigation.json b/node_modules/@capacitor-community/admob/android/build/intermediates/navigation_json/release/extractDeepLinksRelease/navigation.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/navigation_json/release/extractDeepLinksRelease/navigation.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/nested_resources_validation_report/release/generateReleaseResources/nestedResourcesValidationReport.txt b/node_modules/@capacitor-community/admob/android/build/intermediates/nested_resources_validation_report/release/generateReleaseResources/nestedResourcesValidationReport.txt
+new file mode 100644
+index 0000000..08f4ebe
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/nested_resources_validation_report/release/generateReleaseResources/nestedResourcesValidationReport.txt
+@@ -0,0 +1 @@
++0 Warning/Error
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/runtime_library_classes_jar/release/bundleLibRuntimeToJarRelease/classes.jar b/node_modules/@capacitor-community/admob/android/build/intermediates/runtime_library_classes_jar/release/bundleLibRuntimeToJarRelease/classes.jar
+new file mode 100644
+index 0000000..5707be4
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/intermediates/runtime_library_classes_jar/release/bundleLibRuntimeToJarRelease/classes.jar differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/intermediates/symbol_list_with_package_name/release/generateReleaseRFile/package-aware-r.txt b/node_modules/@capacitor-community/admob/android/build/intermediates/symbol_list_with_package_name/release/generateReleaseRFile/package-aware-r.txt
+new file mode 100644
+index 0000000..0790a4d
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/intermediates/symbol_list_with_package_name/release/generateReleaseRFile/package-aware-r.txt
+@@ -0,0 +1 @@
++com.getcapacitor.community.admob.admob
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab
+new file mode 100644
+index 0000000..aa5daa2
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream
+new file mode 100644
+index 0000000..8d1de71
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len
+new file mode 100644
+index 0000000..79758f8
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len
+new file mode 100644
+index 0000000..cf8a30a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at
+new file mode 100644
+index 0000000..2f6ec83
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i
+new file mode 100644
+index 0000000..35bd1ab
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/inputs/source-to-output.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab
+new file mode 100644
+index 0000000..459c3be
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream
+new file mode 100644
+index 0000000..5a07e19
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len
+new file mode 100644
+index 0000000..e862f59
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len
+new file mode 100644
+index 0000000..cf8a30a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at
+new file mode 100644
+index 0000000..63c4975
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i
+new file mode 100644
+index 0000000..feaefb1
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-attributes.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab
+new file mode 100644
+index 0000000..d6b4935
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream
+new file mode 100644
+index 0000000..5a07e19
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len
+new file mode 100644
+index 0000000..e862f59
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len
+new file mode 100644
+index 0000000..cf8a30a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at
+new file mode 100644
+index 0000000..0f90479
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i
+new file mode 100644
+index 0000000..feaefb1
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/class-fq-name-to-source.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab
+new file mode 100644
+index 0000000..b8a8df9
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream
+new file mode 100644
+index 0000000..40ce3cf
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream.len
+new file mode 100644
+index 0000000..a09dabf
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.len
+new file mode 100644
+index 0000000..a9f80ae
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.values.at
+new file mode 100644
+index 0000000..a152388
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab_i
+new file mode 100644
+index 0000000..98d6dd7
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/constants.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab
+new file mode 100644
+index 0000000..581d93e
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream
+new file mode 100644
+index 0000000..a543889
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len
+new file mode 100644
+index 0000000..92d8f05
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len
+new file mode 100644
+index 0000000..09407ef
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at
+new file mode 100644
+index 0000000..7fc1c0a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i
+new file mode 100644
+index 0000000..3e12677
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/internal-name-to-source.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab
+new file mode 100644
+index 0000000..e46db13
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream
+new file mode 100644
+index 0000000..aa9a1ec
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len
+new file mode 100644
+index 0000000..f948122
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len
+new file mode 100644
+index 0000000..9911af5
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at
+new file mode 100644
+index 0000000..ac6bf05
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i
+new file mode 100644
+index 0000000..af6b345
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/proto.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab
+new file mode 100644
+index 0000000..69818b7
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream
+new file mode 100644
+index 0000000..8d1de71
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len
+new file mode 100644
+index 0000000..79758f8
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len
+new file mode 100644
+index 0000000..cf8a30a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at
+new file mode 100644
+index 0000000..319fbe8
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i
+new file mode 100644
+index 0000000..35bd1ab
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/source-to-classes.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab
+new file mode 100644
+index 0000000..5e9c9c1
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream
+new file mode 100644
+index 0000000..10bb327
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream.len
+new file mode 100644
+index 0000000..a9f80ae
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.len
+new file mode 100644
+index 0000000..93a595b
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at
+new file mode 100644
+index 0000000..2844086
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i
+new file mode 100644
+index 0000000..3aa4dab
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/subtypes.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab
+new file mode 100644
+index 0000000..3952f82
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream
+new file mode 100644
+index 0000000..bebd2de
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len
+new file mode 100644
+index 0000000..9f23e16
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len
+new file mode 100644
+index 0000000..eb0b8a0
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at
+new file mode 100644
+index 0000000..a5a605b
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i
+new file mode 100644
+index 0000000..2680750
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/jvm/kotlin/supertypes.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/counters.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/counters.tab
+new file mode 100644
+index 0000000..4fef5ef
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/counters.tab
+@@ -0,0 +1,2 @@
++15
++0
+\ No newline at end of file
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab
+new file mode 100644
+index 0000000..818ec4b
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream
+new file mode 100644
+index 0000000..8d1de71
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len
+new file mode 100644
+index 0000000..79758f8
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len
+new file mode 100644
+index 0000000..cf8a30a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at
+new file mode 100644
+index 0000000..3763557
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i
+new file mode 100644
+index 0000000..35bd1ab
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/file-to-id.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab
+new file mode 100644
+index 0000000..7e3b663
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream
+new file mode 100644
+index 0000000..fbebe84
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len
+new file mode 100644
+index 0000000..933d553
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len
+new file mode 100644
+index 0000000..cf8a30a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at
+new file mode 100644
+index 0000000..e1f7e35
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i
+new file mode 100644
+index 0000000..0c98456
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/id-to-file.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab
+new file mode 100644
+index 0000000..3cb3d44
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream
+new file mode 100644
+index 0000000..da74bf0
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len
+new file mode 100644
+index 0000000..18244ce
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.keystream.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.len
+new file mode 100644
+index 0000000..51ef024
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at
+new file mode 100644
+index 0000000..8dfcf1d
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab.values.at differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab_i b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab_i
+new file mode 100644
+index 0000000..e34c424
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab_i differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab_i.len b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab_i.len
+new file mode 100644
+index 0000000..131e265
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/caches-jvm/lookups/lookups.tab_i.len differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/last-build.bin b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/last-build.bin
+new file mode 100644
+index 0000000..1c470fa
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/cacheable/last-build.bin differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin
+new file mode 100644
+index 0000000..765a8b9
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/local-state/build-history.bin b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/local-state/build-history.bin
+new file mode 100644
+index 0000000..0aafcc4
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/kotlin/compileReleaseKotlin/local-state/build-history.bin differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/outputs/logs/manifest-merger-release-report.txt b/node_modules/@capacitor-community/admob/android/build/outputs/logs/manifest-merger-release-report.txt
+new file mode 100644
+index 0000000..d5c1293
+--- /dev/null
++++ b/node_modules/@capacitor-community/admob/android/build/outputs/logs/manifest-merger-release-report.txt
+@@ -0,0 +1,24 @@
++-- Merging decision tree log ---
++manifest
++ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:2:3-5:14
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:2:3-5:14
++	package
++		INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml
++	xmlns:android
++		ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:2:13-71
++uses-permission#android.permission.ACCESS_NETWORK_STATE
++ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:3:5-78
++	android:name
++		ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:3:22-76
++uses-permission#android.permission.INTERNET
++ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:4:5-66
++	android:name
++		ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml:4:22-64
++uses-sdk
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml
++	android:targetSdkVersion
++		INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml
++	android:minSdkVersion
++		INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@capacitor-community/admob/android/src/main/AndroidManifest.xml
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/compileReleaseJavaWithJavac/previous-compilation-data.bin b/node_modules/@capacitor-community/admob/android/build/tmp/compileReleaseJavaWithJavac/previous-compilation-data.bin
+new file mode 100644
+index 0000000..af05894
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/compileReleaseJavaWithJavac/previous-compilation-data.bin differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/META-INF/capacitor-community-admob_release.kotlin_module b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/META-INF/capacitor-community-admob_release.kotlin_module
+new file mode 100644
+index 0000000..9dbc290
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/META-INF/capacitor-community-admob_release.kotlin_module differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdPluginEvents.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdPluginEvents.class
+new file mode 100644
+index 0000000..47af279
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdPluginEvents.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdSizeEnum.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdSizeEnum.class
+new file mode 100644
+index 0000000..2cf1927
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdSizeEnum.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdSizeInfo.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdSizeInfo.class
+new file mode 100644
+index 0000000..5202ba2
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/banner/BannerAdSizeInfo.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/helpers/AuthorizationStatusEnum.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/helpers/AuthorizationStatusEnum.class
+new file mode 100644
+index 0000000..7304b40
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/helpers/AuthorizationStatusEnum.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/helpers/FullscreenPluginCallback.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/helpers/FullscreenPluginCallback.class
+new file mode 100644
+index 0000000..ae87d6a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/helpers/FullscreenPluginCallback.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdCallbackAndListeners$getInterstitialAdLoadCallback$1.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdCallbackAndListeners$getInterstitialAdLoadCallback$1.class
+new file mode 100644
+index 0000000..22eba3a
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdCallbackAndListeners$getInterstitialAdLoadCallback$1.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdCallbackAndListeners.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdCallbackAndListeners.class
+new file mode 100644
+index 0000000..4906708
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdCallbackAndListeners.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdPluginPluginEvent.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdPluginPluginEvent.class
+new file mode 100644
+index 0000000..b9067ff
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/interstitial/InterstitialAdPluginPluginEvent.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/models/AdMobPluginError.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/models/AdMobPluginError.class
+new file mode 100644
+index 0000000..a2178ff
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/models/AdMobPluginError.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/models/LoadPluginEventNames.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/models/LoadPluginEventNames.class
+new file mode 100644
+index 0000000..4f300d9
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/models/LoadPluginEventNames.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardAdPluginEvents.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardAdPluginEvents.class
+new file mode 100644
+index 0000000..b20a610
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardAdPluginEvents.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardedAdCallbackAndListeners$getRewardedAdLoadCallback$1.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardedAdCallbackAndListeners$getRewardedAdLoadCallback$1.class
+new file mode 100644
+index 0000000..f666168
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardedAdCallbackAndListeners$getRewardedAdLoadCallback$1.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardedAdCallbackAndListeners.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardedAdCallbackAndListeners.class
+new file mode 100644
+index 0000000..80ad770
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/RewardedAdCallbackAndListeners.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/models/SsvInfo.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/models/SsvInfo.class
+new file mode 100644
+index 0000000..a79a92c
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewarded/models/SsvInfo.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardInterstitialAdPluginEvents.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardInterstitialAdPluginEvents.class
+new file mode 100644
+index 0000000..4f2b8c4
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardInterstitialAdPluginEvents.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardedInterstitialAdCallbackAndListeners$getRewardedAdLoadCallback$1.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardedInterstitialAdCallbackAndListeners$getRewardedAdLoadCallback$1.class
+new file mode 100644
+index 0000000..42a7590
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardedInterstitialAdCallbackAndListeners$getRewardedAdLoadCallback$1.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardedInterstitialAdCallbackAndListeners.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardedInterstitialAdCallbackAndListeners.class
+new file mode 100644
+index 0000000..e078fb0
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/RewardedInterstitialAdCallbackAndListeners.class differ
+diff --git a/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/models/SsvInfo.class b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/models/SsvInfo.class
+new file mode 100644
+index 0000000..0a4c83b
+Binary files /dev/null and b/node_modules/@capacitor-community/admob/android/build/tmp/kotlin-classes/release/com/getcapacitor/community/admob/rewardedinterstitial/models/SsvInfo.class differ

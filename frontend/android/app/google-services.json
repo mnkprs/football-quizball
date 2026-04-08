@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "783276814218",
+    "project_id": "stepovr-cb448",
+    "storage_bucket": "stepovr-cb448.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:783276814218:android:85a38ff2de8cc21085e273",
+        "android_client_info": {
+          "package_name": "com.stepovr.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDl0EZ56_6Ya1Qdnyh6dzJptaqoU7rccqY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

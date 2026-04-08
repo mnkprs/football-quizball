@@ -1,0 +1,335 @@
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build.gradle b/node_modules/@southdevs/capacitor-google-auth/android/build.gradle
+index 8442742..782cdd9 100644
+--- a/node_modules/@southdevs/capacitor-google-auth/android/build.gradle
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build.gradle
+@@ -8,7 +8,7 @@ ext {
+ 
+ buildscript {
+     repositories {
+-        jcenter()
++        mavenCentral()
+         google()
+     }
+     dependencies {
+@@ -32,7 +32,7 @@ android {
+     buildTypes {
+         release {
+             minifyEnabled false
+-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
++            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+         }
+     }
+     lintOptions {
+@@ -46,7 +46,6 @@ android {
+ 
+ repositories {
+     google()
+-    jcenter()
+     mavenCentral()
+ }
+ 
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/.transforms/472fa0254ca9fd36f896d23b821cb2ff/results.bin b/node_modules/@southdevs/capacitor-google-auth/android/build/.transforms/472fa0254ca9fd36f896d23b821cb2ff/results.bin
+new file mode 100644
+index 0000000..0d259dd
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/.transforms/472fa0254ca9fd36f896d23b821cb2ff/results.bin
+@@ -0,0 +1 @@
++o/classes
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/.transforms/472fa0254ca9fd36f896d23b821cb2ff/transformed/classes/classes_dex/classes.dex b/node_modules/@southdevs/capacitor-google-auth/android/build/.transforms/472fa0254ca9fd36f896d23b821cb2ff/transformed/classes/classes_dex/classes.dex
+new file mode 100644
+index 0000000..96ff9d8
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/.transforms/472fa0254ca9fd36f896d23b821cb2ff/transformed/classes/classes_dex/classes.dex differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/AndroidManifest.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/AndroidManifest.xml
+new file mode 100644
+index 0000000..cd943d5
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/AndroidManifest.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.codetrixstudio.capacitor.GoogleAuth.capacitorgoogleauth" >
++
++    <uses-sdk android:minSdkVersion="23" />
++
++    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
++    <uses-permission android:name="android.permission.INTERNET" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/output-metadata.json b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/output-metadata.json
+new file mode 100644
+index 0000000..21e6d96
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aapt_friendly_merged_manifests/release/processReleaseManifest/aapt/output-metadata.json
+@@ -0,0 +1,18 @@
++{
++  "version": 3,
++  "artifactType": {
++    "type": "AAPT_FRIENDLY_MERGED_MANIFESTS",
++    "kind": "Directory"
++  },
++  "applicationId": "com.codetrixstudio.capacitor.GoogleAuth.capacitorgoogleauth",
++  "variantName": "release",
++  "elements": [
++    {
++      "type": "SINGLE",
++      "filters": [],
++      "attributes": [],
++      "outputFile": "AndroidManifest.xml"
++    }
++  ],
++  "elementType": "File"
++}
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aar_metadata/release/writeReleaseAarMetadata/aar-metadata.properties b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aar_metadata/release/writeReleaseAarMetadata/aar-metadata.properties
+new file mode 100644
+index 0000000..1211b1e
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/aar_metadata/release/writeReleaseAarMetadata/aar-metadata.properties
+@@ -0,0 +1,6 @@
++aarFormatVersion=1.0
++aarMetadataVersion=1.0
++minCompileSdk=1
++minCompileSdkExtension=0
++minAndroidGradlePluginVersion=1.0.0
++coreLibraryDesugaringEnabled=false
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/annotation_processor_list/release/javaPreCompileRelease/annotationProcessors.json b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/annotation_processor_list/release/javaPreCompileRelease/annotationProcessors.json
+new file mode 100644
+index 0000000..9e26dfe
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/annotation_processor_list/release/javaPreCompileRelease/annotationProcessors.json
+@@ -0,0 +1 @@
++{}
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_library_classes_jar/release/bundleLibCompileToJarRelease/classes.jar b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_library_classes_jar/release/bundleLibCompileToJarRelease/classes.jar
+new file mode 100644
+index 0000000..bccbf74
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_library_classes_jar/release/bundleLibCompileToJarRelease/classes.jar differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar
+new file mode 100644
+index 0000000..99d5561
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_r_class_jar/release/generateReleaseRFile/R.jar differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_symbol_list/release/generateReleaseRFile/R.txt b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_symbol_list/release/generateReleaseRFile/R.txt
+new file mode 100644
+index 0000000..01a51ab
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compile_symbol_list/release/generateReleaseRFile/R.txt
+@@ -0,0 +1,3 @@
++int id webview 0x0
++int layout bridge_layout_main 0x0
++int string server_client_id 0x0
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compiled_local_resources/release/compileReleaseLibraryResources/out/layout_bridge_layout_main.xml.flat b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compiled_local_resources/release/compileReleaseLibraryResources/out/layout_bridge_layout_main.xml.flat
+new file mode 100644
+index 0000000..78d589a
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/compiled_local_resources/release/compileReleaseLibraryResources/out/layout_bridge_layout_main.xml.flat differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/mergeReleaseJniLibFolders/merger.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/mergeReleaseJniLibFolders/merger.xml
+new file mode 100644
+index 0000000..6c7ff24
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/mergeReleaseJniLibFolders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/jniLibs"/></dataSet><dataSet config="release" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/release/jniLibs"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/mergeReleaseShaders/merger.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/mergeReleaseShaders/merger.xml
+new file mode 100644
+index 0000000..135a197
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/mergeReleaseShaders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/shaders"/></dataSet><dataSet config="release" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/release/shaders"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/packageReleaseAssets/merger.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/packageReleaseAssets/merger.xml
+new file mode 100644
+index 0000000..aa290ce
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/packageReleaseAssets/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/assets"/></dataSet><dataSet config="release" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/release/assets"/></dataSet><dataSet config="generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/shader_assets/release/compileReleaseShaders/out"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/compile-file-map.properties b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/compile-file-map.properties
+new file mode 100644
+index 0000000..e03623b
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/compile-file-map.properties
+@@ -0,0 +1,2 @@
++#Wed Apr 08 16:23:23 EEST 2026
++com.codetrixstudio.capacitor.GoogleAuth.capacitorgoogleauth.southdevs-capacitor-google-auth-main-5\:/layout/bridge_layout_main.xml=/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/packaged_res/release/packageReleaseResources/layout/bridge_layout_main.xml
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/merged.dir/values/values.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/merged.dir/values/values.xml
+new file mode 100644
+index 0000000..5012e3d
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/merged.dir/values/values.xml
+@@ -0,0 +1,4 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <string name="server_client_id">Your Web Client Key</string>
++</resources>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/merger.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/merger.xml
+new file mode 100644
+index 0000000..b060e7a
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/incremental/release/packageReleaseResources/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main" generated-set="main$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/res"><file name="bridge_layout_main" path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/res/layout/bridge_layout_main.xml" qualifiers="" type="layout"/><file path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/res/values/colors.xml" qualifiers=""/><file path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/res/values/styles.xml" qualifiers=""/><file path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/res/values/strings.xml" qualifiers=""><string name="server_client_id">Your Web Client Key</string></file></source></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="release$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/release/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="release" generated-set="release$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/release/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/build/generated/res/resValues/release"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/build/generated/res/resValues/release"/></dataSet><mergedItems/></merger>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth$1.class b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth$1.class
+new file mode 100644
+index 0000000..a7f9d34
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth$1.class differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth$2.class b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth$2.class
+new file mode 100644
+index 0000000..217ca27
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth$2.class differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth.class b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth.class
+new file mode 100644
+index 0000000..ecbbcfe
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/com/codetrixstudio/capacitor/GoogleAuth/GoogleAuth.class differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/local_only_symbol_list/release/parseReleaseLocalResources/R-def.txt b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/local_only_symbol_list/release/parseReleaseLocalResources/R-def.txt
+new file mode 100644
+index 0000000..4618b24
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/local_only_symbol_list/release/parseReleaseLocalResources/R-def.txt
+@@ -0,0 +1,5 @@
++R_DEF: Internal format may change without notice
++local
++id webview
++layout bridge_layout_main
++string server_client_id
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/manifest_merge_blame_file/release/processReleaseManifest/manifest-merger-blame-release-report.txt b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/manifest_merge_blame_file/release/processReleaseManifest/manifest-merger-blame-release-report.txt
+new file mode 100644
+index 0000000..b209964
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/manifest_merge_blame_file/release/processReleaseManifest/manifest-merger-blame-release-report.txt
+@@ -0,0 +1,14 @@
++1<?xml version="1.0" encoding="utf-8"?>
++2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++3    package="com.codetrixstudio.capacitor.GoogleAuth.capacitorgoogleauth" >
++4
++5    <uses-sdk android:minSdkVersion="23" />
++6
++7    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
++7-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:3:5-74
++7-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:3:22-71
++8    <uses-permission android:name="android.permission.INTERNET" />
++8-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:4:5-66
++8-->/Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:4:22-64
++9
++10</manifest>
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml
+new file mode 100644
+index 0000000..cd943d5
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/merged_manifest/release/processReleaseManifest/AndroidManifest.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.codetrixstudio.capacitor.GoogleAuth.capacitorgoogleauth" >
++
++    <uses-sdk android:minSdkVersion="23" />
++
++    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
++    <uses-permission android:name="android.permission.INTERNET" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/navigation_json/release/extractDeepLinksRelease/navigation.json b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/navigation_json/release/extractDeepLinksRelease/navigation.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/navigation_json/release/extractDeepLinksRelease/navigation.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/nested_resources_validation_report/release/generateReleaseResources/nestedResourcesValidationReport.txt b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/nested_resources_validation_report/release/generateReleaseResources/nestedResourcesValidationReport.txt
+new file mode 100644
+index 0000000..08f4ebe
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/nested_resources_validation_report/release/generateReleaseResources/nestedResourcesValidationReport.txt
+@@ -0,0 +1 @@
++0 Warning/Error
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/packaged_res/release/packageReleaseResources/layout/bridge_layout_main.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/packaged_res/release/packageReleaseResources/layout/bridge_layout_main.xml
+new file mode 100644
+index 0000000..56fec15
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/packaged_res/release/packageReleaseResources/layout/bridge_layout_main.xml
+@@ -0,0 +1,15 @@
++<?xml version="1.0" encoding="utf-8"?>
++<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    xmlns:app="http://schemas.android.com/apk/res-auto"
++    xmlns:tools="http://schemas.android.com/tools"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    tools:context="com.getcapacitor.BridgeActivity"
++    >
++
++    <WebView
++        android:id="@+id/webview"
++        android:layout_width="fill_parent"
++        android:layout_height="fill_parent" />
++
++</androidx.coordinatorlayout.widget.CoordinatorLayout>
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/packaged_res/release/packageReleaseResources/values/values.xml b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/packaged_res/release/packageReleaseResources/values/values.xml
+new file mode 100644
+index 0000000..5012e3d
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/packaged_res/release/packageReleaseResources/values/values.xml
+@@ -0,0 +1,4 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <string name="server_client_id">Your Web Client Key</string>
++</resources>
+\ No newline at end of file
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/runtime_library_classes_jar/release/bundleLibRuntimeToJarRelease/classes.jar b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/runtime_library_classes_jar/release/bundleLibRuntimeToJarRelease/classes.jar
+new file mode 100644
+index 0000000..e483e1d
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/runtime_library_classes_jar/release/bundleLibRuntimeToJarRelease/classes.jar differ
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/symbol_list_with_package_name/release/generateReleaseRFile/package-aware-r.txt b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/symbol_list_with_package_name/release/generateReleaseRFile/package-aware-r.txt
+new file mode 100644
+index 0000000..5ba05a8
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/intermediates/symbol_list_with_package_name/release/generateReleaseRFile/package-aware-r.txt
+@@ -0,0 +1,4 @@
++com.codetrixstudio.capacitor.GoogleAuth.capacitorgoogleauth
++id webview
++layout bridge_layout_main
++string server_client_id
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/outputs/logs/manifest-merger-release-report.txt b/node_modules/@southdevs/capacitor-google-auth/android/build/outputs/logs/manifest-merger-release-report.txt
+new file mode 100644
+index 0000000..4ee1b3a
+--- /dev/null
++++ b/node_modules/@southdevs/capacitor-google-auth/android/build/outputs/logs/manifest-merger-release-report.txt
+@@ -0,0 +1,24 @@
++-- Merging decision tree log ---
++manifest
++ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:2:3-5:14
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:2:3-5:14
++	package
++		INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml
++	xmlns:android
++		ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:2:13-71
++uses-permission#android.permission.USE_CREDENTIALS
++ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:3:5-74
++	android:name
++		ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:3:22-71
++uses-permission#android.permission.INTERNET
++ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:4:5-66
++	android:name
++		ADDED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml:4:22-64
++uses-sdk
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml
++INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml
++	android:targetSdkVersion
++		INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml
++	android:minSdkVersion
++		INJECTED from /Users/instashop/Projects/football-quizball/frontend/node_modules/@southdevs/capacitor-google-auth/android/src/main/AndroidManifest.xml
+diff --git a/node_modules/@southdevs/capacitor-google-auth/android/build/tmp/compileReleaseJavaWithJavac/previous-compilation-data.bin b/node_modules/@southdevs/capacitor-google-auth/android/build/tmp/compileReleaseJavaWithJavac/previous-compilation-data.bin
+new file mode 100644
+index 0000000..39e0534
+Binary files /dev/null and b/node_modules/@southdevs/capacitor-google-auth/android/build/tmp/compileReleaseJavaWithJavac/previous-compilation-data.bin differ
