@@ -36,21 +36,23 @@ export class AuthCardComponent {
 
   tierColor = computed(() => {
     const elo = this.elo();
-    if (elo >= 2000) return '#ccff00';
-    if (elo >= 1600) return '#a855f7';
-    if (elo >= 1400) return '#f59e0b';
-    if (elo >= 1200) return '#94a3b8';
-    if (elo >= 1000) return '#cd7f32';
+    if (elo >= 2400) return '#e8ff7a';
+    if (elo >= 2000) return '#a855f7';
+    if (elo >= 1650) return '#06b6d4';
+    if (elo >= 1300) return '#f59e0b';
+    if (elo >= 1000) return '#94a3b8';
+    if (elo >= 750)  return '#b45309';
     return '#6b7280';
   });
 
   tierLabel = computed(() => {
     const elo = this.elo();
-    if (elo >= 2000) return 'Challenger';
-    if (elo >= 1600) return 'Diamond';
-    if (elo >= 1400) return 'Gold';
-    if (elo >= 1200) return 'Silver';
-    if (elo >= 1000) return 'Bronze';
+    if (elo >= 2400) return 'Challenger';
+    if (elo >= 2000) return 'Diamond';
+    if (elo >= 1650) return 'Platinum';
+    if (elo >= 1300) return 'Gold';
+    if (elo >= 1000) return 'Silver';
+    if (elo >= 750)  return 'Bronze';
     return 'Iron';
   });
 }

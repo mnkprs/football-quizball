@@ -1,4 +1,4 @@
-<div class="profile-page">
+<div class="profile-page page-stagger">
 
   <!-- Guest state -->
   @if (!auth.isLoggedIn()) {
@@ -12,20 +12,6 @@
         <span class="material-icons">login</span>
         {{ lang.t().profileSignIn }}
       </button>
-    </div>
-
-  } @else if (loading()) {
-    <div class="profile-loading">
-      <app-skeleton variant="circle" width="80px" height="80px" />
-      <app-skeleton variant="line" width="60%" height="20px" />
-      <app-skeleton variant="line" width="40%" height="14px" />
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-top:16px;">
-        <app-skeleton variant="card" height="80px" />
-        <app-skeleton variant="card" height="80px" />
-        <app-skeleton variant="card" height="80px" />
-        <app-skeleton variant="card" height="80px" />
-      </div>
-      <app-skeleton variant="row" [count]="3" />
     </div>
 
   } @else {
@@ -145,7 +131,7 @@
 
     <!-- ─── ELO SPARKLINE ───────────────────────────── -->
     @if (sparklineData(); as spark) {
-      <section class="section anim-fade-up anim-delay-2">
+      <section class="section">
         <h2 class="section__title">ELO Progression</h2>
         <div class="sparkline-card">
           <div class="sparkline__labels">
@@ -168,7 +154,7 @@
     }
 
     <!-- ─── MODE STATS ────────────────────────────── -->
-    <section class="section anim-fade-up anim-delay-3">
+    <section class="section">
       <h2 class="section__title">Mode Stats</h2>
       <div class="mode-grid">
 
@@ -253,7 +239,7 @@
 
     <!-- ─── MATCH HISTORY ───────────────────────────── -->
     @if (matchHistory().length > 0) {
-      <section class="section anim-fade-up anim-delay-4">
+      <section class="section">
         <div class="section__head">
           <h2 class="section__title">Last 10 games</h2>
           <div class="match-record">
@@ -306,7 +292,7 @@
         </div>
       </section>
     } @else {
-      <section class="section anim-fade-up anim-delay-4">
+      <section class="section">
         <h2 class="section__title">Last 10 games</h2>
         <app-empty-state
           icon="history"
@@ -320,7 +306,7 @@
 
     <!-- ─── ACHIEVEMENTS ───────────────────────────── -->
     @if (achievements().length > 0) {
-      <section class="section anim-fade-up anim-delay-5">
+      <section class="section">
         <div class="section__head">
           <h2 class="section__title">{{ lang.t().achievements }}</h2>
           <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
@@ -343,7 +329,7 @@
         </div>
       </section>
     } @else {
-      <section class="section anim-fade-up anim-delay-5">
+      <section class="section">
         <h2 class="section__title">{{ lang.t().achievements }}</h2>
         <app-empty-state
           icon="emoji_events"
@@ -357,7 +343,7 @@
 
     <!-- ─── ACCOUNT ACTIONS ─────────────────────────── -->
     @if (isOwnProfile()) {
-      <section class="section anim-fade-up anim-delay-5">
+      <section class="section">
         <div class="account-actions">
           <button class="account-action-btn" (click)="openEditSheet()">
             <span class="material-icons">edit</span>

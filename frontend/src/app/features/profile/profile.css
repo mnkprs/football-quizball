@@ -5,7 +5,7 @@
 
 .profile-page {
   min-height: 100%;
-  max-width: 28rem;
+  max-width: var(--app-max-width);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -828,7 +828,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  max-width: 28rem;
+  max-width: var(--content-narrow-width);
   margin: 0 auto;
   animation: edit-slide-up 0.25s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
@@ -929,27 +929,6 @@
   cursor: not-allowed;
 }
 
-/* ── Entrance animations ───────────────── */
-.anim-fade-up {
-  animation: fadeUp 0.4s ease-out both;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.anim-delay-1 { animation-delay: 0.08s; }
-.anim-delay-2 { animation-delay: 0.16s; }
-.anim-delay-3 { animation-delay: 0.24s; }
-.anim-delay-4 { animation-delay: 0.32s; }
-.anim-delay-5 { animation-delay: 0.4s; }
 
 .achievement-tile__progress {
   width: 100%;
@@ -979,4 +958,27 @@
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.5);
   font-variant-numeric: tabular-nums;
+}
+
+/* ── Tablet adaptations ───────────────── */
+@media (min-width: 768px) {
+  .section {
+    padding: 1.25rem 1.5rem 0;
+  }
+
+  .mode-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .achievements-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .sparkline-card svg {
+    height: 64px;
+  }
+
+  .edit-sheet {
+    max-width: var(--content-narrow-width);
+  }
 }

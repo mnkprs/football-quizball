@@ -45,6 +45,7 @@ export class SoloQuestionGenerator {
       EASY: 'well-known fact, easily recalled (e.g., which club did Messi win the 2015 Champions League with?)',
       MEDIUM: 'moderate difficulty, requires real football knowledge (e.g., year of a specific title win, top scorer in a specific season)',
       HARD: 'highly specific, niche fact only a true enthusiast would know (e.g., exact transfer fee, squad number in a specific year, obscure stat)',
+      EXPERT: 'extremely niche, elite-level football trivia that only the most dedicated fans would know (e.g., specific substitute appearance minutes, youth academy transfer details, obscure continental cup records)',
     };
 
     const systemPrompt = `You are a football trivia expert generating solo ranked quiz questions.

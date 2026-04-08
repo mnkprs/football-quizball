@@ -1,16 +1,10 @@
-<div class="leaderboard-page">
+<div class="leaderboard-page page-stagger">
   <header class="leaderboard-header">
     <h1 class="leaderboard-title">{{ lang.t().lbTitle }}</h1>
     <button class="leaderboard-refresh-btn" (click)="load()" [disabled]="loading()">
       <mat-icon>refresh</mat-icon>
     </button>
   </header>
-
-  @if (loading() && entries().length === 0) {
-    <div class="leaderboard-loading">
-      <app-skeleton variant="row" [count]="8" />
-    </div>
-  }
 
   @if (error()) {
     <app-error-state

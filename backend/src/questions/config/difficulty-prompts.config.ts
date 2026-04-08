@@ -34,6 +34,11 @@ export const DEFAULT_DIFFICULTY_RANGES: Record<Difficulty, DifficultyScoreRanges
     specificity_score: [4, 5],
     combinational_thinking_score: [5, 10],
   },
+  EXPERT: {
+    fame_score: [2, 4],
+    specificity_score: [5, 5],
+    combinational_thinking_score: [7, 10],
+  },
 };
 
 /**

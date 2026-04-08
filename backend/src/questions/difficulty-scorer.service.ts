@@ -54,6 +54,7 @@ import {
   REJECTED_RESULT_POINTS,
   REJECTED_RESULT_RAW,
   RAW_SCORE_OFFSET,
+  RAW_THRESHOLD_EXPERT,
 } from './config/difficulty-scoring.config';
 
 function computeDateScore(event_year: number): number {
@@ -106,6 +107,11 @@ function getAllowedDifficulties(raw: number, primaryDifficulty: Difficulty, t: S
   }
   if (primaryDifficulty === 'HARD') {
     if (raw < t.rawThresholdMedium + t.boundaryTolerance) allowed.unshift('MEDIUM');
+    if (raw >= RAW_THRESHOLD_EXPERT - t.boundaryTolerance) allowed.push('EXPERT');
+    return allowed;
+  }
+  if (primaryDifficulty === 'EXPERT') {
+    if (raw < RAW_THRESHOLD_EXPERT + t.boundaryTolerance) allowed.unshift('HARD');
     return allowed;
   }
   return allowed;
@@ -126,7 +132,8 @@ function resolveDynamicDifficulty(raw: number, tier: number, category: QuestionC
   if (raw < t.rawThresholdEasy) return 'EASY';
   if (raw < t.rawThresholdMedium) return 'MEDIUM';
   if (tier > TIER_DOWNGRADE_THRESHOLD && category !== 'GUESS_SCORE') return 'MEDIUM';
-  return 'HARD';
+  if (raw < RAW_THRESHOLD_EXPERT) return 'HARD';
+  return 'EXPERT';
 }
 
 function computeRawScore(

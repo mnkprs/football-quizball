@@ -586,8 +586,8 @@ export class DuelService {
 
     // Enrich question results with is_pro_logo for logo duels
     const questionResults = isLogo && freePoolCutoff != null
-      ? row.question_results.map((r, i) => {
-          const q = row.questions[i] as any;
+      ? row.question_results.map((r) => {
+          const q = row.questions[r.index] as any;
           const qElo = q?.question_elo as number | undefined;
           return {
             ...r,

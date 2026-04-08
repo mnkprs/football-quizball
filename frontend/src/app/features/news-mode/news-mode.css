@@ -55,7 +55,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 28rem;
+  max-width: var(--content-narrow-width);
   width: 100%;
   margin: 0 auto;
   padding: 1.25rem 1.25rem calc(env(safe-area-inset-bottom, 0px) + 7rem);

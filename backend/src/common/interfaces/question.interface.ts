@@ -11,7 +11,7 @@ export type BoardCategory =
 /** All question categories, including standalone modes that don't use the shared pool. */
 export type QuestionCategory = BoardCategory | 'NEWS' | 'MAYHEM' | 'GOSSIP';
 
-export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
 
 /** @deprecated Use string for free-form answer types. Kept for backward compatibility. */
 export type AnswerType = 'name' | 'team' | 'number' | 'score' | 'year' | 'country';

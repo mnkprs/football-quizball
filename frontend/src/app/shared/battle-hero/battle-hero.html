@@ -43,7 +43,7 @@
     </div>
 
     <div class="battle-hero__bottom">
-      <h2 class="battle-hero__title" [attr.aria-label]="title()">
+      <h2 class="battle-hero__title">
         @for (char of titleChars(); track $index) {
           <span class="battle-hero__wave" [style.--i]="$index">{{ char === ' ' ? '\u00A0' : char }}</span>
         }
@@ -124,7 +124,7 @@
     </div>
 
     <div class="battle-hero__bottom">
-      <h2 class="battle-hero__title" [attr.aria-label]="title()">
+      <h2 class="battle-hero__title">
         @for (char of titleChars(); track $index) {
           <span class="battle-hero__wave" [style.--i]="$index">{{ char === ' ' ? '\u00A0' : char }}</span>
         }

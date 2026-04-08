@@ -4,7 +4,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 28rem;
+  max-width: var(--app-max-width);
   height: 3.75rem;
   display: flex;
   align-items: center;
@@ -222,7 +222,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 28rem;
+  max-width: var(--app-max-width);
   height: 3px;
   background: rgba(255, 255, 255, 0.06);
   z-index: 50;
