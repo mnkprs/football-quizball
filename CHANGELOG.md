@@ -2,6 +2,27 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.1.1.0] - 2026-04-08
+
+### Added
+- Tablet layout support up to 1200px with 3-tier responsive system
+- Global `:focus-visible` and `prefers-reduced-motion` baselines for all interactive elements
+- 39 tag color tokens extracted to design token system
+
+### Changed
+- Home page mode cards: 2-col grid (tablet), 3-col grid (large tablet)
+- Game question options: 2-col grid on tablet
+- Battle hero title: per-character wave → staggered entrance + ambient glow
+- Background drift: GPU-friendly transform (was animating layout properties)
+- Tag color variants use shared tokens (was 70+ hard-coded hex values)
+- Fluid typography via clamp() on hero and 2-player titles
+- Default tag text contrast bumped to ~5:1 ratio
+
+### Fixed
+- Mode card overlays and duel active game row now keyboard-accessible (div → button)
+- Duplicate aria-label removed from battle-hero title
+- Section header and mode-card-container now have visible focus indicators
+
 ## [0.1.0.0] - 2026-04-08
 
 ### Changed
