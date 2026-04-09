@@ -1,5 +1,6 @@
 <div class="relative min-h-screen bg-background max-w-md mx-auto">
   @switch (store.phase()) {
+    <!-- ═══ WAITING: invite code + share ═══ -->
     @case ('waiting') {
       <div class="flex flex-col items-center justify-center min-h-screen p-6 gap-6">
         <button (click)="goBack()" class="fixed top-4 left-4 text-muted-foreground hover:text-foreground text-sm font-medium">← Back</button>
@@ -8,73 +9,474 @@
           <h2 class="text-2xl font-black text-foreground mb-2">Waiting for opponent</h2>
           <p class="text-muted-foreground text-sm mb-6">Share your invite code with a friend</p>
           <div class="flex items-center gap-3 bg-card border border-border rounded-2xl px-6 py-4 justify-center mb-4">
-            <span class="text-3xl font-black text-accent tracking-[0.3em] font-mono">{{ store.gameView()?.inviteCode }}</span>
+            <span class="text-3xl font-black text-accent tracking-[0.3em] font-mono">{{ store.inviteCode() }}</span>
             <button (click)="copyCode()" class="text-muted-foreground hover:text-foreground transition text-sm">{{ copied() ? '✓ Copied' : '📋 Copy' }}</button>
           </div>
-          @if (shareUrl()) {
-            <button (click)="shareLink()" class="w-full py-3 rounded-xl border border-border text-muted-foreground text-sm hover:border-accent hover:text-accent transition mb-3">
-              🔗 Share Link
-            </button>
-          }
-          <p class="text-muted-foreground text-xs">Or ask them to visit <strong>/join/{{ store.gameView()?.inviteCode }}</strong></p>
+          <button (click)="shareLink()" class="w-full py-3 rounded-xl border border-border text-muted-foreground text-sm hover:border-accent hover:text-accent transition mb-3">
+            🔗 Share Link
+          </button>
+          <p class="text-muted-foreground text-xs">Or ask them to visit <strong>/join/{{ store.inviteCode() }}</strong></p>
         </div>
       </div>
     }
 
-    @case ('queued') {
-      <div class="flex flex-col items-center justify-center min-h-screen p-6 gap-4">
-        <div class="text-5xl animate-spin-slow">⚽</div>
-        @if (queueBotPhase()) {
-          <h2 class="text-2xl font-black text-foreground">Almost there...</h2>
-          <p class="text-muted-foreground text-sm">Finding the best opponent for you</p>
-        } @else {
-          <h2 class="text-2xl font-black text-foreground">Finding opponent...</h2>
-          <p class="text-muted-foreground text-sm">We'll notify you when someone joins</p>
-          <div class="flex items-center gap-2">
-            <div class="w-full bg-border rounded-full h-1.5 w-32 overflow-hidden">
-              <div
-                class="h-1.5 bg-accent rounded-full transition-all duration-1000"
-                [style.width.%]="(queueSeconds() / 30) * 100"
-              ></div>
+    <!-- ═══ READY-UP: VS matchup + ready buttons ═══ -->
+    @case ('ready-up') {
+      <div class="p-4">
+        <div class="flex items-center gap-3 mb-6">
+          <button (click)="goBack()" class="text-muted-foreground hover:text-foreground transition text-sm font-medium">← Back</button>
+          <h1 class="text-xl font-black text-foreground">🎮 1v1 Match</h1>
+        </div>
+
+        <div class="flex flex-col items-center gap-6 mt-8">
+          <!-- Matchup header -->
+          <div class="w-full flex items-center justify-between p-4 rounded-2xl bg-card border border-border">
+            <div class="text-center flex-1">
+              <p class="text-base font-black text-foreground">{{ store.myPlayer()?.name }}</p>
+              <p class="text-xs text-muted-foreground">You</p>
             </div>
-            <span class="text-xs text-muted-foreground tabular-nums">{{ 30 - queueSeconds() }}s</span>
+            <div class="text-2xl font-black text-accent px-4">VS</div>
+            <div class="text-center flex-1">
+              <p class="text-base font-black text-foreground">{{ store.opponentPlayer()?.name ?? '...' }}</p>
+              <p class="text-xs text-muted-foreground">Opponent</p>
+            </div>
+          </div>
+
+          <!-- Ready status -->
+          <div class="w-full flex gap-3">
+            <div class="flex-1 p-3 rounded-xl text-center" [class]="imReady() ? 'bg-green-500/20 border border-green-500/50' : 'bg-card border border-border'">
+              <p class="text-xs font-bold" [class]="imReady() ? 'text-green-400' : 'text-muted-foreground'">
+                {{ imReady() ? '✓ Ready' : 'Not ready' }}
+              </p>
+              <p class="text-xs text-muted-foreground mt-0.5">You</p>
+            </div>
+            <div class="flex-1 p-3 rounded-xl text-center" [class]="opponentReady() ? 'bg-green-500/20 border border-green-500/50' : 'bg-card border border-border'">
+              <p class="text-xs font-bold" [class]="opponentReady() ? 'text-green-400' : 'text-muted-foreground'">
+                {{ opponentReady() ? '✓ Ready' : 'Waiting...' }}
+              </p>
+              <p class="text-xs text-muted-foreground mt-0.5">Opponent</p>
+            </div>
+          </div>
+
+          @if (!imReady()) {
+            <button
+              (click)="markReady()"
+              class="w-full py-5 rounded-2xl bg-accent text-accent-foreground font-black text-xl hover:bg-accent-light active:scale-95 transition"
+            >
+              ✅ I'm Ready
+            </button>
+          } @else if (!opponentReady()) {
+            <p class="text-sm text-muted-foreground text-center">Waiting for opponent to ready up...</p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ═══ BOARD: my turn — pick a question ═══ -->
+    @case ('board') {
+      <div class="flex flex-col min-h-screen">
+        <!-- Score bar -->
+        <div class="flex items-center justify-between p-4">
+          <div class="text-center">
+            <p class="text-xs text-muted-foreground">{{ store.myPlayer()?.name }}</p>
+            <p class="text-2xl font-black text-foreground">{{ store.myPlayer()?.score }}</p>
+          </div>
+          <div class="text-lg font-black text-muted-foreground">VS</div>
+          <div class="text-center">
+            <p class="text-xs text-muted-foreground">{{ store.opponentPlayer()?.name }}</p>
+            <p class="text-2xl font-black text-foreground">{{ store.opponentPlayer()?.score }}</p>
+          </div>
+        </div>
+
+        <p class="text-center text-xs text-accent font-bold mb-2">Your turn — pick a question!</p>
+
+        <!-- Board grid -->
+        @if (store.board(); as board) {
+          @for (row of board; track $index; let rowIdx = $index) {
+            <div class="flex items-center gap-2 px-3 py-1.5">
+              <div class="w-20 flex items-center gap-1.5">
+                <span class="text-sm">{{ categoryIcon(store.categories()[rowIdx]?.key) }}</span>
+                <span class="text-[10px] text-muted-foreground font-bold uppercase truncate">{{ store.categories()[rowIdx]?.label }}</span>
+              </div>
+              <div class="flex-1 flex gap-1.5">
+                @for (cell of row; track cell.question_id) {
+                  <button
+                    (click)="selectQuestion(cell.question_id)"
+                    [disabled]="cell.answered"
+                    class="flex-1 h-9 rounded-lg text-xs font-bold transition"
+                    [class]="cell.answered ? 'bg-muted/30 text-muted-foreground/40' : 'bg-accent/20 border border-accent/50 text-accent hover:bg-accent/30'"
+                  >
+                    {{ cell.answered ? '✓' : cell.points }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Double arm -->
+        @if (!store.myPlayer()?.doubleUsed) {
+          <div class="px-4 mt-4">
+            <button (click)="armDouble()" class="w-full py-3 rounded-xl border border-amber-500/50 text-amber-400 text-sm font-bold hover:bg-amber-500/10 transition"
+              [class]="store.doubleArmed() ? 'bg-amber-500/20 border-amber-400' : ''">
+              {{ store.doubleArmed() ? '⚡ Double Armed!' : '⚡ Arm Double (2x points)' }}
+            </button>
           </div>
         }
-        <button (click)="leaveQueue()" class="mt-4 px-6 py-2.5 rounded-full border-2 border-border text-muted-foreground text-sm font-medium hover:border-loss/60 hover:text-loss transition">Leave Queue</button>
-      </div>
-    }
 
-    @case ('board') {
-      <app-board />
-    }
-
-    @case ('question') {
-      <app-question />
-    }
-
-    @case ('result') {
-      <app-result />
-    }
-
-    @case ('opponent-turn') {
-      <div class="relative">
-        <app-board />
-        <div class="absolute inset-0 bg-background/75 backdrop-blur-[2px] flex flex-col items-center justify-center z-20 gap-3 pointer-events-none">
-          <div class="inline-flex items-center gap-2 bg-card border border-border rounded-full px-5 py-2.5 shadow-lg">
-            <div class="w-2 h-2 rounded-full bg-accent animate-pulse shrink-0"></div>
-            <span class="text-sm font-semibold text-foreground">Waiting for <strong>{{ store.opponentUsername() }}</strong></span>
-          </div>
-          @if (store.gameView()?.turnDeadline) {
-            <p class="text-xs text-muted-foreground">Deadline: {{ formatDeadline(store.gameView()!.turnDeadline!) }}</p>
-          }
+        <!-- Abandon -->
+        <div class="mt-auto p-4">
+          <button (click)="abandon()" class="w-full py-2 text-xs text-muted-foreground hover:text-red-400 transition">Abandon game</button>
         </div>
       </div>
     }
 
-    @case ('finished') {
-      <app-results />
+    <!-- ═══ SPECTATE-BOARD: opponent's turn — watching board ═══ -->
+    @case ('spectate-board') {
+      <div class="flex flex-col min-h-screen">
+        <!-- Score bar -->
+        <div class="flex items-center justify-between p-4">
+          <div class="text-center">
+            <p class="text-xs text-muted-foreground">{{ store.myPlayer()?.name }}</p>
+            <p class="text-2xl font-black text-foreground">{{ store.myPlayer()?.score }}</p>
+          </div>
+          <div class="text-lg font-black text-muted-foreground">VS</div>
+          <div class="text-center">
+            <p class="text-xs text-muted-foreground">{{ store.opponentPlayer()?.name }}</p>
+            <p class="text-2xl font-black text-foreground">{{ store.opponentPlayer()?.score }}</p>
+          </div>
+        </div>
+
+        <!-- Board grid (read-only) -->
+        @if (store.board(); as board) {
+          @for (row of board; track $index; let rowIdx = $index) {
+            <div class="flex items-center gap-2 px-3 py-1.5">
+              <div class="w-20 flex items-center gap-1.5">
+                <span class="text-sm">{{ categoryIcon(store.categories()[rowIdx]?.key) }}</span>
+                <span class="text-[10px] text-muted-foreground font-bold uppercase truncate">{{ store.categories()[rowIdx]?.label }}</span>
+              </div>
+              <div class="flex-1 flex gap-1.5">
+                @for (cell of row; track cell.question_id) {
+                  <button
+                    disabled
+                    class="flex-1 h-9 rounded-lg text-xs font-bold transition"
+                    [class]="cell.answered ? 'bg-muted/30 text-muted-foreground/40' : 'bg-card border border-border text-muted-foreground'"
+                  >
+                    {{ cell.answered ? '✓' : cell.points }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Spectate overlay -->
+        <div class="mt-4 mx-4 p-4 rounded-2xl bg-card/50 border border-border text-center">
+          <div class="flex items-center justify-center gap-2 mb-1">
+            <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+            <span class="text-sm text-foreground font-semibold">{{ store.opponentPlayer()?.name }}'s turn</span>
+          </div>
+          <p class="text-xs text-muted-foreground">Waiting for them to pick a question...</p>
+        </div>
+      </div>
     }
 
+    <!-- ═══ QUESTION: my turn — answering ═══ -->
+    @case ('question') {
+      @if (store.turnState(); as ts) {
+        <div class="p-4 flex flex-col gap-4 max-w-md mx-auto">
+          <!-- Header -->
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-muted-foreground uppercase">{{ ts.question.category.replace('_', ' ') }}</span>
+            <span class="text-xs text-accent font-bold">Your turn</span>
+          </div>
+
+          <!-- Question card -->
+          <div class="p-5 rounded-2xl bg-card border border-border">
+            @if (ts.question.image_url) {
+              <img [src]="ts.question.image_url" alt="" class="w-36 h-36 object-contain mx-auto mb-3" />
+            }
+            <p class="text-foreground text-base font-medium">{{ ts.question.question_text }}</p>
+          </div>
+
+          <!-- Category-specific input -->
+          @switch (ts.question.category) {
+            @case ('HIGHER_OR_LOWER') {
+              <div class="flex gap-3">
+                <button (click)="submitHol('higher')" [disabled]="store.submitting()"
+                  class="flex-1 py-4 rounded-2xl bg-green-500/20 border border-green-500/50 text-green-400 font-black text-lg hover:bg-green-500/30 transition">
+                  📈 Higher
+                </button>
+                <button (click)="submitHol('lower')" [disabled]="store.submitting()"
+                  class="flex-1 py-4 rounded-2xl bg-red-500/20 border border-red-500/50 text-red-400 font-black text-lg hover:bg-red-500/30 transition">
+                  📉 Lower
+                </button>
+              </div>
+            }
+
+            @case ('TOP_5') {
+              <!-- Top 5 slots -->
+              @if (ts.top5Progress) {
+                <div class="space-y-2">
+                  @for (slot of ts.top5Progress.filledSlots; track $index) {
+                    <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border"
+                         [class]="slot ? 'bg-green-500/10 border-green-500/40' : 'bg-card border-border'">
+                      <span class="text-accent font-black text-lg w-6">{{ $index + 1 }}</span>
+                      @if (slot) {
+                        <span class="text-foreground font-semibold">{{ slot.name }}</span>
+                        <span class="text-muted-foreground text-sm ml-auto">({{ slot.stat }})</span>
+                      } @else {
+                        <span class="text-muted-foreground/40 italic text-sm">???</span>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (ts.top5Progress.wrongGuesses.length > 0) {
+                  <div>
+                    <p class="text-muted-foreground text-[10px] uppercase tracking-wider mb-1.5 font-bold">Wrong guesses</p>
+                    @for (wrong of ts.top5Progress.wrongGuesses; track $index) {
+                      <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 mb-1">
+                        <span class="text-red-400 text-sm">{{ wrong.name }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+
+              <!-- Top 5 input -->
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [value]="top5Answer()"
+                  (input)="top5Answer.set($any($event.target).value)"
+                  (keydown.enter)="submitTop5Guess()"
+                  placeholder="Guess a name..."
+                  class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent"
+                />
+                <button (click)="submitTop5Guess()" [disabled]="store.submitting() || !top5Answer().trim()"
+                  class="px-5 py-3 rounded-xl bg-accent text-accent-foreground font-bold disabled:opacity-40 transition">
+                  Guess
+                </button>
+              </div>
+              <button (click)="stopTop5Early()" [disabled]="store.submitting()"
+                class="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition">
+                Stop &amp; bank points
+              </button>
+            }
+
+            @default {
+              <!-- 50/50 options (if lifeline was used) -->
+              @if (store.fiftyFiftyOptions(); as options) {
+                <div class="flex flex-col gap-2">
+                  <p class="text-xs text-muted-foreground font-bold uppercase">Pick one:</p>
+                  @for (opt of options; track opt) {
+                    <button (click)="submitFiftyFifty(opt)" [disabled]="store.submitting()"
+                      class="w-full py-3.5 rounded-xl bg-card border border-accent/50 text-foreground font-semibold hover:bg-accent/20 transition">
+                      {{ opt }}
+                    </button>
+                  }
+                </div>
+              } @else {
+                <!-- Standard text input -->
+                <div class="flex gap-2" [class.animate-shake]="wrongFeedback()">
+                  <input
+                    type="text"
+                    [value]="answer()"
+                    (input)="answer.set($any($event.target).value)"
+                    (keydown.enter)="submitAnswer()"
+                    placeholder="Type your answer..."
+                    class="flex-1 px-4 py-3 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent"
+                  />
+                  <button (click)="submitAnswer()" [disabled]="store.submitting() || !answer().trim()"
+                    class="px-5 py-3 rounded-xl bg-accent text-accent-foreground font-bold disabled:opacity-40 transition">
+                    Go
+                  </button>
+                </div>
+              }
+
+              <!-- Wrong attempts -->
+              @if (ts.attempts.length > 0) {
+                <div class="p-3 rounded-xl bg-card/50 border border-border/50">
+                  <p class="text-[10px] text-muted-foreground uppercase tracking-wider mb-2 font-bold">Your attempts</p>
+                  @for (attempt of ts.attempts; track $index) {
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="text-red-400 text-xs font-bold">✗</span>
+                      <span class="text-red-400/70 text-sm italic">"{{ attempt }}"</span>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          }
+
+          <!-- Action buttons row -->
+          <div class="flex gap-2">
+            @if (ts.question.fifty_fifty_applicable && !store.myPlayer()?.lifelineUsed && !store.fiftyFiftyOptions()) {
+              <button (click)="useLifeline()" [disabled]="store.submitting()"
+                class="flex-1 py-3 rounded-xl border border-blue-500/50 text-blue-400 text-sm font-bold hover:bg-blue-500/10 transition">
+                50/50
+              </button>
+            }
+            @if (!store.myPlayer()?.doubleUsed && !store.doubleArmed()) {
+              <button (click)="armDouble()"
+                class="flex-1 py-3 rounded-xl border border-amber-500/50 text-amber-400 text-sm font-bold hover:bg-amber-500/10 transition">
+                ⚡ Double
+              </button>
+            }
+            @if (store.doubleArmed()) {
+              <div class="flex-1 py-3 rounded-xl bg-amber-500/20 border border-amber-400 text-amber-400 text-sm font-bold text-center">
+                ⚡ Double Armed!
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ═══ SPECTATING: opponent's turn — watching them answer live ═══ -->
+    @case ('spectating') {
+      @if (store.turnState(); as ts) {
+        <div class="p-4 flex flex-col gap-4 max-w-md mx-auto">
+          <!-- Header -->
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-muted-foreground uppercase">{{ ts.question.category.replace('_', ' ') }}</span>
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+              <span class="text-xs text-muted-foreground">{{ store.opponentPlayer()?.name }}'s turn</span>
+            </div>
+          </div>
+
+          <!-- Question card (read-only) -->
+          <div class="p-5 rounded-2xl bg-card border border-border">
+            @if (ts.question.image_url) {
+              <img [src]="ts.question.image_url" alt="" class="w-36 h-36 object-contain mx-auto mb-3" />
+            }
+            <p class="text-foreground text-base font-medium">{{ ts.question.question_text }}</p>
+          </div>
+
+          <!-- Wrong attempts feed (live from Realtime) -->
+          @if (ts.attempts.length > 0) {
+            <div class="p-3 rounded-xl bg-card/50 border border-border/50">
+              <p class="text-[10px] text-muted-foreground uppercase tracking-wider mb-2 font-bold">Opponent's attempts</p>
+              @for (attempt of ts.attempts; track $index) {
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-red-400 text-xs font-bold">✗</span>
+                  <span class="text-red-400/70 text-sm italic">"{{ attempt }}"</span>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Top 5 live progress -->
+          @if (ts.phase === 'top5' && ts.top5Progress) {
+            <div class="space-y-2">
+              @for (slot of ts.top5Progress.filledSlots; track $index) {
+                <div class="flex items-center gap-3 px-4 py-2.5 rounded-xl border"
+                     [class]="slot ? 'bg-green-500/10 border-green-500/40' : 'bg-card border-border'">
+                  <span class="text-accent font-black text-lg w-6">{{ $index + 1 }}</span>
+                  @if (slot) {
+                    <span class="text-foreground font-semibold">{{ slot.name }}</span>
+                    <span class="text-muted-foreground text-sm ml-auto">({{ slot.stat }})</span>
+                  } @else {
+                    <span class="text-muted-foreground/40 italic text-sm">???</span>
+                  }
+                </div>
+              }
+            </div>
+            @if (ts.top5Progress.wrongGuesses.length > 0) {
+              <div>
+                <p class="text-muted-foreground text-[10px] uppercase tracking-wider mb-1.5 font-bold">Wrong guesses</p>
+                @for (wrong of ts.top5Progress.wrongGuesses; track $index) {
+                  <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 mb-1">
+                    <span class="text-red-400 text-sm">{{ wrong.name }}</span>
+                  </div>
+                }
+              </div>
+            }
+          }
+
+          <!-- Waiting indicator -->
+          <div class="text-center text-muted-foreground text-xs">Watching live...</div>
+        </div>
+      }
+    }
+
+    <!-- ═══ RESULT: both see result ═══ -->
+    @case ('result') {
+      @if (store.lastResult(); as r) {
+        <div class="p-4 flex flex-col gap-4 max-w-md mx-auto min-h-screen justify-center">
+          <div class="p-6 rounded-2xl text-center" [class]="r.correct ? 'bg-green-500/20 border border-green-500/50' : 'bg-red-500/20 border border-red-500/50'">
+            <p class="text-4xl mb-2">{{ r.correct ? '✓' : '✗' }}</p>
+            <p class="font-black text-xl" [class]="r.correct ? 'text-green-400' : 'text-red-400'">{{ r.correct ? 'Correct!' : 'Wrong!' }}</p>
+            @if (r.points_awarded > 0) {
+              <p class="text-muted-foreground text-sm mt-1">+{{ r.points_awarded }} pts</p>
+            }
+          </div>
+          <div class="p-4 rounded-xl bg-card border border-border">
+            <p class="text-xs text-muted-foreground mb-1">Answer</p>
+            <p class="text-foreground font-semibold">{{ r.correct_answer }}</p>
+            @if (r.explanation) {
+              <p class="text-muted-foreground text-sm mt-2">{{ r.explanation }}</p>
+            }
+          </div>
+          <!-- Top 5 result details -->
+          @if (r.top5FilledSlots) {
+            <div class="space-y-1.5">
+              @for (slot of r.top5FilledSlots; track $index) {
+                <div class="flex items-center gap-3 px-4 py-2 rounded-xl border"
+                     [class]="slot ? 'bg-green-500/10 border-green-500/40' : 'bg-card border-border'">
+                  <span class="text-accent font-black w-6">{{ $index + 1 }}</span>
+                  @if (slot) {
+                    <span class="text-foreground font-semibold text-sm">{{ slot.name }}</span>
+                    <span class="text-muted-foreground text-xs ml-auto">({{ slot.stat }})</span>
+                  } @else {
+                    <span class="text-muted-foreground/40 italic text-sm">???</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+          <!-- Scores -->
+          <div class="flex gap-3">
+            <div class="flex-1 p-3 rounded-xl bg-card border border-border text-center">
+              <p class="text-xs text-muted-foreground">{{ store.myPlayer()?.name }}</p>
+              <p class="text-xl font-black text-foreground">{{ r.player_scores[store.gameView()!.myPlayerIndex] }}</p>
+            </div>
+            <div class="flex-1 p-3 rounded-xl bg-card border border-border text-center">
+              <p class="text-xs text-muted-foreground">{{ store.opponentPlayer()?.name }}</p>
+              <p class="text-xl font-black text-foreground">{{ r.player_scores[store.gameView()!.myPlayerIndex === 0 ? 1 : 0] }}</p>
+            </div>
+          </div>
+          <button (click)="continueToBoard()" [disabled]="store.submitting()" class="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg disabled:opacity-50 transition">
+            Continue
+          </button>
+        </div>
+      }
+    }
+
+    <!-- ═══ FINISHED: game over ═══ -->
+    @case ('finished') {
+      <div class="p-4 flex flex-col gap-4 max-w-md mx-auto min-h-screen justify-center">
+        <div class="p-6 rounded-2xl bg-card border border-border text-center">
+          <p class="text-4xl mb-2">🏆</p>
+          @if (store.myPlayer() && store.opponentPlayer()) {
+            @if (store.myPlayer()!.score > store.opponentPlayer()!.score) {
+              <p class="text-green-400 font-black text-2xl">You Win!</p>
+            } @else if (store.myPlayer()!.score < store.opponentPlayer()!.score) {
+              <p class="text-red-400 font-black text-2xl">You Lost</p>
+            } @else {
+              <p class="text-accent font-black text-2xl">Draw!</p>
+            }
+            <p class="text-muted-foreground mt-1">{{ store.myPlayer()?.score }} – {{ store.opponentPlayer()?.score }}</p>
+          } @else {
+            <p class="text-foreground font-black text-2xl">Game Over</p>
+          }
+        </div>
+        <button (click)="goBack()" class="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg">Play Again</button>
+      </div>
+    }
+
+    <!-- ═══ LOADING default ═══ -->
     @default {
       <div class="flex items-center justify-center min-h-screen">
         <div class="text-5xl animate-spin-slow">⚽</div>
