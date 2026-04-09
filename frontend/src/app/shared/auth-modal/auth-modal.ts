@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
 import { PlatformService } from '../../core/platform.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 @Component({
   selector: 'app-auth-modal',
@@ -16,6 +17,7 @@ export class AuthModalComponent {
   modalService = inject(AuthModalService);
   platform = inject(PlatformService);
   private auth = inject(AuthService);
+  private analytics = inject(AnalyticsService);
 
   mode = signal<'signin' | 'signup'>('signin');
   loading = signal(false);
@@ -42,8 +44,10 @@ export class AuthModalComponent {
         await this.auth.signUpWithEmail(this.email, this.password);
         this.sentEmail.set(this.email);
         this.emailSent.set(true);
+        this.analytics.track('sign_up', { method: 'email' });
       } else {
         await this.auth.signInWithEmail(this.email, this.password);
+        this.analytics.track('login', { method: 'email' });
         this.modalService.close();
       }
     } catch (err: any) {
@@ -59,6 +63,7 @@ export class AuthModalComponent {
     this.googleLoading.set(true);
     try {
       await this.auth.signInWithGoogle();
+      this.analytics.track('login', { method: 'google' });
       if (this.platform.isNative) this.modalService.close();
     } catch (err: any) {
       this.error.set(err?.message ?? 'Google sign-in failed');
@@ -73,6 +78,7 @@ export class AuthModalComponent {
     this.appleLoading.set(true);
     try {
       await this.auth.signInWithApple();
+      this.analytics.track('login', { method: 'apple' });
       if (this.platform.isNative) this.modalService.close();
     } catch (err: any) {
       this.error.set(err?.message ?? 'Apple sign-in failed');

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { UsernameModalService } from '../../core/username-modal.service';
 import { ProfileApiService } from '../../core/profile-api.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 @Component({
   selector: 'app-username-modal',
@@ -14,6 +15,7 @@ import { ProfileApiService } from '../../core/profile-api.service';
 export class UsernameModalComponent {
   private modalService = inject(UsernameModalService);
   private profileApi = inject(ProfileApiService);
+  private analytics = inject(AnalyticsService);
 
   username = '';
   loading = signal(false);
@@ -45,6 +47,7 @@ export class UsernameModalComponent {
     this.loading.set(true);
     try {
       await this.profileApi.setUsername(this.username.trim());
+      this.analytics.track('username_set');
       this.modalService.close();
     } catch (err: any) {
       const status = err?.status ?? err?.error?.statusCode;

@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } 
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { DailyApiService, DailyQuestionRef } from '../../core/daily-api.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 type OnboardingPhase = 'loading' | 'playing' | 'flash' | 'finished';
 
@@ -16,6 +17,7 @@ type OnboardingPhase = 'loading' | 'playing' | 'flash' | 'finished';
 export class OnboardingComponent implements OnInit {
   private api = inject(DailyApiService);
   private router = inject(Router);
+  private analytics = inject(AnalyticsService);
 
   phase = signal<OnboardingPhase>('loading');
   questions = signal<DailyQuestionRef[]>([]);
@@ -43,6 +45,7 @@ export class OnboardingComponent implements OnInit {
       this.questions.set(qs);
       this.currentIndex.set(0);
       this.phase.set('playing');
+      this.analytics.track('tutorial_begin');
     } catch {
       // On error, just skip onboarding
       this.completeOnboarding();
@@ -105,6 +108,7 @@ export class OnboardingComponent implements OnInit {
 
     if (idx >= total) {
       this.phase.set('finished');
+      this.analytics.track('tutorial_complete', { method: 'finished' });
       this.completeOnboarding(1500);
     } else {
       this.currentIndex.set(idx);
@@ -116,6 +120,7 @@ export class OnboardingComponent implements OnInit {
       clearTimeout(this.advanceTimeout);
       this.advanceTimeout = null;
     }
+    this.analytics.track('tutorial_complete', { method: 'skipped' });
     this.completeOnboarding();
   }
 

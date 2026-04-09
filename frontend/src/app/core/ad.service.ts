@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { AdMob, AdOptions, RewardAdOptions } from '@capacitor-community/admob';
 import { ProService } from './pro.service';
-import { PosthogService } from './posthog.service';
+import { AnalyticsService } from './analytics.service';
 import { environment } from '../../environments/environment';
 
 export interface AdConfig {
@@ -33,7 +33,7 @@ const MIN_AD_INTERVAL_MS = 30_000;
 @Injectable({ providedIn: 'root' })
 export class AdService {
   private pro = inject(ProService);
-  private posthog = inject(PosthogService);
+  private analytics = inject(AnalyticsService);
   private config = signal<AdConfig>(DEFAULT_AD_CONFIG);
   private questionsSinceLastAd = 0;
   private lastAdShownAt = 0;
@@ -105,7 +105,7 @@ export class AdService {
     try {
       await this.preloadRewardedAd();
       const reward = await AdMob.showRewardVideoAd();
-      this.posthog.track('ad_rewarded_shown', { trigger, reward_type: reward.type, reward_amount: reward.amount });
+      this.analytics.track('ad_rewarded_shown', { trigger, reward_type: reward.type, reward_amount: reward.amount });
       // Fire-and-forget preload for next use
       void this.preloadRewardedAd();
       return true;
@@ -132,7 +132,7 @@ export class AdService {
       this.lastAdShownAt = Date.now();
       this.questionsSinceLastAd = 0;
       this.adLoaded = false;
-      this.posthog.track('ad_interstitial_shown', { trigger });
+      this.analytics.track('ad_interstitial_shown', { trigger });
       // Fire-and-forget preload for next impression
       void this.preloadInterstitial();
       return true;

@@ -7,6 +7,7 @@ import { MayhemApiService, MayhemQuestion, MayhemAnswerResponse, MayhemSessionRe
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { AuthService } from '../../core/auth.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
+import { AnalyticsService } from '../../core/analytics.service';
 
 type MayhemPhase = 'idle' | 'loading' | 'question' | 'result' | 'finished';
 
@@ -25,6 +26,7 @@ export class MayhemModeComponent {
   private mayhemApi = inject(MayhemApiService);
   private achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
+  private analytics = inject(AnalyticsService);
 
   phase = signal<MayhemPhase>('idle');
   questions = signal<MayhemQuestion[]>([]);
@@ -67,6 +69,7 @@ export class MayhemModeComponent {
       const qs = await firstValueFrom(this.mayhemApi.getQuestions());
       this.questions.set(qs ?? []);
       this.phase.set('question');
+      this.analytics.track('game_mode_started', { mode: 'mayhem' });
     } catch {
       this.phase.set('question');
     }
@@ -135,6 +138,7 @@ export class MayhemModeComponent {
       } catch { /* ignore */ }
       this.sessionId.set(null);
     }
+    this.analytics.track('session_ended', { mode: 'mayhem', correct: this.correctCount(), total: this.total(), elo_change: this.eloChange() });
     this.phase.set('finished');
   }
 

@@ -9,6 +9,7 @@ import { SectionHeaderComponent } from '../../shared/section-header/section-head
 import { ModeCardComponent } from '../../shared/mode-card/mode-card';
 import { BattleHeroComponent, HeroMode } from '../../shared/battle-hero/battle-hero';
 import { NotificationBannerComponent } from '../../shared/notification-banner/notification-banner';
+import { AnalyticsService } from '../../core/analytics.service';
 
 @Component({
   selector: 'app-home',
@@ -32,6 +33,7 @@ export class HomeComponent implements OnInit {
   pro = inject(ProService);
   store = inject(ProfileStore);
   private router = inject(Router);
+  private analytics = inject(AnalyticsService);
 
   onlinePlayers = signal(Math.floor(Math.random() * 40) + 12);
 
@@ -81,6 +83,7 @@ export class HomeComponent implements OnInit {
   }
 
   go2Player(): void {
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: '2player' });
     this.router.navigate(['/game']);
   }
 
@@ -93,10 +96,12 @@ export class HomeComponent implements OnInit {
   }
 
   goSolo(): void {
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'solo' });
     this.router.navigate(['/solo']);
   }
 
   goLogoQuiz(): void {
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'logo_quiz' });
     this.router.navigate(['/logo-quiz']);
   }
 
@@ -109,6 +114,7 @@ export class HomeComponent implements OnInit {
       this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
       return;
     }
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'battle_royale' });
     this.router.navigate(['/battle-royale']);
   }
 
@@ -142,6 +148,7 @@ export class HomeComponent implements OnInit {
 
   goDuel(): void {
     if (this.auth.isLoggedIn()) {
+      this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'duel' });
       this.router.navigate(['/duel']);
     } else {
       this.router.navigate(['/login'], { queryParams: { redirect: '/duel' } });

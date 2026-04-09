@@ -13,7 +13,7 @@ import { AchievementUnlockModalComponent } from './shared/achievement-unlock-mod
 import { AchievementUnlockService } from './core/achievement-unlock.service';
 import { AuthService } from './core/auth.service';
 import { GoogleAdsService } from './core/google-ads.service';
-import { PosthogService } from './core/posthog.service';
+import { AnalyticsService } from './core/analytics.service';
 import { ConfigApiService } from './core/config-api.service';
 import { AdService } from './core/ad.service';
 import { ToastComponent } from './shared/toast/toast';
@@ -39,7 +39,7 @@ export class App implements OnInit, OnDestroy {
   private googleAds = inject(GoogleAdsService);
   private swUpdate = inject(SwUpdate, { optional: true });
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
-  private posthog = inject(PosthogService);
+  private analytics = inject(AnalyticsService);
   private configApi = inject(ConfigApiService);
   private adService = inject(AdService);
   private updateService = inject(UpdateService);
@@ -52,8 +52,10 @@ export class App implements OnInit, OnDestroy {
     effect(() => {
       const user = this.auth.user();
       if (user) {
+        this.analytics.identify(user.id);
         this.checkUsernameSetup(user.id);
       } else {
+        this.analytics.reset();
         this.usernameModal.close();
       }
     });

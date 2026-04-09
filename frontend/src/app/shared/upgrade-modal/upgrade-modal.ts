@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@ang
 import { Router } from '@angular/router';
 import { ProService } from '../../core/pro.service';
 import { IapService, IAPProduct } from '../../core/iap.service';
-import { PosthogService } from '../../core/posthog.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 @Component({
   selector: 'app-upgrade-modal',
@@ -15,7 +15,7 @@ export class UpgradeModalComponent implements OnInit {
   pro = inject(ProService);
   iap = inject(IapService);
   private router = inject(Router);
-  private posthog = inject(PosthogService);
+  private analytics = inject(AnalyticsService);
 
   selectedPlan = signal<'monthly' | 'lifetime'>('lifetime');
   state = signal<'idle' | 'loading' | 'purchasing' | 'success' | 'error'>('loading');
@@ -43,7 +43,7 @@ export class UpgradeModalComponent implements OnInit {
       // Fallback — show hardcoded prices
       this.state.set('idle');
     }
-    this.posthog.track('paywall_viewed', { context: this.pro.triggerContext() });
+    this.analytics.track('paywall_viewed', { context: this.pro.triggerContext() });
   }
 
   selectPlan(plan: 'monthly' | 'lifetime'): void {
@@ -76,7 +76,7 @@ export class UpgradeModalComponent implements OnInit {
     this.errorMessage.set('');
 
     try {
-      this.posthog.track('paywall_purchase_started', { plan: this.selectedPlan() });
+      this.analytics.track('paywall_purchase_started', { plan: this.selectedPlan() });
       switch (this.selectedPlan()) {
         case 'monthly': await this.iap.purchaseMonthly(); break;
         case 'lifetime': await this.iap.purchaseLifetime(); break;
@@ -85,7 +85,7 @@ export class UpgradeModalComponent implements OnInit {
       await this.pro.loadStatus();
 
       if (this.pro.isPro()) {
-        this.posthog.track('paywall_purchase_completed', { plan: this.selectedPlan() });
+        this.analytics.track('paywall_purchase_completed', { plan: this.selectedPlan() });
         this.state.set('success');
       } else {
         // Purchase was likely cancelled (no error, not pro)
@@ -142,7 +142,7 @@ export class UpgradeModalComponent implements OnInit {
   }
 
   close(): void {
-    this.posthog.track('paywall_dismissed', { context: this.pro.triggerContext() });
+    this.analytics.track('paywall_dismissed', { context: this.pro.triggerContext() });
     this.pro.showUpgradeModal.set(false);
     this.state.set('idle');
     this.errorMessage.set('');

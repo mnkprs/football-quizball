@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { DailyApiService, DailyQuestionRef } from '../../core/daily-api.service';
 import { DonateModalService } from '../../core/donate-modal.service';
 import { LanguageService } from '../../core/language.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
 
@@ -21,6 +22,7 @@ export class DailyComponent {
   private api = inject(DailyApiService);
   private router = inject(Router);
   private donateModal = inject(DonateModalService);
+  private analytics = inject(AnalyticsService);
   lang = inject(LanguageService);
 
   phase = signal<DailyPhase>('idle');
@@ -82,6 +84,7 @@ export class DailyComponent {
       this.currentIndex.set(0);
       this.score.set(0);
       this.phase.set('playing');
+      this.analytics.track('game_mode_started', { mode: 'daily' });
     } catch (err: any) {
       this.error.set(err?.error?.message ?? this.lang.t().dailyLoadFailed);
       this.phase.set('idle');
@@ -129,6 +132,7 @@ export class DailyComponent {
 
     if (idx >= total) {
       this.phase.set('finished');
+      this.analytics.track('session_ended', { mode: 'daily', score: this.score(), accuracy: this.accuracy() });
     } else {
       this.currentIndex.set(idx);
     }

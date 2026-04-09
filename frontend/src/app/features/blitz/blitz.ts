@@ -11,6 +11,7 @@ import { createGameTimer } from '../../core/game-timer';
 import { createReportCooldown } from '../../core/report-cooldown';
 import { LanguageService } from '../../core/language.service';
 import { AdService } from '../../core/ad.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
 
@@ -30,6 +31,7 @@ export class BlitzComponent implements OnDestroy {
   private achievementUnlock = inject(AchievementUnlockService);
   private gameApi = inject(GameApiService);
   private adService = inject(AdService);
+  private analytics = inject(AnalyticsService);
   lang = inject(LanguageService);
 
   phase = signal<BlitzPhase>('idle');
@@ -100,6 +102,7 @@ export class BlitzComponent implements OnDestroy {
       this.score.set(0);
       this.totalAnswered.set(0);
       this.phase.set('playing');
+      this.analytics.track('game_mode_started', { mode: 'blitz' });
       this.timer.start(60, () => {
         const sid = this.sessionId();
         if (sid) void this.finishSession(sid);
@@ -172,6 +175,7 @@ export class BlitzComponent implements OnDestroy {
       }
     } catch { /* score already saved by backend on time_up */ }
     this.phase.set('finished');
+    this.analytics.track('session_ended', { mode: 'blitz', score: this.score(), total_answered: this.totalAnswered(), accuracy: this.accuracy() });
     await this.adService.onGameEnd();
     this.adService.markFirstSessionComplete();
   }

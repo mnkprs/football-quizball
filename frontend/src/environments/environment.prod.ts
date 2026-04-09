@@ -33,9 +33,6 @@ export const environment = {
   admobRewardedAndroid: 'ca-app-pub-7781323448253047/7729899558',
   /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
   adminApiKey: undefined as string | undefined,
-  /** PostHog project API key. Set in environment.prod.ts or build pipeline. */
-  posthogKey: 'phc_F8tJ3RTBgYPfc3CCJGX3AEF7s49qiu6p7JeJTPYs0Fn',
-  posthogHost: 'https://us.i.posthog.com',
   /** Google OAuth Web Client ID for native sign-in. Get from Google Cloud Console → Credentials. */
   googleWebClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
   /** Apple Client ID (bundle identifier) for Sign in with Apple. */

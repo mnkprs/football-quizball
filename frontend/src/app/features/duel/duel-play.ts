@@ -15,6 +15,7 @@ import { createGameTimer } from '../../core/game-timer';
 import { DuelStore } from './duel.store';
 import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 const QUESTION_TIME = 30;
 /** Seconds to wait before a bot is guaranteed to be matched. */
@@ -34,6 +35,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private adService = inject(AdService);
   private proService = inject(ProService);
+  private analytics = inject(AnalyticsService);
 
   answer = signal('');
   copied = signal(false);
@@ -84,6 +86,11 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       const phase = this.store.phase();
       if (phase === 'finished' && !this.endGameAdTriggered) {
         this.endGameAdTriggered = true;
+        const view = this.store.gameView();
+        this.analytics.track('game_finished', {
+          mode: view?.gameType === 'logo' ? 'logo_duel' : 'duel',
+          result: this.store.gameWinner() === 'me' ? 'win' : this.store.gameWinner() === 'opponent' ? 'loss' : 'draw',
+        });
         void this.adService.onGameEnd();
         this.adService.markFirstSessionComplete();
       }
@@ -169,6 +176,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   }
 
   async abandon(): Promise<void> {
+    this.analytics.track('duel_abandoned');
     await this.store.abandonGame();
     this.navigateToLobby();
   }
@@ -207,6 +215,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   async shareLink(): Promise<void> {
     const code = this.store.inviteCode();
     if (!code) return;
+    this.analytics.track('share', { content_type: 'duel_invite', method: typeof navigator.share === 'function' ? 'native' : 'clipboard' });
     const url = `${window.location.origin}/duel/join/${code}`;
     if (navigator.share) {
       await navigator.share({ title: 'STEPOVR. Duel', text: 'Challenge me to a football quiz duel!', url });

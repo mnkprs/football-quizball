@@ -12,7 +12,7 @@ import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
-import { PosthogService } from '../../core/posthog.service';
+import { AnalyticsService } from '../../core/analytics.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
 import { createGameTimer } from '../../core/game-timer';
 import { createReportCooldown } from '../../core/report-cooldown';
@@ -38,7 +38,7 @@ export class SoloComponent implements OnDestroy {
   private donateModal = inject(DonateModalService);
   private achievementUnlock = inject(AchievementUnlockService);
   private gameApi = inject(GameApiService);
-  private posthog = inject(PosthogService);
+  private analytics = inject(AnalyticsService);
   private profileStore = inject(ProfileStore);
   private adService = inject(AdService);
   lang = inject(LanguageService);
@@ -151,7 +151,7 @@ export class SoloComponent implements OnDestroy {
       this.sessionId.set(res.session_id);
       this.startElo.set(res.user_elo);
       this.currentElo.set(res.user_elo);
-      this.posthog.track('game_mode_started', { mode: 'solo', starting_elo: res.user_elo });
+      this.analytics.track('game_mode_started', { mode: 'solo', starting_elo: res.user_elo });
       await this.loadNextQuestion();
     } catch (err: any) {
       this.error.set(err?.error?.message ?? 'Failed to start session');
@@ -241,7 +241,7 @@ export class SoloComponent implements OnDestroy {
 
       this.currentElo.set(result.elo_after);
       this.animateElo(result.elo_after - result.elo_change, result.elo_after);
-      this.posthog.track('question_answered', {
+      this.analytics.track('question_answered', {
         correct: result.correct,
         elo_change: result.elo_change,
         difficulty: this.currentQuestion()?.difficulty,
@@ -286,7 +286,7 @@ export class SoloComponent implements OnDestroy {
       }
     } catch { /* ignore */ }
     this.loading.set(false);
-    this.posthog.track('session_ended', {
+    this.analytics.track('session_ended', {
       total_questions: this.questionsAnswered(),
       final_elo: this.currentElo(),
       accuracy: this.accuracy(),

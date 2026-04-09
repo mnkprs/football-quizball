@@ -24,6 +24,7 @@ import { createGameTimer } from '../../core/game-timer';
 import { createReportCooldown } from '../../core/report-cooldown';
 import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
+import { AnalyticsService } from '../../core/analytics.service';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 
@@ -45,6 +46,7 @@ export class LogoQuizComponent implements OnDestroy {
   private destroyRef = inject(DestroyRef);
   private adService = inject(AdService);
   private proService = inject(ProService);
+  private analytics = inject(AnalyticsService);
   lang = inject(LanguageService);
 
   // State
@@ -176,6 +178,7 @@ export class LogoQuizComponent implements OnDestroy {
     this.error.set(null);
     this.questionsAnswered.set(0);
     this.correctAnswers.set(0);
+    this.analytics.track('game_mode_started', { mode: 'logo_quiz', hardcore: this.hardcoreMode() });
     await this.loadNextQuestion();
   }
 
@@ -279,6 +282,13 @@ export class LogoQuizComponent implements OnDestroy {
   async endSession(): Promise<void> {
     this.timer.stop();
     this.phase.set('finished');
+    this.analytics.track('session_ended', {
+      mode: 'logo_quiz',
+      hardcore: this.hardcoreMode(),
+      total_questions: this.questionsAnswered(),
+      accuracy: this.accuracy(),
+      elo_delta: this.eloDelta(),
+    });
     await this.adService.onGameEnd();
     this.adService.markFirstSessionComplete();
     if (this.auth.user()) {
