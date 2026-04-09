@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
-import { AdMob, AdOptions } from '@capacitor-community/admob';
+import { AdMob, AdOptions, RewardAdOptions } from '@capacitor-community/admob';
 import { ProService } from './pro.service';
 import { PosthogService } from './posthog.service';
 import { environment } from '../../environments/environment';
@@ -19,9 +19,11 @@ const DEFAULT_AD_CONFIG: AdConfig = {
   firstSessionAdsDisabled: true,
 };
 
-// Google-provided test ad unit IDs — replace with real ones before release
+// Google-provided test ad unit IDs — used in dev mode
 const TEST_INTERSTITIAL_ANDROID = 'ca-app-pub-3940256099942544/1033173712';
 const TEST_INTERSTITIAL_IOS = 'ca-app-pub-3940256099942544/4411468910';
+const TEST_REWARDED_ANDROID = 'ca-app-pub-3940256099942544/5224354917';
+const TEST_REWARDED_IOS = 'ca-app-pub-3940256099942544/1712485313';
 
 const FIRST_SESSION_KEY = 'stepovr_first_session_done';
 
@@ -37,6 +39,7 @@ export class AdService {
   private lastAdShownAt = 0;
   private initialized = false;
   private adLoaded = false;
+  private rewardedAdLoaded = false;
 
   private get isFirstSession(): boolean {
     return !localStorage.getItem(FIRST_SESSION_KEY);
@@ -89,6 +92,28 @@ export class AdService {
     this.questionsSinceLastAd = 0;
   }
 
+  /**
+   * Show a rewarded video ad. Returns true if the user watched the full ad
+   * and earned the reward (50/50, 2x points, etc.).
+   * Returns false if the ad couldn't load, user dismissed early, or user is Pro.
+   */
+  async showRewardedAd(trigger: string): Promise<boolean> {
+    if (this.pro.isPro()) return false;
+    if (!this.initialized) return false;
+    if (!Capacitor.isNativePlatform()) return false;
+
+    try {
+      await this.preloadRewardedAd();
+      const reward = await AdMob.showRewardVideoAd();
+      this.posthog.track('ad_rewarded_shown', { trigger, reward_type: reward.type, reward_amount: reward.amount });
+      // Fire-and-forget preload for next use
+      void this.preloadRewardedAd();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   // ------------------------------------------------------------------
   // Private helpers
   // ------------------------------------------------------------------
@@ -113,6 +138,26 @@ export class AdService {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  private async preloadRewardedAd(): Promise<void> {
+    if (!this.initialized) return;
+    try {
+      const isIos = Capacitor.getPlatform() === 'ios';
+      const prodId = isIos
+        ? environment.admobRewardedIos
+        : environment.admobRewardedAndroid;
+
+      const adId = environment.production && prodId ? prodId
+        : isIos ? TEST_REWARDED_IOS
+        : TEST_REWARDED_ANDROID;
+
+      const options: RewardAdOptions = { adId };
+      await AdMob.prepareRewardVideoAd(options);
+      this.rewardedAdLoaded = true;
+    } catch {
+      this.rewardedAdLoaded = false;
     }
   }
 

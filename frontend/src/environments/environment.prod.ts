@@ -27,6 +27,10 @@ export const environment = {
   admobInterstitialIos: '',
   /** AdMob interstitial ad unit ID for Android. Get from AdMob console → Ad units. */
   admobInterstitialAndroid: 'ca-app-pub-7781323448253047/4423313001',
+  /** AdMob rewarded video ad unit ID for iOS. Get from AdMob console → Ad units. */
+  admobRewardedIos: '',
+  /** AdMob rewarded video ad unit ID for Android. Get from AdMob console → Ad units. */
+  admobRewardedAndroid: 'ca-app-pub-7781323448253047/7729899558',
   /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
   adminApiKey: undefined as string | undefined,
   /** PostHog project API key. Set in environment.prod.ts or build pipeline. */

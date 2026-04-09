@@ -28,6 +28,10 @@ export const environment = {
   admobInterstitialIos: '',
   /** AdMob interstitial ad unit ID for Android. Get from AdMob console → Ad units. Leave empty in dev. */
   admobInterstitialAndroid: '',
+  /** AdMob rewarded video ad unit ID for iOS. Leave empty in dev. */
+  admobRewardedIos: '',
+  /** AdMob rewarded video ad unit ID for Android. Leave empty in dev. */
+  admobRewardedAndroid: '',
   /** PostHog project API key. Leave empty to disable analytics. */
   posthogKey: 'phc_F8tJ3RTBgYPfc3CCJGX3AEF7s49qiu6p7JeJTPYs0Fn',
   posthogHost: 'https://us.i.posthog.com',
