@@ -5,12 +5,6 @@ import OpenAI from 'openai';
 import { jsonrepair } from 'jsonrepair';
 import { RedisService } from '../redis/redis.service';
 
-/** Gemini model. Supports Google Search grounding for factual verification. */
-const GEMINI_MODEL = 'gemini-2.5-flash';
-
-/** DeepSeek model for question generation (OpenAI-compatible API). */
-const DEEPSEEK_MODEL = 'deepseek-chat';
-
 /** Delay (ms) before retry when rate limited. */
 const RATE_LIMIT_RETRY_MS = 30_000;
 
@@ -86,11 +80,18 @@ export class LlmService {
   private readonly logger = new Logger(LlmService.name);
   private readonly gemini: GoogleGenAI | null = null;
   private readonly deepseek: OpenAI | null = null;
+  private readonly geminiModel: string;
+  private readonly deepseekModel: string;
+  private readonly embeddingModel: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly redisService: RedisService,
   ) {
+    this.geminiModel = this.configService.get<string>('GEMINI_MODEL') ?? 'gemini-2.5-flash';
+    this.deepseekModel = this.configService.get<string>('DEEPSEEK_MODEL') ?? 'deepseek-chat';
+    this.embeddingModel = this.configService.get<string>('EMBEDDING_MODEL') ?? 'text-embedding-004';
+
     const vertexKey = this.configService.get<string>('VERTEX_AI_KEY');
     const vertexProject = this.configService.get<string>('GOOGLE_CLOUD_PROJECT');
     const vertexLocation = this.configService.get<string>('GOOGLE_CLOUD_LOCATION') ?? 'us-central1';
@@ -239,7 +240,7 @@ export class LlmService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const completion = await this.deepseek!.chat.completions.create({
-          model: DEEPSEEK_MODEL,
+          model: this.deepseekModel,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
@@ -291,7 +292,7 @@ export class LlmService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const response = await this.gemini!.models.generateContent({
-          model: GEMINI_MODEL,
+          model: this.geminiModel,
           contents: userPrompt,
           config,
         });
@@ -342,7 +343,7 @@ export class LlmService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const response = await this.gemini!.models.generateContent({
-          model: GEMINI_MODEL,
+          model: this.geminiModel,
           contents: userPrompt,
           config,
         });
@@ -402,7 +403,7 @@ export class LlmService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const response = await this.gemini!.models.embedContent({
-          model: 'text-embedding-004',
+          model: this.embeddingModel,
           contents: text,
           config: { taskType: 'SEMANTIC_SIMILARITY' },
         });
