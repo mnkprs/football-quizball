@@ -2,6 +2,23 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.1.2.0] - 2026-04-09
+
+### Added
+- ELO ranking legend overlay on leaderboard page, auto-shown on first visit with discreet re-open button
+- Force-update banner system with soft and hard update modes, version check via /api/config/version
+- Wrong-shake animation on incorrect answers across all game modes
+- Rewarded video ad support in AdService
+
+### Changed
+- LLM model names moved from hardcoded constants to environment-configurable properties
+- Logo quiz header and news mode UX improvements
+- Solo page now viewable without login, prompts login only when starting a game
+
+### Fixed
+- Replaced test AdMob App ID with production credentials to fix crash on launch
+- Added Firebase Crashlytics and Analytics to Android build
+
 ## [0.1.1.0] - 2026-04-08
 
 ### Added
