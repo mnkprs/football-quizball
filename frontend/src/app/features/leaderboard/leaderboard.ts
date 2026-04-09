@@ -16,6 +16,25 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { ErrorStateComponent } from '../../shared/error-state/error-state';
+
+interface LegendTier {
+  readonly label: string;
+  readonly range: string;
+  readonly color: string;
+  readonly gradientFrom: string;
+  readonly icon: string;
+}
+
+const LEGEND_TIERS: readonly LegendTier[] = [
+  { label: 'Challenger', range: '2400+',       color: '#e8ff7a', gradientFrom: '#c4d94a', icon: '👑' },
+  { label: 'Diamond',    range: '2000 – 2399', color: '#a855f7', gradientFrom: '#7c3aed', icon: '💎' },
+  { label: 'Platinum',   range: '1650 – 1999', color: '#06b6d4', gradientFrom: '#0891b2', icon: '⚡' },
+  { label: 'Gold',       range: '1300 – 1649', color: '#f59e0b', gradientFrom: '#d97706', icon: '🥇' },
+  { label: 'Silver',     range: '1000 – 1299', color: '#94a3b8', gradientFrom: '#64748b', icon: '🥈' },
+  { label: 'Bronze',     range: '750 – 999',   color: '#b45309', gradientFrom: '#92400e', icon: '🥉' },
+  { label: 'Iron',       range: '500 – 749',   color: '#6b7280', gradientFrom: '#4b5563', icon: '🛡️' },
+] as const;
+
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
@@ -50,9 +69,24 @@ export class LeaderboardComponent implements OnInit {
   error = signal<string | null>(null);
   activeTab = signal<'solo' | 'blitz' | 'logoQuiz' | 'duel'>('solo');
   logoQuizSubTab = signal<'normal' | 'hardcore'>('normal');
+  showLegend = signal(false);
+  readonly legendTiers = LEGEND_TIERS;
+
+  openLegend(): void {
+    this.showLegend.set(true);
+  }
+
+  closeLegend(): void {
+    this.showLegend.set(false);
+    localStorage.setItem('leaderboard_legend_seen', 'true');
+  }
 
   ngOnInit(): void {
-    this.load();
+    this.load().then(() => {
+      if (!localStorage.getItem('leaderboard_legend_seen')) {
+        this.showLegend.set(true);
+      }
+    });
   }
 
   setActiveTab(tab: 'solo' | 'blitz' | 'logoQuiz' | 'duel'): void {
