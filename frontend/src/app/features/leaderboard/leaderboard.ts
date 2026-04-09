@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
@@ -25,6 +25,9 @@ interface LegendTier {
   readonly icon: string;
 }
 
+const LEGEND_SEEN_KEY = 'leaderboard_legend_seen';
+
+// Keep in sync with elo-tier.ts tier definitions
 const LEGEND_TIERS: readonly LegendTier[] = [
   { label: 'Challenger', range: '2400+',       color: '#e8ff7a', gradientFrom: '#c4d94a', icon: '👑' },
   { label: 'Diamond',    range: '2000 – 2399', color: '#a855f7', gradientFrom: '#7c3aed', icon: '💎' },
@@ -78,12 +81,19 @@ export class LeaderboardComponent implements OnInit {
 
   closeLegend(): void {
     this.showLegend.set(false);
-    localStorage.setItem('leaderboard_legend_seen', 'true');
+    localStorage.setItem(LEGEND_SEEN_KEY, 'true');
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.showLegend()) {
+      this.closeLegend();
+    }
   }
 
   ngOnInit(): void {
     this.load().then(() => {
-      if (!localStorage.getItem('leaderboard_legend_seen')) {
+      if (!localStorage.getItem(LEGEND_SEEN_KEY)) {
         this.showLegend.set(true);
       }
     });
