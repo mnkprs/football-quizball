@@ -81,20 +81,25 @@ export class LeaderboardComponent implements OnInit {
 
   closeLegend(): void {
     this.showLegend.set(false);
-    localStorage.setItem(LEGEND_SEEN_KEY, 'true');
+    try { localStorage.setItem(LEGEND_SEEN_KEY, 'true'); } catch { /* quota/security errors */ }
   }
 
-  @HostListener('document:keydown.escape')
-  onEscapeKey(): void {
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscapeKey(event: Event): void {
     if (this.showLegend()) {
+      event.stopPropagation();
       this.closeLegend();
     }
   }
 
   ngOnInit(): void {
     this.load().then(() => {
-      if (!localStorage.getItem(LEGEND_SEEN_KEY)) {
-        this.showLegend.set(true);
+      if (this.error() === null) {
+        try {
+          if (!localStorage.getItem(LEGEND_SEEN_KEY)) {
+            this.showLegend.set(true);
+          }
+        } catch { /* localStorage unavailable */ }
       }
     });
   }
