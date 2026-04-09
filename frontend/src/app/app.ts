@@ -18,11 +18,13 @@ import { ConfigApiService } from './core/config-api.service';
 import { AdService } from './core/ad.service';
 import { ToastComponent } from './shared/toast/toast';
 import { CookieConsentComponent } from './shared/cookie-consent/cookie-consent';
+import { UpdateService } from './core/update.service';
+import { ForceUpdateBannerComponent } from './shared/force-update-banner/force-update-banner';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, CookieConsentComponent, NgOptimizedImage],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, CookieConsentComponent, NgOptimizedImage, ForceUpdateBannerComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +42,7 @@ export class App implements OnInit, OnDestroy {
   private posthog = inject(PosthogService);
   private configApi = inject(ConfigApiService);
   private adService = inject(AdService);
+  private updateService = inject(UpdateService);
   isAdminRoute = signal(false);
 
   showSplash = signal(true);
@@ -72,6 +75,7 @@ export class App implements OnInit, OnDestroy {
   ngOnInit(): void {
     void this.configApi.loadAdConfig();
     void this.adService.initialize();
+    void this.updateService.check();
     this.isAdminRoute.set(this.router.url.startsWith('/admin'));
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))

@@ -84,7 +84,7 @@ export class BlitzComponent implements OnDestroy {
     }
     // Selected wrong choice in red
     if (isSelected && !this.flashCorrect()) {
-      return `${base} bg-loss/20 border-2 border-loss text-loss`;
+      return `${base} bg-loss/20 border-2 border-loss text-loss animate-wrong-shake`;
     }
     return `${base} bg-card border border-border text-muted-foreground opacity-40`;
   }

@@ -17,6 +17,7 @@ module.exports = {
     'bg-loss/10', 'bg-loss/20', 'bg-loss/95', 'border-loss', 'text-loss',
     'bg-yellow-900/50', 'text-yellow-400', 'border-yellow-700',
     'text-white/80',
+    'animate-wrong-shake',
   ],
   theme: {
     extend: {
@@ -45,6 +46,9 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      animation: {
+        'wrong-shake': 'wrong-shake-tight 400ms cubic-bezier(0.25, 1, 0.5, 1)',
       },
     },
   },

@@ -1,15 +1,43 @@
 import { IsString, IsOptional, IsBoolean, MaxLength } from 'class-validator';
+import {
+  GeneratedQuestion,
+  BoardCell,
+  Top5Progress,
+  Top5Entry,
+} from '../common/interfaces/question.interface';
+import { Player } from '../common/interfaces/game.interface';
 
-// DTOs
-export class CreateOnlineGameDto {}
+// ─── DTOs ─────────────────────────────────────────────────────────────────────
 
+export class CreateOnlineGameDto {
+  @IsString()
+  @MaxLength(100)
+  playerName: string;
+}
+
+/** Alias: join by invite code */
 export class JoinByCodeDto {
   @IsString()
   @MaxLength(10)
   inviteCode: string;
 }
 
-export class OnlineSubmitAnswerDto {
+export class JoinOnlineGameDto {
+  @IsString()
+  @MaxLength(10)
+  inviteCode: string;
+
+  @IsString()
+  @MaxLength(100)
+  playerName: string;
+}
+
+export class SelectQuestionDto {
+  @IsString()
+  questionId: string;
+}
+
+export class SubmitOnlineAnswerDto {
   @IsString()
   questionId: string;
 
@@ -22,10 +50,16 @@ export class OnlineSubmitAnswerDto {
   useDouble?: boolean;
 }
 
-export class OnlineUseLifelineDto {
+/** Alias for controller compatibility — must be a real class for NestJS decorator metadata */
+export class OnlineSubmitAnswerDto extends SubmitOnlineAnswerDto {}
+
+export class UseOnlineLifelineDto {
   @IsString()
   questionId: string;
 }
+
+/** Alias for controller compatibility — must be a real class for NestJS decorator metadata */
+export class OnlineUseLifelineDto extends UseOnlineLifelineDto {}
 
 export class OnlineTop5GuessDto {
   @IsString()
@@ -45,67 +79,130 @@ export class OnlineStopTop5Dto {
   questionId: string;
 }
 
-// Board cell stored in JSONB
-export interface OnlineBoardCell {
-  question_id: string;
+// ─── Interfaces ───────────────────────────────────────────────────────────────
+
+/** Public question view — correct_answer stripped */
+export interface OnlinePublicQuestion {
+  id: string;
+  question_text: string;
   category: string;
   difficulty: string;
-  points: number;
-  answered: boolean;
-  answered_by?: 'host' | 'guest';
-  points_awarded?: number;
-  lifeline_applied?: boolean;
-  double_armed?: boolean;
+  image_url?: string;
+  fifty_fifty_applicable?: boolean;
+  meta?: Record<string, unknown>;
 }
 
-// Full board state stored in JSONB
-export interface OnlineBoardState {
-  cells: OnlineBoardCell[][];           // same 2D shape as offline board
-  questions: Record<string, unknown>[]; // full questions including correct_answer (server-side only)
-  categories: string[];
+/** Turn state broadcast for spectating */
+export interface OnlineTurnState {
+  questionId: string;
+  question: OnlinePublicQuestion;
+  attempts: string[]; // wrong answer texts for spectating
+  top5Progress: Top5Progress | null;
+  phase: 'answering' | 'top5' | 'result';
 }
 
-export interface OnlinePlayerMeta {
-  lifelineUsed: boolean;
-  doubleUsed: boolean;
+/** Result shown to both players after answer */
+export interface OnlineLastResult {
+  questionId: string;
+  correct: boolean;
+  correct_answer: string;
+  explanation: string;
+  points_awarded: number;
+  player_scores: [number, number];
+  lifeline_used: boolean;
+  double_used: boolean;
+  original_image_url?: string;
+  top5Won?: boolean;
+  top5FilledSlots?: Array<{ name: string; stat: string } | null>;
+  top5WrongGuesses?: Array<{ name: string; stat: string }>;
 }
 
-// What's returned to the client (correct_answer stripped from cells/questions)
-export interface OnlineGamePublicView {
+/** Raw DB row */
+export interface OnlineGameRow {
   id: string;
-  status: 'waiting' | 'queued' | 'active' | 'finished' | 'abandoned';
-  inviteCode: string | null;
-  currentPlayerId: string | null;
-  myRole: 'host' | 'guest';
-  myUserId: string;
-  playerScores: { host: number; guest: number };
-  playerMeta: { host: OnlinePlayerMeta; guest: OnlinePlayerMeta };
-  lastResult: OnlineAnswerResult | null;
-  turnDeadline: string | null;
-  board: OnlineBoardCell[][];
-  categories: Array<{ key: string; label: string }>;
-  hostId: string;
-  guestId: string | null;
-  hostUsername: string;
-  guestUsername: string | null;
+  invite_code: string;
+  host_id: string;
+  guest_id: string | null;
+  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  players: [Player, Player];
+  current_player_index: 0 | 1;
+  board: BoardCell[][];
+  questions: GeneratedQuestion[];
+  top5_progress: Record<string, Top5Progress>;
+  pool_question_ids: string[];
+  host_ready: boolean;
+  guest_ready: boolean;
+  turn_state: OnlineTurnState | null;
+  last_result: OnlineLastResult | null;
+  turn_started_at: string | null;
+  // Legacy columns from 20260407 migration (still exist in DB)
+  board_state: Record<string, unknown>;
+  current_player_id: string | null;
+  player_scores: [number, number];
+  player_meta: Record<string, unknown>;
+  language: string;
+  turn_deadline: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-/** Snake_case to match offline AnswerResult shape expected by frontend ResultComponent. */
+/** Public view sent to client (correct_answer stripped, no questions array) */
+export interface OnlinePublicView {
+  id: string;
+  inviteCode: string;
+  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  myRole: 'host' | 'guest';
+  myPlayerIndex: 0 | 1;
+  players: [Player, Player];
+  currentPlayerIndex: 0 | 1;
+  board: Array<
+    Array<{
+      question_id: string;
+      category: string;
+      difficulty: string;
+      points: number;
+      answered: boolean;
+      answered_by?: string;
+    }>
+  >;
+  categories: Array<{ key: string; label: string }>;
+  hostReady: boolean;
+  guestReady: boolean;
+  turnState: OnlineTurnState | null;
+  lastResult: OnlineLastResult | null;
+}
+
+/** Summary row for list-my-games endpoint */
+export interface OnlineGameSummary {
+  id: string;
+  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  inviteCode: string | null;
+  myRole: 'host' | 'guest';
+  isMyTurn: boolean;
+  myScore: number;
+  opponentUsername: string | null;
+  updatedAt: string;
+}
+
+/** Flat answer result for legacy controller responses */
 export interface OnlineAnswerResult {
   correct: boolean;
   correct_answer: string;
   explanation: string;
   points_awarded: number;
-  player_scores: { host: number; guest: number };
+  player_scores: [number, number];
   lifeline_used: boolean;
   double_used: boolean;
+  original_image_url?: string;
 }
 
+/** Hint result for 50-50 lifeline */
 export interface OnlineHintResult {
   options: string[];
-  pointsIfCorrect: number;
+  points_if_correct: number;
 }
 
+/** Top 5 guess result for legacy controller responses */
 export interface OnlineTop5GuessResult {
   matched: boolean;
   position: number | null;
@@ -113,24 +210,43 @@ export interface OnlineTop5GuessResult {
   stat: string;
   wrongCount: number;
   filledCount: number;
-  filledSlots: Array<{ name: string; stat: string } | null>;
-  wrongGuesses: Array<{ name: string; stat: string }>;
+  filledSlots: Array<Top5Entry | null>;
+  wrongGuesses: Top5Entry[];
   complete: boolean;
   won: boolean;
   points_awarded?: number;
-  player_scores?: { host: number; guest: number };
+  player_scores?: [number, number];
   correct_answer?: string;
   explanation?: string;
 }
 
-export interface OnlineGameSummary {
-  id: string;
-  status: 'waiting' | 'queued' | 'active' | 'finished' | 'abandoned';
-  inviteCode: string | null;
-  myRole: 'host' | 'guest';
-  isMyTurn: boolean;
-  playerScores: { host: number; guest: number };
-  opponentUsername: string | null;
-  turnDeadline: string | null;
-  updatedAt: string;
+/** Public view alias used by older code — same as OnlinePublicView */
+export type OnlineGamePublicView = OnlinePublicView;
+
+// ─── Legacy types (old board_state schema) ─────────────────────────────────────
+
+/** @deprecated Use BoardCell from common/interfaces/question.interface */
+export interface OnlineBoardCell {
+  question_id: string;
+  category: string;
+  difficulty: string;
+  points: number;
+  answered: boolean;
+  answered_by?: string;
+  points_awarded?: number;
+  lifeline_applied?: boolean;
+  double_armed?: boolean;
+}
+
+/** @deprecated Old board_state JSON column — superseded by separate board + questions columns */
+export interface OnlineBoardState {
+  cells: OnlineBoardCell[][];
+  questions: Record<string, unknown>[];
+  categories: string[];
+}
+
+/** @deprecated Old player_meta JSON column */
+export interface OnlinePlayerMeta {
+  lifelineUsed: boolean;
+  doubleUsed: boolean;
 }

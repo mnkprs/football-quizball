@@ -2,6 +2,29 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.2.0.0] - 2026-04-09
+
+### Added
+- **Online 2-Player Board Game** — play the full 7x5 board game remotely with a friend via invite code, with live spectating of your opponent's turn including wrong attempts and Top 5 slot fills in real-time
+- Backend OnlineGameService with full game lifecycle: create, join, ready-up, select question, answer, Top 5 guessing, 50-50 lifeline, and turn timeout cron
+- REST API at /api/online-games with 12 endpoints (all auth-guarded)
+- Supabase Realtime subscriptions for live opponent state sync
+- Spectating view: see opponent's question, wrong answer attempts, and Top 5 progress as they play
+- CAS-guarded game mutations to prevent race conditions (join, answer, ready-up, continue)
+- Turn timeout cron (2-minute turns, 5-minute check interval with Redis lock)
+- ELO ranking legend overlay on leaderboard page, auto-shown on first visit
+- Force-update banner system with soft and hard update modes
+- Wrong-shake animation on incorrect answers across all game modes
+
+### Changed
+- LLM model names moved from hardcoded constants to environment-configurable properties
+- Logo quiz header and news mode UX improvements
+
+### Fixed
+- Replaced test AdMob App ID with production credentials to fix crash on launch
+- Top 5 meta data stripped from spectating player's view to prevent answer leaking
+- Race condition in continueToBoard where both players clearing result simultaneously could cause one to miss it
+
 ## [0.1.1.0] - 2026-04-08
 
 ### Added

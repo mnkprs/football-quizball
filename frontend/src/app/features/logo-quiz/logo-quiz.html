@@ -81,15 +81,21 @@
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'question' && currentQuestion()) {
       <!-- Header -->
-      <div class="flex items-center justify-between mb-4 pt-2 px-2">
-        <div class="flex items-center gap-3 text-sm">
-          <span class="text-muted-foreground">ELO</span>
-          <span class="font-bold text-foreground">{{ currentElo() }}</span>
+      <div class="lq-session-header">
+        <div class="lq-session-elo" [style.--tier-color]="eloTier().color">
+          <span class="lq-session-elo__value">{{ currentElo() | number }}</span>
+          <span class="lq-session-elo__tier" [style.color]="eloTier().color">{{ eloTier().label }}</span>
+          @if (eloDelta() !== 0) {
+            <span class="lq-session-elo__delta" [class.lq-session-elo__delta--up]="eloDelta() > 0" [class.lq-session-elo__delta--down]="eloDelta() < 0">
+              {{ eloDelta() > 0 ? '+' : '' }}{{ eloDelta() }}
+            </span>
+          }
         </div>
-        <div class="flex items-center gap-1 text-sm">
-          <span class="text-win font-bold">{{ correctAnswers() }}</span>
-          <span class="text-muted-foreground">/</span>
-          <span class="text-foreground">{{ questionsAnswered() }}</span>
+        <div class="lq-session-score">
+          <span class="lq-session-score__correct">{{ correctAnswers() }}</span>
+          <span class="lq-session-score__sep">/</span>
+          <span class="lq-session-score__total">{{ questionsAnswered() }}</span>
+          <span class="lq-session-score__label">correct</span>
         </div>
       </div>
 

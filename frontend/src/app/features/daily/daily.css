@@ -182,6 +182,7 @@
   background: var(--color-error-bg);
   border: 1px solid rgba(255, 180, 171, 0.2);
   color: var(--color-error);
+  animation: wrong-shake-tight 400ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
 }
 
 /* Dimmed inactive */
