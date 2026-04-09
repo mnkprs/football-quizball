@@ -180,7 +180,7 @@
               [disabled]="store.submitting() || store.phase() === 'answered' || timeLeft() === 0"
               placeholder="Type your answer..."
               class="flex-1 px-4 py-3 rounded-xl bg-card border text-foreground placeholder:text-muted-foreground focus:outline-none transition"
-              [class]="wrongFeedback() ? 'border-red-400 focus:border-red-400' : 'border-border focus:border-accent'"
+              [class]="wrongFeedback() ? 'border-red-400 focus:border-red-400 animate-wrong-shake' : 'border-border focus:border-accent'"
               (keyup.enter)="submitAnswer()"
             />
             <button

@@ -626,6 +626,7 @@
   border-color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.1) !important;
   color: #f87171 !important;
+  animation: wrong-shake-tight 400ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
 }
 
 /* ============================================

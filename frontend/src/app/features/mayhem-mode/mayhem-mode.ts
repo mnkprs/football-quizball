@@ -112,7 +112,7 @@ export class MayhemModeComponent {
       return 'background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.5); color: #fff;';
     }
     if (isSelected && !isCorrect) {
-      return 'background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.5); color: #fff; opacity: 0.8;';
+      return 'background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.5); color: #fff; opacity: 0.8; animation: wrong-shake-tight 400ms cubic-bezier(0.25,1,0.5,1);';
     }
     return 'background: transparent; border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4);';
   }
