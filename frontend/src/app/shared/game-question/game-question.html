@@ -268,7 +268,6 @@
 <!-- Player ID (career path) -->
 <ng-template #playerIdTemplate>
   <div class="gq__question-card">
-    <p class="gq__question-subtext">{{ question()?.question_text }}</p>
     @if (question()?.career_path?.length) {
       <div class="gq__career-path">
         @for (entry of question()?.career_path; track $index; let last = $last) {

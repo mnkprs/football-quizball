@@ -444,7 +444,7 @@ export class OnlineGameService {
     const myIndex: 0 | 1 = row.host_id === userId ? 0 : 1;
     const player = row.players[myIndex];
 
-    const correct = this.answerValidator.validate(question, dto.answer);
+    const correct = await this.answerValidator.validateAsync(question, dto.answer);
 
     if (!correct) {
       // Append wrong attempt and broadcast via Realtime
@@ -461,6 +461,7 @@ export class OnlineGameService {
           updated_at: new Date().toISOString(),
         })
         .eq('id', gameId)
+        .eq('current_player_index', myIndex) // CAS: prevent stale update on concurrent submits
         .select('*')
         .single();
 
@@ -998,13 +999,13 @@ export class OnlineGameService {
   }
 
   async getGameCount(userId: string): Promise<{ count: number }> {
-    const { data } = await this.supabaseService.client
+    const { count } = await this.supabaseService.client
       .from('online_games')
       .select('id', { count: 'exact', head: true })
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
       .in('status', ['waiting', 'active']);
 
-    return { count: (data as unknown as number) ?? 0 };
+    return { count: count ?? 0 };
   }
 
   async joinQueue(userId: string): Promise<OnlinePublicView> {
