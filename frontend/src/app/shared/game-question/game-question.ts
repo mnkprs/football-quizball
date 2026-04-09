@@ -285,7 +285,6 @@ export class GameQuestionComponent {
     this.textAnswer = team;
     this.logoSearchQuery.set(team);
     this.logoDropdownOpen.set(false);
-    this.answerSubmitted.emit(team);
   }
 
   @HostListener('document:click', ['$event'])

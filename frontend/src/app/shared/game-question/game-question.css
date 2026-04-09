@@ -261,8 +261,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
+  gap: .75rem;
   text-align: center;
+  padding: 1rem;
 }
 
 .gq__question-text {
@@ -423,8 +424,14 @@
 
 /* ─── ANSWER REVEAL CARD ────────────────────────────────── */
 .gq__answer-reveal-card { background:rgba(34,197,94,.1); border-radius:.75rem; border:1px solid rgba(34,197,94,.25); padding:.875rem 1rem; animation: anim-stagger-in 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) }
+.gq__answer-reveal-card--with-elo { display:flex; align-items:center; justify-content:space-between; gap:.75rem }
+.gq__answer-reveal-main { flex:1; min-width:0 }
 .gq__answer-reveal-label { font-size:.65rem; font-weight:600; color:#22C55E; text-transform:uppercase; letter-spacing:.1em; margin-bottom:.25rem }
 .gq__answer-reveal-value { font-size:1rem; font-weight:600; color:var(--color-foreground) }
+.gq__answer-reveal-elo { display:flex; flex-direction:column; align-items:center; flex-shrink:0; padding:.5rem .75rem; border-radius:.5rem }
+.gq__answer-reveal-elo--negative { background:rgba(147,0,10,.2) }
+.gq__answer-reveal-elo-value { font-size:1.25rem; font-weight:700; color:#ffb4ab }
+.gq__answer-reveal-elo-label { font-size:.6rem; font-weight:600; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:.05em }
 
 /* ─── ELO DELTA + REVEAL FOOTER ─────────────────────────── */
 .gq__elo-delta { display:flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:.75rem; animation: anim-stagger-in 300ms var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1)) 100ms both }
@@ -477,15 +484,15 @@
 .gq__hol-icon { width: 1.5rem; height: 1.5rem; }
 
 .gq__logo-image {
-  width: 12rem;
-  height: 12rem;
+  width: 8rem;
+  height: 8rem;
   object-fit: contain;
 }
 
 @media (min-width: 768px) {
   .gq__logo-image {
-    width: 16rem;
-    height: 16rem;
+    width: 12rem;
+    height: 12rem;
   }
 }
 
@@ -506,6 +513,13 @@
   border-radius: var(--radius-md);
   margin-top: 0.25rem;
   backdrop-filter: blur(12px);
+}
+
+.gq__logo-dropdown--above {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
 }
 
 .gq__logo-dropdown-item {

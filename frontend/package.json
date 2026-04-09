@@ -33,6 +33,7 @@
     "@capacitor/core": "^7.6.0",
     "@capacitor/haptics": "^7.0.5",
     "@capacitor/ios": "^7.6.0",
+    "@capacitor/keyboard": "^7.0.6",
     "@ngrx/signals": "^20.1.0",
     "@southdevs/capacitor-google-auth": "^7.0.0",
     "@supabase/supabase-js": "^2.98.0",

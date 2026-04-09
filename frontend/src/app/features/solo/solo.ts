@@ -6,6 +6,7 @@ import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { GameQuestionComponent, QuestionData, RevealResult } from '../../shared/game-question/game-question';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { AuthModalService } from '../../core/auth-modal.service';
 import { DonateModalService } from '../../core/donate-modal.service';
 import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
@@ -32,6 +33,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
 export class SoloComponent implements OnDestroy {
   private api = inject(SoloApiService);
   private auth = inject(AuthService);
+  private authModal = inject(AuthModalService);
   private router = inject(Router);
   private donateModal = inject(DonateModalService);
   private achievementUnlock = inject(AchievementUnlockService);
@@ -56,15 +58,17 @@ export class SoloComponent implements OnDestroy {
         this.donateModal.considerShowing();
       }
     });
-    // Load profile to get rank (also updates ELO if profile already cached)
-    this.profileStore.loadProfile().then(() => {
-      const elo = this.profileStore.elo();
-      if (elo !== 1000 || this.profileStore.profile() !== null) {
-        this.currentElo.set(elo);
-        this.displayElo.set(elo);
-        this.startElo.set(elo);
-      }
-    });
+    // Load profile to get rank (only if logged in)
+    if (this.auth.isLoggedIn()) {
+      this.profileStore.loadProfile().then(() => {
+        const elo = this.profileStore.elo();
+        if (elo !== 1000 || this.profileStore.profile() !== null) {
+          this.currentElo.set(elo);
+          this.displayElo.set(elo);
+          this.startElo.set(elo);
+        }
+      });
+    }
   }
   loading = signal(false);
   submitting = signal(false);
@@ -135,6 +139,10 @@ export class SoloComponent implements OnDestroy {
   });
 
   async startSession(): Promise<void> {
+    if (!this.auth.isLoggedIn()) {
+      this.authModal.open();
+      return;
+    }
     this.adService.resetQuestionCounter();
     this.loading.set(true);
     this.error.set(null);

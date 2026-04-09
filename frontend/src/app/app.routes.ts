@@ -11,7 +11,7 @@ export const routes: Routes = [
       { path: 'invite', loadComponent: () => import('./features/invite/invite').then(m => m.InviteComponent) },
       { path: 'news', loadComponent: () => import('./features/news-mode/news-mode').then(m => m.NewsModeComponent) },
       { path: 'mayhem', loadComponent: () => import('./features/mayhem-mode/mayhem-mode').then(m => m.MayhemModeComponent) },
-      { path: 'solo', loadComponent: () => import('./features/solo/solo').then(m => m.SoloComponent), canActivate: [authGuard] },
+      { path: 'solo', loadComponent: () => import('./features/solo/solo').then(m => m.SoloComponent) },
       { path: 'blitz', loadComponent: () => import('./features/blitz/blitz').then(m => m.BlitzComponent) },
       { path: 'logo-quiz', loadComponent: () => import('./features/logo-quiz/logo-quiz').then(m => m.LogoQuizComponent) },
       { path: 'daily', loadComponent: () => import('./features/daily/daily').then(m => m.DailyComponent) },

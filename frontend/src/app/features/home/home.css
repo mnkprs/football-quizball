@@ -167,8 +167,6 @@ app-battle-hero {
 /* TIER 3: Pro Arena — gold glass treatment */
 .pro-arena-tier {
   background: linear-gradient(160deg, rgba(230, 168, 0, 0.08) 0%, rgba(230, 168, 0, 0.02) 40%, transparent 60%);
-  backdrop-filter: blur(var(--glass-blur-sm));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   border-radius: 1.25rem;
   padding: 0.75rem;
   border: 1px solid rgba(230, 168, 0, 0.1);
@@ -178,8 +176,6 @@ app-battle-hero {
 .free-tier {
   gap: 0.75rem;
   background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(var(--glass-blur-sm));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   border-radius: 1.25rem;
   padding: 0.75rem;
   border: 1px solid var(--glass-border);
@@ -290,8 +286,6 @@ app-battle-hero {
   gap: 0.125rem;
   padding: 0.5rem 0.75rem;
   background: var(--glass-bg-subtle);
-  backdrop-filter: blur(var(--glass-blur-md));
-  -webkit-backdrop-filter: blur(var(--glass-blur-md));
   border: 1px solid var(--glass-border-strong);
   border-radius: var(--radius-lg);
   cursor: pointer;

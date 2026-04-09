@@ -31,7 +31,6 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-border);
   background: var(--glass-bg-subtle);
-  backdrop-filter: blur(var(--glass-blur-sm));
   color: var(--mat-sys-on-surface);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -122,7 +121,6 @@
   flex-shrink: 0;
   min-width: 5.5rem;
   scroll-snap-align: start;
-  backdrop-filter: blur(var(--glass-blur-sm));
 }
 
 .your-rank-card--solo {
@@ -374,7 +372,6 @@
   font-size: 1.125rem;
   font-weight: 800;
   background: var(--glass-bg-default);
-  backdrop-filter: blur(var(--glass-blur-sm));
   border: 2px solid var(--glass-border);
   color: var(--color-fg);
   transition: transform 0.2s ease;
@@ -455,7 +452,6 @@
 .podium__pedestal {
   width: 100%;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
-  backdrop-filter: blur(var(--glass-blur-sm));
   border: 1px solid var(--glass-border);
   border-bottom: none;
   margin-top: 0.375rem;
@@ -522,7 +518,6 @@
   gap: 0.75rem;
   padding: 0.875rem;
   background: var(--glass-bg-subtle);
-  backdrop-filter: blur(var(--glass-blur-sm));
   border: 1px solid var(--glass-border);
   border-radius: 1rem;
   transition: all 0.2s ease;
@@ -705,7 +700,6 @@
   justify-content: center;
   padding: 3rem 1.5rem;
   background: var(--glass-bg-subtle);
-  backdrop-filter: blur(var(--glass-blur-sm));
   border: 1px solid var(--glass-border);
   border-radius: 1rem;
   text-align: center;

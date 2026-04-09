@@ -99,8 +99,6 @@
   padding: 0.1875rem 0.5rem;
   border-radius: var(--radius-full);
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(var(--glass-blur-sm));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
   border: 1px solid rgba(255, 255, 255, 0.06);
   font-family: 'Lexend', sans-serif;
   font-size: 0.5625rem;

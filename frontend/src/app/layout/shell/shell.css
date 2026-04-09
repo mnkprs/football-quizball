@@ -119,12 +119,6 @@
   border: 2px solid var(--color-surface-lowest);
   box-shadow: 0 0 24px rgba(230, 168, 0, 0.5), 0 0 48px rgba(230, 168, 0, 0.2);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: pro-badge-pulse 2.5s ease-in-out infinite;
-}
-
-@keyframes pro-badge-pulse {
-  0%, 100% { box-shadow: 0 0 24px rgba(230, 168, 0, 0.5), 0 0 48px rgba(230, 168, 0, 0.2); }
-  50% { box-shadow: 0 0 32px rgba(230, 168, 0, 0.65), 0 0 64px rgba(230, 168, 0, 0.3); }
 }
 
 .bottom-nav__coffee:hover .bottom-nav__coffee-badge {

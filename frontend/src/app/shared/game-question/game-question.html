@@ -206,11 +206,6 @@
 
 <!-- Logo Quiz -->
 <ng-template #logoTemplate>
-  @if (reveal() && revealResult()) {
-    <div class="gq__result-badge" [class.gq__result-badge--correct]="revealResult()!.correct" [class.gq__result-badge--wrong]="!revealResult()!.correct">
-      {{ revealResult()!.correct ? 'CORRECT' : 'WRONG' }}
-    </div>
-  }
   <div class="gq__question-card gq__question-card--logo">
     <p class="gq__question-subtext">{{ question()?.question_text }}</p>
     @if (reveal() && revealResult()?.original_image_url) {
@@ -221,6 +216,15 @@
   </div>
   <div class="gq__input-stack">
     <div class="gq__input-wrap gq__logo-select-wrap">
+      @if (logoDropdownOpen() && filteredTeams().length && !reveal()) {
+        <div class="gq__logo-dropdown gq__logo-dropdown--above">
+          @for (team of filteredTeams(); track team) {
+            <button class="gq__logo-dropdown-item" (click)="selectTeam(team)">
+              {{ team }}
+            </button>
+          }
+        </div>
+      }
       <input
         type="text"
         class="gq__input"
@@ -237,29 +241,28 @@
           {{ revealResult()!.correct ? '&#10003;' : '&#10007;' }}
         </span>
       }
-      @if (logoDropdownOpen() && filteredTeams().length && !reveal()) {
-        <div class="gq__logo-dropdown">
-          @for (team of filteredTeams(); track team) {
-            <button class="gq__logo-dropdown-item" (click)="selectTeam(team)">
-              {{ team }}
-            </button>
-          }
-        </div>
-      }
     </div>
-    @if (!reveal() && !logoDropdownOpen()) {
+    @if (!reveal()) {
       <button class="gq__submit-btn gq__submit-btn--full" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim() || submitting()">
         {{ lang.t().submit }}
       </button>
     }
   </div>
   @if (reveal() && revealResult() && !revealResult()!.correct) {
-    <div class="gq__answer-reveal-card">
-      <div class="gq__answer-reveal-label">Correct Answer</div>
-      <div class="gq__answer-reveal-value">{{ revealResult()!.correct_answer }}</div>
+    <div class="gq__answer-reveal-card gq__answer-reveal-card--with-elo">
+      <div class="gq__answer-reveal-main">
+        <div class="gq__answer-reveal-label">Correct Answer</div>
+        <div class="gq__answer-reveal-value">{{ revealResult()!.correct_answer }}</div>
+      </div>
+      @if (revealResult()!.elo_change !== undefined) {
+        <div class="gq__answer-reveal-elo gq__answer-reveal-elo--negative">
+          <span class="gq__answer-reveal-elo-value">{{ revealResult()!.elo_change }}</span>
+          <span class="gq__answer-reveal-elo-label">ELO</span>
+        </div>
+      }
     </div>
   }
-  <ng-container *ngTemplateOutlet="revealFooter"></ng-container>
+  <ng-container *ngTemplateOutlet="logoRevealFooter"></ng-container>
 </ng-template>
 
 <!-- Player ID (career path) -->
@@ -357,6 +360,22 @@
       </div>
     }
     <ng-container *ngTemplateOutlet="revealFooter"></ng-container>
+  }
+</ng-template>
+
+<!-- Reveal footer for logo quiz (ELO inlined in wrong answer card) -->
+<ng-template #logoRevealFooter>
+  @if (reveal() && revealResult()) {
+    @if (revealResult()!.explanation) {
+      <div class="gq__explanation">{{ revealResult()!.explanation }}</div>
+    }
+    @if (revealResult()!.correct && revealResult()!.elo_change !== undefined) {
+      <div class="gq__elo-delta gq__elo-delta--positive">
+        <span class="gq__elo-delta-value">+{{ revealResult()!.elo_change }}</span>
+        <span class="gq__elo-delta-label">ELO gained</span>
+      </div>
+    }
+    <button class="gq__next-btn" (click)="onNextClicked()">Next Question &rarr;</button>
   }
 </ng-template>
 

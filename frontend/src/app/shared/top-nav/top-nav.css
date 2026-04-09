@@ -18,7 +18,7 @@
   overflow: hidden;
 }
 
-/* Ambient light sweep across glass surface */
+/* Ambient light accent — static gradient, no animation (perf: avoids repaint on fixed element with backdrop-filter) */
 .top-nav::after {
   content: '';
   position: absolute;
@@ -31,16 +31,8 @@
     rgba(255, 255, 255, 0.03) 55%,
     transparent 60%
   );
-  background-size: 200% 100%;
-  animation: glass-sweep 12s ease-in-out infinite;
   pointer-events: none;
   z-index: 0;
-}
-
-@keyframes glass-sweep {
-  0%   { background-position: 200% center; }
-  50%  { background-position: -200% center; }
-  100% { background-position: 200% center; }
 }
 
 /* Left: Avatar */

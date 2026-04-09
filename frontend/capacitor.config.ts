@@ -11,6 +11,10 @@ const config: CapacitorConfig = {
     ],
   },
   plugins: {
+    Keyboard: {
+      resize: 'none',
+      style: 'dark',
+    },
     GoogleAuth: {
       scopes: ['profile', 'email'],
       serverClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
