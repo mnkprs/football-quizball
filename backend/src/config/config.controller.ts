@@ -15,6 +15,24 @@ const DEFAULT_AD_CONFIG: AdConfig = {
   firstSessionAdsDisabled: true,
 };
 
+interface VersionConfig {
+  minVersion: string;
+  latestVersion: string;
+  updateUrl: {
+    ios: string;
+    android: string;
+  };
+}
+
+const DEFAULT_VERSION_CONFIG: VersionConfig = {
+  minVersion: '0.0.0',
+  latestVersion: '0.0.0',
+  updateUrl: {
+    ios: 'https://apps.apple.com/app/stepovr/id_PLACEHOLDER',
+    android: 'https://play.google.com/store/apps/details?id=com.stepovr.app',
+  },
+};
+
 @Controller('api/config')
 export class ConfigController {
   constructor(private readonly supabase: SupabaseService) {}
@@ -27,6 +45,17 @@ export class ConfigController {
       return { ...DEFAULT_AD_CONFIG, ...JSON.parse(raw) };
     } catch {
       return DEFAULT_AD_CONFIG;
+    }
+  }
+
+  @Get('version')
+  async getVersionConfig(): Promise<VersionConfig> {
+    const raw = await this.supabase.getSetting('version_config');
+    if (!raw) return DEFAULT_VERSION_CONFIG;
+    try {
+      return { ...DEFAULT_VERSION_CONFIG, ...JSON.parse(raw) };
+    } catch {
+      return DEFAULT_VERSION_CONFIG;
     }
   }
 }
