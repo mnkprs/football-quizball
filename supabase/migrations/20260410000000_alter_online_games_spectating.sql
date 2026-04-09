@@ -13,3 +13,13 @@ ALTER TABLE online_games
   ADD COLUMN IF NOT EXISTS guest_ready          BOOLEAN NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS turn_state           JSONB,
   ADD COLUMN IF NOT EXISTS turn_started_at      TIMESTAMPTZ;
+
+-- SECURITY: The questions column contains correct_answer for all 35 questions.
+-- Players must NOT be able to SELECT it directly via the Supabase client or Realtime.
+-- The backend uses service_role which bypasses these grants entirely.
+REVOKE SELECT ON online_games FROM authenticated, anon;
+GRANT SELECT (id, invite_code, host_id, guest_id, status, board_state, current_player_id,
+  player_scores, player_meta, last_result, top5_progress, pool_question_ids, language,
+  turn_deadline, created_at, updated_at, players, current_player_index, board,
+  host_ready, guest_ready, turn_state, turn_started_at)
+ON online_games TO authenticated;
