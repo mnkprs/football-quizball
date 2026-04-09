@@ -1,8 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { type AdConfig, AdService } from './ad.service';
+
+export interface VersionConfig {
+  minVersion: string;
+  latestVersion: string;
+  updateUrl: {
+    ios: string;
+    android: string;
+  };
+}
 
 @Injectable({ providedIn: 'root' })
 export class ConfigApiService {
@@ -19,5 +28,9 @@ export class ConfigApiService {
     } catch {
       // Use defaults — non-fatal
     }
+  }
+
+  getVersionConfig(): Observable<VersionConfig> {
+    return this.http.get<VersionConfig>(`${this.base}/version`);
   }
 }
