@@ -1,9 +1,14 @@
 <div class="leaderboard-page page-stagger">
   <header class="leaderboard-header">
     <h1 class="leaderboard-title">{{ lang.t().lbTitle }}</h1>
-    <button class="leaderboard-refresh-btn" (click)="load()" [disabled]="loading()">
-      <mat-icon>refresh</mat-icon>
-    </button>
+    <div class="leaderboard-header-actions">
+      <button class="leaderboard-info-btn" (click)="openLegend()" aria-label="View ranking tiers">
+        <mat-icon>info_outline</mat-icon>
+      </button>
+      <button class="leaderboard-refresh-btn" (click)="load()" [disabled]="loading()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
   </header>
 
   @if (error()) {
@@ -824,5 +829,48 @@
       </section>
     }
 
+  }
+
+  <!-- ELO Legend Overlay -->
+  @if (showLegend()) {
+    <div class="legend-backdrop" (click)="closeLegend()" role="dialog" aria-modal="true" aria-label="Ranking Tiers">
+      <div class="legend-card" (click)="$event.stopPropagation()">
+        <!-- Close button -->
+        <button class="legend-close" (click)="closeLegend()" aria-label="Close">
+          <mat-icon>close</mat-icon>
+        </button>
+
+        <!-- Header -->
+        <div class="legend-header">
+          <span class="legend-trophy">🏆</span>
+          <h2 class="legend-title">Ranking Tiers</h2>
+          <p class="legend-subtitle">Climb the ladder by answering correctly</p>
+        </div>
+
+        <!-- Tier list -->
+        <div class="legend-tiers">
+          @for (tier of legendTiers; track tier.label; let i = $index) {
+            <div
+              class="legend-tier-row"
+              [style.--tier-color]="tier.color"
+              [style.--tier-gradient-from]="tier.gradientFrom"
+              [style.animation-delay]="(i * 50) + 'ms'"
+            >
+              <div class="legend-tier-icon">
+                {{ tier.icon }}
+              </div>
+              <span class="legend-tier-name">{{ tier.label }}</span>
+              <span class="legend-tier-range">{{ tier.range }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="legend-footer">
+          <p class="legend-note">All players start at <span class="legend-note-highlight">Silver (1000 ELO)</span></p>
+          <button class="legend-cta" (click)="closeLegend()">Got it</button>
+        </div>
+      </div>
+    </div>
   }
 </div>

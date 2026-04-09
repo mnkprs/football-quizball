@@ -13,6 +13,7 @@ import { OnlineGameService } from './online-game.service';
 import {
   CreateOnlineGameDto,
   JoinByCodeDto,
+  SelectQuestionDto,
   OnlineSubmitAnswerDto,
   OnlineUseLifelineDto,
   OnlineTop5GuessDto,
@@ -69,6 +70,31 @@ export class OnlineGameController {
   @Get(':id')
   getGame(@Request() req: { user: { id: string } }, @Param('id') id: string) {
     return this.service.getGame(req.user.id, id);
+  }
+
+  /** POST /api/online-games/:id/ready — Mark player as ready */
+  @UseGuards(AuthGuard)
+  @Post(':id/ready')
+  markReady(@Request() req: { user: { id: string } }, @Param('id') id: string) {
+    return this.service.markReady(req.user.id, id);
+  }
+
+  /** POST /api/online-games/:id/select — Select a question from the board */
+  @UseGuards(AuthGuard)
+  @Post(':id/select')
+  selectQuestion(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+    @Body() dto: SelectQuestionDto,
+  ) {
+    return this.service.selectQuestion(req.user.id, id, dto);
+  }
+
+  /** POST /api/online-games/:id/continue — Both players confirm result, return to board */
+  @UseGuards(AuthGuard)
+  @Post(':id/continue')
+  continueToBoard(@Request() req: { user: { id: string } }, @Param('id') id: string) {
+    return this.service.continueToBoard(req.user.id, id);
   }
 
   /** GET /api/online-games/:id/questions/:qid — Get a question (only when it's your turn) */

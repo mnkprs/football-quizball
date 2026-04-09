@@ -1,24 +1,14 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OnlineGameStore } from './online-game.store';
-import { GAME_STORE_TOKEN } from '../../core/game-store.token';
-import { BoardComponent } from '../board/board';
-import { QuestionComponent } from '../question/question';
-import { ResultComponent } from '../question/result';
-import { ResultsComponent } from '../results/results';
-
-/** Seconds after which a bot is guaranteed to be matched. */
-const BOT_MATCH_THRESHOLD = 30;
 
 @Component({
   selector: 'app-online-play',
   standalone: true,
-  imports: [CommonModule, BoardComponent, QuestionComponent, ResultComponent, ResultsComponent],
-  providers: [
-    OnlineGameStore,
-    { provide: GAME_STORE_TOKEN, useExisting: OnlineGameStore },
-  ],
+  imports: [CommonModule, FormsModule],
+  providers: [OnlineGameStore],
   templateUrl: './online-play.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,85 +18,138 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   copied = signal(false);
-  queueSeconds = signal(0);
-  queueBotPhase = computed(() => this.queueSeconds() >= BOT_MATCH_THRESHOLD);
+  answer = signal('');
+  top5Answer = signal('');
+  wrongFeedback = signal(false);
 
-  private queueTimer: ReturnType<typeof setInterval> | null = null;
+  /** Whether current user is ready (derives from host/guest role + view flags) */
+  imReady = computed(() => {
+    const view = this.store.gameView();
+    if (!view) return false;
+    return view.myRole === 'host' ? view.hostReady : view.guestReady;
+  });
+
+  /** Whether opponent is ready */
+  opponentReady = computed(() => {
+    const view = this.store.gameView();
+    if (!view) return false;
+    return view.myRole === 'host' ? view.guestReady : view.hostReady;
+  });
 
   ngOnInit(): void {
     const gameId = this.route.snapshot.params['id'] as string;
     this.store.loadGame(gameId).then(() => {
       this.store.subscribeRealtime(gameId);
-      if (this.store.phase() === 'queued') this.startQueueTimer();
     });
   }
 
   ngOnDestroy(): void {
     this.store.unsubscribeRealtime();
-    this.stopQueueTimer();
-  }
-
-  private startQueueTimer(): void {
-    this.queueSeconds.set(0);
-    this.queueTimer = setInterval(() => {
-      this.queueSeconds.update((s) => s + 1);
-    }, 1_000);
-  }
-
-  private stopQueueTimer(): void {
-    if (this.queueTimer) {
-      clearInterval(this.queueTimer);
-      this.queueTimer = null;
-    }
   }
 
   goBack(): void {
     this.router.navigate(['/online-game']);
   }
 
-  async leaveQueue(): Promise<void> {
-    this.stopQueueTimer();
-    await this.store.leaveQueue();
-    this.router.navigate(['/online-game']);
+  async markReady(): Promise<void> {
+    await this.store.markReady();
   }
 
-  shareUrl(): string | null {
-    const code = this.store.gameView()?.inviteCode;
-    if (!code) return null;
-    return `${window.location.origin}/join/${code}`;
+  async selectQuestion(questionId: string): Promise<void> {
+    this.answer.set('');
+    this.top5Answer.set('');
+    await this.store.selectQuestion(questionId);
+  }
+
+  async submitAnswer(): Promise<void> {
+    const ts = this.store.turnState();
+    if (!ts) return;
+    const text = this.answer().trim();
+    if (!text || this.store.submitting()) return;
+    await this.store.submitAnswer(ts.questionId, text);
+    if (this.store.phase() === 'question') {
+      this.wrongFeedback.set(true);
+      this.answer.set('');
+      setTimeout(() => this.wrongFeedback.set(false), 1200);
+    } else {
+      this.answer.set('');
+      this.wrongFeedback.set(false);
+    }
+  }
+
+  async submitHol(choice: 'higher' | 'lower'): Promise<void> {
+    const ts = this.store.turnState();
+    if (!ts) return;
+    await this.store.submitAnswer(ts.questionId, choice);
+  }
+
+  async submitFiftyFifty(option: string): Promise<void> {
+    const ts = this.store.turnState();
+    if (!ts) return;
+    await this.store.submitAnswer(ts.questionId, option);
+  }
+
+  async useLifeline(): Promise<void> {
+    const ts = this.store.turnState();
+    if (!ts) return;
+    await this.store.useLifeline(ts.questionId);
+  }
+
+  async submitTop5Guess(): Promise<void> {
+    const ts = this.store.turnState();
+    if (!ts) return;
+    const text = this.top5Answer().trim();
+    if (!text || this.store.submitting()) return;
+    await this.store.submitTop5Guess(ts.questionId, text);
+    this.top5Answer.set('');
+  }
+
+  async stopTop5Early(): Promise<void> {
+    const ts = this.store.turnState();
+    if (!ts) return;
+    await this.store.stopTop5Early(ts.questionId);
+  }
+
+  armDouble(): void {
+    this.store.armDouble();
+  }
+
+  async continueToBoard(): Promise<void> {
+    await this.store.continueToBoard();
   }
 
   async copyCode(): Promise<void> {
-    const code = this.store.gameView()?.inviteCode;
+    const code = this.store.inviteCode();
     if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    } catch {
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    }
+    try { await navigator.clipboard.writeText(code); } catch { /* noop */ }
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 2000);
   }
 
   async shareLink(): Promise<void> {
-    const url = this.shareUrl();
-    if (!url) return;
+    const code = this.store.inviteCode();
+    if (!code) return;
+    const url = `${window.location.origin}/join/${code}`;
     if (navigator.share) {
-      await navigator.share({ title: 'STEPOVR. 1v1', text: 'Join my STEPOVR. game!', url });
+      await navigator.share({ title: 'STEPOVR. 1v1', text: 'Join my game!', url });
     } else {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(url).catch(() => null);
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     }
   }
 
-  formatDeadline(iso: string): string {
-    const ms = new Date(iso).getTime() - Date.now();
-    if (ms <= 0) return 'Expired';
-    const h = Math.floor(ms / 3600000);
-    const m = Math.floor((ms % 3600000) / 60000);
-    if (h > 0) return `${h}h ${m}m left`;
-    return `${m}m left`;
+  categoryIcon(key: string | undefined): string {
+    if (!key) return '❓';
+    const icons: Record<string, string> = {
+      HISTORY: '📜', PLAYER_ID: '🕵️', HIGHER_OR_LOWER: '📊',
+      GUESS_SCORE: '⚽', TOP_5: '🏆', GEOGRAPHY: '🌍', LOGO_QUIZ: '🛡️',
+    };
+    return icons[key] ?? '❓';
+  }
+
+  async abandon(): Promise<void> {
+    await this.store.abandonGame();
+    this.router.navigate(['/online-game']);
   }
 }
