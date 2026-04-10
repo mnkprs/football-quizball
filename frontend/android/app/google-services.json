@@ -1,26 +1,60 @@
 {
   "project_info": {
-    "project_number": "783276814218",
-    "project_id": "stepovr-cb448",
-    "storage_bucket": "stepovr-cb448.firebasestorage.app"
+    "project_number": "215249721443",
+    "project_id": "gen-lang-client-0272230126",
+    "storage_bucket": "gen-lang-client-0272230126.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:783276814218:android:85a38ff2de8cc21085e273",
+        "mobilesdk_app_id": "1:215249721443:android:447362f73c2850ff788056",
         "android_client_info": {
           "package_name": "com.stepovr.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "215249721443-7l36q5v44surumt428jotlcn2hdli4h1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stepovr.app",
+            "certificate_hash": "19f15bad6cbad04b300c06d8fb2acf07c2f2a215"
+          }
+        },
+        {
+          "client_id": "215249721443-bq4a6uo10kfa5l0a37ofj4h467jb7d76.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stepovr.app",
+            "certificate_hash": "9b9cf38ce26dd5f6547c2f9f1d825525cc1f43b3"
+          }
+        },
+        {
+          "client_id": "215249721443-duk6fup6jh8uepupv673sk2ooi9dqr5a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stepovr.app",
+            "certificate_hash": "027d50e2d27754aea51199253fa5ba38b03e01e4"
+          }
+        },
+        {
+          "client_id": "215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDl0EZ56_6Ya1Qdnyh6dzJptaqoU7rccqY"
+          "current_key": "AIzaSyDVRkGx2vQZAYfPONtM_K9V_uahtWBgcUY"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -4,4 +4,5 @@
     <string name="title_activity_main">StepOvr</string>
     <string name="package_name">com.stepovr.app</string>
     <string name="custom_url_scheme">com.stepovr.app</string>
+    <string name="server_client_id">215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com</string>
 </resources>
