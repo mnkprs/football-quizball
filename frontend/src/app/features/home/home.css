@@ -101,13 +101,11 @@
     max-width: 56rem;
   }
 
-  /* Pro Arena → 3-column grid at large tablet */
+  /* Pro Arena → 2×2 grid at large tablet */
   .section-modes.pro-arena-tier {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .section-modes.pro-arena-tier > :last-child:nth-child(odd) {
-    grid-column: auto;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
 
   .pro-arena-tier,
@@ -163,6 +161,8 @@ app-battle-hero {
 .pro-arena-tier > app-mode-card:nth-child(1) { animation-delay: 200ms; }
 .pro-arena-tier > app-mode-card:nth-child(2) { animation-delay: 280ms; }
 .pro-arena-tier > app-mode-card:nth-child(3) { animation-delay: 360ms; }
+.pro-arena-tier > app-mode-card:nth-child(4) { animation-delay: 440ms; }
+
 
 /* TIER 3: Pro Arena — gold glass treatment with breathing glow */
 .pro-arena-tier {

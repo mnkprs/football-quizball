@@ -14,6 +14,7 @@ export const TAG_COLORS: Record<string, string> = {
   'free': 'mint',
   'live': 'coral',
   '8 players': 'teal',
+  'coming soon': 'amber',
 };
 
 /** Global tag-to-icon map — Material Icons name for each tag. */
@@ -32,6 +33,7 @@ export const TAG_ICONS: Record<string, string> = {
   'free': 'lock_open',
   'live': 'sensors',
   '8 players': 'group',
+  'coming soon': 'schedule',
 };
 
 export function getTagColor(tag: string): string {

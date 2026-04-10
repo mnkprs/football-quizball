@@ -93,6 +93,17 @@
         [locked]="!auth.isLoggedIn()"
         (cardClick)="goSolo()"
       />
+      <app-mode-card
+        icon="bolt"
+        iconBgColor="orange"
+        title="Blitz"
+        hint="Answer as many as you can before time runs out"
+        [tags]="['coming soon']"
+        backgroundImage="/blitz-mode.png"
+        variant="accent"
+        size="medium"
+        [locked]="true"
+      />
     </div>
   </div>
 </div>
