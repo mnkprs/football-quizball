@@ -164,12 +164,18 @@ app-battle-hero {
 .pro-arena-tier > app-mode-card:nth-child(2) { animation-delay: 280ms; }
 .pro-arena-tier > app-mode-card:nth-child(3) { animation-delay: 360ms; }
 
-/* TIER 3: Pro Arena — gold glass treatment */
+/* TIER 3: Pro Arena — gold glass treatment with breathing glow */
 .pro-arena-tier {
   background: linear-gradient(160deg, rgba(230, 168, 0, 0.08) 0%, rgba(230, 168, 0, 0.02) 40%, transparent 60%);
   border-radius: 1.25rem;
   padding: 0.75rem;
   border: 1px solid rgba(230, 168, 0, 0.1);
+  animation: pro-arena-breathe 4s ease-in-out infinite;
+}
+
+@keyframes pro-arena-breathe {
+  0%, 100% { border-color: rgba(230, 168, 0, 0.1); box-shadow: 0 0 0 rgba(230, 168, 0, 0); }
+  50% { border-color: rgba(230, 168, 0, 0.2); box-shadow: 0 0 24px rgba(230, 168, 0, 0.06); }
 }
 
 /* TIER 4: Free modes */
@@ -198,11 +204,13 @@ app-battle-hero {
   background: var(--color-surface, #131313);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
   cursor: pointer;
-  transition: transform var(--anim-feedback) var(--ease-out-quart);
+  transition: transform var(--anim-feedback) var(--ease-out-quart),
+              box-shadow var(--anim-feedback) var(--ease-out-quart);
 }
 
 .two-player-card:active {
   transform: scale(0.97);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .two-player-card__bg-image {
@@ -243,6 +251,32 @@ app-battle-hero {
   color: var(--color-accent);
   background: rgba(0, 122, 255, 0.1);
   margin-bottom: 0.375rem;
+  overflow: hidden;
+}
+
+/* Shimmer sweep on badge */
+.two-player-card__badge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(0, 122, 255, 0.15) 48%,
+    rgba(0, 122, 255, 0.25) 50%,
+    rgba(0, 122, 255, 0.15) 52%,
+    transparent 70%
+  );
+  animation: badge-shimmer 3s ease-in-out 1s infinite;
+}
+
+@keyframes badge-shimmer {
+  0%, 100% { transform: translateX(-120%); }
+  40% { transform: translateX(120%); }
+  41%, 99% { transform: translateX(120%); }
 }
 
 .two-player-card__title {
@@ -289,7 +323,7 @@ app-battle-hero {
   border: 1px solid var(--glass-border-strong);
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   color: #ffffff;
 }
 
@@ -299,7 +333,8 @@ app-battle-hero {
 
 .two-player-card__btn:active {
   background: rgba(255, 255, 255, 0.18);
-  transform: scale(0.97);
+  transform: scale(0.95);
+  box-shadow: 0 0 16px rgba(0, 122, 255, 0.25), inset 0 0 8px rgba(0, 122, 255, 0.08);
 }
 
 .two-player-card__btn:focus-visible {
@@ -333,6 +368,8 @@ app-battle-hero {
   .home-page::before { animation: none; }
   .home-content > * { animation: none; opacity: 1; }
   .pro-arena-tier > app-mode-card { animation: none; opacity: 1; }
+  .pro-arena-tier { animation: none; }
   .two-player-card { transition: none; }
   .two-player-card__bg-image { transition: none; }
+  .two-player-card__badge::after { animation: none; }
 }
