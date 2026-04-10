@@ -185,59 +185,7 @@
           </div>
         </div>
 
-        <!-- Mayhem -->
-        <div class="mode-card mode-card--mayhem">
-          <div class="mode-card__head">
-            <span class="material-icons mode-card__icon">local_fire_department</span>
-            <span class="mode-card__name">Mayhem</span>
-          </div>
-          @if (mayhemStats()) {
-            <div class="mode-card__rows">
-              <div class="mode-card__row">
-                <span class="mode-card__val">{{ mayhemStats()!.best_session_score }}</span>
-                <span class="mode-card__key">Best</span>
-              </div>
-              <div class="mode-card__row">
-                <span class="mode-card__val">{{ mayhemAccuracy() }}%</span>
-                <span class="mode-card__key">Acc</span>
-              </div>
-              <div class="mode-card__row">
-                <span class="mode-card__val">{{ mayhemStats()!.games_played }}</span>
-                <span class="mode-card__key">Games</span>
-              </div>
-            </div>
-          } @else {
-            <p class="mode-card__empty">No games yet</p>
-          }
-        </div>
-
-        <!-- Blitz -->
-        <div class="mode-card mode-card--blitz">
-          <div class="mode-card__head">
-            <span class="material-icons mode-card__icon">bolt</span>
-            <span class="mode-card__name">Blitz</span>
-          </div>
-          @if (blitzStats()?.bestScore) {
-            <div class="mode-card__rows">
-              <div class="mode-card__row">
-                <span class="mode-card__val">{{ blitzStats()!.bestScore }}</span>
-                <span class="mode-card__key">Best</span>
-              </div>
-              <div class="mode-card__row">
-                <span class="mode-card__val">{{ blitzStats()!.totalGames }}</span>
-                <span class="mode-card__key">Games</span>
-              </div>
-              @if (blitzStats()!.rank) {
-                <div class="mode-card__row">
-                  <span class="mode-card__val">#{{ blitzStats()!.rank }}</span>
-                  <span class="mode-card__key">Rank</span>
-                </div>
-              }
-            </div>
-          } @else {
-            <p class="mode-card__empty">No games yet</p>
-          }
-        </div>
+        <!-- Mayhem + Blitz: hidden until modes launch -->
 
       </div>
     </section>

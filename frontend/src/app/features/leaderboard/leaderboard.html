@@ -20,7 +20,7 @@
 
   @if (!loading() || entries().length > 0) {
     <!-- Your Ranks — horizontal strip -->
-    @if (auth.isLoggedIn() && (soloMeEntry() || blitzMeEntry() || logoQuizMeEntry() || logoQuizHardcoreMeEntry() || duelMeEntry())) {
+    @if (auth.isLoggedIn() && (soloMeEntry() || logoQuizMeEntry() || logoQuizHardcoreMeEntry() || duelMeEntry())) {
       <section class="your-ranks-section">
         <div class="your-ranks-header">
           <span class="your-ranks-label">Your Rankings</span>
@@ -41,21 +41,7 @@
               </div>
             </a>
           }
-          @if (blitzMeEntry(); as me) {
-            <a [routerLink]="['/profile', me.user_id]" class="your-rank-card your-rank-card--blitz">
-              <div class="your-rank-icon">
-                <mat-icon>bolt</mat-icon>
-              </div>
-              <div class="your-rank-info">
-                <span class="your-rank-mode">Blitz</span>
-                <span class="your-rank-value">#{{ me.rank }}</span>
-              </div>
-              <div class="your-rank-score">
-                <span class="your-rank-score-value">{{ me.score }}</span>
-                <span class="your-rank-score-label">Best</span>
-              </div>
-            </a>
-          }
+          <!-- Blitz rank card hidden until mode launches -->
           @if (logoQuizMeEntry(); as me) {
             <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--logo-quiz">
               <div class="your-rank-icon">
@@ -113,13 +99,6 @@
         (click)="setActiveTab('solo')">
         <mat-icon>military_tech</mat-icon>
         <span>Solo</span>
-      </button>
-      <button
-        class="mode-tab"
-        [class.mode-tab--active]="activeTab() === 'blitz'"
-        (click)="setActiveTab('blitz')">
-        <mat-icon>bolt</mat-icon>
-        <span>Blitz</span>
       </button>
       <button
         class="mode-tab"
@@ -276,139 +255,7 @@
       </section>
     }
 
-    <!-- ============================================
-         Blitz Tab
-         ============================================ -->
-    @if (activeTab() === 'blitz') {
-      <section class="leaderboard-section">
-        @if (blitzEntries().length > 0) {
-          @if (blitzEntries().length >= 3) {
-            <div class="podium">
-              <a [routerLink]="['/profile', blitzEntries()[1].user_id]" class="podium__spot podium__spot--silver">
-                <div class="podium__medal podium__medal--silver">2</div>
-                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(blitzEntries()[1].user_id)">
-                  {{ blitzEntries()[1].username.charAt(0).toUpperCase() }}
-                </div>
-                <div class="podium__name">
-                  {{ blitzEntries()[1].username }}
-                  @if (isCurrentUser(blitzEntries()[1].user_id)) { <span class="podium__you-badge">YOU</span> }
-                </div>
-                <div class="podium__score">{{ blitzEntries()[1].score }}</div>
-                <div class="podium__score-label">Best</div>
-                <div class="podium__pedestal podium__pedestal--silver"></div>
-              </a>
-              <a [routerLink]="['/profile', blitzEntries()[0].user_id]" class="podium__spot podium__spot--gold">
-                <div class="podium__crown"><mat-icon>emoji_events</mat-icon></div>
-                <div class="podium__medal podium__medal--gold">1</div>
-                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(blitzEntries()[0].user_id)">
-                  {{ blitzEntries()[0].username.charAt(0).toUpperCase() }}
-                </div>
-                <div class="podium__name">
-                  {{ blitzEntries()[0].username }}
-                  @if (isCurrentUser(blitzEntries()[0].user_id)) { <span class="podium__you-badge">YOU</span> }
-                </div>
-                <div class="podium__score">{{ blitzEntries()[0].score }}</div>
-                <div class="podium__score-label">Best</div>
-                <div class="podium__pedestal podium__pedestal--gold"></div>
-              </a>
-              <a [routerLink]="['/profile', blitzEntries()[2].user_id]" class="podium__spot podium__spot--bronze">
-                <div class="podium__medal podium__medal--bronze">3</div>
-                <div class="podium__avatar" [class.podium__avatar--you]="isCurrentUser(blitzEntries()[2].user_id)">
-                  {{ blitzEntries()[2].username.charAt(0).toUpperCase() }}
-                </div>
-                <div class="podium__name">
-                  {{ blitzEntries()[2].username }}
-                  @if (isCurrentUser(blitzEntries()[2].user_id)) { <span class="podium__you-badge">YOU</span> }
-                </div>
-                <div class="podium__score">{{ blitzEntries()[2].score }}</div>
-                <div class="podium__score-label">Best</div>
-                <div class="podium__pedestal podium__pedestal--bronze"></div>
-              </a>
-            </div>
-          }
-
-          <div class="leaderboard-list">
-            @for (entry of blitzEntries(); track entry.user_id; let i = $index) {
-              @if (blitzEntries().length < 3 || i >= 3) {
-                <a [routerLink]="['/profile', entry.user_id]" class="leaderboard-card-link">
-                  <div class="leaderboard-card" [class.leaderboard-card--you]="isCurrentUser(entry.user_id)">
-                    <div class="leaderboard-rank">
-                      @if (blitzEntries().length < 3) {
-                        @if (i === 0) {
-                          <div class="rank-medal rank-medal--gold">1</div>
-                        } @else if (i === 1) {
-                          <div class="rank-medal rank-medal--silver">2</div>
-                        } @else if (i === 2) {
-                          <div class="rank-medal rank-medal--bronze">3</div>
-                        } @else {
-                          <span class="rank-number">{{ i + 1 }}</span>
-                        }
-                      } @else {
-                        <span class="rank-number">{{ i + 1 }}</span>
-                      }
-                    </div>
-                    <div class="leaderboard-avatar">
-                      {{ entry.username.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="leaderboard-info">
-                      <div class="leaderboard-name">
-                        {{ entry.username }}
-                        @if (isCurrentUser(entry.user_id)) {
-                          <span class="leaderboard-you-badge">YOU</span>
-                        }
-                      </div>
-                      <div class="leaderboard-meta">
-                        {{ entry.total_answered }} answered
-                      </div>
-                    </div>
-                    <div class="leaderboard-score">
-                      <span class="leaderboard-score-value">{{ entry.score }}</span>
-                      <span class="leaderboard-score-label">Best</span>
-                    </div>
-                  </div>
-                </a>
-              }
-            }
-          </div>
-
-          @if (showBlitzMeBelow()) {
-            <div class="leaderboard-separator">
-              <span class="leaderboard-separator-line"></span>
-              <span class="leaderboard-separator-text">{{ lang.t().lbYourRank }}</span>
-              <span class="leaderboard-separator-line"></span>
-            </div>
-            <a [routerLink]="['/profile', blitzMeEntry()!.user_id]" class="leaderboard-card-link">
-              <div class="leaderboard-card leaderboard-card--you leaderboard-card--highlighted">
-                <div class="leaderboard-rank">
-                  <span class="rank-number rank-number--you">#{{ blitzMeEntry()!.rank }}</span>
-                </div>
-                <div class="leaderboard-avatar leaderboard-avatar--you">
-                  {{ blitzMeEntry()!.username.charAt(0).toUpperCase() }}
-                </div>
-                <div class="leaderboard-info">
-                  <div class="leaderboard-name">
-                    {{ blitzMeEntry()!.username }}
-                    <span class="leaderboard-you-badge">YOU</span>
-                  </div>
-                  <div class="leaderboard-meta">
-                    {{ blitzMeEntry()!.total_answered }} answered
-                  </div>
-                </div>
-                <div class="leaderboard-score">
-                  <span class="leaderboard-score-value">{{ blitzMeEntry()!.score }}</span>
-                  <span class="leaderboard-score-label">Best</span>
-                </div>
-              </div>
-            </a>
-          }
-        } @else {
-          <div class="leaderboard-empty">
-            <mat-icon>bolt</mat-icon>
-            <p>{{ lang.t().lbNoBlitz }}</p>
-          </div>
-        }
-      </section>
-    }
+    <!-- Blitz Tab: hidden until mode launches -->
 
     <!-- ============================================
          Logo Quiz Tab

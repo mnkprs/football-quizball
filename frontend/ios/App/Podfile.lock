@@ -16,7 +16,14 @@ PODS:
   - CapacitorCommunityAppleSignIn (7.1.0):
     - Capacitor
   - CapacitorCordova (7.6.0)
+  - CapacitorFirebaseAnalytics (8.2.0):
+    - Capacitor
+    - CapacitorFirebaseAnalytics/Lite (= 8.2.0)
+  - CapacitorFirebaseAnalytics/Lite (8.2.0):
+    - Capacitor
   - CapacitorHaptics (7.0.5):
+    - Capacitor
+  - CapacitorKeyboard (7.0.6):
     - Capacitor
   - CordovaPlugins (7.6.0):
     - CapacitorCordova
@@ -41,7 +48,9 @@ DEPENDENCIES:
   - "CapacitorCommunityAdmob (from `../../node_modules/@capacitor-community/admob`)"
   - "CapacitorCommunityAppleSignIn (from `../../node_modules/@capacitor-community/apple-sign-in`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorFirebaseAnalytics (from `../../node_modules/@capacitor-firebase/analytics`)"
   - "CapacitorHaptics (from `../../node_modules/@capacitor/haptics`)"
+  - "CapacitorKeyboard (from `../../node_modules/@capacitor/keyboard`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
   - "SouthdevsCapacitorGoogleAuth (from `../../node_modules/@southdevs/capacitor-google-auth`)"
 
@@ -65,8 +74,12 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor-community/apple-sign-in"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorFirebaseAnalytics:
+    :path: "../../node_modules/@capacitor-firebase/analytics"
   CapacitorHaptics:
     :path: "../../node_modules/@capacitor/haptics"
+  CapacitorKeyboard:
+    :path: "../../node_modules/@capacitor/keyboard"
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
   SouthdevsCapacitorGoogleAuth:
@@ -79,7 +92,9 @@ SPEC CHECKSUMS:
   CapacitorCommunityAdmob: 04498ca8d01a097aa7d9d80584094b6b3419ec3f
   CapacitorCommunityAppleSignIn: 271cb2860576fd2961508bbfa7a82117d93eadca
   CapacitorCordova: f163aa2e84b79efc54d6a75b305bc7e05fb80c5d
+  CapacitorFirebaseAnalytics: bbae7a1f78d18e5571ea2bfdafc3511d075f5ab3
   CapacitorHaptics: 1b145fa83c622e5383a3bac04ea81e2514f0b0f5
+  CapacitorKeyboard: a2e0869edd229490ce36aed2549c0d6b95e27ee8
   CordovaPlugins: 9be81b58954c2db51ca5ca3aa0869442f2c353a8
   Google-Mobile-Ads-SDK: 4dde70a8c18d96b14f9548759b8cec6ecb0bc3e6
   GoogleSignIn: 5651ce3a61e56ca864160e79b484cd9ed3f49b7a
@@ -88,6 +103,6 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 3a63d75eecd6aa32c2fc79f578064e1214dfdec2
   SouthdevsCapacitorGoogleAuth: 6488c21faed47c2cf72404bfbfc0fe0e9af766bc
 
-PODFILE CHECKSUM: 6a043ba04f4d4ba0257858e0f0fd1134c5c82989
+PODFILE CHECKSUM: 239ce9aed7ee7a824e0269d81e4cafd151d71da9
 
 COCOAPODS: 1.16.2

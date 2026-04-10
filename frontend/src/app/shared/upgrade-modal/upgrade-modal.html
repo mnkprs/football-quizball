@@ -25,7 +25,9 @@
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="url(#icon-gradient)" stroke="url(#icon-gradient)" stroke-width="1" stroke-linejoin="round"/>
             <defs>
               <linearGradient id="icon-gradient" x1="2" y1="2" x2="22" y2="21">
-                <stop offset="0%" stop-color="#60a5fa"/>
+                <stop offset="0%" stop-color="#fbbf24"/>
+                <stop offset="40%" stop-color="#f59e0b"/>
+                <stop offset="70%" stop-color="#60a5fa"/>
                 <stop offset="100%" stop-color="#a78bfa"/>
               </linearGradient>
             </defs>
@@ -73,7 +75,7 @@
 
         <!-- Feature list -->
         <ul class="feature-list">
-          <li class="feature-item"><span class="check-icon">&#10003;</span> 1000+ Premium Logos</li>
+          <li class="feature-item feature-item--gold"><span class="check-icon check-icon--gold">&#10003;</span> 1000+ Premium Logos</li>
           <li class="feature-item"><span class="check-icon">&#10003;</span> Unlimited Duels</li>
           <li class="feature-item"><span class="check-icon">&#10003;</span> Battle Royale</li>
           <li class="feature-item"><span class="check-icon">&#10003;</span> All future modes</li>
@@ -82,11 +84,11 @@
 
         <!-- Error message -->
         @if (state() === 'error' && errorMessage()) {
-          <p class="error-message">{{ errorMessage() }}</p>
+          <p class="error-message" role="alert">{{ errorMessage() }}</p>
         }
         <!-- Restore "no purchases" message (shown in idle state) -->
         @if (state() === 'idle' && errorMessage()) {
-          <p class="info-message">{{ errorMessage() }}</p>
+          <p class="info-message" role="status">{{ errorMessage() }}</p>
         }
 
         <!-- CTA -->
@@ -104,6 +106,10 @@
 
         <!-- Restore -->
         <button class="btn-restore" (click)="restore()" [disabled]="state() === 'purchasing'">
+          <svg class="restore-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M1 4v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           Restore Purchase
         </button>
 
