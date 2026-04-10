@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ProService } from '../../core/pro.service';
 import { IapService, IAPProduct } from '../../core/iap.service';
 import { AnalyticsService } from '../../core/analytics.service';
+import { AuthService } from '../../core/auth.service';
 
 @Component({
   selector: 'app-upgrade-modal',
@@ -16,6 +17,7 @@ export class UpgradeModalComponent implements OnInit {
   iap = inject(IapService);
   private router = inject(Router);
   private analytics = inject(AnalyticsService);
+  private auth = inject(AuthService);
 
   selectedPlan = signal<'monthly' | 'lifetime'>('lifetime');
   state = signal<'idle' | 'loading' | 'purchasing' | 'success' | 'error'>('loading');
@@ -72,6 +74,11 @@ export class UpgradeModalComponent implements OnInit {
 
   async subscribe(): Promise<void> {
     if (this.state() === 'purchasing') return; // prevent double-tap
+    if (!this.auth.isLoggedIn()) {
+      this.close();
+      this.router.navigate(['/login']);
+      return;
+    }
     this.state.set('purchasing');
     this.errorMessage.set('');
 
