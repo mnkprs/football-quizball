@@ -36,6 +36,10 @@
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
 }
 
+.bottom-nav--hidden {
+  display: none;
+}
+
 .bottom-nav__pill {
   display: flex;
   align-items: center;

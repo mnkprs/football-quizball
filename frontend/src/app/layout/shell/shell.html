@@ -6,7 +6,7 @@
   <main class="shell-main" [class.shell-main--no-top-pad]="isHome()">
     <router-outlet />
   </main>
-  <nav class="bottom-nav" aria-label="Main navigation">
+  <nav class="bottom-nav" [class.bottom-nav--hidden]="hideBottomNav()" aria-label="Main navigation">
     <div class="bottom-nav__pill">
       @for (tab of leftTabs; track tab.href) {
         <a
