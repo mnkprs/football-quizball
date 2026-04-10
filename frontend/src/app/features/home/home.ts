@@ -65,6 +65,11 @@ export class HomeComponent implements OnInit {
     return `${t.soloStatsHint} ${this.userElo()} · ${t.rankLabel} #${this.eloRank()}`;
   });
 
+  duelBadge = computed(() => {
+    if (!this.auth.isLoggedIn()) return '';
+    return `ELO ${this.userElo()}`;
+  });
+
   ngOnInit(): void {
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {

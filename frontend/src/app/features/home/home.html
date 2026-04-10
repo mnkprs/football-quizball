@@ -67,6 +67,8 @@
         iconBgColor="red"
         title="Duel"
         [hint]="auth.isLoggedIn() ? (pro.isPro() ? '1v1 High-Stakes Face-off • Unlimited' : pro.dailyDuelsRemaining() > 0 ? '1v1 High-Stakes Face-off • ' + pro.dailyDuelsRemaining() + ' free today' : '1v1 High-Stakes Face-off • Come back tomorrow') : '1v1 High-Stakes Face-off • Login required'"
+        [badge]="duelBadge()"
+        badgeColor="accent"
         [tags]="['pvp', 'ranked']"
         backgroundImage="/duel-mode.png"
         variant="accent"
