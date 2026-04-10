@@ -19,6 +19,11 @@
             Identify football clubs from their modified logos.
             Difficulty adjusts based on your ELO rating.
           </p>
+          @if (auth.isLoggedIn() && !proService.isPro()) {
+            <button type="button" class="lq-free-hint" (click)="openProUpgrade()">
+              Playing with limited logos · <span class="lq-free-hint__link">Unlock all 1,000+</span>
+            </button>
+          }
 
           <!-- Stats Row: ELO + Rank -->
           <div class="lq-stats-row">
@@ -68,12 +73,6 @@
             {{ loading() ? 'Loading...' : 'START QUIZ' }}
           </button>
 
-          <!-- Free tier hint -->
-          @if (auth.isLoggedIn() && !proService.isPro()) {
-            <button type="button" class="lq-free-hint" (click)="openProUpgrade()">
-              Playing with limited logos · <span class="lq-free-hint__link">Unlock all 1,000+</span>
-            </button>
-          }
         </div>
       </div>
     }
