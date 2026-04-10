@@ -66,7 +66,7 @@ export class HomeComponent implements OnInit {
   });
 
   duelBadge = computed(() => {
-    if (!this.auth.isLoggedIn()) return '';
+    if (!this.auth.isLoggedIn() || !this.store.profile()) return '';
     return `ELO ${this.userElo()}`;
   });
 
