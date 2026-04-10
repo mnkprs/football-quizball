@@ -41,7 +41,11 @@
           </div>
 
           <!-- Hardcore Toggle -->
-          <div
+          <button
+            type="button"
+            role="switch"
+            [attr.aria-checked]="hardcoreMode()"
+            aria-label="Hardcore mode"
             class="lq-hardcore"
             [class.lq-hardcore--active]="hardcoreMode()"
             (click)="toggleHardcore()"
@@ -53,7 +57,7 @@
               </div>
             </div>
             <span class="lq-hardcore__desc">Logos are inverted and desaturated</span>
-          </div>
+          </button>
 
           <!-- Start Button -->
           <button
@@ -72,7 +76,7 @@
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'loading') {
       <div class="flex-1 flex items-center justify-center" style="min-height: 60dvh">
-        <div class="text-5xl animate-spin">⚽</div>
+        <div class="text-5xl animate-spin" role="status" aria-label="Loading"><span aria-hidden="true">⚽</span></div>
       </div>
     }
 

@@ -32,7 +32,8 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 2.75rem;
   border-radius: var(--radius-md);
   transition: opacity 0.15s;
   -webkit-tap-highlight-color: transparent;

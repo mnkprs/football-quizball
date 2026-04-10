@@ -36,7 +36,7 @@
 
   <!-- Progress bar -->
   @if (progressPercent() !== null) {
-    <div class="gq__progress">
+    <div class="gq__progress" role="progressbar" aria-label="Question progress" aria-valuemin="0" [attr.aria-valuenow]="progressPercent()" [attr.aria-valuemax]="100">
       <div class="gq__progress-fill" [style.--progress]="progressPercent()! / 100"></div>
     </div>
   }
@@ -106,7 +106,7 @@
 <!-- Text input (default for CLASSIC without options) -->
 <ng-template #textInputTemplate>
   @if (reveal() && revealResult()) {
-    <div class="gq__result-badge" [class.gq__result-badge--correct]="revealResult()!.correct" [class.gq__result-badge--wrong]="!revealResult()!.correct">
+    <div class="gq__result-badge" [class.gq__result-badge--correct]="revealResult()!.correct" [class.gq__result-badge--wrong]="!revealResult()!.correct" role="alert">
       {{ revealResult()!.correct ? 'CORRECT' : 'WRONG' }}
     </div>
   }
@@ -124,6 +124,7 @@
           (keydown.enter)="submitTextAnswer()"
           [placeholder]="lang.t().typeAnswer"
           [disabled]="reveal()"
+          aria-label="Type your answer"
         />
         @if (reveal() && revealResult()) {
           <span class="gq__input-icon" [class.gq__input-icon--correct]="revealResult()!.correct" [class.gq__input-icon--wrong]="!revealResult()!.correct">
@@ -150,7 +151,7 @@
 <!-- Multiple choice -->
 <ng-template #multipleChoiceTemplate>
   @if (reveal() && revealResult()) {
-    <div class="gq__result-badge" [class.gq__result-badge--correct]="revealResult()!.correct" [class.gq__result-badge--wrong]="!revealResult()!.correct">
+    <div class="gq__result-badge" [class.gq__result-badge--correct]="revealResult()!.correct" [class.gq__result-badge--wrong]="!revealResult()!.correct" role="alert">
       {{ revealResult()!.correct ? 'CORRECT' : 'WRONG' }}
     </div>
   }
@@ -217,9 +218,9 @@
   <div class="gq__input-stack">
     <div class="gq__input-wrap gq__logo-select-wrap">
       @if (logoDropdownOpen() && filteredTeams().length && !reveal()) {
-        <div class="gq__logo-dropdown gq__logo-dropdown--above">
+        <div class="gq__logo-dropdown gq__logo-dropdown--above" role="listbox" aria-label="Search results">
           @for (team of filteredTeams(); track team) {
-            <button class="gq__logo-dropdown-item" (click)="selectTeam(team)">
+            <button class="gq__logo-dropdown-item" role="option" (click)="selectTeam(team)">
               {{ team }}
             </button>
           }
@@ -235,6 +236,7 @@
         [placeholder]="lang.t().clubName"
         [disabled]="reveal()"
         autocomplete="off"
+        aria-label="Type your answer"
       />
       @if (reveal() && revealResult()) {
         <span class="gq__input-icon" [class.gq__input-icon--correct]="revealResult()!.correct" [class.gq__input-icon--wrong]="!revealResult()!.correct">
@@ -296,6 +298,7 @@
         (keydown.enter)="submitTextAnswer()"
         [placeholder]="lang.t().playerName"
         [disabled]="reveal()"
+        aria-label="Type player name"
       />
       @if (!reveal()) {
         <button class="gq__submit-btn gq__submit-btn--full" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim() || submitting()">
@@ -345,6 +348,7 @@
         (keydown.enter)="submitTextAnswer()"
         [placeholder]="lang.t().scorePlaceholder"
         [disabled]="reveal()"
+        aria-label="Type your score guess"
       />
       @if (!reveal()) {
         <button class="gq__submit-btn gq__submit-btn--full" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim() || submitting()">
@@ -374,7 +378,7 @@
         <span class="gq__elo-delta-label">ELO gained</span>
       </div>
     }
-    <button class="gq__next-btn" (click)="onNextClicked()">Next Question &rarr;</button>
+    <button class="gq__next-btn" (click)="onNextClicked()">Next Question <span aria-hidden="true">&rarr;</span></button>
   }
 </ng-template>
 
@@ -390,7 +394,7 @@
         <span class="gq__elo-delta-label">{{ revealResult()!.elo_change! >= 0 ? 'ELO gained' : 'ELO lost' }}</span>
       </div>
     }
-    <button class="gq__next-btn" (click)="onNextClicked()">Next Question &rarr;</button>
+    <button class="gq__next-btn" (click)="onNextClicked()">Next Question <span aria-hidden="true">&rarr;</span></button>
   }
 </ng-template>
 
@@ -454,6 +458,7 @@
           [(ngModel)]="top5Answer"
           (keydown.enter)="submitTop5Guess()"
           [placeholder]="lang.t().typePlayer"
+          aria-label="Type your answer"
         />
         <button class="gq__submit-btn" (click)="submitTop5Guess()" [disabled]="!top5Answer.trim()">
           {{ lang.t().guess }}

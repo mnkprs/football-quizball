@@ -5,7 +5,7 @@
       <button class="leaderboard-info-btn" (click)="openLegend()" aria-label="View ranking tiers">
         <mat-icon>info_outline</mat-icon>
       </button>
-      <button class="leaderboard-refresh-btn" (click)="load()" [disabled]="loading()">
+      <button class="leaderboard-refresh-btn" (click)="load()" [disabled]="loading()" aria-label="Refresh leaderboard">
         <mat-icon>refresh</mat-icon>
       </button>
     </div>
@@ -92,9 +92,11 @@
     }
 
     <!-- Mode Tabs -->
-    <div class="mode-tabs glass-surface">
+    <div class="mode-tabs glass-surface" role="tablist">
       <button
         class="mode-tab"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'solo'"
         [class.mode-tab--active]="activeTab() === 'solo'"
         (click)="setActiveTab('solo')">
         <mat-icon>military_tech</mat-icon>
@@ -102,6 +104,8 @@
       </button>
       <button
         class="mode-tab"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'logoQuiz'"
         [class.mode-tab--active]="activeTab() === 'logoQuiz'"
         (click)="setActiveTab('logoQuiz')">
         <mat-icon>extension</mat-icon>
@@ -109,6 +113,8 @@
       </button>
       <button
         class="mode-tab"
+        role="tab"
+        [attr.aria-selected]="activeTab() === 'duel'"
         [class.mode-tab--active]="activeTab() === 'duel'"
         (click)="setActiveTab('duel')">
         <mat-icon>sports_mma</mat-icon>

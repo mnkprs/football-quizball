@@ -63,7 +63,11 @@
       <div
         class="hero__avatar-zone"
         [class.hero__avatar-zone--clickable]="isOwnProfile()"
-        (click)="triggerAvatarUpload()"
+        [attr.role]="isOwnProfile() ? 'button' : null"
+        [attr.aria-label]="isOwnProfile() ? 'Change profile photo' : null"
+        [attr.tabindex]="isOwnProfile() ? 0 : null"
+        (click)="isOwnProfile() && triggerAvatarUpload()"
+        (keydown.enter)="isOwnProfile() && triggerAvatarUpload()"
       >
         <div class="hero__avatar">
           @if (avatarUrl()) {
@@ -109,7 +113,7 @@
             <span class="tier-progress__current">{{ rankTier().label }}</span>
             <span class="tier-progress__next">{{ nextTierLabel() }}</span>
           </div>
-          <div class="tier-progress__track">
+          <div class="tier-progress__track" role="progressbar" aria-label="Tier progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="tierProgressPct()">
             <div class="tier-progress__fill" [style.--progress]="tierProgressPct() / 100"></div>
           </div>
         </div>
@@ -313,7 +317,7 @@
     <!-- ─── EDIT PROFILE SHEET ──────────────────────── -->
     @if (showEditSheet()) {
       <div class="edit-backdrop" (click)="closeEditSheet()"></div>
-      <div class="edit-sheet">
+      <div class="edit-sheet" role="dialog" aria-modal="true" aria-label="Edit profile">
         <div class="edit-sheet__handle"></div>
         <h3 class="edit-sheet__title">Edit Profile</h3>
 

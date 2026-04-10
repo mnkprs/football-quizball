@@ -3,7 +3,7 @@
 
     <!-- Header -->
     <div class="onboarding-header">
-      <div class="text-foreground font-bold text-base">⚽ Quick intro</div>
+      <h1 class="text-foreground font-bold text-base">⚽ Quick intro</h1>
       @if (phase() !== 'finished') {
         <div class="text-muted-foreground text-sm font-semibold tabular-nums">
           {{ currentIndex() + 1 }} / {{ questions().length }}
@@ -49,6 +49,7 @@
         <!-- Flash overlay -->
         @if (showFlash()) {
           <div
+            role="alert"
             (click)="dismissFlash()"
             class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl z-10 cursor-pointer backdrop-blur-xl"
             [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"

@@ -89,7 +89,9 @@
   border: none;
   color: var(--color-fg-muted);
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.5rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   transition: color 0.2s;
 }
 .br-back:hover { color: var(--color-fg); }
@@ -206,6 +208,7 @@
 .br-room-card__join {
   flex-shrink: 0;
   padding: 0.4rem 0.875rem;
+  min-height: 2.75rem;
   border-radius: var(--radius-md);
   background: rgba(168, 85, 247, 0.15);
   color: #a855f7;
@@ -360,7 +363,7 @@ details[open] .br-rules__summary::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
+  left: 0;
   width: 60%;
   height: 100%;
   background: linear-gradient(
@@ -374,9 +377,9 @@ details[open] .br-rules__summary::before {
 }
 
 @keyframes shimmer {
-  0%   { left: -100%; }
-  50%  { left: 100%; }
-  100% { left: 100%; }
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
 }
 
 .br-play-btn:not(:disabled):hover {

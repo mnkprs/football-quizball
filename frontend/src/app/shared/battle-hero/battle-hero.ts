@@ -31,6 +31,7 @@ export class BattleHeroComponent {
   lockMessage = input('Sign in to join the arena');
   onlineCount = input<number | null>(null);
   theme = input<'gold' | 'purple'>('gold');
+  featured = input(false);
   modes = input<HeroMode[]>([]);
 
   cardClick = output<void>();

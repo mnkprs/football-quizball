@@ -262,6 +262,12 @@
   vertical-align: middle;
 }
 
+button.settings-card--link {
+  font: inherit;
+  text-align: inherit;
+  width: 100%;
+}
+
 .settings-card--link {
   cursor: pointer;
   transition: background 0.15s;

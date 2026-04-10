@@ -71,8 +71,8 @@
 
       <!-- LOADING QUESTION phase -->
       @if (phase() === 'loading-question') {
-        <div class="flex-1 flex items-center justify-center">
-          <div class="text-5xl animate-spin" style="animation: spin 1s linear infinite;">⚽</div>
+        <div class="flex-1 flex items-center justify-center" role="status" aria-label="Loading">
+          <span class="text-5xl animate-spin" style="animation: spin 1s linear infinite;" aria-hidden="true">⚽</span>
         </div>
       }
 
@@ -155,7 +155,7 @@
 
 <!-- Problem reported popup -->
 @if (problemReported()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()" role="dialog" aria-label="Problem reported">
     <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
       <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
       <button

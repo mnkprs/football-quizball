@@ -8,7 +8,7 @@
 
     <!-- Top section: back, identity, rules -->
     <div class="br-top">
-      <button class="br-back" (click)="goBack()">
+      <button class="br-back" (click)="goBack()" aria-label="Go back">
         <span class="material-icons">arrow_back</span>
       </button>
 
@@ -58,6 +58,7 @@
                 class="br-room-card__join"
                 (click)="joinRoom(room.inviteCode)"
                 [disabled]="loading()"
+                [attr.aria-label]="'Join room ' + room.inviteCode"
               >
                 Join
               </button>
@@ -97,9 +98,9 @@
   <!-- ── Bottom sheet ── -->
   @if (showPlaySheet()) {
     <div class="br-sheet-backdrop" (click)="closePlaySheet()" aria-hidden="true"></div>
-    <div class="br-sheet">
+    <div class="br-sheet" role="dialog" aria-modal="true" aria-label="Create or join a room">
       <div class="br-sheet__handle"></div>
-      <h3 class="br-sheet__title">How do you want to play?</h3>
+      <h2 class="br-sheet__title">How do you want to play?</h2>
 
       @if (!isTeamLogoMode()) {
         <button class="br-sheet__option" (click)="quickJoin()" [disabled]="loading()">

@@ -84,9 +84,9 @@
 <!-- Bottom Sheet -->
 @if (showPlaySheet()) {
   <div class="duel-sheet-backdrop" (click)="closePlaySheet()" aria-hidden="true"></div>
-  <div class="duel-sheet">
+  <div class="duel-sheet" role="dialog" aria-modal="true" aria-label="Start a duel">
     <div class="duel-sheet__handle"></div>
-    <h3 class="duel-sheet__title">How do you want to play?</h3>
+    <h2 class="duel-sheet__title">How do you want to play?</h2>
 
     <div class="duel-sheet__options">
       <!-- Create Duel -->
@@ -127,6 +127,7 @@
             class="duel-sheet__code-input"
             type="text"
             placeholder="e.g. AB12CD"
+            aria-label="Enter invite code"
             maxlength="6"
             [(ngModel)]="inviteCode"
             (input)="inviteCode = inviteCode.toUpperCase()"
