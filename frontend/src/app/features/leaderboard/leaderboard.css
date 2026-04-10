@@ -378,12 +378,12 @@
 }
 
 .podium__medal--gold {
-  background: linear-gradient(135deg, #ffd700, var(--color-pro));
+  background: linear-gradient(135deg, var(--color-medal-gold), var(--color-pro));
   box-shadow: 0 2px 8px rgba(230, 168, 0, 0.4);
 }
 
 .podium__medal--silver {
-  background: linear-gradient(135deg, #e8e8e8, #b8b8b8);
+  background: linear-gradient(135deg, var(--color-medal-silver-from), var(--color-medal-silver-to));
   box-shadow: 0 2px 6px rgba(184, 184, 184, 0.3);
 }
 
@@ -590,12 +590,12 @@
 }
 
 .rank-medal--gold {
-  background: linear-gradient(135deg, #ffd700, var(--color-pro));
+  background: linear-gradient(135deg, var(--color-medal-gold), var(--color-pro));
   box-shadow: 0 2px 8px rgba(230, 168, 0, 0.4);
 }
 
 .rank-medal--silver {
-  background: linear-gradient(135deg, #e8e8e8, #b8b8b8);
+  background: linear-gradient(135deg, var(--color-medal-silver-from), var(--color-medal-silver-to));
   box-shadow: 0 2px 8px rgba(184, 184, 184, 0.4);
 }
 

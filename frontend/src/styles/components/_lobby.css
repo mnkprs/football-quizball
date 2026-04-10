@@ -1,0 +1,160 @@
+/* ==========================================================
+   Lobby / Start Screen — shared layout, cards, buttons
+   Used by: solo, blitz, duel-lobby, logo-quiz, mayhem-mode
+   ========================================================== */
+
+/* ── Full-page container ──────────────────────── */
+.lobby-screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* ── Bottom-anchored content area ─────────────── */
+.lobby-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.5rem;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7.5rem);
+  position: relative;
+  z-index: 3;
+  gap: 1rem;
+  flex: 1;
+  justify-content: flex-end;
+  max-width: var(--content-narrow-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Title — Space Grotesk hero heading ──────── */
+.lobby-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-fg);
+  letter-spacing: -0.02em;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Subtitle — muted description ────────────── */
+.lobby-subtitle {
+  color: var(--color-fg-subtitle);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 20rem;
+  margin: 0;
+}
+
+/* ── Stats Row — side-by-side stat cards ──────── */
+.lobby-stats-row {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.lobby-stats-row > * {
+  flex: 1;
+  padding: 1rem 1.25rem;
+}
+
+/* ── Stat Card — glass card for ELO/stats ─────── */
+.lobby-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 2.5rem;
+  background: var(--glass-bg-ultra-subtle);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.lobby-stat-card__label {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-fg-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lobby-stat-card__value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.lobby-stat-card__value--unranked {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.lobby-stat-card__value--bumping {
+  animation: elo-bump 400ms var(--ease-out-quart);
+}
+
+.lobby-stat-card__tier {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Variant: larger label for ELO cards */
+.lobby-stat-card--elo .lobby-stat-card__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-fg-subtitle);
+}
+
+.lobby-stat-card--elo .lobby-stat-card__tier {
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-shadow: 0 0 12px currentColor;
+}
+
+/* ── Start Button — pill CTA ─────────────────── */
+.lobby-start-btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: #ffffff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--glow-accent-md);
+  transition: box-shadow 0.3s, opacity 0.2s, transform var(--anim-feedback) var(--ease-out-quart);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lobby-start-btn:active {
+  opacity: 0.85;
+}
+
+.lobby-start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Purple variant for logo-quiz / battle-royale */
+.lobby-start-btn--purple {
+  background: var(--color-purple);
+  box-shadow: var(--glow-purple-md);
+}

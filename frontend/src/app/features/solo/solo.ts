@@ -7,7 +7,7 @@ import { GameQuestionComponent, QuestionData, RevealResult } from '../../shared/
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
-import { DonateModalService } from '../../core/donate-modal.service';
+import { ProService } from '../../core/pro.service';
 import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 import { SoloApiService, NextQuestionResponse, AnswerResponse } from '../../core/solo-api.service';
@@ -35,7 +35,7 @@ export class SoloComponent implements OnDestroy {
   private auth = inject(AuthService);
   private authModal = inject(AuthModalService);
   private router = inject(Router);
-  private donateModal = inject(DonateModalService);
+  private pro = inject(ProService);
   private achievementUnlock = inject(AchievementUnlockService);
   private gameApi = inject(GameApiService);
   private analytics = inject(AnalyticsService);
@@ -55,7 +55,7 @@ export class SoloComponent implements OnDestroy {
   constructor() {
     effect(() => {
       if (this.phase() === 'finished' && !this.achievementUnlock.showModal()) {
-        this.donateModal.considerShowing();
+        if (!this.pro.isPro()) this.pro.showUpgradeModal.set(true);
       }
     });
     // Load profile to get rank (only if logged in)

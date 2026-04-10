@@ -10,6 +10,8 @@
 .glow-accent-xl { box-shadow: var(--glow-accent-xl); }
 .glow-gold      { box-shadow: var(--glow-gold); }
 .glow-error     { box-shadow: var(--glow-error); }
+.glow-purple-sm { box-shadow: var(--glow-purple-sm); }
+.glow-purple    { box-shadow: var(--glow-purple-md); }
 
 /* ==========================================================
    Spotlight Pattern — ambient glow pseudo-elements

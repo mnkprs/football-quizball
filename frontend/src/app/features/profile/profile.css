@@ -709,7 +709,7 @@
   border-radius: var(--radius-lg);
   background: var(--glass-bg-subtle);
   border: 1px solid var(--glass-border);
-  cursor: default;
+  cursor: pointer;
   transition: border-color 0.2s, transform 0.15s;
 }
 
@@ -737,6 +737,140 @@
   text-align: center;
   color: var(--color-fg);
   line-height: 1.2;
+}
+
+/* ── Achievement Detail Popup ─────────── */
+.achv-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-tap-highlight-color: transparent;
+  animation: edit-fade-in 0.2s ease-out;
+}
+
+.achv-popup {
+  width: 100%;
+  max-width: min(20rem, calc(100vw - 2rem));
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur-lg));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg));
+  border: 1px solid var(--glass-border-strong);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: anim-scale-in 300ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
+}
+
+.achv-popup__icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.achv-popup__name {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-fg);
+}
+
+.achv-popup__desc {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+  line-height: 1.4;
+}
+
+.achv-popup__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  margin-top: 0.25rem;
+}
+
+.achv-popup__badge--earned {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.achv-popup__progress-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.achv-popup__progress-bar {
+  width: 80%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.achv-popup__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #eab308);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.achv-popup__progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-fg-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.achv-popup__category {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  background: var(--color-accent-bg);
+  border: 1px solid rgba(0, 122, 255, 0.2);
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.achv-popup__close {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--color-accent);
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.achv-popup__close:active {
+  transform: scale(0.97);
 }
 
 /* ── Account Actions ───────────────────── */

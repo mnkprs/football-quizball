@@ -62,8 +62,11 @@ export class LogoQuizController {
    */
   @Post('check-achievements')
   @UseGuards(AuthGuard)
-  async checkAchievements(@Req() req: AuthenticatedRequest) {
-    return this.logoQuizService.checkAchievements(req.user.id);
+  async checkAchievements(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { session_correct?: number },
+  ) {
+    return this.logoQuizService.checkAchievements(req.user.id, body.session_correct ?? 0);
   }
 
   /**

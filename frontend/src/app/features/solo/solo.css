@@ -11,16 +11,6 @@
 
 /* ── Start Screen ─────────────────────────── */
 
-.solo-start {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-  position: relative;
-  overflow: hidden;
-  background: var(--color-bg);
-  padding-bottom: 0;
-}
-
 /* Ensure nav bar is not covered */
 .solo-root {
   position: relative;
@@ -46,175 +36,13 @@
   50% { opacity: 1; }
 }
 
-/* Content — bottom-anchored */
-.solo-start__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 1.5rem;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7.5rem);
-  position: relative;
-  z-index: 3;
-  gap: 1rem;
-  flex: 1;
-  justify-content: flex-end;
-  max-width: var(--content-narrow-width);
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Title */
-.solo-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #e5e2e1;
-  letter-spacing: -0.02em;
-  text-align: center;
-  margin: 0;
-}
-
-/* Subtitle */
-.solo-subtitle {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  text-align: center;
-  max-width: 20rem;
-  margin: 0;
-}
-
-/* ELO Card */
-.solo-elo-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 1.25rem 2.5rem;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 2px solid;
-  border-radius: 1rem;
-  transition: box-shadow 0.3s, border-color 0.3s;
-}
-
-.solo-elo-card__label {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.solo-elo-card__value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 3rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.solo-elo-card__value--bumping {
-  animation: elo-bump 400ms var(--ease-out-quart);
-}
-
-.solo-elo-card__tier {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-shadow: 0 0 12px currentColor;
-}
-
-/* Stats Row — ELO card + Rank card side by side */
-.solo-stats-row {
-  display: flex;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.solo-stats-row .solo-elo-card {
-  flex: 1;
-  padding: 1rem 1.25rem;
-}
-
-/* Rank Card */
-.solo-rank-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
-  flex: 1;
-  transition: box-shadow 0.3s, border-color 0.3s;
-}
-
-.solo-rank-card__label {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.solo-rank-card__value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 3rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.solo-rank-card__value--unranked {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.solo-rank-card__tier {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-/* Start Button */
+/* ── Solo start button overrides (bolder than default lobby-start-btn) ── */
 .solo-start-btn {
-  width: 100%;
   padding: 1.125rem;
-  border-radius: 9999px;
-  background: var(--color-accent);
-  color: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
   font-size: 1.0625rem;
   font-weight: 900;
   letter-spacing: 0.06em;
-  border: none;
-  cursor: pointer;
   box-shadow: 0 0 30px rgba(0, 122, 255, 0.4), 0 0 60px rgba(0, 122, 255, 0.15);
-  transition: box-shadow 0.3s, opacity 0.2s, transform var(--anim-feedback, 120ms) var(--ease-out-quart, cubic-bezier(0.25,1,0.5,1));
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.solo-start-btn:active {
-  opacity: 0.85;
-}
-
-.solo-start-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* ── Streak badge ───────────────────────────── */

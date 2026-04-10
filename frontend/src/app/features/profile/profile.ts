@@ -56,6 +56,9 @@ export class ProfileComponent implements OnInit {
   editSaving = signal(false);
   editError = signal<string | null>(null);
 
+  // Achievement detail popup
+  selectedAchievement = signal<Achievement | null>(null);
+
   // Delete account state
   showDeleteConfirm = signal(false);
   deleting = signal(false);

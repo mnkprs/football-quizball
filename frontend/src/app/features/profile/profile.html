@@ -270,7 +270,7 @@
         </div>
         <div class="achievements-grid">
           @for (a of achievements(); track a.id) {
-            <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" [title]="a.name + ': ' + a.description">
+            <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" (click)="selectedAchievement.set(a)">
               <span class="achievement-tile__icon">{{ a.icon }}</span>
               <span class="achievement-tile__name">{{ a.name }}</span>
               @if (!a.earned_at && a.target > 1) {
@@ -360,6 +360,35 @@
             Save Changes
           }
         </button>
+      </div>
+    }
+
+    <!-- ─── ACHIEVEMENT DETAIL POPUP ──────────────────── -->
+    @if (selectedAchievement(); as a) {
+      <div class="achv-popup-backdrop" (click)="selectedAchievement.set(null)">
+        <div class="achv-popup" (click)="$event.stopPropagation()">
+          <span class="achv-popup__icon">{{ a.icon }}</span>
+          <h3 class="achv-popup__name">{{ a.name }}</h3>
+          <p class="achv-popup__desc">{{ a.description }}</p>
+
+          @if (a.earned_at) {
+            <div class="achv-popup__badge achv-popup__badge--earned">
+              <span class="material-icons" style="font-size:1rem">check_circle</span>
+              Earned {{ formatDate(a.earned_at) }}
+            </div>
+          } @else {
+            <div class="achv-popup__progress-section">
+              <div class="achv-popup__progress-bar">
+                <div class="achv-popup__progress-fill" [style.width.%]="progressPercent(a)"></div>
+              </div>
+              <span class="achv-popup__progress-text">{{ a.current }} / {{ a.target }}</span>
+            </div>
+          }
+
+          <span class="achv-popup__category">{{ a.category }}</span>
+
+          <button class="achv-popup__close" (click)="selectedAchievement.set(null)">Got it</button>
+        </div>
       </div>
     }
 

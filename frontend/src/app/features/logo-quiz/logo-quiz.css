@@ -21,158 +21,16 @@
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7rem);
 }
 
-/* ── Start Screen ─────────────────────────── */
-
-.lq-start {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-  position: relative;
-  overflow: hidden;
+.lq-container:has(.lobby-screen) {
+  padding-bottom: 0;
 }
+
+/* ── Start Screen ─────────────────────────── */
 
 /* Spotlights — uses .spotlight utility from _glows.css */
 .lq-start {
   --spotlight-left: rgba(168, 85, 247, 0.2);
   --spotlight-right: rgba(0, 122, 255, 0.14);
-}
-
-/* Content — centered vertically in the screen */
-.lq-start__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 1.5rem;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7.5rem);
-  position: relative;
-  z-index: 3;
-  gap: 1rem;
-  flex: 1;
-  justify-content: flex-end;
-  max-width: var(--content-narrow-width);
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Title */
-.lq-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #e5e2e1;
-  letter-spacing: -0.02em;
-  text-align: center;
-  margin: 0;
-}
-
-/* Subtitle */
-.lq-subtitle {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  text-align: center;
-  max-width: 20rem;
-  margin: 0;
-}
-
-/* Stats Row — ELO card + Rank card side by side */
-.lq-stats-row {
-  display: flex;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.lq-stats-row .lq-elo-card {
-  flex: 1;
-  padding: 1rem 1.25rem;
-}
-
-/* ELO Card */
-.lq-elo-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 1.25rem 2.5rem;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 2px solid;
-  border-radius: 1rem;
-  transition: box-shadow 0.3s, border-color 0.3s;
-}
-
-/* Rank Card */
-.lq-rank-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  flex: 1;
-  padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 2px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
-  transition: box-shadow 0.3s, border-color 0.3s;
-}
-
-.lq-rank-card__label {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.lq-rank-card__value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 3rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.lq-rank-card__value--unranked {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.lq-rank-card__tier {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.lq-elo-card__label {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.lq-elo-card__value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 3rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-.lq-elo-card__tier {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
 }
 
 /* Hardcore Toggle */
@@ -182,7 +40,7 @@
   gap: 0.5rem;
   width: 100%;
   padding: 1rem 1.25rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--glass-bg-ultra-subtle);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -285,44 +143,19 @@
   font-weight: 600;
 }
 
-/* Start Button */
-.lq-start-btn {
-  width: 100%;
-  padding: 1rem;
-  border-radius: 9999px;
-  background: #a855f7;
-  color: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
-  transition: box-shadow 0.3s, opacity 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.lq-start-btn:active {
-  opacity: 0.85;
-}
-
-.lq-start-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* ── Session Header (in-game) ────────────── */
 
 .lq-session-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem 1rem;
   margin-bottom: 0.75rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 0.75rem;
+  background: var(--glass-bg-subtle);
+  border: 1px solid var(--glass-border-strong);
+  border-left: 3px solid var(--tier-color, var(--color-fg-muted));
+  border-radius: var(--radius-lg);
+  animation: anim-fade-in 300ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
 /* ELO cluster — value + tier + delta */
@@ -334,17 +167,22 @@
 
 .lq-session-elo__value {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.02em;
+  color: var(--color-fg);
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.lq-session-elo__value--bumped {
+  animation: elo-bump 350ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .lq-session-elo__tier {
   font-family: 'Lexend', sans-serif;
-  font-size: 0.5625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -354,22 +192,29 @@
 
 .lq-session-elo__delta {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  padding: 0.125rem 0.375rem;
+  padding: 0.1875rem 0.5rem;
   border-radius: 0.375rem;
   line-height: 1;
+  animation: delta-pop-in 350ms cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+.lq-session-elo__delta--refreshed {
+  animation: delta-pop-in 300ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
 .lq-session-elo__delta--up {
-  color: var(--color-success, #22c55e);
-  background: rgba(34, 197, 94, 0.12);
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
 }
 
 .lq-session-elo__delta--down {
-  color: var(--color-error, #ef4444);
-  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-error);
+  background: var(--color-error-surface);
+  box-shadow: inset 0 0 0 1px var(--color-error-surface-border);
 }
 
 /* Score cluster — correct / total + label */
@@ -381,16 +226,21 @@
 
 .lq-session-score__correct {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--color-success, #22c55e);
+  color: var(--color-success);
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.lq-session-score__correct--ticked {
+  animation: counter-tick 250ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .lq-session-score__sep {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--color-fg-dim);
   font-weight: 400;
   margin: 0 0.0625rem;
 }
@@ -399,18 +249,46 @@
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-fg-variant);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .lq-session-score__label {
   font-family: 'Lexend', sans-serif;
-  font-size: 0.5rem;
-  font-weight: 500;
+  font-size: 0.625rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.3);
-  margin-left: 0.25rem;
+  letter-spacing: 0.1em;
+  color: var(--color-fg-muted);
+  margin-left: 0.375rem;
   line-height: 1;
+}
+
+/* ── Border glow on ELO change ──────────────── */
+.lq-session-header--glow {
+  animation: border-glow 500ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.lq-session-header--glow-strong {
+  animation: border-glow-strong 700ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ── Tier promotion ─────────────────────────── */
+.lq-session-elo__tier--promoted {
+  animation: tier-promote 500ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Reduced motion — disable session header animations */
+@media (prefers-reduced-motion: reduce) {
+  .lq-session-header,
+  .lq-session-header--glow,
+  .lq-session-header--glow-strong,
+  .lq-session-elo__delta,
+  .lq-session-elo__value--bumped,
+  .lq-session-elo__tier--promoted,
+  .lq-session-score__correct--ticked,
+  .lq-session-elo__delta--refreshed {
+    animation: none;
+  }
 }

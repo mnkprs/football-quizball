@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { GameStore } from '../../core/game.store';
 import { LanguageService } from '../../core/language.service';
-import { DonateModalService } from '../../core/donate-modal.service';
+import { ProService } from '../../core/pro.service';
 import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { AuthService } from '../../core/auth.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
@@ -20,15 +20,15 @@ import { MatchHistoryApiService } from '../../core/match-history-api.service';
 export class ResultsComponent implements OnInit {
   store = inject(GameStore);
   lang = inject(LanguageService);
-  private donateModal = inject(DonateModalService);
+  private pro = inject(ProService);
   private router = inject(Router);
   private auth = inject(AuthService);
   private matchHistoryApi = inject(MatchHistoryApiService);
   players = this.store.players;
 
   ngOnInit(): void {
-    // Delay donate prompt so users can see their results first
-    setTimeout(() => this.donateModal.considerShowing(), 3000);
+    // Delay upgrade prompt so users can see their results first
+    setTimeout(() => { if (!this.pro.isPro()) this.pro.showUpgradeModal.set(true); }, 3000);
     this.saveMatchResult();
   }
 

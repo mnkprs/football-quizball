@@ -1,4 +1,4 @@
-<div class="duel-start spotlight page-stagger">
+<div class="duel-start lobby-screen spotlight page-stagger">
   <!-- Hero image -->
   <div class="hero-bg">
     <img ngSrc="/duel-mode.png" alt="Duel" class="hero-bg__img" fill />
@@ -6,9 +6,9 @@
   </div>
 
   <!-- Content -->
-  <div class="duel-start__content">
-    <h1 class="duel-title">{{ isLogoMode() ? 'LOGO DUEL' : 'DUEL' }}</h1>
-    <p class="duel-subtitle">
+  <div class="duel-start__content lobby-content">
+    <h1 class="duel-title lobby-title">{{ isLogoMode() ? 'LOGO DUEL' : 'DUEL' }}</h1>
+    <p class="duel-subtitle lobby-subtitle">
       {{ isLogoMode()
         ? 'Race to identify the club. First correct answer scores the point.'
         : 'Same question, two players. First correct answer wins the point.' }}
@@ -23,10 +23,10 @@
     </div>
 
     <!-- Stats Row: Win Ratio + Rank -->
-    <div class="duel-stats-row">
-      <div class="duel-stat-card">
-        <span class="duel-stat-card__label">WIN RATIO</span>
-        <span class="duel-stat-card__value">{{ winRatio() !== null ? winRatio() + '%' : '—' }}</span>
+    <div class="duel-stats-row lobby-stats-row">
+      <div class="duel-stat-card lobby-stat-card">
+        <span class="duel-stat-card__label lobby-stat-card__label">WIN RATIO</span>
+        <span class="duel-stat-card__value lobby-stat-card__value">{{ winRatio() !== null ? winRatio() + '%' : '—' }}</span>
         @if (totalGames() > 0) {
           <div class="duel-stat-card__record">
             <span class="duel-stat-card__record-win">{{ wins() }}W</span>
@@ -35,14 +35,14 @@
           </div>
         }
       </div>
-      <div class="duel-rank-card">
-        <span class="duel-rank-card__label">RANK</span>
+      <div class="duel-rank-card lobby-stat-card">
+        <span class="duel-rank-card__label lobby-stat-card__label">RANK</span>
         @if (myRank() !== null) {
-          <span class="duel-rank-card__value">#{{ myRank() }}</span>
+          <span class="duel-rank-card__value lobby-stat-card__value">#{{ myRank() }}</span>
         } @else {
-          <span class="duel-rank-card__value duel-rank-card__value--unranked">—</span>
+          <span class="duel-rank-card__value lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
         }
-        <span class="duel-rank-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+        <span class="duel-rank-card__tier lobby-stat-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
       </div>
     </div>
 
@@ -75,7 +75,7 @@
     }
 
     <!-- Play Button -->
-    <button class="duel-start-btn" (click)="openPlaySheet()" [disabled]="loading()">
+    <button class="duel-start-btn lobby-start-btn" (click)="openPlaySheet()" [disabled]="loading()">
       PLAY
     </button>
   </div>

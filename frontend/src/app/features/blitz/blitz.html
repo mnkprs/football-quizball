@@ -2,22 +2,22 @@
 
   <!-- IDLE phase — full-bleed start screen -->
   @if (phase() === 'idle') {
-    <div class="blitz-start spotlight">
+    <div class="blitz-start lobby-screen spotlight">
       <div class="hero-bg">
         <img ngSrc="/blitz-mode-v2.png" alt="Blitz" class="hero-bg__img" fill />
         <div class="hero-bg__overlay"></div>
       </div>
-      <div class="blitz-start__content">
-        <h1 class="blitz-title">BLITZ</h1>
-        <p class="blitz-subtitle">
+      <div class="blitz-start__content lobby-content">
+        <h1 class="blitz-title lobby-title">BLITZ</h1>
+        <p class="blitz-subtitle lobby-subtitle">
           {{ lang.t().blitzSubtitle }}
         </p>
-        <div class="blitz-info-card">
-          <span class="blitz-info-card__label">TIME LIMIT</span>
-          <span class="blitz-info-card__value">60</span>
-          <span class="blitz-info-card__hint">SECONDS</span>
+        <div class="blitz-info-card lobby-stat-card">
+          <span class="blitz-info-card__label lobby-stat-card__label">TIME LIMIT</span>
+          <span class="blitz-info-card__value lobby-stat-card__value">60</span>
+          <span class="blitz-info-card__hint lobby-stat-card__tier">SECONDS</span>
         </div>
-        <button class="blitz-start-btn" (click)="startSession()" [disabled]="loading()">
+        <button class="blitz-start-btn lobby-start-btn" (click)="startSession()" [disabled]="loading()">
           {{ loading() ? lang.t().dailyLoading : 'START BLITZ' }}
         </button>
         @if (error()) {

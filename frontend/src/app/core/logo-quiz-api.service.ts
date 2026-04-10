@@ -65,10 +65,10 @@ export class LogoQuizApiService {
     );
   }
 
-  checkAchievements(): Observable<{ newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> }> {
+  checkAchievements(sessionCorrect: number): Observable<{ newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> }> {
     return this.http.post<{ newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }> }>(
       `${this.base}/check-achievements`,
-      {},
+      { session_correct: sessionCorrect },
       { headers: this.headers() },
     );
   }

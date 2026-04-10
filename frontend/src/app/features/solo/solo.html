@@ -2,35 +2,35 @@
 
   <!-- IDLE phase — full-bleed start screen -->
   @if (phase() === 'idle') {
-    <div class="solo-start spotlight">
+    <div class="solo-start lobby-screen spotlight">
       <div class="hero-bg">
         <img ngSrc="/solo-mode.png" alt="Solo Ranked" class="hero-bg__img" fill />
         <div class="hero-bg__overlay"></div>
       </div>
-      <div class="solo-start__content">
-        <h1 class="solo-title">SOLO RANKED</h1>
-        <p class="solo-subtitle">
+      <div class="solo-start__content lobby-content">
+        <h1 class="solo-title lobby-title">SOLO RANKED</h1>
+        <p class="solo-subtitle lobby-subtitle">
           {{ lang.t().soloSubtitle }}
         </p>
-        <div class="solo-stats-row">
-          <div class="solo-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
-            <span class="solo-elo-card__label">ELO RATING</span>
-            <span class="solo-elo-card__value" [class.solo-elo-card__value--bumping]="eloBumping()">{{ displayElo() | number }}</span>
-            <span class="solo-elo-card__tier" [style.color]="eloTier().color">
+        <div class="solo-stats-row lobby-stats-row">
+          <div class="solo-elo-card lobby-stat-card lobby-stat-card--elo" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+            <span class="solo-elo-card__label lobby-stat-card__label">ELO RATING</span>
+            <span class="solo-elo-card__value lobby-stat-card__value" [class.lobby-stat-card__value--bumping]="eloBumping()">{{ displayElo() | number }}</span>
+            <span class="solo-elo-card__tier lobby-stat-card__tier" [style.color]="eloTier().color">
               {{ eloTier().label | uppercase }}
             </span>
           </div>
-          <div class="solo-rank-card">
-            <span class="solo-rank-card__label">RANK</span>
+          <div class="solo-rank-card lobby-stat-card">
+            <span class="solo-rank-card__label lobby-stat-card__label">RANK</span>
             @if (myRank() !== null) {
-              <span class="solo-rank-card__value">#{{ myRank() }}</span>
+              <span class="solo-rank-card__value lobby-stat-card__value">#{{ myRank() }}</span>
             } @else {
-              <span class="solo-rank-card__value solo-rank-card__value--unranked">—</span>
+              <span class="solo-rank-card__value lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
             }
-            <span class="solo-rank-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+            <span class="solo-rank-card__tier lobby-stat-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
           </div>
         </div>
-        <button class="solo-start-btn" (click)="startSession()" [disabled]="loading()">
+        <button class="solo-start-btn lobby-start-btn" (click)="startSession()" [disabled]="loading()">
           {{ loading() ? lang.t().soloStarting : 'START PLAYING' }}
         </button>
         @if (error()) {

@@ -92,6 +92,9 @@ export class LogoQuizComponent implements OnDestroy {
   eloBumped = signal(false);
   scoreTicked = signal(false);
   deltaRefreshed = signal(false);
+  borderGlow = signal<'' | 'glow' | 'glow-strong'>('');
+  tierPromoted = signal(false);
+  private previousTier = signal<string>('');
 
   // Timer
   private timer = createGameTimer();
@@ -192,6 +195,7 @@ export class LogoQuizComponent implements OnDestroy {
     this.error.set(null);
     this.questionsAnswered.set(0);
     this.correctAnswers.set(0);
+    this.previousTier.set(this.eloTier().tier);
     this.analytics.track('game_mode_started', { mode: 'logo_quiz', hardcore: this.hardcoreMode() });
     await this.loadNextQuestion();
   }
@@ -308,7 +312,7 @@ export class LogoQuizComponent implements OnDestroy {
     await this.adService.onGameEnd();
     this.adService.markFirstSessionComplete();
     if (this.auth.user()) {
-      this.api.checkAchievements().subscribe({
+      this.api.checkAchievements(this.correctAnswers()).subscribe({
         next: (res) => {
           if (res.newly_unlocked?.length) {
             this.achievementUnlock.show(res.newly_unlocked);
@@ -332,6 +336,22 @@ export class LogoQuizComponent implements OnDestroy {
       this.scoreTicked.set(true);
       setTimeout(() => this.scoreTicked.set(false), 300);
     }
+
+    // Tier promotion check — rare, special celebration
+    const newTier = this.eloTier().tier;
+    const prev = this.previousTier();
+    if (prev && newTier !== prev) {
+      // Tier changed! Strong glow + tier label promotion
+      this.borderGlow.set('glow-strong');
+      this.tierPromoted.set(true);
+      setTimeout(() => this.borderGlow.set(''), 750);
+      setTimeout(() => this.tierPromoted.set(false), 550);
+    } else {
+      // Normal ELO change — subtle border glow
+      this.borderGlow.set('glow');
+      setTimeout(() => this.borderGlow.set(''), 550);
+    }
+    this.previousTier.set(newTier);
   }
 
   resetToIdle(): void {

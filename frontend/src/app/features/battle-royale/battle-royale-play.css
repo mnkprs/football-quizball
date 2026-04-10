@@ -367,13 +367,13 @@
 }
 
 .br-play__timer-pill--danger {
-  color: #f87171;
+  color: var(--color-error-text);
   border-color: rgba(239, 68, 68, 0.4);
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
 }
 
 .br-play__timer-pill--danger .material-icons {
-  color: #f87171;
+  color: var(--color-error-text);
 }
 
 /* ── Question panel ── */
@@ -571,9 +571,9 @@
 }
 
 .br-play__answer-flash--wrong {
-  background: rgba(179, 38, 30, 0.12);
-  color: #f87171;
-  border: 1px solid rgba(179, 38, 30, 0.3);
+  background: var(--color-error-surface);
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-surface-border);
 }
 
 .br-play__speed-bonus {
@@ -789,7 +789,7 @@
 
 .br-play__mvp-icon {
   font-size: 1.25rem;
-  color: #ffd700;
+  color: var(--color-medal-gold);
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
 }
 
@@ -889,12 +889,12 @@
 }
 
 .br-play__result-medal--gold {
-  background: linear-gradient(135deg, #ffd700, var(--color-pro));
+  background: linear-gradient(135deg, var(--color-medal-gold), var(--color-pro));
   box-shadow: 0 2px 8px rgba(230, 168, 0, 0.4);
 }
 
 .br-play__result-medal--silver {
-  background: linear-gradient(135deg, #e8e8e8, #b8b8b8);
+  background: linear-gradient(135deg, var(--color-medal-silver-from), var(--color-medal-silver-to));
   box-shadow: 0 2px 6px rgba(184, 184, 184, 0.3);
 }
 
@@ -943,9 +943,9 @@
 .br-play__error {
   padding: 0.75rem 1rem;
   border-radius: var(--radius-lg);
-  background: rgba(179, 38, 30, 0.12);
-  border: 1px solid rgba(179, 38, 30, 0.3);
-  color: #f87171;
+  background: var(--color-error-surface);
+  border: 1px solid var(--color-error-surface-border);
+  color: var(--color-error-text);
   font-size: 0.875rem;
   font-weight: 600;
   margin-top: 1rem;

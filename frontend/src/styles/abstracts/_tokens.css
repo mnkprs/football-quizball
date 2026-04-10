@@ -47,6 +47,28 @@
   --color-pro: #e6a800;
   --color-pro-bg: rgba(230, 168, 0, 0.08);
 
+  /* ---- Purple accent (battle-royale, logo-quiz) ---- */
+  --color-purple: #a855f7;
+  --color-purple-dim: #9333ea;
+  --color-purple-deep: #7c3aed;
+
+  /* ---- Extended text opacity ---- */
+  --color-fg-subtitle: rgba(255, 255, 255, 0.55);
+  --color-fg-label: rgba(255, 255, 255, 0.45);
+
+  /* ---- Ultra-subtle glass (stat cards) ---- */
+  --glass-bg-ultra-subtle: rgba(255, 255, 255, 0.04);
+
+  /* ---- Error surface (soft banners) ---- */
+  --color-error-surface: rgba(179, 38, 30, 0.12);
+  --color-error-surface-border: rgba(179, 38, 30, 0.3);
+  --color-error-text: #f87171;
+
+  /* ---- Medal colors ---- */
+  --color-medal-gold: #ffd700;
+  --color-medal-silver-from: #e8e8e8;
+  --color-medal-silver-to: #b8b8b8;
+
   /* ---- Orphan values promoted to tokens ---- */
   --color-tier-bronze: #cd7f32;
   --color-forest: #1B5E20;
@@ -113,6 +135,8 @@
   --glow-accent-xl: 0 0 60px rgba(0, 122, 255, 0.55);
   --glow-gold: 0 0 20px rgba(255, 179, 0, 0.3);
   --glow-error: 0 0 20px rgba(147, 0, 10, 0.3);
+  --glow-purple-sm: 0 0 16px rgba(168, 85, 247, 0.2);
+  --glow-purple-md: 0 0 20px rgba(168, 85, 247, 0.3);
 
   /* ---- Shadow depths ---- */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);

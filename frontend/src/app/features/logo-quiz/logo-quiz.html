@@ -5,7 +5,7 @@
     <!-- IDLE — Start Screen                         -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'idle') {
-      <div class="lq-start spotlight">
+      <div class="lq-start lobby-screen spotlight">
         <!-- Hero image -->
         <div class="hero-bg">
           <img [ngSrc]="hardcoreMode() ? '/emblem-hardcore.png' : '/emblem.png'" alt="Logo Quiz" class="hero-bg__img" fill />
@@ -13,9 +13,9 @@
         </div>
 
         <!-- Content -->
-        <div class="lq-start__content">
-          <h1 class="lq-title">LOGO QUIZ</h1>
-          <p class="lq-subtitle">
+        <div class="lq-start__content lobby-content">
+          <h1 class="lq-title lobby-title">LOGO QUIZ</h1>
+          <p class="lq-subtitle lobby-subtitle">
             Identify football clubs from their modified logos.
             Difficulty adjusts based on your ELO rating.
           </p>
@@ -26,22 +26,22 @@
           }
 
           <!-- Stats Row: ELO + Rank -->
-          <div class="lq-stats-row">
-            <div class="lq-elo-card" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
-              <span class="lq-elo-card__label">ELO RATING</span>
-              <span class="lq-elo-card__value">{{ currentElo() | number }}</span>
-              <span class="lq-elo-card__tier" [style.color]="eloTier().color">
+          <div class="lq-stats-row lobby-stats-row">
+            <div class="lq-elo-card lobby-stat-card lobby-stat-card--elo" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+              <span class="lq-elo-card__label lobby-stat-card__label">ELO RATING</span>
+              <span class="lq-elo-card__value lobby-stat-card__value">{{ currentElo() | number }}</span>
+              <span class="lq-elo-card__tier lobby-stat-card__tier" [style.color]="eloTier().color">
                 {{ eloTier().label | uppercase }}
               </span>
             </div>
-            <div class="lq-rank-card">
-              <span class="lq-rank-card__label">RANK</span>
+            <div class="lq-rank-card lobby-stat-card">
+              <span class="lq-rank-card__label lobby-stat-card__label">RANK</span>
               @if (myRank() !== null) {
-                <span class="lq-rank-card__value">#{{ myRank() }}</span>
+                <span class="lq-rank-card__value lobby-stat-card__value">#{{ myRank() }}</span>
               } @else {
-                <span class="lq-rank-card__value lq-rank-card__value--unranked">—</span>
+                <span class="lq-rank-card__value lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
               }
-              <span class="lq-rank-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+              <span class="lq-rank-card__tier lobby-stat-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
             </div>
           </div>
 
@@ -66,7 +66,7 @@
 
           <!-- Start Button -->
           <button
-            class="lq-start-btn"
+            class="lq-start-btn lobby-start-btn lobby-start-btn--purple"
             (click)="startPlaying()"
             [disabled]="loading()"
           >
@@ -91,18 +91,18 @@
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'question' && currentQuestion()) {
       <!-- Header -->
-      <div class="lq-session-header">
-        <div class="lq-session-elo" [style.--tier-color]="eloTier().color">
-          <span class="lq-session-elo__value">{{ currentElo() | number }}</span>
-          <span class="lq-session-elo__tier" [style.color]="eloTier().color">{{ eloTier().label }}</span>
+      <div class="lq-session-header" [class.lq-session-header--glow]="borderGlow() === 'glow'" [class.lq-session-header--glow-strong]="borderGlow() === 'glow-strong'" role="status" aria-live="polite" [style.--tier-color]="eloTier().color" [style.--tier-glow]="eloTier().glow + '40'" [attr.aria-label]="'ELO ' + currentElo() + ' ' + eloTier().label + ', ' + correctAnswers() + ' of ' + questionsAnswered() + ' correct'">
+        <div class="lq-session-elo">
+          <span class="lq-session-elo__value" [class.lq-session-elo__value--bumped]="eloBumped()">{{ currentElo() | number }}</span>
+          <span class="lq-session-elo__tier" [class.lq-session-elo__tier--promoted]="tierPromoted()" [style.color]="eloTier().color">{{ eloTier().label }}</span>
           @if (eloDelta() !== 0) {
-            <span class="lq-session-elo__delta" [class.lq-session-elo__delta--up]="eloDelta() > 0" [class.lq-session-elo__delta--down]="eloDelta() < 0">
+            <span class="lq-session-elo__delta" [class.lq-session-elo__delta--up]="eloDelta() > 0" [class.lq-session-elo__delta--down]="eloDelta() < 0" [class.lq-session-elo__delta--refreshed]="deltaRefreshed()">
               {{ eloDelta() > 0 ? '+' : '' }}{{ eloDelta() }}
             </span>
           }
         </div>
         <div class="lq-session-score">
-          <span class="lq-session-score__correct">{{ correctAnswers() }}</span>
+          <span class="lq-session-score__correct" [class.lq-session-score__correct--ticked]="scoreTicked()">{{ correctAnswers() }}</span>
           <span class="lq-session-score__sep">/</span>
           <span class="lq-session-score__total">{{ questionsAnswered() }}</span>
           <span class="lq-session-score__label">correct</span>

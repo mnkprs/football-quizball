@@ -9,126 +9,18 @@
   min-height: 0;
 }
 
-/* ── Start Screen ─────────────────────────── */
-
-.blitz-start {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh;
-  position: relative;
-  overflow: hidden;
-  background: var(--color-bg);
-}
-
 /* Spotlights — uses .spotlight utility from _glows.css */
 .blitz-start {
   --spotlight-left: rgba(0, 180, 255, 0.2);
   --spotlight-right: rgba(0, 122, 255, 0.16);
 }
 
-/* Content — bottom-anchored */
-.blitz-start__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 1.5rem;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7.5rem);
-  position: relative;
-  z-index: 3;
-  gap: 1rem;
-  flex: 1;
-  justify-content: flex-end;
-  max-width: var(--content-narrow-width);
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Title */
-.blitz-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #e5e2e1;
-  letter-spacing: -0.02em;
-  text-align: center;
-  margin: 0;
-}
-
-/* Subtitle */
-.blitz-subtitle {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  text-align: center;
-  max-width: 20rem;
-  margin: 0;
-}
-
-/* Info Card (timer info instead of ELO) */
+/* Blitz-specific info card overrides (border color + glow differ from base lobby-stat-card) */
 .blitz-info-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 1.25rem 2.5rem;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 2px solid rgba(0, 122, 255, 0.4);
-  border-radius: 1rem;
-  box-shadow: 0 0 16px rgba(0, 122, 255, 0.15);
-}
-
-.blitz-info-card__label {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.blitz-info-card__value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 3rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.02em;
-  line-height: 1;
+  border-color: rgba(0, 122, 255, 0.4);
+  box-shadow: var(--glow-accent-sm);
 }
 
 .blitz-info-card__hint {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
   color: var(--color-accent);
-}
-
-/* Start Button */
-.blitz-start-btn {
-  width: 100%;
-  padding: 1rem;
-  border-radius: 9999px;
-  background: var(--color-accent);
-  color: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 0 20px rgba(0, 122, 255, 0.3);
-  transition: box-shadow 0.3s, opacity 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.blitz-start-btn:active {
-  opacity: 0.85;
-}
-
-.blitz-start-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }

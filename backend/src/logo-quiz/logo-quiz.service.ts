@@ -195,7 +195,7 @@ export class LogoQuizService {
     };
   }
 
-  async checkAchievements(userId: string): Promise<{
+  async checkAchievements(userId: string, sessionCorrect = 0): Promise<{
     newly_unlocked: Array<{ id: string; name: string; description: string; icon: string; category: string }>;
   }> {
     try {
@@ -206,7 +206,8 @@ export class LogoQuizService {
 
       const awardedIds = await this.achievementsService.checkAndAward(userId, {
         currentElo: profile.logo_quiz_elo,
-        logoQuizCorrect: profile.logo_quiz_correct,
+        // Only evaluate logo-quiz-correct achievements when the session contributed correct answers
+        logoQuizCorrect: sessionCorrect > 0 ? profile.logo_quiz_correct : 0,
         dailyStreak,
         modesPlayed,
       });
