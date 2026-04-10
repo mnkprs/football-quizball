@@ -7,7 +7,7 @@
   </div>
 
   <div class="legal-page__content">
-    <p class="legal-page__updated">Last updated: March 2026</p>
+    <p class="legal-page__updated">Last updated: April 2026</p>
 
     <h2>1. Introduction</h2>
     <p>
@@ -21,7 +21,7 @@
     </p>
     <p>
       For any privacy-related questions or requests, contact us at
-      <a href="mailto:support@stepover.app">support@stepover.app</a>.
+      <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a>.
     </p>
 
     <h2>2. Information We Collect</h2>
@@ -70,13 +70,14 @@
 
     <h3>Payment Data</h3>
     <p>
-      Pro subscriptions are processed by Stripe. We do not store your full card number, CVC, or bank account
-      details. We store only:
+      Pro subscriptions are processed through the Apple App Store or Google Play Store. We do not collect or
+      store your payment card details, billing address, or any financial information. All payment processing
+      is handled entirely by Apple or Google.
     </p>
+    <p>We store only:</p>
     <ul>
-      <li>Stripe Customer ID — a reference token used to manage your subscription</li>
-      <li>Subscription status (active, cancelled, past due)</li>
-      <li>Billing period dates</li>
+      <li>Subscription status (active, cancelled, expired)</li>
+      <li>Purchase verification tokens (used to validate your subscription with Apple/Google)</li>
     </ul>
 
     <h3>Device and Technical Data</h3>
@@ -97,7 +98,7 @@
       <li>Create and manage your account</li>
       <li>Deliver the game service, including matchmaking, question generation, and leaderboards</li>
       <li>Track and display your quiz statistics and ELO progress</li>
-      <li>Process Pro subscription payments via Stripe</li>
+      <li>Process Pro subscription payments via Apple App Store and Google Play Store</li>
       <li>Send transactional emails (account confirmation, password reset, subscription receipts)</li>
       <li>Improve the App based on aggregated usage analytics</li>
       <li>Detect and prevent fraud, cheating, or abuse</li>
@@ -108,39 +109,20 @@
       decision-making that produces legal effects.
     </p>
 
-    <h2>4. Cookies and Tracking</h2>
+    <h2>4. Local Storage and Tracking</h2>
     <p>
-      We use cookies and similar local storage mechanisms. These fall into the following categories:
-    </p>
-
-    <h3>Essential Cookies</h3>
-    <p>
-      Required for the Service to function. These cannot be disabled:
+      As a native mobile application, Stepover uses on-device storage to save your preferences and session data:
     </p>
     <ul>
       <li><strong>Authentication session</strong> — keeps you logged in (managed by Supabase)</li>
       <li><strong>Theme preference</strong> — remembers your dark/light mode choice</li>
-      <li><strong>Cookie consent choice</strong> — stores whether you accepted or declined non-essential cookies</li>
       <li><strong>Onboarding status</strong> — remembers if you have completed the onboarding flow</li>
     </ul>
 
-    <h3>Analytics Cookies (Consent Required)</h3>
-    <ul>
-      <li><strong>Firebase Analytics</strong> — product analytics to understand feature usage and improve the App</li>
-    </ul>
-
-    <h3>Advertising Cookies (Consent Required)</h3>
-    <ul>
-      <li>
-        <strong>Google AdSense</strong> — used to serve personalised advertisements to Free tier users.
-        The AdSense script is only loaded after you explicitly accept cookies via the consent banner.
-        Pro subscribers do not see ads.
-      </li>
-    </ul>
-
+    <h3>Analytics</h3>
     <p>
-      You can change your cookie preferences at any time by clearing your browser's local storage, which will
-      prompt the consent banner again on your next visit.
+      We use Firebase Analytics to understand how users interact with the App. You can opt out of analytics
+      data collection via your device settings or by disabling "Analytics Storage" in the App's permissions.
     </p>
 
     <h2>5. Data Storage</h2>
@@ -157,25 +139,17 @@
     </p>
     <ul>
       <li>
-        <strong>Google LLC</strong> — Sign In with Google (OAuth identity provider); Google AdSense
-        (advertising, consent-gated).
+        <strong>Google LLC</strong> — Sign In with Google (OAuth identity provider), Google Play Billing
+        (subscription payments), Firebase Analytics (product analytics and crash reporting).
         <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>
       </li>
       <li>
-        <strong>Stripe, Inc.</strong> — Payment processing for Pro subscriptions.
-        <a href="https://stripe.com/privacy" target="_blank" rel="noopener noreferrer">Stripe Privacy Policy</a>
-      </li>
-      <li>
-        <strong>Google LLC (Firebase)</strong> — Product analytics and crash reporting.
-        <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">Firebase Privacy</a>
+        <strong>Apple Inc.</strong> — App Store distribution, in-app purchase processing.
+        <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener noreferrer">Apple Privacy Policy</a>
       </li>
       <li>
         <strong>Supabase, Inc.</strong> — Database, authentication, and real-time infrastructure.
         <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Supabase Privacy Policy</a>
-      </li>
-      <li>
-        <strong>Vercel, Inc.</strong> — Frontend hosting and edge delivery.
-        <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel Privacy Policy</a>
       </li>
     </ul>
     <p>
@@ -192,7 +166,7 @@
       <li>Account and game data: retained until you delete your account</li>
       <li>ELO history: retained as part of your account record; deleted on account deletion</li>
       <li>Analytics data: retained per Google's Firebase data retention policy (typically up to 14 months)</li>
-      <li>Payment records: Stripe retains transaction records for up to 7 years for legal and tax compliance</li>
+      <li>Payment records: Apple and Google retain transaction records per their own retention policies</li>
     </ul>
     <p>
       When you delete your account, your profile and all associated game data are permanently deleted from our
@@ -212,7 +186,7 @@
       </li>
       <li>
         <strong>Right to Data Portability</strong> — You can request an export of your personal data by emailing
-        <a href="mailto:support@stepover.app">support@stepover.app</a>.
+        <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a>.
       </li>
       <li>
         <strong>Right to Erasure</strong> — You can delete your account at any time from the Profile settings
@@ -220,11 +194,11 @@
       </li>
       <li>
         <strong>Right to Rectification</strong> — You can update your username and profile details within the App.
-        For other corrections, contact us at <a href="mailto:support@stepover.app">support@stepover.app</a>.
+        For other corrections, contact us at <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a>.
       </li>
       <li>
-        <strong>Right to Object</strong> — You can object to non-essential cookies and analytics via the cookie
-        consent banner. You can opt out of Google ad personalisation via Google's own settings.
+        <strong>Right to Object</strong> — You can opt out of analytics data collection via your device
+        settings. You can opt out of Google ad personalisation via Google's own settings.
       </li>
       <li>
         <strong>Right to Restrict Processing</strong> — Contact us to request that we restrict processing of
@@ -232,7 +206,7 @@
       </li>
     </ul>
     <p>
-      To exercise any of these rights, email <a href="mailto:support@stepover.app">support@stepover.app</a>.
+      To exercise any of these rights, email <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a>.
       We will respond within 30 days. You also have the right to lodge a complaint with your local data
       protection authority (e.g., the ICO in the UK, or your national DPA in the EU).
     </p>
@@ -241,7 +215,7 @@
     <p>
       The Service is intended for users aged <strong>13 and over</strong>. We do not knowingly collect personal
       data from children under 13. If you believe a child under 13 has provided us with personal data, please
-      contact us at <a href="mailto:support@stepover.app">support@stepover.app</a> and we will promptly delete
+      contact us at <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a> and we will promptly delete
       that data.
     </p>
     <p>
@@ -263,7 +237,7 @@
     </ul>
     <p>
       No system is completely secure. If you discover a security vulnerability in the Service, please report it
-      responsibly to <a href="mailto:support@stepover.app">support@stepover.app</a>.
+      responsibly to <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a>.
     </p>
 
     <h2>11. Changes to This Policy</h2>
@@ -284,7 +258,7 @@
     </p>
     <p>
       <strong>Stepover</strong><br>
-      Email: <a href="mailto:support@stepover.app">support@stepover.app</a>
+      Email: <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a>
     </p>
     <p>
       We aim to respond to all privacy-related enquiries within 30 days.

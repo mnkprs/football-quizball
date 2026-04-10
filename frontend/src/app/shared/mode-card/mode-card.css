@@ -151,6 +151,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .mode-card__online-dot { animation: none; }
+  .mode-card__tag::after { animation: none; }
+  .mode-card__info-badge::after { animation: none; }
 }
 
 

@@ -250,6 +250,7 @@
   .battle-hero__online-dot { animation: none; }
   .battle-hero__wave { animation: none; opacity: 1; }
   .battle-hero__title { animation: none; }
+  .battle-hero__tag::after { animation: none; }
 }
 
 /* ---- Bottom section ---- */

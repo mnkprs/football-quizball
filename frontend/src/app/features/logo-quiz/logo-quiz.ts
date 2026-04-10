@@ -40,12 +40,12 @@ export class LogoQuizComponent implements OnDestroy {
   private api = inject(LogoQuizApiService);
   private leaderboardApi = inject(LeaderboardApiService);
   private achievementUnlock = inject(AchievementUnlockService);
-  auth = inject(AuthService);
+  protected auth = inject(AuthService);
   private gameApi = inject(GameApiService);
   private profileStore = inject(ProfileStore);
   private destroyRef = inject(DestroyRef);
   private adService = inject(AdService);
-  proService = inject(ProService);
+  protected proService = inject(ProService);
   private analytics = inject(AnalyticsService);
   lang = inject(LanguageService);
 
