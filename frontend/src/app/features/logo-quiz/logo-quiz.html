@@ -59,6 +59,17 @@
             <span class="lq-hardcore__desc">Logos are inverted and desaturated</span>
           </button>
 
+          <!-- Free tier pool banner -->
+          @if (auth.isLoggedIn() && !proService.isPro()) {
+            <button type="button" class="lq-free-banner" (click)="openProUpgrade()">
+              <div class="lq-free-banner__text">
+                <span class="lq-free-banner__label">FREE TIER</span>
+                <span class="lq-free-banner__desc">Playing with a limited logo pool. Unlock all 1,000+ club logos with Pro.</span>
+              </div>
+              <span class="material-icons lq-free-banner__arrow">arrow_forward</span>
+            </button>
+          }
+
           <!-- Start Button -->
           <button
             class="lq-start-btn"
