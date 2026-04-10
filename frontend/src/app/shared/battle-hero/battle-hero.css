@@ -140,6 +140,7 @@
 }
 
 .battle-hero__tag {
+  position: relative;
   display: inline-flex;
   align-items: center;
   padding: 0.1875rem 0.5rem;
@@ -153,6 +154,22 @@
   text-transform: uppercase;
   color: #ffb300;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+.battle-hero__tag::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, currentColor 49%, currentColor 51%, transparent 70%);
+  opacity: 0.12;
+  animation: hero-tag-shimmer 4s ease-in-out 1s infinite;
+}
+
+@keyframes hero-tag-shimmer {
+  0%, 100% { transform: translateX(-150%); }
+  30% { transform: translateX(150%); }
+  31%, 99% { transform: translateX(150%); }
 }
 
 .battle-hero__tag-icon {
@@ -398,12 +415,18 @@
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(156, 39, 176, 0.08);
-  /* Static glow — no animation (perf) */
+  animation: hero-purple-breathe 4s ease-in-out infinite;
 }
 
-@keyframes pulse-glow-purple {
-  0%, 100% { box-shadow: 0 0 30px rgba(156, 39, 176, 0.15), 0 0 60px rgba(156, 39, 176, 0.05); }
-  50% { box-shadow: 0 0 40px rgba(156, 39, 176, 0.25), 0 0 80px rgba(156, 39, 176, 0.1); }
+@keyframes hero-purple-breathe {
+  0%, 100% {
+    border-color: rgba(156, 39, 176, 0.15);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(156, 39, 176, 0.08);
+  }
+  50% {
+    border-color: rgba(156, 39, 176, 0.3);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 24px rgba(156, 39, 176, 0.12);
+  }
 }
 
 .battle-hero--purple::before {

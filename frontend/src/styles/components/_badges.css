@@ -6,6 +6,7 @@
    ========================================================== */
 
 .badge-pill {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -16,6 +17,33 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+  overflow: hidden;
+}
+
+/* Shimmer sweep — uses currentColor so it adapts to any badge variant */
+.badge-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    currentColor 49%,
+    currentColor 51%,
+    transparent 70%
+  );
+  opacity: 0.1;
+  animation: badge-pill-shimmer 3.5s ease-in-out 1.5s infinite;
+}
+
+@keyframes badge-pill-shimmer {
+  0%, 100% { transform: translateX(-150%); }
+  35% { transform: translateX(150%); }
+  36%, 99% { transform: translateX(150%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-pill::after { animation: none; display: none; }
 }
 
 .badge-pill--default {
