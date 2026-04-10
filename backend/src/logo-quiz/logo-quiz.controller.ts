@@ -66,7 +66,8 @@ export class LogoQuizController {
     @Req() req: AuthenticatedRequest,
     @Body() body: { session_correct?: number },
   ) {
-    return this.logoQuizService.checkAchievements(req.user.id, body.session_correct ?? 0);
+    const sessionCorrect = Math.max(0, Math.floor(Number(body.session_correct) || 0));
+    return this.logoQuizService.checkAchievements(req.user.id, sessionCorrect);
   }
 
   /**
