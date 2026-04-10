@@ -6,6 +6,7 @@ import { UpgradeModalComponent } from '../../shared/upgrade-modal/upgrade-modal'
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
 import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
+import { ShellUiService } from '../../core/shell-ui.service';
 
 export interface NavTab {
   labelKey: 'navHome' | 'navCasual' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
@@ -33,23 +34,17 @@ export class ShellComponent implements OnInit, OnDestroy {
   private auth = inject(AuthService);
   lang = inject(LanguageService);
   pro = inject(ProService);
+  shellUi = inject(ShellUiService);
   upgrading = signal(false);
   isHome = signal(true);
-  hideBottomNav = signal(false);
   private routeSub?: Subscription;
 
   ngOnInit(): void {
     this.auth.sessionReady.then(() => this.pro.ensureLoaded());
-    const path = this.router.url.split('?')[0];
-    this.isHome.set(path === '/');
-    this.hideBottomNav.set(path === '/logo-quiz');
+    this.isHome.set(this.router.url.split('?')[0] === '/');
     this.routeSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe(e => {
-        const p = e.urlAfterRedirects.split('?')[0];
-        this.isHome.set(p === '/');
-        this.hideBottomNav.set(p === '/logo-quiz');
-      });
+      .subscribe(e => this.isHome.set(e.urlAfterRedirects.split('?')[0] === '/'));
   }
 
   ngOnDestroy(): void {

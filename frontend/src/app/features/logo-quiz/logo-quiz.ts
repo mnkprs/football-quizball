@@ -4,6 +4,7 @@ import {
   signal,
   computed,
   inject,
+  effect,
   DestroyRef,
   OnDestroy,
 } from '@angular/core';
@@ -25,6 +26,7 @@ import { createReportCooldown } from '../../core/report-cooldown';
 import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
 import { AnalyticsService } from '../../core/analytics.service';
+import { ShellUiService } from '../../core/shell-ui.service';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 
@@ -47,6 +49,7 @@ export class LogoQuizComponent implements OnDestroy {
   private adService = inject(AdService);
   protected proService = inject(ProService);
   private analytics = inject(AnalyticsService);
+  private shellUi = inject(ShellUiService);
   lang = inject(LanguageService);
 
   // State
@@ -85,6 +88,11 @@ export class LogoQuizComponent implements OnDestroy {
   // Hardcore mode
   hardcoreMode = signal(false);
 
+  // Animation triggers
+  eloBumped = signal(false);
+  scoreTicked = signal(false);
+  deltaRefreshed = signal(false);
+
   // Timer
   private timer = createGameTimer();
   timeLeft = this.timer.timeLeft;
@@ -113,6 +121,11 @@ export class LogoQuizComponent implements OnDestroy {
   });
 
   constructor() {
+    // Hide bottom nav when not in lobby
+    effect(() => {
+      this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
+    });
+
     // Preload team names
     this.api.getTeamNames().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(names => this.teamNames.set(names));
     // Load logo quiz ELO from profile store (separate from solo ELO)
@@ -171,6 +184,7 @@ export class LogoQuizComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.timer.destroy();
     this.reportCooldown.destroy();
+    this.shellUi.hideBottomNav.set(false);
   }
 
   async startPlaying(): Promise<void> {
@@ -226,6 +240,7 @@ export class LogoQuizComponent implements OnDestroy {
         original_image_url: q.original_image_url,
       });
       this.revealing.set(true);
+      this.pulseHeaderAnimations(result.correct);
       if (result.elo_capped && !localStorage.getItem(this.MASTERY_DISMISSED_KEY)) {
         this.showMasteryUpsell.set(true);
       }
@@ -257,6 +272,7 @@ export class LogoQuizComponent implements OnDestroy {
         original_image_url: q.original_image_url,
       });
       this.revealing.set(true);
+      this.pulseHeaderAnimations(false);
       if (result.elo_capped && !localStorage.getItem(this.MASTERY_DISMISSED_KEY)) {
         this.showMasteryUpsell.set(true);
       }
@@ -299,6 +315,22 @@ export class LogoQuizComponent implements OnDestroy {
           }
         },
       });
+    }
+  }
+
+  private pulseHeaderAnimations(correct: boolean): void {
+    // ELO bump — always fires since ELO always changes
+    this.eloBumped.set(true);
+    setTimeout(() => this.eloBumped.set(false), 400);
+
+    // Delta refresh — re-trigger pop on subsequent answers
+    this.deltaRefreshed.set(true);
+    setTimeout(() => this.deltaRefreshed.set(false), 350);
+
+    // Score tick — only on correct answers
+    if (correct) {
+      this.scoreTicked.set(true);
+      setTimeout(() => this.scoreTicked.set(false), 300);
     }
   }
 
