@@ -17,6 +17,8 @@ export class NotificationsComponent implements OnInit {
   readonly groups = signal<NotificationGroup[]>([]);
   readonly loading = signal(true);
   readonly empty = signal(false);
+  readonly error = signal(false);
+  private busy = false;
 
   async ngOnInit() {
     await this.loadNotifications();
@@ -24,28 +26,49 @@ export class NotificationsComponent implements OnInit {
 
   private async loadNotifications() {
     this.loading.set(true);
-    const all = await this.notificationsApi.fetchNotifications();
-    this.groups.set(this.notificationsApi.groupByTime(all));
-    this.empty.set(all.length === 0);
+    this.error.set(false);
+    try {
+      const all = await this.notificationsApi.fetchNotifications();
+      this.groups.set(this.notificationsApi.groupByTime(all));
+      this.empty.set(all.length === 0);
+    } catch {
+      this.error.set(true);
+    }
     this.loading.set(false);
   }
 
+  async retry() {
+    await this.loadNotifications();
+  }
+
   async onTapNotification(notification: AppNotification) {
-    await this.notificationsApi.markAsRead(notification);
-    this.groups.update((groups) =>
-      groups.map((g) => ({
-        ...g,
-        notifications: g.notifications.map((n) =>
-          n.id === notification.id ? { ...n, read: true } : n,
-        ),
-      })),
-    );
-    this.router.navigateByUrl(notification.route);
+    if (this.busy) return;
+    this.busy = true;
+    try {
+      await this.notificationsApi.markAsRead(notification);
+      this.groups.update((groups) =>
+        groups.map((g) => ({
+          ...g,
+          notifications: g.notifications.map((n) =>
+            n.id === notification.id ? { ...n, read: true } : n,
+          ),
+        })),
+      );
+      this.router.navigateByUrl(notification.route);
+    } finally {
+      this.busy = false;
+    }
   }
 
   async markAllRead() {
-    await this.notificationsApi.markAllAsRead();
-    await this.loadNotifications();
+    if (this.busy) return;
+    this.busy = true;
+    try {
+      await this.notificationsApi.markAllAsRead();
+      await this.loadNotifications();
+    } finally {
+      this.busy = false;
+    }
   }
 
   goBack() {
