@@ -1,0 +1,43 @@
+<div class="notifications-page">
+  <div class="notifications-header">
+    <div class="notifications-header__left">
+      <button class="notifications-back-btn pressable" (click)="goBack()">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <h1 class="notifications-title">Notifications</h1>
+    </div>
+    <button class="notifications-mark-all pressable" (click)="markAllRead()">Mark all read</button>
+  </div>
+
+  @if (loading()) {
+    <div class="notifications-loading">
+      <span class="material-icons notifications-spinner">sync</span>
+    </div>
+  } @else if (empty()) {
+    <div class="notifications-empty">
+      <span class="notifications-empty__icon">⚽</span>
+      <p class="notifications-empty__text">You're all caught up!</p>
+    </div>
+  } @else {
+    <div class="notifications-feed">
+      @for (group of groups(); track group.label) {
+        <div class="notifications-group">
+          <div class="notifications-group__label">{{ group.label }}</div>
+          @for (n of group.notifications; track n.id) {
+            <button class="notification-card pressable" [class.notification-card--unread]="!n.read" (click)="onTapNotification(n)">
+              <div class="notification-card__icon">{{ n.icon }}</div>
+              <div class="notification-card__content">
+                <div class="notification-card__title">{{ n.title }}</div>
+                <div class="notification-card__body">{{ n.body }}</div>
+                <div class="notification-card__time">{{ relativeTime(n.createdAt) }}</div>
+              </div>
+              @if (!n.read) {
+                <div class="notification-card__dot"></div>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
