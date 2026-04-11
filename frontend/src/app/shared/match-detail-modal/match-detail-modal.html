@@ -68,8 +68,8 @@
           </div>
         }
 
-        <!-- ─── ONLINE: Player Stats + Category Breakdown ─── -->
-        @if (d.game_ref_type === 'online' && d.players && d.players.length >= 2) {
+        <!-- ─── ONLINE / LOCAL: Player Stats + Category Breakdown ─── -->
+        @if ((d.game_ref_type === 'online' || d.game_ref_type === 'local') && d.players && d.players.length >= 2) {
           <div class="detail-section">
             <h3 class="detail-section__title">Player Stats</h3>
             <div class="player-stats">

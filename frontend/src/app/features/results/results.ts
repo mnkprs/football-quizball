@@ -38,6 +38,7 @@ export class ResultsComponent implements OnInit {
     const p1 = ps[0];
     const p2 = ps[1];
 
+    const gameId = this.store.gameId();
     firstValueFrom(this.matchHistoryApi.saveMatch({
       player1_id: userId,
       player2_id: null, // local game, p2 is a guest
@@ -47,6 +48,8 @@ export class ResultsComponent implements OnInit {
       player1_score: p1.score,
       player2_score: p2.score,
       match_mode: 'local',
+      game_ref_id: gameId ?? undefined,
+      game_ref_type: gameId ? 'local' : undefined,
     })).catch(() => {}); // fire and forget
   }
 

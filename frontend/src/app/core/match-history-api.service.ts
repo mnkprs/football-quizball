@@ -27,6 +27,8 @@ export interface SaveMatchPayload {
   player1_score: number;
   player2_score: number;
   match_mode: 'local' | 'online';
+  game_ref_id?: string;
+  game_ref_type?: string;
 }
 
 export interface DuelQuestionDetail {

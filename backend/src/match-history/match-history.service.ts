@@ -1,7 +1,10 @@
 import { Injectable, Logger, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { CacheService } from '../cache/cache.service';
 import type { MatchDetail } from '../common/interfaces/match.interface';
+import type { GameSession } from '../common/interfaces/game.interface';
+import { CATEGORY_LABELS } from '../questions/question.types';
 
 @Injectable()
 export class MatchHistoryService {
@@ -10,6 +13,7 @@ export class MatchHistoryService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly achievementsService: AchievementsService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async saveMatch(
@@ -23,11 +27,17 @@ export class MatchHistoryService {
       player1_score: number;
       player2_score: number;
       match_mode: 'local' | 'online';
+      game_ref_id?: string;
+      game_ref_type?: string;
     },
   ): Promise<void> {
     if (match.player1_id !== requestingUserId) throw new UnauthorizedException();
 
-    const saved = await this.supabaseService.saveMatchResult(match);
+    const saved = await this.supabaseService.saveMatchResult({
+      ...match,
+      game_ref_id: match.game_ref_id ?? undefined,
+      game_ref_type: match.game_ref_type ?? undefined,
+    });
     if (!saved) {
       this.logger.error(`[saveMatch] Failed to save match for user ${requestingUserId}`);
       return;
@@ -85,6 +95,33 @@ export class MatchHistoryService {
               if (seen.has(cat)) return null;
               seen.add(cat);
               return { key: cat, label: cat };
+            }).filter(Boolean) as Array<{ key: string; label: string }>;
+          }
+          break;
+        }
+        case 'local': {
+          const session = await this.cacheService.get<GameSession>(`game:${match.game_ref_id}`);
+          if (session) {
+            detail.players = session.players.map((p) => ({
+              name: p.name,
+              score: p.score,
+              lifelineUsed: p.lifelineUsed,
+              doubleUsed: p.doubleUsed,
+            }));
+            detail.board = session.board.map((row) =>
+              row.map((c) => ({
+                category: c.category,
+                difficulty: c.difficulty,
+                points: c.points_awarded ?? c.points ?? 0,
+                answered_by: c.answered_by,
+              })),
+            );
+            const seen = new Set<string>();
+            detail.categories = session.board.map((row) => {
+              const cat = row[0]?.category ?? '';
+              if (seen.has(cat)) return null;
+              seen.add(cat);
+              return { key: cat, label: CATEGORY_LABELS[cat] ?? cat };
             }).filter(Boolean) as Array<{ key: string; label: string }>;
           }
           break;

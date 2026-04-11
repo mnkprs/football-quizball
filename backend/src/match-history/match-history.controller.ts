@@ -19,6 +19,8 @@ export class MatchHistoryController {
       player1_score: number;
       player2_score: number;
       match_mode: 'local' | 'online';
+      game_ref_id?: string;
+      game_ref_type?: string;
     },
   ) {
     await this.matchHistoryService.saveMatch(req.user.sub, body);
