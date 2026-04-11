@@ -27,8 +27,6 @@ export class ResultsComponent implements OnInit {
   players = this.store.players;
 
   ngOnInit(): void {
-    // Delay upgrade prompt so users can see their results first
-    setTimeout(() => { if (!this.pro.isPro()) this.pro.showUpgradeModal.set(true); }, 3000);
     this.saveMatchResult();
   }
 

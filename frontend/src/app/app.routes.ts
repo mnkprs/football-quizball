@@ -16,6 +16,7 @@ export const routes: Routes = [
       { path: 'logo-quiz', loadComponent: () => import('./features/logo-quiz/logo-quiz').then(m => m.LogoQuizComponent), canActivate: [authGuard] },
       { path: 'daily', loadComponent: () => import('./features/daily/daily').then(m => m.DailyComponent) },
       { path: 'leaderboard', loadComponent: () => import('./features/leaderboard/leaderboard').then(m => m.LeaderboardComponent) },
+      { path: 'notifications', loadComponent: () => import('./features/notifications/notifications').then(m => m.NotificationsComponent), canActivate: [authGuard] },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
       { path: 'profile/:userId', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },
       { path: 'duel', loadComponent: () => import('./features/duel/duel-lobby').then(m => m.DuelLobbyComponent), canActivate: [authGuard] },

@@ -1,0 +1,66 @@
+<div class="notifications-page" role="main" aria-label="Notifications">
+  <div class="notifications-header anim-fade-down">
+    <div class="notifications-header__left">
+      <button class="notifications-back-btn pressable" aria-label="Go back" (click)="goBack()">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <h1 class="notifications-title">Notifications</h1>
+    </div>
+    <button class="notifications-mark-all pressable" (click)="markAllRead()" aria-label="Mark all notifications as read">Mark all read</button>
+  </div>
+
+  @if (loading()) {
+    <div class="notifications-skeleton anim-fade-in" role="status" aria-label="Loading notifications">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-card" [style.--skeleton-delay]="(i * 100) + 'ms'">
+          <div class="skeleton-icon"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line skeleton-line--title"></div>
+            <div class="skeleton-line skeleton-line--body"></div>
+            <div class="skeleton-line skeleton-line--time"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="notifications-error anim-fade-in" role="alert">
+      <span class="notifications-error__icon">📡</span>
+      <p class="notifications-error__text">Lost connection to the pitch</p>
+      <button class="notifications-error__retry pressable" (click)="retry()">Reconnect</button>
+    </div>
+  } @else if (empty()) {
+    <div class="notifications-empty anim-fade-in" role="status">
+      <span class="notifications-empty__icon anim-kick">⚽</span>
+      <p class="notifications-empty__title">Clean sheet</p>
+      <p class="notifications-empty__text">No new activity. Go earn some notifications.</p>
+    </div>
+  } @else {
+    <div class="notifications-feed" role="list" aria-label="Notification list" aria-live="polite">
+      @for (group of groups(); track group.label; let gi = $index) {
+        <div class="notifications-group anim-fade-up" [style.--stagger-delay]="(gi * 60) + 'ms'" role="group" [attr.aria-label]="group.label">
+          <div class="notifications-group__label" aria-hidden="true">{{ group.label }}</div>
+          @for (n of group.notifications; track n.id; let i = $index) {
+            <button
+              class="notification-card pressable anim-fade-up"
+              [style.--stagger-delay]="(gi * 60 + (i + 1) * 40) + 'ms'"
+              role="listitem"
+              [class.notification-card--unread]="!n.read"
+              [attr.data-type]="n.type"
+              [attr.aria-label]="(n.read ? '' : 'Unread: ') + n.title + '. ' + n.body"
+              (click)="onTapNotification(n)">
+              <div class="notification-card__icon" aria-hidden="true">{{ n.icon }}</div>
+              <div class="notification-card__content">
+                <div class="notification-card__title">{{ n.title }}</div>
+                <div class="notification-card__body">{{ n.body }}</div>
+                <div class="notification-card__time">{{ relativeTime(n.createdAt) }}</div>
+              </div>
+              @if (!n.read) {
+                <div class="notification-card__dot" aria-hidden="true"></div>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

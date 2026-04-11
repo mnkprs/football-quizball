@@ -7,6 +7,7 @@ import { SoloQuestionGenerator } from './solo-question.generator';
 import { SoloSession, SoloAnswerResult, TIME_LIMITS } from './solo.types';
 import { AnswerValidator } from '../questions/validators/answer.validator';
 import { AchievementsService } from '../achievements/achievements.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const SESSION_TTL = 7200; // 2h
 
@@ -22,9 +23,49 @@ export class SoloService {
     private readonly generator: SoloQuestionGenerator,
     private readonly answerValidator: AnswerValidator,
     private readonly achievementsService: AchievementsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private sessionKey(id: string) { return `solo:${id}`; }
+
+  private async checkLeaderboardDisplacement(userId: string, oldElo: number, newElo: number): Promise<void> {
+    // Only check if ELO actually increased
+    if (newElo <= oldElo) return;
+
+    const top10 = await this.supabaseService.getLeaderboard(10);
+
+    // Find the user directly displaced: highest ELO in top 10 that is
+    // below newElo but was above oldElo (i.e., someone we actually passed)
+    const displaced = top10.find(
+      (entry) => entry.id !== userId && entry.elo < newElo && entry.elo >= oldElo,
+    );
+
+    if (!displaced) return;
+
+    // Dedup: check if we already notified this user about being displaced by us recently
+    const existing = await this.supabaseService.client
+      .from('notifications')
+      .select('id')
+      .eq('user_id', displaced.id)
+      .eq('type', 'leaderboard_displaced')
+      .gte('created_at', new Date(Date.now() - 24 * 3600000).toISOString())
+      .limit(1);
+
+    if (existing.data && existing.data.length > 0) return;
+
+    const profile = await this.supabaseService.getProfile(userId);
+    const username = profile?.username ?? 'Someone';
+
+    await this.notificationsService.create({
+      userId: displaced.id,
+      type: 'leaderboard_displaced',
+      title: `You were overtaken on Solo!`,
+      body: `${username} passed you with ${newElo} ELO`,
+      icon: '🏆',
+      route: '/leaderboard',
+      metadata: { displacedBy: userId, displacedByName: username, newElo },
+    });
+  }
 
   private async getSession(sessionId: string): Promise<SoloSession> {
     const session = await this.sessionStore.get<SoloSession>(this.sessionKey(sessionId));
@@ -215,8 +256,30 @@ export class SoloService {
           perfectSoloSession: perfectSession,
         });
         newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
+
+        // Fire-and-forget: send achievement notifications
+        for (const ach of newlyUnlocked) {
+          void this.notificationsService.create({
+            userId,
+            type: 'achievement_unlocked',
+            title: 'Achievement unlocked!',
+            body: `${ach.name} — ${ach.description}`,
+            icon: ach.icon || '🏅',
+            route: '/profile',
+            metadata: { achievementId: ach.id, achievementName: ach.name },
+          }).catch((err) =>
+            this.logger.warn(`[endSession] achievement notification failed: ${err?.message}`),
+          );
+        }
       }
     } catch { /* don't break session end if achievements fail */ }
+
+    // Fire-and-forget: check leaderboard displacement (once per session, not per answer)
+    if (session.currentElo !== session.userElo) {
+      void this.checkLeaderboardDisplacement(userId, session.userElo, session.currentElo).catch((err) =>
+        this.logger.warn(`[endSession] leaderboard displacement check failed: ${err?.message}`),
+      );
+    }
 
     this.logger.debug(JSON.stringify({
       event: 'session_end',
