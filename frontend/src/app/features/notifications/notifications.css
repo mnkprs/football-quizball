@@ -23,10 +23,6 @@
   animation: fadeIn 250ms var(--ease-out-quart) both;
 }
 
-.anim-float {
-  animation: float 4s ease-in-out infinite;
-}
-
 .anim-kick {
   display: inline-block;
   animation: kick 3s var(--ease-out-expo) infinite;
@@ -50,11 +46,6 @@
   from { opacity: 0; }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
 @keyframes kick {
   0%, 85%, 100% { transform: translateY(0) rotate(0deg); }
   90% { transform: translateY(-16px) rotate(-15deg); }
@@ -68,7 +59,6 @@
     animation: none;
   }
 
-  .anim-float,
   .anim-kick {
     animation: none;
   }
@@ -85,6 +75,7 @@
   top: 3.75rem;
   z-index: 10;
   background: var(--color-bg);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .notifications-header__left {
@@ -104,7 +95,7 @@
   color: var(--color-fg-label);
   cursor: pointer;
   border-radius: var(--radius-md);
-  transition: color 0.15s, background 0.15s;
+  transition: color 0.15s var(--ease-out-quart), background 0.15s var(--ease-out-quart);
 }
 
 .notifications-back-btn:active {
@@ -140,7 +131,7 @@
   min-height: 2.75rem;
   display: flex;
   align-items: center;
-  transition: color 0.15s, background 0.15s;
+  transition: color 0.15s var(--ease-out-quart), background 0.15s var(--ease-out-quart);
 }
 
 .notifications-mark-all:active {
@@ -169,6 +160,10 @@
   border-bottom: 1px solid var(--glass-border);
   animation: skeletonPulse 1.5s ease-in-out infinite;
   animation-delay: var(--skeleton-delay, 0ms);
+}
+
+.skeleton-card:last-child {
+  border-bottom: none;
 }
 
 .skeleton-icon {
@@ -240,16 +235,16 @@
   text-transform: uppercase;
   color: var(--color-accent);
   background: var(--color-accent-bg);
-  border: 1px solid rgba(0, 122, 255, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 20%, transparent);
   border-radius: var(--radius-lg);
   padding: 0.625rem 1.5rem;
   min-height: 2.75rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s var(--ease-out-quart);
 }
 
 .notifications-error__retry:active {
-  background: rgba(0, 122, 255, 0.25);
+  background: color-mix(in srgb, var(--color-accent) 25%, transparent);
 }
 
 .notifications-error__retry:focus-visible {
@@ -338,11 +333,11 @@
   margin: 0 -1.25rem;
   padding-left: 1.25rem;
   padding-right: 1.25rem;
-  border-bottom-color: rgba(0, 122, 255, 0.08);
+  border-bottom-color: color-mix(in srgb, var(--color-accent) 8%, transparent);
 }
 
 .notification-card--unread:active {
-  background: rgba(0, 122, 255, 0.2);
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
 /* ── Card: Icon ─────────────────────────────────────────── */
