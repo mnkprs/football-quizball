@@ -23,7 +23,7 @@
 .spinning {
   animation: spin 1s linear infinite;
   display: inline-block;
-  font-size: 2rem;
+  font-size: var(--text-3xl);
 }
 
 /* ============================================
@@ -41,12 +41,12 @@
 }
 
 .br-play__waiting-icon {
-  font-size: 2rem;
+  font-size: var(--text-3xl);
   color: var(--color-accent);
 }
 
 .br-play__waiting-header h2 {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 800;
   margin: 0;
 }
@@ -60,7 +60,7 @@
 }
 
 .br-play__room-code-label {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -69,9 +69,9 @@
 }
 
 .br-play__room-code-value {
-  font-size: 2.5rem;
+  font-size: var(--text-4xl);
   font-weight: 900;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   letter-spacing: 0.25em;
   color: var(--color-accent);
   margin: 0 0 0.25rem;
@@ -79,7 +79,7 @@
 }
 
 .br-play__room-code-hint {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--color-muted-foreground);
   margin: 0;
 }
@@ -114,7 +114,7 @@
 }
 
 .br-play__copy-btn .material-icons {
-  font-size: 1rem;
+  font-size: var(--text-md);
 }
 
 .br-play__copy-btn:active { transform: scale(0.95); }
@@ -126,7 +126,7 @@
 }
 
 .br-play__player-list-label {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -149,7 +149,7 @@
 }
 
 .br-play__player-row .material-icons {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   color: var(--color-muted-foreground);
 }
 
@@ -191,7 +191,7 @@
 }
 
 .br-play__team-column h4 {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -205,7 +205,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 600;
   padding: 0.375rem 0;
   color: var(--color-foreground);
@@ -218,7 +218,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 800;
   flex-shrink: 0;
 }
@@ -257,7 +257,7 @@
 
 .br-play__waiting-hint {
   text-align: center;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-muted-foreground);
   margin-top: 1rem;
 }
@@ -346,7 +346,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 2rem;
   padding: 0.25rem 0.75rem;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -357,12 +357,12 @@
 }
 
 .br-play__score-pill .material-icons {
-  font-size: 1rem;
+  font-size: var(--text-md);
   color: var(--color-accent);
 }
 
 .br-play__timer-pill .material-icons {
-  font-size: 1rem;
+  font-size: var(--text-md);
   color: var(--color-muted-foreground);
 }
 
@@ -382,7 +382,7 @@
 }
 
 .br-play__q-index {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -391,7 +391,7 @@
 }
 
 .br-play__q-text {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 800;
   line-height: 1.35;
   margin: 0 0 1rem;
@@ -399,7 +399,7 @@
 
 /* ── Career path (PLAYER_ID — classic mode) ── */
 .br-play__q-label {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -443,7 +443,7 @@
 }
 
 .br-play__career-arrow {
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-accent);
   margin: 0.1rem 0;
   opacity: 0.7;
@@ -487,7 +487,7 @@
   backdrop-filter: blur(var(--glass-blur-sm));
   border: 1px solid var(--glass-border);
   color: var(--color-foreground);
-  font-size: 1rem;
+  font-size: var(--text-md);
   outline: none;
   width: 100%;
   box-sizing: border-box;
@@ -540,7 +540,7 @@
   background: var(--color-accent);
   color: var(--color-accent-foreground);
   font-weight: 700;
-  font-size: 1rem;
+  font-size: var(--text-md);
   border: none;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s;
@@ -577,7 +577,7 @@
 }
 
 .br-play__speed-bonus {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   opacity: 0.75;
   margin-left: 0.25rem;
@@ -623,9 +623,9 @@
 }
 
 .br-play__choice-btn--wrong {
-  border-color: #ef4444 !important;
+  border-color: var(--color-red) !important;
   background: rgba(239, 68, 68, 0.1) !important;
-  color: #f87171 !important;
+  color: var(--color-error-light) !important;
   animation: wrong-shake-tight 400ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
 }
 
@@ -641,7 +641,7 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -650,7 +650,7 @@
 }
 
 .br-play__lb-title .material-icons {
-  font-size: 1rem;
+  font-size: var(--text-md);
   color: var(--color-accent);
 }
 
@@ -666,7 +666,7 @@
 .br-play__team-score {
   padding: 0.375rem 0.75rem;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   backdrop-filter: blur(var(--glass-blur-sm));
 }
@@ -708,7 +708,7 @@
 }
 
 .br-play__lb-rank {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 800;
   color: var(--color-muted-foreground);
   width: 1.75rem;
@@ -726,11 +726,11 @@
 .br-play__lb-score {
   font-weight: 800;
   color: var(--color-accent);
-  font-size: 0.875rem;
+  font-size: var(--text-base);
 }
 
 .br-play__lb-done {
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-muted-foreground);
 }
 
@@ -758,7 +758,7 @@
 }
 
 .br-play__results-header h2 {
-  font-size: 2rem;
+  font-size: var(--text-3xl);
   font-weight: 900;
   font-style: italic;
   text-transform: uppercase;
@@ -780,7 +780,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
   border: 1px solid rgba(230, 168, 0, 0.3);
   border-radius: var(--radius-xl);
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 700;
   color: var(--color-pro);
   box-shadow: var(--glow-gold);
@@ -788,7 +788,7 @@
 }
 
 .br-play__mvp-icon {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   color: var(--color-medal-gold);
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
 }
@@ -800,14 +800,14 @@
 
 .br-play__mvp-score {
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   color: var(--color-muted-foreground);
 }
 
 /* Winning team */
 .br-play__winner {
   text-align: center;
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   font-weight: 900;
   text-transform: uppercase;
   margin-bottom: 1.5rem;
@@ -883,7 +883,7 @@
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 900;
   color: #000000;
 }
@@ -904,7 +904,7 @@
 }
 
 .br-play__result-rank-number {
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--color-muted-foreground);
 }
@@ -946,7 +946,7 @@
   background: var(--color-error-surface);
   border: 1px solid var(--color-error-surface-border);
   color: var(--color-error-text);
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 600;
   margin-top: 1rem;
 }

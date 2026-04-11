@@ -46,6 +46,10 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        headline: ['Space Grotesk', 'sans-serif'],
+        numeric: ['Lexend', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+        brand: ['Alfa Slab One', 'serif'],
       },
       animation: {
         'wrong-shake': 'wrong-shake-tight 400ms cubic-bezier(0.25, 1, 0.5, 1)',

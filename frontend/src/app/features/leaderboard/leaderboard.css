@@ -46,7 +46,7 @@
 }
 
 .leaderboard-refresh-btn mat-icon {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   width: 1.25rem;
   height: 1.25rem;
 }
@@ -76,7 +76,7 @@
 }
 
 .leaderboard-info-btn mat-icon {
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   width: 1.25rem;
   height: 1.25rem;
 }
@@ -115,7 +115,7 @@
 }
 
 .your-ranks-label {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -175,13 +175,13 @@
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
-.your-rank-card--logo-hardcore .your-rank-icon { color: #ef4444; }
+.your-rank-card--logo-hardcore .your-rank-icon { color: var(--color-red); }
 
 .your-rank-card--duel {
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
-.your-rank-card--duel .your-rank-icon { color: #ef4444; }
+.your-rank-card--duel .your-rank-icon { color: var(--color-red); }
 
 .your-rank-card:hover { opacity: 0.85; }
 
@@ -190,7 +190,7 @@
   align-items: center;
   flex-shrink: 0;
 }
-.your-rank-icon mat-icon { font-size: 1.25rem; width: 1.25rem; height: 1.25rem; }
+.your-rank-icon mat-icon { font-size: var(--text-xl); width: 1.25rem; height: 1.25rem; }
 
 .your-rank-info {
   display: flex;
@@ -208,7 +208,7 @@
 }
 
 .your-rank-value {
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 800;
   color: var(--mat-sys-on-surface);
 }
@@ -227,7 +227,7 @@
 }
 
 .your-rank-score-label {
-  font-size: 0.5625rem;
+  font-size: var(--text-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -264,7 +264,7 @@
 }
 
 .mode-tab mat-icon {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   width: 1.125rem;
   height: 1.125rem;
 }
@@ -307,7 +307,7 @@
 }
 
 .logo-sub-tab mat-icon {
-  font-size: 1rem;
+  font-size: var(--text-md);
   width: 1rem;
   height: 1rem;
 }
@@ -319,7 +319,7 @@
 }
 
 .logo-sub-tab--hardcore.logo-sub-tab--active {
-  color: #ef4444;
+  color: var(--color-red);
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
 }
 
@@ -358,7 +358,7 @@
   line-height: 1;
 }
 .podium__crown mat-icon {
-  font-size: 1.5rem;
+  font-size: var(--text-2xl);
   width: 1.5rem;
   height: 1.5rem;
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.5));
@@ -371,7 +371,7 @@
   width: 1.5rem;
   height: 1.5rem;
   border-radius: 50%;
-  font-size: 0.6875rem;
+  font-size: var(--text-xs);
   font-weight: 900;
   color: #000000;
   animation: badge-pop 400ms ease-out 500ms both;
@@ -399,7 +399,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   font-weight: 800;
   background: var(--glass-bg-default);
   border: 2px solid var(--glass-border);
@@ -414,7 +414,7 @@
 .podium__spot--gold .podium__avatar {
   width: 3.75rem;
   height: 3.75rem;
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   border-color: rgba(255, 215, 0, 0.5);
   box-shadow: var(--glow-gold), 0 0 30px rgba(230, 168, 0, 0.15);
 }
@@ -435,7 +435,7 @@
 }
 
 .podium__name {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-align: center;
   white-space: nowrap;
@@ -459,14 +459,14 @@
 }
 
 .podium__score {
-  font-size: 1rem;
+  font-size: var(--text-md);
   font-weight: 800;
   color: var(--color-accent);
   text-shadow: 0 0 10px rgba(0, 122, 255, 0.25);
 }
 
 .podium__score-label {
-  font-size: 0.5625rem;
+  font-size: var(--text-2xs);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -605,7 +605,7 @@
 }
 
 .rank-number {
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--mat-sys-on-surface-variant);
 }
@@ -624,7 +624,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: var(--text-base);
   font-weight: 700;
   color: var(--color-fg);
   flex-shrink: 0;
@@ -659,7 +659,7 @@
   padding: 0.125rem 0.375rem;
   background: var(--color-accent);
   color: #000000;
-  font-size: 0.5625rem;
+  font-size: var(--text-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -668,7 +668,7 @@
 }
 
 .leaderboard-meta {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--mat-sys-on-surface-variant);
   margin-top: 0.125rem;
 }
@@ -681,7 +681,7 @@
 
 .leaderboard-score-value {
   display: block;
-  font-size: 1.25rem;
+  font-size: var(--text-xl);
   font-weight: 800;
   color: var(--color-accent);
   letter-spacing: -0.02em;
@@ -714,7 +714,7 @@
 }
 
 .leaderboard-separator-text {
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -736,7 +736,7 @@
 }
 
 .leaderboard-empty mat-icon {
-  font-size: 3rem;
+  font-size: var(--text-5xl);
   width: 3rem;
   height: 3rem;
   color: var(--mat-sys-on-surface-variant);
@@ -760,7 +760,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1100;
+  z-index: var(--z-modal);
   padding: 1rem;
   animation: legend-fade-in 200ms ease-out;
 }
@@ -822,7 +822,7 @@
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s ease;
-  z-index: 1;
+  z-index: var(--z-raised);
 }
 
 .legend-close:hover {
@@ -830,7 +830,7 @@
 }
 
 .legend-close mat-icon {
-  font-size: 1rem;
+  font-size: var(--text-md);
   width: 1rem;
   height: 1rem;
 }
@@ -853,7 +853,7 @@
   font-size: 1.15rem;
   font-weight: 700;
   margin: 0 0 0.25rem;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-headline);
 }
 
 .legend-subtitle {
@@ -907,7 +907,7 @@
 
 .legend-tier-range {
   color: #6b7a8d;
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   white-space: nowrap;
 }
