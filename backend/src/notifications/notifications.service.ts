@@ -90,30 +90,59 @@ export class NotificationsService {
     { title: 'Daily Challenge', body: 'Win a Logo Duel', icon: '⚔️', route: '/duel?mode=logo' },
   ];
 
+  @Cron('0 3 * * *') // 3am UTC daily — also handles retention cleanup
+  async cleanupOldNotifications(): Promise<void> {
+    try {
+      const { error } = await this.supabaseService.client
+        .from('notifications')
+        .delete()
+        .lt('created_at', new Date(Date.now() - 30 * 86400000).toISOString());
+
+      if (error) {
+        this.logger.error(`[cleanup] Failed to delete old notifications: ${error.message}`);
+      } else {
+        this.logger.log('[cleanup] Old notifications cleaned up');
+      }
+    } catch (err) {
+      this.logger.error(`[cleanup] Unexpected error: ${(err as Error)?.message}`);
+    }
+  }
+
   @Cron('0 0 * * *') // midnight UTC daily
   async generateDailyChallenges(): Promise<void> {
     this.logger.log('[generateDailyChallenges] Starting daily challenge generation');
 
     try {
-      // Get users active in the last 7 days
+      // Idempotency: check if we already generated challenges today
+      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+      const { count: existingCount } = await this.supabaseService.client
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'challenge_system')
+        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
+
+      if (existingCount && existingCount > 0) {
+        this.logger.log(`[generateDailyChallenges] Already generated today (${existingCount} existing), skipping`);
+        return;
+      }
+
+      // Get users active in the last 7 days (limit 5000 to avoid OOM)
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       const { data: activeUsers, error } = await this.supabaseService.client
         .from('profiles')
         .select('id')
-        .gte('last_active_date', sevenDaysAgo.split('T')[0]);
+        .gte('last_active_date', sevenDaysAgo.split('T')[0])
+        .limit(5000);
 
       if (error || !activeUsers) {
         this.logger.error(`[generateDailyChallenges] Failed to fetch active users: ${error?.message}`);
         return;
       }
 
-      // Pick today's challenge (rotate by day of year)
-      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
       const template = NotificationsService.CHALLENGE_TEMPLATES[dayOfYear % NotificationsService.CHALLENGE_TEMPLATES.length];
 
       this.logger.log(`[generateDailyChallenges] Sending "${template.body}" to ${activeUsers.length} users`);
 
-      // Batch insert for efficiency
       const rows = activeUsers.map((u: { id: string }) => ({
         user_id: u.id,
         type: 'challenge_system',

@@ -1,7 +1,7 @@
-import { IsString, IsIn, IsOptional } from 'class-validator';
+import { IsString, IsIn, IsOptional, IsUUID, MaxLength } from 'class-validator';
 
 export class ChallengeDto {
-  @IsString()
+  @IsUUID()
   targetUserId: string;
 
   @IsString()
@@ -10,5 +10,6 @@ export class ChallengeDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(200)
   message?: string;
 }

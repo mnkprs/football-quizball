@@ -32,9 +32,8 @@ CREATE POLICY "Users can update own notifications"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- Auto-delete notifications older than 30 days (runs daily at 3am UTC)
-SELECT cron.schedule(
-  'cleanup-old-notifications',
-  '0 3 * * *',
-  $$DELETE FROM notifications WHERE created_at < now() - interval '30 days'$$
-);
+-- Retention cleanup: notifications older than 30 days are deleted.
+-- If pg_cron is enabled in your Supabase project, run this manually in the SQL editor:
+--   SELECT cron.schedule('cleanup-old-notifications', '0 3 * * *',
+--     $$DELETE FROM notifications WHERE created_at < now() - interval '30 days'$$);
+-- Otherwise the NestJS backend handles cleanup via a daily cron job.

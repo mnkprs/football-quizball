@@ -48,6 +48,15 @@ export class NotificationsController {
   @Post('challenge')
   @UseGuards(AuthGuard)
   async sendChallenge(@Req() req: AuthenticatedRequest, @Body() body: ChallengeDto) {
+    if (body.targetUserId === req.user.id) {
+      return { success: false, error: 'Cannot challenge yourself' };
+    }
+
+    const target = await this.supabaseService.getProfile(body.targetUserId);
+    if (!target) {
+      return { success: false, error: 'User not found' };
+    }
+
     const challenger = await this.supabaseService.getProfile(req.user.id);
     const challengerName = challenger?.username ?? 'Someone';
     const modeLabel = body.gameType === 'logo' ? 'Logo Duel' : 'Standard Duel';

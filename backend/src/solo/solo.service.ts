@@ -28,24 +28,33 @@ export class SoloService {
 
   private sessionKey(id: string) { return `solo:${id}`; }
 
-  private async checkLeaderboardDisplacement(userId: string, newElo: number): Promise<void> {
-    // Get top 10 leaderboard
+  private async checkLeaderboardDisplacement(userId: string, oldElo: number, newElo: number): Promise<void> {
+    // Only check if ELO actually increased
+    if (newElo <= oldElo) return;
+
     const top10 = await this.supabaseService.getLeaderboard(10);
 
-    // Find users who are now ranked below the current user
-    // (their ELO is less than newElo, and they were in top 10)
-    const displacedUsers = top10.filter(
-      (entry) => entry.id !== userId && entry.elo < newElo,
+    // Find the user directly displaced: highest ELO in top 10 that is
+    // below newElo but was above oldElo (i.e., someone we actually passed)
+    const displaced = top10.find(
+      (entry) => entry.id !== userId && entry.elo < newElo && entry.elo >= oldElo,
     );
 
-    if (displacedUsers.length === 0) return;
+    if (!displaced) return;
 
-    // Get current user's profile for username
+    // Dedup: check if we already notified this user about being displaced by us recently
+    const existing = await this.supabaseService.client
+      .from('notifications')
+      .select('id')
+      .eq('user_id', displaced.id)
+      .eq('type', 'leaderboard_displaced')
+      .gte('created_at', new Date(Date.now() - 24 * 3600000).toISOString())
+      .limit(1);
+
+    if (existing.data && existing.data.length > 0) return;
+
     const profile = await this.supabaseService.getProfile(userId);
     const username = profile?.username ?? 'Someone';
-
-    // Only notify the user who was directly displaced (the one just below)
-    const displaced = displacedUsers[displacedUsers.length - 1];
 
     await this.notificationsService.create({
       userId: displaced.id,
@@ -173,11 +182,6 @@ export class SoloService {
         timed_out: timedOut,
       }),
     ]);
-    // Fire-and-forget: check leaderboard displacement
-    void this.checkLeaderboardDisplacement(userId, eloAfter).catch((err) =>
-      this.logger.warn(`[submitAnswer] leaderboard displacement check failed: ${err?.message}`),
-    );
-
     this.logger.debug(JSON.stringify({
       event: 'answer_submitted',
       userId,
@@ -269,6 +273,13 @@ export class SoloService {
         }
       }
     } catch { /* don't break session end if achievements fail */ }
+
+    // Fire-and-forget: check leaderboard displacement (once per session, not per answer)
+    if (session.currentElo !== session.userElo) {
+      void this.checkLeaderboardDisplacement(userId, session.userElo, session.currentElo).catch((err) =>
+        this.logger.warn(`[endSession] leaderboard displacement check failed: ${err?.message}`),
+      );
+    }
 
     this.logger.debug(JSON.stringify({
       event: 'session_end',

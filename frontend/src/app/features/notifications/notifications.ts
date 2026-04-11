@@ -32,8 +32,14 @@ export class NotificationsComponent implements OnInit {
 
   async onTapNotification(notification: AppNotification) {
     await this.notificationsApi.markAsRead(notification);
-    notification.read = true;
-    this.groups.update((g) => [...g]);
+    this.groups.update((groups) =>
+      groups.map((g) => ({
+        ...g,
+        notifications: g.notifications.map((n) =>
+          n.id === notification.id ? { ...n, read: true } : n,
+        ),
+      })),
+    );
     this.router.navigateByUrl(notification.route);
   }
 
