@@ -7,6 +7,7 @@ import { SoloQuestionGenerator } from './solo-question.generator';
 import { SoloSession, SoloAnswerResult, TIME_LIMITS } from './solo.types';
 import { AnswerValidator } from '../questions/validators/answer.validator';
 import { AchievementsService } from '../achievements/achievements.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const SESSION_TTL = 7200; // 2h
 
@@ -22,9 +23,40 @@ export class SoloService {
     private readonly generator: SoloQuestionGenerator,
     private readonly answerValidator: AnswerValidator,
     private readonly achievementsService: AchievementsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   private sessionKey(id: string) { return `solo:${id}`; }
+
+  private async checkLeaderboardDisplacement(userId: string, newElo: number): Promise<void> {
+    // Get top 10 leaderboard
+    const top10 = await this.supabaseService.getLeaderboard(10);
+
+    // Find users who are now ranked below the current user
+    // (their ELO is less than newElo, and they were in top 10)
+    const displacedUsers = top10.filter(
+      (entry) => entry.id !== userId && entry.elo < newElo,
+    );
+
+    if (displacedUsers.length === 0) return;
+
+    // Get current user's profile for username
+    const profile = await this.supabaseService.getProfile(userId);
+    const username = profile?.username ?? 'Someone';
+
+    // Only notify the user who was directly displaced (the one just below)
+    const displaced = displacedUsers[displacedUsers.length - 1];
+
+    await this.notificationsService.create({
+      userId: displaced.id,
+      type: 'leaderboard_displaced',
+      title: `You were overtaken on Solo!`,
+      body: `${username} passed you with ${newElo} ELO`,
+      icon: '🏆',
+      route: '/leaderboard',
+      metadata: { displacedBy: userId, displacedByName: username, newElo },
+    });
+  }
 
   private async getSession(sessionId: string): Promise<SoloSession> {
     const session = await this.sessionStore.get<SoloSession>(this.sessionKey(sessionId));
@@ -141,6 +173,11 @@ export class SoloService {
         timed_out: timedOut,
       }),
     ]);
+    // Fire-and-forget: check leaderboard displacement
+    void this.checkLeaderboardDisplacement(userId, eloAfter).catch((err) =>
+      this.logger.warn(`[submitAnswer] leaderboard displacement check failed: ${err?.message}`),
+    );
+
     this.logger.debug(JSON.stringify({
       event: 'answer_submitted',
       userId,
@@ -215,6 +252,21 @@ export class SoloService {
           perfectSoloSession: perfectSession,
         });
         newlyUnlocked = await this.achievementsService.getByIds(awardedIds);
+
+        // Fire-and-forget: send achievement notifications
+        for (const ach of newlyUnlocked) {
+          void this.notificationsService.create({
+            userId,
+            type: 'achievement_unlocked',
+            title: 'Achievement unlocked!',
+            body: `${ach.name} — ${ach.description}`,
+            icon: ach.icon || '🏅',
+            route: '/profile',
+            metadata: { achievementId: ach.id, achievementName: ach.name },
+          }).catch((err) =>
+            this.logger.warn(`[endSession] achievement notification failed: ${err?.message}`),
+          );
+        }
       }
     } catch { /* don't break session end if achievements fail */ }
 
