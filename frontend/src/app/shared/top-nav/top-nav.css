@@ -322,6 +322,50 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
+.top-nav__bell-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.top-nav__bell-btn .material-icons {
+  font-size: 1.125rem;
+}
+
+.top-nav__bell-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.top-nav__bell-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  background: #FF3B30;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  padding: 0 4px;
+  border: 2px solid var(--color-surface, rgba(10, 10, 20, 0.95));
+  line-height: 1;
+}
+
 /* ============================================
    Settings panel (unchanged)
    ============================================ */

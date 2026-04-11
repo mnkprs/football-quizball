@@ -58,6 +58,12 @@
     </div>
 
     <div class="top-nav__right">
+      <button class="top-nav__bell-btn pressable" aria-label="Notifications" routerLink="/notifications">
+        <span class="material-icons">notifications</span>
+        @if (notificationsApi.unreadCount() > 0) {
+          <span class="top-nav__bell-badge">{{ notificationsApi.unreadCount() > 9 ? '9+' : notificationsApi.unreadCount() }}</span>
+        }
+      </button>
       <button class="top-nav__settings-btn pressable" aria-label="Settings" (click)="toggleSettings()">
         <span class="material-icons">settings</span>
       </button>

@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
+import { NotificationsApiService } from '../../core/notifications-api.service';
 import { LanguageService } from '../../core/language.service';
 import { ThemeService } from '../../core/theme.service';
 import { ProService } from '../../core/pro.service';
@@ -26,6 +27,7 @@ export class TopNavComponent implements OnInit {
   theme = inject(ThemeService);
   pro = inject(ProService);
   store = inject(ProfileStore);
+  readonly notificationsApi = inject(NotificationsApiService);
   private authModal = inject(AuthModalService);
   private router = inject(Router);
   private injector = inject(Injector);
@@ -109,6 +111,7 @@ export class TopNavComponent implements OnInit {
         this.pro.ensureLoaded();
       }
     }, { injector: this.injector });
+    this.notificationsApi.refreshUnreadCount();
   }
 
   openAuth(): void { this.authModal.open(); }
