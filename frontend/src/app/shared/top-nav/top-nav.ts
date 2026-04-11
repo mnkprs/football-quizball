@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal, effect, HostListener, OnInit, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, signal, effect, HostListener, OnInit, Injector, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { A11yModule } from '@angular/cdk/a11y';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
@@ -16,7 +17,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-top-nav',
   standalone: true,
-  imports: [RouterLink, ConfirmModalComponent, NgOptimizedImage],
+  imports: [RouterLink, ConfirmModalComponent, NgOptimizedImage, A11yModule],
   templateUrl: './top-nav.html',
   styleUrl: './top-nav.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +40,9 @@ export class TopNavComponent implements OnInit {
   upgrading = signal(false);
   showDeleteConfirm = signal(false);
   deleting = signal(false);
+  deleteError = signal<string | null>(null);
+
+  private settingsTriggerEl: HTMLElement | null = null;
 
   // Edit profile panel
   editPanelOpen = signal(false);
@@ -117,6 +121,9 @@ export class TopNavComponent implements OnInit {
   openAuth(): void { this.authModal.open(); }
 
   toggleSettings(): void {
+    if (!this.settingsOpen()) {
+      this.settingsTriggerEl = document.activeElement as HTMLElement;
+    }
     this.settingsOpen.update(v => !v);
     if (this.settingsOpen() && this.auth.isLoggedIn()) {
       this.pro.ensureLoaded();
@@ -126,6 +133,9 @@ export class TopNavComponent implements OnInit {
   closeSettings(): void {
     this.settingsOpen.set(false);
     this.editPanelOpen.set(false);
+    this.deleteError.set(null);
+    this.settingsTriggerEl?.focus();
+    this.settingsTriggerEl = null;
   }
 
   upgrade(): void {
@@ -213,6 +223,7 @@ export class TopNavComponent implements OnInit {
 
   async confirmDeleteAccount(): Promise<void> {
     this.deleting.set(true);
+    this.deleteError.set(null);
     try {
       const token = this.auth.accessToken();
       await firstValueFrom(
@@ -223,8 +234,9 @@ export class TopNavComponent implements OnInit {
       await this.auth.signOut();
       this.closeSettings();
       this.router.navigate(['/']);
-    } catch {
-      // silently fail
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete account. Please try again.';
+      this.deleteError.set(msg);
     } finally {
       this.deleting.set(false);
       this.showDeleteConfirm.set(false);
