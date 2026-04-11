@@ -36,23 +36,22 @@
             } @else if (sessionDelta() < 0) {
               <span class="top-nav__delta top-nav__delta--down">▼{{ -sessionDelta() }}</span>
             }
-            |
           </a>
           <a routerLink="/logo-quiz" class="top-nav__mode-chip" aria-label="Logo Quiz ELO {{ logoQuizElo() }}">
             <span class="top-nav__mode-label">Logo</span>
-            <span class="top-nav__mode-value">{{ logoQuizElo() }} | </span>
+            <span class="top-nav__mode-value">{{ logoQuizElo() }}</span>
           </a>
           <a routerLink="/leaderboard" class="top-nav__mode-chip" aria-label="Win rate {{ winRatio() }}%">
             <span class="top-nav__mode-label">W/L</span>
-            <span class="top-nav__mode-value">{{ winRatio() }}% |</span>
+            <span class="top-nav__mode-value">{{ winRatio() }}%</span>
           </a>
-          <a routerLink="/leaderboard" class="top-nav__tier-badge pressable"
+          <!-- <a routerLink="/leaderboard" class="top-nav__tier-badge pressable"
              [style.color]="tierColor()"
              [style.background]="tierColor() + '26'"
              [style.border-color]="tierColor() + '40'"
              [attr.aria-label]="tierLabel() + ' tier'">
             {{ tierLabel() }}
-          </a>
+          </a> -->
         </div>
       }
     </div>
