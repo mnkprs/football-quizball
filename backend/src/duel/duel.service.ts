@@ -25,6 +25,7 @@ import {
 } from './duel.types';
 import { LogoQuizService } from '../logo-quiz/logo-quiz.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 /** First to WIN_TARGET correct answers wins the duel */
 const WIN_TARGET = 5;
@@ -47,6 +48,7 @@ export class DuelService {
     private readonly answerValidator: AnswerValidator,
     private readonly logoQuizService: LogoQuizService,
     private readonly achievementsService: AchievementsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // ── Create / Join ─────────────────────────────────────────────────────────
@@ -424,6 +426,11 @@ export class DuelService {
     if (gameFinished) {
       const winnerId = newScores.host > newScores.guest ? row.host_id : newScores.guest > newScores.host ? row.guest_id : null;
 
+      // Fire-and-forget: send duel result notifications
+      void this.sendDuelResultNotifications(row, newScores, winnerId).catch((err) =>
+        this.logger.warn(`[submitAnswer] duel result notification failed: ${err?.message}`),
+      );
+
       // Award achievements to both players
       for (const playerId of ([row.host_id, row.guest_id].filter(Boolean) as string[])) {
         void (async () => {
@@ -437,12 +444,27 @@ export class DuelService {
             const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(playerId);
             const modesPlayed = await this.supabaseService.addModePlayed(playerId, 'duel');
 
-            await this.achievementsService.checkAndAward(playerId, {
+            const awardedIds = await this.achievementsService.checkAndAward(playerId, {
               duelWins,
               duelGamesPlayed: duelGames,
               dailyStreak,
               modesPlayed,
             });
+            // Send achievement notifications
+            if (awardedIds.length > 0) {
+              const awarded = await this.achievementsService.getByIds(awardedIds);
+              for (const ach of awarded) {
+                await this.notificationsService.create({
+                  userId: playerId,
+                  type: 'achievement_unlocked',
+                  title: 'Achievement unlocked!',
+                  body: `${ach.name} — ${ach.description}`,
+                  icon: ach.icon || '🏅',
+                  route: '/profile',
+                  metadata: { achievementId: ach.id, achievementName: ach.name },
+                });
+              }
+            }
           } catch (e) {
             this.logger.warn(`[submitAnswer] Achievement check failed for ${playerId}: ${(e as Error)?.message}`);
           }
@@ -524,6 +546,53 @@ export class DuelService {
 
     if (error) {
       this.logger.warn(`Failed to advance timed-out question for game ${row.id}: ${error.message}`);
+    }
+  }
+
+  // ── Notification helpers ──────────────────────────────────────────────────
+
+  private async sendDuelResultNotifications(
+    row: { host_id: string; guest_id: string | null; game_type: string },
+    scores: { host: number; guest: number },
+    winnerId: string | null,
+  ): Promise<void> {
+    if (!row.guest_id) return;
+
+    const [hostProfile, guestProfile] = await Promise.all([
+      this.supabaseService.getProfile(row.host_id),
+      this.supabaseService.getProfile(row.guest_id),
+    ]);
+
+    const hostName = hostProfile?.username ?? 'Player 1';
+    const guestName = guestProfile?.username ?? 'Player 2';
+    const modeLabel = row.game_type === 'logo' ? 'Logo Duel' : 'Duel';
+    const route = row.game_type === 'logo' ? '/duel?mode=logo' : '/duel';
+
+    for (const playerId of [row.host_id, row.guest_id]) {
+      const isHost = playerId === row.host_id;
+      const opponentName = isHost ? guestName : hostName;
+      const myScore = isHost ? scores.host : scores.guest;
+      const theirScore = isHost ? scores.guest : scores.host;
+      const won = playerId === winnerId;
+      const draw = winnerId === null;
+
+      const title = draw
+        ? `Draw ${myScore}-${theirScore} vs ${opponentName}`
+        : won
+          ? `You beat ${opponentName} ${myScore}-${theirScore}!`
+          : `You lost ${myScore}-${theirScore} to ${opponentName}`;
+
+      const icon = draw ? '🤝' : won ? '🎯' : '😔';
+
+      await this.notificationsService.create({
+        userId: playerId,
+        type: 'duel_result',
+        title,
+        body: modeLabel,
+        icon,
+        route,
+        metadata: { opponentName, myScore, theirScore, won, draw },
+      });
     }
   }
 
