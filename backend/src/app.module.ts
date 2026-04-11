@@ -26,6 +26,7 @@ import { MayhemModule } from './mayhem/mayhem.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { OnlineGameModule } from './online-game/online-game.module';
 import { AchievementsModule } from './achievements/achievements.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { DuelModule } from './duel/duel.module';
 import { BattleRoyaleModule } from './battle-royale/battle-royale.module';
 import { MatchHistoryModule } from './match-history/match-history.module';
@@ -75,6 +76,7 @@ import { AppConfigModule } from './config/config.module';
     SubscriptionModule,
     OnlineGameModule,
     AchievementsModule,
+    NotificationsModule,
     DuelModule,
     BattleRoyaleModule,
     MatchHistoryModule,
