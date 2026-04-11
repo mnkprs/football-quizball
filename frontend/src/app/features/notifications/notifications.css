@@ -214,10 +214,6 @@
   gap: 0.5rem;
 }
 
-.notifications-error__retry {
-  margin-top: 0.5rem;
-}
-
 .notifications-error__icon {
   font-size: 2.25rem;
 }
@@ -231,6 +227,7 @@
 }
 
 .notifications-error__retry {
+  margin-top: 0.5rem;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
