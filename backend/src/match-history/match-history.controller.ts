@@ -9,7 +9,7 @@ export class MatchHistoryController {
   @Post()
   @UseGuards(AuthGuard)
   async saveMatch(
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { id: string } },
     @Body() body: {
       player1_id: string;
       player2_id: string | null;
@@ -23,17 +23,17 @@ export class MatchHistoryController {
       game_ref_type?: string;
     },
   ) {
-    await this.matchHistoryService.saveMatch(req.user.sub, body);
+    await this.matchHistoryService.saveMatch(req.user.id, body);
     return { ok: true };
   }
 
   @Get(':matchId/details')
   @UseGuards(AuthGuard)
   async getMatchDetail(
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { id: string } },
     @Param('matchId') matchId: string,
   ) {
-    return this.matchHistoryService.getMatchDetail(matchId, req.user.sub);
+    return this.matchHistoryService.getMatchDetail(matchId, req.user.id);
   }
 
   @Get(':userId')
