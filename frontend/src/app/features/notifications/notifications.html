@@ -1,5 +1,5 @@
 <div class="notifications-page" role="main" aria-label="Notifications">
-  <div class="notifications-header">
+  <div class="notifications-header anim-fade-down">
     <div class="notifications-header__left">
       <button class="notifications-back-btn pressable" aria-label="Go back" (click)="goBack()">
         <span class="material-icons">arrow_back</span>
@@ -10,28 +10,29 @@
   </div>
 
   @if (loading()) {
-    <div class="notifications-loading" role="status" aria-label="Loading notifications">
+    <div class="notifications-loading anim-fade-in" role="status" aria-label="Loading notifications">
       <span class="material-icons notifications-spinner">sync</span>
     </div>
   } @else if (error()) {
-    <div class="notifications-error" role="alert">
+    <div class="notifications-error anim-fade-in" role="alert">
       <span class="notifications-error__icon material-icons">cloud_off</span>
       <p class="notifications-error__text">Couldn't load notifications</p>
       <button class="notifications-error__retry pressable" (click)="retry()">Try again</button>
     </div>
   } @else if (empty()) {
-    <div class="notifications-empty" role="status">
-      <span class="notifications-empty__icon">⚽</span>
+    <div class="notifications-empty anim-fade-in" role="status">
+      <span class="notifications-empty__icon anim-float">⚽</span>
       <p class="notifications-empty__text">You're all caught up!</p>
     </div>
   } @else {
     <div class="notifications-feed" role="list" aria-label="Notification list" aria-live="polite">
-      @for (group of groups(); track group.label) {
-        <div class="notifications-group" role="group" [attr.aria-label]="group.label">
+      @for (group of groups(); track group.label; let gi = $index) {
+        <div class="notifications-group anim-fade-up" [style.--stagger-delay]="(gi * 60) + 'ms'" role="group" [attr.aria-label]="group.label">
           <div class="notifications-group__label" aria-hidden="true">{{ group.label }}</div>
-          @for (n of group.notifications; track n.id) {
+          @for (n of group.notifications; track n.id; let i = $index) {
             <button
-              class="notification-card pressable"
+              class="notification-card pressable anim-fade-up"
+              [style.--stagger-delay]="(gi * 60 + (i + 1) * 40) + 'ms'"
               role="listitem"
               [class.notification-card--unread]="!n.read"
               [attr.aria-label]="(n.read ? '' : 'Unread: ') + n.title + '. ' + n.body"
