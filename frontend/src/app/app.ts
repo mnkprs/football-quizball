@@ -12,19 +12,17 @@ import { UsernameModalService } from './core/username-modal.service';
 import { AchievementUnlockModalComponent } from './shared/achievement-unlock-modal/achievement-unlock-modal';
 import { AchievementUnlockService } from './core/achievement-unlock.service';
 import { AuthService } from './core/auth.service';
-import { GoogleAdsService } from './core/google-ads.service';
 import { AnalyticsService } from './core/analytics.service';
 import { ConfigApiService } from './core/config-api.service';
 import { AdService } from './core/ad.service';
 import { ToastComponent } from './shared/toast/toast';
-import { CookieConsentComponent } from './shared/cookie-consent/cookie-consent';
 import { UpdateService } from './core/update.service';
 import { ForceUpdateBannerComponent } from './shared/force-update-banner/force-update-banner';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, CookieConsentComponent, NgOptimizedImage, ForceUpdateBannerComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, NgOptimizedImage, ForceUpdateBannerComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,7 +34,6 @@ export class App implements OnInit, OnDestroy {
   achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
   private router = inject(Router);
-  private googleAds = inject(GoogleAdsService);
   private swUpdate = inject(SwUpdate, { optional: true });
   private navSub?: ReturnType<typeof this.router.events.subscribe>;
   private analytics = inject(AnalyticsService);
@@ -83,7 +80,6 @@ export class App implements OnInit, OnDestroy {
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => {
         this.isAdminRoute.set(e.urlAfterRedirects.startsWith('/admin'));
-        this.googleAds.pageView(e.urlAfterRedirects);
       });
 
     if (this.swUpdate?.isEnabled) {

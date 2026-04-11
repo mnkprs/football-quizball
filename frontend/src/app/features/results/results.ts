@@ -5,14 +5,13 @@ import { firstValueFrom } from 'rxjs';
 import { GameStore } from '../../core/game.store';
 import { LanguageService } from '../../core/language.service';
 import { ProService } from '../../core/pro.service';
-import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { AuthService } from '../../core/auth.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
 
 @Component({
   selector: 'app-results',
   standalone: true,
-  imports: [CommonModule, AdDisplayComponent],
+  imports: [CommonModule],
   templateUrl: './results.html',
   styleUrl: './results.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

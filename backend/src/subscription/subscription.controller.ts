@@ -1,7 +1,5 @@
-import { Controller, Post, Get, Req, Body, UseGuards, HttpCode, HttpException, HttpStatus, Headers, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Controller, Post, Get, Req, Body, UseGuards, HttpCode, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
-import { StripeService } from './stripe.service';
 import { SubscriptionService } from './subscription.service';
 import { IapValidationService } from './iap-validation.service';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -11,11 +9,9 @@ export class SubscriptionController {
   private readonly logger = new Logger(SubscriptionController.name);
 
   constructor(
-    private readonly stripeService: StripeService,
     private readonly subscriptionService: SubscriptionService,
     private readonly iapValidationService: IapValidationService,
     private readonly supabaseService: SupabaseService,
-    private readonly configService: ConfigService,
   ) {}
 
   // ─── IAP Endpoints ──────────────────────────────────────────────────
@@ -105,53 +101,4 @@ export class SubscriptionController {
     }
   }
 
-  // ─── STRIPE: feature-flagged — re-enable if IAP rejected ───────────
-  //
-  // @Post('checkout')
-  // @UseGuards(AuthGuard)
-  // async createCheckout(@Req() req: any) {
-  //   const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
-  //   try {
-  //     const url = await this.stripeService.createCheckoutSession(
-  //       req.user.id,
-  //       req.user.email,
-  //       `${frontendUrl}/?pro=success`,
-  //       `${frontendUrl}/?pro=cancel`,
-  //     );
-  //     return { url };
-  //   } catch (err: any) {
-  //     console.error('Stripe checkout error:', err.message, err.raw ?? '');
-  //     throw new HttpException(err.message ?? 'Stripe checkout failed', err.statusCode ?? 500);
-  //   }
-  // }
-  //
-  // @Post('portal')
-  // @UseGuards(AuthGuard)
-  // async createPortal(@Req() req: any) {
-  //   const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:4200';
-  //   const status = await this.supabaseService.getProStatus(req.user.id);
-  //   if (!status?.stripe_customer_id) {
-  //     throw new HttpException('No active subscription found', 404);
-  //   }
-  //   const url = await this.stripeService.createPortalSession(status.stripe_customer_id, frontendUrl);
-  //   return { url };
-  // }
-  //
-  // @Post('webhook')
-  // @HttpCode(200)
-  // async handleWebhook(@Req() req: any, @Headers('stripe-signature') sig: string) {
-  //   if (!sig) throw new HttpException('Missing stripe-signature header', 400);
-  //
-  //   let event;
-  //   try {
-  //     event = this.stripeService.constructWebhookEvent(req.rawBody, sig);
-  //   } catch (err: any) {
-  //     throw new HttpException(`Webhook signature verification failed: ${err.message}`, 400);
-  //   }
-  //
-  //   await this.subscriptionService.handleWebhookEvent(event);
-  //   return { received: true };
-  // }
-  //
-  // ─── END STRIPE feature-flagged ────────────────────────────────────
 }

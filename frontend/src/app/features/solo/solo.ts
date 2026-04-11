@@ -2,7 +2,6 @@ import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetection
 import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { GameQuestionComponent, QuestionData, RevealResult } from '../../shared/game-question/game-question';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
@@ -25,7 +24,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
   selector: 'app-solo',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, AdDisplayComponent, GameQuestionComponent, DecimalPipe, UpperCasePipe, NgOptimizedImage],
+  imports: [FormsModule, RouterLink, GameQuestionComponent, DecimalPipe, UpperCasePipe, NgOptimizedImage],
   host: { class: 'solo-host' },
   templateUrl: './solo.html',
   styleUrl: './solo.css',

@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgOptimizedImage } from '@angular/common';
-import { AdDisplayComponent } from '../../shared/ad-display/ad-display';
 import { firstValueFrom } from 'rxjs';
 import { BlitzApiService, BlitzQuestionRef } from '../../core/blitz-api.service';
 import { ProService } from '../../core/pro.service';
@@ -18,7 +17,7 @@ type BlitzPhase = 'idle' | 'playing' | 'finished';
 @Component({
   selector: 'app-blitz',
   standalone: true,
-  imports: [AdDisplayComponent, NgOptimizedImage],
+  imports: [NgOptimizedImage],
   host: { class: 'blitz-host' },
   templateUrl: './blitz.html',
   styleUrl: './blitz.css',

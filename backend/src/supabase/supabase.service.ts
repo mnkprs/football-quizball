@@ -372,7 +372,7 @@ export class SupabaseService {
   async getProStatus(userId: string): Promise<ProStatus | null> {
     const { data } = await this.client
       .from('profiles')
-      .select('is_pro, trial_battle_royale_used, purchase_type, pro_lifetime_owned, subscription_expires_at, daily_duels_played, daily_duels_reset_at, stripe_customer_id')
+      .select('is_pro, trial_battle_royale_used, purchase_type, pro_lifetime_owned, subscription_expires_at, daily_duels_played, daily_duels_reset_at')
       .eq('id', userId)
       .maybeSingle();
     return data ?? null;

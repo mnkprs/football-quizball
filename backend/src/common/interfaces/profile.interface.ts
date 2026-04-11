@@ -28,7 +28,6 @@ export interface ProStatus {
   subscription_expires_at: string | null;
   daily_duels_played: number;
   daily_duels_reset_at: string | null;
-  stripe_customer_id: string | null;
 }
 
 export interface SetProParams {

@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { StripeService } from './stripe.service';
 import { SubscriptionService } from './subscription.service';
 import { SubscriptionController } from './subscription.controller';
 import { IapValidationService } from './iap-validation.service';
@@ -12,7 +11,6 @@ import { SupabaseModule } from '../supabase/supabase.module';
   providers: [
     IapValidationService,
     SubscriptionService,
-    StripeService, // STRIPE: feature-flagged — kept as provider, routes commented out in controller
   ],
 })
 export class SubscriptionModule {}
