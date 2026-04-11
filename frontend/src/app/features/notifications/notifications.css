@@ -300,11 +300,11 @@
 
 .notifications-group__label {
   font-family: 'Lexend', sans-serif;
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--color-fg-label);
+  color: var(--color-fg-muted);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   padding: 1.5rem 0 0.5rem;
 }
 
@@ -343,6 +343,7 @@
   background: var(--color-accent-bg);
   margin: 0 -1.25rem;
   padding: 1rem 1.25rem;
+  padding-left: calc(1.25rem - 3px);
   border-bottom-color: color-mix(in srgb, var(--color-accent) 8%, transparent);
   border-left: 3px solid var(--color-accent);
 }
@@ -374,13 +375,10 @@
   height: 2.5rem;
   border-radius: var(--radius-lg);
   background: var(--glass-bg-subtle);
-  backdrop-filter: blur(var(--glass-blur-sm));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-  border: 1px solid var(--glass-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.125rem;
+  font-size: 1.375rem;
   flex-shrink: 0;
 }
 
@@ -388,22 +386,18 @@
 .notification-card--unread[data-type="challenge_received"] .notification-card__icon,
 .notification-card--unread[data-type="duel_result"] .notification-card__icon {
   background: color-mix(in srgb, var(--color-accent) 15%, var(--glass-bg-subtle));
-  border-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
 .notification-card--unread[data-type="achievement_unlocked"] .notification-card__icon {
   background: color-mix(in srgb, var(--color-pro) 12%, var(--glass-bg-subtle));
-  border-color: color-mix(in srgb, var(--color-pro) 20%, transparent);
 }
 
 .notification-card--unread[data-type="leaderboard_displaced"] .notification-card__icon {
   background: color-mix(in srgb, var(--color-warning) 12%, var(--glass-bg-subtle));
-  border-color: color-mix(in srgb, var(--color-warning) 20%, transparent);
 }
 
 .notification-card--unread[data-type="challenge_system"] .notification-card__icon {
   background: color-mix(in srgb, var(--color-purple) 12%, var(--glass-bg-subtle));
-  border-color: color-mix(in srgb, var(--color-purple) 20%, transparent);
 }
 
 /* ── Card: Content ──────────────────────────────────────── */
