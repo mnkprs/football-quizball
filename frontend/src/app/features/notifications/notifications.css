@@ -184,7 +184,9 @@
 }
 
 .notifications-error__text {
+  font-family: 'Inter', sans-serif;
   font-size: 0.9375rem;
+  line-height: 1.5;
   color: var(--color-fg-muted);
   margin: 0;
 }
@@ -230,7 +232,9 @@
 }
 
 .notifications-empty__text {
+  font-family: 'Inter', sans-serif;
   font-size: 0.9375rem;
+  line-height: 1.5;
   color: var(--color-fg-muted);
   margin: 0;
 }
@@ -332,9 +336,10 @@
 }
 
 .notification-card__body {
+  font-family: 'Inter', sans-serif;
   font-size: 0.8125rem;
   color: var(--color-fg-subtitle);
-  line-height: 1.4;
+  line-height: 1.5;
   margin-top: 0.125rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
