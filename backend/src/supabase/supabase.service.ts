@@ -814,7 +814,7 @@ export class SupabaseService {
 
   async getMatchHistory(userId: string, limit = 20): Promise<MatchHistoryEntry[]> {
     if (!SupabaseService.UUID_RE.test(userId)) return [];
-    const sel = 'id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at';
+    const sel = 'id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at, game_ref_id, game_ref_type';
     const { data } = await this.client
       .from('match_history')
       .select(sel)
@@ -822,6 +822,42 @@ export class SupabaseService {
       .order('played_at', { ascending: false })
       .limit(limit);
     return data ?? [];
+  }
+
+  async getMatchById(matchId: string): Promise<MatchHistoryEntry | null> {
+    if (!SupabaseService.UUID_RE.test(matchId)) return null;
+    const { data } = await this.client
+      .from('match_history')
+      .select('id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at, game_ref_id, game_ref_type')
+      .eq('id', matchId)
+      .single();
+    return data ?? null;
+  }
+
+  async getDuelGameById(gameId: string) {
+    const { data } = await this.client
+      .from('duel_games')
+      .select('id, scores, question_results, game_type, host_id, guest_id')
+      .eq('id', gameId)
+      .single();
+    return data;
+  }
+
+  async getOnlineGameById(gameId: string) {
+    const { data } = await this.client
+      .from('online_games')
+      .select('id, board, players, host_id, guest_id')
+      .eq('id', gameId)
+      .single();
+    return data;
+  }
+
+  async getBRRoomWithPlayers(roomId: string) {
+    const [roomRes, playersRes] = await Promise.all([
+      this.client.from('battle_royale_rooms').select('id, mode').eq('id', roomId).single(),
+      this.client.from('battle_royale_players').select('user_id, username, score, team_id').eq('room_id', roomId).order('score', { ascending: false }),
+    ]);
+    return { room: roomRes.data, players: playersRes.data ?? [] };
   }
 
   /** Atomically updates ELO and inserts history in a single DB transaction. */

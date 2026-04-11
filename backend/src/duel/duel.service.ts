@@ -426,6 +426,26 @@ export class DuelService {
     if (gameFinished) {
       const winnerId = newScores.host > newScores.guest ? row.host_id : newScores.guest > newScores.host ? row.guest_id : null;
 
+      // Fire-and-forget: save to match_history with game reference
+      void (async () => {
+        const [hostName, guestName] = await Promise.all([
+          this.getUsername(row.host_id),
+          this.getUsername(row.guest_id!),
+        ]);
+        await this.supabaseService.saveMatchResult({
+          player1_id: row.host_id,
+          player2_id: row.guest_id!,
+          player1_username: hostName,
+          player2_username: guestName,
+          winner_id: winnerId,
+          player1_score: newScores.host,
+          player2_score: newScores.guest,
+          match_mode: 'duel',
+          game_ref_id: gameId,
+          game_ref_type: 'duel',
+        });
+      })().catch((e) => this.logger.warn(`[duel] match history save failed: ${e?.message}`));
+
       // Fire-and-forget: send duel result notifications
       void this.sendDuelResultNotifications(row, newScores, winnerId).catch((err) =>
         this.logger.warn(`[submitAnswer] duel result notification failed: ${err?.message}`),
@@ -546,6 +566,30 @@ export class DuelService {
 
     if (error) {
       this.logger.warn(`Failed to advance timed-out question for game ${row.id}: ${error.message}`);
+      return;
+    }
+
+    // Fire-and-forget: save to match_history when game ends via timeout
+    if (gameFinished && row.guest_id) {
+      const winnerId = row.scores.host > row.scores.guest ? row.host_id : row.scores.guest > row.scores.host ? row.guest_id : null;
+      void (async () => {
+        const [hostName, guestName] = await Promise.all([
+          this.getUsername(row.host_id),
+          this.getUsername(row.guest_id!),
+        ]);
+        await this.supabaseService.saveMatchResult({
+          player1_id: row.host_id,
+          player2_id: row.guest_id!,
+          player1_username: hostName,
+          player2_username: guestName,
+          winner_id: winnerId,
+          player1_score: row.scores.host,
+          player2_score: row.scores.guest,
+          match_mode: 'duel',
+          game_ref_id: row.id,
+          game_ref_type: 'duel',
+        });
+      })().catch((e) => this.logger.warn(`[duel] match history save (timeout) failed: ${e?.message}`));
     }
   }
 

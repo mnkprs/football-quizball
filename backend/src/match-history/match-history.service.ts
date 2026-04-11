@@ -1,6 +1,7 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import type { MatchDetail } from '../common/interfaces/match.interface';
 
 @Injectable()
 export class MatchHistoryService {
@@ -41,5 +42,84 @@ export class MatchHistoryService {
 
   getHistory(userId: string) {
     return this.supabaseService.getMatchHistory(userId, 20);
+  }
+
+  async getMatchDetail(matchId: string, requestingUserId: string): Promise<MatchDetail> {
+    const match = await this.supabaseService.getMatchById(matchId);
+    if (!match) throw new NotFoundException('Match not found');
+
+    // Only participants can view details
+    if (match.player1_id !== requestingUserId && match.player2_id !== requestingUserId) {
+      throw new ForbiddenException();
+    }
+
+    const detail: MatchDetail = { ...match };
+
+    if (!match.game_ref_id || !match.game_ref_type) return detail;
+
+    try {
+      switch (match.game_ref_type) {
+        case 'duel': {
+          const game = await this.supabaseService.getDuelGameById(match.game_ref_id);
+          if (game) {
+            detail.question_results = game.question_results ?? [];
+          }
+          break;
+        }
+        case 'online': {
+          const game = await this.supabaseService.getOnlineGameById(match.game_ref_id);
+          if (game) {
+            detail.players = game.players;
+            detail.board = (game.board as any[][]).map((row: any[]) =>
+              row.map((c: any) => ({
+                category: c.category,
+                difficulty: c.difficulty,
+                points: c.points ?? c.points_awarded ?? 0,
+                answered_by: c.answered_by,
+              })),
+            );
+            // Derive categories from first row of board
+            const seen = new Set<string>();
+            detail.categories = (game.board as any[][]).map((row: any[]) => {
+              const cat = row[0]?.category ?? '';
+              if (seen.has(cat)) return null;
+              seen.add(cat);
+              return { key: cat, label: cat };
+            }).filter(Boolean) as Array<{ key: string; label: string }>;
+          }
+          break;
+        }
+        case 'battle_royale':
+        case 'team_logo_battle': {
+          const { room, players } = await this.supabaseService.getBRRoomWithPlayers(match.game_ref_id);
+          if (players.length > 0) {
+            detail.br_players = players.map((p, i) => ({
+              username: p.username,
+              score: p.score,
+              rank: i + 1,
+              teamId: p.team_id ?? undefined,
+            }));
+          }
+          if (room) {
+            detail.br_mode = room.mode ?? 'standard';
+          }
+          // Team scores: aggregate from players
+          if (match.game_ref_type === 'team_logo_battle' && players.length > 0) {
+            const team1 = players.filter((p) => p.team_id === 1);
+            const team2 = players.filter((p) => p.team_id === 2);
+            const sum = (arr: any[]) => arr.reduce((s, p) => s + p.score, 0);
+            detail.team_scores = { team1: sum(team1), team2: sum(team2) };
+            // MVP: highest individual score
+            const top = players[0];
+            if (top) detail.mvp = { username: top.username, score: top.score };
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      this.logger.warn(`[getMatchDetail] Failed to fetch game details for ${match.game_ref_type}/${match.game_ref_id}: ${(e as Error)?.message}`);
+    }
+
+    return detail;
   }
 }

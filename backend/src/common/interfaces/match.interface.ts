@@ -6,8 +6,10 @@ export interface MatchResult {
   winner_id: string | null;
   player1_score: number;
   player2_score: number;
-  match_mode: 'local' | 'online' | 'battle_royale' | 'team_logo_battle';
+  match_mode: 'local' | 'online' | 'duel' | 'battle_royale' | 'team_logo_battle';
   is_bot_match?: boolean;
+  game_ref_id?: string;
+  game_ref_type?: string;
 }
 
 export interface MatchHistoryEntry {
@@ -21,4 +23,51 @@ export interface MatchHistoryEntry {
   player2_score: number;
   match_mode: string;
   played_at: string;
+  game_ref_id: string | null;
+  game_ref_type: string | null;
+}
+
+// ── Match Detail (enriched view for match history detail endpoint) ───────────
+
+export interface DuelQuestionDetail {
+  index: number;
+  winner: 'host' | 'guest' | null;
+  question_text: string;
+  correct_answer: string;
+  is_pro_logo?: boolean;
+}
+
+export interface OnlineBoardCellDetail {
+  category: string;
+  difficulty: string;
+  points: number;
+  answered_by?: string;
+}
+
+export interface OnlinePlayerDetail {
+  name: string;
+  score: number;
+  lifelineUsed: boolean;
+  doubleUsed: boolean;
+}
+
+export interface BRPlayerDetail {
+  username: string;
+  score: number;
+  rank?: number;
+  teamId?: number;
+}
+
+export interface MatchDetail extends MatchHistoryEntry {
+  // Duel
+  question_results?: DuelQuestionDetail[];
+  // Online game
+  board?: OnlineBoardCellDetail[][];
+  players?: OnlinePlayerDetail[];
+  categories?: Array<{ key: string; label: string }>;
+  // Battle Royale
+  br_players?: BRPlayerDetail[];
+  br_mode?: string;
+  team_scores?: { team1: number; team2: number };
+  mvp?: { username: string; score: number };
 }

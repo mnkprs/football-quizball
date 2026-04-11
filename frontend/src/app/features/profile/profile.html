@@ -209,12 +209,13 @@
         </div>
         <div class="match-list">
           @for (match of matchHistory(); track match.id) {
-            <div class="match-row"
-                 [class.match-row--win]="match.match_mode !== 'battle_royale' && match.winner_id === currentUserId()"
-                 [class.match-row--loss]="match.match_mode !== 'battle_royale' && match.winner_id !== null && match.winner_id !== currentUserId()"
-                 [class.match-row--br]="match.match_mode === 'battle_royale'">
+            <div class="match-row match-row--clickable"
+                 (click)="openMatchDetail(match)"
+                 [class.match-row--win]="match.match_mode !== 'battle_royale' && match.match_mode !== 'team_logo_battle' && match.winner_id === currentUserId()"
+                 [class.match-row--loss]="match.match_mode !== 'battle_royale' && match.match_mode !== 'team_logo_battle' && match.winner_id !== null && match.winner_id !== currentUserId()"
+                 [class.match-row--br]="match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle'">
               <div class="match-row__result">
-                @if (match.match_mode === 'battle_royale') {
+                @if (match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle') {
                   <span class="match-row__result-tag match-row__result-tag--br">BR</span>
                 } @else if (match.winner_id === null) {
                   <span class="match-row__result-tag match-row__result-tag--draw">D</span>
@@ -227,19 +228,22 @@
               <div class="match-row__body">
                 <div class="match-row__vs">
                   <span class="match-row__p1">{{ match.player1_username }}</span>
-                  @if (match.match_mode === 'battle_royale') {
+                  @if (match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle') {
                     <span class="match-row__score">{{ match.player1_score }} pts</span>
                   } @else {
                     <span class="match-row__score">{{ match.player1_score }} – {{ match.player2_score }}</span>
                   }
-                  <span class="match-row__p2">{{ match.player2_username }}</span>
+                  @if (match.match_mode !== 'battle_royale' && match.match_mode !== 'team_logo_battle') {
+                    <span class="match-row__p2">{{ match.player2_username }}</span>
+                  }
                 </div>
                 <div class="match-row__footer">
                   <span class="match-badge"
                         [class.match-badge--online]="match.match_mode === 'online'"
+                        [class.match-badge--duel]="match.match_mode === 'duel'"
                         [class.match-badge--local]="match.match_mode === 'local'"
-                        [class.match-badge--br]="match.match_mode === 'battle_royale'">
-                    {{ match.match_mode === 'online' ? 'Online' : match.match_mode === 'battle_royale' ? 'BR' : 'Local' }}
+                        [class.match-badge--br]="match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle'">
+                    {{ match.match_mode === 'online' ? 'Online' : match.match_mode === 'duel' ? 'Duel' : match.match_mode === 'battle_royale' ? 'BR' : match.match_mode === 'team_logo_battle' ? 'TLB' : 'Local' }}
                   </span>
                   <span class="match-row__date">{{ formatDate(match.played_at) }}</span>
                 </div>
@@ -405,3 +409,5 @@
 
   }
 </div>
+
+<app-match-detail-modal />

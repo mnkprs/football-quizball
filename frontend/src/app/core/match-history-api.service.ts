@@ -14,6 +14,8 @@ export interface MatchHistoryEntry {
   player2_score: number;
   match_mode: string;
   played_at: string;
+  game_ref_id: string | null;
+  game_ref_type: string | null;
 }
 
 export interface SaveMatchPayload {
@@ -25,6 +27,46 @@ export interface SaveMatchPayload {
   player1_score: number;
   player2_score: number;
   match_mode: 'local' | 'online';
+}
+
+export interface DuelQuestionDetail {
+  index: number;
+  winner: 'host' | 'guest' | null;
+  question_text: string;
+  correct_answer: string;
+  is_pro_logo?: boolean;
+}
+
+export interface OnlineBoardCellDetail {
+  category: string;
+  difficulty: string;
+  points: number;
+  answered_by?: string;
+}
+
+export interface OnlinePlayerDetail {
+  name: string;
+  score: number;
+  lifelineUsed: boolean;
+  doubleUsed: boolean;
+}
+
+export interface BRPlayerDetail {
+  username: string;
+  score: number;
+  rank?: number;
+  teamId?: number;
+}
+
+export interface MatchDetail extends MatchHistoryEntry {
+  question_results?: DuelQuestionDetail[];
+  board?: OnlineBoardCellDetail[][];
+  players?: OnlinePlayerDetail[];
+  categories?: Array<{ key: string; label: string }>;
+  br_players?: BRPlayerDetail[];
+  br_mode?: string;
+  team_scores?: { team1: number; team2: number };
+  mvp?: { username: string; score: number };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -44,5 +86,9 @@ export class MatchHistoryApiService {
 
   saveMatch(payload: SaveMatchPayload) {
     return this.http.post<{ ok: boolean }>(`${this.base}`, payload, { headers: this.headers() });
+  }
+
+  getMatchDetail(matchId: string) {
+    return this.http.get<MatchDetail>(`${this.base}/${matchId}/details`, { headers: this.headers() });
   }
 }

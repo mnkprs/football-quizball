@@ -25,6 +25,15 @@ export class MatchHistoryController {
     return { ok: true };
   }
 
+  @Get(':matchId/details')
+  @UseGuards(AuthGuard)
+  async getMatchDetail(
+    @Request() req: { user: { sub: string } },
+    @Param('matchId') matchId: string,
+  ) {
+    return this.matchHistoryService.getMatchDetail(matchId, req.user.sub);
+  }
+
   @Get(':userId')
   async getHistory(@Param('userId') userId: string) {
     return this.matchHistoryService.getHistory(userId);

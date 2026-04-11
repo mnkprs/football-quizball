@@ -552,6 +552,9 @@
   transition: border-color 0.15s;
 }
 
+.match-row--clickable { cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.match-row--clickable:active { transform: scale(0.98); }
+
 .match-row--win  { border-color: rgba(0, 122, 255, 0.2); background: color-mix(in srgb, rgba(0, 122, 255, 0.06), var(--glass-bg-subtle)); }
 .match-row--loss { border-color: rgba(179, 38, 30, 0.2); background: color-mix(in srgb, rgba(179, 38, 30, 0.06), var(--glass-bg-subtle)); }
 .match-row--br   { border-color: rgba(168, 85, 247, 0.2); background: color-mix(in srgb, rgba(168, 85, 247, 0.06), var(--glass-bg-subtle)); }
@@ -634,6 +637,12 @@
   background: rgba(20, 184, 166, 0.1);
   color: #14b8a6;
   border-color: rgba(20, 184, 166, 0.2);
+}
+
+.match-badge--duel {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .match-badge--local {

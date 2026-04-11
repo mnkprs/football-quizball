@@ -181,6 +181,27 @@ export class OnlineGameService {
     );
   }
 
+  /** Fire-and-forget: persist finished online game to match_history with game reference. */
+  private saveOnlineMatchHistory(row: OnlineGameRow, players: [Player, Player], gameId: string): void {
+    const winnerId = players[0].score > players[1].score
+      ? row.host_id
+      : players[1].score > players[0].score
+        ? row.guest_id
+        : null;
+    void this.supabaseService.saveMatchResult({
+      player1_id: row.host_id,
+      player2_id: row.guest_id!,
+      player1_username: players[0].name,
+      player2_username: players[1].name,
+      winner_id: winnerId,
+      player1_score: players[0].score,
+      player2_score: players[1].score,
+      match_mode: 'online',
+      game_ref_id: gameId,
+      game_ref_type: 'online',
+    }).catch((e) => this.logger.warn(`[online] match history save failed: ${(e as Error)?.message}`));
+  }
+
   // ── Public API ───────────────────────────────────────────────────────────────
 
   async createGame(userId: string, dto: CreateOnlineGameDto): Promise<OnlinePublicView> {
@@ -547,6 +568,7 @@ export class OnlineGameService {
 
     if (gameOver) {
       this.returnQuestionsToPool(row.pool_question_ids ?? []);
+      this.saveOnlineMatchHistory(row, updatedPlayers, gameId);
     }
 
     return this.toPublicView(data as OnlineGameRow, userId);
@@ -708,6 +730,7 @@ export class OnlineGameService {
 
     if (gameOver) {
       this.returnQuestionsToPool(row.pool_question_ids ?? []);
+      this.saveOnlineMatchHistory(row, updatedPlayers, gameId);
     }
 
     return this.toPublicView(data as OnlineGameRow, userId);
@@ -859,6 +882,7 @@ export class OnlineGameService {
 
     if (gameOver) {
       this.returnQuestionsToPool(row.pool_question_ids ?? []);
+      this.saveOnlineMatchHistory(row, updatedPlayers, gameId);
     }
 
     return this.toPublicView(data as OnlineGameRow, userId);
@@ -1099,6 +1123,7 @@ export class OnlineGameService {
 
     if (gameOver) {
       this.returnQuestionsToPool(row.pool_question_ids ?? []);
+      this.saveOnlineMatchHistory(row, updatedPlayers, row.id);
     }
 
     this.logger.debug(

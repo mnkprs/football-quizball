@@ -545,6 +545,8 @@ export class BattleRoyaleService {
         player1_score: newScore,
         player2_score: 0,
         match_mode: isTeamLogoMode ? 'team_logo_battle' : 'battle_royale',
+        game_ref_id: roomId,
+        game_ref_type: isTeamLogoMode ? 'team_logo_battle' : 'battle_royale',
       }).catch((e) => this.logger.warn(`[br] match history save failed: ${e?.message}`));
 
       // Achievement tracking for Battle Royale

@@ -10,6 +10,7 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
+import { MatchDetailModalComponent, MatchDetailModalService } from '../../shared/match-detail-modal/match-detail-modal';
 import { getEloTier, nextTierThreshold, tierProgress } from '../../core/elo-tier';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
@@ -21,7 +22,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent, NgOptimizedImage, EmptyStateComponent],
+  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent, NgOptimizedImage, EmptyStateComponent, MatchDetailModalComponent],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +39,7 @@ export class ProfileComponent implements OnInit {
   private soloApi = inject(SoloApiService);
   private achievementsApi = inject(AchievementsApiService);
   private matchHistoryApi = inject(MatchHistoryApiService);
+  private matchDetailModal = inject(MatchDetailModalService);
 
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
@@ -104,7 +106,7 @@ export class ProfileComponent implements OnInit {
     const userId = this.currentUserId();
     return this.matchHistory().reduce(
       (acc, m) => {
-        if (m.match_mode === 'battle_royale') return acc;
+        if (m.match_mode === 'battle_royale' || m.match_mode === 'team_logo_battle') return acc;
         if (m.winner_id === null) acc.draws++;
         else if (m.winner_id === userId) acc.wins++;
         else acc.losses++;
@@ -220,6 +222,10 @@ export class ProfileComponent implements OnInit {
 
   formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  openMatchDetail(match: MatchHistoryEntry): void {
+    this.matchDetailModal.open(match);
   }
 
   openSubscriptionManagement(): void {
