@@ -45,6 +45,7 @@
               [style.--stagger-delay]="(gi * 60 + (i + 1) * 40) + 'ms'"
               role="listitem"
               [class.notification-card--unread]="!n.read"
+              [attr.data-type]="n.type"
               [attr.aria-label]="(n.read ? '' : 'Unread: ') + n.title + '. ' + n.body"
               (click)="onTapNotification(n)">
               <div class="notification-card__icon" aria-hidden="true">{{ n.icon }}</div>

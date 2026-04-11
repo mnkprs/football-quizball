@@ -109,9 +109,9 @@
 
 .notifications-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: var(--color-fg);
   margin: 0;
 }
@@ -344,6 +344,23 @@
   margin: 0 -1.25rem;
   padding: 1rem 1.25rem;
   border-bottom-color: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  border-left: 3px solid var(--color-accent);
+}
+
+/* Type-colored left accent on unread cards */
+.notification-card--unread[data-type="achievement_unlocked"] {
+  border-left-color: var(--color-pro);
+  background: color-mix(in srgb, var(--color-pro) 5%, transparent);
+}
+
+.notification-card--unread[data-type="leaderboard_displaced"] {
+  border-left-color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 5%, transparent);
+}
+
+.notification-card--unread[data-type="challenge_system"] {
+  border-left-color: var(--color-purple);
+  background: color-mix(in srgb, var(--color-purple) 5%, transparent);
 }
 
 .notification-card--unread:active {
@@ -365,6 +382,28 @@
   justify-content: center;
   font-size: 1.125rem;
   flex-shrink: 0;
+}
+
+/* Type-aware icon tinting on unread cards */
+.notification-card--unread[data-type="challenge_received"] .notification-card__icon,
+.notification-card--unread[data-type="duel_result"] .notification-card__icon {
+  background: color-mix(in srgb, var(--color-accent) 15%, var(--glass-bg-subtle));
+  border-color: color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.notification-card--unread[data-type="achievement_unlocked"] .notification-card__icon {
+  background: color-mix(in srgb, var(--color-pro) 12%, var(--glass-bg-subtle));
+  border-color: color-mix(in srgb, var(--color-pro) 20%, transparent);
+}
+
+.notification-card--unread[data-type="leaderboard_displaced"] .notification-card__icon {
+  background: color-mix(in srgb, var(--color-warning) 12%, var(--glass-bg-subtle));
+  border-color: color-mix(in srgb, var(--color-warning) 20%, transparent);
+}
+
+.notification-card--unread[data-type="challenge_system"] .notification-card__icon {
+  background: color-mix(in srgb, var(--color-purple) 12%, var(--glass-bg-subtle));
+  border-color: color-mix(in srgb, var(--color-purple) 20%, transparent);
 }
 
 /* ── Card: Content ──────────────────────────────────────── */
