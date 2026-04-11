@@ -10,19 +10,29 @@
   </div>
 
   @if (loading()) {
-    <div class="notifications-loading anim-fade-in" role="status" aria-label="Loading notifications">
-      <span class="material-icons notifications-spinner">sync</span>
+    <div class="notifications-skeleton anim-fade-in" role="status" aria-label="Loading notifications">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skeleton-card" [style.--skeleton-delay]="(i * 100) + 'ms'">
+          <div class="skeleton-icon"></div>
+          <div class="skeleton-lines">
+            <div class="skeleton-line skeleton-line--title"></div>
+            <div class="skeleton-line skeleton-line--body"></div>
+            <div class="skeleton-line skeleton-line--time"></div>
+          </div>
+        </div>
+      }
     </div>
   } @else if (error()) {
     <div class="notifications-error anim-fade-in" role="alert">
-      <span class="notifications-error__icon material-icons">cloud_off</span>
-      <p class="notifications-error__text">Couldn't load notifications</p>
-      <button class="notifications-error__retry pressable" (click)="retry()">Try again</button>
+      <span class="notifications-error__icon">📡</span>
+      <p class="notifications-error__text">Lost connection to the pitch</p>
+      <button class="notifications-error__retry pressable" (click)="retry()">Reconnect</button>
     </div>
   } @else if (empty()) {
     <div class="notifications-empty anim-fade-in" role="status">
-      <span class="notifications-empty__icon anim-float">⚽</span>
-      <p class="notifications-empty__text">You're all caught up!</p>
+      <span class="notifications-empty__icon anim-kick">⚽</span>
+      <p class="notifications-empty__title">Clean sheet</p>
+      <p class="notifications-empty__text">No new activity. Go earn some notifications.</p>
     </div>
   } @else {
     <div class="notifications-feed" role="list" aria-label="Notification list" aria-live="polite">
