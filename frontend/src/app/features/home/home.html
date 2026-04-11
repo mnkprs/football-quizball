@@ -1,10 +1,5 @@
 <div class="home-page" #homePage>
   <div class="home-content page-stagger">
-    <!-- Notification banners: news & daily updates (auth-only) -->
-    @if (auth.isLoggedIn()) {
-      <app-notification-banner />
-    }
-
     <!-- TIER 1: Logo Quiz Hub Hero -->
     <app-battle-hero
       title="Logo Quiz"
