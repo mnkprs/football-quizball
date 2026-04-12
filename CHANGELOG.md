@@ -2,6 +2,23 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.3.1.0] - 2026-04-12
+
+### Changed
+- **Online 1v1 lobby redesign** — rebuilt to match the premium lobby pattern used across the app. New hero image, atmospheric spotlight lighting, glass-surface active-game cards, and a bottom sheet for Create / Random Opponent / Join-by-Code actions.
+- Restored back button in the top nav
+- Active-game cards now show turn status with clearer color-coded badges (Your Turn / Their Turn / Waiting / Queued)
+
+### Added
+- Empty state on the online lobby when you have no active games
+- Dedicated `/online-mode.png` hero asset (decoupled from the duel image)
+
+### Fixed
+- Long opponent usernames now truncate with ellipsis instead of breaking the card layout
+- Bottom sheet is now keyboard-accessible: Escape dismisses, focus is trapped inside while open, and focus returns to the trigger on close
+- All contrast ratios now meet or exceed WCAG AA (most AAA)
+- Reverted an over-broad `.gitignore` rule (`docs/*`) that would have excluded project documentation
+
 ## [0.3.0.0] - 2026-04-12
 
 ### Added
