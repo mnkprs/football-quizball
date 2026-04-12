@@ -2,10 +2,12 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { Router } from '@angular/router';
 import { NotificationsApiService } from '../../core/notifications-api.service';
 import type { AppNotification, NotificationGroup } from '../../models/notification.model';
+import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
+  imports: [LobbyHeaderComponent],
   templateUrl: './notifications.html',
   styleUrl: './notifications.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -21,6 +21,7 @@ import { OnlineGameApiService, OnlineGameSummary } from '../../core/online-game-
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
+import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 
 /** Invite-code length is a server contract. If the server changes it, this changes. */
 const INVITE_CODE_LENGTH = 6;
@@ -32,7 +33,7 @@ type PendingAction = 'create' | 'queue' | 'code' | null;
 @Component({
   selector: 'app-online-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgOptimizedImage, A11yModule, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, NgOptimizedImage, A11yModule, EmptyStateComponent, LobbyHeaderComponent],
   templateUrl: './online-lobby.html',
   styleUrl: './online-lobby.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

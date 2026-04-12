@@ -1,0 +1,16 @@
+<div class="lobby-header" [class.lobby-header--with-title]="!!title()">
+  <button
+    type="button"
+    class="lobby-header__back pressable"
+    (click)="onBack()"
+    aria-label="Go back"
+  >
+    <span class="material-icons">arrow_back</span>
+  </button>
+  @if (title()) {
+    <h1 class="lobby-header__title">{{ title() }}</h1>
+  }
+  <div class="lobby-header__actions">
+    <ng-content />
+  </div>
+</div>

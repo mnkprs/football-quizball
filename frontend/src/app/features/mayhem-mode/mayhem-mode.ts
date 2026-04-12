@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -8,6 +8,7 @@ import { AchievementUnlockService } from '../../core/achievement-unlock.service'
 import { AuthService } from '../../core/auth.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
 import { AnalyticsService } from '../../core/analytics.service';
+import { ShellUiService } from '../../core/shell-ui.service';
 
 type MayhemPhase = 'idle' | 'loading' | 'question' | 'result' | 'finished';
 
@@ -20,15 +21,26 @@ type MayhemPhase = 'idle' | 'loading' | 'question' | 'result' | 'finished';
   styleUrl: './mayhem-mode.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MayhemModeComponent {
+export class MayhemModeComponent implements OnDestroy {
   lang = inject(LanguageService);
   private router = inject(Router);
   private mayhemApi = inject(MayhemApiService);
   private achievementUnlock = inject(AchievementUnlockService);
   private auth = inject(AuthService);
   private analytics = inject(AnalyticsService);
+  private shellUi = inject(ShellUiService);
 
   phase = signal<MayhemPhase>('idle');
+
+  constructor() {
+    effect(() => {
+      this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.shellUi.hideBottomNav.set(false);
+  }
   questions = signal<MayhemQuestion[]>([]);
   currentIndex = signal(0);
   selectedOption = signal<string | null>(null);

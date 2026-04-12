@@ -1,10 +1,5 @@
 <div class="legal-page">
-  <div class="legal-page__header">
-    <button type="button" class="legal-page__back" (click)="goBack()" aria-label="Go back">
-      <span class="material-icons" style="font-size:1.25rem">arrow_back</span>
-    </button>
-    <h1 class="legal-page__title">Terms of Service</h1>
-  </div>
+  <app-lobby-header title="Terms of Service" (back)="goBack()" />
 
   <div class="legal-page__content">
     <p class="legal-page__updated">Last updated: April 2026</p>
