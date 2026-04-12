@@ -119,6 +119,18 @@
         </div>
       }
 
+      <!-- XP Level progress -->
+      <div class="xp-progress">
+        <div class="xp-progress__labels">
+          <span class="xp-progress__level">Level {{ level() }}</span>
+          <span class="xp-progress__total">{{ xp() }} XP</span>
+        </div>
+        <div class="xp-progress__track" role="progressbar" aria-label="XP progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="xpPct()">
+          <div class="xp-progress__fill" [style.--progress]="xpPct() / 100"></div>
+        </div>
+        <div class="xp-progress__footer">{{ xpRemaining() }} XP to Level {{ level() + 1 }}</div>
+      </div>
+
       <!-- Quick stats -->
       <div class="hero__stats">
         <div class="hero__stat">
