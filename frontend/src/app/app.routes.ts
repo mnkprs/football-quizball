@@ -29,6 +29,7 @@ export const routes: Routes = [
   { path: 'join/:code', loadComponent: () => import('./features/online-game/join-invite').then(m => m.JoinInviteComponent) },
   { path: 'duel/:id', canActivate: [authGuard], loadComponent: () => import('./features/duel/duel-play').then(m => m.DuelPlayComponent) },
   { path: 'battle-royale/:id', canActivate: [authGuard], loadComponent: () => import('./features/battle-royale/battle-royale-play').then(m => m.BattleRoyalePlayComponent) },
+  { path: 'match/:id', canActivate: [authGuard], loadComponent: () => import('./features/match-detail/match-detail').then(m => m.MatchDetailComponent) },
   { path: 'login', loadComponent: () => import('./features/login/login').then(m => m.LoginComponent) },
   { path: 'admin', loadComponent: () => import('./features/admin/admin-dashboard').then(m => m.AdminDashboardComponent) },
   { path: 'admin-legacy', loadComponent: () => import('./features/admin/admin-legacy').then(m => m.AdminLegacyComponent) },

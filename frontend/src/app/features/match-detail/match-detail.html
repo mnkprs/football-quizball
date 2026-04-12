@@ -1,0 +1,173 @@
+<div class="match-detail-page">
+
+  <!-- Header with back button -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()" aria-label="Go back">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <h1 class="page-title">Match Details</h1>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="page-loading">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error(); as err) {
+    <div class="page-error">
+      <p>{{ err }}</p>
+      <button class="back-link" (click)="goBack()">Go back</button>
+    </div>
+  }
+
+  @if (detail(); as d) {
+
+    <!-- ─── Score Header ─────────────────────────────────── -->
+    <div class="score-header"
+         [class.score-header--win]="d.game_ref_type !== 'battle_royale' && d.game_ref_type !== 'team_logo_battle' && d.winner_id === currentUserId()"
+         [class.score-header--loss]="d.game_ref_type !== 'battle_royale' && d.game_ref_type !== 'team_logo_battle' && d.winner_id !== null && d.winner_id !== currentUserId()"
+         [class.score-header--draw]="d.game_ref_type !== 'battle_royale' && d.game_ref_type !== 'team_logo_battle' && d.winner_id === null"
+         [class.score-header--br]="d.game_ref_type === 'battle_royale' || d.game_ref_type === 'team_logo_battle'">
+      <div class="score-header__badge">{{ modeLabel(d.match_mode) }}</div>
+      <div class="score-header__date">{{ formatDate(d.played_at) }}</div>
+
+      @if (d.match_mode === 'battle_royale' || d.match_mode === 'team_logo_battle') {
+        <div class="score-header__main">
+          <span class="score-header__name">{{ d.player1_username }}</span>
+          <span class="score-header__score">{{ d.player1_score }} pts</span>
+        </div>
+      } @else {
+        <div class="score-header__main">
+          <span class="score-header__name">{{ d.player1_username }}</span>
+          <span class="score-header__score">{{ d.player1_score }} &ndash; {{ d.player2_score }}</span>
+          <span class="score-header__name">{{ d.player2_username }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- ─── DUEL: Question Breakdown ──────────────────── -->
+    @if (d.game_ref_type === 'duel' && d.question_results && d.question_results.length > 0) {
+      <div class="detail-section">
+        <h3 class="detail-section__title">Question Breakdown</h3>
+        <div class="question-list">
+          @for (q of d.question_results; track q.index) {
+            <div class="question-card">
+              <div class="question-card__top">
+                <p class="question-card__text">{{ q.question_text }}</p>
+                @if (q.winner === myDuelRole()) {
+                  <span class="question-card__tag question-card__tag--win">+1 You</span>
+                } @else if (q.winner === null) {
+                  <span class="question-card__tag question-card__tag--skip">Skipped</span>
+                } @else {
+                  <span class="question-card__tag question-card__tag--loss">Opponent</span>
+                }
+              </div>
+              <p class="question-card__answer">Answer: <span>{{ q.correct_answer }}</span></p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ─── ONLINE / LOCAL: Player Stats + Category Breakdown ─── -->
+    @if ((d.game_ref_type === 'online' || d.game_ref_type === 'local') && d.players && d.players.length >= 2) {
+      <div class="detail-section">
+        <h3 class="detail-section__title">Player Stats</h3>
+        <div class="player-stats">
+          @for (p of d.players; track p.name; let i = $index) {
+            <div class="player-stat-card" [class.player-stat-card--winner]="p.score > d.players[1 - i].score">
+              <p class="player-stat-card__name">{{ p.name }}</p>
+              <p class="player-stat-card__score">{{ p.score }}</p>
+              <div class="player-stat-card__badges">
+                <span class="stat-badge" [class.stat-badge--used]="p.lifelineUsed">50/50</span>
+                <span class="stat-badge" [class.stat-badge--used]="p.doubleUsed">2x</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (d.board && d.categories) {
+        <div class="detail-section">
+          <h3 class="detail-section__title">Category Breakdown</h3>
+          <div class="category-list">
+            @for (cat of d.categories; track cat.key; let catIdx = $index) {
+              <div class="category-row">
+                <span class="category-row__label">{{ cat.label }}</span>
+                <span class="category-row__scores">
+                  {{ getCategoryPoints(d, catIdx, d.players![0].name) }}
+                  &ndash;
+                  {{ getCategoryPoints(d, catIdx, d.players![1].name) }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ─── BR: Leaderboard ──────────────────────────── -->
+    @if ((d.game_ref_type === 'battle_royale' || d.game_ref_type === 'team_logo_battle') && d.br_players && d.br_players.length > 0) {
+
+      @if (d.mvp) {
+        <div class="detail-section">
+          <div class="mvp-banner">
+            <span class="mvp-banner__label">MVP</span>
+            <span class="mvp-banner__name">{{ d.mvp.username }}</span>
+            <span class="mvp-banner__score">{{ d.mvp.score }} pts</span>
+          </div>
+        </div>
+      }
+
+      @if (d.team_scores) {
+        <div class="detail-section">
+          <div class="team-scores">
+            <div class="team-score" [class.team-score--winner]="d.team_scores.team1 > d.team_scores.team2">
+              <span class="team-score__label">Team 1</span>
+              <span class="team-score__pts">{{ d.team_scores.team1 }}</span>
+            </div>
+            <span class="team-scores__vs">vs</span>
+            <div class="team-score" [class.team-score--winner]="d.team_scores.team2 > d.team_scores.team1">
+              <span class="team-score__label">Team 2</span>
+              <span class="team-score__pts">{{ d.team_scores.team2 }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="detail-section">
+        <h3 class="detail-section__title">Leaderboard</h3>
+        <div class="leaderboard">
+          @for (p of d.br_players; track p.username; let i = $index) {
+            <div class="lb-row" [class.lb-row--me]="p.username === d.player1_username">
+              <span class="lb-row__rank">
+                @if (p.rank === 1) { <span class="medal medal--gold">1</span> }
+                @else if (p.rank === 2) { <span class="medal medal--silver">2</span> }
+                @else if (p.rank === 3) { <span class="medal medal--bronze">3</span> }
+                @else { <span class="medal">{{ p.rank }}</span> }
+              </span>
+              <span class="lb-row__name">{{ p.username }}</span>
+              @if (p.teamId) {
+                <span class="lb-row__team">T{{ p.teamId }}</span>
+              }
+              <span class="lb-row__score">{{ p.score }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ─── Fallback: no game ref ────────────────────── -->
+    @if (!d.game_ref_id) {
+      <div class="detail-section">
+        <p class="fallback-text">Detailed match data is not available for this game.</p>
+      </div>
+    }
+  }
+
+</div>

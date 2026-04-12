@@ -10,7 +10,6 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
-import { MatchDetailModalComponent, MatchDetailModalService } from '../../shared/match-detail-modal/match-detail-modal';
 import { getEloTier, nextTierThreshold, tierProgress } from '../../core/elo-tier';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
@@ -22,7 +21,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent, NgOptimizedImage, EmptyStateComponent, MatchDetailModalComponent],
+  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent, NgOptimizedImage, EmptyStateComponent],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,7 +38,6 @@ export class ProfileComponent implements OnInit {
   private soloApi = inject(SoloApiService);
   private achievementsApi = inject(AchievementsApiService);
   private matchHistoryApi = inject(MatchHistoryApiService);
-  private matchDetailModal = inject(MatchDetailModalService);
 
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
@@ -225,7 +223,7 @@ export class ProfileComponent implements OnInit {
   }
 
   openMatchDetail(match: MatchHistoryEntry): void {
-    this.matchDetailModal.open(match);
+    this.router.navigate(['/match', match.id]);
   }
 
   openSubscriptionManagement(): void {
