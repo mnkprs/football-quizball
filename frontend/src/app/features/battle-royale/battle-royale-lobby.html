@@ -43,7 +43,13 @@
 
     <!-- Middle section: rooms -->
     <div class="br-middle">
-      @if (rooms().length > 0) {
+      @if (isTeamLogoMode()) {
+        <app-empty-state
+          icon="shield"
+          title="Invite-only mode"
+          subtitle="Create a private room and share the code with friends"
+        />
+      } @else if (rooms().length > 0) {
         <h2 class="br-rooms__header">Active Rooms</h2>
         <div class="br-rooms__list">
           @for (room of rooms(); track room.id) {
