@@ -91,6 +91,7 @@ export class SoloService {
       servedAt: null,
       questionsAnswered: 0,
       correctAnswers: 0,
+      consecutiveCorrect: 0,
       profileQuestionsAnswered: profile.questions_answered ?? 0,
       eloChanges: [],
       drawnQuestionIds: [],
@@ -167,7 +168,12 @@ export class SoloService {
 
     session.currentElo = eloAfter;
     session.questionsAnswered += 1;
-    if (correct) session.correctAnswers += 1;
+    if (correct) {
+      session.correctAnswers += 1;
+      session.consecutiveCorrect += 1;
+    } else {
+      session.consecutiveCorrect = 0;
+    }
     session.eloChanges.push(eloChange);
     session.currentQuestion = null;
     session.servedAt = null;
@@ -190,7 +196,7 @@ export class SoloService {
     const xpResult = await this.xpService.awardForAnswer(userId, correct, 'solo');
     let streakBonusAmount: number | undefined;
     if (correct) {
-      const streakResult = await this.xpService.awardStreakBonus(userId, session.correctAnswers, 'solo');
+      const streakResult = await this.xpService.awardStreakBonus(userId, session.consecutiveCorrect, 'solo');
       if (streakResult) {
         streakBonusAmount = streakResult.xp_gained;
         xpResult.total_xp = streakResult.total_xp;
@@ -265,11 +271,8 @@ export class SoloService {
           ? Math.round((session.correctAnswers / session.questionsAnswered) * 100)
           : 0;
 
-        const { current_daily_streak: dailyStreak, awarded_today: dailyStreakAwardedToday } = await this.supabaseService.updateDailyStreak(userId);
-        // Daily streak XP: only on first activity of the day
-        if (dailyStreakAwardedToday && dailyStreak > 0) {
-          await this.xpService.award(userId, 'daily_streak', XP_VALUES.DAILY_STREAK, { streak: dailyStreak });
-        }
+        const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(userId);
+        // Daily streak XP is awarded centrally inside updateDailyStreak (once/day, any mode)
         const totalQuestions = await this.supabaseService.incrementTotalQuestions(userId, session.questionsAnswered);
         const currentStreak = await this.supabaseService.getCorrectStreak(userId);
         await this.supabaseService.updateMaxCorrectStreak(userId, currentStreak);

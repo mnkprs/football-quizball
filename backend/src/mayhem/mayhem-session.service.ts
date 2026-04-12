@@ -25,6 +25,7 @@ interface MayhemSession {
   servedAt: Date | null;
   questionsAnswered: number;
   correctAnswers: number;
+  consecutiveCorrect: number;
   createdAt: Date;
 }
 
@@ -62,6 +63,7 @@ export class MayhemSessionService {
       servedAt: null,
       questionsAnswered: 0,
       correctAnswers: 0,
+      consecutiveCorrect: 0,
       createdAt: new Date(),
     };
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
@@ -115,7 +117,12 @@ export class MayhemSessionService {
 
     session.currentElo = eloAfter;
     session.questionsAnswered += 1;
-    if (correct) session.correctAnswers += 1;
+    if (correct) {
+      session.correctAnswers += 1;
+      session.consecutiveCorrect += 1;
+    } else {
+      session.consecutiveCorrect = 0;
+    }
     session.currentQuestion = null;
     session.servedAt = null;
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
@@ -125,7 +132,7 @@ export class MayhemSessionService {
       this.logger.warn(`[mayhem] XP award failed: ${err?.message}`),
     );
     if (correct) {
-      void this.xpService.awardStreakBonus(userId, session.correctAnswers, 'mayhem').catch((err) =>
+      void this.xpService.awardStreakBonus(userId, session.consecutiveCorrect, 'mayhem').catch((err) =>
         this.logger.warn(`[mayhem] streak bonus failed: ${err?.message}`),
       );
     }

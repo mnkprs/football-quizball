@@ -682,6 +682,14 @@ export class SupabaseService {
       .update({ last_active_date: today, current_daily_streak: newStreak })
       .eq('id', userId);
 
+    // Award daily streak XP once per day, centrally (any mode can trigger this)
+    await this.client.rpc('award_xp', {
+      p_user_id: userId,
+      p_amount: 25, // XP_VALUES.DAILY_STREAK — inlined to avoid cross-module dep
+      p_source: 'daily_streak',
+      p_metadata: { streak: newStreak },
+    });
+
     return { current_daily_streak: newStreak, awarded_today: true };
   }
 
