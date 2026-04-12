@@ -2,6 +2,16 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.3.2.0] - 2026-04-13
+
+### Changed
+- **Consistent back button across all screens** — lobbies (Online 1v1, Duel, Battle Royale), Notifications, Terms, Privacy, and Match Details now share a single header component with identical styling, touch-target size, and icon rendering.
+- **Duel lobby now has a back button** — previously the only lobby without one.
+
+### Fixed
+- Online 1v1 lobby back arrow now renders correctly (previously the arrow icon was invisible due to a font-subset mismatch).
+- Bottom navigation now auto-hides during active gameplay across Solo Ranked, Blitz, Mayhem, and Daily — preventing accidental taps that could abort a timed question. Previously only Logo Quiz had this behavior.
+
 ## [0.3.1.0] - 2026-04-12
 
 ### Changed
