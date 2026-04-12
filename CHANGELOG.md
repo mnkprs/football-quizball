@@ -2,6 +2,20 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.3.0.0] - 2026-04-12
+
+### Added
+- **XP & Leveling system** — earn XP on every correct and wrong answer, streak bonuses up to +30 for 15+ consecutive correct, +50 on duel wins, +75 on Battle Royale wins, +20 on Solo session completion, +15 on Blitz round completion, and +25 for your daily streak. Level up with an animated celebration overlay.
+- Level badge in the top-nav next to Solo/Logo/W-L chips
+- XP progress bar on the profile page showing progress to next level and total XP earned
+- Floating "+XP" gain feedback in Solo mode (with separate styling for streak bonuses)
+- `profiles.xp` and `profiles.level` columns, plus new `xp_history` audit table
+- Server-side `award_xp` RPC with atomic row-lock, search_path hardening, and service-role-only execute
+
+### Changed
+- `updateDailyStreak` now centrally awards the daily-streak XP once per day across all game modes (not just Solo)
+- Solo and Mayhem sessions track a dedicated `consecutiveCorrect` counter for accurate streak bonuses (resets on wrong/timeout)
+
 ## [0.2.0.0] - 2026-04-09
 
 ### Added
