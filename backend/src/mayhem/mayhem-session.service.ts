@@ -3,6 +3,7 @@ import { SessionStoreService } from '../session/session-store.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { XpService } from '../xp/xp.service';
 import type { Difficulty } from '../questions/question.types';
 
 const SESSION_TTL = 7200;
@@ -36,6 +37,7 @@ export class MayhemSessionService {
     private readonly supabaseService: SupabaseService,
     private readonly eloService: EloService,
     private readonly achievementsService: AchievementsService,
+    private readonly xpService: XpService,
   ) {}
 
   private sessionKey(id: string) { return `mayhem:${id}`; }
@@ -117,6 +119,16 @@ export class MayhemSessionService {
     session.currentQuestion = null;
     session.servedAt = null;
     await this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL);
+
+    // Fire-and-forget: award XP for the answer (+ streak bonus on correct)
+    void this.xpService.awardForAnswer(userId, correct, 'mayhem').catch((err) =>
+      this.logger.warn(`[mayhem] XP award failed: ${err?.message}`),
+    );
+    if (correct) {
+      void this.xpService.awardStreakBonus(userId, session.correctAnswers, 'mayhem').catch((err) =>
+        this.logger.warn(`[mayhem] streak bonus failed: ${err?.message}`),
+      );
+    }
 
     return {
       correct,

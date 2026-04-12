@@ -12,9 +12,10 @@ import { AuthModule } from '../auth/auth.module';
 import { SessionStoreModule } from '../session/session-store.module';
 import { EloService } from '../solo/elo.service';
 import { AchievementsModule } from '../achievements/achievements.module';
+import { XpModule } from '../xp/xp.module';
 
 @Module({
-  imports: [ConfigModule, LlmModule, SupabaseModule, QuestionsModule, AuthModule, SessionStoreModule, AchievementsModule],
+  imports: [ConfigModule, LlmModule, SupabaseModule, QuestionsModule, AuthModule, SessionStoreModule, AchievementsModule, XpModule],
   providers: [MayhemQuestionGenerator, MayhemStatGuessGenerator, MayhemService, MayhemSessionService, EloService],
   controllers: [MayhemController],
   exports: [MayhemService, MayhemSessionService],
