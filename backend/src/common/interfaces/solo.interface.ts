@@ -36,4 +36,5 @@ export interface SoloAnswerResult {
   elo_change: number;
   questions_answered: number;
   correct_answers: number;
+  xp?: { xp_gained: number; total_xp: number; level: number; leveled_up: boolean; streak_bonus?: number };
 }

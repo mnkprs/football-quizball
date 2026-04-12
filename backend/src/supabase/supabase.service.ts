@@ -649,7 +649,7 @@ export class SupabaseService {
     return modes;
   }
 
-  async updateDailyStreak(userId: string): Promise<{ current_daily_streak: number }> {
+  async updateDailyStreak(userId: string): Promise<{ current_daily_streak: number; awarded_today: boolean }> {
     const today = new Date().toISOString().slice(0, 10);
     const { data: profile } = await this.client
       .from('profiles')
@@ -657,13 +657,14 @@ export class SupabaseService {
       .eq('id', userId)
       .maybeSingle();
 
-    if (!profile) return { current_daily_streak: 0 };
+    if (!profile) return { current_daily_streak: 0, awarded_today: false };
 
     const lastActive = profile.last_active_date;
     let newStreak = 1;
 
     if (lastActive === today) {
-      return { current_daily_streak: profile.current_daily_streak };
+      // Already counted today — idempotent no-op. Callers should not award XP.
+      return { current_daily_streak: profile.current_daily_streak, awarded_today: false };
     }
 
     const yesterday = new Date();
@@ -679,7 +680,7 @@ export class SupabaseService {
       .update({ last_active_date: today, current_daily_streak: newStreak })
       .eq('id', userId);
 
-    return { current_daily_streak: newStreak };
+    return { current_daily_streak: newStreak, awarded_today: true };
   }
 
   async updateMaxCorrectStreak(userId: string, currentStreak: number): Promise<void> {
