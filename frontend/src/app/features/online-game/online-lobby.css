@@ -159,6 +159,66 @@
   color: var(--color-fg-variant);
 }
 
+.online-active-game__badge--expired {
+  background: color-mix(in srgb, var(--color-error-text, #f87171) 18%, transparent);
+  color: var(--color-error-text, #f87171);
+}
+
+/* ── Skeleton + load-error states ── */
+.online-active-games--skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.online-active-game--skeleton {
+  display: block;
+  height: 64px;
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-white) 4%, transparent) 0%,
+    color-mix(in srgb, var(--color-white) 10%, transparent) 50%,
+    color-mix(in srgb, var(--color-white) 4%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: online-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes online-skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.online-load-error {
+  width: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg, 12px);
+  background: color-mix(in srgb, var(--color-error-text, #f87171) 10%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.online-load-error__msg {
+  margin: 0;
+  color: var(--color-fg-variant);
+  font-size: 0.875rem;
+}
+
+.online-load-error__retry {
+  align-self: flex-end;
+  padding: var(--space-2) var(--space-4);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+  border: none;
+  cursor: pointer;
+}
+
 /* ── Premium limit banner ── */
 .online-limit-banner {
   width: 100%;
@@ -388,6 +448,29 @@
   color: var(--color-accent-light);
 }
 
+/* ── Inline spinner (used in sheet buttons while an action is in flight) ── */
+.online-sheet__spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-top-color: var(--color-accent);
+  animation: online-sheet-spin 0.8s linear infinite;
+}
+
+.online-sheet__spinner--on-accent {
+  border-color: color-mix(in srgb, var(--color-on-accent, #000) 25%, transparent);
+  border-top-color: var(--color-on-accent, #000);
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+
+@keyframes online-sheet-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .online-sheet {
@@ -397,5 +480,13 @@
   .online-sheet__option:not(:disabled):active,
   .online-sheet__code-btn:active {
     transform: none;
+  }
+
+  .online-active-game--skeleton {
+    animation: none;
+  }
+
+  .online-sheet__spinner {
+    animation-duration: 2s;
   }
 }

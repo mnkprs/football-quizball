@@ -1022,14 +1022,25 @@ export class OnlineGameService {
     });
   }
 
-  async getGameCount(userId: string): Promise<{ count: number }> {
-    const { count } = await this.supabaseService.client
-      .from('online_games')
-      .select('id', { count: 'exact', head: true })
-      .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
-      .in('status', ['waiting', 'active']);
+  /** Free-tier cap on concurrent active online games. Pro users are uncapped. */
+  static readonly FREE_TIER_MAX_ACTIVE_GAMES = 2;
 
-    return { count: count ?? 0 };
+  async getGameCount(userId: string): Promise<{ count: number; isPro: boolean; max: number }> {
+    const [{ count }, proStatus] = await Promise.all([
+      this.supabaseService.client
+        .from('online_games')
+        .select('id', { count: 'exact', head: true })
+        .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
+        .in('status', ['waiting', 'active']),
+      this.supabaseService.getProStatus(userId),
+    ]);
+
+    const isPro = !!proStatus?.is_pro;
+    return {
+      count: count ?? 0,
+      isPro,
+      max: isPro ? -1 : OnlineGameService.FREE_TIER_MAX_ACTIVE_GAMES,
+    };
   }
 
   async joinQueue(userId: string): Promise<OnlinePublicView> {
