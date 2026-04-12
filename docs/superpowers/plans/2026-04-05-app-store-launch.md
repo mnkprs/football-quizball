@@ -382,7 +382,7 @@ NODE_ENV=production
 MAX_WORKERS=4
 ```
 
-Verify `ADMIN_API_KEY` is set to a strong random value (not the dev default `Manos1995`).
+Verify `ADMIN_API_KEY` is set to a strong random value (never use a dev default in production).
 
 - [ ] **Step 3: Verify after deploy**
 
