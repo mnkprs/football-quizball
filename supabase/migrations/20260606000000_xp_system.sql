@@ -33,6 +33,7 @@ CREATE OR REPLACE FUNCTION award_xp(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_old_xp integer;
@@ -69,3 +70,6 @@ BEGIN
   );
 END;
 $$;
+
+REVOKE EXECUTE ON FUNCTION award_xp(uuid, integer, text, jsonb) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION award_xp(uuid, integer, text, jsonb) TO service_role;
