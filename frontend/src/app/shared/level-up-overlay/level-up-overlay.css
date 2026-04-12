@@ -1,0 +1,43 @@
+.level-up-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  animation: level-up-fade 2.5s ease forwards;
+  pointer-events: none;
+}
+
+.level-up-overlay__content {
+  text-align: center;
+  animation: level-up-scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.level-up-overlay__label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: #a78bfa;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.level-up-overlay__number {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(139, 92, 246, 0.8), 0 0 80px rgba(139, 92, 246, 0.4);
+}
+
+@keyframes level-up-scale {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes level-up-fade {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; }
+}
