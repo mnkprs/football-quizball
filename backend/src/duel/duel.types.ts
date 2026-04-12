@@ -91,6 +91,12 @@ export interface DuelAnswerResult {
   scores?: { host: number; guest: number };
   gameFinished?: boolean;
   gameWinner?: 'host' | 'guest' | 'draw';
+  xp?: {
+    xp_gained: number;
+    total_xp: number;
+    level: number;
+    leveled_up: boolean;
+  };
 }
 
 export interface DuelGameSummary {
