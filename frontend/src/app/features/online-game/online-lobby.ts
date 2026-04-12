@@ -1,17 +1,29 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  ChangeDetectionStrategy,
+  HostListener,
+  ElementRef,
+  viewChild,
+} from '@angular/core';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { A11yModule } from '@angular/cdk/a11y';
 import { firstValueFrom } from 'rxjs';
 import { OnlineGameApiService, OnlineGameSummary } from '../../core/online-game-api.service';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
+import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 
 @Component({
   selector: 'app-online-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NgOptimizedImage, A11yModule, EmptyStateComponent],
   templateUrl: './online-lobby.html',
+  styleUrl: './online-lobby.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OnlineLobbyComponent implements OnInit {
@@ -26,8 +38,11 @@ export class OnlineLobbyComponent implements OnInit {
   inviteCode = '';
   gameCount = signal(0);
   isPro = signal(false);
-
   atLimit = signal(false);
+  showPlaySheet = signal(false);
+
+  /** Sheet trigger — used to restore focus when sheet closes. */
+  playButton = viewChild<ElementRef<HTMLButtonElement>>('playButton');
 
   ngOnInit(): void {
     this.loadGames();
@@ -54,11 +69,30 @@ export class OnlineLobbyComponent implements OnInit {
     }
   }
 
+  openPlaySheet(): void {
+    this.showPlaySheet.set(true);
+  }
+
+  closePlaySheet(): void {
+    this.showPlaySheet.set(false);
+    this.error.set(null);
+    // Restore focus to the trigger button after close
+    queueMicrotask(() => this.playButton()?.nativeElement.focus());
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.showPlaySheet()) {
+      this.closePlaySheet();
+    }
+  }
+
   async createGame(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
       const game = await firstValueFrom(this.api.createGame());
+      this.showPlaySheet.set(false);
       this.router.navigate(['/online-game', game.id]);
     } catch (err: unknown) {
       const msg = (err as { error?: { message?: string } })?.error?.message;
@@ -75,6 +109,7 @@ export class OnlineLobbyComponent implements OnInit {
     this.error.set(null);
     try {
       const game = await firstValueFrom(this.api.joinQueue());
+      this.showPlaySheet.set(false);
       this.router.navigate(['/online-game', game.id]);
     } catch (err: unknown) {
       const msg = (err as { error?: { message?: string } })?.error?.message;
@@ -87,11 +122,13 @@ export class OnlineLobbyComponent implements OnInit {
   }
 
   async joinByCode(): Promise<void> {
-    if (!this.inviteCode.trim()) return;
+    const code = this.inviteCode.trim();
+    if (code.length < 6) return;
     this.loading.set(true);
     this.error.set(null);
     try {
-      const game = await firstValueFrom(this.api.joinByCode(this.inviteCode.trim()));
+      const game = await firstValueFrom(this.api.joinByCode(code));
+      this.showPlaySheet.set(false);
       this.router.navigate(['/online-game', game.id]);
     } catch (err: unknown) {
       const body = (err as { error?: { message?: string } })?.error;
@@ -118,9 +155,9 @@ export class OnlineLobbyComponent implements OnInit {
   }
 
   turnBadgeClass(game: OnlineGameSummary): string {
-    if (game.isMyTurn) return 'bg-win/20 text-win';
-    if (game.status === 'waiting' || game.status === 'queued') return 'bg-accent/20 text-accent';
-    return 'bg-muted text-muted-foreground';
+    if (game.isMyTurn) return 'online-active-game__badge--my-turn';
+    if (game.status === 'waiting' || game.status === 'queued') return 'online-active-game__badge--waiting';
+    return 'online-active-game__badge--their-turn';
   }
 
   formatDeadline(iso: string): string {
