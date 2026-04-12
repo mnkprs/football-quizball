@@ -5,9 +5,10 @@ import { AuthModule } from '../auth/auth.module';
 import { SessionStoreModule } from '../session/session-store.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { AchievementsModule } from '../achievements/achievements.module';
+import { XpModule } from '../xp/xp.module';
 
 @Module({
-  imports: [AuthModule, SessionStoreModule, SupabaseModule, AchievementsModule],
+  imports: [AuthModule, SessionStoreModule, SupabaseModule, AchievementsModule, XpModule],
   controllers: [BlitzController],
   providers: [BlitzService],
   exports: [BlitzService],
