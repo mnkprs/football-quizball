@@ -8,6 +8,8 @@ import { SoloSession, SoloAnswerResult, TIME_LIMITS } from './solo.types';
 import { AnswerValidator } from '../questions/validators/answer.validator';
 import { AchievementsService } from '../achievements/achievements.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { XpService } from '../xp/xp.service';
+import { XP_VALUES } from '../xp/xp.constants';
 
 const SESSION_TTL = 7200; // 2h
 
@@ -24,6 +26,7 @@ export class SoloService {
     private readonly answerValidator: AnswerValidator,
     private readonly achievementsService: AchievementsService,
     private readonly notificationsService: NotificationsService,
+    private readonly xpService: XpService,
   ) {}
 
   private sessionKey(id: string) { return `solo:${id}`; }
@@ -88,6 +91,7 @@ export class SoloService {
       servedAt: null,
       questionsAnswered: 0,
       correctAnswers: 0,
+      consecutiveCorrect: 0,
       profileQuestionsAnswered: profile.questions_answered ?? 0,
       eloChanges: [],
       drawnQuestionIds: [],
@@ -164,7 +168,12 @@ export class SoloService {
 
     session.currentElo = eloAfter;
     session.questionsAnswered += 1;
-    if (correct) session.correctAnswers += 1;
+    if (correct) {
+      session.correctAnswers += 1;
+      session.consecutiveCorrect += 1;
+    } else {
+      session.consecutiveCorrect = 0;
+    }
     session.eloChanges.push(eloChange);
     session.currentQuestion = null;
     session.servedAt = null;
@@ -182,6 +191,20 @@ export class SoloService {
         timed_out: timedOut,
       }),
     ]);
+
+    // Award XP for the answer (and streak bonus on correct). Non-critical: failures fall through with zeros.
+    const xpResult = await this.xpService.awardForAnswer(userId, correct, 'solo');
+    let streakBonusAmount: number | undefined;
+    if (correct) {
+      const streakResult = await this.xpService.awardStreakBonus(userId, session.consecutiveCorrect, 'solo');
+      if (streakResult) {
+        streakBonusAmount = streakResult.xp_gained;
+        xpResult.total_xp = streakResult.total_xp;
+        xpResult.level = streakResult.level;
+        xpResult.leveled_up = xpResult.leveled_up || streakResult.leveled_up;
+      }
+    }
+
     this.logger.debug(JSON.stringify({
       event: 'answer_submitted',
       userId,
@@ -202,6 +225,13 @@ export class SoloService {
       elo_change: eloChange,
       questions_answered: session.questionsAnswered,
       correct_answers: session.correctAnswers,
+      xp: {
+        xp_gained: xpResult.xp_gained + (streakBonusAmount ?? 0),
+        total_xp: xpResult.total_xp,
+        level: xpResult.level,
+        leveled_up: xpResult.leveled_up,
+        ...(streakBonusAmount ? { streak_bonus: streakBonusAmount } : {}),
+      },
     };
   }
 
@@ -226,6 +256,10 @@ export class SoloService {
 
     // Increment games_played
     await this.supabaseService.incrementGamesPlayed(userId, session.questionsAnswered, session.correctAnswers);
+
+    // Award XP for completing a solo session
+    await this.xpService.award(userId, 'solo_complete', XP_VALUES.SOLO_COMPLETE, { mode: 'solo' });
+
     await this.sessionStore.del(this.sessionKey(sessionId));
 
     // Check achievements
@@ -238,6 +272,7 @@ export class SoloService {
           : 0;
 
         const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(userId);
+        // Daily streak XP is awarded centrally inside updateDailyStreak (once/day, any mode)
         const totalQuestions = await this.supabaseService.incrementTotalQuestions(userId, session.questionsAnswered);
         const currentStreak = await this.supabaseService.getCorrectStreak(userId);
         await this.supabaseService.updateMaxCorrectStreak(userId, currentStreak);

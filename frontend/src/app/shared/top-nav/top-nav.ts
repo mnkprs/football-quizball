@@ -65,6 +65,7 @@ export class TopNavComponent implements OnInit {
   tierPct = computed(() => this.store.tierProgressPct());
   sessionDelta = computed(() => this.store.sessionDelta());
   correctStreak = computed(() => this.store.correctStreak());
+  level = computed(() => this.store.level());
   statsLoading = computed(() => this.store.loading());
   username = computed(() => this.store.profile()?.username ?? '');
   winRatio = computed(() => {

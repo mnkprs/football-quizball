@@ -18,6 +18,8 @@ export interface Profile {
   current_daily_streak: number;
   total_questions_all_modes: number;
   modes_played: string[];
+  xp: number;
+  level: number;
 }
 
 export interface ProStatus {

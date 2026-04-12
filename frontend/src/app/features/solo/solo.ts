@@ -17,6 +17,7 @@ import { createGameTimer } from '../../core/game-timer';
 import { createReportCooldown } from '../../core/report-cooldown';
 import { ProfileStore } from '../../core/profile-store.service';
 import { AdService } from '../../core/ad.service';
+import { LevelUpService } from '../../core/level-up.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
 
@@ -40,6 +41,7 @@ export class SoloComponent implements OnDestroy {
   private analytics = inject(AnalyticsService);
   private profileStore = inject(ProfileStore);
   private adService = inject(AdService);
+  private levelUpService = inject(LevelUpService);
   lang = inject(LanguageService);
 
   phase = signal<SoloPhase>('idle');
@@ -83,6 +85,8 @@ export class SoloComponent implements OnDestroy {
   currentStreak = signal(0);
   bestStreak = signal(0);
   tierUpMessage = signal<string | null>(null);
+  lastXpGain = signal<{ amount: number; streak?: number } | null>(null);
+  private xpGainTimeout?: ReturnType<typeof setTimeout>;
 
   currentQuestion = signal<NextQuestionResponse | null>(null);
   lastResult = signal<AnswerResponse | null>(null);
@@ -240,6 +244,21 @@ export class SoloComponent implements OnDestroy {
 
       this.currentElo.set(result.elo_after);
       this.animateElo(result.elo_after - result.elo_change, result.elo_after);
+
+      // XP feedback and level-up trigger
+      if (result.xp) {
+        this.lastXpGain.set({
+          amount: result.xp.xp_gained,
+          streak: result.xp.streak_bonus,
+        });
+        if (this.xpGainTimeout) clearTimeout(this.xpGainTimeout);
+        this.xpGainTimeout = setTimeout(() => this.lastXpGain.set(null), 1500);
+
+        if (result.xp.leveled_up) {
+          this.levelUpService.show(result.xp.level);
+        }
+      }
+
       this.analytics.track('question_answered', {
         correct: result.correct,
         elo_change: result.elo_change,

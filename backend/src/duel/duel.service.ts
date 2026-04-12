@@ -26,6 +26,8 @@ import {
 import { LogoQuizService } from '../logo-quiz/logo-quiz.service';
 import { AchievementsService } from '../achievements/achievements.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { XpService } from '../xp/xp.service';
+import { XP_VALUES } from '../xp/xp.constants';
 
 /** First to WIN_TARGET correct answers wins the duel */
 const WIN_TARGET = 5;
@@ -49,6 +51,7 @@ export class DuelService {
     private readonly logoQuizService: LogoQuizService,
     private readonly achievementsService: AchievementsService,
     private readonly notificationsService: NotificationsService,
+    private readonly xpService: XpService,
   ) {}
 
   // ── Create / Join ─────────────────────────────────────────────────────────
@@ -372,7 +375,16 @@ export class DuelService {
       void this.supabaseService.incrementQuestionStats(userId, 0).catch((err) =>
         this.logger.warn(`[submitAnswer] incrementQuestionStats failed: ${err?.message}`),
       );
-      return { correct: false };
+      const wrongXp = await this.xpService.awardForAnswer(userId, false, 'duel');
+      return {
+        correct: false,
+        xp: {
+          xp_gained: wrongXp.xp_gained,
+          total_xp: wrongXp.total_xp,
+          level: wrongXp.level,
+          leveled_up: wrongXp.leveled_up,
+        },
+      };
     }
 
     // Attempt atomic CAS: claim the question for this player
@@ -411,14 +423,28 @@ export class DuelService {
       .single();
 
     if (claimError || !claimed) {
-      // Another player claimed it first (race condition — both were correct simultaneously)
-      return { correct: true, lostRace: true };
+      // Another player claimed it first (race condition — both were correct simultaneously).
+      // Still award answer XP — the user did answer correctly.
+      const raceXp = await this.xpService.awardForAnswer(userId, true, 'duel');
+      return {
+        correct: true,
+        lostRace: true,
+        xp: {
+          xp_gained: raceXp.xp_gained,
+          total_xp: raceXp.total_xp,
+          level: raceXp.level,
+          leveled_up: raceXp.leveled_up,
+        },
+      };
     }
 
     // Increment profile-level questions_answered / correct_answers
     void this.supabaseService.incrementQuestionStats(userId, 1).catch((err) =>
       this.logger.warn(`[submitAnswer] incrementQuestionStats failed: ${err?.message}`),
     );
+
+    // Award XP for correct answer
+    const correctXp = await this.xpService.awardForAnswer(userId, true, 'duel');
 
     const gameWinner: 'host' | 'guest' | 'draw' | undefined = gameFinished ? role : undefined;
 
@@ -458,6 +484,8 @@ export class DuelService {
             const isWinner = playerId === winnerId;
             if (isWinner) {
               await this.supabaseService.incrementDuelWins(playerId);
+              // Award DUEL_WIN XP bonus
+              await this.xpService.award(playerId, 'duel_win', XP_VALUES.DUEL_WIN, { mode: 'duel' });
             }
             const duelWins = isWinner ? (await this.supabaseService.getDuelWinCount(playerId)) : undefined;
             const duelGames = await this.supabaseService.getDuelGameCount(playerId);
@@ -500,6 +528,12 @@ export class DuelService {
       scores: newScores,
       gameFinished,
       gameWinner,
+      xp: {
+        xp_gained: correctXp.xp_gained,
+        total_xp: correctXp.total_xp,
+        level: correctXp.level,
+        leveled_up: correctXp.leveled_up,
+      },
     };
   }
 

@@ -805,3 +805,13 @@
   color: var(--color-fg);
 }
 .tsp__reset-pw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.top-nav__mode-chip--level {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.top-nav__mode-chip--level .top-nav__mode-value {
+  color: #a78bfa;
+  font-weight: 700;
+}

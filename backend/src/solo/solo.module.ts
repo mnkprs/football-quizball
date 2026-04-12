@@ -10,9 +10,10 @@ import { QuestionsModule } from '../questions/questions.module';
 import { LlmModule } from '../llm/llm.module';
 import { AchievementsModule } from '../achievements/achievements.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { XpModule } from '../xp/xp.module';
 
 @Module({
-  imports: [AuthModule, SessionStoreModule, SupabaseModule, QuestionsModule, LlmModule, AchievementsModule, NotificationsModule],
+  imports: [AuthModule, SessionStoreModule, SupabaseModule, QuestionsModule, LlmModule, AchievementsModule, NotificationsModule, XpModule],
   controllers: [SoloController],
   providers: [SoloService, EloService, SoloQuestionGenerator],
 })

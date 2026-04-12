@@ -5,9 +5,10 @@ import { AchievementsModule } from '../achievements/achievements.module';
 import { LogoQuizController } from './logo-quiz.controller';
 import { LogoQuizService } from './logo-quiz.service';
 import { EloService } from '../solo/elo.service';
+import { XpModule } from '../xp/xp.module';
 
 @Module({
-  imports: [AuthModule, SupabaseModule, AchievementsModule],
+  imports: [AuthModule, SupabaseModule, AchievementsModule, XpModule],
   controllers: [LogoQuizController],
   providers: [LogoQuizService, EloService],
   exports: [LogoQuizService],

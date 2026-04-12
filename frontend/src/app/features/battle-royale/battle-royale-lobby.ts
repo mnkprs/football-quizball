@@ -48,9 +48,12 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
       this.isTeamLogoMode.set(true);
     }
 
-    this.fetchRooms();
-    // Poll every 10 seconds — simple and sufficient for a lobby list
-    this.pollTimer = setInterval(() => this.fetchRooms(), 10_000);
+    // Team Logo mode is invite-only (private rooms), so no public rooms to browse
+    if (!this.isTeamLogoMode()) {
+      this.fetchRooms();
+      // Poll every 10 seconds — simple and sufficient for a lobby list
+      this.pollTimer = setInterval(() => this.fetchRooms(), 10_000);
+    }
   }
 
   ngOnDestroy(): void {

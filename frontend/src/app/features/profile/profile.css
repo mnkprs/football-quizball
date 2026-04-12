@@ -1110,3 +1110,54 @@
     max-width: var(--content-narrow-width);
   }
 }
+
+/* XP Level progress bar */
+.xp-progress {
+  margin: 0.75rem 1rem 0.25rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 10px;
+}
+
+.xp-progress__labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+}
+
+.xp-progress__level {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #a78bfa;
+  letter-spacing: 0.02em;
+}
+
+.xp-progress__total {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.xp-progress__track {
+  height: 6px;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.xp-progress__fill {
+  height: 100%;
+  width: calc(var(--progress, 0) * 100%);
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+}
+
+.xp-progress__footer {
+  margin-top: 0.35rem;
+  text-align: right;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+}

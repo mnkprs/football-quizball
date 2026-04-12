@@ -9,9 +9,10 @@ import { QuestionsModule } from '../questions/questions.module';
 import { LogoQuizModule } from '../logo-quiz/logo-quiz.module';
 import { AchievementsModule } from '../achievements/achievements.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { XpModule } from '../xp/xp.module';
 
 @Module({
-  imports: [AuthModule, SupabaseModule, QuestionsModule, ScheduleModule, LogoQuizModule, AchievementsModule, NotificationsModule],
+  imports: [AuthModule, SupabaseModule, QuestionsModule, ScheduleModule, LogoQuizModule, AchievementsModule, NotificationsModule, XpModule],
   controllers: [DuelController],
   providers: [DuelService, DuelTimeoutService],
   exports: [DuelService],
