@@ -63,6 +63,8 @@ export class OnlineLobbyComponent implements OnInit, OnDestroy {
   private tickHandle: ReturnType<typeof setInterval> | null = null;
   /** Set when a successful action triggers navigation — suppresses post-close focus restore. */
   private navigating = false;
+  /** Epoch ms of the last successful refresh; debounces visibilitychange spam. */
+  private lastRefreshAt = 0;
 
   /** Sheet trigger — used to restore focus when sheet closes. */
   playButton = viewChild<ElementRef<HTMLButtonElement>>('playButton');
@@ -76,13 +78,15 @@ export class OnlineLobbyComponent implements OnInit, OnDestroy {
     this.tickHandle = setInterval(() => this.now.set(Date.now()), DEADLINE_TICK_MS);
 
     // Re-fetch when the user re-enters the lobby via router.
+    // Match the exact lobby path (not child routes like /online-game/:id).
     this.router.events
       .pipe(
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((e) => {
-        if (e.urlAfterRedirects.startsWith('/online-lobby')) this.refresh();
+        const path = e.urlAfterRedirects.split('?')[0].replace(/\/$/, '');
+        if (path === '/online-game') this.refresh();
       });
   }
 
@@ -93,10 +97,14 @@ export class OnlineLobbyComponent implements OnInit, OnDestroy {
   /** Re-fetch when the tab becomes visible — opponent may have moved while we were away. */
   @HostListener('document:visibilitychange')
   onVisibility(): void {
-    if (document.visibilityState === 'visible') this.refresh();
+    if (document.visibilityState !== 'visible') return;
+    // Debounce rapid foreground/background toggles (min 15s between fetches).
+    if (Date.now() - this.lastRefreshAt < 15_000) return;
+    this.refresh();
   }
 
   private refresh(): void {
+    this.lastRefreshAt = Date.now();
     this.loadGames();
     this.loadCount();
   }
