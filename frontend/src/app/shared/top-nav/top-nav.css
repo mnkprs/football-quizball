@@ -245,6 +245,52 @@
   flex-shrink: 0;
 }
 
+/* Bell (notifications) */
+.top-nav__bell-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  background: transparent;
+  color: var(--color-fg-label);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.top-nav__bell-btn .material-icons {
+  font-size: 1.125rem;
+}
+
+.top-nav__bell-btn:hover {
+  color: var(--color-fg);
+  background: var(--glass-bg-ultra-subtle);
+}
+
+.top-nav__bell-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  background: var(--color-error-text);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-accent-foreground);
+  padding: 0 4px;
+  border: 2px solid var(--color-bg);
+  line-height: 1;
+}
+
 /* Logo (logged out) */
 .top-nav__logo-icon {
   display: flex;
