@@ -97,3 +97,35 @@
   text-align: center;
   margin-bottom: 1.5rem;
 }
+
+/* XP gain float */
+.solo-xp-float {
+  position: absolute;
+  top: 4rem;
+  right: 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #a78bfa;
+  text-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+  animation: solo-xp-float-up 1.5s ease forwards;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.solo-xp-float--streak {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+.solo-xp-float__streak {
+  margin-left: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@keyframes solo-xp-float-up {
+  0% { opacity: 0; transform: translateY(0.5rem); }
+  15% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(-1.5rem); }
+  100% { opacity: 0; transform: translateY(-2.5rem); }
+}
