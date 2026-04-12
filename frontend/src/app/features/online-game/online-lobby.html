@@ -1,91 +1,155 @@
-<div class="min-h-screen bg-background p-4 max-w-md mx-auto">
-  <div class="flex items-center gap-3 mb-6">
-    <button (click)="goBack()" class="text-muted-foreground hover:text-foreground transition text-sm font-medium">← Back</button>
-    <h1 class="text-xl font-black text-foreground">Online 1v1</h1>
+<div class="online-lobby lobby-screen spotlight page-stagger">
+  <!-- Hero image -->
+  <div class="hero-bg">
+    <img ngSrc="/online-mode.png" alt="Online 1v1" class="hero-bg__img" fill />
+    <div class="hero-bg__overlay"></div>
   </div>
 
-  <!-- Active games list -->
-  @if (activeGames().length > 0) {
-    <div class="mb-6">
-      <h2 class="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3">Active Games</h2>
-      <div class="flex flex-col gap-2">
+  <!-- Top nav -->
+  <div class="online-top">
+    <button class="online-back" (click)="goBack()" aria-label="Go back">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="lobby-content">
+    <h1 class="online-title lobby-title">ONLINE 1v1</h1>
+    <p class="online-subtitle lobby-subtitle">
+      Asynchronous head-to-head. Take turns answering — play at your own pace.
+    </p>
+
+    <!-- Badge -->
+    <div class="online-badges">
+      <span class="online-badge">ASYNC</span>
+    </div>
+
+    <!-- Active Games -->
+    @if (activeGames().length > 0) {
+      <div class="online-active-games">
+        <span class="online-active-games__title">
+          ACTIVE GAMES ({{ activeGames().length }})
+        </span>
         @for (game of activeGames(); track game.id) {
-          <button
-            (click)="resumeGame(game.id)"
-            class="w-full p-4 rounded-2xl bg-card border border-border text-left hover:border-accent transition"
-          >
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-sm font-bold text-foreground">
+          <button type="button" class="online-active-game" (click)="resumeGame(game.id)">
+            <div class="online-active-game__info">
+              <span class="online-active-game__opponent">
                 vs {{ game.opponentUsername ?? (game.status === 'waiting' ? 'Waiting...' : 'In Queue...') }}
               </span>
-              <span [class]="turnBadgeClass(game)" class="text-xs px-2 py-0.5 rounded-full font-bold">
-                {{ game.isMyTurn ? 'Your Turn' : game.status === 'waiting' ? 'Waiting' : game.status === 'queued' ? 'Queued' : 'Their Turn' }}
+              <span class="online-active-game__score">
+                Score: {{ game.myRole === 'host' ? game.playerScores.host : game.playerScores.guest }}
+                – {{ game.myRole === 'host' ? game.playerScores.guest : game.playerScores.host }}
+                @if (game.turnDeadline && game.isMyTurn) {
+                  <span class="online-active-game__deadline"> · {{ formatDeadline(game.turnDeadline) }}</span>
+                }
               </span>
             </div>
-            <div class="text-xs text-muted-foreground">
-              Score: {{ game.myRole === 'host' ? game.playerScores.host : game.playerScores.guest }} – {{ game.myRole === 'host' ? game.playerScores.guest : game.playerScores.host }}
-              @if (game.turnDeadline && game.isMyTurn) {
-                · Deadline: {{ formatDeadline(game.turnDeadline) }}
-              }
-            </div>
+            <span [class]="'online-active-game__badge ' + turnBadgeClass(game)">
+              {{ game.isMyTurn ? 'Your Turn' : game.status === 'waiting' ? 'Waiting' : game.status === 'queued' ? 'Queued' : 'Their Turn' }}
+            </span>
           </button>
         }
       </div>
-    </div>
-  }
-
-  <!-- Premium gate -->
-  @if (atLimit()) {
-    <div class="mb-6 p-4 rounded-2xl bg-accent/10 border border-accent/50 text-center">
-      <p class="text-foreground font-bold mb-1">2 active games limit reached</p>
-      <p class="text-muted-foreground text-sm">Finish or abandon an active game, or upgrade for unlimited games.</p>
-    </div>
-  }
-
-  <!-- Create game -->
-  <div class="mb-4">
-    <button
-      (click)="createGame()"
-      [disabled]="loading() || atLimit()"
-      class="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-black text-lg hover:bg-accent-light active:scale-95 transition disabled:opacity-40"
-    >
-      {{ loading() ? 'Creating...' : '+ Create New Game' }}
-    </button>
-    <p class="text-center text-xs text-muted-foreground mt-2">You'll get an invite code to share with a friend</p>
-  </div>
-
-  <!-- Join queue -->
-  <div class="mb-4">
-    <button
-      (click)="joinQueue()"
-      [disabled]="loading() || atLimit()"
-      class="w-full py-4 rounded-2xl border-2 border-border text-foreground font-bold text-base hover:border-accent hover:text-accent active:scale-95 transition disabled:opacity-40"
-    >
-      🎲 Find Random Opponent
-    </button>
-  </div>
-
-  <!-- Join by code -->
-  <div class="p-4 rounded-2xl bg-card border border-border">
-    <h2 class="text-sm font-bold text-foreground mb-3">Join with Invite Code</h2>
-    <div class="flex gap-2">
-      <input
-        [(ngModel)]="inviteCode"
-        maxlength="6"
-        placeholder="ABC123"
-        class="flex-1 px-4 py-3 rounded-xl bg-background border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent uppercase tracking-widest font-mono text-center text-lg"
-        (input)="inviteCode = inviteCode.toUpperCase()"
+    } @else {
+      <app-empty-state
+        icon="sports_esports"
+        title="No active games"
+        subtitle="Challenge a friend or find a random opponent"
       />
-      <button
-        (click)="joinByCode()"
-        [disabled]="inviteCode.length < 6 || loading() || atLimit()"
-        class="px-5 py-3 rounded-xl bg-accent text-accent-foreground font-bold hover:bg-accent-light transition disabled:opacity-40"
-      >
-        Join
-      </button>
-    </div>
-    @if (error()) {
-      <p class="text-loss text-sm mt-2">{{ error() }}</p>
     }
+
+    <!-- Premium limit banner -->
+    @if (atLimit()) {
+      <div class="online-limit-banner">
+        <p class="online-limit-banner__title">2 active games limit reached</p>
+        <p class="online-limit-banner__desc">Finish or abandon an active game, or upgrade for unlimited games.</p>
+      </div>
+    }
+
+    <!-- Play Button -->
+    <button
+      #playButton
+      class="lobby-start-btn"
+      (click)="openPlaySheet()"
+      [disabled]="loading() || atLimit()"
+    >
+      PLAY
+    </button>
   </div>
 </div>
+
+<!-- Bottom Sheet -->
+@if (showPlaySheet()) {
+  <div class="online-sheet-backdrop" (click)="closePlaySheet()" aria-hidden="true"></div>
+  <div
+    class="online-sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Start an online game"
+    cdkTrapFocus
+    cdkTrapFocusAutoCapture
+  >
+    <div class="online-sheet__handle"></div>
+    <h2 class="online-sheet__title">How do you want to play?</h2>
+
+    <div class="online-sheet__options">
+      <!-- Create Game -->
+      <button class="online-sheet__option" (click)="createGame()" [disabled]="loading()">
+        <div class="online-sheet__option-icon-box">
+          <span class="material-symbols-outlined">swords</span>
+        </div>
+        <div class="online-sheet__option-text">
+          <span class="online-sheet__option-title">Create Game</span>
+          <span class="online-sheet__option-desc">Get an invite code to share</span>
+        </div>
+      </button>
+
+      <!-- Random Opponent -->
+      <button class="online-sheet__option" (click)="joinQueue()" [disabled]="loading()">
+        <div class="online-sheet__option-icon-box">
+          <span class="material-symbols-outlined">casino</span>
+        </div>
+        <div class="online-sheet__option-text">
+          <span class="online-sheet__option-title">Random Opponent</span>
+          <span class="online-sheet__option-desc">Match with someone instantly</span>
+        </div>
+      </button>
+
+      <!-- Join With Code -->
+      <div class="online-sheet__option online-sheet__option--code">
+        <div class="online-sheet__option-header">
+          <div class="online-sheet__option-icon-box">
+            <span class="material-symbols-outlined">key</span>
+          </div>
+          <div class="online-sheet__option-text">
+            <span class="online-sheet__option-title">Join With Code</span>
+            <span class="online-sheet__option-desc">Enter a shared invite code</span>
+          </div>
+        </div>
+        <div class="online-sheet__code-input-row">
+          <input
+            class="online-sheet__code-input"
+            type="text"
+            placeholder="e.g. AB12CD"
+            aria-label="Enter invite code"
+            maxlength="6"
+            [(ngModel)]="inviteCode"
+            (input)="inviteCode = inviteCode.toUpperCase()"
+            (keyup.enter)="joinByCode()"
+          />
+          <button
+            class="online-sheet__code-btn"
+            (click)="joinByCode()"
+            [disabled]="loading() || inviteCode.length < 6"
+          >
+            Join
+          </button>
+        </div>
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="online-sheet__error">{{ error() }}</p>
+    }
+  </div>
+}
