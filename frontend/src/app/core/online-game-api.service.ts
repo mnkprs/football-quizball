@@ -114,8 +114,8 @@ export class OnlineGameApiService {
     return this.http.get<OnlineGameSummary[]>(this.base, { headers: this.headers() });
   }
 
-  getGameCount(): Observable<{ count: number; isPro: boolean }> {
-    return this.http.get<{ count: number; isPro: boolean }>(`${this.base}/count`, { headers: this.headers() });
+  getGameCount(): Observable<{ count: number; isPro: boolean; max: number }> {
+    return this.http.get<{ count: number; isPro: boolean; max: number }>(`${this.base}/count`, { headers: this.headers() });
   }
 
   joinQueue(): Observable<OnlineGamePublicView> {

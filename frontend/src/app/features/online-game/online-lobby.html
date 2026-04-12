@@ -25,7 +25,17 @@
     </div>
 
     <!-- Active Games -->
-    @if (activeGames().length > 0) {
+    @if (!hasLoaded()) {
+      <div class="online-active-games online-active-games--skeleton" aria-busy="true" aria-label="Loading your games">
+        <span class="online-active-game online-active-game--skeleton"></span>
+        <span class="online-active-game online-active-game--skeleton"></span>
+      </div>
+    } @else if (loadError()) {
+      <div class="online-load-error" role="alert">
+        <p class="online-load-error__msg">{{ loadError() }}</p>
+        <button type="button" class="online-load-error__retry" (click)="retryLoad()">Retry</button>
+      </div>
+    } @else if (activeGames().length > 0) {
       <div class="online-active-games">
         <span class="online-active-games__title">
           ACTIVE GAMES ({{ activeGames().length }})
@@ -39,13 +49,13 @@
               <span class="online-active-game__score">
                 Score: {{ game.myRole === 'host' ? game.playerScores.host : game.playerScores.guest }}
                 – {{ game.myRole === 'host' ? game.playerScores.guest : game.playerScores.host }}
-                @if (game.turnDeadline && game.isMyTurn) {
+                @if (game.turnDeadline && game.isMyTurn && !isExpired(game)) {
                   <span class="online-active-game__deadline"> · {{ formatDeadline(game.turnDeadline) }}</span>
                 }
               </span>
             </div>
             <span [class]="'online-active-game__badge ' + turnBadgeClass(game)">
-              {{ game.isMyTurn ? 'Your Turn' : game.status === 'waiting' ? 'Waiting' : game.status === 'queued' ? 'Queued' : 'Their Turn' }}
+              {{ turnBadgeLabel(game) }}
             </span>
           </button>
         }
@@ -61,7 +71,7 @@
     <!-- Premium limit banner -->
     @if (atLimit()) {
       <div class="online-limit-banner">
-        <p class="online-limit-banner__title">2 active games limit reached</p>
+        <p class="online-limit-banner__title">{{ maxGames() }} active games limit reached</p>
         <p class="online-limit-banner__desc">Finish or abandon an active game, or upgrade for unlimited games.</p>
       </div>
     }
@@ -71,7 +81,7 @@
       #playButton
       class="lobby-start-btn"
       (click)="openPlaySheet()"
-      [disabled]="loading() || atLimit()"
+      [disabled]="loading() || atLimit() || !hasLoaded()"
     >
       PLAY
     </button>
@@ -85,18 +95,22 @@
     class="online-sheet"
     role="dialog"
     aria-modal="true"
-    aria-label="Start an online game"
+    aria-labelledby="online-sheet-title"
     cdkTrapFocus
     cdkTrapFocusAutoCapture
   >
     <div class="online-sheet__handle"></div>
-    <h2 class="online-sheet__title">How do you want to play?</h2>
+    <h2 class="online-sheet__title" id="online-sheet-title">How do you want to play?</h2>
 
     <div class="online-sheet__options">
       <!-- Create Game -->
       <button class="online-sheet__option" (click)="createGame()" [disabled]="loading()">
         <div class="online-sheet__option-icon-box">
-          <span class="material-symbols-outlined">swords</span>
+          @if (pendingAction() === 'create') {
+            <span class="online-sheet__spinner" aria-hidden="true"></span>
+          } @else {
+            <span class="material-symbols-outlined">swords</span>
+          }
         </div>
         <div class="online-sheet__option-text">
           <span class="online-sheet__option-title">Create Game</span>
@@ -107,22 +121,30 @@
       <!-- Random Opponent -->
       <button class="online-sheet__option" (click)="joinQueue()" [disabled]="loading()">
         <div class="online-sheet__option-icon-box">
-          <span class="material-symbols-outlined">casino</span>
+          @if (pendingAction() === 'queue') {
+            <span class="online-sheet__spinner" aria-hidden="true"></span>
+          } @else {
+            <span class="material-symbols-outlined">casino</span>
+          }
         </div>
         <div class="online-sheet__option-text">
           <span class="online-sheet__option-title">Random Opponent</span>
-          <span class="online-sheet__option-desc">Match with someone instantly</span>
+          <span class="online-sheet__option-desc">Match instantly, or join the queue</span>
         </div>
       </button>
 
       <!-- Join With Code -->
-      <div class="online-sheet__option online-sheet__option--code">
+      <div
+        class="online-sheet__option online-sheet__option--code"
+        role="group"
+        aria-labelledby="online-sheet-code-title"
+      >
         <div class="online-sheet__option-header">
           <div class="online-sheet__option-icon-box">
             <span class="material-symbols-outlined">key</span>
           </div>
           <div class="online-sheet__option-text">
-            <span class="online-sheet__option-title">Join With Code</span>
+            <span class="online-sheet__option-title" id="online-sheet-code-title">Join With Code</span>
             <span class="online-sheet__option-desc">Enter a shared invite code</span>
           </div>
         </div>
@@ -130,26 +152,35 @@
           <input
             class="online-sheet__code-input"
             type="text"
+            inputmode="text"
+            autocapitalize="characters"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
             placeholder="e.g. AB12CD"
             aria-label="Enter invite code"
-            maxlength="6"
+            [attr.maxlength]="codeLength"
             [(ngModel)]="inviteCode"
-            (input)="inviteCode = inviteCode.toUpperCase()"
+            (keyup)="onCodeKeyup()"
             (keyup.enter)="joinByCode()"
           />
           <button
             class="online-sheet__code-btn"
             (click)="joinByCode()"
-            [disabled]="loading() || inviteCode.length < 6"
+            [disabled]="loading() || !canSubmitCode()"
           >
-            Join
+            @if (pendingAction() === 'code') {
+              <span class="online-sheet__spinner online-sheet__spinner--on-accent" aria-hidden="true"></span>
+            } @else {
+              <span>Join</span>
+            }
           </button>
         </div>
       </div>
     </div>
 
     @if (error()) {
-      <p class="online-sheet__error">{{ error() }}</p>
+      <p class="online-sheet__error" role="alert">{{ error() }}</p>
     }
   </div>
 }
