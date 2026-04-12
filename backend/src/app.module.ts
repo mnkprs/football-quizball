@@ -33,6 +33,7 @@ import { MatchHistoryModule } from './match-history/match-history.module';
 import { ProfileModule } from './profile/profile.module';
 import { BotModule } from './bot/bot.module';
 import { LogoQuizModule } from './logo-quiz/logo-quiz.module';
+import { XpModule } from './xp/xp.module';
 import { AppConfigModule } from './config/config.module';
 
 @Module({
@@ -83,6 +84,7 @@ import { AppConfigModule } from './config/config.module';
     ProfileModule,
     BotModule,
     LogoQuizModule,
+    XpModule,
     AppConfigModule,
   ],
   providers: [
