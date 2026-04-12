@@ -11,6 +11,7 @@ import { createReportCooldown } from '../../core/report-cooldown';
 import { LanguageService } from '../../core/language.service';
 import { AdService } from '../../core/ad.service';
 import { AnalyticsService } from '../../core/analytics.service';
+import { ShellUiService } from '../../core/shell-ui.service';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
 
@@ -31,11 +32,15 @@ export class BlitzComponent implements OnDestroy {
   private gameApi = inject(GameApiService);
   private adService = inject(AdService);
   private analytics = inject(AnalyticsService);
+  private shellUi = inject(ShellUiService);
   lang = inject(LanguageService);
 
   phase = signal<BlitzPhase>('idle');
 
   constructor() {
+    effect(() => {
+      this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
+    });
     effect(() => {
       if (this.phase() === 'finished' && !this.achievementUnlock.showModal()) {
         if (!this.pro.isPro()) this.pro.showUpgradeModal.set(true);
@@ -231,5 +236,6 @@ export class BlitzComponent implements OnDestroy {
     this.timer.destroy();
     this.clearFlash();
     this.reportCooldown.destroy();
+    this.shellUi.hideBottomNav.set(false);
   }
 }

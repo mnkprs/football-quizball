@@ -18,6 +18,7 @@ import { createReportCooldown } from '../../core/report-cooldown';
 import { ProfileStore } from '../../core/profile-store.service';
 import { AdService } from '../../core/ad.service';
 import { LevelUpService } from '../../core/level-up.service';
+import { ShellUiService } from '../../core/shell-ui.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
 
@@ -42,6 +43,7 @@ export class SoloComponent implements OnDestroy {
   private profileStore = inject(ProfileStore);
   private adService = inject(AdService);
   private levelUpService = inject(LevelUpService);
+  private shellUi = inject(ShellUiService);
   lang = inject(LanguageService);
 
   phase = signal<SoloPhase>('idle');
@@ -54,6 +56,9 @@ export class SoloComponent implements OnDestroy {
   });
 
   constructor() {
+    effect(() => {
+      this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
+    });
     effect(() => {
       if (this.phase() === 'finished' && !this.achievementUnlock.showModal()) {
         if (!this.pro.isPro()) this.pro.showUpgradeModal.set(true);
@@ -359,5 +364,6 @@ export class SoloComponent implements OnDestroy {
     this.timer.destroy();
     this.reportCooldown.destroy();
     if (this.tierUpTimeout) clearTimeout(this.tierUpTimeout);
+    this.shellUi.hideBottomNav.set(false);
   }
 }

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -6,6 +6,7 @@ import { DailyApiService, DailyQuestionRef } from '../../core/daily-api.service'
 import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
 import { AnalyticsService } from '../../core/analytics.service';
+import { ShellUiService } from '../../core/shell-ui.service';
 
 type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
 
@@ -18,21 +19,30 @@ type DailyPhase = 'idle' | 'loading' | 'playing' | 'flash' | 'finished';
   styleUrl: './daily.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DailyComponent {
+export class DailyComponent implements OnDestroy {
   private api = inject(DailyApiService);
   private router = inject(Router);
   private pro = inject(ProService);
   private analytics = inject(AnalyticsService);
+  private shellUi = inject(ShellUiService);
   lang = inject(LanguageService);
 
   phase = signal<DailyPhase>('idle');
 
   constructor() {
     effect(() => {
+      this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
+    });
+    effect(() => {
       if (this.phase() === 'finished') {
         if (!this.pro.isPro()) this.pro.showUpgradeModal.set(true);
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.advanceTimeout) clearTimeout(this.advanceTimeout);
+    this.shellUi.hideBottomNav.set(false);
   }
   loading = signal(false);
   error = signal<string | null>(null);
