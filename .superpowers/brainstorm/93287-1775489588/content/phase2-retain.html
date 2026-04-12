@@ -1,0 +1,85 @@
+<h2>Phase 2: Retain</h2>
+<p class="subtitle">Hooks that bring users back. Build on the polished base from Phase 1.</p>
+
+<div style="display:grid;gap:20px;margin:20px 0;">
+
+  <!-- 1. Push Notifications -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">1</span>
+      <h3 style="margin:0;">Push Notifications</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Firebase Cloud Messaging for iOS + Android via Capacitor<br/>
+      <strong>Notification types:</strong><br/>
+      &bull; <em>Streak rescue</em> &mdash; "Your 7-day streak expires in 2 hours!" (evening if no game played today)<br/>
+      &bull; <em>Daily round</em> &mdash; "Today's news round is live. 10 fresh questions." (at round reset time)<br/>
+      &bull; <em>Duel challenge</em> &mdash; "Someone challenged you to a duel!" (when matched with real player)<br/>
+      &bull; <em>Achievement unlock</em> &mdash; "You just earned Quiz Master!" (immediate)<br/>
+      &bull; <em>Weekly digest</em> &mdash; "You climbed 45 ELO this week. Keep it up!" (Sunday evening)<br/>
+      <strong>Backend:</strong> NestJS cron jobs + FCM admin SDK. Store device tokens in `user_devices` table.<br/>
+      <strong>Settings:</strong> Per-category toggles in notification preferences (Phase 1 placeholder becomes real).<br/>
+      <strong>Scope:</strong> Capacitor Push plugin, backend FCM service, 5 notification triggers, settings UI
+    </div>
+  </div>
+
+  <!-- 2. Weekly Challenges -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">2</span>
+      <h3 style="margin:0;">Weekly Challenges</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> 3 rotating challenges that reset every Monday, giving users mid-term goals beyond daily streaks<br/>
+      <strong>Examples:</strong><br/>
+      &bull; "Win 5 duels this week" (competitive)<br/>
+      &bull; "Answer 50 questions correctly" (volume)<br/>
+      &bull; "Play all 3 modes: Solo, Duel, Battle Royale" (exploration)<br/>
+      &bull; "Get 80%+ accuracy in a Solo session" (skill)<br/>
+      &bull; "Identify 20 logos correctly" (mode-specific)<br/>
+      <strong>Reward:</strong> No currency needed &mdash; challenge completion badge on profile + achievement progress. The reward IS the progression.<br/>
+      <strong>UI:</strong> Small challenge strip on home page (below hero, above mode cards). Tap to expand details. Progress bars per challenge.<br/>
+      <strong>Backend:</strong> `weekly_challenges` table, cron to generate 3 random challenges Monday 00:00 UTC, progress tracking via existing game completion hooks.<br/>
+      <strong>Scope:</strong> 1 new component, 1 new backend module, ~12 challenge templates
+    </div>
+  </div>
+
+  <!-- 3. Referral System -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">3</span>
+      <h3 style="margin:0;">Referral System</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Invite friends, earn Pro trial days. Already spec'd in subscription-refinement design.<br/>
+      <strong>Mechanic:</strong> Invite 3 friends who each play 1 game &rarr; earn 7-day Pro trial. Referee gets 3-day trial too.<br/>
+      <strong>Implementation:</strong><br/>
+      &bull; Unique referral code per user (stored in `profiles.referral_code`)<br/>
+      &bull; Deep link: `stepovr.app/r/{code}` &rarr; onboarding with referrer tracked<br/>
+      &bull; `referrals` table tracks: referrer_id, referee_id, status (invited/signed_up/qualified), created_at<br/>
+      &bull; Qualification = referee plays 1+ game (prevents fake signups)<br/>
+      &bull; One-time reward per referrer (not stackable to prevent abuse)<br/>
+      <strong>UI:</strong> Referral card in profile or settings. Share button with personalized link. Progress indicator (2/3 friends invited).<br/>
+      <strong>Scope:</strong> 1 backend module, 1 frontend component, deep link handling, fraud guards
+    </div>
+  </div>
+
+  <!-- 4. Streak Enhancements -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">4</span>
+      <h3 style="margin:0;">Streak Enhancements</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Make the existing streak system more visible and rewarding<br/>
+      <strong>Additions:</strong><br/>
+      &bull; <em>Streak flame on home page</em> &mdash; persistent flame icon with count, visible without navigating to profile<br/>
+      &bull; <em>Streak milestones</em> &mdash; special celebration at 7, 30, 100 days (ties into haptic/sound from Phase 1)<br/>
+      &bull; <em>Streak freeze</em> (Pro only) &mdash; 1 free pass per week to skip a day without losing streak. Strong Pro conversion hook.<br/>
+      <strong>Scope:</strong> Home page UI tweak, 3 milestone achievements, streak freeze logic (backend + frontend)
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Does Phase 2 look right? Anything to add, remove, or change?</p>

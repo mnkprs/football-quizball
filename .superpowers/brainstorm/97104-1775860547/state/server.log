@@ -1,0 +1,4 @@
+{"type":"server-started","port":53691,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:53691","screen_dir":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/97104-1775860547/content","state_dir":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/97104-1775860547/state"}
+{"type":"screen-added","file":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/97104-1775860547/content/topnav-bell.html"}
+{"type":"screen-added","file":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/97104-1775860547/content/notifications-feed.html"}
+{"type":"server-stopped","reason":"idle timeout"}

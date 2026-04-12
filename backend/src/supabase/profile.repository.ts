@@ -44,6 +44,8 @@ export class ProfileRepository {
       current_daily_streak: 0,
       total_questions_all_modes: 0,
       modes_played: [],
+      xp: 0,
+      level: 1,
     };
   }
 

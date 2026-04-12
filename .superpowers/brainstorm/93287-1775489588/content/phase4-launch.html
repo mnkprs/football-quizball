@@ -1,0 +1,85 @@
+<h2>Phase 4: Launch</h2>
+<p class="subtitle">App Store presence and launch readiness. The final gate before going live.</p>
+
+<div style="display:grid;gap:20px;margin:20px 0;">
+
+  <!-- 1. App Store Assets -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">1</span>
+      <h3 style="margin:0;">App Store Screenshots & Metadata</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Store listing assets for iOS App Store + Google Play<br/>
+      <strong>Screenshots (6 per platform):</strong><br/>
+      &bull; Hero &mdash; Home page with mode selection ("Every football question. One app.")<br/>
+      &bull; Solo &mdash; Question screen with ELO tier badge ("Climb the ranks")<br/>
+      &bull; Duel &mdash; 1v1 matchup screen ("Challenge anyone, anytime")<br/>
+      &bull; Logo Quiz &mdash; Logo identification in action ("How well do you know the crests?")<br/>
+      &bull; Battle Royale &mdash; 8-player lobby ("Last fan standing")<br/>
+      &bull; Profile &mdash; Stats, achievements, streak ("Track your journey")<br/>
+      <strong>Sizes:</strong> iPhone 6.7" (1290x2796), iPhone 6.5" (1242x2688), iPad 12.9" (2048x2732 if needed). Android equivalent sizes.<br/>
+      <strong>Metadata:</strong> Title (30 chars), subtitle (30 chars), description (4000 chars), keywords (100 chars), category (Trivia), age rating<br/>
+      <strong>How:</strong> Capture real app screens, frame in device mockups with captions. Tools: Figma templates or screenshots.pro
+    </div>
+  </div>
+
+  <!-- 2. App Preview Video -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">2</span>
+      <h3 style="margin:0;">App Preview Video</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> 15-30 second preview video for the App Store listing<br/>
+      <strong>Flow:</strong> Open app &rarr; tap Solo &rarr; answer a question (correct, haptic flash) &rarr; ELO goes up &rarr; swipe to Duel &rarr; matchmaking &rarr; cut to Battle Royale lobby filling up &rarr; end on profile with achievements + streak flame<br/>
+      <strong>Audio:</strong> Upbeat background music (royalty-free), UI sounds from Phase 1<br/>
+      <strong>Specs:</strong> iOS: 1080x1920 or 1920x1080, H.264, 15-30s. Google Play: up to 30s, landscape or portrait.<br/>
+      <strong>Scope:</strong> Screen recording + light editing. Not a produced ad &mdash; just real gameplay.
+    </div>
+  </div>
+
+  <!-- 3. ASO (App Store Optimization) -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">3</span>
+      <h3 style="margin:0;">ASO &mdash; App Store Optimization</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Keyword optimization so football quiz fans can find the app<br/>
+      <strong>Title:</strong> "Stepover &mdash; Football Quiz" (clear, keyword-rich)<br/>
+      <strong>Subtitle:</strong> "Trivia, Duels & Logo Quiz" (hits secondary keywords)<br/>
+      <strong>Keywords (iOS):</strong> football,quiz,trivia,soccer,duel,logo,premier league,champions league,elo,ranked<br/>
+      <strong>Description strategy:</strong> Lead with value prop, feature bullets, social proof placeholder (for post-launch reviews)<br/>
+      <strong>Localization:</strong> English first. Consider Spanish, Portuguese, German, French for football markets.<br/>
+      <strong>Scope:</strong> Metadata writing + keyword research. No code changes.
+    </div>
+  </div>
+
+  <!-- 4. Pre-Launch Checklist -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">4</span>
+      <h3 style="margin:0;">Pre-Launch Checklist</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Final verification before submitting to stores<br/>
+      <strong>Technical:</strong><br/>
+      &bull; Replace AdMob test IDs with production IDs (TODO in capacitor.config.ts)<br/>
+      &bull; Add Google Cloud Console Web Client ID for GoogleAuth (TODO in capacitor.config.ts)<br/>
+      &bull; Remove yearly IAP product once confirmed safe (TODO in iap-validation.service.ts)<br/>
+      &bull; Upgrade Supabase to Pro plan for realtime capacity<br/>
+      &bull; Verify all API endpoints have rate limiting<br/>
+      &bull; Privacy policy + Terms of Service URLs live and linked<br/>
+      <strong>Store compliance:</strong><br/>
+      &bull; IDFA usage declaration (iOS &mdash; PostHog tracking)<br/>
+      &bull; App Privacy nutrition labels (data collected, linked to identity)<br/>
+      &bull; Content rating questionnaire (user-generated content: no. In-app purchases: yes)<br/>
+      &bull; COPPA compliance (13+ age gate if needed)<br/>
+      <strong>Scope:</strong> Config changes + store form filling. No major code.
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Does Phase 4 look right? Once all 4 phases are approved, I'll write the full design spec.</p>

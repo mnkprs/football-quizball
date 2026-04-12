@@ -7,6 +7,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
 import { AchievementsService } from '../achievements/achievements.service';
 import { CacheService } from '../cache/cache.service';
+import { XpService } from '../xp/xp.service';
 import type { Difficulty } from '../common/interfaces/question.interface';
 import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
 
@@ -30,6 +31,7 @@ export class LogoQuizService {
     private readonly eloService: EloService,
     private readonly achievementsService: AchievementsService,
     private readonly cacheService: CacheService,
+    private readonly xpService: XpService,
   ) {}
 
   async getFreePoolCutoff(): Promise<number | null> {
@@ -178,6 +180,9 @@ export class LogoQuizService {
 
     // Increment profile-level questions_answered / correct_answers
     await this.supabaseService.incrementQuestionStats(userId, correct ? 1 : 0);
+
+    // Fire-and-forget: award XP for the answer
+    void this.xpService.awardForAnswer(userId, correct, 'logo_quiz').catch(() => {});
 
     // Track logo quiz correct count for achievements
     if (correct) {

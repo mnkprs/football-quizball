@@ -47,7 +47,7 @@ export class SupabaseService {
   async getProfile(userId: string): Promise<Profile | null> {
     const { data: profile } = await this.client
       .from('profiles')
-      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code, max_correct_streak, logo_quiz_correct, duel_wins, br_wins, last_active_date, current_daily_streak, total_questions_all_modes, modes_played')
+      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code, max_correct_streak, logo_quiz_correct, duel_wins, br_wins, last_active_date, current_daily_streak, total_questions_all_modes, modes_played, xp, level')
       .eq('id', userId)
       .maybeSingle();
     if (profile) return profile as Profile;
@@ -73,6 +73,8 @@ export class SupabaseService {
       current_daily_streak: 0,
       total_questions_all_modes: 0,
       modes_played: [],
+      xp: 0,
+      level: 1,
     };
   }
 
