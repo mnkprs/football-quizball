@@ -39,6 +39,11 @@ export class SupabaseService {
     });
   }
 
+  /** Returns the service-role Supabase client. Bypasses RLS — use for trusted server-side operations. */
+  getServiceClient(): SupabaseClient {
+    return this.client;
+  }
+
   async getProfile(userId: string): Promise<Profile | null> {
     const { data: profile } = await this.client
       .from('profiles')
