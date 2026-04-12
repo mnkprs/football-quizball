@@ -2,6 +2,8 @@ import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nest
 import { SessionStoreService } from '../session/session-store.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { XpService } from '../xp/xp.service';
+import { XP_VALUES } from '../xp/xp.constants';
 import { BlitzSession, BlitzQuestion, BlitzQuestionRef, BlitzAnswerResult } from './blitz.types';
 
 const SESSION_TTL = 3600; // 1h
@@ -16,6 +18,7 @@ export class BlitzService {
     private readonly sessionStore: SessionStoreService,
     private readonly supabaseService: SupabaseService,
     private readonly achievementsService: AchievementsService,
+    private readonly xpService: XpService,
   ) {}
 
   private sessionKey(id: string) { return `blitz:${id}`; }
@@ -105,6 +108,10 @@ export class BlitzService {
       session.score += correct ? 1 : 0;
       session.totalAnswered += 1;
       session.currentIndex += 1;
+      // Fire-and-forget: award XP for the answer
+      void this.xpService.awardForAnswer(userId, correct, 'blitz').catch((err) =>
+        this.logger.warn(`[blitz] XP award failed: ${err?.message}`),
+      );
     }
 
     const nextQ = timeUp || session.currentIndex >= session.questions.length
@@ -159,6 +166,11 @@ export class BlitzService {
 
     // Increment profile-level questions_answered / correct_answers
     await this.supabaseService.incrementQuestionStats(userId, session.score, session.totalAnswered);
+
+    // Award BLITZ_COMPLETE XP for finishing a session
+    void this.xpService.award(userId, 'blitz_complete', XP_VALUES.BLITZ_COMPLETE, { mode: 'blitz' }).catch((err) =>
+      this.logger.warn(`[blitz] BLITZ_COMPLETE XP award failed: ${err?.message}`),
+    );
 
     await this.sessionStore.del(this.sessionKey(sessionId));
     this.logger.debug(JSON.stringify({ event: 'blitz_session_end', userId, score: session.score, totalAnswered: session.totalAnswered }));

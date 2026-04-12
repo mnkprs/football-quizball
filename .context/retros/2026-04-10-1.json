@@ -1,0 +1,41 @@
+{
+  "date": "2026-04-10",
+  "window": "7d",
+  "metrics": {
+    "commits": 59,
+    "contributors": 1,
+    "prs_merged": 6,
+    "insertions": 24854,
+    "deletions": 6303,
+    "net_loc": 18551,
+    "test_loc": 100,
+    "test_ratio": 0.004,
+    "active_days": 7,
+    "sessions": 14,
+    "deep_sessions": 7,
+    "avg_session_minutes": 59,
+    "loc_per_session_hour": 1350,
+    "feat_pct": 0.53,
+    "fix_pct": 0.22,
+    "peak_hour": 16,
+    "ai_assisted_commits": 30
+  },
+  "authors": {
+    "Emmanouil Kaparos": {
+      "commits": 59,
+      "insertions": 24854,
+      "deletions": 6303,
+      "test_ratio": 0.004,
+      "top_area": "frontend/"
+    }
+  },
+  "version_range": ["0.1.0.0", "0.2.0.0"],
+  "streak_days": 3,
+  "tweetable": "Week of Apr 3: 59 commits, 24.9k LOC, 6 PRs merged, 7 deep sessions, peak: 4pm | Streak: 3d",
+  "test_health": {
+    "total_test_files": 37,
+    "tests_added_this_period": 2,
+    "regression_test_commits": 0,
+    "test_files_changed": 2
+  }
+}

@@ -36,6 +36,7 @@ export interface AnswerResponse {
   elo_change: number;
   questions_answered: number;
   correct_answers: number;
+  xp?: { xp_gained: number; total_xp: number; level: number; leveled_up: boolean; streak_bonus?: number };
 }
 
 export interface UnlockedAchievement {
@@ -67,6 +68,8 @@ export interface LeaderboardEntry {
   rank?: number;
   max_elo?: number;
   created_at?: string;
+  xp?: number;
+  level?: number;
 }
 
 @Injectable({ providedIn: 'root' })

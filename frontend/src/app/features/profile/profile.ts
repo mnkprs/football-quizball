@@ -10,7 +10,7 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
-import { getEloTier, nextTierThreshold, tierProgress } from '../../core/elo-tier';
+import { getEloTier, nextTierThreshold, tierProgress, xpForLevel, xpProgressPct, xpToNextLevel } from '../../core/elo-tier';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { environment } from '../../../environments/environment';
@@ -93,6 +93,12 @@ export class ProfileComponent implements OnInit {
     if (!p?.questions_answered) return 0;
     return Math.round((p.correct_answers / p.questions_answered) * 100);
   });
+
+  xp = computed(() => this.profile()?.xp ?? 0);
+  level = computed(() => this.profile()?.level ?? 1);
+  xpPct = computed(() => xpProgressPct(this.xp(), this.level()));
+  xpRemaining = computed(() => xpToNextLevel(this.xp(), this.level()));
+  xpNextLevel = computed(() => xpForLevel(this.level() + 1));
 
   mayhemAccuracy = computed(() => {
     const s = this.mayhemStats();

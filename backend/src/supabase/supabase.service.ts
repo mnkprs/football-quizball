@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { RedisService } from '../redis/redis.service';
 import type { Profile, ProStatus, SetProParams } from '../common/interfaces/profile.interface';
+import { XP_VALUES } from '../xp/xp.constants';
 import type {
   SoloLeaderboardEntry,
   SoloLeaderboardEntryWithRank,
@@ -39,10 +40,15 @@ export class SupabaseService {
     });
   }
 
+  /** Returns the service-role Supabase client. Bypasses RLS — use for trusted server-side operations. */
+  getServiceClient(): SupabaseClient {
+    return this.client;
+  }
+
   async getProfile(userId: string): Promise<Profile | null> {
     const { data: profile } = await this.client
       .from('profiles')
-      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code, max_correct_streak, logo_quiz_correct, duel_wins, br_wins, last_active_date, current_daily_streak, total_questions_all_modes, modes_played')
+      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code, max_correct_streak, logo_quiz_correct, duel_wins, br_wins, last_active_date, current_daily_streak, total_questions_all_modes, modes_played, xp, level')
       .eq('id', userId)
       .maybeSingle();
     if (profile) return profile as Profile;
@@ -68,6 +74,8 @@ export class SupabaseService {
       current_daily_streak: 0,
       total_questions_all_modes: 0,
       modes_played: [],
+      xp: 0,
+      level: 1,
     };
   }
 
@@ -644,7 +652,7 @@ export class SupabaseService {
     return modes;
   }
 
-  async updateDailyStreak(userId: string): Promise<{ current_daily_streak: number }> {
+  async updateDailyStreak(userId: string): Promise<{ current_daily_streak: number; awarded_today: boolean }> {
     const today = new Date().toISOString().slice(0, 10);
     const { data: profile } = await this.client
       .from('profiles')
@@ -652,13 +660,14 @@ export class SupabaseService {
       .eq('id', userId)
       .maybeSingle();
 
-    if (!profile) return { current_daily_streak: 0 };
+    if (!profile) return { current_daily_streak: 0, awarded_today: false };
 
     const lastActive = profile.last_active_date;
     let newStreak = 1;
 
     if (lastActive === today) {
-      return { current_daily_streak: profile.current_daily_streak };
+      // Already counted today — idempotent no-op. Callers should not award XP.
+      return { current_daily_streak: profile.current_daily_streak, awarded_today: false };
     }
 
     const yesterday = new Date();
@@ -674,7 +683,24 @@ export class SupabaseService {
       .update({ last_active_date: today, current_daily_streak: newStreak })
       .eq('id', userId);
 
-    return { current_daily_streak: newStreak };
+    // Award daily streak XP once per day, centrally (any mode can trigger this).
+    // XP is non-critical — log and continue so a transient RPC failure doesn't break
+    // callers like match-history view or end-of-game flows.
+    try {
+      const { error } = await this.client.rpc('award_xp', {
+        p_user_id: userId,
+        p_amount: XP_VALUES.DAILY_STREAK,
+        p_source: 'daily_streak',
+        p_metadata: { streak: newStreak },
+      });
+      if (error) {
+        this.logger.warn(`[updateDailyStreak] daily_streak XP award failed: ${error.message}`);
+      }
+    } catch (err) {
+      this.logger.warn(`[updateDailyStreak] daily_streak XP award threw: ${(err as Error)?.message}`);
+    }
+
+    return { current_daily_streak: newStreak, awarded_today: true };
   }
 
   async updateMaxCorrectStreak(userId: string, currentStreak: number): Promise<void> {

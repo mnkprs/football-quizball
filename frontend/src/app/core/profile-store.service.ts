@@ -4,7 +4,7 @@ import { firstValueFrom, filter } from 'rxjs';
 import { AuthService } from './auth.service';
 import { SoloApiService, LeaderboardEntry } from './solo-api.service';
 import { BlitzApiService } from './blitz-api.service';
-import { getEloTier, tierProgress, nextTierThreshold } from './elo-tier';
+import { getEloTier, tierProgress, nextTierThreshold, xpProgressPct, xpToNextLevel } from './elo-tier';
 
 @Injectable({ providedIn: 'root' })
 export class ProfileStore {
@@ -32,6 +32,10 @@ export class ProfileStore {
     const next = nextTierThreshold(this.elo());
     return next !== null ? next - this.elo() : 0;
   });
+  readonly xp = computed(() => this.profile()?.xp ?? 0);
+  readonly level = computed(() => this.profile()?.level ?? 1);
+  readonly xpProgressPct = computed(() => xpProgressPct(this.xp(), this.level()));
+  readonly xpToNextLevel = computed(() => xpToNextLevel(this.xp(), this.level()));
 
   constructor() {
     this.router.events.pipe(

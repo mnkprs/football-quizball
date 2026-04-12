@@ -1,0 +1,62 @@
+<h2>Pre-Launch UX Strategy: 3 Approaches</h2>
+<p class="subtitle">Based on a comprehensive audit of Stepover's current state. Click to select your preferred approach.</p>
+
+<div style="display:grid;grid-template-columns:1fr;gap:16px;margin:24px 0;">
+  <!-- Audit Summary -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <h3 style="margin:0 0 12px;font-size:14px;text-transform:uppercase;letter-spacing:1px;opacity:0.5;">Audit Snapshot</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px;">
+      <div><span style="color:#4ade80;">DONE</span><br/>Streaks, Match History, ELO Tiers, Achievements, Share/Invite, Onboarding, Delete Account, Export Data</div>
+      <div><span style="color:#fbbf24;">GAPS</span><br/>Empty States (50%), Error Recovery (no retry), Loading (spinners only), Settings (no password/theme/notifs), Stats (partial modes)</div>
+      <div><span style="color:#f87171;">MISSING</span><br/>Haptic/Sound (0%), Push Notifications (0%), Offline Mode (0%), Friends List, Weekly Challenges, Referral System, App Store Assets</div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Polish What Exists</h3>
+      <p style="margin:4px 0 12px;opacity:0.7;">Ship faster. Make current features feel premium.</p>
+      <div style="font-size:13px;line-height:1.8;">
+        <strong>Scope:</strong> Skeleton loaders, haptic/sound feedback, empty states, retry on errors, theme toggle in settings, share game results, app store screenshots<br/>
+        <strong>Impact:</strong> App feels 2x more polished. First impressions dramatically better.<br/>
+        <strong>Doesn't include:</strong> Push notifications, friends, referrals, weekly challenges<br/>
+        <strong>Risk:</strong> Users try it, love the feel, but no hooks to bring them back beyond streaks
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Retention First</h3>
+      <p style="margin:4px 0 12px;opacity:0.7;">Engagement-focused. Build the hooks that bring users back.</p>
+      <div style="font-size:13px;line-height:1.8;">
+        <strong>Scope:</strong> Push notifications (daily reminders, duel challenges), referral system, weekly challenges/quests, share results (viral loop), friend leaderboards<br/>
+        <strong>Impact:</strong> DAU/MAU ratio improves. Organic growth via referrals and sharing.<br/>
+        <strong>Doesn't include:</strong> Skeleton loaders, haptics/sound, empty state polish, settings cleanup<br/>
+        <strong>Risk:</strong> Retention features on an unpolished base. Users hit rough edges before reaching the hooks.
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Comprehensive Pre-Launch (Phased)</h3>
+      <p style="margin:4px 0 12px;opacity:0.7;">Do it all, in priority order. Ship when it's right.</p>
+      <div style="font-size:13px;line-height:1.8;">
+        <strong>Phase 1 - Feel:</strong> Haptic/sound, skeleton loaders, empty states, error retry, settings cleanup<br/>
+        <strong>Phase 2 - Retain:</strong> Push notifications, weekly challenges, referral system<br/>
+        <strong>Phase 3 - Grow:</strong> Share results with OG previews, friend system, deep link previews<br/>
+        <strong>Phase 4 - Launch:</strong> App store assets (screenshots, preview video, ASO metadata)<br/>
+        <strong>Impact:</strong> Complete, premium-feeling app with retention + growth built in from day one<br/>
+        <strong>Risk:</strong> Larger scope, but no deadline pressure makes this viable
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:20px;">Since you have no hard deadline and want comprehensive coverage, I recommend <strong>Option C</strong> &mdash; phased approach ensures each layer builds on the previous one.</p>

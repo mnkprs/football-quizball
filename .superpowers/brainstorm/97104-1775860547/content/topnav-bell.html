@@ -1,0 +1,74 @@
+<h2>Top Nav — Bell Icon Placement</h2>
+<p class="subtitle">Bell icon with unread badge, next to settings gear</p>
+
+<div class="mockup">
+  <div class="mockup-header">Current Top Nav (logged in)</div>
+  <div class="mockup-body" style="padding: 0;">
+    <div style="display:flex; align-items:center; height:60px; background:rgba(10,10,20,0.95); padding:0 16px; border-radius:12px;">
+      <!-- Avatar -->
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#1a1a2e;flex-shrink:0;">MK</div>
+      <!-- Center stats -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 12px;">
+        <span style="font-size:11px;color:rgba(255,255,255,0.4);">ManosKap</span>
+        <div style="display:flex;gap:8px;align-items:center;font-size:11px;">
+          <span style="color:rgba(255,255,255,0.5);">Solo <span style="color:#fff;font-weight:600;">1450</span></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span style="color:rgba(255,255,255,0.5);">Logo <span style="color:#fff;font-weight:600;">1280</span></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span style="color:rgba(255,255,255,0.5);">W/L <span style="color:#fff;font-weight:600;">64%</span></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span style="color:#FFD700;font-weight:700;font-size:10px;">Gold</span>
+        </div>
+      </div>
+      <!-- Right: just settings -->
+      <div style="display:flex;align-items:center;gap:4px;">
+        <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:rgba(255,255,255,0.45);font-size:18px;">⚙️</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin: 2rem 0 1rem; text-align:center; color: rgba(255,255,255,0.4); font-size: 1.5rem;">↓</div>
+
+<div class="mockup">
+  <div class="mockup-header">Proposed Top Nav — with Bell + Badge</div>
+  <div class="mockup-body" style="padding: 0;">
+    <div style="display:flex; align-items:center; height:60px; background:rgba(10,10,20,0.95); padding:0 16px; border-radius:12px;">
+      <!-- Avatar -->
+      <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#1a1a2e;flex-shrink:0;">MK</div>
+      <!-- Center stats -->
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 12px;">
+        <span style="font-size:11px;color:rgba(255,255,255,0.4);">ManosKap</span>
+        <div style="display:flex;gap:8px;align-items:center;font-size:11px;">
+          <span style="color:rgba(255,255,255,0.5);">Solo <span style="color:#fff;font-weight:600;">1450</span></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span style="color:rgba(255,255,255,0.5);">Logo <span style="color:#fff;font-weight:600;">1280</span></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span style="color:rgba(255,255,255,0.5);">W/L <span style="color:#fff;font-weight:600;">64%</span></span>
+          <span style="color:rgba(255,255,255,0.2);">|</span>
+          <span style="color:#FFD700;font-weight:700;font-size:10px;">Gold</span>
+        </div>
+      </div>
+      <!-- Right: bell + settings -->
+      <div style="display:flex;align-items:center;gap:4px;">
+        <!-- Bell with badge -->
+        <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:rgba(255,255,255,0.45);font-size:18px;cursor:pointer;">
+          🔔
+          <div style="position:absolute;top:4px;right:4px;min-width:18px;height:18px;background:#FF3B30;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;padding:0 4px;border:2px solid rgba(10,10,20,0.95);">3</div>
+        </div>
+        <!-- Settings -->
+        <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:rgba(255,255,255,0.45);font-size:18px;">⚙️</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:2rem;">
+  <h3>Badge Behavior</h3>
+  <ul style="color:rgba(255,255,255,0.7);line-height:1.8;">
+    <li>Red circle with white count — hidden when 0</li>
+    <li>Caps at "9+" for 10+ unread</li>
+    <li>Count = unread DB notifications + unread content-availability items</li>
+    <li>Tapping bell navigates to <code>/notifications</code></li>
+  </ul>
+</div>

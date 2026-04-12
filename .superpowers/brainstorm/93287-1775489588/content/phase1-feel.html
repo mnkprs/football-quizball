@@ -1,0 +1,92 @@
+<h2>Phase 1: Feel</h2>
+<p class="subtitle">Make the current app feel premium. 6 workstreams, each independently shippable.</p>
+
+<div style="display:grid;gap:20px;margin:20px 0;">
+
+  <!-- 1. Haptic & Sound -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">1</span>
+      <h3 style="margin:0;">Haptic & Sound Feedback</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Add tactile + audio feedback to quiz interactions<br/>
+      <strong>Where:</strong> Answer tap (light haptic), correct answer (success chime + medium haptic), wrong answer (error buzz + soft thud), timer running out (warning vibrate), achievement unlock (celebration haptic + fanfare), streak milestone (special sound)<br/>
+      <strong>How:</strong> Capacitor Haptics plugin (already available) + small audio sprite (single file, ~50KB). Sound toggle in settings (default ON). Haptic follows system setting.<br/>
+      <strong>Scope:</strong> ~15 haptic trigger points, ~8 distinct sounds, 1 settings toggle
+    </div>
+  </div>
+
+  <!-- 2. Skeleton Loaders -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">2</span>
+      <h3 style="margin:0;">Skeleton Loaders</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Replace mat-spinners with content-shaped skeleton placeholders<br/>
+      <strong>Where:</strong> Profile page (avatar + stats + history), Leaderboard (list rows), Home page (mode cards), Duel/BR lobby (room list), Question loading<br/>
+      <strong>How:</strong> Single reusable SkeletonComponent with CSS shimmer animation. Variants: line, circle, card, row. No external deps.<br/>
+      <strong>Scope:</strong> 1 shared component, applied to ~8 pages
+    </div>
+  </div>
+
+  <!-- 3. Empty States -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">3</span>
+      <h3 style="margin:0;">Empty States</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Replace hidden sections with friendly illustrations + CTAs<br/>
+      <strong>Where:</strong> Achievements (none earned yet), Match history (no games), Duel lobby (no active duels), Leaderboard (mode with no players), Profile stats (mode not played yet)<br/>
+      <strong>How:</strong> Shared EmptyStateComponent with icon, title, subtitle, optional CTA button. Each usage gets contextual copy ("No duels yet &mdash; challenge someone!").<br/>
+      <strong>Scope:</strong> 1 shared component, ~10 integration points
+    </div>
+  </div>
+
+  <!-- 4. Error Recovery -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">4</span>
+      <h3 style="margin:0;">Error Recovery</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Add retry buttons + contextual error messages across the app<br/>
+      <strong>Where:</strong> Any API-dependent screen (profile, leaderboard, lobbies, question fetch). Network loss during a game (reconnect prompt instead of silent failure).<br/>
+      <strong>How:</strong> Shared ErrorStateComponent (icon + message + retry button). Wrap critical API calls with retry logic (exponential backoff, max 3). Toast for transient errors, inline for page-level failures.<br/>
+      <strong>Scope:</strong> 1 shared component, update error interceptor, ~8 integration points
+    </div>
+  </div>
+
+  <!-- 5. Settings Cleanup -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">5</span>
+      <h3 style="margin:0;">Settings Cleanup</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Complete the settings menu with missing controls<br/>
+      <strong>Add:</strong> Theme toggle (dark/light &mdash; service exists, no UI), Sound on/off toggle, Haptic on/off toggle, Change password (Supabase magic link flow), Notification preferences (placeholder until Phase 2)<br/>
+      <strong>Keep:</strong> Delete account, export data, sign out (already working)<br/>
+      <strong>Scope:</strong> 5 new toggles/actions in existing settings-menu component
+    </div>
+  </div>
+
+  <!-- 6. Hide Blitz -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">6</span>
+      <h3 style="margin:0;">Hide Deferred Modes</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Properly hide Blitz from the home page instead of "coming soon" tag<br/>
+      <strong>Why:</strong> App Store reviewers flag non-functional features. "Coming soon" on a paid app feels unfinished.<br/>
+      <strong>How:</strong> Feature flag or simply remove the card from home. Keep the route/component for future.<br/>
+      <strong>Scope:</strong> 1 card removal, ~10 minutes
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Does Phase 1 look right? Anything to add, remove, or reprioritize?</p>

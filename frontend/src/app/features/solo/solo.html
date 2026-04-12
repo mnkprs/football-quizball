@@ -69,6 +69,16 @@
         </div>
       }
 
+      <!-- XP gain float -->
+      @if (lastXpGain(); as xp) {
+        <div class="solo-xp-float" [class.solo-xp-float--streak]="xp.streak">
+          +{{ xp.amount }} XP
+          @if (xp.streak) {
+            <span class="solo-xp-float__streak">Streak!</span>
+          }
+        </div>
+      }
+
       <!-- LOADING QUESTION phase -->
       @if (phase() === 'loading-question') {
         <div class="flex-1 flex items-center justify-center" role="status" aria-label="Loading">

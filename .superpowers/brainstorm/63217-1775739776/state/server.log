@@ -1,0 +1,4 @@
+{"type":"server-started","port":61654,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:61654","screen_dir":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/63217-1775739776/content","state_dir":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/63217-1775739776/state"}
+{"type":"screen-added","file":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/63217-1775739776/content/elo-legend-overlay.html"}
+{"type":"screen-added","file":"/Users/instashop/Projects/football-quizball/.superpowers/brainstorm/63217-1775739776/content/waiting.html"}
+{"type":"server-stopped","reason":"idle timeout"}

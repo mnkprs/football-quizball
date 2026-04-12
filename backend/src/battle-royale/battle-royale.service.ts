@@ -11,6 +11,8 @@ import { BlitzService } from '../blitz/blitz.service';
 import { BlitzQuestion } from '../blitz/blitz.types';
 import { LogoQuizService } from '../logo-quiz/logo-quiz.service';
 import { AchievementsService } from '../achievements/achievements.service';
+import { XpService } from '../xp/xp.service';
+import { XP_VALUES } from '../xp/xp.constants';
 import {
   BRRoomRow,
   BRPlayerRow,
@@ -35,6 +37,7 @@ export class BattleRoyaleService {
     private readonly blitzService: BlitzService,
     private readonly logoQuizService: LogoQuizService,
     private readonly achievementsService: AchievementsService,
+    private readonly xpService: XpService,
   ) {}
 
   // ── Create room ─────────────────────────────────────────────────────────────
@@ -529,6 +532,11 @@ export class BattleRoyaleService {
       this.logger.warn(`[submitAnswer] incrementQuestionStats failed: ${err?.message}`),
     );
 
+    // Fire-and-forget: award XP for the answer
+    void this.xpService.awardForAnswer(userId, correct, 'battle_royale').catch((err) =>
+      this.logger.warn(`[submitAnswer] XP award failed: ${err?.message}`),
+    );
+
     // Check if all players are done and record match history for this player
     if (isLastQuestion) {
       await this.checkAndFinishRoom(roomId);
@@ -824,7 +832,27 @@ export class BattleRoyaleService {
         .from('battle_royale_rooms')
         .update({ status: 'finished', finished_at: new Date().toISOString(), updated_at: new Date().toISOString() })
         .eq('id', roomId);
+      // Award BR_WIN XP to the top scorer (fire-and-forget)
+      void this.awardBrWinXp(roomId).catch((err) =>
+        this.logger.warn(`[br] awardBrWinXp failed: ${err?.message}`),
+      );
     }
+  }
+
+  /** Award BR_WIN XP to the top-scoring player when the room finishes. */
+  private async awardBrWinXp(roomId: string): Promise<void> {
+    const { data: players } = await this.supabaseService.client
+      .from('battle_royale_players')
+      .select('user_id, score')
+      .eq('room_id', roomId)
+      .order('score', { ascending: false })
+      .limit(1);
+
+    const winner = (players ?? [])[0] as { user_id: string; score: number } | undefined;
+    if (!winner || winner.score <= 0) return;
+
+    await this.supabaseService.incrementBrWins(winner.user_id);
+    await this.xpService.award(winner.user_id, 'br_win', XP_VALUES.BR_WIN, { mode: 'battle_royale' });
   }
 
   private async autoFinishRoom(roomId: string): Promise<void> {
@@ -840,6 +868,9 @@ export class BattleRoyaleService {
         .from('battle_royale_rooms')
         .update({ status: 'finished', finished_at: new Date().toISOString(), updated_at: new Date().toISOString() })
         .eq('id', roomId);
+      void this.awardBrWinXp(roomId).catch((err) =>
+        this.logger.warn(`[br] awardBrWinXp failed: ${err?.message}`),
+      );
     }
   }
 }

@@ -34,3 +34,23 @@ export function tierProgress(elo: number): number {
   if (next === floor) return 0;
   return Math.min(100, Math.max(0, ((elo - floor) / (next - floor)) * 100));
 }
+
+/** Total XP required to reach a given level. */
+export function xpForLevel(level: number): number {
+  return Math.floor(100 * Math.pow(level, 1.5));
+}
+
+/** Progress percentage within the current level (0-100). */
+export function xpProgressPct(totalXp: number, currentLevel: number): number {
+  const currentLevelXp = xpForLevel(currentLevel);
+  const nextLevelXp = xpForLevel(currentLevel + 1);
+  const range = nextLevelXp - currentLevelXp;
+  if (range <= 0) return 100;
+  const progress = totalXp - currentLevelXp;
+  return Math.min(100, Math.max(0, Math.round((progress / range) * 100)));
+}
+
+/** XP remaining to reach the next level. */
+export function xpToNextLevel(totalXp: number, currentLevel: number): number {
+  return Math.max(0, xpForLevel(currentLevel + 1) - totalXp);
+}

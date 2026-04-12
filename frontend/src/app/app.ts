@@ -18,11 +18,12 @@ import { AdService } from './core/ad.service';
 import { ToastComponent } from './shared/toast/toast';
 import { UpdateService } from './core/update.service';
 import { ForceUpdateBannerComponent } from './shared/force-update-banner/force-update-banner';
+import { LevelUpOverlayComponent } from './shared/level-up-overlay/level-up-overlay';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, NgOptimizedImage, ForceUpdateBannerComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, NgOptimizedImage, ForceUpdateBannerComponent, LevelUpOverlayComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

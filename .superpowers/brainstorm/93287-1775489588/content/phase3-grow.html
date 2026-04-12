@@ -1,0 +1,83 @@
+<h2>Phase 3: Grow</h2>
+<p class="subtitle">Viral loops and social features that drive organic acquisition.</p>
+
+<div style="display:grid;gap:20px;margin:20px 0;">
+
+  <!-- 1. Share Results -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">1</span>
+      <h3 style="margin:0;">Share Results</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Shareable result cards after every game session<br/>
+      <strong>Surfaces:</strong><br/>
+      &bull; <em>Solo finish</em> &mdash; "I scored 8/10 and climbed to Gold tier on Stepover!"<br/>
+      &bull; <em>Duel win</em> &mdash; "Beat @opponent 7-4 in a football quiz duel"<br/>
+      &bull; <em>Battle Royale</em> &mdash; "Survived 8 players, finished #1"<br/>
+      &bull; <em>Logo Quiz</em> &mdash; "Identified 15 club crests in a row"<br/>
+      &bull; <em>Achievement unlock</em> &mdash; "Just earned Quiz Legend on Stepover"<br/>
+      <strong>Format:</strong> Generated image card (canvas-based, branded with Stepover logo + app store link). Native share sheet via Capacitor Share plugin. Clipboard fallback for text-only.<br/>
+      <strong>OG Preview:</strong> Backend endpoint that renders dynamic OG images for shared links (e.g., `/og/result/:id`) so links look rich on social media/messaging apps.<br/>
+      <strong>Scope:</strong> 1 shared ResultCardComponent, canvas image generator, backend OG endpoint, share button on all result screens
+    </div>
+  </div>
+
+  <!-- 2. Friend System -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">2</span>
+      <h3 style="margin:0;">Friend System</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Lightweight friends list with activity and direct challenge<br/>
+      <strong>Features:</strong><br/>
+      &bull; <em>Add friend</em> &mdash; by username search or share a friend code<br/>
+      &bull; <em>Friend leaderboard</em> &mdash; separate tab on leaderboard page (global vs friends toggle)<br/>
+      &bull; <em>Challenge friend</em> &mdash; tap a friend to start a duel directly (skips matchmaking queue)<br/>
+      &bull; <em>Activity feed</em> &mdash; NOT a full social feed. Just: "Alex reached Diamond tier", "Sam is on a 14-day streak" on the friends tab<br/>
+      <strong>DB:</strong> `friendships` table (user_id, friend_id, status: pending/accepted, created_at). Symmetric &mdash; both users see each other.<br/>
+      <strong>Privacy:</strong> Friend requests require acceptance. No public friend counts. Block option.<br/>
+      <strong>Scope:</strong> Backend CRUD module, friend list UI, leaderboard tab, challenge shortcut
+    </div>
+  </div>
+
+  <!-- 3. Deep Link Previews -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">3</span>
+      <h3 style="margin:0;">Deep Link Previews</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Rich previews when Stepover links are shared in iMessage, WhatsApp, Twitter, etc.<br/>
+      <strong>Links that need previews:</strong><br/>
+      &bull; <em>Duel invite</em> &mdash; "Challenge from @player &mdash; tap to play" + Stepover branded card<br/>
+      &bull; <em>Referral link</em> &mdash; "Join Stepover &mdash; Football quiz with friends" + download CTA<br/>
+      &bull; <em>Result share</em> &mdash; Dynamic score card image (from Share Results above)<br/>
+      &bull; <em>Profile link</em> &mdash; Player name, tier badge, ELO<br/>
+      <strong>How:</strong> Server-side rendered HTML with OG meta tags at each sharable route. Firebase Dynamic Links or custom domain redirect (stepovr.app) that routes to app or store.<br/>
+      <strong>App Links:</strong> Configure iOS Universal Links + Android App Links so tapping a link opens the app directly if installed, or the store if not.<br/>
+      <strong>Scope:</strong> Backend OG renderer, Universal Links config (apple-app-site-association), Android assetlinks.json, link routing logic
+    </div>
+  </div>
+
+  <!-- 4. Profile Enhancements -->
+  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="font-size:20px;">4</span>
+      <h3 style="margin:0;">Profile Enhancements</h3>
+    </div>
+    <div style="font-size:13px;line-height:1.8;opacity:0.85;">
+      <strong>What:</strong> Make profiles worth visiting and sharing<br/>
+      <strong>Additions:</strong><br/>
+      &bull; <em>Per-mode stats</em> &mdash; fill gaps for Duel (W/L/D, win rate), Logo Quiz (best streak, accuracy), News (rounds played, avg score), BR (wins, avg placement)<br/>
+      &bull; <em>Share profile</em> &mdash; button to share your profile link (with OG preview from above)<br/>
+      &bull; <em>Weekly challenge badges</em> &mdash; display completed challenges from Phase 2<br/>
+      &bull; <em>Favorite mode badge</em> &mdash; auto-calculated from most-played mode<br/>
+      <strong>Scope:</strong> Profile component updates, backend stats aggregation queries, ~4 new stat cards
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Does Phase 3 look right? Anything to adjust before Phase 4?</p>

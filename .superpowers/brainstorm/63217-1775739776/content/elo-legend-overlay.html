@@ -1,0 +1,113 @@
+<h2>ELO Ranking Legend — Overlay Design</h2>
+<p class="subtitle">Full-screen modal shown on first leaderboard visit, re-openable via header info icon</p>
+
+<div class="mockup">
+  <div class="mockup-header">Leaderboard Header (with info button)</div>
+  <div class="mockup-body" style="background: #0e0e0e; padding: 1rem; font-family: 'Inter', sans-serif;">
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div style="width: 2rem; height: 2rem; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: #a8b3c4; font-size: 0.85rem;">←</div>
+        <span style="color: #e5e2e1; font-size: 1.25rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif;">Leaderboard</span>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <div style="width: 2rem; height: 2rem; border-radius: 50%; background: rgba(0, 122, 255, 0.12); border: 1px solid rgba(0, 122, 255, 0.25); display: flex; align-items: center; justify-content: center; color: #007AFF; font-size: 0.9rem; cursor: pointer;" title="Info button">ℹ</div>
+        <div style="width: 2rem; height: 2rem; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: #a8b3c4; font-size: 0.85rem;">↻</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 1.5rem;"></div>
+
+<div class="mockup">
+  <div class="mockup-header">Legend Overlay (full-screen modal)</div>
+  <div class="mockup-body" style="background: rgba(0, 0, 0, 0.92); padding: 0; font-family: 'Inter', sans-serif; min-height: 520px; display: flex; align-items: center; justify-content: center;">
+    <!-- Modal card -->
+    <div style="background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08); border-radius: 1.25rem; padding: 1.75rem 1.25rem 1.25rem; width: 92%; max-width: 22rem; position: relative; overflow: hidden;">
+      <!-- Ambient glow -->
+      <div style="position: absolute; top: -3rem; left: 50%; transform: translateX(-50%); width: 14rem; height: 6rem; border-radius: 50%; background: radial-gradient(ellipse, rgba(0, 122, 255, 0.15) 0%, rgba(139, 92, 246, 0.06) 50%, transparent 80%); pointer-events: none;"></div>
+
+      <!-- Close button -->
+      <div style="position: absolute; top: 0.75rem; right: 0.75rem; width: 1.75rem; height: 1.75rem; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: #6b7a8d; font-size: 0.85rem; cursor: pointer;">✕</div>
+
+      <!-- Header -->
+      <div style="text-align: center; margin-bottom: 1.25rem; position: relative;">
+        <div style="font-size: 1.75rem; margin-bottom: 0.25rem;">🏆</div>
+        <h3 style="color: #e5e2e1; font-size: 1.15rem; font-weight: 700; margin: 0 0 0.25rem; font-family: 'Space Grotesk', sans-serif;">Ranking Tiers</h3>
+        <p style="color: #6b7a8d; font-size: 0.8rem; margin: 0;">Climb the ladder by answering correctly</p>
+      </div>
+
+      <!-- Tier list -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <!-- Challenger -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: rgba(232, 255, 122, 0.06); border: 1px solid rgba(232, 255, 122, 0.15); border-radius: 0.75rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #e8ff7a, #c4d94a); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">👑</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #e8ff7a; font-size: 0.85rem; font-weight: 600;">Challenger</div>
+          </div>
+          <div style="color: #6b7a8d; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">2400+</div>
+        </div>
+
+        <!-- Diamond -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: rgba(168, 85, 247, 0.06); border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 0.75rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #a855f7, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">💎</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #a855f7; font-size: 0.85rem; font-weight: 600;">Diamond</div>
+          </div>
+          <div style="color: #6b7a8d; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">2000 – 2399</div>
+        </div>
+
+        <!-- Platinum -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: rgba(6, 182, 212, 0.06); border: 1px solid rgba(6, 182, 212, 0.15); border-radius: 0.75rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #06b6d4, #0891b2); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">⚡</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #06b6d4; font-size: 0.85rem; font-weight: 600;">Platinum</div>
+          </div>
+          <div style="color: #6b7a8d; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">1650 – 1999</div>
+        </div>
+
+        <!-- Gold -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: rgba(245, 158, 11, 0.06); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 0.75rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">🥇</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #f59e0b; font-size: 0.85rem; font-weight: 600;">Gold</div>
+          </div>
+          <div style="color: #6b7a8d; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">1300 – 1649</div>
+        </div>
+
+        <!-- Silver -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: rgba(148, 163, 184, 0.06); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 0.75rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #94a3b8, #64748b); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">🥈</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Silver</div>
+          </div>
+          <div style="color: #6b7a8d; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">1000 – 1299</div>
+        </div>
+
+        <!-- Bronze -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: rgba(180, 83, 9, 0.06); border: 1px solid rgba(180, 83, 9, 0.15); border-radius: 0.75rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #b45309, #92400e); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">🥉</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #b45309; font-size: 0.85rem; font-weight: 600;">Bronze</div>
+          </div>
+          <div style="color: #6b7a8d; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">750 – 999</div>
+        </div>
+
+        <!-- Iron -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; background: rgba(107, 114, 128, 0.06); border: 1px solid rgba(107, 114, 128, 0.15); border-radius: 0.75rem;">
+          <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #6b7280, #4b5563); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0;">🛡️</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: #6b7280; font-size: 0.85rem; font-weight: 600;">Iron</div>
+          </div>
+          <div style="color: #6b7a8d; font-size: 0.75rem; font-weight: 500; white-space: nowrap;">500 – 749</div>
+        </div>
+      </div>
+
+      <!-- Footer note -->
+      <div style="text-align: center; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06);">
+        <p style="color: #6b7a8d; font-size: 0.7rem; margin: 0 0 0.75rem;">All players start at <span style="color: #94a3b8;">Silver (1000 ELO)</span></p>
+        <button style="background: linear-gradient(135deg, #007AFF, #5856D6); color: white; border: none; border-radius: 9999px; padding: 0.6rem 2rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);">Got it</button>
+      </div>
+    </div>
+  </div>
+</div>
