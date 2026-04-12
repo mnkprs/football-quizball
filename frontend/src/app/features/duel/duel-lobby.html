@@ -5,6 +5,8 @@
     <div class="hero-bg__overlay"></div>
   </div>
 
+  <app-lobby-header (back)="goBack()" />
+
   <!-- Content -->
   <div class="duel-start__content lobby-content">
     <h1 class="duel-title lobby-title">{{ isLogoMode() ? 'LOGO DUEL' : 'DUEL' }}</h1>

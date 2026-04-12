@@ -5,12 +5,7 @@
     <div class="hero-bg__overlay"></div>
   </div>
 
-  <!-- Top nav -->
-  <div class="online-top">
-    <button class="online-back" (click)="goBack()" aria-label="Go back">
-      <span class="material-symbols-outlined">arrow_back</span>
-    </button>
-  </div>
+  <app-lobby-header (back)="goBack()" />
 
   <!-- Content -->
   <div class="lobby-content">

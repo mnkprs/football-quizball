@@ -10,33 +10,6 @@
   gap: 1rem;
 }
 
-/* ── Header ──────────────────────────────── */
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.back-btn {
-  background: none;
-  border: none;
-  color: var(--color-fg-muted, #999);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  transition: color 0.15s, background 0.15s;
-}
-.back-btn:hover {
-  color: var(--color-fg, #fff);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-fg, #fff);
-}
-
 /* ── Loading ─────────────────────────────── */
 .page-loading {
   display: flex;

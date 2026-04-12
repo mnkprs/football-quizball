@@ -79,23 +79,6 @@
   padding-bottom: 1.25rem;
 }
 
-/* ── Back button ─────────────────────────────────────────── */
-
-.br-back {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  background: none;
-  border: none;
-  color: var(--color-fg-muted);
-  cursor: pointer;
-  padding: 0.5rem;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  transition: color 0.2s;
-}
-.br-back:hover { color: var(--color-fg); }
-
 /* ── Middle section (rooms — fills remaining space) ──────── */
 
 .br-middle {

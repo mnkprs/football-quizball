@@ -9,11 +9,12 @@ import { LanguageService } from '../../core/language.service';
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
+import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 
 @Component({
   selector: 'app-duel-lobby',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgOptimizedImage, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, NgOptimizedImage, EmptyStateComponent, LobbyHeaderComponent],
   host: { class: 'duel-lobby-host' },
   templateUrl: './duel-lobby.html',
   styleUrl: './duel-lobby.css',
@@ -161,6 +162,10 @@ export class DuelLobbyComponent implements OnInit {
 
   resumeDuel(gameId: string): void {
     this.router.navigate(['/duel', gameId]);
+  }
+
+  goBack(): void {
+    this.router.navigate(['/']);
   }
 
   scoreLine(game: DuelGameSummary): string {

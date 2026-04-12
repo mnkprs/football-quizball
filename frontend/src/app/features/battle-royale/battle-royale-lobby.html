@@ -6,12 +6,10 @@
   <!-- ── Content ── -->
   <div class="br-content">
 
-    <!-- Top section: back, identity, rules -->
-    <div class="br-top">
-      <button class="br-back" (click)="goBack()" aria-label="Go back">
-        <span class="material-icons">arrow_back</span>
-      </button>
+    <app-lobby-header (back)="goBack()" />
 
+    <!-- Top section: identity, rules -->
+    <div class="br-top">
       <div class="br-identity">
         <div class="br-identity__icon">
           <span class="material-icons">{{ isTeamLogoMode() ? 'shield' : 'public' }}</span>

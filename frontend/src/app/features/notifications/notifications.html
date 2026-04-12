@@ -1,12 +1,8 @@
 <div class="notifications-page" role="main" aria-label="Notifications">
-  <div class="notifications-header anim-fade-down">
-    <div class="notifications-header__left">
-      <button class="notifications-back-btn pressable" aria-label="Go back" (click)="goBack()">
-        <span class="material-icons">arrow_back</span>
-      </button>
-      <h1 class="notifications-title">Notifications</h1>
-    </div>
-    <button class="notifications-mark-all pressable" (click)="markAllRead()" aria-label="Mark all notifications as read">Mark all read</button>
+  <div class="notifications-sticky anim-fade-down">
+    <app-lobby-header title="Notifications" (back)="goBack()">
+      <button class="notifications-mark-all pressable" (click)="markAllRead()" aria-label="Mark all notifications as read">Mark all read</button>
+    </app-lobby-header>
   </div>
 
   @if (loading()) {

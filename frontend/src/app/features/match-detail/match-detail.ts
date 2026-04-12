@@ -4,11 +4,12 @@ import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MatchHistoryApiService, MatchDetail } from '../../core/match-history-api.service';
 import { AuthService } from '../../core/auth.service';
+import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 
 @Component({
   selector: 'app-match-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LobbyHeaderComponent],
   templateUrl: './match-detail.html',
   styleUrl: './match-detail.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -66,54 +66,12 @@
 
 /* ── Header ─────────────────────────────────────────────── */
 
-.notifications-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem 0.75rem;
+.notifications-sticky {
   position: sticky;
   top: 0;
   z-index: 10;
   background: var(--color-bg);
   border-bottom: 1px solid var(--glass-border);
-}
-
-.notifications-header__left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.notifications-back-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: none;
-  background: transparent;
-  color: var(--color-fg-label);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: color 0.15s var(--ease-out-quart), background 0.15s var(--ease-out-quart);
-}
-
-.notifications-back-btn:active {
-  background: var(--glass-bg-ultra-subtle);
-}
-
-.notifications-back-btn:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
-.notifications-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.375rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--color-fg);
-  margin: 0;
 }
 
 .notifications-mark-all {

@@ -17,39 +17,6 @@
   touch-action: manipulation;
 }
 
-/* ── Top nav ── */
-.online-top {
-  position: relative;
-  z-index: 3;
-  padding: calc(env(safe-area-inset-top, 0px) + var(--space-4)) var(--space-4) 0;
-  max-width: var(--content-narrow-width);
-  margin: 0 auto;
-  width: 100%;
-}
-
-.online-back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--color-fg-muted);
-  cursor: pointer;
-  padding: var(--space-2);
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  border-radius: var(--radius-full);
-  transition: color var(--duration-normal);
-}
-
-.online-back:hover {
-  color: var(--color-fg);
-}
-
-.online-back .material-symbols-outlined {
-  font-size: 1.5rem;
-}
-
 /* ── Title treatment ── */
 .online-title {
   font-size: 2.5rem;
