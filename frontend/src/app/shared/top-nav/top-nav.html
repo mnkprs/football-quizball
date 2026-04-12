@@ -45,6 +45,10 @@
             <span class="top-nav__mode-label">W/L</span>
             <span class="top-nav__mode-value">{{ winRatio() }}%</span>
           </a>
+          <a routerLink="/profile" class="top-nav__mode-chip top-nav__mode-chip--level" aria-label="Level {{ level() }}">
+            <span class="top-nav__mode-label">Lv</span>
+            <span class="top-nav__mode-value">{{ level() }}</span>
+          </a>
           <!-- <a routerLink="/leaderboard" class="top-nav__tier-badge pressable"
              [style.color]="tierColor()"
              [style.background]="tierColor() + '26'"
