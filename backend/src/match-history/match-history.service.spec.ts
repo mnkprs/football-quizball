@@ -67,4 +67,67 @@ describe('MatchHistoryService', () => {
       expect(supabase.getMatchHistory).toHaveBeenCalledWith(userId, 100);
     });
   });
+
+  describe('getMatchDetail — pro gating', () => {
+    const userId = 'u1';
+    const matchId = 'm1';
+
+    it('keeps questions for pro users and sets flags', async () => {
+      supabase.getMatchById = jest.fn().mockResolvedValue({
+        id: matchId,
+        player1_id: userId,
+        player2_id: null,
+        match_mode: 'duel',
+        game_ref_id: 'g1',
+        game_ref_type: 'duel',
+        detail_snapshot: {
+          duel_questions: [{ index: 0, winner: 'host', question_text: 'Q', correct_answer: 'A' }],
+        },
+      });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: true });
+
+      const detail = await service.getMatchDetail(matchId, userId);
+      expect(detail.questionsAvailable).toBe(true);
+      expect(detail.questionsLocked).toBe(false);
+      expect(detail.duel_questions?.length).toBe(1);
+    });
+
+    it('strips questions for non-pro users and sets questionsLocked', async () => {
+      supabase.getMatchById = jest.fn().mockResolvedValue({
+        id: matchId,
+        player1_id: userId,
+        player2_id: null,
+        match_mode: 'duel',
+        game_ref_id: 'g1',
+        game_ref_type: 'duel',
+        detail_snapshot: {
+          duel_questions: [{ index: 0, winner: 'host', question_text: 'Q', correct_answer: 'A' }],
+        },
+      });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: false });
+
+      const detail = await service.getMatchDetail(matchId, userId);
+      expect(detail.questionsAvailable).toBe(true);
+      expect(detail.questionsLocked).toBe(true);
+      expect((detail as any).duel_questions).toBeUndefined();
+      expect((detail as any).br_questions).toBeUndefined();
+      expect((detail as any).question_results).toBeUndefined();
+    });
+
+    it('sets questionsAvailable=false when snapshot is missing and no game_ref', async () => {
+      supabase.getMatchById = jest.fn().mockResolvedValue({
+        id: matchId,
+        player1_id: userId,
+        player2_id: null,
+        match_mode: 'duel',
+        game_ref_id: null,
+        game_ref_type: null,
+        detail_snapshot: null,
+      });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: true });
+
+      const detail = await service.getMatchDetail(matchId, userId);
+      expect(detail.questionsAvailable).toBe(false);
+    });
+  });
 });

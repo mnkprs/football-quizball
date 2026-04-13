@@ -71,102 +71,122 @@ export class MatchHistoryService {
     const detail: MatchDetail = { ...match };
 
     // Prefer snapshot (persisted at save time) over ephemeral source data.
+    let snapshotCoversAll = false;
     if (match.detail_snapshot) {
       Object.assign(detail, match.detail_snapshot);
       // Snapshot fully covers local matches today; for other modes, still enrich below.
-      if (match.game_ref_type === 'local') return detail;
+      if (match.game_ref_type === 'local') snapshotCoversAll = true;
     }
 
-    if (!match.game_ref_id || !match.game_ref_type) return detail;
-
-    try {
-      switch (match.game_ref_type) {
-        case 'duel': {
-          const game = await this.supabaseService.getDuelGameById(match.game_ref_id);
-          if (game) {
-            detail.question_results = game.question_results ?? [];
+    if (!snapshotCoversAll && match.game_ref_id && match.game_ref_type) {
+      try {
+        switch (match.game_ref_type) {
+          case 'duel': {
+            const game = await this.supabaseService.getDuelGameById(match.game_ref_id);
+            if (game) {
+              detail.question_results = game.question_results ?? [];
+            }
+            break;
           }
-          break;
+          case 'online': {
+            const game = await this.supabaseService.getOnlineGameById(match.game_ref_id);
+            if (game) {
+              detail.players = game.players;
+              detail.board = (game.board as any[][]).map((row: any[]) =>
+                row.map((c: any) => ({
+                  category: c.category,
+                  difficulty: c.difficulty,
+                  points: c.points ?? c.points_awarded ?? 0,
+                  answered_by: c.answered_by,
+                })),
+              );
+              // Derive categories from first row of board
+              const seen = new Set<string>();
+              detail.categories = (game.board as any[][]).map((row: any[]) => {
+                const cat = row[0]?.category ?? '';
+                if (seen.has(cat)) return null;
+                seen.add(cat);
+                return { key: cat, label: cat };
+              }).filter(Boolean) as Array<{ key: string; label: string }>;
+            }
+            break;
+          }
+          case 'local': {
+            const session = await this.cacheService.get<GameSession>(`game:${match.game_ref_id}`);
+            if (session) {
+              detail.players = session.players.map((p) => ({
+                name: p.name,
+                score: p.score,
+                lifelineUsed: p.lifelineUsed,
+                doubleUsed: p.doubleUsed,
+              }));
+              detail.board = session.board.map((row) =>
+                row.map((c) => ({
+                  category: c.category,
+                  difficulty: c.difficulty,
+                  points: c.points_awarded ?? c.points ?? 0,
+                  answered_by: c.answered_by,
+                })),
+              );
+              const seen = new Set<string>();
+              detail.categories = session.board.map((row) => {
+                const cat = row[0]?.category ?? '';
+                if (seen.has(cat)) return null;
+                seen.add(cat);
+                return { key: cat, label: CATEGORY_LABELS[cat] ?? cat };
+              }).filter(Boolean) as Array<{ key: string; label: string }>;
+            }
+            break;
+          }
+          case 'battle_royale':
+          case 'team_logo_battle': {
+            const { room, players } = await this.supabaseService.getBRRoomWithPlayers(match.game_ref_id);
+            if (players.length > 0) {
+              detail.br_players = players.map((p, i) => ({
+                username: p.username,
+                score: p.score,
+                rank: i + 1,
+                teamId: p.team_id ?? undefined,
+              }));
+            }
+            if (room) {
+              detail.br_mode = room.mode ?? 'standard';
+            }
+            // Team scores: aggregate from players
+            if (match.game_ref_type === 'team_logo_battle' && players.length > 0) {
+              const team1 = players.filter((p) => p.team_id === 1);
+              const team2 = players.filter((p) => p.team_id === 2);
+              const sum = (arr: any[]) => arr.reduce((s, p) => s + p.score, 0);
+              detail.team_scores = { team1: sum(team1), team2: sum(team2) };
+              // MVP: highest individual score
+              const top = players[0];
+              if (top) detail.mvp = { username: top.username, score: top.score };
+            }
+            break;
+          }
         }
-        case 'online': {
-          const game = await this.supabaseService.getOnlineGameById(match.game_ref_id);
-          if (game) {
-            detail.players = game.players;
-            detail.board = (game.board as any[][]).map((row: any[]) =>
-              row.map((c: any) => ({
-                category: c.category,
-                difficulty: c.difficulty,
-                points: c.points ?? c.points_awarded ?? 0,
-                answered_by: c.answered_by,
-              })),
-            );
-            // Derive categories from first row of board
-            const seen = new Set<string>();
-            detail.categories = (game.board as any[][]).map((row: any[]) => {
-              const cat = row[0]?.category ?? '';
-              if (seen.has(cat)) return null;
-              seen.add(cat);
-              return { key: cat, label: cat };
-            }).filter(Boolean) as Array<{ key: string; label: string }>;
-          }
-          break;
-        }
-        case 'local': {
-          const session = await this.cacheService.get<GameSession>(`game:${match.game_ref_id}`);
-          if (session) {
-            detail.players = session.players.map((p) => ({
-              name: p.name,
-              score: p.score,
-              lifelineUsed: p.lifelineUsed,
-              doubleUsed: p.doubleUsed,
-            }));
-            detail.board = session.board.map((row) =>
-              row.map((c) => ({
-                category: c.category,
-                difficulty: c.difficulty,
-                points: c.points_awarded ?? c.points ?? 0,
-                answered_by: c.answered_by,
-              })),
-            );
-            const seen = new Set<string>();
-            detail.categories = session.board.map((row) => {
-              const cat = row[0]?.category ?? '';
-              if (seen.has(cat)) return null;
-              seen.add(cat);
-              return { key: cat, label: CATEGORY_LABELS[cat] ?? cat };
-            }).filter(Boolean) as Array<{ key: string; label: string }>;
-          }
-          break;
-        }
-        case 'battle_royale':
-        case 'team_logo_battle': {
-          const { room, players } = await this.supabaseService.getBRRoomWithPlayers(match.game_ref_id);
-          if (players.length > 0) {
-            detail.br_players = players.map((p, i) => ({
-              username: p.username,
-              score: p.score,
-              rank: i + 1,
-              teamId: p.team_id ?? undefined,
-            }));
-          }
-          if (room) {
-            detail.br_mode = room.mode ?? 'standard';
-          }
-          // Team scores: aggregate from players
-          if (match.game_ref_type === 'team_logo_battle' && players.length > 0) {
-            const team1 = players.filter((p) => p.team_id === 1);
-            const team2 = players.filter((p) => p.team_id === 2);
-            const sum = (arr: any[]) => arr.reduce((s, p) => s + p.score, 0);
-            detail.team_scores = { team1: sum(team1), team2: sum(team2) };
-            // MVP: highest individual score
-            const top = players[0];
-            if (top) detail.mvp = { username: top.username, score: top.score };
-          }
-          break;
-        }
+      } catch (e) {
+        this.logger.warn(`[getMatchDetail] Failed to fetch game details for ${match.game_ref_type}/${match.game_ref_id}: ${(e as Error)?.message}`);
       }
-    } catch (e) {
-      this.logger.warn(`[getMatchDetail] Failed to fetch game details for ${match.game_ref_type}/${match.game_ref_id}: ${(e as Error)?.message}`);
+    }
+
+    // Finalize: apply pro gating
+    const proStatus = await this.supabaseService.getProStatus(requestingUserId);
+    const isPro = !!proStatus?.is_pro;
+
+    const hasQuestions =
+      (detail.duel_questions && detail.duel_questions.length > 0) ||
+      (detail.br_questions && detail.br_questions.length > 0) ||
+      (detail.question_results && detail.question_results.length > 0) ||
+      (!!detail.board && !!detail.players);
+
+    detail.questionsAvailable = !!hasQuestions;
+    detail.questionsLocked = !isPro;
+
+    if (!isPro) {
+      delete detail.duel_questions;
+      delete detail.br_questions;
+      delete detail.question_results;
     }
 
     return detail;
