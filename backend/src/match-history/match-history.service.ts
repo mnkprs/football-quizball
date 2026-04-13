@@ -54,8 +54,8 @@ export class MatchHistoryService {
   }
 
   async getHistory(userId: string) {
-    const profile = await this.supabaseService.getProfile(userId);
-    const limit = profile?.is_pro ? 100 : 10;
+    const proStatus = await this.supabaseService.getProStatus(userId);
+    const limit = proStatus?.is_pro ? 100 : 10;
     return this.supabaseService.getMatchHistory(userId, limit);
   }
 

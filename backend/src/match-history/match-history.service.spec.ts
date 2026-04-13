@@ -7,6 +7,7 @@ import { CacheService } from '../cache/cache.service';
 function buildMockSupabase() {
   return {
     getProfile: jest.fn().mockResolvedValue(null),
+    getProStatus: jest.fn().mockResolvedValue(null),
     getMatchHistory: jest.fn().mockResolvedValue([]),
     saveMatchResult: jest.fn().mockResolvedValue(true),
     getMatchWinCount: jest.fn().mockResolvedValue(0),
@@ -52,7 +53,7 @@ describe('MatchHistoryService', () => {
   describe('getHistory — pro gating', () => {
     it('uses limit 10 for non-pro users', async () => {
       const userId = 'u1';
-      supabase.getProfile = jest.fn().mockResolvedValue({ id: userId, is_pro: false });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: false });
       supabase.getMatchHistory = jest.fn().mockResolvedValue([]);
       await service.getHistory(userId);
       expect(supabase.getMatchHistory).toHaveBeenCalledWith(userId, 10);
@@ -60,7 +61,7 @@ describe('MatchHistoryService', () => {
 
     it('uses limit 100 for pro users', async () => {
       const userId = 'u1';
-      supabase.getProfile = jest.fn().mockResolvedValue({ id: userId, is_pro: true });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: true });
       supabase.getMatchHistory = jest.fn().mockResolvedValue([]);
       await service.getHistory(userId);
       expect(supabase.getMatchHistory).toHaveBeenCalledWith(userId, 100);
