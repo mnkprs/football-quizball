@@ -53,8 +53,12 @@ export class MatchHistoryService {
     await this.achievementsService.checkAndAward(requestingUserId, { matchWins: wins, dailyStreak });
   }
 
-  async getHistory(userId: string) {
-    const proStatus = await this.supabaseService.getProStatus(userId);
+  async getHistory(userId: string, requestingUserId?: string) {
+    // Pro depth applies only when a user views their own history.
+    // Viewing another user's profile returns the standard (free-tier) limit.
+    const isOwnHistory = !!requestingUserId && requestingUserId === userId;
+    const proUserId = isOwnHistory ? userId : null;
+    const proStatus = proUserId ? await this.supabaseService.getProStatus(proUserId) : null;
     const limit = proStatus?.is_pro ? 100 : 10;
     return this.supabaseService.getMatchHistory(userId, limit);
   }
@@ -187,6 +191,9 @@ export class MatchHistoryService {
       delete detail.duel_questions;
       delete detail.br_questions;
       delete detail.question_results;
+      // Strip nested snapshot too — `{ ...match }` copies detail_snapshot verbatim
+      // and would otherwise leak questions to non-pro clients via the nested field.
+      delete (detail as { detail_snapshot?: unknown }).detail_snapshot;
     }
 
     return detail;

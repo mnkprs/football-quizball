@@ -51,20 +51,28 @@ describe('MatchHistoryService', () => {
   });
 
   describe('getHistory — pro gating', () => {
-    it('uses limit 10 for non-pro users', async () => {
+    it('uses limit 10 when a non-pro user views their own history', async () => {
       const userId = 'u1';
       supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: false });
       supabase.getMatchHistory = jest.fn().mockResolvedValue([]);
-      await service.getHistory(userId);
+      await service.getHistory(userId, userId);
       expect(supabase.getMatchHistory).toHaveBeenCalledWith(userId, 10);
     });
 
-    it('uses limit 100 for pro users', async () => {
+    it('uses limit 100 when a pro user views their own history', async () => {
       const userId = 'u1';
       supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: true });
       supabase.getMatchHistory = jest.fn().mockResolvedValue([]);
-      await service.getHistory(userId);
+      await service.getHistory(userId, userId);
       expect(supabase.getMatchHistory).toHaveBeenCalledWith(userId, 100);
+    });
+
+    it('uses limit 10 when a pro user views another user\u2019s history', async () => {
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: true });
+      supabase.getMatchHistory = jest.fn().mockResolvedValue([]);
+      await service.getHistory('u2', 'u1');
+      expect(supabase.getMatchHistory).toHaveBeenCalledWith('u2', 10);
+      expect(supabase.getProStatus).not.toHaveBeenCalled();
     });
   });
 
@@ -112,6 +120,9 @@ describe('MatchHistoryService', () => {
       expect((detail as any).duel_questions).toBeUndefined();
       expect((detail as any).br_questions).toBeUndefined();
       expect((detail as any).question_results).toBeUndefined();
+      // Regression guard: the nested snapshot must also be stripped so free
+      // clients cannot read questions from detail.detail_snapshot.*_questions.
+      expect((detail as any).detail_snapshot).toBeUndefined();
     });
 
     it('sets questionsAvailable=false when snapshot is missing and no game_ref', async () => {
