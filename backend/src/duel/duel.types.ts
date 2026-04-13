@@ -50,6 +50,8 @@ export interface DuelQuestionResult {
   question_text: string;
   correct_answer: string;
   is_pro_logo?: boolean;
+  host_answer?: string | null;
+  guest_answer?: string | null;
 }
 
 // ── Public view (correct_answer stripped) ────────────────────────────────────
