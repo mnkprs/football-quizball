@@ -852,12 +852,13 @@ export class SupabaseService {
 
   async getMatchById(matchId: string): Promise<MatchHistoryEntry | null> {
     if (!SupabaseService.UUID_RE.test(matchId)) return null;
+    // .maybeSingle() returns HTTP 200 + data:null for 0 rows; .single() fires HTTP 406 PGRST116.
     const { data } = await this.client
       .from('match_history')
       .select('id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at, game_ref_id, game_ref_type, detail_snapshot')
       .eq('id', matchId)
-      .single();
-    return data ?? null;
+      .maybeSingle();
+    return data;
   }
 
   async getDuelGameById(gameId: string) {
@@ -865,7 +866,7 @@ export class SupabaseService {
       .from('duel_games')
       .select('id, scores, question_results, game_type, host_id, guest_id')
       .eq('id', gameId)
-      .single();
+      .maybeSingle();
     return data;
   }
 
@@ -874,13 +875,13 @@ export class SupabaseService {
       .from('online_games')
       .select('id, board, players, host_id, guest_id')
       .eq('id', gameId)
-      .single();
+      .maybeSingle();
     return data;
   }
 
   async getBRRoomWithPlayers(roomId: string) {
     const [roomRes, playersRes] = await Promise.all([
-      this.client.from('battle_royale_rooms').select('id, mode, questions').eq('id', roomId).single(),
+      this.client.from('battle_royale_rooms').select('id, mode, questions').eq('id', roomId).maybeSingle(),
       this.client.from('battle_royale_players').select('user_id, username, score, team_id, player_answers').eq('room_id', roomId).order('score', { ascending: false }),
     ]);
     return { room: roomRes.data, players: playersRes.data ?? [] };

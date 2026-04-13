@@ -62,8 +62,11 @@ export class MatchDetailComponent implements OnInit {
     try {
       const detail = await firstValueFrom(this.matchHistoryApi.getMatchDetail(matchId));
       this.detail.set(detail);
-    } catch {
-      this.error.set('Failed to load match details');
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 403) this.error.set("This match isn't yours to view.");
+      else if (status === 404) this.error.set('Match not found.');
+      else this.error.set('Failed to load match details.');
     } finally {
       this.loading.set(false);
     }
@@ -150,8 +153,9 @@ export class MatchDetailComponent implements OnInit {
 
   myBRAnswer(q: BRQuestionDetail): { answer: string | null; correct: boolean } {
     const uid = this.currentUserId();
-    const a = uid ? (q.per_player_answers?.[uid] ?? null) : null;
-    const correct = !!a && a.trim().toLowerCase() === (q.correct_answer ?? '').trim().toLowerCase();
-    return { answer: a, correct };
+    const entry = uid ? q.per_player_answers?.[uid] : undefined;
+    if (!entry) return { answer: null, correct: false };
+    // Trust the server's is_correct — matches the fuzzy matcher used during gameplay.
+    return { answer: entry.answer, correct: entry.is_correct };
   }
 }

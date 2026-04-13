@@ -49,11 +49,18 @@ export interface DuelQuestionDetail {
   guest_answer?: string | null;
 }
 
+/** Per-player answer entry for a BR question — includes server-computed correctness. */
+export interface BRPlayerAnswer {
+  answer: string;
+  is_correct: boolean;
+}
+
 export interface BRQuestionDetail {
   index: number;
   text: string;
   correct_answer: string;
-  per_player_answers?: Record<string, string>;
+  /** Keyed by user_id. Server-computed is_correct so fuzzy-matched answers aren't mis-displayed as wrong. */
+  per_player_answers?: Record<string, BRPlayerAnswer>;
   your_answer?: string | null;
   was_correct?: boolean;
 }

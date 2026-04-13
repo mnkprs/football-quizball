@@ -41,30 +41,30 @@ export class MayhemController {
   @Post('session')
   @UseGuards(AuthGuard)
   async startSession(
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { id: string } },
   ) {
-    return this.mayhemSessionService.startSession(req.user.sub);
+    return this.mayhemSessionService.startSession(req.user.id);
   }
 
   @Post('session/:id/answer')
   @UseGuards(AuthGuard)
   async submitAnswer(
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { id: string } },
     @Param('id') sessionId: string,
     @Body() body: { questionId: string; selectedAnswer: string },
   ) {
     return this.mayhemSessionService.submitAnswer(
-      sessionId, req.user.sub, body.questionId, body.selectedAnswer,
+      sessionId, req.user.id, body.questionId, body.selectedAnswer,
     );
   }
 
   @Post('session/:id/end')
   @UseGuards(AuthGuard)
   async endSession(
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { id: string } },
     @Param('id') sessionId: string,
   ) {
-    return this.mayhemSessionService.endSession(sessionId, req.user.sub);
+    return this.mayhemSessionService.endSession(sessionId, req.user.id);
   }
 
   @Get('leaderboard')
