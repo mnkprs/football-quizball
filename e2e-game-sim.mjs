@@ -8,7 +8,11 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const { createClient } = require('./backend/node_modules/@supabase/supabase-js');
 
-const API = 'https://football-quizball-production.up.railway.app';
+const API = process.env.API_URL || 'https://football-quizball-production.up.railway.app';
+const ADMIN_KEY = process.env.ADMIN_API_KEY || 'Manos1995';
+// Per-player accuracy rate used to decide whether to submit the correct answer.
+const P1_ACCURACY = Number(process.env.P1_ACCURACY ?? 0.65);
+const P2_ACCURACY = Number(process.env.P2_ACCURACY ?? 0.45);
 const SUPABASE_URL = 'https://npwneqworgyclzaofuln.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wd25lcXdvcmd5Y2x6YW9mdWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODU3ODEsImV4cCI6MjA4ODU2MTc4MX0.RutdVolELWFbYNv1FKC74xb6ZUrjY62OxsPFJgXmhOo';
 
@@ -347,14 +351,28 @@ async function simulate2Player() {
       continue;
     }
 
-    // Regular question
+    // Regular question — peek at answer (admin-gated) to simulate varied accuracy
     const questionText = question.question_text || question.question || '';
-    const answer = question.choices
-      ? question.choices[Math.floor(Math.random() * question.choices.length)]
-      : 'random guess';
+    const accuracy = currentPlayer === 0 ? P1_ACCURACY : P2_ACCURACY;
+    const shouldAnswerCorrectly = Math.random() < accuracy;
+
+    let answer;
+    if (shouldAnswerCorrectly) {
+      try {
+        const peek = await fetch(`${API}/api/games/${gameId}/questions/${cell.question_id}/peek`, {
+          headers: { 'x-admin-key': ADMIN_KEY },
+        });
+        const body = await peek.json();
+        answer = body.correct_answer || 'random guess';
+      } catch {
+        answer = 'random guess';
+      }
+    } else {
+      answer = 'definitely_wrong_' + Math.random().toString(36).slice(2, 6);
+    }
 
     try {
-      console.log(`  Q(${cell.category}/${cell.difficulty}): "${questionText.substring(0, 45)}..." → P${currentPlayer + 1}: "${answer}"`);
+      console.log(`  Q(${cell.category}/${cell.difficulty}): "${questionText.substring(0, 45)}..." → P${currentPlayer + 1}: "${answer.substring(0, 30)}"`);
       const result = await api('POST', `/api/games/${gameId}/answer`, null, {
         questionId: cell.question_id,
         answer,

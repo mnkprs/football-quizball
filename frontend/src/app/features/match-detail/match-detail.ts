@@ -84,4 +84,27 @@ export class MatchDetailComponent implements OnInit {
       .filter((c) => c.answered_by === playerName)
       .reduce((sum, c) => sum + (c.points || 0), 0);
   }
+
+  cellPlayer(d: MatchDetail, catIdx: number, diffIdx: number): 1 | 2 | null {
+    const cell = d.board?.[catIdx]?.[diffIdx];
+    if (!cell?.answered_by || !d.players) return null;
+    if (cell.answered_by === d.players[0]?.name) return 1;
+    if (cell.answered_by === d.players[1]?.name) return 2;
+    return null;
+  }
+
+  cellStatus(d: MatchDetail, catIdx: number, diffIdx: number): 'correct' | 'wrong' | 'unplayed' {
+    const cell = d.board?.[catIdx]?.[diffIdx];
+    if (!cell?.answered_by) return 'unplayed';
+    return (cell.points ?? 0) > 0 ? 'correct' : 'wrong';
+  }
+
+  difficultyLabel(d: MatchDetail, catIdx: number, diffIdx: number): string {
+    return d.board?.[catIdx]?.[diffIdx]?.difficulty ?? '';
+  }
+
+  /** True when the match has a game_ref but we can't load the detailed board. */
+  isLocalDetailMissing(d: MatchDetail): boolean {
+    return d.game_ref_type === 'local' && !!d.game_ref_id && (!d.board || !d.players || d.players.length < 2);
+  }
 }
