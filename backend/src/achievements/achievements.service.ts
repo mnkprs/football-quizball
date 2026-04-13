@@ -20,6 +20,8 @@ export interface AchievementContext {
   totalQuestionsAllModes?: number;
   modesPlayed?: string[];
   perfectSoloSession?: boolean;
+  currentLevel?: number;
+  totalXp?: number;
 }
 
 export function getEloTier(elo: number): { tier: string; color: string; label: string } {
@@ -130,6 +132,15 @@ export class AchievementsService {
       questions_1000: profile.total_questions_all_modes ?? profile.questions_answered ?? 0,
       questions_5000: profile.total_questions_all_modes ?? profile.questions_answered ?? 0,
       perfect_solo_round: 0,
+      level_5: profile.level ?? 1,
+      level_10: profile.level ?? 1,
+      level_25: profile.level ?? 1,
+      level_50: profile.level ?? 1,
+      level_100: profile.level ?? 1,
+      xp_1000: profile.xp ?? 0,
+      xp_10000: profile.xp ?? 0,
+      xp_50000: profile.xp ?? 0,
+      streak_bonus_15: bestStreak,
     };
 
     // perfect_solo_round: 1 if earned
@@ -155,6 +166,18 @@ export class AchievementsService {
   async checkAndAward(userId: string, ctx: AchievementContext): Promise<string[]> {
     const alreadyEarned = await this.supabaseService.getUserAchievementIds(userId);
     const toAward: string[] = [];
+
+    // Lazy-fetch level/xp if caller didn't supply — avoids touching all 7 call sites.
+    if (ctx.currentLevel === undefined || ctx.totalXp === undefined) {
+      const profile = await this.supabaseService.getProfile(userId);
+      if (profile) {
+        ctx = {
+          ...ctx,
+          currentLevel: ctx.currentLevel ?? profile.level,
+          totalXp: ctx.totalXp ?? profile.xp,
+        };
+      }
+    }
 
     const check = (id: string, condition: boolean) => {
       if (condition && !alreadyEarned.has(id)) toAward.push(id);
@@ -243,6 +266,21 @@ export class AchievementsService {
 
     // Match wins extension
     check('match_50_wins', (ctx.matchWins ?? 0) >= 50);
+
+    // Level milestones
+    check('level_5', (ctx.currentLevel ?? 0) >= 5);
+    check('level_10', (ctx.currentLevel ?? 0) >= 10);
+    check('level_25', (ctx.currentLevel ?? 0) >= 25);
+    check('level_50', (ctx.currentLevel ?? 0) >= 50);
+    check('level_100', (ctx.currentLevel ?? 0) >= 100);
+
+    // Cumulative XP milestones
+    check('xp_1000', (ctx.totalXp ?? 0) >= 1000);
+    check('xp_10000', (ctx.totalXp ?? 0) >= 10000);
+    check('xp_50000', (ctx.totalXp ?? 0) >= 50000);
+
+    // Streak bonus max-tier (mirrors STREAK_BONUS top threshold of 15)
+    check('streak_bonus_15', bestStreak >= 15);
 
     if (toAward.length > 0) {
       await Promise.allSettled(toAward.map(id => this.supabaseService.awardAchievement(userId, id)));

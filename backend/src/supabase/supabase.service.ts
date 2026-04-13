@@ -854,7 +854,7 @@ export class SupabaseService {
     if (!SupabaseService.UUID_RE.test(matchId)) return null;
     const { data } = await this.client
       .from('match_history')
-      .select('id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at, game_ref_id, game_ref_type')
+      .select('id, player1_id, player2_id, player1_username, player2_username, winner_id, player1_score, player2_score, match_mode, played_at, game_ref_id, game_ref_type, detail_snapshot')
       .eq('id', matchId)
       .single();
     return data ?? null;

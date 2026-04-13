@@ -122,6 +122,36 @@ export class ProfileComponent implements OnInit {
 
   achievementsEarned = computed(() => this.achievements().filter(a => a.earned_at).length);
 
+  readonly categoryMeta: Record<string, { label: string; icon: string; order: number }> = {
+    progression: { label: 'Progression', icon: '📈', order: 1 },
+    milestone:   { label: 'Milestones',  icon: '🎯', order: 2 },
+    consistency: { label: 'Consistency', icon: '📅', order: 3 },
+    performance: { label: 'Performance', icon: '🔥', order: 4 },
+    mode:        { label: 'Modes',       icon: '🎮', order: 5 },
+    rank:        { label: 'Rank',        icon: '👑', order: 6 },
+  };
+
+  categorizedAchievements = computed(() => {
+    const groups = new Map<string, Achievement[]>();
+    for (const a of this.achievements()) {
+      const key = a.category ?? 'other';
+      const list = groups.get(key) ?? [];
+      list.push(a);
+      groups.set(key, list);
+    }
+    return Array.from(groups.entries())
+      .map(([key, items]) => ({
+        key,
+        label: this.categoryMeta[key]?.label ?? key,
+        icon: this.categoryMeta[key]?.icon ?? '🏅',
+        order: this.categoryMeta[key]?.order ?? 99,
+        items,
+        earned: items.filter(a => a.earned_at).length,
+        total: items.length,
+      }))
+      .sort((a, b) => a.order - b.order);
+  });
+
   progressPercent(a: Achievement): number {
     if (a.earned_at) return 100;
     if (a.target <= 0) return 0;

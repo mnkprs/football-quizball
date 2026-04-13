@@ -10,6 +10,13 @@ export interface MatchResult {
   is_bot_match?: boolean;
   game_ref_id?: string;
   game_ref_type?: string;
+  detail_snapshot?: MatchDetailSnapshot;
+}
+
+export interface MatchDetailSnapshot {
+  players?: OnlinePlayerDetail[];
+  board?: OnlineBoardCellDetail[][];
+  categories?: Array<{ key: string; label: string }>;
 }
 
 export interface MatchHistoryEntry {
@@ -25,6 +32,7 @@ export interface MatchHistoryEntry {
   played_at: string;
   game_ref_id: string | null;
   game_ref_type: string | null;
+  detail_snapshot?: MatchDetailSnapshot | null;
 }
 
 // ── Match Detail (enriched view for match history detail endpoint) ───────────

@@ -100,4 +100,29 @@ export class MatchDetailModalComponent {
       .filter((c) => c.answered_by === playerName)
       .reduce((sum, c) => sum + (c.points || 0), 0);
   }
+
+  /** Which player slot (1|2) answered this cell, or null if unplayed. */
+  cellPlayer(d: MatchDetail, catIdx: number, diffIdx: number): 1 | 2 | null {
+    const cell = d.board?.[catIdx]?.[diffIdx];
+    if (!cell?.answered_by || !d.players) return null;
+    if (cell.answered_by === d.players[0]?.name) return 1;
+    if (cell.answered_by === d.players[1]?.name) return 2;
+    return null;
+  }
+
+  /** Correct if points were awarded; wrong if answered but 0 points. */
+  cellStatus(d: MatchDetail, catIdx: number, diffIdx: number): 'correct' | 'wrong' | 'unplayed' {
+    const cell = d.board?.[catIdx]?.[diffIdx];
+    if (!cell?.answered_by) return 'unplayed';
+    return (cell.points ?? 0) > 0 ? 'correct' : 'wrong';
+  }
+
+  /** Difficulty label per column — derived from board so TOP_5 etc. stay row-local. */
+  difficultyLabel(d: MatchDetail, catIdx: number, diffIdx: number): string {
+    return d.board?.[catIdx]?.[diffIdx]?.difficulty ?? '';
+  }
+
+  isLocalDetailMissing(d: MatchDetail): boolean {
+    return d.game_ref_type === 'local' && !!d.game_ref_id && (!d.board || !d.players || d.players.length < 2);
+  }
 }

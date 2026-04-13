@@ -87,21 +87,60 @@
           </div>
 
           @if (d.board && d.categories) {
-            <div class="detail-section">
-              <h3 class="detail-section__title">Category Breakdown</h3>
-              <div class="category-list">
-                @for (cat of d.categories; track cat.key; let catIdx = $index) {
-                  <div class="category-row">
-                    <span class="category-row__label">{{ cat.label }}</span>
-                    <span class="category-row__scores">
-                      {{ getCategoryPoints(d, catIdx, d.players![0].name) }}
-                      &ndash;
-                      {{ getCategoryPoints(d, catIdx, d.players![1].name) }}
-                    </span>
-                  </div>
-                }
+            @if (d.game_ref_type === 'local') {
+              <div class="detail-section">
+                <h3 class="detail-section__title">Answers by Category</h3>
+                <div class="answer-grid">
+                  @for (cat of d.categories; track cat.key; let catIdx = $index) {
+                    <div class="answer-grid__row">
+                      <span class="answer-grid__cat">{{ cat.label }}</span>
+                      <div class="answer-grid__cells">
+                        @for (cell of d.board[catIdx]; track $index; let diffIdx = $index) {
+                          <div class="answer-cell"
+                               [class.answer-cell--correct]="cellStatus(d, catIdx, diffIdx) === 'correct'"
+                               [class.answer-cell--wrong]="cellStatus(d, catIdx, diffIdx) === 'wrong'"
+                               [class.answer-cell--unplayed]="cellStatus(d, catIdx, diffIdx) === 'unplayed'"
+                               [class.answer-cell--p1]="cellPlayer(d, catIdx, diffIdx) === 1"
+                               [class.answer-cell--p2]="cellPlayer(d, catIdx, diffIdx) === 2"
+                               [attr.title]="difficultyLabel(d, catIdx, diffIdx) + (cellPlayer(d, catIdx, diffIdx) ? ' · ' + d.players![cellPlayer(d, catIdx, diffIdx)! - 1].name : '')">
+                            <span class="answer-cell__diff">{{ difficultyLabel(d, catIdx, diffIdx).charAt(0) }}</span>
+                            @if (cellStatus(d, catIdx, diffIdx) === 'correct') {
+                              <span class="answer-cell__icon">✓</span>
+                            } @else if (cellStatus(d, catIdx, diffIdx) === 'wrong') {
+                              <span class="answer-cell__icon">✗</span>
+                            } @else {
+                              <span class="answer-cell__icon">·</span>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+                <div class="answer-grid__legend">
+                  <span class="legend-item legend-item--p1">{{ d.players![0].name }}</span>
+                  <span class="legend-item legend-item--p2">{{ d.players![1].name }}</span>
+                  <span class="legend-item legend-item--correct">✓ correct</span>
+                  <span class="legend-item legend-item--wrong">✗ wrong</span>
+                </div>
               </div>
-            </div>
+            } @else {
+              <div class="detail-section">
+                <h3 class="detail-section__title">Category Breakdown</h3>
+                <div class="category-list">
+                  @for (cat of d.categories; track cat.key; let catIdx = $index) {
+                    <div class="category-row">
+                      <span class="category-row__label">{{ cat.label }}</span>
+                      <span class="category-row__scores">
+                        {{ getCategoryPoints(d, catIdx, d.players![0].name) }}
+                        &ndash;
+                        {{ getCategoryPoints(d, catIdx, d.players![1].name) }}
+                      </span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           }
         }
 
@@ -160,6 +199,13 @@
         @if (!d.game_ref_id) {
           <div class="detail-section">
             <p class="fallback-text">Detailed match data is not available for this game.</p>
+          </div>
+        }
+
+        <!-- ─── Local: snapshot missing (pre-migration match) ────── -->
+        @if (isLocalDetailMissing(d)) {
+          <div class="detail-section">
+            <p class="fallback-text">Per-answer breakdown isn't available for matches played before this feature shipped.</p>
           </div>
         }
       }

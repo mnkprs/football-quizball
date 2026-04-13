@@ -2,7 +2,7 @@ import { Injectable, Logger, UnauthorizedException, NotFoundException, Forbidden
 import { SupabaseService } from '../supabase/supabase.service';
 import { AchievementsService } from '../achievements/achievements.service';
 import { CacheService } from '../cache/cache.service';
-import type { MatchDetail } from '../common/interfaces/match.interface';
+import type { MatchDetail, MatchDetailSnapshot } from '../common/interfaces/match.interface';
 import type { GameSession } from '../common/interfaces/game.interface';
 import { CATEGORY_LABELS } from '../questions/question.types';
 
@@ -33,10 +33,13 @@ export class MatchHistoryService {
   ): Promise<void> {
     if (match.player1_id !== requestingUserId) throw new UnauthorizedException();
 
+    const detail_snapshot = await this.buildSnapshot(match.match_mode, match.game_ref_id);
+
     const saved = await this.supabaseService.saveMatchResult({
       ...match,
       game_ref_id: match.game_ref_id ?? undefined,
       game_ref_type: match.game_ref_type ?? undefined,
+      detail_snapshot,
     });
     if (!saved) {
       this.logger.error(`[saveMatch] Failed to save match for user ${requestingUserId}`);
@@ -64,6 +67,13 @@ export class MatchHistoryService {
     }
 
     const detail: MatchDetail = { ...match };
+
+    // Prefer snapshot (persisted at save time) over ephemeral source data.
+    if (match.detail_snapshot) {
+      Object.assign(detail, match.detail_snapshot);
+      // Snapshot fully covers local matches today; for other modes, still enrich below.
+      if (match.game_ref_type === 'local') return detail;
+    }
 
     if (!match.game_ref_id || !match.game_ref_type) return detail;
 
@@ -158,5 +168,47 @@ export class MatchHistoryService {
     }
 
     return detail;
+  }
+
+  /**
+   * Capture a durable snapshot of per-cell state for a local match.
+   * The Redis-backed game session has a 24h TTL — without this snapshot,
+   * match detail becomes blank once the session expires.
+   */
+  private async buildSnapshot(
+    match_mode: string,
+    game_ref_id: string | undefined,
+  ): Promise<MatchDetailSnapshot | undefined> {
+    if (match_mode !== 'local' || !game_ref_id) return undefined;
+    const session = await this.cacheService.get<GameSession>(`game:${game_ref_id}`);
+    if (!session) return undefined;
+
+    const seen = new Set<string>();
+    const categories = session.board
+      .map((row) => {
+        const cat = row[0]?.category ?? '';
+        if (seen.has(cat)) return null;
+        seen.add(cat);
+        return { key: cat, label: CATEGORY_LABELS[cat] ?? cat };
+      })
+      .filter(Boolean) as Array<{ key: string; label: string }>;
+
+    return {
+      players: session.players.map((p) => ({
+        name: p.name,
+        score: p.score,
+        lifelineUsed: p.lifelineUsed,
+        doubleUsed: p.doubleUsed,
+      })),
+      board: session.board.map((row) =>
+        row.map((c) => ({
+          category: c.category,
+          difficulty: c.difficulty,
+          points: c.points_awarded ?? c.points ?? 0,
+          answered_by: c.answered_by,
+        })),
+      ),
+      categories,
+    };
   }
 }

@@ -6,9 +6,11 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { GameService } from './game.service';
 import { CreateGameDto, SubmitAnswerDto, UseLifelineDto, Top5GuessDto } from './game.types';
+import { AdminApiKeyGuard } from '../common/guards/admin-api-key.guard';
 
 @Controller('api/games')
 export class GameController {
@@ -34,6 +36,13 @@ export class GameController {
   @Get(':id/questions/:questionId')
   getQuestion(@Param('id') id: string, @Param('questionId') questionId: string) {
     return this.gameService.getQuestion(id, questionId);
+  }
+
+  /** Admin-only: reveal the correct answer. Used by e2e sim scripts to simulate realistic play. */
+  @Get(':id/questions/:questionId/peek')
+  @UseGuards(AdminApiKeyGuard)
+  async peekAnswer(@Param('id') id: string, @Param('questionId') questionId: string) {
+    return this.gameService.peekAnswer(id, questionId);
   }
 
   @Post(':id/answer')

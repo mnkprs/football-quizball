@@ -6,6 +6,7 @@ function buildMockSupabase(alreadyEarned: Set<string> = new Set()) {
   return {
     getUserAchievementIds: jest.fn().mockResolvedValue(alreadyEarned),
     awardAchievement: jest.fn().mockResolvedValue(undefined),
+    getProfile: jest.fn().mockResolvedValue(null),
   };
 }
 

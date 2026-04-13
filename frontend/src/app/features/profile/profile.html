@@ -284,22 +284,31 @@
           <h2 class="section__title">{{ lang.t().achievements }}</h2>
           <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
         </div>
-        <div class="achievements-grid">
-          @for (a of achievements(); track a.id) {
-            <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" (click)="selectedAchievement.set(a)">
-              <span class="achievement-tile__icon">{{ a.icon }}</span>
-              <span class="achievement-tile__name">{{ a.name }}</span>
-              @if (!a.earned_at && a.target > 1) {
-                <div class="achievement-tile__progress">
-                  <div class="achievement-tile__progress-bar">
-                    <div class="achievement-tile__progress-fill" [style.width.%]="progressPercent(a)"></div>
-                  </div>
-                  <span class="achievement-tile__progress-text">{{ a.current }} / {{ a.target }}</span>
+        @for (group of categorizedAchievements(); track group.key) {
+          <div class="achievements-group">
+            <div class="achievements-group__head">
+              <span class="achievements-group__icon">{{ group.icon }}</span>
+              <h3 class="achievements-group__title">{{ group.label }}</h3>
+              <span class="achievements-group__count">{{ group.earned }} / {{ group.total }}</span>
+            </div>
+            <div class="achievements-grid">
+              @for (a of group.items; track a.id) {
+                <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" (click)="selectedAchievement.set(a)">
+                  <span class="achievement-tile__icon">{{ a.icon }}</span>
+                  <span class="achievement-tile__name">{{ a.name }}</span>
+                  @if (!a.earned_at && a.target > 1) {
+                    <div class="achievement-tile__progress">
+                      <div class="achievement-tile__progress-bar">
+                        <div class="achievement-tile__progress-fill" [style.width.%]="progressPercent(a)"></div>
+                      </div>
+                      <span class="achievement-tile__progress-text">{{ a.current }} / {{ a.target }}</span>
+                    </div>
+                  }
                 </div>
               }
             </div>
-          }
-        </div>
+          </div>
+        }
       </section>
     } @else {
       <section class="section">

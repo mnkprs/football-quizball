@@ -153,6 +153,14 @@ export class GameService {
     return { ...safeQuestion, correct_answer: '', fifty_fifty_hint: null } as GeneratedQuestion;
   }
 
+  /** Admin-only helper for e2e simulation scripts. Bypasses the answer-stripping in getQuestion. */
+  async peekAnswer(gameId: string, questionId: string): Promise<{ correct_answer: string; answer_type?: string }> {
+    const session = await this.getGame(gameId);
+    const question = session.questions.find((q) => q.id === questionId);
+    if (!question) throw new NotFoundException(`Question ${questionId} not found`);
+    return { correct_answer: question.correct_answer, answer_type: question.difficulty_factors?.answer_type };
+  }
+
   async submitAnswer(gameId: string, dto: SubmitAnswerDto): Promise<AnswerResult> {
     const session = await this.getGame(gameId);
 
