@@ -37,6 +37,17 @@ export interface DuelQuestionDetail {
   question_text: string;
   correct_answer: string;
   is_pro_logo?: boolean;
+  host_answer?: string | null;
+  guest_answer?: string | null;
+}
+
+export interface BRQuestionDetail {
+  index: number;
+  text: string;
+  correct_answer: string;
+  per_player_answers?: Record<string, string>;
+  your_answer?: string | null;
+  was_correct?: boolean;
 }
 
 export interface OnlineBoardCellDetail {
@@ -69,6 +80,10 @@ export interface MatchDetail extends MatchHistoryEntry {
   br_mode?: string;
   team_scores?: { team1: number; team2: number };
   mvp?: { username: string; score: number };
+  questionsAvailable?: boolean;
+  questionsLocked?: boolean;
+  duel_questions?: DuelQuestionDetail[];
+  br_questions?: BRQuestionDetail[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -83,7 +98,7 @@ export class MatchHistoryApiService {
   }
 
   getHistory(userId: string) {
-    return this.http.get<MatchHistoryEntry[]>(`${this.base}/${userId}`);
+    return this.http.get<MatchHistoryEntry[]>(`${this.base}/${userId}`, { headers: this.headers() });
   }
 
   saveMatch(payload: SaveMatchPayload) {

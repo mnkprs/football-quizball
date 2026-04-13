@@ -18,7 +18,7 @@ export class MatchHistoryController {
       winner_id: string | null;
       player1_score: number;
       player2_score: number;
-      match_mode: 'local' | 'online';
+      match_mode: 'local' | 'online' | 'duel' | 'battle_royale' | 'team_logo_battle';
       game_ref_id?: string;
       game_ref_type?: string;
     },
@@ -37,7 +37,13 @@ export class MatchHistoryController {
   }
 
   @Get(':userId')
-  async getHistory(@Param('userId') userId: string) {
-    return this.matchHistoryService.getHistory(userId);
+  @UseGuards(AuthGuard)
+  async getHistory(
+    @Request() req: { user: { id: string } },
+    @Param('userId') userId: string,
+  ) {
+    // Return the target user's history; gate depth on the REQUESTING user's is_pro
+    // (only when viewing their own profile).
+    return this.matchHistoryService.getHistory(userId, req.user.id);
   }
 }

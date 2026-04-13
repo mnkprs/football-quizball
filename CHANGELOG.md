@@ -2,6 +2,22 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.4.0.0] - 2026-04-13
+
+### Added
+- **Pro subscribers now see their last 100 matches** in match history, instead of the last 10 that free users see.
+- **Pro subscribers can review every question after any match.** Tap any match and see the question text, the correct answer, and each player's actual answer, across Duel, Battle Royale, and 2-Player modes.
+- **2-Player match cells are now tappable**, opening a detail popover (Pro) or prompting to upgrade (free).
+- Free users tapping a locked question section see a clear "Unlock question review with Pro" upgrade prompt that opens the existing subscription sheet.
+
+### Changed
+- Battle Royale matches now persist each player's answers per question, so post-match review shows what you answered and whether it was correct.
+- Duel matches now persist each player's typed answer, so both players can see what the other actually entered.
+- Match history endpoint now authenticates the requester; viewing another user's profile returns the standard (non-Pro) match list depth regardless of the viewer's subscription.
+
+### Fixed
+- Previously, stripped question payloads could leak to free clients through the nested `detail_snapshot` field. Questions are now stripped server-side at every level before the response is sent.
+
 ## [0.3.3.0] - 2026-04-13
 
 ### Changed

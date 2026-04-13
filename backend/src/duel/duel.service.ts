@@ -401,6 +401,8 @@ export class DuelService {
       winner: role,
       question_text: question.question_text,
       correct_answer: question.correct_answer,
+      host_answer: role === 'host' ? dto.answer : null,
+      guest_answer: role === 'guest' ? dto.answer : null,
     };
 
     const { data: claimed, error: claimError } = await this.supabaseService.client
@@ -583,6 +585,8 @@ export class DuelService {
       winner: null,
       question_text: question?.question_text ?? '',
       correct_answer: question?.correct_answer ?? '',
+      host_answer: null,
+      guest_answer: null,
     };
 
     const { error } = await this.supabaseService.client

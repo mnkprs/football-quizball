@@ -103,6 +103,12 @@ export interface BRLogoPlayerQuestion {
 
 // ── DB row shapes ─────────────────────────────────────────────────────────────
 
+export interface BRPlayerAnswerEntry {
+  index: number;
+  answer: string;
+  is_correct: boolean;
+}
+
 export interface BRRoomRow {
   id: string;
   invite_code: string | null;
@@ -140,4 +146,6 @@ export interface BRPlayerRow {
   team_id?: number | null;
   /** Team Logo Battle Royale: per-player question list dealt at game start */
   player_questions?: BRLogoPlayerQuestion[] | null;
+  /** Per-question answer log appended on each submitAnswer call */
+  player_answers?: BRPlayerAnswerEntry[] | null;
 }

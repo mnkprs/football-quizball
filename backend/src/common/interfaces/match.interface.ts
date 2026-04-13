@@ -17,6 +17,8 @@ export interface MatchDetailSnapshot {
   players?: OnlinePlayerDetail[];
   board?: OnlineBoardCellDetail[][];
   categories?: Array<{ key: string; label: string }>;
+  duel_questions?: DuelQuestionDetail[];
+  br_questions?: BRQuestionDetail[];
 }
 
 export interface MatchHistoryEntry {
@@ -43,6 +45,17 @@ export interface DuelQuestionDetail {
   question_text: string;
   correct_answer: string;
   is_pro_logo?: boolean;
+  host_answer?: string | null;
+  guest_answer?: string | null;
+}
+
+export interface BRQuestionDetail {
+  index: number;
+  text: string;
+  correct_answer: string;
+  per_player_answers?: Record<string, string>;
+  your_answer?: string | null;
+  was_correct?: boolean;
 }
 
 export interface OnlineBoardCellDetail {
@@ -78,4 +91,9 @@ export interface MatchDetail extends MatchHistoryEntry {
   br_mode?: string;
   team_scores?: { team1: number; team2: number };
   mvp?: { username: string; score: number };
+  // Pro question access
+  questionsAvailable?: boolean;
+  questionsLocked?: boolean;
+  duel_questions?: DuelQuestionDetail[];
+  br_questions?: BRQuestionDetail[];
 }

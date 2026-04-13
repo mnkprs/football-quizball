@@ -880,8 +880,8 @@ export class SupabaseService {
 
   async getBRRoomWithPlayers(roomId: string) {
     const [roomRes, playersRes] = await Promise.all([
-      this.client.from('battle_royale_rooms').select('id, mode').eq('id', roomId).single(),
-      this.client.from('battle_royale_players').select('user_id, username, score, team_id').eq('room_id', roomId).order('score', { ascending: false }),
+      this.client.from('battle_royale_rooms').select('id, mode, questions').eq('id', roomId).single(),
+      this.client.from('battle_royale_players').select('user_id, username, score, team_id, player_answers').eq('room_id', roomId).order('score', { ascending: false }),
     ]);
     return { room: roomRes.data, players: playersRes.data ?? [] };
   }

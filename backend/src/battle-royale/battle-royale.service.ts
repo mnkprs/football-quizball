@@ -498,6 +498,10 @@ export class BattleRoyaleService {
       current_question_index: newIndex,
       question_started_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      player_answers: [
+        ...(player.player_answers ?? []),
+        { index: questionIndex, answer, is_correct: correct },
+      ],
     } as unknown as Partial<BRPlayerRow>;
 
     if (isLastQuestion) {
