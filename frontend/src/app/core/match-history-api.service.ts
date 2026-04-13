@@ -83,7 +83,7 @@ export class MatchHistoryApiService {
   }
 
   getHistory(userId: string) {
-    return this.http.get<MatchHistoryEntry[]>(`${this.base}/${userId}`);
+    return this.http.get<MatchHistoryEntry[]>(`${this.base}/${userId}`, { headers: this.headers() });
   }
 
   saveMatch(payload: SaveMatchPayload) {
