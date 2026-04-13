@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OnlineGameStore } from './online-game.store';
+import { ShareService } from '../../core/share.service';
 
 @Component({
   selector: 'app-online-play',
@@ -16,6 +17,7 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
   store = inject(OnlineGameStore);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private shareService = inject(ShareService);
 
   copied = signal(false);
   answer = signal('');
@@ -121,7 +123,7 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
   async copyCode(): Promise<void> {
     const code = this.store.inviteCode();
     if (!code) return;
-    try { await navigator.clipboard.writeText(code); } catch { /* noop */ }
+    await this.shareService.copyCode(code);
     this.copied.set(true);
     setTimeout(() => this.copied.set(false), 2000);
   }
@@ -129,14 +131,7 @@ export class OnlinePlayComponent implements OnInit, OnDestroy {
   async shareLink(): Promise<void> {
     const code = this.store.inviteCode();
     if (!code) return;
-    const url = `${window.location.origin}/join/${code}`;
-    if (navigator.share) {
-      await navigator.share({ title: 'STEPOVR. 1v1', text: 'Join my game!', url });
-    } else {
-      await navigator.clipboard.writeText(url).catch(() => null);
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    }
+    await this.shareService.shareCode('game', code);
   }
 
   categoryIcon(key: string | undefined): string {

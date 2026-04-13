@@ -2,6 +2,19 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.3.3.0] - 2026-04-13
+
+### Changed
+- **Share buttons now open the native iOS/Android share sheet** instead of the browser's Web Share fallback, so duel, online 1v1, and Battle Royale invites flow through the OS share UI users expect.
+- **Invite messages now include a tap-to-open deep link plus a copy-paste code**, so recipients can either tap the link (if installed) or paste the code into the app.
+
+### Fixed
+- Sharing no longer dumps the invite text into the clipboard when the user cancels the share sheet.
+- Recipients no longer see the invite link appear twice in WhatsApp/iMessage previews.
+
+### Added
+- `stepovr://` URL scheme registered on iOS and Android. Tapping `stepovr://duel/CODE`, `stepovr://game/CODE`, `stepovr://br/CODE`, or `stepovr://invite` opens the app and routes to the matching screen.
+
 ## [0.3.2.0] - 2026-04-13
 
 ### Changed

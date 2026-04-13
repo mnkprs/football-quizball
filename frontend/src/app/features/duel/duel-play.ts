@@ -16,6 +16,7 @@ import { DuelStore } from './duel.store';
 import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
 import { AnalyticsService } from '../../core/analytics.service';
+import { ShareService } from '../../core/share.service';
 
 const QUESTION_TIME = 30;
 /** Seconds to wait before a bot is guaranteed to be matched. */
@@ -36,6 +37,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   private adService = inject(AdService);
   private proService = inject(ProService);
   private analytics = inject(AnalyticsService);
+  private shareService = inject(ShareService);
 
   answer = signal('');
   copied = signal(false);
@@ -203,11 +205,7 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   async copyCode(): Promise<void> {
     const code = this.store.inviteCode();
     if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-    } catch {
-      // ignore clipboard error
-    }
+    await this.shareService.copyCode(code);
     this.copied.set(true);
     setTimeout(() => this.copied.set(false), 2000);
   }
@@ -215,15 +213,8 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   async shareLink(): Promise<void> {
     const code = this.store.inviteCode();
     if (!code) return;
-    this.analytics.track('share', { content_type: 'duel_invite', method: typeof navigator.share === 'function' ? 'native' : 'clipboard' });
-    const url = `${window.location.origin}/duel/join/${code}`;
-    if (navigator.share) {
-      await navigator.share({ title: 'STEPOVR. Duel', text: 'Challenge me to a football quiz duel!', url });
-    } else {
-      await navigator.clipboard.writeText(url).catch(() => null);
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    }
+    this.analytics.track('share', { content_type: 'duel_invite', method: 'native' });
+    await this.shareService.shareCode('duel', code);
   }
 
   difficultyColor(difficulty: string): string {

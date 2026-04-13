@@ -19,6 +19,7 @@ import { ToastComponent } from './shared/toast/toast';
 import { UpdateService } from './core/update.service';
 import { ForceUpdateBannerComponent } from './shared/force-update-banner/force-update-banner';
 import { LevelUpOverlayComponent } from './shared/level-up-overlay/level-up-overlay';
+import { App as CapacitorApp } from '@capacitor/app';
 
 @Component({
   selector: 'app-root',
@@ -76,6 +77,7 @@ export class App implements OnInit, OnDestroy {
     void this.configApi.loadAdConfig();
     void this.adService.initialize();
     void this.updateService.check();
+    this.registerDeepLinkListener();
     this.isAdminRoute.set(this.router.url.startsWith('/admin'));
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
@@ -113,6 +115,39 @@ export class App implements OnInit, OnDestroy {
   private checkOnboarding(): void {
     if (!localStorage.getItem('onboarding_done')) {
       this.router.navigate(['/onboarding']);
+    }
+  }
+
+  private registerDeepLinkListener(): void {
+    CapacitorApp.addListener('appUrlOpen', (event) => {
+      const route = this.resolveDeepLink(event.url);
+      if (route) this.router.navigateByUrl(route);
+    }).catch(() => {
+      // Capacitor not available (e.g. running in browser dev) — no-op
+    });
+  }
+
+  private resolveDeepLink(url: string): string | null {
+    // Expected forms:
+    //   stepovr://duel/ABC123         -> /duel/ABC123
+    //   stepovr://game/ABC123         -> /join/ABC123
+    //   stepovr://br/ABC123           -> /battle-royale/ABC123
+    //   stepovr://invite              -> /invite
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'stepovr:') return null;
+      const host = parsed.host || parsed.pathname.replace(/^\/+/, '').split('/')[0];
+      const code = parsed.pathname.replace(/^\/+/, '').split('/').filter(Boolean).pop();
+      switch (host) {
+        case 'duel':          return code ? `/duel/${code}` : '/duel';
+        case 'game':          return code ? `/join/${code}` : '/online-game';
+        case 'br':            return code ? `/battle-royale/${code}` : '/battle-royale';
+        case 'battle-royale': return code ? `/battle-royale/${code}` : '/battle-royale';
+        case 'invite':        return '/invite';
+        default:              return null;
+      }
+    } catch {
+      return null;
     }
   }
 }
