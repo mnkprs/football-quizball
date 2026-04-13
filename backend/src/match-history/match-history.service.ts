@@ -2,7 +2,7 @@ import { Injectable, Logger, UnauthorizedException, NotFoundException, Forbidden
 import { SupabaseService } from '../supabase/supabase.service';
 import { AchievementsService } from '../achievements/achievements.service';
 import { CacheService } from '../cache/cache.service';
-import type { MatchDetail, MatchDetailSnapshot } from '../common/interfaces/match.interface';
+import type { MatchDetail, MatchDetailSnapshot, DuelQuestionDetail, BRQuestionDetail } from '../common/interfaces/match.interface';
 import type { GameSession } from '../common/interfaces/game.interface';
 import { CATEGORY_LABELS } from '../questions/question.types';
 
@@ -26,7 +26,7 @@ export class MatchHistoryService {
       winner_id: string | null;
       player1_score: number;
       player2_score: number;
-      match_mode: 'local' | 'online';
+      match_mode: 'local' | 'online' | 'duel' | 'battle_royale' | 'team_logo_battle';
       game_ref_id?: string;
       game_ref_type?: string;
     },
@@ -173,44 +173,89 @@ export class MatchHistoryService {
   }
 
   /**
-   * Capture a durable snapshot of per-cell state for a local match.
-   * The Redis-backed game session has a 24h TTL — without this snapshot,
-   * match detail becomes blank once the session expires.
+   * Capture a durable snapshot of per-cell/per-question state at save time.
+   * Ephemeral sources (Redis sessions, in-memory game state) expire — the snapshot
+   * ensures match detail remains accessible long after the game ends.
    */
   private async buildSnapshot(
     match_mode: string,
     game_ref_id: string | undefined,
   ): Promise<MatchDetailSnapshot | undefined> {
-    if (match_mode !== 'local' || !game_ref_id) return undefined;
-    const session = await this.cacheService.get<GameSession>(`game:${game_ref_id}`);
-    if (!session) return undefined;
+    if (!game_ref_id) return undefined;
 
-    const seen = new Set<string>();
-    const categories = session.board
-      .map((row) => {
-        const cat = row[0]?.category ?? '';
-        if (seen.has(cat)) return null;
-        seen.add(cat);
-        return { key: cat, label: CATEGORY_LABELS[cat] ?? cat };
-      })
-      .filter(Boolean) as Array<{ key: string; label: string }>;
+    if (match_mode === 'local') {
+      const session = await this.cacheService.get<GameSession>(`game:${game_ref_id}`);
+      if (!session) return undefined;
 
-    return {
-      players: session.players.map((p) => ({
-        name: p.name,
-        score: p.score,
-        lifelineUsed: p.lifelineUsed,
-        doubleUsed: p.doubleUsed,
-      })),
-      board: session.board.map((row) =>
-        row.map((c) => ({
-          category: c.category,
-          difficulty: c.difficulty,
-          points: c.points_awarded ?? c.points ?? 0,
-          answered_by: c.answered_by,
+      const seen = new Set<string>();
+      const categories = session.board
+        .map((row) => {
+          const cat = row[0]?.category ?? '';
+          if (seen.has(cat)) return null;
+          seen.add(cat);
+          return { key: cat, label: CATEGORY_LABELS[cat] ?? cat };
+        })
+        .filter(Boolean) as Array<{ key: string; label: string }>;
+
+      return {
+        players: session.players.map((p) => ({
+          name: p.name,
+          score: p.score,
+          lifelineUsed: p.lifelineUsed,
+          doubleUsed: p.doubleUsed,
         })),
-      ),
-      categories,
-    };
+        board: session.board.map((row) =>
+          row.map((c) => ({
+            category: c.category,
+            difficulty: c.difficulty,
+            points: c.points_awarded ?? c.points ?? 0,
+            answered_by: c.answered_by,
+          })),
+        ),
+        categories,
+      };
+    }
+
+    if (match_mode === 'duel') {
+      const game = await this.supabaseService.getDuelGameById(game_ref_id);
+      if (!game) return undefined;
+      const duel_questions: DuelQuestionDetail[] = (game.question_results ?? []).map((r: any) => ({
+        index: r.index,
+        winner: r.winner,
+        question_text: r.question_text,
+        correct_answer: r.correct_answer,
+        is_pro_logo: r.is_pro_logo,
+        host_answer: r.host_answer ?? null,
+        guest_answer: r.guest_answer ?? null,
+      }));
+      return { duel_questions };
+    }
+
+    if (match_mode === 'battle_royale' || match_mode === 'team_logo_battle') {
+      const { room, players } = await this.supabaseService.getBRRoomWithPlayers(game_ref_id);
+      if (!room || players.length === 0) return undefined;
+
+      const roomQuestions = (room.questions ?? []) as Array<{ question_text?: string; correct_answer?: string }>;
+      const maxAnswers = Math.max(0, ...players.map((p: any) => (p.player_answers ?? []).length));
+
+      const br_questions: BRQuestionDetail[] = [];
+      for (let i = 0; i < maxAnswers; i++) {
+        const q = roomQuestions[i];
+        const per_player_answers: Record<string, string> = {};
+        players.forEach((p: any) => {
+          const entry = (p.player_answers ?? [])[i];
+          if (entry) per_player_answers[p.user_id] = entry.answer;
+        });
+        br_questions.push({
+          index: i,
+          text: q?.question_text ?? '',
+          correct_answer: q?.correct_answer ?? '',
+          per_player_answers,
+        });
+      }
+      return { br_questions };
+    }
+
+    return undefined;
   }
 }
