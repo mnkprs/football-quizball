@@ -37,7 +37,15 @@ export class MatchHistoryController {
   }
 
   @Get(':userId')
-  async getHistory(@Param('userId') userId: string) {
+  @UseGuards(AuthGuard)
+  async getHistory(
+    @Request() req: { user: { id: string } },
+    @Param('userId') userId: string,
+  ) {
+    // Always use the authenticated user's id for gating, regardless of path param
+    if (req.user.id !== userId) {
+      return this.matchHistoryService.getHistory(req.user.id);
+    }
     return this.matchHistoryService.getHistory(userId);
   }
 }

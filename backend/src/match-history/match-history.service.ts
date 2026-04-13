@@ -53,8 +53,10 @@ export class MatchHistoryService {
     await this.achievementsService.checkAndAward(requestingUserId, { matchWins: wins, dailyStreak });
   }
 
-  getHistory(userId: string) {
-    return this.supabaseService.getMatchHistory(userId, 20);
+  async getHistory(userId: string) {
+    const profile = await this.supabaseService.getProfile(userId);
+    const limit = profile?.is_pro ? 100 : 10;
+    return this.supabaseService.getMatchHistory(userId, limit);
   }
 
   async getMatchDetail(matchId: string, requestingUserId: string): Promise<MatchDetail> {
