@@ -13,8 +13,10 @@ dependencies {
     implementation project(':capacitor-community-apple-sign-in')
     implementation project(':capacitor-firebase-analytics')
     implementation project(':capacitor-app')
+    implementation project(':capacitor-clipboard')
     implementation project(':capacitor-haptics')
     implementation project(':capacitor-keyboard')
+    implementation project(':capacitor-share')
     implementation project(':southdevs-capacitor-google-auth')
     implementation "com.android.billingclient:billing:8.3.0"
 }

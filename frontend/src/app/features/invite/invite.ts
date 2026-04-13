@@ -2,6 +2,7 @@ import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/cor
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { LanguageService } from '../../core/language.service';
+import { ShareService } from '../../core/share.service';
 
 @Component({
   selector: 'app-invite',
@@ -13,50 +14,24 @@ import { LanguageService } from '../../core/language.service';
 })
 export class InviteComponent {
   lang = inject(LanguageService);
+  private shareService = inject(ShareService);
   copied = signal(false);
 
   get inviteUrl(): string {
-    return typeof window !== 'undefined'
-      ? window.location.origin
-      : '';
+    return 'stepovr://invite';
   }
 
   canShare(): boolean {
-    return typeof navigator !== 'undefined' && !!navigator.share;
+    return true;
   }
 
   async copyLink(): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(this.inviteUrl);
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    } catch {
-      // Fallback for older browsers
-      const textarea = document.createElement('textarea');
-      textarea.value = this.inviteUrl;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textarea);
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 2000);
-    }
+    await this.shareService.copyCode(this.inviteUrl);
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 2000);
   }
 
   async share(): Promise<void> {
-    if (!navigator.share) return;
-    try {
-      await navigator.share({
-        title: 'Stepover',
-        text: 'Try this football trivia app',
-        url: this.inviteUrl,
-      });
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        this.copyLink();
-      }
-    }
+    await this.shareService.shareCode('invite', '');
   }
 }

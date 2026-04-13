@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BattleRoyaleStore } from './battle-royale.store';
 import { LogoQuizApiService } from '../../core/logo-quiz-api.service';
+import { ShareService } from '../../core/share.service';
 
 @Component({
   selector: 'app-battle-royale-play',
@@ -29,6 +30,7 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private logoQuizApi = inject(LogoQuizApiService);
   private destroyRef = inject(DestroyRef);
+  private shareService = inject(ShareService);
 
   selectedChoice = signal<string | null>(null);
   answerFeedback = signal<'correct' | 'wrong' | null>(null);
@@ -83,15 +85,15 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
   async copyCode(): Promise<void> {
     const code = this.store.roomView()?.inviteCode;
     if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-      this.codeCopied.set(true);
-      setTimeout(() => this.codeCopied.set(false), 2000);
-    } catch {
-      // Fallback: still show copied state (code is visible on screen)
-      this.codeCopied.set(true);
-      setTimeout(() => this.codeCopied.set(false), 2000);
-    }
+    await this.shareService.copyCode(code);
+    this.codeCopied.set(true);
+    setTimeout(() => this.codeCopied.set(false), 2000);
+  }
+
+  async shareLink(): Promise<void> {
+    const code = this.store.roomView()?.inviteCode;
+    if (!code) return;
+    await this.shareService.shareCode('battle-royale', code);
   }
 
   async startGame(): Promise<void> {
