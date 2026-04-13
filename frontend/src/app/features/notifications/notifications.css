@@ -245,10 +245,6 @@
 
 /* ── Feed ───────────────────────────────────────────────── */
 
-.notifications-feed {
-  padding: 0 1.25rem;
-}
-
 .notifications-group:first-child .notifications-group__label {
   padding-top: 0.5rem;
 }
@@ -260,7 +256,7 @@
   color: var(--color-fg-muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  padding: 1.5rem 0 0.5rem;
+  padding: 1.5rem 1.25rem;
 }
 
 .notification-card:last-child {
@@ -274,7 +270,7 @@
   align-items: flex-start;
   gap: 0.75rem;
   width: 100%;
-  padding: 1rem 0;
+  padding: 1rem 1.25rem;
   border: none;
   border-bottom: 1px solid var(--glass-border);
   background: transparent;
@@ -296,7 +292,6 @@
 
 .notification-card--unread {
   background: var(--color-accent-bg);
-  margin: 0 -1.25rem;
   padding: 1rem 1.25rem;
   padding-left: calc(1.25rem - 3px);
   border-bottom-color: color-mix(in srgb, var(--color-accent) 8%, transparent);

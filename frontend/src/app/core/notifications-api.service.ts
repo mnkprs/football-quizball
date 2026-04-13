@@ -90,7 +90,7 @@ export class NotificationsApiService {
         notifs.push({
           id: `frontend-daily-${dailyMeta.resetsAt}`,
           type: 'new_daily_round',
-          title: 'New TiF questions!',
+          title: 'New Today in Football questions!',
           body: 'New True-is-False questions available',
           icon: '📅',
           route: '/daily',
