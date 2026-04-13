@@ -43,27 +43,63 @@
     </div>
 
     <!-- ─── DUEL: Question Breakdown ──────────────────── -->
-    @if (d.game_ref_type === 'duel' && d.question_results && d.question_results.length > 0) {
-      <div class="detail-section">
-        <h3 class="detail-section__title">Question Breakdown</h3>
-        <div class="question-list">
-          @for (q of d.question_results; track q.index) {
-            <div class="question-card">
-              <div class="question-card__top">
-                <p class="question-card__text">{{ q.question_text }}</p>
-                @if (q.winner === myDuelRole()) {
-                  <span class="question-card__tag question-card__tag--win">+1 You</span>
-                } @else if (q.winner === null) {
-                  <span class="question-card__tag question-card__tag--skip">Skipped</span>
-                } @else {
-                  <span class="question-card__tag question-card__tag--loss">Opponent</span>
+    @if (d.game_ref_type === 'duel') {
+      @if (duelQuestions().length > 0 || d.questionsLocked || d.questionsAvailable === false) {
+        <div class="detail-section">
+          <h3 class="detail-section__title">Question Breakdown</h3>
+
+          @if (d.questionsLocked) {
+            <!-- Locked: blur skeleton + upsell CTA -->
+            <div class="questions-locked" (click)="openUpsell()">
+              <div class="questions-locked__skeletons">
+                @for (_ of [1,2,3,4,5]; track $index) {
+                  <div class="question-skeleton">
+                    <div class="question-skeleton__line question-skeleton__line--long"></div>
+                    <div class="question-skeleton__line question-skeleton__line--short"></div>
+                  </div>
                 }
               </div>
-              <p class="question-card__answer">Answer: <span>{{ q.correct_answer }}</span></p>
+              <div class="questions-locked__cta">
+                <span class="questions-locked__icon">🔒</span>
+                <span class="questions-locked__label">Unlock question review with Pro</span>
+              </div>
+            </div>
+          } @else if (d.questionsAvailable === false) {
+            <!-- No snapshot data -->
+            <p class="questions-unavailable">Questions not available for this match.</p>
+          } @else {
+            <!-- Full question list -->
+            <div class="question-list">
+              @for (q of duelQuestions(); track q.index) {
+                <div class="question-card">
+                  <div class="question-card__top">
+                    <p class="question-card__text">{{ q.question_text }}</p>
+                    @if (q.winner === myDuelRole()) {
+                      <span class="question-card__tag question-card__tag--win">+1 You</span>
+                    } @else if (q.winner === null) {
+                      <span class="question-card__tag question-card__tag--skip">Skipped</span>
+                    } @else {
+                      <span class="question-card__tag question-card__tag--loss">Opponent</span>
+                    }
+                  </div>
+                  <p class="question-card__answer">Answer: <span>{{ q.correct_answer }}</span></p>
+                  <!-- Per-player answers -->
+                  <div class="question-card__player-answers">
+                    <span class="player-answer">
+                      <span class="player-answer__name">{{ d.player1_username }}</span>:
+                      <span class="player-answer__val">{{ q.host_answer ?? '—' }}</span>
+                    </span>
+                    <span class="player-answer">
+                      <span class="player-answer__name">{{ d.player2_username }}</span>:
+                      <span class="player-answer__val">{{ q.guest_answer ?? '—' }}</span>
+                    </span>
+                  </div>
+                </div>
+              }
             </div>
           }
         </div>
-      </div>
+      }
     }
 
     <!-- ─── ONLINE / LOCAL: Player Stats + Category Breakdown ─── -->
@@ -87,7 +123,12 @@
       @if (d.board && d.categories) {
         @if (d.game_ref_type === 'local') {
           <div class="detail-section">
-            <h3 class="detail-section__title">Answers by Category</h3>
+            <h3 class="detail-section__title">
+              Answers by Category
+              @if (d.questionsLocked) {
+                <span class="grid-lock-badge">🔒</span>
+              }
+            </h3>
             <div class="answer-grid">
               @for (cat of d.categories; track cat.key; let catIdx = $index) {
                 <div class="answer-grid__row">
@@ -95,12 +136,15 @@
                   <div class="answer-grid__cells">
                     @for (cell of d.board[catIdx]; track $index; let diffIdx = $index) {
                       <div class="answer-cell"
+                           tabindex="0"
+                           role="button"
                            [class.answer-cell--correct]="cellStatus(d, catIdx, diffIdx) === 'correct'"
                            [class.answer-cell--wrong]="cellStatus(d, catIdx, diffIdx) === 'wrong'"
                            [class.answer-cell--unplayed]="cellStatus(d, catIdx, diffIdx) === 'unplayed'"
                            [class.answer-cell--p1]="cellPlayer(d, catIdx, diffIdx) === 1"
                            [class.answer-cell--p2]="cellPlayer(d, catIdx, diffIdx) === 2"
-                           [attr.title]="difficultyLabel(d, catIdx, diffIdx) + (cellPlayer(d, catIdx, diffIdx) ? ' · ' + d.players![cellPlayer(d, catIdx, diffIdx)! - 1].name : '')">
+                           [attr.title]="difficultyLabel(d, catIdx, diffIdx) + (cellPlayer(d, catIdx, diffIdx) ? ' · ' + d.players![cellPlayer(d, catIdx, diffIdx)! - 1].name : '')"
+                           (click)="onCellTap(d, catIdx, diffIdx)">
                         <span class="answer-cell__diff">{{ difficultyLabel(d, catIdx, diffIdx).charAt(0) }}</span>
                         @if (cellStatus(d, catIdx, diffIdx) === 'correct') {
                           <span class="answer-cell__icon">✓</span>
@@ -198,6 +242,57 @@
           }
         </div>
       </div>
+
+      <!-- ─── BR: Questions ─────────────────────── -->
+      <div class="detail-section">
+        <h3 class="detail-section__title">Questions</h3>
+
+        @if (d.questionsLocked) {
+          <!-- Locked: blur skeleton + upsell CTA -->
+          <div class="questions-locked" (click)="openUpsell()">
+            <div class="questions-locked__skeletons">
+              @for (_ of [1,2,3,4,5]; track $index) {
+                <div class="question-skeleton">
+                  <div class="question-skeleton__line question-skeleton__line--long"></div>
+                  <div class="question-skeleton__line question-skeleton__line--short"></div>
+                </div>
+              }
+            </div>
+            <div class="questions-locked__cta">
+              <span class="questions-locked__icon">🔒</span>
+              <span class="questions-locked__label">Unlock question review with Pro</span>
+            </div>
+          </div>
+        } @else if (d.questionsAvailable === false) {
+          <p class="questions-unavailable">Questions not available for this match.</p>
+        } @else if (d.br_questions && d.br_questions.length > 0) {
+          <div class="question-list">
+            @for (q of d.br_questions; track q.index) {
+              <div class="question-card">
+                <div class="question-card__top">
+                  <p class="question-card__text">
+                    {{ q.text || ('Question ' + (q.index + 1)) }}
+                  </p>
+                  @if (myBRAnswer(q).answer !== null) {
+                    @if (myBRAnswer(q).correct) {
+                      <span class="question-card__tag question-card__tag--win">✓ Correct</span>
+                    } @else {
+                      <span class="question-card__tag question-card__tag--loss">✗ Wrong</span>
+                    }
+                  }
+                </div>
+                <p class="question-card__answer">Answer: <span>{{ q.correct_answer }}</span></p>
+                @if (myBRAnswer(q).answer !== null) {
+                  <p class="question-card__your-answer"
+                     [class.question-card__your-answer--wrong]="!myBRAnswer(q).correct">
+                    Your answer: <span>{{ myBRAnswer(q).answer }}</span>
+                  </p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
     }
 
     <!-- ─── Fallback: no game ref ────────────────────── -->
@@ -206,6 +301,34 @@
         <p class="fallback-text">Detailed match data is not available for this game.</p>
       </div>
     }
+  }
+
+  <!-- ─── 2P Cell Detail Bottom Sheet ──────────────────── -->
+  @if (selectedCell(); as cell) {
+    <div class="cell-sheet-backdrop" (click)="selectedCell.set(null)">
+      <div class="cell-sheet" (click)="$event.stopPropagation()">
+        <div class="cell-sheet__handle"></div>
+        <div class="cell-sheet__header">
+          <span class="cell-sheet__cat">{{ cell.category }}</span>
+          <button class="cell-sheet__close" (click)="selectedCell.set(null)" aria-label="Close">✕</button>
+        </div>
+        <div class="cell-sheet__meta">
+          <span class="cell-sheet__badge cell-sheet__badge--diff">{{ cell.difficulty }}</span>
+          <span class="cell-sheet__badge cell-sheet__badge--pts">{{ cell.points }} pts</span>
+          @if (cell.status === 'correct') {
+            <span class="cell-sheet__badge cell-sheet__badge--correct">Correct</span>
+          } @else if (cell.status === 'wrong') {
+            <span class="cell-sheet__badge cell-sheet__badge--wrong">Wrong</span>
+          } @else {
+            <span class="cell-sheet__badge">Unplayed</span>
+          }
+        </div>
+        @if (cell.playerName) {
+          <p class="cell-sheet__player">Answered by: <strong>{{ cell.playerName }}</strong></p>
+        }
+        <p class="cell-sheet__footnote">Full question text coming soon.</p>
+      </div>
+    </div>
   }
 
 </div>

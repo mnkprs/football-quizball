@@ -2,8 +2,9 @@ import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } 
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { MatchHistoryApiService, MatchDetail } from '../../core/match-history-api.service';
+import { MatchHistoryApiService, MatchDetail, DuelQuestionDetail, BRQuestionDetail } from '../../core/match-history-api.service';
 import { AuthService } from '../../core/auth.service';
+import { ProService } from '../../core/pro.service';
 import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 
 @Component({
@@ -19,10 +20,19 @@ export class MatchDetailComponent implements OnInit {
   private location = inject(Location);
   private matchHistoryApi = inject(MatchHistoryApiService);
   private auth = inject(AuthService);
+  pro = inject(ProService);
 
   loading = signal(true);
   detail = signal<MatchDetail | null>(null);
   error = signal<string | null>(null);
+
+  selectedCell = signal<{
+    category: string;
+    difficulty: string;
+    points: number;
+    playerName?: string;
+    status: 'correct' | 'wrong' | 'unplayed';
+  } | null>(null);
 
   currentUserId = computed(() => this.auth.user()?.id ?? null);
 
@@ -32,6 +42,13 @@ export class MatchDetailComponent implements OnInit {
     if (d.player1_id === this.currentUserId()) return 'host';
     if (d.player2_id === this.currentUserId()) return 'guest';
     return null;
+  });
+
+  /** Returns the question list for duel: prefers duel_questions, falls back to question_results. */
+  duelQuestions = computed<DuelQuestionDetail[]>(() => {
+    const d = this.detail();
+    if (!d) return [];
+    return d.duel_questions ?? d.question_results ?? [];
   });
 
   async ngOnInit(): Promise<void> {
@@ -54,6 +71,10 @@ export class MatchDetailComponent implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  openUpsell(): void {
+    this.pro.showUpgradeModal.set(true);
   }
 
   formatDate(dateStr: string): string {
@@ -106,5 +127,31 @@ export class MatchDetailComponent implements OnInit {
   /** True when the match has a game_ref but we can't load the detailed board. */
   isLocalDetailMissing(d: MatchDetail): boolean {
     return d.game_ref_type === 'local' && !!d.game_ref_id && (!d.board || !d.players || d.players.length < 2);
+  }
+
+  onCellTap(d: MatchDetail, catIdx: number, diffIdx: number): void {
+    if (d.questionsLocked) {
+      this.openUpsell();
+      return;
+    }
+    if (!d.questionsAvailable) return;
+    const cell = d.board?.[catIdx]?.[diffIdx];
+    if (!cell) return;
+    const playerIdx = this.cellPlayer(d, catIdx, diffIdx);
+    const status = this.cellStatus(d, catIdx, diffIdx);
+    this.selectedCell.set({
+      category: d.categories?.[catIdx]?.label ?? cell.category,
+      difficulty: this.difficultyLabel(d, catIdx, diffIdx),
+      points: cell.points ?? 0,
+      playerName: playerIdx ? d.players?.[playerIdx - 1]?.name : undefined,
+      status,
+    });
+  }
+
+  myBRAnswer(q: BRQuestionDetail): { answer: string | null; correct: boolean } {
+    const uid = this.currentUserId();
+    const a = uid ? (q.per_player_answers?.[uid] ?? null) : null;
+    const correct = !!a && a.trim().toLowerCase() === (q.correct_answer ?? '').trim().toLowerCase();
+    return { answer: a, correct };
   }
 }
