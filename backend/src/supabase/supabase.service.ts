@@ -1006,4 +1006,47 @@ export class SupabaseService {
       .from('app_settings')
       .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   }
+
+  // ── Analytics Helpers ────────────────────────────────────────────────────────
+
+  async getEloHistoryRaw(userId: string): Promise<Array<{ created_at: string; elo_after: number }>> {
+    const { data, error } = await this.client
+      .from('elo_history')
+      .select('created_at, elo_after')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+      .limit(2000);
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  async getCurrentElo(userId: string): Promise<number> {
+    const profile = await this.getProfile(userId);
+    return profile?.elo ?? 1000;
+  }
+
+  async getQuestionEventsRaw(userId: string): Promise<
+    Array<{
+      created_at: string;
+      correct: boolean;
+      difficulty: string;
+      category?: string;
+      era?: string;
+      competition_type?: string;
+      league_tier?: number;
+    }>
+  > {
+    const { data, error } = await this.client
+      .from('elo_history')
+      .select('created_at, correct, question_difficulty')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+      .limit(5000);
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      created_at: r.created_at,
+      correct: r.correct,
+      difficulty: r.question_difficulty,
+    }));
+  }
 }
