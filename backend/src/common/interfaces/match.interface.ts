@@ -1,3 +1,5 @@
+import type { AnalyticsTags } from './question.interface';
+
 export interface MatchResult {
   player1_id: string;
   player2_id: string | null;
@@ -47,6 +49,7 @@ export interface DuelQuestionDetail {
   is_pro_logo?: boolean;
   host_answer?: string | null;
   guest_answer?: string | null;
+  tags?: AnalyticsTags;
 }
 
 /** Per-player answer entry for a BR question — includes server-computed correctness. */
@@ -63,6 +66,7 @@ export interface BRQuestionDetail {
   per_player_answers?: Record<string, BRPlayerAnswer>;
   your_answer?: string | null;
   was_correct?: boolean;
+  tags?: AnalyticsTags;
 }
 
 export interface OnlineBoardCellDetail {
