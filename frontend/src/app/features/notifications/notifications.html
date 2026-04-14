@@ -1,4 +1,4 @@
-<div class="notifications-page" role="main" aria-label="Notifications">
+<div class="notifications-page" role="main" aria-label="Notifications" aria-live="polite" aria-busy="{{ loading() }}">
   <div class="notifications-sticky anim-fade-down">
     <app-lobby-header title="Notifications" (back)="goBack()">
       <button class="notifications-mark-all pressable" (click)="markAllRead()" aria-label="Mark all notifications as read">Mark all read</button>
@@ -20,43 +20,47 @@
     </div>
   } @else if (error()) {
     <div class="notifications-error anim-fade-in" role="alert">
-      <span class="notifications-error__icon">📡</span>
+      <span class="notifications-error__icon" aria-hidden="true">📡</span>
       <p class="notifications-error__text">Lost connection to the pitch</p>
       <button class="notifications-error__retry pressable" (click)="retry()">Reconnect</button>
     </div>
   } @else if (empty()) {
     <div class="notifications-empty anim-fade-in" role="status">
-      <span class="notifications-empty__icon anim-kick">⚽</span>
+      <span class="notifications-empty__icon anim-kick" aria-hidden="true">⚽</span>
       <p class="notifications-empty__title">Clean sheet</p>
       <p class="notifications-empty__text">No new activity. Go earn some notifications.</p>
     </div>
   } @else {
-    <div class="notifications-feed" role="list" aria-label="Notification list" aria-live="polite">
+    <section class="notifications-feed" aria-label="Notification list">
       @for (group of groups(); track group.label; let gi = $index) {
         <div class="notifications-group anim-fade-up" [style.--stagger-delay]="(gi * 60) + 'ms'" role="group" [attr.aria-label]="group.label">
-          <div class="notifications-group__label" aria-hidden="true">{{ group.label }}</div>
-          @for (n of group.notifications; track n.id; let i = $index) {
-            <button
-              class="notification-card pressable anim-fade-up"
-              [style.--stagger-delay]="(gi * 60 + (i + 1) * 40) + 'ms'"
-              role="listitem"
-              [class.notification-card--unread]="!n.read"
-              [attr.data-type]="n.type"
-              [attr.aria-label]="(n.read ? '' : 'Unread: ') + n.title + '. ' + n.body"
-              (click)="onTapNotification(n)">
-              <div class="notification-card__icon" aria-hidden="true">{{ n.icon }}</div>
-              <div class="notification-card__content">
-                <div class="notification-card__title">{{ n.title }}</div>
-                <div class="notification-card__body">{{ n.body }}</div>
-                <div class="notification-card__time">{{ relativeTime(n.createdAt) }}</div>
-              </div>
-              @if (!n.read) {
-                <div class="notification-card__dot" aria-hidden="true"></div>
-              }
-            </button>
-          }
+          <h2 class="notifications-group__label">{{ group.label }}</h2>
+          <ul class="notifications-group__list">
+            @for (n of group.notifications; track n.id; let i = $index) {
+              <li class="notifications-group__item">
+                <button
+                  class="notification-card pressable anim-fade-up"
+                  type="button"
+                  [style.--stagger-delay]="(gi * 60 + (i + 1) * 40) + 'ms'"
+                  [class.notification-card--unread]="!n.read"
+                  [attr.data-type]="n.type"
+                  [attr.aria-label]="(n.read ? '' : 'Unread: ') + n.title + '. ' + n.body + '. ' + relativeTime(n.createdAt)"
+                  (click)="onTapNotification(n)">
+                  <span class="notification-card__icon" aria-hidden="true">{{ n.icon }}</span>
+                  <span class="notification-card__content">
+                    <span class="notification-card__title">{{ n.title }}</span>
+                    <span class="notification-card__body">{{ n.body }}</span>
+                    <span class="notification-card__time">{{ relativeTime(n.createdAt) }}</span>
+                  </span>
+                  @if (!n.read) {
+                    <span class="notification-card__dot" aria-hidden="true"></span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
         </div>
       }
-    </div>
+    </section>
   }
 </div>

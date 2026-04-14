@@ -719,7 +719,7 @@ export class NotificationsApiService {
           id: `frontend-daily-${dailyMeta.resetsAt}`,
           type: 'new_daily_round',
           title: 'New TiF questions!',
-          body: 'New True-is-False questions available',
+          body: 'New Today in Football questions available',
           icon: '📅',
           route: '/daily',
           read: isRead,
