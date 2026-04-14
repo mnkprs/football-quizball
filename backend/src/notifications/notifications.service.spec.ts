@@ -239,6 +239,59 @@ describe('NotificationsService', () => {
     });
   });
 
+  describe('claimJobRun', () => {
+    it('returns true when the insert succeeds (this replica won the claim)', async () => {
+      const insertMock = jest.fn().mockResolvedValueOnce({ error: null });
+      const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
+      const service = new NotificationsService(mockSupabase as any);
+
+      const result = await service.claimJobRun('daily_challenge', '2026-04-14');
+
+      expect(result).toBe(true);
+      expect(insertMock).toHaveBeenCalledWith({ job_key: 'daily_challenge', day_key: '2026-04-14' });
+    });
+
+    it('returns false on unique_violation (another replica already claimed)', async () => {
+      const insertMock = jest.fn().mockResolvedValueOnce({ error: { code: '23505', message: 'duplicate key' } });
+      const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
+      const service = new NotificationsService(mockSupabase as any);
+
+      const result = await service.claimJobRun('daily_challenge', '2026-04-14');
+
+      expect(result).toBe(false);
+    });
+
+    it('fails closed (returns false) on unexpected DB error', async () => {
+      const insertMock = jest.fn().mockResolvedValueOnce({ error: { code: '08000', message: 'connection lost' } });
+      const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
+      const service = new NotificationsService(mockSupabase as any);
+      const logSpy = jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
+
+      const result = await service.claimJobRun('daily_challenge', '2026-04-14');
+
+      expect(result).toBe(false);
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('connection lost'));
+    });
+
+    it('simulates 3 concurrent replicas — only one wins', async () => {
+      // First insert succeeds, subsequent two hit PK conflict.
+      const insertMock = jest.fn()
+        .mockResolvedValueOnce({ error: null })
+        .mockResolvedValueOnce({ error: { code: '23505', message: 'dup' } })
+        .mockResolvedValueOnce({ error: { code: '23505', message: 'dup' } });
+      const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
+      const service = new NotificationsService(mockSupabase as any);
+
+      const results = await Promise.all([
+        service.claimJobRun('daily_challenge', '2026-04-14'),
+        service.claimJobRun('daily_challenge', '2026-04-14'),
+        service.claimJobRun('daily_challenge', '2026-04-14'),
+      ]);
+
+      expect(results.filter(Boolean)).toHaveLength(1);
+    });
+  });
+
   describe('getUnreadCount', () => {
     it('returns the unread count for a user', async () => {
       const eqMock = jest.fn();

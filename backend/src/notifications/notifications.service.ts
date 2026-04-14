@@ -108,21 +108,40 @@ export class NotificationsService {
     }
   }
 
+  /**
+   * Atomically claim a scheduled-job slot. Only the caller that inserts
+   * the (jobKey, dayKey) row wins; all other concurrent callers (other
+   * Railway replicas, retries after crashes) see a PK conflict and get
+   * `false`. Fail-closed: returns `false` on any DB error so we never
+   * double-fan-out on ambiguous state.
+   */
+  async claimJobRun(jobKey: string, dayKey: string): Promise<boolean> {
+    const { error } = await this.supabaseService.client
+      .from('scheduled_job_runs')
+      .insert({ job_key: jobKey, day_key: dayKey });
+
+    if (!error) return true;
+
+    // 23505 = unique_violation → another replica already claimed today.
+    if ((error as { code?: string }).code === '23505') return false;
+
+    this.logger.error(`[claimJobRun] Unexpected error claiming ${jobKey}/${dayKey}: ${error.message}`);
+    return false;
+  }
+
   @Cron('0 0 * * *') // midnight UTC daily
   async generateDailyChallenges(): Promise<void> {
     this.logger.log('[generateDailyChallenges] Starting daily challenge generation');
 
     try {
-      // Idempotency: check if we already generated challenges today
-      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-      const { count: existingCount } = await this.supabaseService.client
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('type', 'challenge_system')
-        .gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
+      const dayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+      const dayOfYear = Math.floor(
+        (Date.now() - new Date(new Date().getUTCFullYear(), 0, 0).getTime()) / 86400000,
+      );
 
-      if (existingCount && existingCount > 0) {
-        this.logger.log(`[generateDailyChallenges] Already generated today (${existingCount} existing), skipping`);
+      const claimed = await this.claimJobRun('daily_challenge', dayKey);
+      if (!claimed) {
+        this.logger.log(`[generateDailyChallenges] ${dayKey} already claimed by another replica, skipping`);
         return;
       }
 
