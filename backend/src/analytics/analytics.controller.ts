@@ -5,7 +5,7 @@ import { ProGuard } from '../auth/pro.guard';
 import { AnalyticsService } from './analytics.service';
 import type { AnalyticsSummary } from './analytics.types';
 
-@Controller('analytics')
+@Controller('api/analytics')
 export class AnalyticsController {
   constructor(private readonly analytics: AnalyticsService) {}
 
