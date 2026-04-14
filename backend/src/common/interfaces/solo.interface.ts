@@ -1,4 +1,4 @@
-import type { Difficulty } from './question.interface';
+import type { AnalyticsTags, Difficulty } from './question.interface';
 
 export interface SoloSession {
   id: string;
@@ -25,6 +25,7 @@ export interface SoloQuestion {
   difficulty_factor: number;
   category: string;
   points: number;
+  analytics_tags?: AnalyticsTags;
 }
 
 export interface SoloAnswerResult {

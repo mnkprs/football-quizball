@@ -21,22 +21,19 @@ export class SoloQuestionGenerator {
   ) {}
 
   /**
-   * Maps a raw LLM JSON response to a GeneratedQuestion, including optional analytics_tags.
+   * Maps a raw LLM JSON response to a SoloQuestion, including optional analytics_tags.
    * Exposed as a static method for unit-testability.
    */
-  static mapLlmOutputToQuestion(raw: any, difficulty: string): GeneratedQuestion {
+  static mapLlmOutputToQuestion(raw: any, difficulty: string): SoloQuestion {
     return {
       id: `solo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       question_text: raw.question_text,
       correct_answer: raw.correct_answer,
       explanation: raw.explanation,
-      difficulty: difficulty as any,
+      difficulty: difficulty as Difficulty,
       difficulty_factor: raw.difficulty_factor,
-      category: 'HISTORY' as any,
+      category: 'HISTORY',
       points: 10,
-      fifty_fifty_hint: null,
-      fifty_fifty_applicable: false,
-      image_url: null,
       analytics_tags: raw.analytics_tags
         ? {
             league_tier: raw.analytics_tags.league_tier,
