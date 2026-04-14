@@ -3,7 +3,12 @@
     <app-top-nav />
   }
   <app-upgrade-modal />
-  <main class="shell-main" [class.shell-main--no-top-pad]="isHome()">
+  <main
+    #scrollContainer
+    class="shell-main"
+    [class.shell-main--no-top-pad]="isHome()"
+    [class.shell-main--no-bottom-pad]="shellUi.hideBottomNav()"
+  >
     <router-outlet />
   </main>
   <nav class="bottom-nav" [class.bottom-nav--hidden]="shellUi.hideBottomNav()" aria-label="Main navigation">

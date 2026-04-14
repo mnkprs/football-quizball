@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, inject, signal, viewChild, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { LanguageService } from '../../core/language.service';
@@ -37,6 +37,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   shellUi = inject(ShellUiService);
   upgrading = signal(false);
   isHome = signal(true);
+  scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
   private routeSub?: Subscription;
 
   ngOnInit(): void {
@@ -44,7 +45,13 @@ export class ShellComponent implements OnInit, OnDestroy {
     this.isHome.set(this.router.url.split('?')[0] === '/');
     this.routeSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-      .subscribe(e => this.isHome.set(e.urlAfterRedirects.split('?')[0] === '/'));
+      .subscribe(e => {
+        this.isHome.set(e.urlAfterRedirects.split('?')[0] === '/');
+        // Reset scroll on our custom scroll container; Angular's default
+        // scrollPositionRestoration only resets window scroll.
+        const el = this.scrollContainer()?.nativeElement;
+        if (el) el.scrollTop = 0;
+      });
   }
 
   ngOnDestroy(): void {
