@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { GameStore } from '../../core/game.store';
 import { GAME_STORE_TOKEN } from '../../core/game-store.token';
@@ -32,6 +32,7 @@ export class GameComponent implements OnInit, OnDestroy {
   store = inject(GameStore);
   lang = inject(LanguageService);
   private router = inject(Router);
+  private location = inject(Location);
   private theme = inject(ThemeService);
 
   ngOnInit(): void {}
@@ -41,6 +42,6 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.location.back();
   }
 }

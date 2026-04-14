@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, Location, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -24,6 +24,7 @@ export class DuelLobbyComponent implements OnInit {
   private api = inject(DuelApiService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private location = inject(Location);
   private matchHistory = inject(MatchHistoryApiService);
   private leaderboardApi = inject(LeaderboardApiService);
   auth = inject(AuthService);
@@ -165,7 +166,7 @@ export class DuelLobbyComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.location.back();
   }
 
   scoreLine(game: DuelGameSummary): string {

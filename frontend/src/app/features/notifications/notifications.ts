@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NotificationsApiService } from '../../core/notifications-api.service';
@@ -14,6 +15,7 @@ import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 })
 export class NotificationsComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly notificationsApi = inject(NotificationsApiService);
 
   readonly groups = signal<NotificationGroup[]>([]);
@@ -74,7 +76,7 @@ export class NotificationsComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/']);
+    this.location.back();
   }
 
   relativeTime(dateStr: string): string {

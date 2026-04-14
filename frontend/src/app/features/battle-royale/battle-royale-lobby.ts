@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -31,6 +31,7 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
   protected store = inject(BattleRoyaleStore);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private location = inject(Location);
   private api = inject(BattleRoyaleApiService);
   auth = inject(AuthService);
   isTeamLogoMode = signal(false);
@@ -145,6 +146,6 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.location.back();
   }
 }

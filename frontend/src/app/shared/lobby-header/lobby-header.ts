@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Location } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 
 @Component({
   selector: 'app-lobby-header',
@@ -8,10 +9,16 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LobbyHeaderComponent {
+  private location = inject(Location);
+
   title = input<string>('');
   back = output<void>();
 
   onBack(): void {
-    this.back.emit();
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.back.emit();
+    }
   }
 }

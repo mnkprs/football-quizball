@@ -10,7 +10,7 @@ import {
   viewChild,
   DestroyRef,
 } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule, Location, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { A11yModule } from '@angular/cdk/a11y';
@@ -41,6 +41,7 @@ type PendingAction = 'create' | 'queue' | 'code' | null;
 export class OnlineLobbyComponent implements OnInit, OnDestroy {
   private api = inject(OnlineGameApiService);
   private router = inject(Router);
+  private location = inject(Location);
   private destroyRef = inject(DestroyRef);
   auth = inject(AuthService);
   lang = inject(LanguageService);
@@ -242,7 +243,7 @@ export class OnlineLobbyComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
-    this.router.navigate(['/']);
+    this.location.back();
   }
 
   isExpired(game: OnlineGameSummary): boolean {
