@@ -1,0 +1,9 @@
+.analytics-page { padding: 1.25rem; max-width: 1080px; margin: 0 auto; }
+.analytics-header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; }
+.subtitle { color: #94a3b8; margin-bottom: 1.5rem; }
+.loading, .error { padding: 2rem; text-align: center; color: #94a3b8; }
+.totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+.stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 0.75rem; padding: 0.75rem 1rem; }
+.stat .label { display: block; font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat .value { display: block; font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }

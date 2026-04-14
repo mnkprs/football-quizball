@@ -21,6 +21,7 @@ export const routes: Routes = [
       { path: 'profile/:userId', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },
       { path: 'duel', loadComponent: () => import('./features/duel/duel-lobby').then(m => m.DuelLobbyComponent), canActivate: [authGuard] },
       { path: 'battle-royale', canActivate: [authGuard], loadComponent: () => import('./features/battle-royale/battle-royale-lobby').then(m => m.BattleRoyaleLobbyComponent) },
+      { path: 'analytics', canActivate: [authGuard], loadComponent: () => import('./features/analytics/analytics').then(m => m.AnalyticsComponent) },
     ],
   },
   { path: 'game', loadComponent: () => import('./features/game/game').then(m => m.GameComponent) },
