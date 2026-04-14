@@ -35,6 +35,7 @@ import { BotModule } from './bot/bot.module';
 import { LogoQuizModule } from './logo-quiz/logo-quiz.module';
 import { XpModule } from './xp/xp.module';
 import { AppConfigModule } from './config/config.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { AppConfigModule } from './config/config.module';
     LogoQuizModule,
     XpModule,
     AppConfigModule,
+    AnalyticsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
