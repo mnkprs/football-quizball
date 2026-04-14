@@ -1,7 +1,10 @@
 <header class="top-nav" [style.--tier-color]="tierColor()">
   @if (auth.isLoggedIn()) {
-    <!-- Logged in: Avatar + Stats -->
+    <!-- Logged in: Logo + Avatar + Stats -->
     <div class="top-nav__left">
+      <a routerLink="/" class="top-nav__logo-icon--compact" aria-label="Home">
+        <img ngSrc="/stepover-logo-master.png" alt="StepOver" class="top-nav__logo-img" width="28" height="28" priority />
+      </a>
       <a routerLink="/profile" class="top-nav__avatar pressable" aria-label="Profile"
          [style.border-color]="tierColor()"
          [style.box-shadow]="'0 0 8px ' + tierGlow() + '33'">
@@ -75,9 +78,9 @@
     <!-- Logged out: Logo + Brand + Sign In -->
     <div class="top-nav__left">
       <a routerLink="/" class="top-nav__logo-icon" aria-label="Home">
-        <img ngSrc="/icons/quizball-unlimited-logo.png" alt="Stepover" class="top-nav__logo-img" width="28" height="28" priority />
+        <img ngSrc="/stepover-logo-master.png" alt="StepOver" class="top-nav__logo-img" width="28" height="28" priority />
       </a>
-      <a routerLink="/" class="top-nav__brand">STEPOVR.</a>
+      <a routerLink="/" class="top-nav__brand" data-text="STEPOVR.">STEPOVR.</a>
     </div>
 
     <div class="top-nav__right">

@@ -303,6 +303,7 @@
   width: 2.25rem;
   height: 2.25rem;
   object-fit: contain;
+  filter: invert(1);
 }
 
 .top-nav__brand {
@@ -311,9 +312,79 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-fg);
   font-style: italic;
   text-decoration: none;
+  cursor: pointer;
+  /* Chrome effect via layered text-shadow */
+  color: #f0f0f0;
+  animation: brandChromeReflect 9s ease-in-out infinite;
+}
+
+@keyframes brandChromeReflect {
+  0%, 100% {
+    color: #f0f0f0;
+    text-shadow:
+      0 -1px 0 rgba(255, 255, 255, 0.7),
+      0 1px 0 rgba(110, 110, 110, 0.5),
+      0 2px 1px rgba(0, 0, 0, 0.35),
+      0 3px 6px rgba(0, 0, 0, 0.45);
+  }
+  25% {
+    color: #f8f8f8;
+    text-shadow:
+      -1px -1px 0 rgba(255, 255, 255, 0.85),
+      1px 1px 0 rgba(100, 100, 100, 0.4),
+      2px 2px 1px rgba(0, 0, 0, 0.3),
+      3px 3px 7px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    color: #ffffff;
+    text-shadow:
+      0 -1px 0 rgba(255, 255, 255, 0.9),
+      0 1px 0 rgba(90, 90, 90, 0.35),
+      0 2px 2px rgba(0, 0, 0, 0.25),
+      0 4px 10px rgba(255, 255, 255, 0.08),
+      0 3px 6px rgba(0, 0, 0, 0.4);
+  }
+  75% {
+    color: #f8f8f8;
+    text-shadow:
+      1px -1px 0 rgba(255, 255, 255, 0.85),
+      -1px 1px 0 rgba(100, 100, 100, 0.4),
+      -2px 2px 1px rgba(0, 0, 0, 0.3),
+      -3px 3px 7px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.top-nav__brand:hover {
+  animation-play-state: paused;
+  color: #ffffff;
+  text-shadow:
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(90, 90, 90, 0.35),
+    0 2px 2px rgba(0, 0, 0, 0.3),
+    0 0 18px rgba(255, 255, 255, 0.25),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-nav__brand {
+    animation: none;
+  }
+}
+
+/* Logged-in compact logo (no wordmark — space-constrained) */
+.top-nav__logo-icon--compact {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.5rem;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.top-nav__logo-icon--compact .top-nav__logo-img {
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 /* Sign in button (logged out) */

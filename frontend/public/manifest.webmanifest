@@ -11,19 +11,19 @@
   "categories": ["games", "sports", "entertainment"],
   "icons": [
     {
-      "src": "icons/quizball-unlimited-logo.png",
+      "src": "stepover-logo-white-bg.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/quizball-unlimited-logo.png",
+      "src": "stepover-logo-white-bg.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/quizball-unlimited-logo.png",
+      "src": "stepover-logo-white-bg.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

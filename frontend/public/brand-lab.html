@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StepOver — Brand Lab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --panel: #141414;
+    --border: #242424;
+    --fg: #fff;
+    --muted: #8a8a8a;
+    --brand-font: 'Space Grotesk', 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 3rem 2rem;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; font-weight: 900; letter-spacing: 0.02em; margin-bottom: 0.25rem; }
+  .sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 2.5rem; }
+  .demo {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 140px;
+    position: relative;
+  }
+  .demo-label {
+    position: absolute;
+    top: 0.75rem;
+    left: 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .replay {
+    position: absolute;
+    top: 0.75rem;
+    right: 1rem;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.375rem 0.75rem;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .replay:hover { color: #fff; border-color: #fff; }
+  .logo {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    filter: invert(1);
+    flex-shrink: 0;
+  }
+  .brand {
+    font-family: var(--brand-font);
+    font-size: 2.75rem;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+  .tip {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-top: 3rem;
+    text-align: center;
+  }
+
+  /* ─────────────────────────────────────────────
+     A · Letter stagger reveal
+     ───────────────────────────────────────────── */
+  .anim-a .letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: staggerUp 0.5s ease-out forwards;
+  }
+  @keyframes staggerUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─────────────────────────────────────────────
+     B · Kinetic kick (football bounce)
+     ───────────────────────────────────────────── */
+  .anim-b .letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateX(60px) rotate(12deg);
+    animation: kickIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes kickIn {
+    0% { opacity: 0; transform: translateX(60px) rotate(12deg); }
+    60% { opacity: 1; transform: translateX(-6px) rotate(-3deg); }
+    100% { opacity: 1; transform: translateX(0) rotate(0); }
+  }
+
+  /* ─────────────────────────────────────────────
+     C · Sweep highlight (chrome shimmer)
+     ───────────────────────────────────────────── */
+  .anim-c .brand {
+    background: linear-gradient(
+      100deg,
+      #fff 0%, #fff 40%,
+      #c9c9c9 48%, #fff 50%, #c9c9c9 52%,
+      #fff 60%, #fff 100%
+    );
+    background-size: 300% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 2s ease-in-out 0.3s;
+  }
+  @keyframes sweep {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -100% 0; }
+  }
+
+  /* ─────────────────────────────────────────────
+     D · Typewriter + cursor
+     ───────────────────────────────────────────── */
+  .anim-d .brand {
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 3px solid #fff;
+    width: 0;
+    animation: typewrite 1.2s steps(8, end) forwards, blink 0.7s step-end infinite;
+  }
+  @keyframes typewrite { to { width: 5.6ch; } }
+  @keyframes blink { 50% { border-color: transparent; } }
+
+  /* ─────────────────────────────────────────────
+     E · Logo-to-text morph (logo pulses, text extends out)
+     ───────────────────────────────────────────── */
+  .anim-e {
+    overflow: hidden;
+  }
+  .anim-e .logo {
+    animation: logoPulse 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .anim-e .brand {
+    clip-path: inset(0 100% 0 0);
+    animation: textExtend 0.7s 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes logoPulse {
+    0% { transform: scale(0.4) rotate(-8deg); opacity: 0; }
+    60% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  @keyframes textExtend { to { clip-path: inset(0 0 0 0); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>StepOver · Brand Lab</h1>
+  <p class="sub">Five separate animation treatments for the logo + STEPOVR. wordmark. Click "replay" to re-trigger.</p>
+
+  <!-- A · Letter Stagger -->
+  <div class="demo anim-a" id="a">
+    <span class="demo-label">A · Letter Stagger</span>
+    <button class="replay" onclick="replay('a')">↻ replay</button>
+    <img src="/stepover-logo-master.png" alt="" class="logo">
+    <div class="brand" id="brand-a"></div>
+  </div>
+
+  <!-- B · Kinetic Kick -->
+  <div class="demo anim-b" id="b">
+    <span class="demo-label">B · Kinetic Kick</span>
+    <button class="replay" onclick="replay('b')">↻ replay</button>
+    <img src="/stepover-logo-master.png" alt="" class="logo">
+    <div class="brand" id="brand-b"></div>
+  </div>
+
+  <!-- C · Chrome Sweep -->
+  <div class="demo anim-c" id="c">
+    <span class="demo-label">C · Chrome Sweep</span>
+    <button class="replay" onclick="replay('c')">↻ replay</button>
+    <img src="/stepover-logo-master.png" alt="" class="logo">
+    <div class="brand">STEPOVR.</div>
+  </div>
+
+  <!-- D · Typewriter -->
+  <div class="demo anim-d" id="d">
+    <span class="demo-label">D · Typewriter</span>
+    <button class="replay" onclick="replay('d')">↻ replay</button>
+    <img src="/stepover-logo-master.png" alt="" class="logo">
+    <div class="brand">STEPOVR.</div>
+  </div>
+
+  <!-- E · Logo-to-Text Morph -->
+  <div class="demo anim-e" id="e">
+    <span class="demo-label">E · Logo-to-Text Morph</span>
+    <button class="replay" onclick="replay('e')">↻ replay</button>
+    <img src="/stepover-logo-master.png" alt="" class="logo">
+    <div class="brand">STEPOVR.</div>
+  </div>
+
+  <p class="tip">Open: http://localhost:4200/brand-lab.html (dev) · pick your favorite → I'll wire it into splash + top-nav</p>
+</div>
+
+<script>
+  const TEXT = 'STEPOVR.';
+
+  function renderStaggered(id, perLetterDelay) {
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    [...TEXT].forEach((ch, i) => {
+      const span = document.createElement('span');
+      span.className = 'letter';
+      span.textContent = ch === ' ' ? '\u00a0' : ch;
+      span.style.animationDelay = `${i * perLetterDelay}ms`;
+      el.appendChild(span);
+    });
+  }
+
+  function replay(id) {
+    const demo = document.getElementById(id);
+    if (id === 'a') renderStaggered('brand-a', 70);
+    else if (id === 'b') renderStaggered('brand-b', 80);
+    else {
+      // restart CSS animations by cloning the node
+      const clone = demo.cloneNode(true);
+      demo.parentNode.replaceChild(clone, demo);
+      // re-attach onclick
+      clone.querySelector('.replay').onclick = () => replay(id);
+    }
+  }
+
+  renderStaggered('brand-a', 70);
+  renderStaggered('brand-b', 80);
+</script>
+</body>
+</html>
