@@ -430,6 +430,23 @@
   overflow: visible;
 }
 
+.analytics-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.6rem 1rem;
+  background: rgba(167, 139, 250, 0.12);
+  color: #a78bfa;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.analytics-link:hover {
+  background: rgba(167, 139, 250, 0.2);
+}
+
 /* ── Mode Stat Cards ───────────────────── */
 .mode-grid {
   display: grid;
