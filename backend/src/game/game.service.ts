@@ -203,6 +203,7 @@ export class GameService {
     cell.answered = true;
     cell.answered_by = player.name;
     cell.points_awarded = points_awarded;
+    cell.given_answer = dto.answer;
 
     // Switch turns
     session.currentPlayerIndex = dto.playerIndex === 0 ? 1 : 0;

@@ -118,6 +118,7 @@ export class MatchHistoryService {
           case 'local': {
             const session = await this.cacheService.get<GameSession>(`game:${match.game_ref_id}`);
             if (session) {
+              const questionById = new Map(session.questions.map((q) => [q.id, q]));
               detail.players = session.players.map((p) => ({
                 name: p.name,
                 score: p.score,
@@ -125,12 +126,18 @@ export class MatchHistoryService {
                 doubleUsed: p.doubleUsed,
               }));
               detail.board = session.board.map((row) =>
-                row.map((c) => ({
-                  category: c.category,
-                  difficulty: c.difficulty,
-                  points: c.points_awarded ?? c.points ?? 0,
-                  answered_by: c.answered_by,
-                })),
+                row.map((c) => {
+                  const q = questionById.get(c.question_id);
+                  return {
+                    category: c.category,
+                    difficulty: c.difficulty,
+                    points: c.points_awarded ?? c.points ?? 0,
+                    answered_by: c.answered_by,
+                    question_text: q?.question_text,
+                    correct_answer: q?.correct_answer,
+                    given_answer: c.given_answer,
+                  };
+                }),
               );
               const seen = new Set<string>();
               detail.categories = session.board.map((row) => {
@@ -216,6 +223,19 @@ export class MatchHistoryService {
       // Strip nested snapshot too — `{ ...match }` copies detail_snapshot verbatim
       // and would otherwise leak questions to non-pro clients via the nested field.
       delete (detail as { detail_snapshot?: unknown }).detail_snapshot;
+      // Strip per-cell question/answer data from the board (populated via snapshot
+      // Object.assign or the live-local branch). Leave category/difficulty/points
+      // alone so the grid can still render with a lock badge.
+      if (detail.board) {
+        detail.board = detail.board.map((row) =>
+          row.map((c) => ({
+            category: c.category,
+            difficulty: c.difficulty,
+            points: c.points,
+            answered_by: c.answered_by,
+          })),
+        );
+      }
     }
 
     return detail;
@@ -269,6 +289,7 @@ export class MatchHistoryService {
             answered_by: c.answered_by,
             question_text: q?.question_text,
             correct_answer: q?.correct_answer,
+            given_answer: c.given_answer,
           };
         }),
       ),

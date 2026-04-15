@@ -77,6 +77,8 @@ export interface OnlineBoardCellDetail {
   /** Question text and correct answer, populated at match-save time for 2P local matches. */
   question_text?: string;
   correct_answer?: string;
+  /** Raw answer the player submitted (only meaningful when the cell was answered). */
+  given_answer?: string;
 }
 
 export interface OnlinePlayerDetail {

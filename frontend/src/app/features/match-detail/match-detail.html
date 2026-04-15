@@ -331,6 +331,9 @@
           @if (cell.correctAnswer) {
             <p class="cell-sheet__answer">Answer: <strong>{{ cell.correctAnswer }}</strong></p>
           }
+          @if (cell.status === 'wrong' && cell.givenAnswer) {
+            <p class="cell-sheet__given">Their answer: <strong>{{ cell.givenAnswer }}</strong></p>
+          }
         } @else if (cell.status !== 'unplayed') {
           <p class="cell-sheet__footnote">Question text not captured for this match.</p>
         }

@@ -65,6 +65,7 @@ export interface OnlineBoardCellDetail {
   /** Populated at match-save time for 2P local matches so cell detail can show the real question. */
   question_text?: string;
   correct_answer?: string;
+  given_answer?: string;
 }
 
 export interface OnlinePlayerDetail {

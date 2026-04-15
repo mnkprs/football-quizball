@@ -34,6 +34,7 @@ export class MatchDetailComponent implements OnInit {
     status: 'correct' | 'wrong' | 'unplayed';
     questionText?: string;
     correctAnswer?: string;
+    givenAnswer?: string;
   } | null>(null);
 
   currentUserId = computed(() => this.auth.user()?.id ?? null);
@@ -152,6 +153,7 @@ export class MatchDetailComponent implements OnInit {
       status,
       questionText: cell.question_text,
       correctAnswer: cell.correct_answer,
+      givenAnswer: cell.given_answer,
     });
   }
 

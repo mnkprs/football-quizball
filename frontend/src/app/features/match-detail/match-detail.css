@@ -760,3 +760,15 @@
 .cell-sheet__answer strong {
   color: #34d399;
 }
+
+.cell-sheet__given {
+  font-size: 0.85rem;
+  color: var(--color-fg-muted, #999);
+  margin-top: 0.25rem;
+}
+
+.cell-sheet__given strong {
+  color: #f87171;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}

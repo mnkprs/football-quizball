@@ -79,6 +79,8 @@ export interface BoardCell {
   points_awarded?: number;
   lifeline_applied?: boolean;
   double_armed?: boolean;
+  /** Raw answer string submitted by the player (captured whether correct or wrong). */
+  given_answer?: string;
 }
 
 export interface Top5Entry {

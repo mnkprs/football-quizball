@@ -125,6 +125,43 @@ describe('MatchHistoryService', () => {
       expect((detail as any).detail_snapshot).toBeUndefined();
     });
 
+    it('strips question_text / correct_answer / given_answer from detail.board for non-pro users', async () => {
+      supabase.getMatchById = jest.fn().mockResolvedValue({
+        id: matchId,
+        player1_id: userId,
+        player2_id: null,
+        match_mode: 'local',
+        game_ref_id: 'g1',
+        game_ref_type: 'local',
+        detail_snapshot: {
+          players: [
+            { name: 'A', score: 5, lifelineUsed: false, doubleUsed: false },
+            { name: 'B', score: 3, lifelineUsed: false, doubleUsed: false },
+          ],
+          board: [[
+            {
+              category: 'HISTORY',
+              difficulty: 'easy',
+              points: 2,
+              answered_by: 'A',
+              question_text: 'Leaked?',
+              correct_answer: 'secret',
+              given_answer: 'wrong',
+            },
+          ]],
+        },
+      });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: false });
+
+      const detail = await service.getMatchDetail(matchId, userId);
+      expect(detail.questionsLocked).toBe(true);
+      const cell = detail.board?.[0]?.[0] as Record<string, unknown>;
+      expect(cell?.category).toBe('HISTORY');
+      expect(cell?.question_text).toBeUndefined();
+      expect(cell?.correct_answer).toBeUndefined();
+      expect(cell?.given_answer).toBeUndefined();
+    });
+
     it('sets questionsAvailable=false when snapshot is missing and no game_ref', async () => {
       supabase.getMatchById = jest.fn().mockResolvedValue({
         id: matchId,
