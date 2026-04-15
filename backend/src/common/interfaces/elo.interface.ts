@@ -10,6 +10,7 @@ export interface EloHistoryEntry {
   timed_out: boolean;
   mode: EloMode;
   created_at?: string;
+  question_id?: string | null;
 }
 
 export interface CommitSoloAnswerParams {
@@ -20,4 +21,5 @@ export interface CommitSoloAnswerParams {
   difficulty: string;
   correct: boolean;
   timed_out: boolean;
+  question_id?: string | null;
 }

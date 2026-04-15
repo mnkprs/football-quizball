@@ -112,6 +112,7 @@ export class EloRepository {
       p_difficulty: params.difficulty,
       p_correct: params.correct,
       p_timed_out: params.timed_out,
+      p_question_id: params.question_id ?? null,
     });
     if (error) throw new Error(`commitSoloAnswer RPC failed: ${error.message}`);
   }

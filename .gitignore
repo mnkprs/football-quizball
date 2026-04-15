@@ -39,3 +39,6 @@ getting-started/
 # Generated brand/logo assets (local iteration only)
 backend/scripts/_brand-assets/
 backend/scripts/_logo-output/
+
+# Crawled football-logos.cc images (reviewed locally, not tracked)
+backend/scripts/_flcc-downloads/*/
