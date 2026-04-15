@@ -2,6 +2,17 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.5.1.0] - 2026-04-15
+
+### Added
+- **Category strengths & weaknesses** now appear on your Pro Analytics dashboard — see which question types you dominate and which need work, with sample sizes so you know when to trust the numbers.
+- **Accuracy by era** — see how you stack up on 90s, 2000s, 2010s, and 2020s football trivia.
+- **Accuracy by league tier** — separate views for Top-5 EU leagues, other European top flights, and the rest.
+
+### Changed
+- Removed the "Coming soon" placeholder card on `/analytics` now that all three breakdowns are live.
+- Solo and Logo Quiz rounds now record which question was rated, so future analytics can join rich question metadata.
+
 ## [0.5.0.0] - 2026-04-15
 
 ### Added
