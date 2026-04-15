@@ -1,5 +1,6 @@
 import { IsString, MaxLength, IsInt, Min, IsOptional, IsIn } from 'class-validator';
 import { GeneratedQuestion } from '../questions/question.types';
+import type { AnalyticsTags } from '../common/interfaces/question.interface';
 
 export type DuelGameType = 'standard' | 'logo';
 
@@ -52,6 +53,7 @@ export interface DuelQuestionResult {
   is_pro_logo?: boolean;
   host_answer?: string | null;
   guest_answer?: string | null;
+  tags?: AnalyticsTags;
 }
 
 // ── Public view (correct_answer stripped) ────────────────────────────────────

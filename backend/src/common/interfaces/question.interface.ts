@@ -47,6 +47,26 @@ export interface GeneratedQuestion {
   source_question_text?: string;
   source_explanation?: string;
   difficulty_factors?: DifficultyFactors;
+  analytics_tags?: AnalyticsTags;
+}
+
+export type LeagueTier = 1 | 2 | 3 | 4 | 5;
+export type CompetitionType =
+  | 'domestic_league'
+  | 'domestic_cup'
+  | 'continental_club'
+  | 'international_national'
+  | 'youth'
+  | 'friendly'
+  | 'other';
+export type Era = 'pre_1990' | '1990s' | '2000s' | '2010s' | '2020s';
+
+export interface AnalyticsTags {
+  league_tier?: LeagueTier;
+  competition_type?: CompetitionType;
+  era?: Era;
+  event_year?: number;
+  nationality?: string; // ISO 3166-1 alpha-2
 }
 
 export interface BoardCell {

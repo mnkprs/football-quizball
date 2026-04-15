@@ -171,6 +171,11 @@
             <circle [attr.cx]="spark.lastX" [attr.cy]="spark.lastY" r="2.5" fill="var(--color-accent)"/>
           </svg>
         </div>
+        @if (isOwnProfile() && pro.isPro()) {
+          <a class="analytics-link" routerLink="/analytics">
+            View full analytics →
+          </a>
+        }
       </section>
     }
 

@@ -2,6 +2,21 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.5.0.0] - 2026-04-15
+
+### Added
+- **Personal Performance Analytics (Pro)** — a new `/analytics` page showing your ranked journey. See how many questions you've answered, your accuracy %, current and peak ELO, days active, an ELO trajectory line chart, and accuracy broken down by difficulty tier.
+- **"View full analytics" link** on your profile (Pro only) routes straight to the dashboard.
+- **"Personal Performance Analytics"** bullet added to the Pro upgrade modal feature list.
+- **Question metadata tagging pipeline** — newly LLM-generated questions now carry structured tags (league tier, era, competition type, event year, nationality) stored on `question_pool`. These power richer breakdowns coming soon.
+
+### Changed
+- Free users visiting `/analytics` see a blurred teaser with an "Unlock with Pro" CTA that opens the existing subscription sheet.
+- Analytics dashboard gracefully handles zero-games state with clear empty messages per widget.
+
+### Security
+- `/api/analytics/me` now requires an explicit Pro subscription check (was previously relying on a permissive shared guard).
+
 ## [0.4.0.0] - 2026-04-13
 
 ### Added

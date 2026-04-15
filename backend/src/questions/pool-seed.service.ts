@@ -630,6 +630,11 @@ export class PoolSeedService {
         },
         raw_score: q.raw_score ?? null,
         embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,
+        league_tier: q.analytics_tags?.league_tier ?? null,
+        competition_type: q.analytics_tags?.competition_type ?? null,
+        era: q.analytics_tags?.era ?? null,
+        event_year: q.analytics_tags?.event_year ?? null,
+        nationality: q.analytics_tags?.nationality ?? null,
       };
     });
 

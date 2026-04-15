@@ -3,6 +3,7 @@ import { LlmService } from '../llm/llm.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { Difficulty, resolveQuestionPoints } from '../questions/question.types';
 import { SoloQuestion } from './solo.types';
+import { GeneratedQuestion } from '../common/interfaces/question.interface';
 import {
   getExplicitConstraints,
   getAntiConvergenceInstruction,
@@ -18,6 +19,32 @@ export class SoloQuestionGenerator {
     private readonly llmService: LlmService,
     private readonly questionPoolService: QuestionPoolService,
   ) {}
+
+  /**
+   * Maps a raw LLM JSON response to a SoloQuestion, including optional analytics_tags.
+   * Exposed as a static method for unit-testability.
+   */
+  static mapLlmOutputToQuestion(raw: any, difficulty: string): SoloQuestion {
+    return {
+      id: `solo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      question_text: raw.question_text,
+      correct_answer: raw.correct_answer,
+      explanation: raw.explanation,
+      difficulty: difficulty as Difficulty,
+      difficulty_factor: raw.difficulty_factor,
+      category: 'HISTORY',
+      points: 10,
+      analytics_tags: raw.analytics_tags
+        ? {
+            league_tier: raw.analytics_tags.league_tier,
+            competition_type: raw.analytics_tags.competition_type,
+            era: raw.analytics_tags.era,
+            event_year: raw.analytics_tags.event_year,
+            nationality: raw.analytics_tags.nationality,
+          }
+        : undefined,
+    };
+  }
 
   async generate(difficulty: Difficulty, elo: number = 1000, excludeIds: string[] = []): Promise<SoloQuestion> {
     // Use pool first — no LLM call when questions exist in DB
@@ -58,9 +85,57 @@ Return ONLY valid JSON:
   "question_text": "...",
   "correct_answer": "...",
   "explanation": "...",
-  "difficulty_factor": 0.5
+  "difficulty_factor": 0.5,
+  "analytics_tags": { ... }
 }
-difficulty_factor: float 0.1–1.0 (how hard within the difficulty tier)`;
+difficulty_factor: float 0.1–1.0 (how hard within the difficulty tier)
+
+Also classify the question with analytics_tags:
+- league_tier: 1 for top-5 EU leagues (EPL/La Liga/Bundesliga/Serie A/Ligue 1); 2 for other EU top flights; 3 for other pro leagues (MLS/Brasileirão/J-League); 4 for lower divisions; 5 for amateur/misc. Null if not league-specific.
+- competition_type: domestic_league | domestic_cup | continental_club (UCL/UEL/Copa Libertadores) | international_national (World Cup/Euros) | youth | friendly | other
+- era: pre_1990 | 1990s | 2000s | 2010s | 2020s (based on event_year)
+- event_year: 4-digit year the event took place, if applicable
+- nationality: ISO 3166-1 alpha-2 code of primary subject when the answer is a player
+
+Omit fields you are not confident about; do not guess.`;
+
+    const schema = {
+      type: 'object',
+      properties: {
+        question_text: { type: 'string' },
+        correct_answer: { type: 'string' },
+        explanation: { type: 'string' },
+        difficulty_factor: { type: 'number', minimum: 0.1, maximum: 1.0 },
+        analytics_tags: {
+          type: 'object',
+          properties: {
+            league_tier: { type: 'integer', minimum: 1, maximum: 5, nullable: true },
+            competition_type: {
+              type: 'string',
+              enum: [
+                'domestic_league',
+                'domestic_cup',
+                'continental_club',
+                'international_national',
+                'youth',
+                'friendly',
+                'other',
+              ],
+              nullable: true,
+            },
+            era: {
+              type: 'string',
+              enum: ['pre_1990', '1990s', '2000s', '2010s', '2020s'],
+              nullable: true,
+            },
+            event_year: { type: 'integer', minimum: 1850, maximum: 2100, nullable: true },
+            nationality: { type: 'string', nullable: true },
+          },
+          nullable: true,
+        },
+      },
+      required: ['question_text', 'correct_answer', 'explanation', 'difficulty_factor'],
+    };
 
     const scale = minorityScaleForElo(elo);
     const diversityConstraints = getExplicitConstraints('HISTORY', undefined, scale);
@@ -71,17 +146,27 @@ difficulty_factor: float 0.1–1.0 (how hard within the difficulty tier)`;
       correct_answer: string;
       explanation: string;
       difficulty_factor: number;
+      analytics_tags?: {
+        league_tier?: number;
+        competition_type?: string;
+        era?: string;
+        event_year?: number;
+        nationality?: string;
+      };
     }>(systemPrompt, userPrompt);
 
+    const mapped = SoloQuestionGenerator.mapLlmOutputToQuestion(raw, difficulty);
+
     return {
-      id: crypto.randomUUID(),
-      question_text: raw.question_text,
-      correct_answer: raw.correct_answer,
-      explanation: raw.explanation,
+      id: mapped.id,
+      question_text: mapped.question_text,
+      correct_answer: mapped.correct_answer,
+      explanation: mapped.explanation,
       difficulty,
       difficulty_factor: Math.max(0.1, Math.min(1.0, raw.difficulty_factor ?? 0.5)),
       category: 'HISTORY',
       points: resolveQuestionPoints('HISTORY', difficulty),
+      analytics_tags: mapped.analytics_tags,
     };
   }
 }
