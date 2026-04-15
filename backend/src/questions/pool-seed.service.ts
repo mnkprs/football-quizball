@@ -6,6 +6,14 @@ import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
 import { QuestionValidator } from './validators/question.validator';
 import { QuestionIntegrityService } from './validators/question-integrity.service';
+import {
+  QuestionClassifierService,
+  ClassifierOutput,
+} from './classifiers/question-classifier.service';
+import {
+  CanonicalIndex,
+  loadCanonicalEntities,
+} from './classifiers/canonical-entities';
 import { RedisService } from '../redis/redis.service';
 import {
   BoardCategory,
@@ -49,9 +57,72 @@ export class PoolSeedService {
     private questionsService: QuestionsService,
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
+    private questionClassifier: QuestionClassifierService,
     private redisService: RedisService,
     private readonly configService: ConfigService,
   ) {}
+
+  /**
+   * Lazily-loaded canonical entity index for the classifier.
+   * First call reads the reviewed cleaned JSON; the in-memory result is reused
+   * across all subsequent seeding batches in this process.
+   */
+  private canonicalIndexCache: CanonicalIndex | null = null;
+  private getCanonicalIndex(): CanonicalIndex | null {
+    if (this.canonicalIndexCache) return this.canonicalIndexCache;
+    try {
+      this.canonicalIndexCache = loadCanonicalEntities();
+      return this.canonicalIndexCache;
+    } catch (err) {
+      this.logger.warn(
+        `[classifier] canonical entities not loadable — new questions will be inserted without taxonomy. ${(err as Error).message}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Classify a batch of generated questions against the canonical list.
+   * Runs sequentially to avoid Gemini 429s (same constraint as integrity
+   * verification). Returns a map keyed by question id; questions that fail to
+   * classify are absent from the map and their row inserts with null taxonomy.
+   */
+  private async classifyBatch(
+    questions: GeneratedQuestion[],
+    category: QuestionCategory,
+    difficulty: Difficulty,
+  ): Promise<Map<string, ClassifierOutput>> {
+    const canonical = this.getCanonicalIndex();
+    const out = new Map<string, ClassifierOutput>();
+    if (!canonical) return out;
+
+    for (const q of questions) {
+      try {
+        const res = await this.questionClassifier.classify(
+          {
+            id: q.id,
+            category,
+            difficulty,
+            question_text: q.question_text,
+            correct_answer: q.correct_answer,
+            explanation: q.explanation,
+          },
+          canonical,
+        );
+        out.set(q.id, res.classification);
+        if (res.warnings.length > 0) {
+          this.logger.debug(
+            `[classifier] ${q.id}: ${res.warnings.join(' | ')}`,
+          );
+        }
+      } catch (err) {
+        this.logger.warn(
+          `[classifier] failed for ${q.id}: ${(err as Error).message} — inserting with null taxonomy`,
+        );
+      }
+    }
+    return out;
+  }
 
   /**
    * Seeds a single slot (e.g. GUESS_SCORE/MEDIUM) with generated questions.
@@ -606,6 +677,14 @@ export class PoolSeedService {
   ): Promise<void> {
     if (questions.length === 0) return;
 
+    // Classify against canonical entity list. Failures degrade to null taxonomy
+    // so a classifier outage never blocks pool seeding.
+    const taxonomyByQuestion = await this.classifyBatch(
+      questions,
+      category,
+      difficultyOverride ?? questions[0].difficulty,
+    );
+
     const rows = questions.map((q) => {
       const difficulty = difficultyOverride ?? q.difficulty;
       let allowedDifficulties = q.allowedDifficulties ?? [difficulty];
@@ -613,6 +692,7 @@ export class PoolSeedService {
       if (difficultyOverride && !allowedDifficulties.includes(difficultyOverride)) {
         allowedDifficulties = [...allowedDifficulties, difficultyOverride];
       }
+      const tax = taxonomyByQuestion.get(q.id);
       return {
         id: q.id,
         category,
@@ -635,6 +715,21 @@ export class PoolSeedService {
         era: q.analytics_tags?.era ?? null,
         event_year: q.analytics_tags?.event_year ?? null,
         nationality: q.analytics_tags?.nationality ?? null,
+        // Taxonomy fields from the classifier (nullable; classifier may skip).
+        subject_type: tax?.subject_type ?? null,
+        subject_id: tax?.subject_id ?? null,
+        subject_name: tax?.subject_name ?? null,
+        competition_id: tax?.competition_id ?? null,
+        question_style: tax?.question_style ?? null,
+        answer_type: tax?.answer_type ?? null,
+        mode_compatibility: tax?.mode_compatibility && tax.mode_compatibility.length > 0
+          ? tax.mode_compatibility
+          : null,
+        concept_id: tax?.concept_id ?? null,
+        popularity_score: tax?.popularity_score ?? null,
+        time_sensitive: tax?.time_sensitive ?? false,
+        valid_until: tax?.valid_until ?? null,
+        tags: tax?.tags && tax.tags.length > 0 ? tax.tags : null,
       };
     });
 

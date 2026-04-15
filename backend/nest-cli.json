@@ -3,6 +3,10 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "assets": [
+      { "include": "questions/classifiers/canonical-entities.cleaned.json", "outDir": "dist" }
+    ],
+    "watchAssets": true
   }
 }

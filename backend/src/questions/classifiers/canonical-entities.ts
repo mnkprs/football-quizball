@@ -37,26 +37,36 @@ export interface CanonicalIndex {
   byType: Map<EntityType, CanonicalEntity[]>;
 }
 
-const CLEANED_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  'scripts',
-  '_backfill-pool',
-  'canonical-entities.cleaned.json'
-);
+/**
+ * Resolved at runtime. The primary location is co-located with this module
+ * (bundled into dist via nest-cli assets). The scripts location is a fallback
+ * used only by CLI tools that run before the module is in dist.
+ */
+const CANDIDATE_PATHS = [
+  path.resolve(__dirname, 'canonical-entities.cleaned.json'),
+  path.resolve(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'scripts',
+    '_backfill-pool',
+    'canonical-entities.cleaned.json',
+  ),
+];
 
 let cache: CanonicalIndex | null = null;
 
-export function loadCanonicalEntities(filePath = CLEANED_PATH): CanonicalIndex {
+export function loadCanonicalEntities(filePath?: string): CanonicalIndex {
   if (cache) return cache;
-  if (!fs.existsSync(filePath)) {
+  const pathsToTry = filePath ? [filePath] : CANDIDATE_PATHS;
+  const found = pathsToTry.find((p) => fs.existsSync(p));
+  if (!found) {
     throw new Error(
-      `Canonical entities file not found at ${filePath}. Run pool:extract-entities + pool:review-entities first.`
+      `Canonical entities file not found. Tried: ${pathsToTry.join(', ')}. Run pool:extract-entities + pool:review-entities first.`,
     );
   }
-  const raw = JSON.parse(fs.readFileSync(filePath, 'utf8')) as {
+  const raw = JSON.parse(fs.readFileSync(found, 'utf8')) as {
     entities: CanonicalEntity[];
   };
   const all = raw.entities;
