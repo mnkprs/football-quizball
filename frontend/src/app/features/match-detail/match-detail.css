@@ -741,3 +741,22 @@
   margin-top: 0.25rem;
   font-style: italic;
 }
+
+.cell-sheet__question {
+  font-size: 0.95rem;
+  color: var(--color-fg, #fff);
+  line-height: 1.4;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cell-sheet__answer {
+  font-size: 0.85rem;
+  color: var(--color-fg-muted, #999);
+  margin-top: 0.5rem;
+}
+
+.cell-sheet__answer strong {
+  color: #34d399;
+}

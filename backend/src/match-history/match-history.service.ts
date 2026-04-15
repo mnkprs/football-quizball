@@ -248,6 +248,10 @@ export class MatchHistoryService {
       })
       .filter(Boolean) as Array<{ key: string; label: string }>;
 
+    // Index questions by id so each board cell can embed its text + answer for
+    // post-match review. Falls back to undefined if the question is missing.
+    const questionById = new Map(session.questions.map((q) => [q.id, q]));
+
     return {
       players: session.players.map((p) => ({
         name: p.name,
@@ -256,12 +260,17 @@ export class MatchHistoryService {
         doubleUsed: p.doubleUsed,
       })),
       board: session.board.map((row) =>
-        row.map((c) => ({
-          category: c.category,
-          difficulty: c.difficulty,
-          points: c.points_awarded ?? c.points ?? 0,
-          answered_by: c.answered_by,
-        })),
+        row.map((c) => {
+          const q = questionById.get(c.question_id);
+          return {
+            category: c.category,
+            difficulty: c.difficulty,
+            points: c.points_awarded ?? c.points ?? 0,
+            answered_by: c.answered_by,
+            question_text: q?.question_text,
+            correct_answer: q?.correct_answer,
+          };
+        }),
       ),
       categories,
     };

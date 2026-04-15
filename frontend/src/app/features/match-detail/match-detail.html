@@ -326,7 +326,14 @@
         @if (cell.playerName) {
           <p class="cell-sheet__player">Answered by: <strong>{{ cell.playerName }}</strong></p>
         }
-        <p class="cell-sheet__footnote">Full question text coming soon.</p>
+        @if (cell.questionText) {
+          <p class="cell-sheet__question">{{ cell.questionText }}</p>
+          @if (cell.correctAnswer) {
+            <p class="cell-sheet__answer">Answer: <strong>{{ cell.correctAnswer }}</strong></p>
+          }
+        } @else if (cell.status !== 'unplayed') {
+          <p class="cell-sheet__footnote">Question text not captured for this match.</p>
+        }
       </div>
     </div>
   }

@@ -62,6 +62,9 @@ export interface OnlineBoardCellDetail {
   difficulty: string;
   points: number;
   answered_by?: string;
+  /** Populated at match-save time for 2P local matches so cell detail can show the real question. */
+  question_text?: string;
+  correct_answer?: string;
 }
 
 export interface OnlinePlayerDetail {

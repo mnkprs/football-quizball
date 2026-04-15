@@ -32,6 +32,8 @@ export class MatchDetailComponent implements OnInit {
     points: number;
     playerName?: string;
     status: 'correct' | 'wrong' | 'unplayed';
+    questionText?: string;
+    correctAnswer?: string;
   } | null>(null);
 
   currentUserId = computed(() => this.auth.user()?.id ?? null);
@@ -148,6 +150,8 @@ export class MatchDetailComponent implements OnInit {
       points: cell.points ?? 0,
       playerName: playerIdx ? d.players?.[playerIdx - 1]?.name : undefined,
       status,
+      questionText: cell.question_text,
+      correctAnswer: cell.correct_answer,
     });
   }
 
