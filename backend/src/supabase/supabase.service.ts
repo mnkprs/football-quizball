@@ -1011,11 +1011,15 @@ export class SupabaseService {
 
   // ── Analytics Helpers ────────────────────────────────────────────────────────
 
-  async getEloHistoryRaw(userId: string): Promise<Array<{ created_at: string; elo_after: number }>> {
+  async getEloHistoryRaw(
+    userId: string,
+    mode: string,
+  ): Promise<Array<{ created_at: string; elo_after: number }>> {
     const { data, error } = await this.client
       .from('elo_history')
       .select('created_at, elo_after')
       .eq('user_id', userId)
+      .eq('mode', mode)
       .order('created_at', { ascending: true })
       .limit(2000);
     if (error) throw error;
@@ -1024,7 +1028,10 @@ export class SupabaseService {
 
   // Canonical type lives in analytics/analytics.types.ts (RawQuestionEvent).
   // Inlined here to avoid a circular import: analytics.service → supabase.service → analytics.types.
-  async getQuestionEventsRaw(userId: string): Promise<
+  async getQuestionEventsRaw(
+    userId: string,
+    mode: string,
+  ): Promise<
     Array<{
       created_at: string;
       correct: boolean;
@@ -1049,6 +1056,7 @@ export class SupabaseService {
         )
       `)
       .eq('user_id', userId)
+      .eq('mode', mode)
       .order('created_at', { ascending: true })
       .limit(5000);
     if (error) throw error;
@@ -1061,5 +1069,19 @@ export class SupabaseService {
       competition_type: r.question_pool?.competition_type ?? undefined,
       league_tier: r.question_pool?.league_tier ?? undefined,
     }));
+  }
+
+  async getCurrentEloByMode(userId: string, mode: string): Promise<number> {
+    const col =
+      mode === 'logo_quiz' ? 'logo_quiz_elo' :
+      mode === 'logo_quiz_hardcore' ? 'logo_quiz_hardcore_elo' :
+      'elo';
+    const { data, error } = await this.client
+      .from('profiles')
+      .select(col)
+      .eq('id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    return (data as any)?.[col] ?? 1000;
   }
 }
