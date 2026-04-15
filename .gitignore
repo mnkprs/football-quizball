@@ -36,3 +36,5 @@ pipeline-context.md
 .agents/
 .superpowers/
 getting-started/
+# Crawled football-logos.cc images (reviewed locally, not tracked)
+backend/scripts/_flcc-downloads/*/
