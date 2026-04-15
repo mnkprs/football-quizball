@@ -5,7 +5,10 @@ import { AnalyticsApiService, AnalyticsSummary } from '../../core/analytics-api.
 import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
 import { EloTrajectoryComponent } from './widgets/elo-trajectory';
+import { CategoryHeatmapComponent } from './widgets/category-heatmap';
 import { DifficultyBreakdownComponent } from './widgets/difficulty-breakdown';
+import { EraBreakdownComponent } from './widgets/era-breakdown';
+import { LeagueTierBreakdownComponent } from './widgets/league-tier-breakdown';
 import { ProTeaserComponent } from './widgets/pro-teaser';
 
 @Component({
@@ -14,7 +17,10 @@ import { ProTeaserComponent } from './widgets/pro-teaser';
   imports: [
     CommonModule,
     EloTrajectoryComponent,
+    CategoryHeatmapComponent,
     DifficultyBreakdownComponent,
+    EraBreakdownComponent,
+    LeagueTierBreakdownComponent,
     ProTeaserComponent,
   ],
   templateUrl: './analytics.html',

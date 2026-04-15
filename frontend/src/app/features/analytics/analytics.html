@@ -1,7 +1,7 @@
 <section class="analytics-page">
   <header class="analytics-header">
     <h1>Your Performance</h1>
-    <p class="subtitle">Track your ranked journey across difficulty tiers.</p>
+    <p class="subtitle">How you stack up across leagues, eras, and difficulty.</p>
   </header>
 
   @if (loading()) {
@@ -37,16 +37,12 @@
     <section class="grid">
       <app-elo-trajectory [data]="s.elo_trajectory" />
       <app-difficulty-breakdown [data]="s.by_difficulty" />
-    </section>
-
-    <section class="coming-soon">
-      <h3>Coming soon</h3>
-      <ul>
-        <li>Category strengths and weaknesses</li>
-        <li>Accuracy by era (90s, 2000s, 2010s, 2020s)</li>
-        <li>League tier breakdown</li>
-      </ul>
-      <p class="note">We're tagging questions with richer metadata starting now — new matches you play will power these views.</p>
+      <app-category-heatmap
+        [data]="s.by_category"
+        [strongest]="s.strongest"
+        [weakest]="s.weakest" />
+      <app-era-breakdown [data]="s.by_era" />
+      <app-league-tier-breakdown [data]="s.by_league_tier" />
     </section>
   }
 </section>
