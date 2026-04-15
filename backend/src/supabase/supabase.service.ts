@@ -1021,27 +1021,44 @@ export class SupabaseService {
     return data ?? [];
   }
 
-  // Returns only fields currently sourced from elo_history. Tag-based breakdowns
-  // (era/category/competition_type/league_tier) require joining against
-  // question_pool or match_history.detail_snapshot — tracked as follow-up.
+  // Canonical type lives in analytics/analytics.types.ts (RawQuestionEvent).
+  // Inlined here to avoid a circular import: analytics.service → supabase.service → analytics.types.
   async getQuestionEventsRaw(userId: string): Promise<
     Array<{
       created_at: string;
       correct: boolean;
       difficulty: string;
+      category?: string;
+      era?: string;
+      competition_type?: string;
+      league_tier?: number;
     }>
   > {
     const { data, error } = await this.client
       .from('elo_history')
-      .select('created_at, correct, question_difficulty')
+      .select(`
+        created_at,
+        correct,
+        question_difficulty,
+        question_pool:question_id (
+          category,
+          era,
+          competition_type,
+          league_tier
+        )
+      `)
       .eq('user_id', userId)
       .order('created_at', { ascending: true })
       .limit(5000);
     if (error) throw error;
-    return (data ?? []).map((r) => ({
+    return (data ?? []).map((r: any) => ({
       created_at: r.created_at,
       correct: r.correct,
       difficulty: r.question_difficulty,
+      category: r.question_pool?.category ?? undefined,
+      era: r.question_pool?.era ?? undefined,
+      competition_type: r.question_pool?.competition_type ?? undefined,
+      league_tier: r.question_pool?.league_tier ?? undefined,
     }));
   }
 }
