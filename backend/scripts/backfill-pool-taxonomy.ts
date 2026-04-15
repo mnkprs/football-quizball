@@ -35,6 +35,7 @@ interface Args {
   limit: number | null;
   apply: boolean;
   concurrency: number;
+  resume: boolean;
 }
 
 function parseArgs(): Args {
@@ -49,6 +50,7 @@ function parseArgs(): Args {
     limit: get('--limit') ? Number(get('--limit')) : null,
     apply: has('--apply'),
     concurrency: Number(get('--concurrency') ?? 3),
+    resume: has('--resume'),
   };
 }
 
@@ -94,15 +96,33 @@ async function fetchStratified(
 
 async function fetchFlat(
   supabase: SupabaseService,
-  limit: number | null
+  limit: number | null,
+  onlyUnclassified: boolean
 ): Promise<PoolRow[]> {
-  const q = supabase.client
-    .from('question_pool')
-    .select('id, category, difficulty, question')
-    .neq('category', 'LOGO_QUIZ');
-  const { data, error } = limit ? await q.limit(limit) : await q;
-  if (error) throw error;
-  return (data ?? []) as PoolRow[];
+  // Supabase caps a single select at 1000 rows by default. Paginate with range()
+  // so --limit null = "everything" actually means everything.
+  const PAGE = 1000;
+  const all: PoolRow[] = [];
+  let from = 0;
+  const cap = limit ?? Number.POSITIVE_INFINITY;
+
+  while (all.length < cap) {
+    const pageSize = Math.min(PAGE, cap - all.length);
+    let q = supabase.client
+      .from('question_pool')
+      .select('id, category, difficulty, question')
+      .neq('category', 'LOGO_QUIZ')
+      .order('id', { ascending: true })
+      .range(from, from + pageSize - 1);
+    if (onlyUnclassified) q = q.is('subject_id', null);
+    const { data, error } = await q;
+    if (error) throw error;
+    const batch = (data ?? []) as PoolRow[];
+    all.push(...batch);
+    if (batch.length < pageSize) break;
+    from += pageSize;
+  }
+  return all;
 }
 
 async function runWithConcurrency<T, R>(
@@ -256,8 +276,8 @@ async function main(): Promise<void> {
     console.log('Fetching stratified pilot sample (~25 questions)...');
     rows = await fetchStratified(supabase, 4); // 7 cats × 4 ≈ 28
   } else {
-    console.log(`Fetching ${args.limit ?? 'all'} questions...`);
-    rows = await fetchFlat(supabase, args.limit);
+    console.log(`Fetching ${args.limit ?? 'all'} questions${args.resume ? ' (resume mode — only rows with subject_id IS NULL)' : ''}...`);
+    rows = await fetchFlat(supabase, args.limit, args.resume);
   }
   console.log(`  ${rows.length} questions.`);
 
