@@ -22,4 +22,5 @@ export interface CommitSoloAnswerParams {
   correct: boolean;
   timed_out: boolean;
   question_id?: string | null;
+  mode?: 'solo' | 'logo_quiz' | 'logo_quiz_hardcore';
 }

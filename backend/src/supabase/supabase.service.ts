@@ -898,6 +898,7 @@ export class SupabaseService {
       p_correct: params.correct,
       p_timed_out: params.timed_out,
       p_question_id: params.question_id ?? null,
+      p_mode: 'solo',
     });
     if (error) throw new Error(`commitSoloAnswer RPC failed: ${error.message}`);
   }
