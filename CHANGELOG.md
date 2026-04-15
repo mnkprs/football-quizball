@@ -2,6 +2,14 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.5.2.0] - 2026-04-15
+
+### Added
+- **Mode picker on `/analytics`** — switch between Solo Ranked, Logo Quiz, and Hardcore views. Each mode shows its own Current ELO, Peak ELO, trajectory, and breakdowns instead of blending all three into one misleading chart.
+
+### Fixed
+- Analytics no longer mixes ELO events from different ranked modes. Previously, users who played Logo Quiz and Solo would see a trajectory jumping between two different ELO systems on the same line; now each mode is isolated.
+
 ## [0.5.1.0] - 2026-04-15
 
 ### Added

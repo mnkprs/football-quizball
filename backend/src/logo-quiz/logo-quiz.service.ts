@@ -157,6 +157,7 @@ export class LogoQuizService {
 
     // Atomic DB update — use the correct RPC for normal vs hardcore
     const rpcName = hardcore ? 'commit_logo_quiz_hardcore_answer' : 'commit_logo_quiz_answer';
+    const rpcMode = hardcore ? 'logo_quiz_hardcore' : 'logo_quiz';
     const { error: rpcError } = await client.rpc(rpcName, {
       p_user_id: userId,
       p_elo_before: logoElo,
@@ -166,6 +167,7 @@ export class LogoQuizService {
       p_correct: correct,
       p_timed_out: timedOut,
       p_question_id: questionId,
+      p_mode: rpcMode,
     });
 
     if (rpcError) {

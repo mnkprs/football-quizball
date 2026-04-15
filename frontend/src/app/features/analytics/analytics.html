@@ -4,45 +4,72 @@
     <p class="subtitle">How you stack up across leagues, eras, and difficulty.</p>
   </header>
 
-  @if (loading()) {
-    <div class="loading">Loading your stats…</div>
-  } @else if (error()) {
-    <div class="error">{{ error() }}</div>
-  } @else if (!isPro()) {
-    <app-pro-teaser />
-  } @else if (summary(); as s) {
-    <section class="totals">
-      <div class="stat">
-        <span class="label">Questions</span>
-        <span class="value">{{ s.totals.questions_answered }}</span>
-      </div>
-      <div class="stat">
-        <span class="label">Accuracy</span>
-        <span class="value">{{ (s.totals.accuracy * 100) | number:'1.0-1' }}%</span>
-      </div>
-      <div class="stat">
-        <span class="label">Current ELO</span>
-        <span class="value">{{ s.totals.current_elo }}</span>
-      </div>
-      <div class="stat">
-        <span class="label">Peak ELO</span>
-        <span class="value">{{ s.totals.peak_elo }}</span>
-      </div>
-      <div class="stat">
-        <span class="label">Days active</span>
-        <span class="value">{{ s.totals.days_active }}</span>
-      </div>
-    </section>
+  @if (!isPro()) {
+    @if (loading()) {
+      <div class="loading">Loading your stats…</div>
+    } @else {
+      <app-pro-teaser />
+    }
+  } @else {
+    <nav class="mode-picker" role="tablist" aria-label="Analytics mode">
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="mode() === 'solo'"
+        [class.active]="mode() === 'solo'"
+        (click)="selectMode('solo')">Solo Ranked</button>
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="mode() === 'logo_quiz'"
+        [class.active]="mode() === 'logo_quiz'"
+        (click)="selectMode('logo_quiz')">Logo Quiz</button>
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="mode() === 'logo_quiz_hardcore'"
+        [class.active]="mode() === 'logo_quiz_hardcore'"
+        (click)="selectMode('logo_quiz_hardcore')">Hardcore</button>
+    </nav>
 
-    <section class="grid">
-      <app-elo-trajectory [data]="s.elo_trajectory" />
-      <app-difficulty-breakdown [data]="s.by_difficulty" />
-      <app-category-heatmap
-        [data]="s.by_category"
-        [strongest]="s.strongest"
-        [weakest]="s.weakest" />
-      <app-era-breakdown [data]="s.by_era" />
-      <app-league-tier-breakdown [data]="s.by_league_tier" />
-    </section>
+    @if (loading()) {
+      <div class="loading">Loading your stats…</div>
+    } @else if (error()) {
+      <div class="error">{{ error() }}</div>
+    } @else if (summary(); as s) {
+      <section class="totals">
+        <div class="stat">
+          <span class="label">Questions</span>
+          <span class="value">{{ s.totals.questions_answered }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Accuracy</span>
+          <span class="value">{{ (s.totals.accuracy * 100) | number:'1.0-1' }}%</span>
+        </div>
+        <div class="stat">
+          <span class="label">Current ELO</span>
+          <span class="value">{{ s.totals.current_elo }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Peak ELO</span>
+          <span class="value">{{ s.totals.peak_elo }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Days active</span>
+          <span class="value">{{ s.totals.days_active }}</span>
+        </div>
+      </section>
+
+      <section class="grid">
+        <app-elo-trajectory [data]="s.elo_trajectory" />
+        <app-difficulty-breakdown [data]="s.by_difficulty" />
+        <app-category-heatmap
+          [data]="s.by_category"
+          [strongest]="s.strongest"
+          [weakest]="s.weakest" />
+        <app-era-breakdown [data]="s.by_era" />
+        <app-league-tier-breakdown [data]="s.by_league_tier" />
+      </section>
+    }
   }
 </section>

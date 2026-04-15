@@ -14,13 +14,12 @@ const MIN_SAMPLE_FOR_RANKING = 5;
 export class AnalyticsService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async getForUser(userId: string): Promise<AnalyticsSummary> {
-    const [eloEvents, questionEvents] = await Promise.all([
-      this.supabase.getEloHistoryRaw(userId),
-      this.supabase.getQuestionEventsRaw(userId),
+  async getForUser(userId: string, mode: string): Promise<AnalyticsSummary> {
+    const [eloEvents, questionEvents, currentElo] = await Promise.all([
+      this.supabase.getEloHistoryRaw(userId, mode),
+      this.supabase.getQuestionEventsRaw(userId, mode),
+      this.supabase.getCurrentEloByMode(userId, mode),
     ]);
-    const currentElo =
-      eloEvents.length > 0 ? eloEvents[eloEvents.length - 1].elo_after : 1000;
     return this.aggregate(questionEvents, eloEvents, currentElo);
   }
 

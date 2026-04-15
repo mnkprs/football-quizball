@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { AnalyticsApiService, AnalyticsSummary } from '../../core/analytics-api.service';
+import { AnalyticsApiService, AnalyticsSummary, AnalyticsMode } from '../../core/analytics-api.service';
 import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
 import { EloTrajectoryComponent } from './widgets/elo-trajectory';
@@ -36,6 +36,7 @@ export class AnalyticsComponent implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly isPro = this.pro.isPro;
+  readonly mode = signal<AnalyticsMode>('solo');
 
   async ngOnInit(): Promise<void> {
     if (!this.auth.session()) {
@@ -47,13 +48,25 @@ export class AnalyticsComponent implements OnInit {
       this.loading.set(false);
       return;
     }
+    await this.loadForMode(this.mode());
+  }
+
+  async loadForMode(mode: AnalyticsMode): Promise<void> {
+    this.loading.set(true);
+    this.error.set(null);
     try {
-      const data = await this.api.getMySummary();
+      const data = await this.api.getMySummary(mode);
       this.summary.set(data);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Failed to load analytics');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  selectMode(m: AnalyticsMode): void {
+    if (m === this.mode()) return;
+    this.mode.set(m);
+    void this.loadForMode(m);
   }
 }

@@ -7,3 +7,32 @@
 .stat .label { display: block; font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
 .stat .value { display: block; font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+
+.mode-picker {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  padding: 0.25rem;
+  margin-bottom: 1rem;
+  width: fit-content;
+  overflow-x: auto;
+}
+.mode-picker button {
+  background: transparent;
+  border: 0;
+  color: #94a3b8;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.mode-picker button:hover { color: #e2e8f0; }
+.mode-picker button.active {
+  background: linear-gradient(135deg, #a78bfa, #818cf8);
+  color: white;
+}
