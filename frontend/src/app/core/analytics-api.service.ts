@@ -4,6 +4,8 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
+export type AnalyticsMode = 'solo' | 'logo_quiz' | 'logo_quiz_hardcore';
+
 export interface AccuracyBreakdown {
   bucket: string;
   total: number;
@@ -40,9 +42,9 @@ export class AnalyticsApiService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
-  getMySummary(): Promise<AnalyticsSummary> {
+  getMySummary(mode: AnalyticsMode = 'solo'): Promise<AnalyticsSummary> {
     return firstValueFrom(
-      this.http.get<AnalyticsSummary>(`${environment.apiUrl}/api/analytics/me`, {
+      this.http.get<AnalyticsSummary>(`${environment.apiUrl}/api/analytics/me?mode=${mode}`, {
         headers: this.headers(),
       }),
     );
