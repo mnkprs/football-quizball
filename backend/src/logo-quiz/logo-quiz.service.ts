@@ -120,11 +120,13 @@ export class LogoQuizService {
 
     const logoElo = hardcore ? profile.logo_quiz_hardcore_elo : profile.logo_quiz_elo;
 
-    // Look up the question to get correct answer and question_elo
+    // Look up the question to get correct answer, question_elo, and the pool row's
+    // primary key (needed for elo_history.question_id FK — distinct from the JSONB's
+    // inner id that the client sends).
     const client = this.supabaseService.client;
     const { data } = await client
       .from('question_pool')
-      .select('question, difficulty, question_elo')
+      .select('id, question, difficulty, question_elo')
       .eq('category', 'LOGO_QUIZ')
       .filter('question->>id', 'eq', questionId)
       .limit(1)
@@ -166,7 +168,7 @@ export class LogoQuizService {
       p_difficulty: difficulty,
       p_correct: correct,
       p_timed_out: timedOut,
-      p_question_id: questionId,
+      p_question_id: data.id,
       p_mode: rpcMode,
     });
 
