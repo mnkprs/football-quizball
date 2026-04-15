@@ -29,9 +29,9 @@ describe('AnalyticsService.aggregate', () => {
 
   it('buckets by difficulty and era', () => {
     const q: RawQuestionEvent[] = [
-      { created_at: 't', correct: true, difficulty: 'easy', era: '2010s' },
-      { created_at: 't', correct: false, difficulty: 'easy', era: '2010s' },
-      { created_at: 't', correct: true, difficulty: 'hard', era: '2020s' },
+      { created_at: '2026-04-01T10:00:00Z', correct: true, difficulty: 'easy', era: '2010s' },
+      { created_at: '2026-04-01T10:00:00Z', correct: false, difficulty: 'easy', era: '2010s' },
+      { created_at: '2026-04-01T10:00:00Z', correct: true, difficulty: 'hard', era: '2020s' },
     ];
     const out = svc.aggregate(q, [], 1000);
     const easy = out.by_difficulty.find((b) => b.bucket === 'easy')!;
@@ -46,21 +46,21 @@ describe('AnalyticsService.aggregate', () => {
     const q: RawQuestionEvent[] = [
       // HISTORY: 4/5 correct
       ...Array.from({ length: 5 }, (_, i) => ({
-        created_at: 't',
+        created_at: '2026-04-01T10:00:00Z',
         correct: i < 4,
         difficulty: 'easy',
         category: 'HISTORY',
       })),
       // LOGO: 1/5 correct
       ...Array.from({ length: 5 }, (_, i) => ({
-        created_at: 't',
+        created_at: '2026-04-01T10:00:00Z',
         correct: i < 1,
         difficulty: 'easy',
         category: 'LOGO_QUIZ',
       })),
       // PLAYER_ID: 3/3 correct but too-small sample (ignored)
       ...Array.from({ length: 3 }, () => ({
-        created_at: 't',
+        created_at: '2026-04-01T10:00:00Z',
         correct: true,
         difficulty: 'easy',
         category: 'PLAYER_ID',

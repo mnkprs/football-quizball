@@ -1020,20 +1020,14 @@ export class SupabaseService {
     return data ?? [];
   }
 
-  async getCurrentElo(userId: string): Promise<number> {
-    const profile = await this.getProfile(userId);
-    return profile?.elo ?? 1000;
-  }
-
+  // Returns only fields currently sourced from elo_history. Tag-based breakdowns
+  // (era/category/competition_type/league_tier) require joining against
+  // question_pool or match_history.detail_snapshot — tracked as follow-up.
   async getQuestionEventsRaw(userId: string): Promise<
     Array<{
       created_at: string;
       correct: boolean;
       difficulty: string;
-      category?: string;
-      era?: string;
-      competition_type?: string;
-      league_tier?: number;
     }>
   > {
     const { data, error } = await this.client

@@ -15,11 +15,12 @@ export class AnalyticsService {
   constructor(private readonly supabase: SupabaseService) {}
 
   async getForUser(userId: string): Promise<AnalyticsSummary> {
-    const [eloEvents, questionEvents, currentElo] = await Promise.all([
+    const [eloEvents, questionEvents] = await Promise.all([
       this.supabase.getEloHistoryRaw(userId),
       this.supabase.getQuestionEventsRaw(userId),
-      this.supabase.getCurrentElo(userId),
     ]);
+    const currentElo =
+      eloEvents.length > 0 ? eloEvents[eloEvents.length - 1].elo_after : 1000;
     return this.aggregate(questionEvents, eloEvents, currentElo);
   }
 
@@ -31,9 +32,12 @@ export class AnalyticsService {
     const total = questions.length;
     const correct = questions.filter((q) => q.correct).length;
     const accuracy = total === 0 ? 0 : correct / total;
-    const peak_elo = elo.length > 0 ? Math.max(...elo.map((e) => e.elo_after)) : currentElo;
+    const peak_elo = elo.reduce(
+      (m, e) => (e.elo_after > m ? e.elo_after : m),
+      elo.length > 0 ? -Infinity : currentElo,
+    );
     const uniqueDays = new Set(
-      questions.map((q) => q.created_at.slice(0, 10)),
+      questions.map((q) => new Date(q.created_at).toISOString().slice(0, 10)),
     ).size;
 
     const elo_trajectory: EloPoint[] = elo

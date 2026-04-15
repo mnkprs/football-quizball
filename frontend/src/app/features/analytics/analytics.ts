@@ -5,9 +5,7 @@ import { AnalyticsApiService, AnalyticsSummary } from '../../core/analytics-api.
 import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
 import { EloTrajectoryComponent } from './widgets/elo-trajectory';
-import { CategoryHeatmapComponent } from './widgets/category-heatmap';
 import { DifficultyBreakdownComponent } from './widgets/difficulty-breakdown';
-import { EraBreakdownComponent } from './widgets/era-breakdown';
 import { ProTeaserComponent } from './widgets/pro-teaser';
 
 @Component({
@@ -16,9 +14,7 @@ import { ProTeaserComponent } from './widgets/pro-teaser';
   imports: [
     CommonModule,
     EloTrajectoryComponent,
-    CategoryHeatmapComponent,
     DifficultyBreakdownComponent,
-    EraBreakdownComponent,
     ProTeaserComponent,
   ],
   templateUrl: './analytics.html',
@@ -40,6 +36,7 @@ export class AnalyticsComponent implements OnInit {
       this.router.navigate(['/login']);
       return;
     }
+    await this.pro.ensureLoaded();
     if (!this.pro.isPro()) {
       this.loading.set(false);
       return;

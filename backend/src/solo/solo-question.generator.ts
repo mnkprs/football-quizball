@@ -166,6 +166,7 @@ Omit fields you are not confident about; do not guess.`;
       difficulty_factor: Math.max(0.1, Math.min(1.0, raw.difficulty_factor ?? 0.5)),
       category: 'HISTORY',
       points: resolveQuestionPoints('HISTORY', difficulty),
+      analytics_tags: mapped.analytics_tags,
     };
   }
 }
