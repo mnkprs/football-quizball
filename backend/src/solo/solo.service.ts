@@ -178,6 +178,10 @@ export class SoloService {
     session.currentQuestion = null;
     session.servedAt = null;
 
+    // Pool questions have UUID ids; LLM-fallback questions have synthetic ids starting with 'solo-'.
+    // Only pass pool UUIDs to avoid FK violations on elo_history.question_id.
+    const questionPoolId = question.id?.startsWith('solo-') ? null : (question.id ?? null);
+
     // Atomic DB write: updates elo + inserts history in a single transaction
     await Promise.all([
       this.sessionStore.set(this.sessionKey(sessionId), session, SESSION_TTL),
@@ -189,6 +193,7 @@ export class SoloService {
         difficulty: question.difficulty,
         correct,
         timed_out: timedOut,
+        question_id: questionPoolId,
       }),
     ]);
 

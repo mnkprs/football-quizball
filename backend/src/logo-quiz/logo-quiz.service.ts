@@ -165,6 +165,7 @@ export class LogoQuizService {
       p_difficulty: difficulty,
       p_correct: correct,
       p_timed_out: timedOut,
+      p_question_id: questionId,
     });
 
     if (rpcError) {
