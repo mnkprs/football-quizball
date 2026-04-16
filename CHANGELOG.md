@@ -2,6 +2,17 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.0.0] - 2026-04-17
+
+### Changed
+- **Full /audit remediation pass** — implemented all 7 audit recommendations in a single sweep (0.6.8.1 → 0.7.0.0).
+  - **/harden**: propagated setup's a11y pattern to board (sr-only h1, aria-labels on question circles "Geography, 100 points, unanswered", end-game button aria-label, 44px touch target), result (sr-only h1, role=status on result card, aria-hidden on decorative SVGs), loading (fixed heading h2→h1). Added 6 i18n keys.
+  - **/adapt**: board end-game button bumped from ~26px to 44×44px touch target with p-3 + min-h/min-w.
+  - **/typeset**: finals "Final Results" heading upscaled from text-2xl font-black (24px/900 system) to font-headline text-4xl font-bold (40px/700 Space Grotesk). Game now opens and closes at the same typographic register.
+  - **/normalize**: new tokens `--color-accent-bg-subtle`, `--color-accent-border-soft`, `--color-accent-border-med`, `--color-warning-bg-subtle`, `--color-warning-border-soft`, `--color-warning-border-med`, `--duration-pulse`, `--shadow-text-subtle`. All inline brand-color rgba literals in board/result/finals replaced with token references. Shared `.loading-tile` + `.loading-dot` classes extracted to `styles/components/_loading.css` + registered in styles/index.css.
+  - **/quieter**: finals non-winner player cards demoted from glassmorphism (`backdrop-filter: blur`) to flat `--color-surface-low` with inset ghost border. Glass earned only by the winner card's hero moment.
+  - **/polish**: replaced ⚽ emoji spinners in solo.html and logo-quiz.html with the shared `.loading-tile` branded loader (same pattern as game-flow loading phase).
+
 ## [0.6.8.1] - 2026-04-16
 
 ### Changed

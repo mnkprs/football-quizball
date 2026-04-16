@@ -68,8 +68,8 @@
 }
 
 .result-score-card--p1 {
-  background: rgba(0, 122, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(0, 122, 255, 0.22);
+  background: var(--color-accent-bg-subtle);
+  box-shadow: inset 0 0 0 1px var(--color-accent-border-soft);
 }
 
 .result-score-card--p1.active {
@@ -77,8 +77,8 @@
 }
 
 .result-score-card--p2 {
-  background: rgba(255, 149, 0, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 149, 0, 0.22);
+  background: var(--color-warning-bg-subtle);
+  box-shadow: inset 0 0 0 1px var(--color-warning-border-soft);
 }
 
 .result-score-card--p2.active {

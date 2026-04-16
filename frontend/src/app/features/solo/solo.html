@@ -82,7 +82,9 @@
       <!-- LOADING QUESTION phase -->
       @if (phase() === 'loading-question') {
         <div class="flex-1 flex items-center justify-center" role="status" aria-label="Loading">
-          <span class="text-5xl animate-spin" style="animation: spin 1s linear infinite;" aria-hidden="true">⚽</span>
+          <div class="loading-tile" aria-hidden="true">
+            <img src="/stepover-logo-white-bg.png" alt="" class="w-12 h-12 object-contain" width="48" height="48" />
+          </div>
         </div>
       }
 
