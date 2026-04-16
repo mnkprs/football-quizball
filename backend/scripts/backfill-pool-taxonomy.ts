@@ -249,9 +249,9 @@ async function maybeApply(
         time_sensitive: c.time_sensitive,
         valid_until: c.valid_until,
         tags: c.tags.length ? c.tags : null,
-        league_tier: c.league_tier,
-        competition_type: c.competition_type,
-        era: c.era,
+        // league_tier + competition_type now filled by the competition_metadata
+        // trigger. era is a generated column. Only event_year remains
+        // classifier-sourced.
         event_year: c.event_year,
       })
       .eq('id', r.question_id);

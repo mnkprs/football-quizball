@@ -710,12 +710,14 @@ export class PoolSeedService {
         },
         raw_score: q.raw_score ?? null,
         embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,
-        // Prefer generator-provided analytics_tags; fall back to classifier so
-        // analytics widgets stay accurate even for category generators that
-        // don't emit these fields.
-        league_tier: q.analytics_tags?.league_tier ?? tax?.league_tier ?? null,
-        competition_type: q.analytics_tags?.competition_type ?? tax?.competition_type ?? null,
-        era: q.analytics_tags?.era ?? tax?.era ?? null,
+        // league_tier and competition_type are auto-populated by the
+        // sync_question_pool_competition_meta trigger based on competition_id.
+        // era is a generated column (derived from event_year), no longer writable.
+        // We still honour generator-provided overrides for league_tier /
+        // competition_type if analytics_tags supplies them (COALESCE in the
+        // trigger prefers non-NULL NEW values).
+        league_tier: q.analytics_tags?.league_tier ?? null,
+        competition_type: q.analytics_tags?.competition_type ?? null,
         event_year: q.analytics_tags?.event_year ?? tax?.event_year ?? null,
         nationality: q.analytics_tags?.nationality ?? null,
         // Taxonomy fields from the classifier (nullable; classifier may skip).
