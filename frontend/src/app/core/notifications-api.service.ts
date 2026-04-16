@@ -7,6 +7,8 @@ import { DailyApiService } from './daily-api.service';
 import { environment } from '../../environments/environment';
 import type { AppNotification, NotificationGroup } from '../models/notification.model';
 
+const ONE_DAY_MS = 86_400_000;
+
 @Injectable({ providedIn: 'root' })
 export class NotificationsApiService {
   private readonly http = inject(HttpClient);
@@ -66,6 +68,8 @@ export class NotificationsApiService {
       if (newsMeta && newsMeta.questions_remaining > 0) {
         const dismissedKey = localStorage.getItem('qb_notif_news_dismissed');
         const isRead = dismissedKey === newsMeta.expires_at;
+        const publishedAt = newsMeta.round_created_at
+          ?? (newsMeta.expires_at ? new Date(new Date(newsMeta.expires_at).getTime() - ONE_DAY_MS).toISOString() : new Date().toISOString());
         notifs.push({
           id: `frontend-news-${newsMeta.expires_at}`,
           type: 'new_news_round',
@@ -74,7 +78,7 @@ export class NotificationsApiService {
           icon: '📰',
           route: '/news',
           read: isRead,
-          createdAt: new Date().toISOString(),
+          createdAt: publishedAt,
           source: 'frontend',
         });
       }
@@ -87,6 +91,8 @@ export class NotificationsApiService {
       if (dailyMeta && dailyMeta.count > 0) {
         const dismissedKey = localStorage.getItem('qb_notif_daily_dismissed');
         const isRead = dismissedKey === dailyMeta.resetsAt;
+        const publishedAt = dailyMeta.publishedAt
+          ?? new Date(new Date(dailyMeta.resetsAt).getTime() - ONE_DAY_MS).toISOString();
         notifs.push({
           id: `frontend-daily-${dailyMeta.resetsAt}`,
           type: 'new_daily_round',
@@ -95,7 +101,7 @@ export class NotificationsApiService {
           icon: '📅',
           route: '/daily',
           read: isRead,
-          createdAt: new Date().toISOString(),
+          createdAt: publishedAt,
           source: 'frontend',
         });
       }

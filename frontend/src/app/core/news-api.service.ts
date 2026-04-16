@@ -9,6 +9,7 @@ export interface NewsMetadata {
   questions_total: number;
   questions_remaining: number;
   expires_at: string | null;
+  round_created_at: string | null;
   streak: number;
   max_streak: number;
 }

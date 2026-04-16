@@ -84,16 +84,24 @@ export class DailyService implements OnModuleInit {
    * Returns metadata for today's daily challenge (count, next reset time).
    * Does not trigger generation — returns 0 if not yet created.
    */
-  async getMetadata(): Promise<{ count: number; resetsAt: string }> {
+  async getMetadata(): Promise<{ count: number; resetsAt: string; publishedAt: string | null }> {
     const today = this.getTodayDateStr();
-    const existing = await this.fetchForDate(today);
-    const count = existing.length;
+
+    const { data } = await this.supabaseService.client
+      .from('daily_questions')
+      .select('questions, created_at')
+      .eq('question_date', today)
+      .maybeSingle();
+
+    const raw = (data?.questions ?? []) as Array<{ question_text: string; correct_answer: string; wrong_choices: string[]; explanation: string }>;
+    const count = raw.length;
+    const publishedAt = count > 0 ? ((data?.created_at as string) ?? null) : null;
 
     const now = new Date();
     const tomorrow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
     const resetsAt = tomorrow.toISOString();
 
-    return { count, resetsAt };
+    return { count, resetsAt, publishedAt };
   }
 
   private getTodayDateStr(): string {

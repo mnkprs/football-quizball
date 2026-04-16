@@ -23,6 +23,7 @@ export interface DailyQuestionsResponse {
 export interface DailyMetadata {
   count: number;
   resetsAt: string;
+  publishedAt: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
