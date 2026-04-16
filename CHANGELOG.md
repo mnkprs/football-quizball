@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.6.0] - 2026-04-16
+
+### Changed
+- **2P setup screen amplified to matchday poster (/bolder)** — minimal-but-generic setup reclaimed the brand context. Full-bleed stadium pitch background (`/header-banner-bg.jpg`) with DESIGN.md atmospheric dark overlay. Bold `STEPOVR.` poster moment at top using the existing `.brand-text` class (Alfa Slab One italic, chrome-reflect — the shipped brand mark, used elsewhere in splash/auth/invite). "STARTING LINEUP" eyebrow in Lexend small caps anchors the card's purpose in matchday language. Kick Off CTA hover now lifts + glows to `--glow-accent-lg`. Glass card now earns its frost by floating over atmospheric imagery instead of decorating thin air. All a11y preserved end-to-end.
+
 ## [0.6.5.0] - 2026-04-16
 
 ### Fixed
