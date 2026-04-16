@@ -5,68 +5,23 @@ All notable changes to Stepover will be documented in this file.
 ## [0.7.0.0] - 2026-04-17
 
 ### Changed
-- **Full /audit remediation pass** — implemented all 7 audit recommendations in a single sweep (0.6.8.1 → 0.7.0.0).
-  - **/harden**: propagated setup's a11y pattern to board (sr-only h1, aria-labels on question circles "Geography, 100 points, unanswered", end-game button aria-label, 44px touch target), result (sr-only h1, role=status on result card, aria-hidden on decorative SVGs), loading (fixed heading h2→h1). Added 6 i18n keys.
-  - **/adapt**: board end-game button bumped from ~26px to 44×44px touch target with p-3 + min-h/min-w.
-  - **/typeset**: finals "Final Results" heading upscaled from text-2xl font-black (24px/900 system) to font-headline text-4xl font-bold (40px/700 Space Grotesk). Game now opens and closes at the same typographic register.
-  - **/normalize**: new tokens `--color-accent-bg-subtle`, `--color-accent-border-soft`, `--color-accent-border-med`, `--color-warning-bg-subtle`, `--color-warning-border-soft`, `--color-warning-border-med`, `--duration-pulse`, `--shadow-text-subtle`. All inline brand-color rgba literals in board/result/finals replaced with token references. Shared `.loading-tile` + `.loading-dot` classes extracted to `styles/components/_loading.css` + registered in styles/index.css.
-  - **/quieter**: finals non-winner player cards demoted from glassmorphism (`backdrop-filter: blur`) to flat `--color-surface-low` with inset ghost border. Glass earned only by the winner card's hero moment.
-  - **/polish**: replaced ⚽ emoji spinners in solo.html and logo-quiz.html with the shared `.loading-tile` branded loader (same pattern as game-flow loading phase).
-
-## [0.6.8.1] - 2026-04-16
-
-### Changed
-- **Loading phase redesigned** — replaced the `text-8xl ⚽` spinning-football emoji (emoji-as-design anti-slop) with the branded loader tile already used by `app-question` (pulsing accent-bg square containing the StepOver mark). Heading now uses Space Grotesk per DESIGN.md type system. Three-dot progress indicator uses `--color-accent` with a staggered bounce, respects `prefers-reduced-motion`. Added `role="status"` + `aria-live="polite"` so screen readers announce the progress message.
-
-## [0.6.8.0] - 2026-04-16
-
-### Changed
-- **Finals (game-over) phase amplified + tokenized** — `app-results` was a lime-heavy end screen with hardcoded blue/red gradients. Redesigned to Floodlit Arena: full-bleed stadium pitch background with atmospheric overlay (same treatment as setup poster — game ends on the field it started), glowing trophy in iOS blue with a subtle breath animation (2.4s, respects `prefers-reduced-motion`), winner card as the hero moment using `--color-accent-bg` + `--glow-accent-sm`, glass player cards floating over the pitch with P1/P2 identity via blue/orange tokens, crown uses `--color-pro` (gold) for winners. Kill emoji in copy: "🤝 It's a Draw!" → "It's a Draw", "Play Again ⚽" → "Play Again", removed opaque 1px borders on breakdown card.
-
-## [0.6.7.1] - 2026-04-16
-
-### Changed
-- **Per-question result phase redesigned** — same Floodlit Arena pass applied to `app-result`. Dropped lime hardcodes on result-points text-shadow, result-icon win drop-shadow, result-override-btn hover tints, and result-continue-btn gradient. Continue button now uses `var(--color-accent)` → `var(--color-accent-dim)` gradient with `--glow-accent-sm/md` on interaction. P1/P2 score cards aligned to blue/orange tokens. Removed opaque `border border-border/50` from answer-reveal + wrong-guesses cards (CSS provides inset ghost shadows). Icons use semantic success/error tokens.
-
-## [0.6.7.0] - 2026-04-16
-
-### Changed
-- **2P board phase redesigned to Floodlit Arena tokens** — stripped the pre-DESIGN.md lime drift (`rgba(204, 255, 0, *)`) and hardcoded player colors (`#3b82f6`, `#ef4444`). Board-header-logo now glows `var(--glow-accent-sm)` (iOS blue) instead of lime. Board-powerup-armed uses `--color-accent` + `--color-accent-bg` with a calmer 1.8s pulse (respects `prefers-reduced-motion`). Player identity aligned across phases: P1 = `--color-accent` (iOS blue), P2 = `--color-warning` (orange) — same as setup + question components. Score numbers now use Space Grotesk tabular-nums, turn badges use Lexend (per DESIGN.md type system). Replaced 1px solid opaque borders with inset ghost shadows using the new `--color-border-ghost` token (DESIGN.md no-line rule).
-
-## [0.6.6.0] - 2026-04-16
-
-### Changed
-- **2P setup screen amplified to matchday poster (/bolder)** — minimal-but-generic setup reclaimed the brand context. Full-bleed stadium pitch background (`/header-banner-bg.jpg`) with DESIGN.md atmospheric dark overlay. Bold `STEPOVR.` poster moment at top using the existing `.brand-text` class (Alfa Slab One italic, chrome-reflect — the shipped brand mark, used elsewhere in splash/auth/invite). "STARTING LINEUP" eyebrow in Lexend small caps anchors the card's purpose in matchday language. Kick Off CTA hover now lifts + glows to `--glow-accent-lg`. Glass card now earns its frost by floating over atmospheric imagery instead of decorating thin air. All a11y preserved end-to-end.
-
-## [0.6.5.0] - 2026-04-16
+- **2-Player game visual redesign (all 6 phases)** — realigned every game phase to the Floodlit Arena design system (DESIGN.md, 2026-03-24). The entire game flow had drifted to a pre-redesign "premium glass" aesthetic using lime `rgba(204,255,0,*)` instead of the brand accent iOS blue `#007AFF`.
+  - **Question**: CSS rewritten from 555 to 139 lines. Glass-on-everything replaced with tonal surfaces. 4 idle infinite animations removed (shimmer, player-glow, double-armed-glow, corner blobs). Skeuomorphic Higher/Lower buttons flattened. Question text upgraded to Inter title-lg (1.375rem/600).
+  - **Setup**: matchday poster composition. Full-bleed stadium pitch background with atmospheric overlay. Bold STEPOVR. brand moment in Alfa Slab One italic. "STARTING LINEUP" eyebrow in Lexend. Decorative chrome removed (logo badge, wordmark duplicate, VS divider, ball emoji).
+  - **Board**: tokenized end-to-end. Score numbers in Space Grotesk tabular-nums, turn badges in Lexend. End-game button bumped to 44px touch target.
+  - **Result (per-question)**: Continue button aligned to iOS blue gradient. Score cards use blue/orange tokens.
+  - **Finals**: stadium pitch background (game ends where it started). Trophy glows iOS blue. "Final Results" heading upscaled to Space Grotesk 2.5rem. Non-winner player cards demoted from glass to flat surface.
+  - **Loading**: spinning football emoji replaced with branded pulsing StepOver mark.
+- **Player identity unified** — P1 = `--color-accent` (iOS blue), P2 = `--color-warning` (orange) across all 6 phases. Previously used hardcoded `#3b82f6` / `#ef4444`.
+- **Token system extended** — 10 new CSS custom properties: `--color-border-ghost`, `--color-accent-bg-subtle`, `--color-accent-border-soft/-med`, `--color-warning-bg-subtle/-border-soft/-med`, `--duration-pulse`, `--shadow-text-subtle`. Light-theme glass override via `:root:not(.dark)`.
+- **Shared `.loading-tile`** — extracted to `styles/components/_loading.css`. Replaces emoji spinners in game loading, solo, and logo-quiz.
+- **Emoji removed from copy** — "Kick Off! ⚽" → "Kick Off", "Play Again ⚽" → "Play Again", "🤝 It's a Draw!" → "It's a Draw".
+- **Theme toggles removed** from game phases (board, setup, loading).
 
 ### Fixed
-- **Setup screen a11y audit cleanup** — implemented all nine /audit findings against `app-setup`. Labels now linked to inputs via `for`/`id` (`setup-player1`, `setup-player2`) so VoiceOver / TalkBack announce field names and label-tap focuses the input. Added a visually-hidden `<h1>` "2-Player Game Setup" for screen-reader orientation (no visual change). Replaced `focus:outline-none` with `focus-visible:outline-none` on both inputs. Error banner carries `role="alert"` so backend failures get announced. Disabled Kick Off now shows a "Minimum 2 characters each" hint under the button while `canStart()` is false, and the button's `aria-describedby` points to that hint.
-
-### Changed
-- **Back button in 2P game** — bumped touch target to 44×44px min (was ~36px), cleaned up the contradictory `fixed top-4 relative` class combo (Tailwind silently applied `relative`), added `focus-visible` ring.
-- **Tokens** — added `--color-border-ghost` (+`-strong` variant) to `_tokens.css` for the inset ghost-border pattern used on inputs (replaces hardcoded `rgba(168, 179, 196, 0.12)` in two components). Added a `:root:not(.dark)` block that overrides `--glass-bg-*` and `--glass-border-*` with translucent-white variants for light theme (previously dark-tuned rgba read muddy over light backgrounds). Non-destructive — dark theme is unchanged.
-- **Setup component imports** — dropped unused `NgOptimizedImage` + `signal` imports from `setup.ts` (images were removed with the logo chrome strip).
-
-## [0.6.4.1] - 2026-04-16
-
-### Fixed
-- **Setup screen card anchored to top** — after the decorative-chrome strip, `.setup-page` used `flex flex-1 items-center justify-center` but `flex-1` couldn't resolve to a concrete height (parent chain is `min-h-screen`, not `h-screen`), so `items-center` had nothing to center against and the card snapped to the top of the viewport. Added `min-height: calc(100dvh - 9.5rem)` on `.setup-page` (9.5rem = back-button row + shell-main's reserved bottom-nav space). Content now reads as one balanced composition with no overflow scroll.
-
-## [0.6.4.0] - 2026-04-16
-
-### Changed
-- **2P setup screen simplified** — stripped decorative chrome from `app-setup` following the same Floodlit Arena direction as the question redesign. Removed the huge decorated logo badge + STEPOVR. wordmark + subtitle (duplicates top-nav brand), the "ENTER PLAYER NAMES" heading (redundant with the Player 1 / Player 2 labels), the "VS" divider, and the "⚽" ball emoji from the Kick Off button (emoji-as-design anti-slop). Replaced hardcoded `focus:border-blue-500`/`focus:border-red-500` ring colors with design tokens matching the question component input pattern. Tightened `rounded-2xl` (16px) → `rounded-xl` (12px) per DESIGN.md radius hierarchy. Player dots flat accent/warning (no idle glow). CSS reduced 96 → 68 lines.
-
-## [0.6.3.1] - 2026-04-16
-
-### Fixed
-- **Question screen black band + overflow scroll** — post-redesign polish caught in live play: `.question-page` had its own `background: var(--color-bg)` (#131313 dark grey) which contrasted with the outer `game.html` wrapper's `bg-background` (#000 in dark), rendering a visible "black box" band above the back button. Removed the explicit bg so the page inherits the wrapper. Also replaced `min-h-screen` on the inner page with `flex-1` inside the now-flex game wrapper — fixes the overflow scroll that was hiding the "Report a problem" button below the viewport (previous stack was double `min-h-screen` + shell-main's reserved 88px bottom-nav space).
-
-## [0.6.3.0] - 2026-04-16
-
-### Changed
-- **Question screen redesign** — realigned `app-question` component to the Floodlit Arena design system (DESIGN.md, 2026-03-24). The component had drifted back to a pre-redesign "premium glass" aesthetic using lime `rgba(204,255,0,*)` instead of the brand accent iOS blue `#007AFF`. Audit identified 15 findings; fixed via two atomic commits: a CSS rewrite (555 → 139 lines) that replaces glass-on-everything with tonal surface steps, removes 4 idle infinite animations (shimmer, player-glow, double-armed-glow, corner-blob gradients), flattens the skeuomorphic Higher/Lower buttons, and restores the iOS blue accent throughout; and a template pass that tightens `rounded-2xl` (16px) → `rounded-xl` (12px) on primary cards per DESIGN.md radius hierarchy, upgrades the question text to Inter title-lg (1.375rem/600), adds keyboard-visible focus rings to 50-50 + lifeline + HOL + submit + report buttons, and drops the HOL icon stroke-width from 3 to 2. Full audit at `~/.gstack/projects/mnkprs-football-quizball/designs/design-audit-20260416-question-component/`.
+- **Question screen black band + overflow scroll** — question page had its own background color that conflicted with the game wrapper, creating a visible black band at top. Replaced `min-h-screen` with `flex-1` inside the now-flex game wrapper.
+- **Setup card anchored to top** — `flex-1` couldn't resolve a concrete height. Fixed with explicit `min-height: calc(100dvh - 9.5rem)`.
+- **A11y hardened across all game phases** — labels linked to inputs via `for`/`id`, visually-hidden `<h1>` headings on every phase for screen-reader orientation, `role="alert"` on error banners, `role="status"` on result cards, `aria-label` on board question circles ("Geography, 100 points, unanswered"), `aria-describedby` on disabled Kick Off with helper hint, `focus-visible` rings on all interactive elements, back button minimum 44px touch target. All animations respect `prefers-reduced-motion`.
 
 ## [0.6.2.1] - 2026-04-16
 
