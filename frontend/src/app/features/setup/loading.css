@@ -1,28 +1,10 @@
-/* ─── LOADING PHASE — calm brand moment while questions stream
-   Replaces the text-8xl ⚽ spinner (emoji-as-design anti-slop).
-   Uses the same branded loader tile as app-question for
-   consistency across phases.
+/* ─── LOADING PHASE — component-specific styles only.
+   Shared .loading-tile + .loading-dot are defined globally in
+   styles/components/_loading.css (available to all features).
    ─────────────────────────────────────────────────────── */
 
 .loading-page {
   background: var(--color-bg);
-}
-
-.loading-tile {
-  width: 5rem;
-  height: 5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-accent-bg);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glow-accent-sm);
-  animation: loading-tile-pulse var(--duration-pulse) ease-in-out infinite;
-}
-
-@keyframes loading-tile-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); box-shadow: var(--glow-accent-sm); }
-  50%      { opacity: 0.9; transform: scale(1.04); box-shadow: var(--glow-accent-md); }
 }
 
 .loading-heading {
@@ -30,24 +12,4 @@
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-}
-
-.loading-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: loading-dot-bounce 1.4s ease-in-out infinite;
-}
-
-@keyframes loading-dot-bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40%           { transform: scale(1); opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loading-tile,
-  .loading-dot {
-    animation: none;
-  }
 }
