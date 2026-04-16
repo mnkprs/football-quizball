@@ -193,6 +193,7 @@ export class NewsService {
     questions_total: number;
     questions_remaining: number;
     expires_at: string | null;
+    round_created_at: string | null;
     streak: number;
     max_streak: number;
   }> {
@@ -204,6 +205,7 @@ export class NewsService {
         questions_total: 0,
         questions_remaining: 0,
         expires_at: null,
+        round_created_at: null,
         streak: streakInfo?.current_streak ?? 0,
         max_streak: streakInfo?.max_streak ?? 0,
       };
@@ -234,6 +236,7 @@ export class NewsService {
       questions_total: round.question_count,
       questions_remaining: questionsRemaining,
       expires_at: round.expires_at,
+      round_created_at: round.created_at,
       streak: streakInfo?.current_streak ?? 0,
       max_streak: streakInfo?.max_streak ?? 0,
     };
@@ -348,17 +351,17 @@ export class NewsService {
 
   // ── Private helpers ──────────────────────────────────────────────
 
-  private async getActiveRound(): Promise<{ id: string; expires_at: string; question_count: number } | null> {
+  private async getActiveRound(): Promise<{ id: string; expires_at: string; question_count: number; created_at: string } | null> {
     const { data, error } = await this.supabaseService.client
       .from('news_rounds')
-      .select('id, expires_at, question_count')
+      .select('id, expires_at, question_count, created_at')
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (error || !data) return null;
-    return data as { id: string; expires_at: string; question_count: number };
+    return data as { id: string; expires_at: string; question_count: number; created_at: string };
   }
 
   private async getRoundQuestionIds(roundId: string): Promise<string[]> {
