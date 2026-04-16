@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.3.1] - 2026-04-16
+
+### Fixed
+- **Question screen black band + overflow scroll** — post-redesign polish caught in live play: `.question-page` had its own `background: var(--color-bg)` (#131313 dark grey) which contrasted with the outer `game.html` wrapper's `bg-background` (#000 in dark), rendering a visible "black box" band above the back button. Removed the explicit bg so the page inherits the wrapper. Also replaced `min-h-screen` on the inner page with `flex-1` inside the now-flex game wrapper — fixes the overflow scroll that was hiding the "Report a problem" button below the viewport (previous stack was double `min-h-screen` + shell-main's reserved 88px bottom-nav space).
+
 ## [0.6.3.0] - 2026-04-16
 
 ### Changed
