@@ -1,22 +1,30 @@
+/* ─── RESULT PHASE (per-question) — Floodlit Arena ───────
+   Transitional screen between question and next turn.
+   Brief moment — don't compete with the board/question.
+   ─────────────────────────────────────────────────────── */
+
 .result-page {
-  background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 97%, #000 3%) 100%);
+  background: var(--color-bg);
 }
 
+/* ─── Result card (win / loss) ─── */
+
 .result-card {
-  border: 1px solid transparent;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
 }
 
 .result-card--win {
-  background: linear-gradient(135deg, rgba(204, 255, 0, 0.12) 0%, rgba(204, 255, 0, 0.05) 100%);
-  border-color: rgba(204, 255, 0, 0.3);
+  background: var(--color-success-bg);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.3);
 }
 
 .result-card--loss {
-  background: linear-gradient(135deg, rgba(179, 38, 30, 0.12) 0%, rgba(179, 38, 30, 0.05) 100%);
-  border-color: rgba(179, 38, 30, 0.3);
-  animation: wrong-shake-tight 400ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
+  background: rgba(179, 38, 30, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(179, 38, 30, 0.3);
+  animation: wrong-shake-tight 400ms var(--ease-out-quart);
 }
+
+/* Result icon */
 
 .result-icon-wrap {
   display: flex;
@@ -29,90 +37,108 @@
 }
 
 .result-icon--win {
-  color: var(--color-accent);
-  filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.4));
+  color: var(--color-success);
+  filter: drop-shadow(0 0 10px rgba(34, 197, 94, 0.4));
 }
 
 .result-icon--loss {
-  color: var(--color-loss);
-  filter: drop-shadow(0 0 8px rgba(179, 38, 30, 0.4));
+  color: var(--color-error);
+  filter: drop-shadow(0 0 10px rgba(179, 38, 30, 0.4));
 }
+
+/* Points delta */
 
 .result-points {
   color: var(--color-accent);
-  text-shadow: 0 0 12px rgba(204, 255, 0, 0.3);
+  font-family: var(--font-headline);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
+
+/* ─── Correct answer reveal card ─── */
 
 .result-answer-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
 }
 
+/* ─── Score cards (P1 / P2) ─── */
+
 .result-score-card {
-  border: 1px solid transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
 }
 
 .result-score-card--p1 {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.05) 100%);
-  border-color: rgba(59, 130, 246, 0.25);
+  background: rgba(0, 122, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(0, 122, 255, 0.22);
 }
 
 .result-score-card--p1.active {
-  border-color: rgba(59, 130, 246, 0.5);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
 .result-score-card--p2 {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.05) 100%);
-  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(255, 149, 0, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 149, 0, 0.22);
 }
 
 .result-score-card--p2.active {
-  border-color: rgba(239, 68, 68, 0.5);
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+  box-shadow: inset 0 0 0 2px var(--color-warning);
 }
 
 .result-player-name {
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-family: var(--font-numeric);
 }
 
-.result-player-name--p1 { color: #60a5fa; }
-.result-player-name--p2 { color: #f87171; }
+.result-player-name--p1 { color: var(--color-accent); }
+.result-player-name--p2 { color: var(--color-warning); }
+
+/* ─── Host override buttons (tertiary) ─── */
 
 .result-override-btn {
   background: transparent;
-  border: 1px solid;
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost-strong);
+  transition:
+    background-color var(--duration-normal) ease-out,
+    box-shadow var(--duration-normal) ease-out;
 }
 
 .result-override-btn--correct {
-  border-color: rgba(204, 255, 0, 0.4);
-  color: var(--color-accent);
+  color: var(--color-success);
 }
 
 .result-override-btn--correct:hover {
-  background: rgba(204, 255, 0, 0.1);
+  background: var(--color-success-bg);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.4);
 }
 
 .result-override-btn--wrong {
-  border-color: rgba(179, 38, 30, 0.4);
-  color: var(--color-loss);
+  color: var(--color-error);
 }
 
 .result-override-btn--wrong:hover {
-  background: rgba(179, 38, 30, 0.1);
+  background: rgba(179, 38, 30, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(179, 38, 30, 0.4);
 }
+
+/* ─── Continue button (primary, iOS blue gradient) ─── */
 
 .result-continue-btn {
-  background: linear-gradient(135deg, var(--color-accent) 0%, #b8e600 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%);
   color: var(--color-accent-foreground);
-  box-shadow:
-    0 4px 14px rgba(204, 255, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: var(--glow-accent-sm);
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out-quart),
+    transform var(--duration-fast) ease-out;
 }
 
-.result-continue-btn:hover {
-  box-shadow:
-    0 6px 20px rgba(204, 255, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.result-continue-btn:hover:not(:disabled) {
+  box-shadow: var(--glow-accent-md);
+  transform: translateY(-1px);
+}
+
+.result-continue-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: var(--glow-accent-sm);
 }

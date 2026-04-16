@@ -25,7 +25,7 @@
     </div>
 
     <!-- Correct answer reveal -->
-    <div class="result-answer-card bg-card rounded-xl p-5 mb-5 border border-border/50">
+    <div class="result-answer-card bg-card rounded-xl p-5 mb-5">
       <div class="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-1.5">{{ lang.t().correctAnswer }}</div>
       <div class="text-foreground font-bold text-lg">{{ result()?.correct_answer }}</div>
       @if (result()?.original_image_url) {
@@ -44,7 +44,7 @@
 
     <!-- TOP_5 wrong guesses -->
     @if (store.top5State()?.wrongGuesses?.length) {
-      <div class="bg-card rounded-xl p-4 mb-5 border border-border/50">
+      <div class="bg-card rounded-xl p-4 mb-5">
         <div class="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-2">{{ lang.t().notInTop5Label }}</div>
         <div class="space-y-1.5">
           @for (wrong of store.top5State()!.wrongGuesses; track $index) {
