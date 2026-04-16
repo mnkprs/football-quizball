@@ -3,7 +3,12 @@
    ────────────────────────────────────────────────────────── */
 
 .setup-page {
-  /* Inherits bg from game.html wrapper (bg-background). */
+  /* Inherits bg from game.html wrapper (bg-background).
+     Concrete min-height so items-center actually centers:
+     100dvh minus back-button row (~4rem) and shell-main's reserved
+     bottom-nav space (~5.5rem). Leaves content vertically balanced
+     and fits inside the visible shell area without overflow. */
+  min-height: calc(100dvh - 9.5rem);
 }
 
 /* ─── Card (allowed glass surface per DESIGN.md) ─── */
