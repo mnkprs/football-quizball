@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FLCC Logo Review</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 24px; background: #0b0f14; color: #e6edf3; }
+  h1 { margin: 0 0 4px; font-size: 20px; }
+  .bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+  .bar select, .bar button { background: #1b2430; color: #e6edf3; border: 1px solid #2b3441; padding: 6px 10px; border-radius: 6px; font: inherit; cursor: pointer; }
+  .bar button:hover { background: #253044; }
+  .stats { font-size: 13px; color: #9aa5b1; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card { background: #12181f; border: 1px solid #232c38; border-radius: 10px; overflow: hidden; transition: border-color .15s; }
+  .card.approved { border-color: #2f8f4e; box-shadow: inset 0 0 0 2px rgba(47,143,78,.3); }
+  .card.rejected { border-color: #a33; box-shadow: inset 0 0 0 2px rgba(170,51,51,.3); opacity: .55; }
+  .card h3 { margin: 0; padding: 10px 12px; font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; }
+  .card h3 small { color: #7a8899; font-weight: normal; }
+  .imgs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: #000; }
+  .imgs figure { margin: 0; background: #fff; position: relative; padding-top: 100%; }
+  .imgs img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .imgs figcaption { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,.6); color: #fff; font-size: 10px; padding: 2px 5px; border-radius: 3px; }
+  .actions { display: flex; gap: 0; }
+  .actions button { flex: 1; border: 0; padding: 10px; font: inherit; font-weight: 600; color: #fff; cursor: pointer; }
+  .actions .approve { background: #2f8f4e; } .actions .approve:hover { background: #3aa65c; }
+  .actions .reject  { background: #a03a3a; } .actions .reject:hover  { background: #c04545; }
+  .actions .reset   { background: #2b3441; } .actions .reset:hover   { background: #3a4654; }
+  .hide-done .card.approved, .hide-done .card.rejected { display: none; }
+</style>
+</head>
+<body>
+<h1>FLCC logo review</h1>
+<div class="stats" id="stats">loading…</div>
+<div class="bar">
+  <label>Country: <select id="country-filter"><option value="">all</option></select></label>
+  <label><input type="checkbox" id="hide-done"> hide approved/rejected</label>
+  <button id="export">Export decisions.json</button>
+  <button id="reset-all">Reset all</button>
+</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const LS_KEY = 'flcc-review-decisions-v1';
+const CACHE_BUST = Date.now();
+let data = null;
+let decisions = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(decisions)); renderStats(); }
+function decide(key, val) { if (val) decisions[key] = val; else delete decisions[key]; save(); }
+
+function renderStats() {
+  const all = Object.values(data.by_country).flat();
+  const approved = Object.values(decisions).filter(v => v === 'approve').length;
+  const rejected = Object.values(decisions).filter(v => v === 'reject').length;
+  document.getElementById('stats').textContent =
+    `${all.length} candidates · ${approved} approved · ${rejected} rejected · ${all.length - approved - rejected} pending`;
+  for (const card of document.querySelectorAll('.card')) {
+    const k = card.dataset.key;
+    card.classList.toggle('approved', decisions[k] === 'approve');
+    card.classList.toggle('rejected', decisions[k] === 'reject');
+  }
+}
+
+function render() {
+  const country = document.getElementById('country-filter').value;
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const countries = country ? [country] : Object.keys(data.by_country).sort();
+  for (const c of countries) {
+    for (const l of data.by_country[c]) {
+      const key = `${c}/${l.slug}`;
+      const v = `?v=${CACHE_BUST}`;
+      const orig = `${c}/${l.slug}.png${v}`;
+      const easy = `${c}/_easy/${l.slug}.easy.webp${v}`;
+      const hard = `${c}/_hard/${l.slug}.hard.webp${v}`;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.key = key;
+      card.style.display = 'none';
+      card.innerHTML = `
+        <h3>${l.team_name} <small>${c}</small></h3>
+        <div class="imgs">
+          <figure><figcaption>original</figcaption><img loading="lazy" src="${orig}" onerror="this.parentElement.style.background='#333'"></figure>
+          <figure><figcaption>easy</figcaption><img src="${easy}" onerror="this.closest('.card').remove()" onload="this.closest('.card').style.display=''"></figure>
+          <figure><figcaption>hard</figcaption><img loading="lazy" src="${hard}" onerror="this.parentElement.style.background='#411'"></figure>
+        </div>
+        <div class="actions">
+          <button class="reject">✘ Reject</button>
+          <button class="reset">Reset</button>
+          <button class="approve">✓ Approve</button>
+        </div>`;
+      card.querySelector('.approve').onclick = () => decide(key, 'approve');
+      card.querySelector('.reject').onclick  = () => decide(key, 'reject');
+      card.querySelector('.reset').onclick   = () => decide(key, null);
+      grid.appendChild(card);
+    }
+  }
+  renderStats();
+}
+
+fetch('new-logos.json').then(r => r.json()).then(j => {
+  data = j;
+  // Only show entries that have an _easy/<slug>.easy.webp — others not generated yet
+  const sel = document.getElementById('country-filter');
+  for (const c of Object.keys(data.by_country).sort()) {
+    const opt = document.createElement('option'); opt.value = c; opt.textContent = c; sel.appendChild(opt);
+  }
+  sel.onchange = render;
+  document.getElementById('hide-done').onchange = (e) => {
+    document.body.classList.toggle('hide-done', e.target.checked);
+  };
+  document.getElementById('export').onclick = () => {
+    const blob = new Blob([JSON.stringify(decisions, null, 2)], { type: 'application/json' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'decisions.json' });
+    a.click();
+  };
+  document.getElementById('reset-all').onclick = () => {
+    if (confirm('Reset ALL decisions?')) { decisions = {}; save(); render(); }
+  };
+  render();
+});
+</script>
+</body>
+</html>
