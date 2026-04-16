@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.7.1] - 2026-04-16
+
+### Changed
+- **Per-question result phase redesigned** — same Floodlit Arena pass applied to `app-result`. Dropped lime hardcodes on result-points text-shadow, result-icon win drop-shadow, result-override-btn hover tints, and result-continue-btn gradient. Continue button now uses `var(--color-accent)` → `var(--color-accent-dim)` gradient with `--glow-accent-sm/md` on interaction. P1/P2 score cards aligned to blue/orange tokens. Removed opaque `border border-border/50` from answer-reveal + wrong-guesses cards (CSS provides inset ghost shadows). Icons use semantic success/error tokens.
+
 ## [0.6.7.0] - 2026-04-16
 
 ### Changed
