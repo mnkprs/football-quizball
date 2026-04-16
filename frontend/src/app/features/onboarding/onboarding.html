@@ -4,7 +4,7 @@
     <!-- Header -->
     <div class="onboarding-header">
       <h1 class="text-foreground font-bold text-base">⚽ Quick intro</h1>
-      @if (phase() !== 'finished') {
+      @if (phase() === 'playing' || phase() === 'flash') {
         <div class="text-muted-foreground text-sm font-semibold tabular-nums">
           {{ currentIndex() + 1 }} / {{ questions().length }}
         </div>
@@ -12,27 +12,76 @@
       <button (click)="skip()" class="skip-btn">Skip</button>
     </div>
 
+    <!-- ─── LOBBY PHASE ─────────────────────────────────────────── -->
+    @if (phase() === 'lobby') {
+      <div class="flex-1 flex flex-col items-center justify-center px-4 text-center">
+        <div class="text-6xl mb-5">⚽</div>
+        <h2 class="text-2xl font-black text-foreground mb-3">Welcome to StepOver</h2>
+        <p class="text-muted-foreground text-base leading-relaxed max-w-xs mb-6">
+          A fast intro — 5 football questions, one from each of our modes.
+        </p>
+
+        <div class="flex gap-3 mb-8 text-2xl">
+          <span aria-label="Logo Quiz">🛡️</span>
+          <span aria-label="Higher or Lower">📊</span>
+          <span aria-label="Geography">🌍</span>
+          <span aria-label="History">📜</span>
+          <span aria-label="Player ID">👤</span>
+        </div>
+
+        <app-primary-btn
+          variant="accent"
+          size="lg"
+          fullWidth
+          (pressed)="startOnboarding()"
+        >
+          Let's go
+        </app-primary-btn>
+
+        <p class="text-muted-foreground text-xs mt-4">Takes about a minute</p>
+      </div>
+    }
+
+    <!-- ─── LOADING PHASE (user tapped Start before prefetch finished) ── -->
     @if (phase() === 'loading') {
       <div class="flex-1 flex items-center justify-center">
         <div class="text-muted-foreground text-sm">Loading questions…</div>
       </div>
     }
 
+    <!-- ─── PLAYING / FLASH PHASE ───────────────────────────────── -->
     @if (phase() === 'playing' || phase() === 'flash') {
       <div class="flex flex-col flex-1 relative">
 
-        <!-- Intro blurb (first question only) -->
-        @if (currentIndex() === 0) {
-          <p class="text-muted-foreground text-sm text-center mb-4">Get a feel for the game ⚽</p>
-        }
-
-        <!-- Question -->
         @if (currentQuestion(); as q) {
-          <div class="bg-card rounded-2xl p-5 mb-5 border border-border min-h-[110px] flex items-center">
-            <p class="text-foreground text-lg leading-relaxed">{{ q.question_text }}</p>
+
+          <!-- Category tag -->
+          <div class="text-accent text-xs font-bold uppercase tracking-wider text-center mb-3">
+            {{ categoryLabel() }}
           </div>
 
-          <!-- Choices -->
+          <!-- ─── VARIANT: LOGO_QUIZ (crest image + prompt) ───────── -->
+          @if (q.category === 'LOGO_QUIZ' && q.image_url) {
+            <div class="bg-card rounded-2xl p-6 mb-5 border border-border flex flex-col items-center justify-center min-h-[220px]">
+              <img
+                [ngSrc]="q.image_url"
+                alt="Team crest"
+                width="160"
+                height="160"
+                class="w-40 h-40 object-contain"
+              />
+              <p class="text-foreground text-base mt-4 font-semibold text-center">{{ q.prompt }}</p>
+            </div>
+          }
+
+          <!-- ─── VARIANT: STANDARD (all others) ──────────────────── -->
+          @else {
+            <div class="bg-card rounded-2xl p-5 mb-5 border border-border min-h-[110px] flex items-center">
+              <p class="text-foreground text-lg leading-relaxed">{{ q.prompt }}</p>
+            </div>
+          }
+
+          <!-- Choices (shared across variants) -->
           <div class="flex flex-col gap-3">
             @for (choice of q.choices; track $index) {
               <button
@@ -56,6 +105,19 @@
           >
             <div class="text-5xl mb-3 shrink-0">{{ flashCorrect() ? '✅' : '❌' }}</div>
             <div class="text-white font-black text-2xl mb-2 shrink-0">{{ flashCorrect() ? 'Correct!' : 'Wrong' }}</div>
+            @if (currentQuestion(); as q) {
+              @if (q.category === 'LOGO_QUIZ' && q.original_image_url) {
+                <div class="bg-white rounded-2xl p-3 mb-3 shrink-0">
+                  <img
+                    [ngSrc]="q.original_image_url"
+                    alt="Original crest"
+                    width="112"
+                    height="112"
+                    class="w-28 h-28 object-contain"
+                  />
+                </div>
+              }
+            }
             @if (!flashCorrect()) {
               <div class="text-white/90 text-sm text-center px-6 mb-3 shrink-0">Answer: {{ flashAnswer() }}</div>
             }
@@ -64,14 +126,13 @@
                 {{ q.explanation }}
               </div>
             }
-            @if (!flashCorrect()) {
-              <div class="text-white/70 text-xs mt-4 shrink-0">Tap to continue</div>
-            }
+            <div class="text-white/70 text-xs mt-4 shrink-0">Tap to continue</div>
           </div>
         }
       </div>
     }
 
+    <!-- ─── FINISHED PHASE ──────────────────────────────────────── -->
     @if (phase() === 'finished') {
       <div class="flex-1 flex flex-col items-center justify-center">
         <div class="text-6xl mb-4">🏆</div>

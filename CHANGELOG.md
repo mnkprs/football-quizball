@@ -2,6 +2,24 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.2.0] - 2026-04-17
+
+### Added
+- **Onboarding sampler (5-category tasting menu)** — first-run tutorial now pulls one EASY question per category (Logo Quiz, Higher or Lower, Geography, History, Player ID) directly from `question_pool`, so every new user gets a live taste of every mode instead of 5 random daily questions. Fixed order: visual hook → binary → warm-up → history → finisher.
+- **Onboarding lobby screen** — welcome screen before the quiz with hero emoji, 5-category preview row, and `<app-primary-btn variant="accent" size="lg">` "Let's go" CTA. Questions are prefetched in the background during lobby, so the Start tap is zero-latency when the fetch completes in time.
+- **Logo crest reveal on answer** — LOGO_QUIZ reveal now shows the original (un-obscured) crest on a white plate inside the flash overlay, sourced from `question.meta.original_image_url` (same pattern as live Logo Quiz mode).
+- **Category label chip** — each onboarding question displays its mode name above the prompt (e.g. "🛡️ Logo Quiz", "📊 Higher or Lower") so users connect the sampler to real modes they'll see on the home screen.
+- **New backend module** `backend/src/onboarding/` — `OnboardingController`, `OnboardingService`, `OnboardingQuestion` type, registered in `app.module.ts`. Exposes `GET /api/onboarding/questions` (no auth). Draws non-destructively from `question_pool` (plain SELECT, not `draw_questions` RPC) so onboarding doesn't deplete the pool.
+- **Cross-question distractor fallback** — for categories where pool rows have empty `wrong_choices` (LOGO_QUIZ and PLAYER_ID use fuzzy text matching in real gameplay), distractors are borrowed from sibling rows' `correct_answer` values in the same category. Fixes the single-choice MC bug.
+- **`onboarding_question_answered` analytics event** — fires per answer with `category` + `correct`, enabling per-category funnel analysis.
+
+### Changed
+- **Onboarding now fetches from `/api/onboarding/questions` instead of `/api/daily/questions`** — `DailyApiService` is no longer used for onboarding. Dropped the 5-item slice of generic daily questions in favor of category-typed MC.
+- **"Tap to continue" hint visible on correct answers too** — previously only shown on wrong. Correct answers still auto-advance at 1.5s; the hint just makes the manual-advance affordance discoverable.
+
+### Fixed
+- **Onboarding no longer renders single-button MC questions** — some pool rows (LOGO_QUIZ, PLAYER_ID) had empty `wrong_choices`, which caused the UI to render only the correct answer as a choice. Donor-pool augmentation + 2-choice requirement for HIGHER_OR_LOWER eliminates this.
+
 ## [0.7.1.0] - 2026-04-17
 
 ### Added

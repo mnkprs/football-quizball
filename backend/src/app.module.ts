@@ -36,6 +36,7 @@ import { LogoQuizModule } from './logo-quiz/logo-quiz.module';
 import { XpModule } from './xp/xp.module';
 import { AppConfigModule } from './config/config.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     XpModule,
     AppConfigModule,
     AnalyticsModule,
+    OnboardingModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

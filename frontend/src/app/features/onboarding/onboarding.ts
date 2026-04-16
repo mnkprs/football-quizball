@@ -1,32 +1,35 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { DailyApiService, DailyQuestionRef } from '../../core/daily-api.service';
+import { NgOptimizedImage } from '@angular/common';
+import { OnboardingApiService, OnboardingQuestion } from '../../core/onboarding-api.service';
 import { AnalyticsService } from '../../core/analytics.service';
+import { PrimaryBtnComponent } from '../../shared/primary-btn/primary-btn';
 
-type OnboardingPhase = 'loading' | 'playing' | 'flash' | 'finished';
+type OnboardingPhase = 'lobby' | 'loading' | 'playing' | 'flash' | 'finished';
 
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [],
+  imports: [NgOptimizedImage, PrimaryBtnComponent],
   templateUrl: './onboarding.html',
   styleUrl: './onboarding.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OnboardingComponent implements OnInit {
-  private api = inject(DailyApiService);
+  private api = inject(OnboardingApiService);
   private router = inject(Router);
   private analytics = inject(AnalyticsService);
 
-  phase = signal<OnboardingPhase>('loading');
-  questions = signal<DailyQuestionRef[]>([]);
+  phase = signal<OnboardingPhase>('lobby');
+  questions = signal<OnboardingQuestion[]>([]);
   currentIndex = signal(0);
   showFlash = signal(false);
   flashCorrect = signal(false);
   flashAnswer = signal('');
   selectedChoice = signal<string | null>(null);
   private advanceTimeout: ReturnType<typeof setTimeout> | null = null;
+  private loadFailed = false;
 
   currentQuestion = computed(() => {
     const qs = this.questions();
@@ -34,22 +37,60 @@ export class OnboardingComponent implements OnInit {
     return qs[idx] ?? null;
   });
 
-  async ngOnInit(): Promise<void> {
+  categoryLabel = computed(() => {
+    const q = this.currentQuestion();
+    if (!q) return '';
+    switch (q.category) {
+      case 'LOGO_QUIZ':       return '🛡️ Logo Quiz';
+      case 'HIGHER_OR_LOWER': return '📊 Higher or Lower';
+      case 'GEOGRAPHY':       return '🌍 Geography';
+      case 'HISTORY':         return '📜 History';
+      case 'PLAYER_ID':       return '👤 Player ID';
+    }
+  });
+
+  ngOnInit(): void {
+    // Prefetch in the background so the questions are ready when the user taps Start.
+    void this.prefetchQuestions();
+  }
+
+  /** Entry point from the lobby Start button. */
+  startOnboarding(): void {
+    if (this.loadFailed) {
+      this.completeOnboarding();
+      return;
+    }
+    if (this.questions().length > 0) {
+      this.beginPlaying();
+    } else {
+      // Prefetch still in flight — prefetchQuestions() will call beginPlaying() when it lands.
+      this.phase.set('loading');
+    }
+  }
+
+  private async prefetchQuestions(): Promise<void> {
     try {
       const res = await firstValueFrom(this.api.getQuestions());
-      const qs = (res.questions ?? []).slice(0, 5);
+      const qs = res.questions ?? [];
       if (qs.length === 0) {
-        this.completeOnboarding();
+        this.loadFailed = true;
+        // If the user is already waiting, bail out.
+        if (this.phase() === 'loading') this.completeOnboarding();
         return;
       }
       this.questions.set(qs);
-      this.currentIndex.set(0);
-      this.phase.set('playing');
-      this.analytics.track('tutorial_begin');
+      // If user tapped Start before the fetch completed, jump in now.
+      if (this.phase() === 'loading') this.beginPlaying();
     } catch {
-      // On error, just skip onboarding
-      this.completeOnboarding();
+      this.loadFailed = true;
+      if (this.phase() === 'loading') this.completeOnboarding();
     }
+  }
+
+  private beginPlaying(): void {
+    this.currentIndex.set(0);
+    this.phase.set('playing');
+    this.analytics.track('tutorial_begin');
   }
 
   choiceClass(choice: string): string {
@@ -80,6 +121,12 @@ export class OnboardingComponent implements OnInit {
     const correct = choice.trim().toLowerCase() === q.correct_answer.trim().toLowerCase();
     this.flashCorrect.set(correct);
     this.flashAnswer.set(q.correct_answer);
+
+    this.analytics.track('onboarding_question_answered', {
+      category: q.category,
+      index: this.currentIndex(),
+      correct,
+    });
 
     if (correct) {
       this.advanceTimeout = setTimeout(() => this.advanceQuestion(), 1500);
