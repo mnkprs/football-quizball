@@ -43,10 +43,10 @@
 
     <!-- Category breakdown -->
     @if (categoryBreakdown().length) {
-      <div class="finals-breakdown bg-card rounded-xl p-4 mb-6 border border-border/50 text-left">
+      <div class="finals-breakdown rounded-xl p-4 mb-6 text-left">
         <h3 class="text-foreground text-xs font-bold mb-3 uppercase tracking-wider">{{ lang.t().categoryBreakdown }}</h3>
         @for (row of categoryBreakdown(); track row.category; let i = $index) {
-          <div [class]="'flex items-center justify-between py-2 ' + (i < categoryBreakdown().length - 1 ? 'border-b border-border/30' : '')">
+          <div [class]="'flex items-center justify-between py-2 ' + (i < categoryBreakdown().length - 1 ? 'border-b border-white/[0.06]' : '')">
             <span class="text-foreground text-xs font-medium">{{ row.category }}</span>
             <div class="flex gap-3 text-xs">
               <span class="finals-score-p1 font-semibold">{{ row.p1pts }}</span>

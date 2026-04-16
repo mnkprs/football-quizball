@@ -86,15 +86,15 @@ const TRANSLATIONS = {
     // Results
     finalResults: 'Final Results',
     gameComplete: 'STEPOVR. Complete!',
-    itsDraw: "🤝 It's a Draw!",
-    wins: 'wins!',
+    itsDraw: "It's a Draw",
+    wins: 'wins',
     points: 'points',
     lifelineUsed: 'Lifeline: Used',
     lifelineNotUsed: 'Lifeline: Not used',
     doubleUsed: '2x: Used',
     doubleNotUsed: '2x: Not used',
     categoryBreakdown: 'Category Breakdown',
-    playAgain: 'Play Again ⚽',
+    playAgain: 'Play Again',
     // Home
     appTitle: 'STEPOVR.',
     appTitlePart1: '',

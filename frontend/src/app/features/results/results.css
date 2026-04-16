@@ -1,6 +1,20 @@
+/* ─── FINALS PHASE — game-over celebration ──────────────
+   End-of-game screen. Earns a bolder treatment: pitch
+   background, glowing trophy, winner card is the hero.
+   ─────────────────────────────────────────────────────── */
+
 .finals-page {
-  background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 95%, var(--color-accent) 5%) 100%);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.55) 42%,
+      rgba(0, 0, 0, 0.88) 100%
+    ),
+    url('/header-banner-bg.jpg') center / cover no-repeat;
 }
+
+/* ─── Trophy (iOS blue, glowing) ─── */
 
 .finals-trophy-wrap {
   display: flex;
@@ -11,51 +25,68 @@
   width: 4rem;
   height: 4rem;
   color: var(--color-accent);
-  filter: drop-shadow(0 0 16px rgba(204, 255, 0, 0.4));
+  filter: drop-shadow(0 0 20px rgba(0, 122, 255, 0.5));
+  animation: finals-trophy-glow 2.4s ease-in-out infinite;
 }
 
+@keyframes finals-trophy-glow {
+  0%, 100% { filter: drop-shadow(0 0 16px rgba(0, 122, 255, 0.4)); }
+  50%      { filter: drop-shadow(0 0 28px rgba(0, 122, 255, 0.7)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finals-trophy { animation: none; }
+}
+
+/* ─── Winner card (hero moment) ─── */
+
 .finals-winner-card {
-  background: linear-gradient(135deg, rgba(204, 255, 0, 0.12) 0%, rgba(204, 255, 0, 0.05) 100%);
-  border: 1px solid rgba(204, 255, 0, 0.3);
-  box-shadow: 0 4px 16px rgba(204, 255, 0, 0.15);
+  background: var(--color-accent-bg);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 122, 255, 0.4),
+    var(--glow-accent-sm);
 }
 
 .finals-winner-name {
   color: var(--color-accent);
-  text-shadow: 0 0 12px rgba(204, 255, 0, 0.4);
+  font-family: var(--font-headline);
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 12px rgba(0, 122, 255, 0.35);
 }
 
+/* ─── Player cards ─── */
+
 .finals-player-card {
-  border: 1px solid transparent;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
   position: relative;
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
 }
 
 .finals-player-card--p1 {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.05) 100%);
-  border-color: rgba(59, 130, 246, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(0, 122, 255, 0.28);
 }
 
 .finals-player-card--p1.winner {
-  background: linear-gradient(135deg, rgba(204, 255, 0, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
-  border-color: rgba(204, 255, 0, 0.4);
+  background: var(--color-accent-bg);
   box-shadow:
-    0 0 0 2px rgba(204, 255, 0, 0.15),
-    0 4px 20px rgba(204, 255, 0, 0.2);
+    inset 0 0 0 2px var(--color-accent),
+    var(--glow-accent-sm);
 }
 
 .finals-player-card--p2 {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.05) 100%);
-  border-color: rgba(239, 68, 68, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 149, 0, 0.28);
 }
 
 .finals-player-card--p2.winner {
-  background: linear-gradient(135deg, rgba(204, 255, 0, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%);
-  border-color: rgba(204, 255, 0, 0.4);
+  background: rgba(255, 149, 0, 0.12);
   box-shadow:
-    0 0 0 2px rgba(204, 255, 0, 0.15),
-    0 4px 20px rgba(204, 255, 0, 0.2);
+    inset 0 0 0 2px var(--color-warning),
+    0 0 20px rgba(255, 149, 0, 0.3);
 }
+
+/* Crown badge over winning player card */
 
 .finals-crown {
   position: absolute;
@@ -64,8 +95,8 @@
   transform: translateX(-50%);
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--color-accent);
-  filter: drop-shadow(0 0 4px rgba(204, 255, 0, 0.5));
+  color: var(--color-pro);
+  filter: drop-shadow(0 0 6px rgba(230, 168, 0, 0.5));
 }
 
 .finals-crown svg {
@@ -73,48 +104,76 @@
   height: 100%;
 }
 
+/* Player labels + scores */
+
 .finals-player-name {
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  font-family: var(--font-numeric);
 }
 
-.finals-player-name--p1 { color: #60a5fa; }
-.finals-player-name--p2 { color: #f87171; }
+.finals-player-name--p1 { color: var(--color-accent); }
+.finals-player-name--p2 { color: var(--color-warning); }
 
 .finals-pill {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-muted-foreground);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-fg-muted);
   font-weight: 600;
+  font-family: var(--font-numeric);
 }
+
+/* ─── Category breakdown ─── */
 
 .finals-breakdown {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--glass-bg-default);
+  backdrop-filter: blur(var(--glass-blur-md));
+  -webkit-backdrop-filter: blur(var(--glass-blur-md));
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
 }
 
-.finals-score-p1 { color: #60a5fa; }
-.finals-score-p2 { color: #f87171; }
+.finals-score-p1 {
+  color: var(--color-accent);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+.finals-score-p2 {
+  color: var(--color-warning);
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Action buttons ─── */
 
 .finals-play-btn {
-  background: linear-gradient(135deg, var(--color-accent) 0%, #b8e600 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%);
   color: var(--color-accent-foreground);
-  box-shadow:
-    0 4px 14px rgba(204, 255, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: var(--glow-accent-sm);
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out-quart),
+    transform var(--duration-fast) ease-out;
 }
 
-.finals-play-btn:hover {
-  box-shadow:
-    0 6px 20px rgba(204, 255, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+.finals-play-btn:hover:not(:disabled) {
+  box-shadow: var(--glow-accent-lg);
+  transform: translateY(-1px);
+}
+
+.finals-play-btn:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: var(--glow-accent-sm);
 }
 
 .finals-home-btn {
   background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-muted-foreground);
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost-strong);
+  color: var(--color-fg-muted);
+  transition:
+    background-color var(--duration-normal) ease-out,
+    color var(--duration-normal) ease-out;
 }
 
 .finals-home-btn:hover {
   background: rgba(255, 255, 255, 0.05);
-  border-color: var(--color-muted-foreground);
+  color: var(--color-fg);
 }

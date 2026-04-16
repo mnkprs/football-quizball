@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.8.0] - 2026-04-16
+
+### Changed
+- **Finals (game-over) phase amplified + tokenized** — `app-results` was a lime-heavy end screen with hardcoded blue/red gradients. Redesigned to Floodlit Arena: full-bleed stadium pitch background with atmospheric overlay (same treatment as setup poster — game ends on the field it started), glowing trophy in iOS blue with a subtle breath animation (2.4s, respects `prefers-reduced-motion`), winner card as the hero moment using `--color-accent-bg` + `--glow-accent-sm`, glass player cards floating over the pitch with P1/P2 identity via blue/orange tokens, crown uses `--color-pro` (gold) for winners. Kill emoji in copy: "🤝 It's a Draw!" → "It's a Draw", "Play Again ⚽" → "Play Again", removed opaque 1px borders on breakdown card.
+
 ## [0.6.7.1] - 2026-04-16
 
 ### Changed
