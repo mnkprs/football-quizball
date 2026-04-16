@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.4.1] - 2026-04-16
+
+### Fixed
+- **Setup screen card anchored to top** — after the decorative-chrome strip, `.setup-page` used `flex flex-1 items-center justify-center` but `flex-1` couldn't resolve to a concrete height (parent chain is `min-h-screen`, not `h-screen`), so `items-center` had nothing to center against and the card snapped to the top of the viewport. Added `min-height: calc(100dvh - 9.5rem)` on `.setup-page` (9.5rem = back-button row + shell-main's reserved bottom-nav space). Content now reads as one balanced composition with no overflow scroll.
+
 ## [0.6.4.0] - 2026-04-16
 
 ### Changed
