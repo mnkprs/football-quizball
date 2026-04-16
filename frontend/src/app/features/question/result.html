@@ -1,8 +1,10 @@
 <div class="result-page min-h-screen flex items-center justify-center p-4">
   <div class="max-w-md w-full">
+    <h1 class="sr-only">{{ lang.t().roundResultHeading }}</h1>
+
     <!-- Result card -->
-    <div [class]="resultCardClass()" class="result-card rounded-xl p-6 mb-5 text-center transition-all">
-      <div class="result-icon-wrap mb-3">
+    <div [class]="resultCardClass()" class="result-card rounded-xl p-6 mb-5 text-center transition-all" role="status" aria-live="polite">
+      <div class="result-icon-wrap mb-3" aria-hidden="true">
         @if (result()?.correct) {
           <svg class="result-icon result-icon--win" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>

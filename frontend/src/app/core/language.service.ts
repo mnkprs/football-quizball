@@ -14,6 +14,12 @@ const TRANSLATIONS = {
     setupHeading: '2-Player Game Setup',
     minCharsHint: 'Minimum 2 characters each',
     startingLineup: 'Starting Lineup',
+    gameBoardHeading: 'Game Board — Select a Question',
+    roundResultHeading: 'Round Result',
+    finalResultsHeading: 'Final Results',
+    endGameLabel: 'End game',
+    answered: 'answered',
+    unanswered: 'unanswered',
     // Board
     turn: 'Turn',
     end: 'End',
