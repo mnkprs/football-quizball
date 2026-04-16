@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.4.0] - 2026-04-16
+
+### Changed
+- **2P setup screen simplified** — stripped decorative chrome from `app-setup` following the same Floodlit Arena direction as the question redesign. Removed the huge decorated logo badge + STEPOVR. wordmark + subtitle (duplicates top-nav brand), the "ENTER PLAYER NAMES" heading (redundant with the Player 1 / Player 2 labels), the "VS" divider, and the "⚽" ball emoji from the Kick Off button (emoji-as-design anti-slop). Replaced hardcoded `focus:border-blue-500`/`focus:border-red-500` ring colors with design tokens matching the question component input pattern. Tightened `rounded-2xl` (16px) → `rounded-xl` (12px) per DESIGN.md radius hierarchy. Player dots flat accent/warning (no idle glow). CSS reduced 96 → 68 lines.
+
 ## [0.6.3.1] - 2026-04-16
 
 ### Fixed
