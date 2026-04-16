@@ -5,42 +5,47 @@
   </div>
 
   <div class="w-full max-w-md">
+    <!-- Visually-hidden heading for screen-reader orientation -->
+    <h1 class="sr-only">{{ lang.t().setupHeading }}</h1>
+
     <!-- Player Name Inputs -->
     <div class="setup-card rounded-xl p-6">
       <div class="space-y-5 mb-6">
         <!-- Player 1 Input -->
         <div>
-          <label class="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+          <label for="setup-player1" class="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
             <span class="setup-player-dot setup-player-dot--p1"></span>
             Player 1
           </label>
           <input
+            id="setup-player1"
             type="text"
             [(ngModel)]="player1Name"
             [placeholder]="lang.t().player1Placeholder"
             maxlength="20"
-            class="w-full px-4 py-3.5 rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none transition font-medium"
+            class="w-full px-4 py-3.5 rounded-xl text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none transition font-medium"
           />
         </div>
 
         <!-- Player 2 Input -->
         <div>
-          <label class="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+          <label for="setup-player2" class="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
             <span class="setup-player-dot setup-player-dot--p2"></span>
             Player 2
           </label>
           <input
+            id="setup-player2"
             type="text"
             [(ngModel)]="player2Name"
             [placeholder]="lang.t().player2Placeholder"
             maxlength="20"
-            class="w-full px-4 py-3.5 rounded-xl text-foreground placeholder:text-muted-foreground/60 focus:outline-none transition font-medium"
+            class="w-full px-4 py-3.5 rounded-xl text-foreground placeholder:text-muted-foreground/60 focus-visible:outline-none transition font-medium"
           />
         </div>
       </div>
 
       @if (store.error()) {
-        <div class="mb-4 p-3 bg-loss/10 rounded-xl text-loss text-sm text-center font-medium">
+        <div role="alert" class="mb-4 p-3 bg-loss/10 rounded-xl text-loss text-sm text-center font-medium">
           {{ store.error() }}
         </div>
       }

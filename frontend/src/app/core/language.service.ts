@@ -11,6 +11,8 @@ const TRANSLATIONS = {
     kickOff: 'Kick Off',
     howToPlay: '7 categories · Up to 3 difficulties · 2 lifelines each',
     failedToStart: 'Couldn\'t start the game. Check your connection and try again.',
+    setupHeading: '2-Player Game Setup',
+    minCharsHint: 'Minimum 2 characters each',
     // Board
     turn: 'Turn',
     end: 'End',
