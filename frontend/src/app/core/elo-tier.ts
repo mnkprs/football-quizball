@@ -1,5 +1,5 @@
 export interface EloTier {
-  tier: 'iron' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'challenger';
+  tier: 'sunday_league' | 'academy' | 'substitute' | 'pro' | 'starting_xi' | 'ballon_dor' | 'goat';
   label: string;
   color: string;
   /** Hex color used for glow/shadow */
@@ -9,13 +9,13 @@ export interface EloTier {
 }
 
 export function getEloTier(elo: number): EloTier {
-  if (elo >= 2400) return { tier: 'challenger', label: 'Challenger', color: '#e8ff7a', glow: '#e8ff7a', borderWidth: 5 };
-  if (elo >= 2000) return { tier: 'diamond',    label: 'Diamond',    color: '#a855f7', glow: '#a855f7', borderWidth: 4 };
-  if (elo >= 1650) return { tier: 'platinum',   label: 'Platinum',   color: '#06b6d4', glow: '#06b6d4', borderWidth: 4 };
-  if (elo >= 1300) return { tier: 'gold',       label: 'Gold',       color: '#f59e0b', glow: '#f59e0b', borderWidth: 3 };
-  if (elo >= 1000) return { tier: 'silver',     label: 'Silver',     color: '#94a3b8', glow: '#94a3b8', borderWidth: 2 };
-  if (elo >= 750)  return { tier: 'bronze',     label: 'Bronze',     color: '#b45309', glow: '#b45309', borderWidth: 2 };
-  return                   { tier: 'iron',       label: 'Iron',       color: '#6b7280', glow: '#6b7280', borderWidth: 2 };
+  if (elo >= 2400) return { tier: 'goat',         label: 'GOAT',          color: '#e8ff7a', glow: '#e8ff7a', borderWidth: 5 };
+  if (elo >= 2000) return { tier: 'ballon_dor',   label: "Ballon d'Or",   color: '#eab308', glow: '#eab308', borderWidth: 4 };
+  if (elo >= 1650) return { tier: 'starting_xi',  label: 'Starting XI',   color: '#2563eb', glow: '#2563eb', borderWidth: 4 };
+  if (elo >= 1300) return { tier: 'pro',          label: 'Pro',           color: '#10b981', glow: '#10b981', borderWidth: 3 };
+  if (elo >= 1000) return { tier: 'substitute',   label: 'Substitute',    color: '#94a3b8', glow: '#94a3b8', borderWidth: 2 };
+  if (elo >= 750)  return { tier: 'academy',      label: 'Academy',       color: '#b45309', glow: '#b45309', borderWidth: 2 };
+  return               { tier: 'sunday_league', label: 'Sunday League', color: '#6b7280', glow: '#6b7280', borderWidth: 2 };
 }
 
 const TIER_THRESHOLDS = [500, 750, 1000, 1300, 1650, 2000, 2400];

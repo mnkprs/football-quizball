@@ -12,26 +12,26 @@ function buildMockSupabase(alreadyEarned: Set<string> = new Set()) {
 
 describe('getEloTier', () => {
   it.each([
-    [500, 'iron', '#6b7280', 'Iron'],
-    [600, 'iron', '#6b7280', 'Iron'],
-    [749, 'iron', '#6b7280', 'Iron'],
-    [750, 'bronze', '#b45309', 'Bronze'],
-    [900, 'bronze', '#b45309', 'Bronze'],
-    [999, 'bronze', '#b45309', 'Bronze'],
-    [1000, 'silver', '#94a3b8', 'Silver'],
-    [1100, 'silver', '#94a3b8', 'Silver'],
-    [1299, 'silver', '#94a3b8', 'Silver'],
-    [1300, 'gold', '#f59e0b', 'Gold'],
-    [1500, 'gold', '#f59e0b', 'Gold'],
-    [1649, 'gold', '#f59e0b', 'Gold'],
-    [1650, 'platinum', '#06b6d4', 'Platinum'],
-    [1800, 'platinum', '#06b6d4', 'Platinum'],
-    [1999, 'platinum', '#06b6d4', 'Platinum'],
-    [2000, 'diamond', '#a855f7', 'Diamond'],
-    [2200, 'diamond', '#a855f7', 'Diamond'],
-    [2399, 'diamond', '#a855f7', 'Diamond'],
-    [2400, 'challenger', '#e8ff7a', 'Challenger'],
-    [3000, 'challenger', '#e8ff7a', 'Challenger'],
+    [500, 'sunday_league', '#6b7280', 'Sunday League'],
+    [600, 'sunday_league', '#6b7280', 'Sunday League'],
+    [749, 'sunday_league', '#6b7280', 'Sunday League'],
+    [750, 'academy', '#b45309', 'Academy'],
+    [900, 'academy', '#b45309', 'Academy'],
+    [999, 'academy', '#b45309', 'Academy'],
+    [1000, 'substitute', '#94a3b8', 'Substitute'],
+    [1100, 'substitute', '#94a3b8', 'Substitute'],
+    [1299, 'substitute', '#94a3b8', 'Substitute'],
+    [1300, 'pro', '#10b981', 'Pro'],
+    [1500, 'pro', '#10b981', 'Pro'],
+    [1649, 'pro', '#10b981', 'Pro'],
+    [1650, 'starting_xi', '#2563eb', 'Starting XI'],
+    [1800, 'starting_xi', '#2563eb', 'Starting XI'],
+    [1999, 'starting_xi', '#2563eb', 'Starting XI'],
+    [2000, 'ballon_dor', '#eab308', "Ballon d'Or"],
+    [2200, 'ballon_dor', '#eab308', "Ballon d'Or"],
+    [2399, 'ballon_dor', '#eab308', "Ballon d'Or"],
+    [2400, 'goat', '#e8ff7a', 'GOAT'],
+    [3000, 'goat', '#e8ff7a', 'GOAT'],
   ])(
     'elo=%i → tier=%s, color=%s, label=%s',
     (elo, expectedTier, expectedColor, expectedLabel) => {
@@ -44,9 +44,9 @@ describe('getEloTier', () => {
     },
   );
 
-  it('returns iron for values below 500', () => {
-    expect(getEloTier(0)).toEqual({ tier: 'iron', color: '#6b7280', label: 'Iron' });
-    expect(getEloTier(499)).toEqual({ tier: 'iron', color: '#6b7280', label: 'Iron' });
+  it('returns sunday_league for values below 500', () => {
+    expect(getEloTier(0)).toEqual({ tier: 'sunday_league', color: '#6b7280', label: 'Sunday League' });
+    expect(getEloTier(499)).toEqual({ tier: 'sunday_league', color: '#6b7280', label: 'Sunday League' });
   });
 });
 

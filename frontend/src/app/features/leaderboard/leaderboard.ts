@@ -29,13 +29,13 @@ const LEGEND_SEEN_KEY = 'leaderboard_legend_seen';
 
 // Keep in sync with elo-tier.ts tier definitions
 const LEGEND_TIERS: readonly LegendTier[] = [
-  { label: 'Challenger', range: '2400+',       color: '#e8ff7a', gradientFrom: '#c4d94a', icon: '👑' },
-  { label: 'Diamond',    range: '2000 – 2399', color: '#a855f7', gradientFrom: '#7c3aed', icon: '💎' },
-  { label: 'Platinum',   range: '1650 – 1999', color: '#06b6d4', gradientFrom: '#0891b2', icon: '⚡' },
-  { label: 'Gold',       range: '1300 – 1649', color: '#f59e0b', gradientFrom: '#d97706', icon: '🥇' },
-  { label: 'Silver',     range: '1000 – 1299', color: '#94a3b8', gradientFrom: '#64748b', icon: '🥈' },
-  { label: 'Bronze',     range: '750 – 999',   color: '#b45309', gradientFrom: '#92400e', icon: '🥉' },
-  { label: 'Iron',       range: '500 – 749',   color: '#6b7280', gradientFrom: '#4b5563', icon: '🛡️' },
+  { label: 'GOAT',          range: '2400+',       color: '#e8ff7a', gradientFrom: '#c4d94a', icon: '🐐' },
+  { label: "Ballon d'Or",   range: '2000 – 2399', color: '#eab308', gradientFrom: '#ca8a04', icon: '🥇' },
+  { label: 'Starting XI',   range: '1650 – 1999', color: '#2563eb', gradientFrom: '#1d4ed8', icon: '🎽' },
+  { label: 'Pro',           range: '1300 – 1649', color: '#10b981', gradientFrom: '#059669', icon: '⚽' },
+  { label: 'Substitute',    range: '1000 – 1299', color: '#94a3b8', gradientFrom: '#64748b', icon: '🪑' },
+  { label: 'Academy',       range: '750 – 999',   color: '#b45309', gradientFrom: '#92400e', icon: '🎒' },
+  { label: 'Sunday League', range: '500 – 749',   color: '#6b7280', gradientFrom: '#4b5563', icon: '🥾' },
 ] as const;
 
 @Component({
