@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const { createClient } = require('./backend/node_modules/@supabase/supabase-js');
 
 const API = process.env.API_URL || 'https://football-quizball-production.up.railway.app';
-const ADMIN_KEY = process.env.ADMIN_API_KEY || 'Manos1995';
+const ADMIN_KEY = process.env.ADMIN_API_KEY || '';
 // Per-player accuracy rate used to decide whether to submit the correct answer.
 const P1_ACCURACY = Number(process.env.P1_ACCURACY ?? 0.65);
 const P2_ACCURACY = Number(process.env.P2_ACCURACY ?? 0.45);
@@ -19,6 +19,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let MY_USER_ID; // set after auth
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Realistic wrong answers for failed guesses
+const WRONG_ANSWERS = ['unknown', 'nobody', 'random', 'not sure', 'idk', 'maybe', 'uncertain'];
 
 // ─── Auth ───────────────────────────────────────────────────────────
 async function getToken() {
@@ -168,6 +171,28 @@ async function simulateDuel(token) {
   }
 
   console.log(`\n✓ DUEL COMPLETE — status: ${game.status}, scores: ${JSON.stringify(game.scores)}`);
+
+  // Save to match history
+  if (game.status === 'finished') {
+    try {
+      await api('POST', '/api/match-history', token, {
+        player1_id: MY_USER_ID,
+        player2_id: null,
+        player1_username: game.hostUsername || 'Player',
+        player2_username: game.guestUsername || 'Opponent',
+        winner_id: (game.scores?.host ?? 0) > (game.scores?.guest ?? 0) ? MY_USER_ID : null,
+        player1_score: game.scores?.host ?? 0,
+        player2_score: game.scores?.guest ?? 0,
+        match_mode: 'duel',
+        game_ref_id: duelId,
+        game_ref_type: 'duel',
+      });
+      console.log('  → Saved duel to match history');
+    } catch (e) {
+      console.log(`  ⚠ Failed to save duel: ${e.message}`);
+    }
+  }
+
   return { success: game.status === 'finished', duelId };
 }
 
@@ -284,6 +309,32 @@ async function simulateBattleRoyale(token) {
       );
     }
   }
+
+  // Save to match history (note: battle royale is multiplayer, save as winner if top score)
+  if (room.status === 'finished') {
+    try {
+      const finalLeaderboard = leaderboard?.leaderboard || [];
+      const myRank = finalLeaderboard.findIndex((p) => p.userId === MY_USER_ID);
+      const isWinner = myRank === 0;
+
+      await api('POST', '/api/match-history', token, {
+        player1_id: MY_USER_ID,
+        player2_id: null,
+        player1_username: 'Player',
+        player2_username: `${(room.players?.length ?? 1) - 1} opponents`,
+        winner_id: isWinner ? MY_USER_ID : null,
+        player1_score: myScore,
+        player2_score: finalLeaderboard.length > 1 ? finalLeaderboard[1]?.score ?? 0 : 0,
+        match_mode: 'battle_royale',
+        game_ref_id: roomId,
+        game_ref_type: 'battle_royale',
+      });
+      console.log('  → Saved battle royale to match history');
+    } catch (e) {
+      console.log(`  ⚠ Failed to save battle royale: ${e.message}`);
+    }
+  }
+
   return { success: room.status === 'finished', roomId };
 }
 
@@ -362,13 +413,26 @@ async function simulate2Player() {
         const peek = await fetch(`${API}/api/games/${gameId}/questions/${cell.question_id}/peek`, {
           headers: { 'x-admin-key': ADMIN_KEY },
         });
-        const body = await peek.json();
-        answer = body.correct_answer || 'random guess';
-      } catch {
-        answer = 'random guess';
+        if (!peek.ok) {
+          const errText = await peek.text();
+          console.log(`    ⚠ Peek failed (${peek.status}), falling back to fuzzy answers`);
+          if (peek.status === 401) console.log(`    → Admin key auth failed, check ADMIN_API_KEY env var`);
+          // Use common football answers as fuzzy fallbacks
+          const fuzzyAnswers = ['Barcelona', 'Real Madrid', 'Manchester United', 'Liverpool', 'Bayern Munich', 'Arsenal', 'Chelsea', 'Messi', 'Ronaldo', 'Guardiola', 'Klopp', '2022', '2021', '2020'];
+          answer = fuzzyAnswers[Math.floor(Math.random() * fuzzyAnswers.length)];
+        } else {
+          const body = await peek.json();
+          answer = body.correct_answer || 'random guess';
+          if (answer === 'random guess') console.log(`    ℹ Peek returned no correct_answer, using fallback`);
+        }
+      } catch (e) {
+        console.log(`    ⚠ Peek error: ${e.message}, using fuzzy fallback`);
+        const fuzzyAnswers = ['Barcelona', 'Real Madrid', 'Manchester United', 'Liverpool', 'Bayern Munich', 'Arsenal', 'Chelsea', 'Messi', 'Ronaldo', 'Guardiola', 'Klopp', '2022', '2021', '2020'];
+        answer = fuzzyAnswers[Math.floor(Math.random() * fuzzyAnswers.length)];
       }
     } else {
-      answer = 'definitely_wrong_' + Math.random().toString(36).slice(2, 6);
+      // Use a realistic wrong answer
+      answer = WRONG_ANSWERS[Math.floor(Math.random() * WRONG_ANSWERS.length)];
     }
 
     try {
