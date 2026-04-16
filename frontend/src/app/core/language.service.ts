@@ -8,7 +8,7 @@ const TRANSLATIONS = {
     enterNames: 'Enter Player Names',
     player1Placeholder: 'Player 1 name...',
     player2Placeholder: 'Player 2 name...',
-    kickOff: 'Kick Off! ⚽',
+    kickOff: 'Kick Off',
     howToPlay: '7 categories · Up to 3 difficulties · 2 lifelines each',
     failedToStart: 'Couldn\'t start the game. Check your connection and try again.',
     // Board
