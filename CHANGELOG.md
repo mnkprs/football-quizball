@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.3.0] - 2026-04-16
+
+### Changed
+- **Question screen redesign** — realigned `app-question` component to the Floodlit Arena design system (DESIGN.md, 2026-03-24). The component had drifted back to a pre-redesign "premium glass" aesthetic using lime `rgba(204,255,0,*)` instead of the brand accent iOS blue `#007AFF`. Audit identified 15 findings; fixed via two atomic commits: a CSS rewrite (555 → 139 lines) that replaces glass-on-everything with tonal surface steps, removes 4 idle infinite animations (shimmer, player-glow, double-armed-glow, corner-blob gradients), flattens the skeuomorphic Higher/Lower buttons, and restores the iOS blue accent throughout; and a template pass that tightens `rounded-2xl` (16px) → `rounded-xl` (12px) on primary cards per DESIGN.md radius hierarchy, upgrades the question text to Inter title-lg (1.375rem/600), adds keyboard-visible focus rings to 50-50 + lifeline + HOL + submit + report buttons, and drops the HOL icon stroke-width from 3 to 2. Full audit at `~/.gstack/projects/mnkprs-football-quizball/designs/design-audit-20260416-question-component/`.
+
 ## [0.6.2.1] - 2026-04-16
 
 ### Fixed
