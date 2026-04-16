@@ -136,6 +136,23 @@ async function main() {
   }
 
   console.log(`  Done: ${inserted} questions seeded`);
+
+  // Invalidate the logo-quiz team-names cache so newly-seeded logos show up
+  // in the select immediately instead of waiting out the 1h TTL.
+  if (inserted > 0) {
+    try {
+      const { Redis } = await import('ioredis');
+      const url = process.env.REDIS_URL ?? 'redis://localhost:6379';
+      const redis = new Redis(url, { maxRetriesPerRequest: null });
+      await redis.del('logo:team_names');
+      await redis.quit();
+      console.log('  Invalidated logo:team_names cache');
+    } catch (err) {
+      console.warn(
+        `  WARN: cache invalidation failed (users may see stale select for up to 1h): ${(err as Error).message}`,
+      );
+    }
+  }
 }
 
 main().catch((e) => {

@@ -266,6 +266,15 @@ export class LogoQuizService {
   }
 
   /**
+   * Purge the cached team-name list. Call after seeding new LOGO_QUIZ rows so
+   * the next `getTeamNames()` call rebuilds the list from question_pool.
+   * Without this, newly-seeded logos stay hidden from the select for up to 1h.
+   */
+  async invalidateTeamNamesCache(): Promise<void> {
+    await this.cacheService.del(LogoQuizService.TEAM_NAMES_CACHE_KEY);
+  }
+
+  /**
    * Draw `count` unique random logo questions for team/battle-royale modes.
    * Returns the question's image_url for gameplay and the original for reveal.
    */
