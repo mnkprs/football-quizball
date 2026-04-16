@@ -186,6 +186,12 @@
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-strong: rgba(255, 255, 255, 0.12);
 
+  /* ---- Ghost border (no-line rule, DESIGN.md) ----
+     Used as inset box-shadow on inputs / cards to define edges
+     without a 1px solid opaque border. */
+  --color-border-ghost: rgba(168, 179, 196, 0.12);
+  --color-border-ghost-strong: rgba(168, 179, 196, 0.2);
+
   /* ---- Glow intensities ---- */
   --glow-accent-sm: 0 0 15px rgba(0, 122, 255, 0.2);
   --glow-accent-md: 0 0 20px rgba(0, 122, 255, 0.3);
@@ -231,6 +237,20 @@
   --color-surface-elevated: #FFFFFF;
   --color-surface-overlay: rgba(0,0,0,0.4);
   --shadow-card: 0 2px 8px rgba(0,0,0,0.1), 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* ---- Light theme overrides (no .dark class on <html>) ----
+   :root values are tuned for dark mode (Floodlit Arena). In light
+   mode, glass surfaces need to be translucent WHITE, not translucent
+   grey-on-grey (which reads muddy over light backgrounds). */
+:root:not(.dark) {
+  --glass-bg-subtle: rgba(255, 255, 255, 0.5);
+  --glass-bg-default: rgba(255, 255, 255, 0.7);
+  --glass-bg-strong: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-border-strong: rgba(0, 0, 0, 0.1);
+  --color-border-ghost: rgba(0, 0, 0, 0.08);
+  --color-border-ghost-strong: rgba(0, 0, 0, 0.14);
 }
 
 /* ---- Dark theme (.dark on <html>) ---- */
