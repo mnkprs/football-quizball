@@ -12,6 +12,27 @@
 
   <!-- Card + tagline, centered in remaining space -->
   <div class="w-full max-w-md mx-auto flex-1 flex flex-col justify-center">
+    <!-- How it works -->
+    <aside class="setup-legend mb-5" aria-labelledby="setup-legend-title">
+      <h2 id="setup-legend-title" class="setup-legend__title">How it works</h2>
+      <dl class="setup-legend__items">
+        <dt>Turns</dt>
+        <dd>Players alternate picking a tile.</dd>
+
+        <dt>Points</dt>
+        <dd>Harder tiles score more — 1pt Easy, 2pt Medium, 3pt Hard.</dd>
+
+        <dt>50-50</dt>
+        <dd>Narrows to 2 options (one correct); question drops to 1pt.</dd>
+
+        <dt>2x&nbsp;multiplier</dt>
+        <dd>Arm <em>before</em> picking a tile — doubles points if correct.</dd>
+
+        <dt>Win</dt>
+        <dd>Finish the board with the highest score, or pull an uncatchable lead first.</dd>
+      </dl>
+    </aside>
+
     <div class="setup-card rounded-xl p-6">
       <div class="space-y-5 mb-6">
         <!-- Player 1 Input -->
@@ -68,11 +89,6 @@
           {{ lang.t().minCharsHint }}
         </p>
       }
-    </div>
-
-    <!-- How to play -->
-    <div class="mt-5 text-center text-muted-foreground/70 text-xs font-medium">
-      {{ lang.t().howToPlay }}
     </div>
   </div>
 </div>
