@@ -36,13 +36,11 @@
   50% { opacity: 1; }
 }
 
-/* ── Solo start button overrides (bolder than default lobby-start-btn) ── */
-.solo-start-btn {
-  padding: 1.125rem;
-  font-size: 1.0625rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  box-shadow: 0 0 30px rgba(0, 122, 255, 0.4), 0 0 60px rgba(0, 122, 255, 0.15);
+/* ── Inline error (idle-state) ──────────────── */
+.solo-inline-error {
+  color: var(--color-error-text);
+  font-size: var(--text-base);
+  margin-top: var(--space-2);
 }
 
 /* ── Streak badge ───────────────────────────── */

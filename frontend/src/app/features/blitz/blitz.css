@@ -24,3 +24,10 @@
 .blitz-info-card__hint {
   color: var(--color-accent);
 }
+
+/* ── Inline error (idle-state) ──────────────── */
+.blitz-inline-error {
+  color: var(--color-error-text);
+  font-size: var(--text-base);
+  margin-top: var(--space-2);
+}

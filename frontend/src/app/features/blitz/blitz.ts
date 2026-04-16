@@ -12,13 +12,15 @@ import { LanguageService } from '../../core/language.service';
 import { AdService } from '../../core/ad.service';
 import { AnalyticsService } from '../../core/analytics.service';
 import { ShellUiService } from '../../core/shell-ui.service';
+import { ScreenComponent } from '../../shared/screen/screen';
+import { PrimaryBtnComponent } from '../../shared/primary-btn/primary-btn';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
 
 @Component({
   selector: 'app-blitz',
   standalone: true,
-  imports: [NgOptimizedImage],
+  imports: [NgOptimizedImage, ScreenComponent, PrimaryBtnComponent],
   host: { class: 'blitz-host' },
   templateUrl: './blitz.html',
   styleUrl: './blitz.css',
