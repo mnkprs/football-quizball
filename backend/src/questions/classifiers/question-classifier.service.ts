@@ -61,6 +61,9 @@ export interface ClassifierOutput {
   // event_year is classifier-sourced; era is a generated column (event_year);
   // league_tier and competition_type are filled by a trigger from competition_metadata.
   event_year: number | null;
+  // ISO alpha-2 of the primary person's country of origin. Only populated when
+  // subject_type is player, manager, or country. Powers future geo-themed modes.
+  nationality: string | null;
 }
 
 export interface ClassifierResult {
@@ -117,6 +120,9 @@ const ALLOWED_ANSWER_TYPES: readonly string[] = [
 // concept_id must be kebab-case, no leading/trailing hyphen, <=80 chars.
 const CONCEPT_ID_PATTERN = /^[a-z][a-z0-9-]{0,78}[a-z0-9]$/;
 
+// ISO 3166-1 alpha-2 country code.
+const NATIONALITY_PATTERN = /^[a-z]{2}$/;
+
 
 @Injectable()
 export class QuestionClassifierService {
@@ -145,6 +151,7 @@ export class QuestionClassifierService {
       valid_until: string | null;
       tags: string[] | null;
       event_year: number | null;
+      nationality: string | null;
     };
 
     const raw = await this.llm.generateStructuredJson<Raw>(
@@ -170,6 +177,14 @@ export class QuestionClassifierService {
     return null;
   }
 
+  private validateNationality(raw: unknown, warnings: string[]): string | null {
+    if (typeof raw !== 'string' || !raw) return null;
+    const lower = raw.toLowerCase();
+    if (NATIONALITY_PATTERN.test(lower)) return lower;
+    warnings.push(`invalid nationality "${raw}" — nulled`);
+    return null;
+  }
+
   private buildSystemPrompt(canonical: CanonicalIndex): string {
     const listBlock = formatCanonicalListForPrompt(canonical);
     return `You classify an existing football (soccer) trivia question into structured taxonomy fields for a question pool. You DO NOT verify facts or rewrite content. You only infer categorical tags from what the question says.
@@ -188,6 +203,7 @@ Return JSON with exactly these keys:
   valid_until:         ISO date "YYYY-MM-DD" if time_sensitive and you can estimate expiry. null otherwise.
   tags:                array of other canonical slugs from the list that are MENTIONED in the question (secondary references). Up to 6. Empty array if none.
   event_year:          integer 1850..current year. The primary year the question references (year of the match, trophy win, transfer, record, etc.). Null if the question is not year-anchored. (league_tier, competition_type, and era are NOT your responsibility — league_tier + competition_type are filled from a metadata table based on competition_id, and era is derived from event_year.)
+  nationality:         ISO 3166-1 alpha-2 lowercase code of the PRIMARY PERSON's country of origin — only populate when subject_type is "player" or "manager" (use the person's nationality, e.g. "ar" for Messi, "pt" for Ronaldo, "gr" for Mitroglou). When subject_type is "country", return that country's own ISO code. Return null for all other subject types (team, league, trophy, stadium) and when the subject's nationality is ambiguous or not clearly determinable from the question.
 
 STRICT RULES:
 - subject_id, competition_id, and every tag MUST appear verbatim in the CANONICAL LIST below. If the entity you'd pick is not in the list, return null for that field (not a made-up slug). This is critical — slug drift breaks the pool.
@@ -229,6 +245,7 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
       valid_until: string | null;
       tags: string[] | null;
       event_year: number | null;
+      nationality: string | null;
     },
     canonical: CanonicalIndex
   ): ClassifierResult {
@@ -336,6 +353,7 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
         valid_until: validUntil,
         tags,
         event_year: eventYear,
+        nationality: this.validateNationality(raw.nationality, warnings),
       },
       warnings,
       raw_subject_slug: rawSubjectSlug,

@@ -262,9 +262,10 @@ async function maybeApply(
         valid_until: c.valid_until,
         tags: c.tags.length ? c.tags : null,
         // league_tier + competition_type now filled by the competition_metadata
-        // trigger. era is a generated column. Only event_year remains
+        // trigger. era is a generated column. event_year + nationality remain
         // classifier-sourced.
         event_year: c.event_year,
+        nationality: c.nationality,
       })
       .eq('id', r.question_id);
     if (error) console.error(`  update ${r.question_id} failed:`, error.message);

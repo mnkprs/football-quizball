@@ -716,7 +716,7 @@ export class PoolSeedService {
         league_tier: q.analytics_tags?.league_tier ?? null,
         competition_type: q.analytics_tags?.competition_type ?? null,
         event_year: q.analytics_tags?.event_year ?? tax?.event_year ?? null,
-        nationality: q.analytics_tags?.nationality ?? null,
+        nationality: q.analytics_tags?.nationality ?? tax?.nationality ?? null,
         // Taxonomy fields from the classifier (nullable; classifier may skip).
         subject_type: tax?.subject_type ?? null,
         subject_id: tax?.subject_id ?? null,
