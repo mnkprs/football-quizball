@@ -1,92 +1,67 @@
-.setup-brand-title {
-  font-size: 2.5rem;
-  margin: 0;
-}
+/* ─── SETUP PHASE — Floodlit Arena (per DESIGN.md) ─────────
+   Same token usage as app-question redesign.
+   ────────────────────────────────────────────────────────── */
 
 .setup-page {
-  background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 95%, var(--color-accent) 5%) 100%);
+  /* Inherits bg from game.html wrapper (bg-background). */
 }
 
-.setup-logo-badge {
-  width: 5rem;
-  height: 5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-accent);
-  border-radius: var(--radius-xl);
-  box-shadow:
-    0 0 0 3px rgba(0, 122, 255, 0.15),
-    0 8px 32px rgba(0, 122, 255, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  animation: anim-scale-in 500ms ease-out;
-}
+/* ─── Card (allowed glass surface per DESIGN.md) ─── */
 
 .setup-card {
   background: var(--glass-bg-default);
   backdrop-filter: blur(var(--glass-blur-md));
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
-  border: 1px solid var(--glass-border-strong);
-  box-shadow: var(--shadow-lg);
   animation: anim-stagger-in 400ms ease-out 100ms both;
 }
 
+/* ─── Player dots (flat tokens, no idle glow) ─── */
+
 .setup-player-dot {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .setup-player-dot--p1 {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  background: var(--color-accent);
 }
 
 .setup-player-dot--p2 {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  background: var(--color-warning);
 }
 
-.setup-divider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+/* ─── Inputs (ghost border, accent on focus) ─── */
+
+.setup-page input[type="text"] {
+  background: var(--color-surface-low);
+  box-shadow: inset 0 0 0 1px rgba(168, 179, 196, 0.12);
+  transition: box-shadow var(--duration-normal) ease-out;
 }
 
-.setup-divider::before,
-.setup-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--glass-border-strong), transparent);
+.setup-page input[type="text"]:focus {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
-.setup-divider-text {
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--color-muted-foreground);
-  opacity: 0.6;
-}
+/* ─── Kick Off button (single-stop accent, state-only glow) ─── */
 
 .setup-kickoff-btn {
-  background: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%);
   color: var(--color-accent-foreground);
-  box-shadow:
-    var(--glow-accent-sm),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: var(--glow-accent-sm);
+  border: none;
+  transition:
+    box-shadow var(--duration-normal) ease-out,
+    transform var(--duration-fast) ease-out;
 }
 
 .setup-kickoff-btn:hover:not(:disabled) {
-  box-shadow:
-    var(--glow-accent-md),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
+  box-shadow: var(--glow-accent-md);
 }
 
 .setup-kickoff-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.98);
 }
 
 .setup-kickoff-btn:disabled {
