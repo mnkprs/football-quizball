@@ -1,17 +1,50 @@
-/* ─── SETUP PHASE — Floodlit Arena (per DESIGN.md) ─────────
-   Same token usage as app-question redesign.
-   ────────────────────────────────────────────────────────── */
+/* ─── SETUP PHASE — Matchday Poster (Floodlit Arena) ─────
+   Full-bleed stadium pitch with atmospheric overlay per
+   DESIGN.md. Bold brand moment at top, card centered below.
+   ────────────────────────────────────────────────────── */
 
 .setup-page {
-  /* Inherits bg from game.html wrapper (bg-background).
-     Concrete min-height so items-center actually centers:
-     100dvh minus back-button row (~4rem) and shell-main's reserved
-     bottom-nav space (~5.5rem). Leaves content vertically balanced
-     and fits inside the visible shell area without overflow. */
-  min-height: calc(100dvh - 9.5rem);
+  /* DESIGN.md atmospheric bg: image + dark gradient overlay.
+     Darker top-and-bottom, midtone middle so content reads
+     without fighting the imagery. */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.55) 42%,
+      rgba(0, 0, 0, 0.88) 100%
+    ),
+    url('/header-banner-bg.jpg') center / cover no-repeat;
+  min-height: calc(100dvh - 4rem);
 }
 
-/* ─── Card (allowed glass surface per DESIGN.md) ─── */
+/* ─── Hero / brand poster moment ─── */
+
+.setup-hero-block {
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+  padding-left: 0.5rem;
+  text-align: left;
+}
+
+.setup-hero {
+  font-size: 2.75rem;     /* ~44px mobile poster scale */
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.setup-eyebrow {
+  font-family: var(--font-numeric);
+  font-size: 0.6875rem;   /* label-sm 11px */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--color-fg-muted);
+  margin: 0.75rem 0 0 0.25rem;
+}
+
+/* ─── Card (glass, now earning it by floating over pitch) ─── */
 
 .setup-card {
   background: var(--glass-bg-default);
@@ -49,7 +82,7 @@
   box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
-/* ─── Kick Off button (single-stop accent, state-only glow) ─── */
+/* ─── Kick Off CTA (amplified hover, broadcast energy) ─── */
 
 .setup-kickoff-btn {
   background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%);
@@ -57,16 +90,18 @@
   box-shadow: var(--glow-accent-sm);
   border: none;
   transition:
-    box-shadow var(--duration-normal) ease-out,
+    box-shadow var(--duration-normal) var(--ease-out-quart),
     transform var(--duration-fast) ease-out;
 }
 
 .setup-kickoff-btn:hover:not(:disabled) {
-  box-shadow: var(--glow-accent-md);
+  box-shadow: var(--glow-accent-lg);
+  transform: translateY(-1px);
 }
 
 .setup-kickoff-btn:active:not(:disabled) {
   transform: scale(0.98);
+  box-shadow: var(--glow-accent-sm);
 }
 
 .setup-kickoff-btn:disabled {

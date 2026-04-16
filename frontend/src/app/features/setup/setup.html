@@ -1,14 +1,20 @@
-<div class="setup-page flex flex-1 items-center justify-center p-4">
+<div class="setup-page flex flex-col p-4">
   <!-- Theme toggle fixed top-right -->
   <div class="fixed top-4 right-4 z-10">
     <app-theme-toggle />
   </div>
 
-  <div class="w-full max-w-md">
-    <!-- Visually-hidden heading for screen-reader orientation -->
-    <h1 class="sr-only">{{ lang.t().setupHeading }}</h1>
+  <!-- Visually-hidden heading for screen-reader orientation -->
+  <h1 class="sr-only">{{ lang.t().setupHeading }}</h1>
 
-    <!-- Player Name Inputs -->
+  <!-- Brand hero (matchday poster) -->
+  <div class="setup-hero-block">
+    <p class="brand-text setup-hero" data-text="STEPOVR.">STEPOVR.</p>
+    <p class="setup-eyebrow">{{ lang.t().startingLineup }}</p>
+  </div>
+
+  <!-- Card + tagline, centered in remaining space -->
+  <div class="w-full max-w-md mx-auto flex-1 flex flex-col justify-center">
     <div class="setup-card rounded-xl p-6">
       <div class="space-y-5 mb-6">
         <!-- Player 1 Input -->

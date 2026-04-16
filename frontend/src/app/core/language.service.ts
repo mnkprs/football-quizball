@@ -13,6 +13,7 @@ const TRANSLATIONS = {
     failedToStart: 'Couldn\'t start the game. Check your connection and try again.',
     setupHeading: '2-Player Game Setup',
     minCharsHint: 'Minimum 2 characters each',
+    startingLineup: 'Starting Lineup',
     // Board
     turn: 'Turn',
     end: 'End',
