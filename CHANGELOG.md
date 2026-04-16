@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.7.0] - 2026-04-16
+
+### Changed
+- **2P board phase redesigned to Floodlit Arena tokens** — stripped the pre-DESIGN.md lime drift (`rgba(204, 255, 0, *)`) and hardcoded player colors (`#3b82f6`, `#ef4444`). Board-header-logo now glows `var(--glow-accent-sm)` (iOS blue) instead of lime. Board-powerup-armed uses `--color-accent` + `--color-accent-bg` with a calmer 1.8s pulse (respects `prefers-reduced-motion`). Player identity aligned across phases: P1 = `--color-accent` (iOS blue), P2 = `--color-warning` (orange) — same as setup + question components. Score numbers now use Space Grotesk tabular-nums, turn badges use Lexend (per DESIGN.md type system). Replaced 1px solid opaque borders with inset ghost shadows using the new `--color-border-ghost` token (DESIGN.md no-line rule).
+
 ## [0.6.6.0] - 2026-04-16
 
 ### Changed
