@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.8.1] - 2026-04-16
+
+### Changed
+- **Loading phase redesigned** — replaced the `text-8xl ⚽` spinning-football emoji (emoji-as-design anti-slop) with the branded loader tile already used by `app-question` (pulsing accent-bg square containing the StepOver mark). Heading now uses Space Grotesk per DESIGN.md type system. Three-dot progress indicator uses `--color-accent` with a staggered bounce, respects `prefers-reduced-motion`. Added `role="status"` + `aria-live="polite"` so screen readers announce the progress message.
+
 ## [0.6.8.0] - 2026-04-16
 
 ### Changed
