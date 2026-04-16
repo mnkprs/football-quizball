@@ -1,4 +1,4 @@
-<div class="relative min-h-screen bg-background max-w-md mx-auto">
+<div class="relative min-h-screen bg-background max-w-md mx-auto flex flex-col">
   @if (store.phase() !== 'loading' && store.phase() !== 'finished') {
     <button
       (click)="goBack()"
