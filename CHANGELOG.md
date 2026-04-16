@@ -2,6 +2,16 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.6.5.0] - 2026-04-16
+
+### Fixed
+- **Setup screen a11y audit cleanup** — implemented all nine /audit findings against `app-setup`. Labels now linked to inputs via `for`/`id` (`setup-player1`, `setup-player2`) so VoiceOver / TalkBack announce field names and label-tap focuses the input. Added a visually-hidden `<h1>` "2-Player Game Setup" for screen-reader orientation (no visual change). Replaced `focus:outline-none` with `focus-visible:outline-none` on both inputs. Error banner carries `role="alert"` so backend failures get announced. Disabled Kick Off now shows a "Minimum 2 characters each" hint under the button while `canStart()` is false, and the button's `aria-describedby` points to that hint.
+
+### Changed
+- **Back button in 2P game** — bumped touch target to 44×44px min (was ~36px), cleaned up the contradictory `fixed top-4 relative` class combo (Tailwind silently applied `relative`), added `focus-visible` ring.
+- **Tokens** — added `--color-border-ghost` (+`-strong` variant) to `_tokens.css` for the inset ghost-border pattern used on inputs (replaces hardcoded `rgba(168, 179, 196, 0.12)` in two components). Added a `:root:not(.dark)` block that overrides `--glass-bg-*` and `--glass-border-*` with translucent-white variants for light theme (previously dark-tuned rgba read muddy over light backgrounds). Non-destructive — dark theme is unchanged.
+- **Setup component imports** — dropped unused `NgOptimizedImage` + `signal` imports from `setup.ts` (images were removed with the logo chrome strip).
+
 ## [0.6.4.1] - 2026-04-16
 
 ### Fixed
