@@ -90,6 +90,21 @@ export function isKnownSlug(
 }
 
 /**
+ * Strip structural tokens from strings before they are embedded into a system
+ * prompt. Prevents adversarial display_names / aliases from introducing fake
+ * section headers or control sequences that could mislead the classifier.
+ * The canonical review pass should catch these, but defence-in-depth is cheap.
+ */
+function sanitiseForPrompt(s: string, max = 120): string {
+  return s
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/^#+\s*/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max);
+}
+
+/**
  * Format the canonical list for embedding in a system prompt.
  * Compact one-line-per-entity format, grouped by type.
  * Example line: `lionel-messi | Lionel Messi | Leo Messi, La Pulga`
@@ -110,8 +125,11 @@ export function formatCanonicalListForPrompt(index: CanonicalIndex): string {
     if (list.length === 0) continue;
     parts.push(`\n### ${type.toUpperCase()} (${list.length})`);
     for (const e of list) {
-      const aliases = e.aliases.length ? ` | ${e.aliases.join(', ')}` : '';
-      parts.push(`${e.slug} | ${e.display_name}${aliases}`);
+      const name = sanitiseForPrompt(e.display_name);
+      const aliases = e.aliases.length
+        ? ` | ${e.aliases.map((a) => sanitiseForPrompt(a)).join(', ')}`
+        : '';
+      parts.push(`${e.slug} | ${name}${aliases}`);
     }
   }
   return parts.join('\n');

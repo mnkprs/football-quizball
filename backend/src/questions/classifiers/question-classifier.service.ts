@@ -102,6 +102,21 @@ const ALLOWED_TYPES: readonly EntityType[] = [
   'country',
 ];
 
+const ALLOWED_ANSWER_TYPES: readonly string[] = [
+  'string',
+  'year',
+  'number',
+  'team_name',
+  'player_name',
+  'country',
+  'score',
+  'boolean',
+  'list',
+];
+
+// concept_id must be kebab-case, no leading/trailing hyphen, <=80 chars.
+const CONCEPT_ID_PATTERN = /^[a-z][a-z0-9-]{0,78}[a-z0-9]$/;
+
 
 @Injectable()
 export class QuestionClassifierService {
@@ -139,6 +154,20 @@ export class QuestionClassifierService {
     );
 
     return this.validate(input.id, raw, canonical);
+  }
+
+  private validateAnswerType(raw: unknown, warnings: string[]): string | null {
+    if (typeof raw !== 'string' || !raw) return null;
+    if (ALLOWED_ANSWER_TYPES.includes(raw)) return raw;
+    warnings.push(`invalid answer_type "${raw}" — nulled`);
+    return null;
+  }
+
+  private validateConceptId(raw: unknown, warnings: string[]): string | null {
+    if (typeof raw !== 'string' || !raw) return null;
+    if (CONCEPT_ID_PATTERN.test(raw)) return raw;
+    warnings.push(`invalid concept_id "${raw}" — nulled`);
+    return null;
   }
 
   private buildSystemPrompt(canonical: CanonicalIndex): string {
@@ -226,9 +255,6 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
         );
       }
     }
-    // If subject_id missing but type present, still null it (consistency).
-    if (subjectType && !subjectId) subjectType = subjectType; // keep type for context even if id null
-
     // competition_id — must be canonical league OR trophy
     let competitionId: string | null = null;
     if (raw.competition_id) {
@@ -298,13 +324,13 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
         subject_type: subjectId ? subjectType : null,
         subject_id: subjectId,
         subject_name: subjectId
-          ? canonical.bySlug.get(`${subjectType}::${subjectId}`)?.display_name ?? raw.subject_name
+          ? canonical.bySlug.get(`${subjectType}::${subjectId}`)?.display_name ?? null
           : null,
         competition_id: competitionId,
         question_style: style,
-        answer_type: raw.answer_type && typeof raw.answer_type === 'string' ? raw.answer_type : null,
+        answer_type: this.validateAnswerType(raw.answer_type, warnings),
         mode_compatibility: modes,
-        concept_id: raw.concept_id && typeof raw.concept_id === 'string' ? raw.concept_id : null,
+        concept_id: this.validateConceptId(raw.concept_id, warnings),
         popularity_score: popularity,
         time_sensitive: Boolean(raw.time_sensitive),
         valid_until: validUntil,

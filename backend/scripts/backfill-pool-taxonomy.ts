@@ -71,14 +71,26 @@ async function fetchStratified(
   supabase: SupabaseService,
   perCategory: number
 ): Promise<PoolRow[]> {
-  // Distinct non-logo categories. Not using RPC — simple client-side sample is fine.
-  const { data, error } = await supabase.client
-    .from('question_pool')
-    .select('id, category, difficulty, question')
-    .neq('category', 'LOGO_QUIZ');
-  if (error) throw error;
+  // Paginate the full non-logo pool so stratification isn't biased by the
+  // first 1000 rows.
+  const PAGE = 1000;
+  const all: PoolRow[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase.client
+      .from('question_pool')
+      .select('id, category, difficulty, question')
+      .neq('category', 'LOGO_QUIZ')
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    const batch = (data ?? []) as PoolRow[];
+    all.push(...batch);
+    if (batch.length < PAGE) break;
+    from += PAGE;
+  }
   const byCat = new Map<string, PoolRow[]>();
-  for (const r of (data ?? []) as PoolRow[]) {
+  for (const r of all) {
     if (!byCat.has(r.category)) byCat.set(r.category, []);
     byCat.get(r.category)!.push(r);
   }

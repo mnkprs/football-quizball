@@ -63,16 +63,13 @@ export class PoolSeedService {
   ) {}
 
   /**
-   * Lazily-loaded canonical entity index for the classifier.
-   * First call reads the reviewed cleaned JSON; the in-memory result is reused
-   * across all subsequent seeding batches in this process.
+   * Resolve the canonical entity index. `loadCanonicalEntities` maintains its
+   * own module-level cache — we just wrap the read with a graceful fallback
+   * so a missing / unreadable JSON file never blocks pool seeding.
    */
-  private canonicalIndexCache: CanonicalIndex | null = null;
   private getCanonicalIndex(): CanonicalIndex | null {
-    if (this.canonicalIndexCache) return this.canonicalIndexCache;
     try {
-      this.canonicalIndexCache = loadCanonicalEntities();
-      return this.canonicalIndexCache;
+      return loadCanonicalEntities();
     } catch (err) {
       this.logger.warn(
         `[classifier] canonical entities not loadable — new questions will be inserted without taxonomy. ${(err as Error).message}`,
