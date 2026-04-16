@@ -1,0 +1,119 @@
+/* ==========================================================
+   <app-primary-btn> — canonical StepOver CTA
+   Floodlit Arena: heavy weight, subtle letter-spacing, glow.
+   ========================================================== */
+
+:host {
+  display: inline-block;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:host([fullWidth]),
+:host .pbtn--full {
+  display: block;
+  width: 100%;
+}
+
+.pbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  font-family: var(--font-headline);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  will-change: transform;
+  transition:
+    transform 120ms var(--ease-out-quart),
+    box-shadow var(--duration-slow),
+    opacity var(--duration-normal),
+    background var(--duration-normal);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.pbtn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.pbtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Size variants ─────────────────────────────────── */
+.pbtn--md {
+  padding: var(--space-3\.5) var(--space-6);
+  min-height: 44px;
+  font-size: var(--text-base);
+}
+
+.pbtn--lg {
+  padding: 1.125rem var(--space-6);
+  min-height: 56px;
+  font-size: 1.0625rem; /* matches the old solo-start-btn bold presence */
+}
+
+/* ── Color variants ────────────────────────────────── */
+.pbtn--accent {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  box-shadow:
+    0 0 30px rgba(0, 122, 255, 0.4),
+    0 0 60px rgba(0, 122, 255, 0.15);
+}
+
+.pbtn--accent:hover:not(:disabled) {
+  box-shadow:
+    0 0 40px rgba(0, 122, 255, 0.55),
+    0 0 80px rgba(0, 122, 255, 0.2);
+}
+
+.pbtn--purple {
+  background: var(--color-purple);
+  color: var(--color-white);
+  box-shadow: var(--glow-purple-md);
+}
+
+.pbtn--purple:hover:not(:disabled) {
+  box-shadow: 0 0 32px rgba(168, 85, 247, 0.45), 0 0 64px rgba(168, 85, 247, 0.18);
+}
+
+.pbtn--ghost {
+  background: transparent;
+  color: var(--color-fg-muted);
+  box-shadow: none;
+  text-shadow: none;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.pbtn--ghost:hover:not(:disabled) {
+  color: var(--color-fg);
+  background: var(--glass-bg-subtle);
+}
+
+/* ── Loading state ─────────────────────────────────── */
+.pbtn--loading .pbtn__label {
+  opacity: 0.7;
+}
+
+.pbtn__spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: pbtn-spin 0.6s linear infinite;
+}
+
+@keyframes pbtn-spin {
+  to { transform: rotate(360deg); }
+}

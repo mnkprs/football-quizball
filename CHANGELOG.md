@@ -2,6 +2,18 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.1.0] - 2026-04-17
+
+### Added
+- **`<app-screen>` primitive** — canonical screen shell with two modes: `bleed` (full-viewport lobby) and `padded` (max-width content with back-button header and `[screen-title]` / `[screen-action]` slots). Replaces duplicated `bg-background flex flex-col page-stagger` wrappers and ad-hoc back-button header rows.
+- **`<app-primary-btn>` primitive** — canonical CTA with `accent` / `purple` / `ghost` variants and `md` / `lg` sizes. Handles loading and disabled state internally; emits `pressed` only when actionable. Replaces the `lobby-start-btn` + per-screen `-start-btn` family.
+
+### Changed
+- **Blitz mode migrated to shared primitives** — `blitz.html` idle state uses `<app-screen mode="bleed">` + `<app-primary-btn size="lg">`. Non-idle state uses `<app-screen mode="padded" showBack>` with the "⚡ Blitz" title in the canonical header slot.
+
+### Fixed
+- **Solo mode no longer references undefined components on main.** Since v0.7.0.0, `solo.html` used `<app-screen>` and `<app-primary-btn>` but neither the component files nor the `solo.ts` imports existed — production main failed to compile the Solo route. This PR adds the missing components and imports.
+
 ## [0.7.0.0] - 2026-04-17
 
 ### Changed

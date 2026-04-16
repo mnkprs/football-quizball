@@ -3,6 +3,8 @@ import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { GameQuestionComponent, QuestionData, RevealResult } from '../../shared/game-question/game-question';
+import { ScreenComponent } from '../../shared/screen/screen';
+import { PrimaryBtnComponent } from '../../shared/primary-btn/primary-btn';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
@@ -26,7 +28,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
   selector: 'app-solo',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, GameQuestionComponent, DecimalPipe, UpperCasePipe, NgOptimizedImage],
+  imports: [FormsModule, RouterLink, GameQuestionComponent, ScreenComponent, PrimaryBtnComponent, DecimalPipe, UpperCasePipe, NgOptimizedImage],
   host: { class: 'solo-host' },
   templateUrl: './solo.html',
   styleUrl: './solo.css',

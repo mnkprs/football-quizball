@@ -1,0 +1,33 @@
+@if (mode() === 'padded') {
+  <div class="screen__container page-stagger">
+    @if (showBack() || showHeader()) {
+      <header class="screen__header">
+        @if (showBack()) {
+          <button
+            type="button"
+            class="screen__back"
+            (click)="onBackClick()"
+            [attr.aria-label]="backLabel()"
+          >
+            {{ backLabel() }}
+          </button>
+        } @else {
+          <span class="screen__back-spacer" aria-hidden="true"></span>
+        }
+        <div class="screen__header-center">
+          <ng-content select="[screen-title]"></ng-content>
+        </div>
+        <div class="screen__header-right">
+          <ng-content select="[screen-action]"></ng-content>
+        </div>
+      </header>
+    }
+    <div class="screen__body">
+      <ng-content></ng-content>
+    </div>
+  </div>
+} @else {
+  <div class="screen__bleed page-stagger">
+    <ng-content></ng-content>
+  </div>
+}
