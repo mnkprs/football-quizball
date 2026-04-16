@@ -25,13 +25,13 @@ export interface AchievementContext {
 }
 
 export function getEloTier(elo: number): { tier: string; color: string; label: string } {
-  if (elo >= 2400) return { tier: 'challenger', color: '#e8ff7a', label: 'Challenger' };
-  if (elo >= 2000) return { tier: 'diamond', color: '#a855f7', label: 'Diamond' };
-  if (elo >= 1650) return { tier: 'platinum', color: '#06b6d4', label: 'Platinum' };
-  if (elo >= 1300) return { tier: 'gold', color: '#f59e0b', label: 'Gold' };
-  if (elo >= 1000) return { tier: 'silver', color: '#94a3b8', label: 'Silver' };
-  if (elo >= 750) return { tier: 'bronze', color: '#b45309', label: 'Bronze' };
-  return { tier: 'iron', color: '#6b7280', label: 'Iron' };
+  if (elo >= 2400) return { tier: 'goat',         color: '#e8ff7a', label: 'GOAT' };
+  if (elo >= 2000) return { tier: 'ballon_dor',   color: '#eab308', label: "Ballon d'Or" };
+  if (elo >= 1650) return { tier: 'starting_xi',  color: '#2563eb', label: 'Starting XI' };
+  if (elo >= 1300) return { tier: 'pro',          color: '#10b981', label: 'Pro' };
+  if (elo >= 1000) return { tier: 'substitute',   color: '#94a3b8', label: 'Substitute' };
+  if (elo >= 750)  return { tier: 'academy',      color: '#b45309', label: 'Academy' };
+  return               { tier: 'sunday_league', color: '#6b7280', label: 'Sunday League' };
 }
 
 @Injectable()

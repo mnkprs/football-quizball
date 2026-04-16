@@ -28,12 +28,12 @@ const DIFFICULTY_MULTIPLIER: Record<string, number> = {
 
 /** Skill thresholds by player ELO — aligned to tier system. */
 function targetSkillForElo(playerElo: number): number {
-  if (playerElo < 750)  return 0.20;  // Iron
-  if (playerElo < 1000) return 0.30;  // Bronze
-  if (playerElo < 1300) return 0.40;  // Silver
-  if (playerElo < 1650) return 0.50;  // Gold
-  if (playerElo < 2000) return 0.60;  // Platinum
-  return 0.70;                         // Diamond/Challenger
+  if (playerElo < 750)  return 0.20;  // Sunday League
+  if (playerElo < 1000) return 0.30;  // Academy
+  if (playerElo < 1300) return 0.40;  // Substitute
+  if (playerElo < 1650) return 0.50;  // Pro
+  if (playerElo < 2000) return 0.60;  // Starting XI
+  return 0.70;                         // Ballon d'Or / GOAT
 }
 
 @Injectable()

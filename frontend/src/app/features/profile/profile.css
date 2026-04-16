@@ -448,6 +448,12 @@
   background: rgba(167, 139, 250, 0.2);
 }
 
+.analytics-link--standalone {
+  margin: 1.25rem auto;
+  display: block;
+  width: fit-content;
+}
+
 /* ── Mode Stat Cards ───────────────────── */
 .mode-grid {
   display: grid;

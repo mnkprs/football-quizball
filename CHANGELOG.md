@@ -2,6 +2,30 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.5.0] - 2026-04-17
+
+### Changed
+- **ELO tier ladder renamed from metal names to football-native names.** The old League-of-Legends-style ladder (Iron → Bronze → Silver → Gold → Platinum → Diamond → Challenger) always felt borrowed. Replaced with a ladder that reads like a football career arc every fan recognises instantly: **Sunday League → Academy → Substitute → Pro → Starting XI → Ballon d'Or → GOAT**. ELO thresholds, K-factors, and progression logic are unchanged — only tier keys, labels, achievement display names, and achievement emoji (🎒 Academy, 🪑 Substitute, ⚽ Pro, 🎽 Starting XI, 🥇 Ballon d'Or, 🐐 GOAT) are updated. Internal tier keys changed too (`challenger` → `goat`, `diamond` → `ballon_dor`, `platinum` → `starting_xi`, `gold` → `pro`, `silver` → `substitute`, `bronze` → `academy`, `iron` → `sunday_league`) — keys are not persisted anywhere, so no data migration needed for user records. DB migration `20260613000000_football_tier_rename.sql` updates achievement `name`, `description`, and `icon` in place; achievement IDs (`elo_750`, `elo_1000`, …) are unchanged so `user_achievements` rows are untouched.
+- **Tier color palette refreshed to match the football semantics.** The old palette was metal-themed (amber, cyan, purple). Three tiers now recolor to fit the new ladder: **Pro** `#f59e0b` amber → `#10b981` emerald (on-pitch green), **Starting XI** `#06b6d4` cyan → `#2563eb` royal blue (elite captaincy), **Ballon d'Or** `#a855f7` purple → `#eab308` gold (the iconic golden ball). Sunday League, Academy, Substitute, and GOAT colors are unchanged — they already fit. Result: the color progression reads gray → brown → slate → pitch green → royal blue → gold → electric glow, matching the career-arc narrative.
+- **Leaderboard ELO legend overlay** updated with the new names, ranges, colors, and football-native icons (🐐 GOAT, 🥇 Ballon d'Or, 🎽 Starting XI, ⚽ Pro, 🪑 Substitute, 🎒 Academy, 🥾 Sunday League). Footer now reads "All players start at Substitute (1000 ELO)".
+
+## [0.7.4.1] - 2026-04-17
+
+### Added
+- **Achievements x/y stat in profile hero.** Fourth slot in the hero stat row shows `earned / total` so users see their completion progress at a glance without scrolling to the Achievements section. Reuses the existing `achievementsEarned()` and `achievements()` computed signals — no new state.
+
+### Fixed
+- **Solo Ranked lobby (idle phase) now has a back button.** Previously wrapped in `<app-screen mode="bleed">` which only emits a back button in `padded` mode, so the screen had no nav affordance. Added `<app-lobby-header (back)="goHome()" />` inside the bleed container (same pattern duel and battle-royale lobbies use).
+- **Lobby header back button now renders correctly across all lobbies.** Root cause: `<app-lobby-header>` had no `:host { display: block }`, so browsers defaulted the custom element to `display: inline`, collapsing its host box to zero height inside the parent flex column. The inner `.lobby-header` div still painted but could end up clipped by the absolute-positioned `.hero-bg`. Fix lifts duel, battle-royale, and solo in one change.
+
+### Changed
+- **"Buy Me a Coffee" top-nav link now renders amber by default.** Promoted the hover styling (amber bg/border, `#fbbf24` text) to the base rule so the link reads as branded on first paint — critical on mobile where hover essentially doesn't exist. Kept `:hover` as a subtle amplification for desktop users.
+
+## [0.7.3.1] - 2026-04-17
+
+### Fixed
+- **"View full analytics" link no longer hidden behind ELO sparkline gate.** The Pro-only analytics entry point lived inside `@if (sparklineData())`, so users with fewer than 2 ELO-history entries couldn't see it even when their Pro status was active. Lifted the `@if (isOwnProfile() && pro.isPro())` block out of the sparkline section into its own standalone block between ELO Progression and Mode Stats. Added `.analytics-link--standalone` modifier for centered spacing when it renders on its own.
+
 ## [0.7.3.0] - 2026-04-17
 
 ### Changed
