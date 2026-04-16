@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { GameQuestionComponent, QuestionData, RevealResult } from '../../shared/game-question/game-question';
 import { ScreenComponent } from '../../shared/screen/screen';
+import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 import { PrimaryBtnComponent } from '../../shared/primary-btn/primary-btn';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
@@ -28,7 +29,7 @@ type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished
   selector: 'app-solo',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, GameQuestionComponent, ScreenComponent, PrimaryBtnComponent, DecimalPipe, UpperCasePipe, NgOptimizedImage],
+  imports: [FormsModule, RouterLink, GameQuestionComponent, ScreenComponent, LobbyHeaderComponent, PrimaryBtnComponent, DecimalPipe, UpperCasePipe, NgOptimizedImage],
   host: { class: 'solo-host' },
   templateUrl: './solo.html',
   styleUrl: './solo.css',

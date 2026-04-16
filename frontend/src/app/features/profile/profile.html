@@ -147,6 +147,11 @@
           <span class="hero__stat-val">{{ profile()?.questions_answered ?? 0 }}</span>
           <span class="hero__stat-lbl">Total Questions Played</span>
         </div>
+        <div class="hero__stat-div"></div>
+        <div class="hero__stat">
+          <span class="hero__stat-val">{{ achievementsEarned() }} / {{ achievements().length }}</span>
+          <span class="hero__stat-lbl">Achievements</span>
+        </div>
       </div>
     </div>
 

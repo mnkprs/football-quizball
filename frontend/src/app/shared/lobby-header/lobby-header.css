@@ -1,3 +1,10 @@
+:host {
+  display: block;
+  position: relative;
+  z-index: 3;
+  width: 100%;
+}
+
 .lobby-header {
   position: relative;
   z-index: 3;
