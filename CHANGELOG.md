@@ -2,6 +2,27 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.0.0] - 2026-04-17
+
+### Changed
+- **2-Player game visual redesign (all 6 phases)** — realigned every game phase to the Floodlit Arena design system (DESIGN.md, 2026-03-24). The entire game flow had drifted to a pre-redesign "premium glass" aesthetic using lime `rgba(204,255,0,*)` instead of the brand accent iOS blue `#007AFF`.
+  - **Question**: CSS rewritten from 555 to 139 lines. Glass-on-everything replaced with tonal surfaces. 4 idle infinite animations removed (shimmer, player-glow, double-armed-glow, corner blobs). Skeuomorphic Higher/Lower buttons flattened. Question text upgraded to Inter title-lg (1.375rem/600).
+  - **Setup**: matchday poster composition. Full-bleed stadium pitch background with atmospheric overlay. Bold STEPOVR. brand moment in Alfa Slab One italic. "STARTING LINEUP" eyebrow in Lexend. Decorative chrome removed (logo badge, wordmark duplicate, VS divider, ball emoji).
+  - **Board**: tokenized end-to-end. Score numbers in Space Grotesk tabular-nums, turn badges in Lexend. End-game button bumped to 44px touch target.
+  - **Result (per-question)**: Continue button aligned to iOS blue gradient. Score cards use blue/orange tokens.
+  - **Finals**: stadium pitch background (game ends where it started). Trophy glows iOS blue. "Final Results" heading upscaled to Space Grotesk 2.5rem. Non-winner player cards demoted from glass to flat surface.
+  - **Loading**: spinning football emoji replaced with branded pulsing StepOver mark.
+- **Player identity unified** — P1 = `--color-accent` (iOS blue), P2 = `--color-warning` (orange) across all 6 phases. Previously used hardcoded `#3b82f6` / `#ef4444`.
+- **Token system extended** — 10 new CSS custom properties: `--color-border-ghost`, `--color-accent-bg-subtle`, `--color-accent-border-soft/-med`, `--color-warning-bg-subtle/-border-soft/-med`, `--duration-pulse`, `--shadow-text-subtle`. Light-theme glass override via `:root:not(.dark)`.
+- **Shared `.loading-tile`** — extracted to `styles/components/_loading.css`. Replaces emoji spinners in game loading, solo, and logo-quiz.
+- **Emoji removed from copy** — "Kick Off! ⚽" → "Kick Off", "Play Again ⚽" → "Play Again", "🤝 It's a Draw!" → "It's a Draw".
+- **Theme toggles removed** from game phases (board, setup, loading).
+
+### Fixed
+- **Question screen black band + overflow scroll** — question page had its own background color that conflicted with the game wrapper, creating a visible black band at top. Replaced `min-h-screen` with `flex-1` inside the now-flex game wrapper.
+- **Setup card anchored to top** — `flex-1` couldn't resolve a concrete height. Fixed with explicit `min-height: calc(100dvh - 9.5rem)`.
+- **A11y hardened across all game phases** — labels linked to inputs via `for`/`id`, visually-hidden `<h1>` headings on every phase for screen-reader orientation, `role="alert"` on error banners, `role="status"` on result cards, `aria-label` on board question circles ("Geography, 100 points, unanswered"), `aria-describedby` on disabled Kick Off with helper hint, `focus-visible` rings on all interactive elements, back button minimum 44px touch target. All animations respect `prefers-reduced-motion`.
+
 ## [0.6.2.1] - 2026-04-16
 
 ### Fixed

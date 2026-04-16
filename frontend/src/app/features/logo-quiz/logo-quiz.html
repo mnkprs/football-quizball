@@ -82,7 +82,9 @@
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'loading') {
       <div class="flex-1 flex items-center justify-center" style="min-height: 60dvh">
-        <div class="text-5xl animate-spin" role="status" aria-label="Loading"><span aria-hidden="true">⚽</span></div>
+        <div class="loading-tile" role="status" aria-label="Loading">
+          <img src="/stepover-logo-white-bg.png" alt="" class="w-12 h-12 object-contain" width="48" height="48" aria-hidden="true" />
+        </div>
       </div>
     }
 

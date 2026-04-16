@@ -1,8 +1,10 @@
 <div class="result-page min-h-screen flex items-center justify-center p-4">
   <div class="max-w-md w-full">
+    <h1 class="sr-only">{{ lang.t().roundResultHeading }}</h1>
+
     <!-- Result card -->
-    <div [class]="resultCardClass()" class="result-card rounded-xl p-6 mb-5 text-center transition-all">
-      <div class="result-icon-wrap mb-3">
+    <div [class]="resultCardClass()" class="result-card rounded-xl p-6 mb-5 text-center transition-all" role="status" aria-live="polite">
+      <div class="result-icon-wrap mb-3" aria-hidden="true">
         @if (result()?.correct) {
           <svg class="result-icon result-icon--win" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
@@ -25,7 +27,7 @@
     </div>
 
     <!-- Correct answer reveal -->
-    <div class="result-answer-card bg-card rounded-xl p-5 mb-5 border border-border/50">
+    <div class="result-answer-card bg-card rounded-xl p-5 mb-5">
       <div class="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-1.5">{{ lang.t().correctAnswer }}</div>
       <div class="text-foreground font-bold text-lg">{{ result()?.correct_answer }}</div>
       @if (result()?.original_image_url) {
@@ -44,7 +46,7 @@
 
     <!-- TOP_5 wrong guesses -->
     @if (store.top5State()?.wrongGuesses?.length) {
-      <div class="bg-card rounded-xl p-4 mb-5 border border-border/50">
+      <div class="bg-card rounded-xl p-4 mb-5">
         <div class="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-2">{{ lang.t().notInTop5Label }}</div>
         <div class="space-y-1.5">
           @for (wrong of store.top5State()!.wrongGuesses; track $index) {

@@ -1,92 +1,107 @@
-.setup-brand-title {
-  font-size: 2.5rem;
+/* ─── SETUP PHASE — Matchday Poster (Floodlit Arena) ─────
+   Full-bleed stadium pitch with atmospheric overlay per
+   DESIGN.md. Bold brand moment at top, card centered below.
+   ────────────────────────────────────────────────────── */
+
+.setup-page {
+  /* DESIGN.md atmospheric bg: image + dark gradient overlay.
+     Darker top-and-bottom, midtone middle so content reads
+     without fighting the imagery. */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.55) 42%,
+      rgba(0, 0, 0, 0.88) 100%
+    ),
+    url('/header-banner-bg.jpg') center / cover no-repeat;
+  min-height: calc(100dvh - 4rem);
+}
+
+/* ─── Hero / brand poster moment ─── */
+
+.setup-hero-block {
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+  padding-left: 0.5rem;
+  text-align: left;
+}
+
+.setup-hero {
+  font-size: 2.75rem;     /* ~44px mobile poster scale */
+  line-height: 0.95;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
-.setup-page {
-  background: linear-gradient(180deg, var(--color-background) 0%, color-mix(in srgb, var(--color-background) 95%, var(--color-accent) 5%) 100%);
+.setup-eyebrow {
+  font-family: var(--font-numeric);
+  font-size: 0.6875rem;   /* label-sm 11px */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--color-fg-muted);
+  margin: 0.75rem 0 0 0.25rem;
 }
 
-.setup-logo-badge {
-  width: 5rem;
-  height: 5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-accent);
-  border-radius: var(--radius-xl);
-  box-shadow:
-    0 0 0 3px rgba(0, 122, 255, 0.15),
-    0 8px 32px rgba(0, 122, 255, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  animation: anim-scale-in 500ms ease-out;
-}
+/* ─── Card (glass, now earning it by floating over pitch) ─── */
 
 .setup-card {
   background: var(--glass-bg-default);
   backdrop-filter: blur(var(--glass-blur-md));
   -webkit-backdrop-filter: blur(var(--glass-blur-md));
-  border: 1px solid var(--glass-border-strong);
-  box-shadow: var(--shadow-lg);
   animation: anim-stagger-in 400ms ease-out 100ms both;
 }
 
+/* ─── Player dots (flat tokens, no idle glow) ─── */
+
 .setup-player-dot {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .setup-player-dot--p1 {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  background: var(--color-accent);
 }
 
 .setup-player-dot--p2 {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+  background: var(--color-warning);
 }
 
-.setup-divider {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+/* ─── Inputs (ghost border, accent on focus) ─── */
+
+.setup-page input[type="text"] {
+  background: var(--color-surface-low);
+  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
+  transition: box-shadow var(--duration-normal) ease-out;
 }
 
-.setup-divider::before,
-.setup-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--glass-border-strong), transparent);
+.setup-page input[type="text"]:focus {
+  box-shadow: inset 0 0 0 2px var(--color-accent);
 }
 
-.setup-divider-text {
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: var(--color-muted-foreground);
-  opacity: 0.6;
-}
+/* ─── Kick Off CTA (amplified hover, broadcast energy) ─── */
 
 .setup-kickoff-btn {
-  background: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%);
   color: var(--color-accent-foreground);
-  box-shadow:
-    var(--glow-accent-sm),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: var(--glow-accent-sm);
+  border: none;
+  transition:
+    box-shadow var(--duration-normal) var(--ease-out-quart),
+    transform var(--duration-fast) ease-out;
 }
 
 .setup-kickoff-btn:hover:not(:disabled) {
-  box-shadow:
-    var(--glow-accent-md),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: var(--glow-accent-lg);
   transform: translateY(-1px);
 }
 
 .setup-kickoff-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.98);
+  box-shadow: var(--glow-accent-sm);
 }
 
 .setup-kickoff-btn:disabled {

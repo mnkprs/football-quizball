@@ -1,0 +1,15 @@
+/* ─── LOADING PHASE — component-specific styles only.
+   Shared .loading-tile + .loading-dot are defined globally in
+   styles/components/_loading.css (available to all features).
+   ─────────────────────────────────────────────────────── */
+
+.loading-page {
+  background: var(--color-bg);
+}
+
+.loading-heading {
+  font-family: var(--font-headline);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
