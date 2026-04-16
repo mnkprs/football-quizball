@@ -9,6 +9,7 @@ import { PoolIntegrityVerifierService } from './pool-integrity-verifier.service'
 import { AnswerValidator } from './validators/answer.validator';
 import { QuestionValidator } from './validators/question.validator';
 import { QuestionIntegrityService } from './validators/question-integrity.service';
+import { QuestionClassifierService } from './classifiers/question-classifier.service';
 import { AnswerTypeModifierService } from './answer-type-modifier.service';
 import { DifficultyScorer } from './difficulty-scorer.service';
 import { ThresholdConfigService } from './threshold-config.service';
@@ -36,6 +37,7 @@ import { LlmModule } from '../llm/llm.module';
     AnswerValidator,
     QuestionValidator,
     QuestionIntegrityService,
+    QuestionClassifierService,
     DifficultyScorer,
     HistoryGenerator,
     PlayerIdGenerator,
@@ -56,6 +58,7 @@ import { LlmModule } from '../llm/llm.module';
     AnswerValidator,
     QuestionValidator,
     QuestionIntegrityService,
+    QuestionClassifierService,
     ThresholdConfigService,
     MigratePoolDifficultyService,
     DifficultyScorer,
