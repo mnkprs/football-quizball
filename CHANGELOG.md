@@ -2,6 +2,14 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.3.0] - 2026-04-17
+
+### Changed
+- **2-Player setup: "How it works" legend replaces the single-line footer.** The old `{{ lang.t().howToPlay }}` footer ("7 categories · Up to 3 difficulties · 2 lifelines each") was decorative but didn't actually teach the rules. Replaced with a proper `<aside>` legend above the player-name card, using a definition list (Turns, Points, 50-50, 2x multiplier, Win). Reads like a quick-reference card, sits in the player's eyeline before they enter names, and explains the 2x-must-be-armed-first nuance that players consistently missed.
+
+### Removed
+- `lang.howToPlay` translation key — now unused after the legend replaces the footer.
+
 ## [0.7.2.0] - 2026-04-17
 
 ### Added
