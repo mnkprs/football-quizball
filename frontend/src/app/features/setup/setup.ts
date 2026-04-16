@@ -3,12 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GameStore } from '../../core/game.store';
 import { LanguageService } from '../../core/language.service';
-import { ThemeToggleComponent } from '../../shared/theme-toggle';
-
 @Component({
   selector: 'app-setup',
   standalone: true,
-  imports: [CommonModule, FormsModule, ThemeToggleComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './setup.html',
   styleUrl: './setup.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
