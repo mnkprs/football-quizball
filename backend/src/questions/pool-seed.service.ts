@@ -710,10 +710,13 @@ export class PoolSeedService {
         },
         raw_score: q.raw_score ?? null,
         embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,
-        league_tier: q.analytics_tags?.league_tier ?? null,
-        competition_type: q.analytics_tags?.competition_type ?? null,
-        era: q.analytics_tags?.era ?? null,
-        event_year: q.analytics_tags?.event_year ?? null,
+        // Prefer generator-provided analytics_tags; fall back to classifier so
+        // analytics widgets stay accurate even for category generators that
+        // don't emit these fields.
+        league_tier: q.analytics_tags?.league_tier ?? tax?.league_tier ?? null,
+        competition_type: q.analytics_tags?.competition_type ?? tax?.competition_type ?? null,
+        era: q.analytics_tags?.era ?? tax?.era ?? null,
+        event_year: q.analytics_tags?.event_year ?? tax?.event_year ?? null,
         nationality: q.analytics_tags?.nationality ?? null,
         // Taxonomy fields from the classifier (nullable; classifier may skip).
         subject_type: tax?.subject_type ?? null,

@@ -58,6 +58,12 @@ export interface ClassifierOutput {
   time_sensitive: boolean;
   valid_until: string | null;
   tags: string[];
+  // Legacy analytics fields (shared with generator output). Populated here so
+  // classifier-only backfills keep analytics widgets accurate.
+  league_tier: number | null;
+  competition_type: string | null;
+  era: string | null;
+  event_year: number | null;
 }
 
 export interface ClassifierResult {
@@ -99,6 +105,17 @@ const ALLOWED_TYPES: readonly EntityType[] = [
   'country',
 ];
 
+const ALLOWED_ERAS = ['pre_1990', '1990s', '2000s', '2010s', '2020s'] as const;
+const ALLOWED_COMPETITION_TYPES = [
+  'domestic_league',
+  'domestic_cup',
+  'continental_club',
+  'international_national',
+  'youth',
+  'friendly',
+  'other',
+] as const;
+
 @Injectable()
 export class QuestionClassifierService {
   private readonly logger = new Logger(QuestionClassifierService.name);
@@ -125,6 +142,10 @@ export class QuestionClassifierService {
       time_sensitive: boolean | null;
       valid_until: string | null;
       tags: string[] | null;
+      league_tier: number | null;
+      competition_type: string | null;
+      era: string | null;
+      event_year: number | null;
     };
 
     const raw = await this.llm.generateStructuredJson<Raw>(
@@ -153,6 +174,10 @@ Return JSON with exactly these keys:
   time_sensitive:      true if the correct answer can change over time (current manager of a club, top scorer of an active season, current league leader). false for historical facts.
   valid_until:         ISO date "YYYY-MM-DD" if time_sensitive and you can estimate expiry. null otherwise.
   tags:                array of other canonical slugs from the list that are MENTIONED in the question (secondary references). Up to 6. Empty array if none.
+  league_tier:         integer 1..5 describing the prestige tier of the primary competition the question is about. 1 = top-5 EU leagues (Premier League / La Liga / Serie A / Bundesliga / Ligue 1) or top-tier continental competition (UEFA Champions League). 2 = other European top flights (Eredivisie, Primeira Liga, Süper Lig, Russian Premier League, etc.) or secondary continental (UEFA Europa League). 3 = other professional leagues (MLS, Saudi Pro League, J1 League, etc.) or tertiary continental. 4 = lower national divisions. 5 = amateur / youth / misc / national friendlies. Return null if the question is not competition-scoped (pure biographical, general history, etc.).
+  competition_type:    one of ["domestic_league","domestic_cup","continental_club","international_national","youth","friendly","other"]. Pick the one that best describes the competition the question is scoped to. Null if unclear or irrelevant.
+  era:                 one of ["pre_1990","1990s","2000s","2010s","2020s"] — which time period the question is about. Derive from event_year when you can. Null if truly timeless.
+  event_year:          integer 1850..current year. The primary year the question references (year of the match, trophy win, transfer, record, etc.). Null if the question is not year-anchored.
 
 STRICT RULES:
 - subject_id, competition_id, and every tag MUST appear verbatim in the CANONICAL LIST below. If the entity you'd pick is not in the list, return null for that field (not a made-up slug). This is critical — slug drift breaks the pool.
@@ -193,6 +218,10 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
       time_sensitive: boolean | null;
       valid_until: string | null;
       tags: string[] | null;
+      league_tier: number | null;
+      competition_type: string | null;
+      era: string | null;
+      event_year: number | null;
     },
     canonical: CanonicalIndex
   ): ClassifierResult {
@@ -266,6 +295,54 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
       else warnings.push(`invalid valid_until "${raw.valid_until}" — nulled`);
     }
 
+    // league_tier — 1..5
+    let leagueTier: number | null = null;
+    if (typeof raw.league_tier === 'number') {
+      const v = Math.round(raw.league_tier);
+      if (v >= 1 && v <= 5) leagueTier = v;
+      else warnings.push(`league_tier out of range (${raw.league_tier}) — nulled`);
+    }
+
+    // competition_type — enum
+    let competitionType: string | null = null;
+    if (raw.competition_type) {
+      if ((ALLOWED_COMPETITION_TYPES as readonly string[]).includes(raw.competition_type)) {
+        competitionType = raw.competition_type;
+      } else {
+        warnings.push(`invalid competition_type "${raw.competition_type}" — nulled`);
+      }
+    }
+
+    // era — enum (derived from event_year if missing)
+    let era: string | null = null;
+    if (raw.era) {
+      if ((ALLOWED_ERAS as readonly string[]).includes(raw.era)) {
+        era = raw.era;
+      } else {
+        warnings.push(`invalid era "${raw.era}" — nulled`);
+      }
+    }
+
+    // event_year — plausible range
+    let eventYear: number | null = null;
+    if (typeof raw.event_year === 'number') {
+      const v = Math.round(raw.event_year);
+      const now = new Date().getUTCFullYear();
+      if (v >= 1850 && v <= now + 1) {
+        eventYear = v;
+        // Derive era from year if era wasn't supplied or was rejected.
+        if (!era) {
+          if (v < 1990) era = 'pre_1990';
+          else if (v < 2000) era = '1990s';
+          else if (v < 2010) era = '2000s';
+          else if (v < 2020) era = '2010s';
+          else era = '2020s';
+        }
+      } else {
+        warnings.push(`event_year out of range (${raw.event_year}) — nulled`);
+      }
+    }
+
     // tags — keep only canonical slugs (any type)
     const tags: string[] = [];
     for (const t of raw.tags ?? []) {
@@ -292,6 +369,10 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
         time_sensitive: Boolean(raw.time_sensitive),
         valid_until: validUntil,
         tags,
+        league_tier: leagueTier,
+        competition_type: competitionType,
+        era,
+        event_year: eventYear,
       },
       warnings,
       raw_subject_slug: rawSubjectSlug,
