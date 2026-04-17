@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { environment } from '../environments/environment';
 
-export const routes: Routes = [
+const fullRoutes: Routes = [
   {
     path: '',
     loadComponent: () => import('./layout/shell/shell').then(m => m.ShellComponent),
@@ -39,3 +40,12 @@ export const routes: Routes = [
   { path: 'privacy', loadComponent: () => import('./features/legal/privacy').then(m => m.PrivacyComponent) },
   { path: '**', loadComponent: () => import('./features/not-found/not-found').then(m => m.NotFoundComponent) },
 ];
+
+const landingRoutes: Routes = [
+  { path: '', loadComponent: () => import('./features/landing/landing').then(m => m.LandingComponent) },
+  { path: 'terms', loadComponent: () => import('./features/legal/terms').then(m => m.TermsComponent) },
+  { path: 'privacy', loadComponent: () => import('./features/legal/privacy').then(m => m.PrivacyComponent) },
+  { path: '**', redirectTo: '' },
+];
+
+export const routes: Routes = environment.landingMode ? landingRoutes : fullRoutes;
