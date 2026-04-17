@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.1.1] - 2026-04-17
+
+### Fixed
+- **Production build unblocked.** Raised Angular `anyComponentStyle` error budget from 20 kB to 25 kB in `frontend/angular.json`. `profile.css` (20.02 kB after organic growth over several PRs) had tipped 24 bytes past the old limit, breaking every Vercel deploy on `main` regardless of what the PR changed. No CSS was removed; this is a deliberate budget adjustment to match how the profile page has actually grown. Per-component budgets remain tight enough to catch runaway bloat (warning still fires at 14 kB).
+
 ## [0.8.1.0] - 2026-04-17
 
 ### Added
