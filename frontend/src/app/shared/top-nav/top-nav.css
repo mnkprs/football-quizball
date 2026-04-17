@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
+  padding: 0 var(--space-4);
   z-index: 50;
   background: var(--glass-bg-default);
   backdrop-filter: blur(var(--glass-blur-lg));
@@ -35,12 +35,13 @@
   z-index: 0;
 }
 
-/* Left: Avatar */
+/* Left: Avatar + username (identity cluster) */
 .top-nav__left {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: var(--space-2);
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .top-nav__avatar {
@@ -48,10 +49,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
-  border: 2.5px solid var(--tier-color, var(--color-accent));
+  border: 3px solid var(--tier-color, var(--color-accent));
   overflow: visible;
   text-decoration: none;
   flex-shrink: 0;
@@ -98,78 +99,128 @@
   color: #fff;
 }
 
-/* Center: Username + Mode Stats */
+/* Center: XP progress fills remaining space */
 .top-nav__center {
   display: flex;
   align-items: center;
-  justify-content: center;
   flex: 1;
   min-width: 0;
-  gap: 1rem;
+  padding: 0 var(--space-3);
 }
 
 .top-nav__username {
   font-family: var(--font-headline);
   font-size: var(--text-xs);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   letter-spacing: 0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  max-width: 5rem;
   line-height: 1;
+  min-width: 0;
 }
 
 .top-nav__username:active {
   opacity: 0.7;
 }
 
-.top-nav__mode-stats {
+/* XP progress: Lv N  ████░░  X XP — flexes to fill full center width */
+.top-nav__xp-progress {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.top-nav__mode-chip {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: rgba(6, 182, 212, 0.10);
+  border: 1px solid rgba(6, 182, 212, 0.24);
   text-decoration: none;
-  white-space: nowrap;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 
-.top-nav__mode-label {
+.top-nav__xp-suffix {
   font-family: var(--font-numeric);
   font-size: var(--text-2xs);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.35);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.top-nav__mode-value {
-  font-family: var(--font-headline);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--color-fg);
-  letter-spacing: -0.02em;
+/* Mobile: hide username + suffix to keep the XP bar readable */
+@media (max-width: 420px) {
+  .top-nav__username,
+  .top-nav__xp-suffix {
+    display: none;
+  }
 }
 
-.top-nav__delta {
+.top-nav__xp-level {
   font-family: var(--font-headline);
   font-size: var(--text-2xs);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  color: #67e8f9;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+  display: inline-block;
+  transform-origin: center;
 }
 
-.top-nav__delta--up {
-  color: var(--color-accent, #007AFF);
+.top-nav__xp-track {
+  flex: 1 1 auto;
+  min-width: 3rem;
+  height: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
 }
 
-.top-nav__delta--down {
-  color: var(--color-red);
+.top-nav__xp-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform: scaleX(var(--xp-pct, 0));
+  transform-origin: left;
+  background: linear-gradient(90deg, #06b6d4, #67e8f9);
+  transition: transform 0.6s var(--ease-out-quart);
+  border-radius: inherit;
+}
+
+/* Level-up flash + level-number pop */
+.top-nav__xp-progress--leveling {
+  animation: tn-xp-flash 0.6s ease-out;
+}
+
+.top-nav__xp-progress--leveling .top-nav__xp-level {
+  animation: tn-xp-pop 0.5s ease-out;
+}
+
+@keyframes tn-xp-flash {
+  0%   { background: rgba(6, 182, 212, 0.10); box-shadow: 0 0 0 0 rgba(103, 232, 249, 0); }
+  40%  { background: rgba(103, 232, 249, 0.35); box-shadow: 0 0 14px 2px rgba(103, 232, 249, 0.5); }
+  100% { background: rgba(6, 182, 212, 0.10); box-shadow: 0 0 0 0 rgba(103, 232, 249, 0); }
+}
+
+@keyframes tn-xp-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top-nav__xp-progress--leveling,
+  .top-nav__xp-progress--leveling .top-nav__xp-level {
+    animation: none;
+  }
+  .top-nav__xp-fill {
+    transition: none;
+  }
 }
 
 /* Tier badge */
@@ -206,42 +257,11 @@
   100% { background-position: -200% 0; }
 }
 
-/* Tier progress bar */
-.top-nav__tier-bar {
-  position: fixed;
-  top: 3.75rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: var(--app-max-width);
-  height: 3px;
-  background: rgba(255, 255, 255, 0.06);
-  z-index: 50;
-}
-
-.top-nav__tier-bar-fill {
-  height: 100%;
-  width: 100%;
-  border-radius: 0 1.5px 1.5px 0;
-  transform: scaleX(var(--progress, 0));
-  transform-origin: left;
-  transition: transform 0.6s var(--ease-out-quart);
-}
-
-.top-nav__tier-bar-fill--max {
-  border-radius: 0;
-  animation: tn-pulse 2s ease-in-out infinite;
-}
-
-@keyframes tn-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
 /* Right: Settings */
 .top-nav__right {
   display: flex;
   align-items: center;
+  gap: var(--space-1);
   flex-shrink: 0;
 }
 
@@ -374,19 +394,6 @@
   }
 }
 
-/* Logged-in compact logo (no wordmark — space-constrained) */
-.top-nav__logo-icon--compact {
-  display: inline-flex;
-  align-items: center;
-  margin-right: 0.5rem;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-.top-nav__logo-icon--compact .top-nav__logo-img {
-  width: 1.75rem;
-  height: 1.75rem;
-}
-
 /* Sign in button (logged out) */
 .top-nav__sign-in {
   padding: 0.625rem 1rem;
@@ -425,7 +432,6 @@
   cursor: pointer;
   border-radius: var(--radius-md);
   transition: color 0.15s, background 0.15s;
-  margin-left: 0.25rem;
   flex-shrink: 0;
 }
 
@@ -877,12 +883,3 @@
 }
 .tsp__reset-pw-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.top-nav__mode-chip--level {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.top-nav__mode-chip--level .top-nav__mode-value {
-  color: #a78bfa;
-  font-weight: 700;
-}
