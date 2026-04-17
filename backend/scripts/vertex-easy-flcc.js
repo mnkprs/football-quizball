@@ -56,12 +56,14 @@ function loadDecisions() {
 let offset = 0;
 let limit = null;
 let dryRun = false;
-let onlyCountry = null;
+let onlyCountries = null;
 let delayMs = 5000;
 for (const arg of process.argv.slice(2)) {
   if (arg.startsWith('--offset=')) offset = parseInt(arg.split('=')[1]);
   if (arg.startsWith('--limit=')) limit = parseInt(arg.split('=')[1]);
-  if (arg.startsWith('--country=')) onlyCountry = arg.split('=')[1];
+  if (arg.startsWith('--country=')) {
+    onlyCountries = new Set(arg.split('=')[1].split(',').map((c) => c.trim().toLowerCase()));
+  }
   if (arg.startsWith('--delay=')) delayMs = parseInt(arg.split('=')[1]);
   if (arg === '--dry-run') dryRun = true;
 }
@@ -72,7 +74,7 @@ function flattenLogos() {
   const out = [];
   let skipLeague = 0, skipRejected = 0;
   for (const [country, logos] of Object.entries(j.by_country)) {
-    if (onlyCountry && country.toLowerCase() !== onlyCountry.toLowerCase()) continue;
+    if (onlyCountries && !onlyCountries.has(country.toLowerCase())) continue;
     for (const l of logos) {
       const key = `${country}/${l.slug}`;
       if (decisions[key] === 'reject') { skipRejected++; continue; }
@@ -177,7 +179,7 @@ async function main() {
 
   console.log(`Vertex EASY generation (flcc batch)`);
   console.log(`  Model: ${MODEL}`);
-  console.log(`  To process: ${all.length} logos${onlyCountry ? ` (country=${onlyCountry})` : ''}`);
+  console.log(`  To process: ${all.length} logos${onlyCountries ? ` (countries=${[...onlyCountries].join(',')})` : ''}`);
   console.log(`  Input PNGs: ${ROOT}/<country>/<slug>.png`);
   console.log(`  Output:     ${ROOT}/<country>/_easy/<slug>.easy.webp`);
   if (dryRun) {

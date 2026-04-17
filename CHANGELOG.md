@@ -2,6 +2,12 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.5.1] - 2026-04-17
+
+### Changed
+- **WORKFLOW.md** — added blank lines after section headings for consistent markdown rendering across viewers.
+- **`backend/scripts/vertex-easy-flcc.js`** — `--country=` flag now accepts a comma-separated list (e.g. `--country=gr,tr,cy`) so one invocation can batch multiple countries. Single-country syntax still works.
+
 ## [0.7.5.0] - 2026-04-17
 
 ### Changed
