@@ -1,18 +1,28 @@
-/* ─── BOARD PHASE — calm utility surface (Floodlit Arena) ───
-   Main gameplay screen. Player identity via tokens:
-   P1 = --color-accent (iOS blue), P2 = --color-warning (orange).
-   Matches app-setup and app-question player-dot pattern.
+/* ─── BOARD PHASE — Arena Scoreboard (Vibrant, block-based, duotone) ───
+   Each player card is a solid duotone block. Inactive cards are dark
+   neutral with a thin player-color stripe on the left. The active card
+   floods with the player's color, lifts visually, and runs a subtle
+   moving sheen so "whose turn" reads from across the room.
+
+   Score is 72px stadium-jumbotron slab (Alfa Slab One) — the hero.
+   VS is a chunky geometric coin that looks punched out of metal.
    ───────────────────────────────────────────────────────── */
 
 .board-page {
-  background: var(--color-bg);
+  background: transparent;
+  position: relative;
+  z-index: 1;
 }
 
-/* ─── Header badge (brand pill) ─── */
+/* ─── Header badge ─── */
 
 .board-header-badge {
-  background: var(--color-surface-low);
-  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(1.4);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(1.4);
+  box-shadow:
+    inset 0 0 0 1px var(--glass-border),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .board-header-logo {
@@ -26,174 +36,360 @@
   box-shadow: var(--glow-accent-sm);
 }
 
-/* ─── Score bar ─── */
+/* ─── Score bar — bolder gaps, balanced cards ─── */
 
 .board-scorebar {
   display: flex;
   align-items: stretch;
+  gap: var(--space-2);
 }
+
+/* ─── Duotone score card ─── */
 
 .board-score-card {
   position: relative;
-  background: var(--color-surface-low);
-  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
-  transition: box-shadow var(--duration-normal) var(--ease-out-quart);
+  overflow: hidden;
+  background: #0f0f10;
+  border-radius: var(--radius-xl);
+  transition:
+    transform var(--duration-normal) var(--ease-out-quart),
+    background var(--duration-normal) ease-out,
+    box-shadow var(--duration-normal) ease-out;
 }
 
-/* Turn indicator strip */
+/* Left-edge player identity stripe — always on, so identity persists even when inactive */
 
-.board-turn-strip {
-  height: 3px;
-  width: 100%;
+.board-score-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  transition: width var(--duration-normal) var(--ease-out-quart);
 }
 
-.board-turn-strip--p1 {
-  background: var(--color-accent);
-  box-shadow: 0 0 10px rgba(0, 122, 255, 0.5);
+.board-score-card--p1::before { background: var(--color-accent); }
+.board-score-card--p2::before { background: var(--color-warning); }
+
+/* Inactive baseline: dark charcoal, desaturated, thin identity stripe */
+
+.board-score-card--p1 {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 122, 255, 0.08), transparent 55%),
+    #141416;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 122, 255, 0.12),
+    0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-.board-turn-strip--p2 {
-  background: var(--color-warning);
-  box-shadow: 0 0 10px rgba(255, 149, 0, 0.5);
+.board-score-card--p2 {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 149, 0, 0.08), transparent 55%),
+    #141416;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 149, 0, 0.12),
+    0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
-/* Active card elevation (inset ring, no heavy shadow) */
+/* ─── Active state — the color FLOODS in ─── */
 
 .board-score-card--p1.active {
-  box-shadow: inset 0 0 0 2px var(--color-accent);
+  background:
+    linear-gradient(135deg, rgba(0, 122, 255, 0.38) 0%, rgba(0, 122, 255, 0.14) 50%, rgba(0, 40, 90, 0.12) 100%),
+    #0b1324;
+  box-shadow:
+    inset 0 0 0 2px var(--color-accent),
+    var(--glow-accent-lg),
+    0 12px 32px rgba(0, 122, 255, 0.22);
+  transform: translateY(-2px);
 }
 
 .board-score-card--p2.active {
-  box-shadow: inset 0 0 0 2px var(--color-warning);
+  background:
+    linear-gradient(135deg, rgba(255, 149, 0, 0.38) 0%, rgba(255, 149, 0, 0.14) 50%, rgba(80, 40, 0, 0.12) 100%),
+    #1e1508;
+  box-shadow:
+    inset 0 0 0 2px var(--color-warning),
+    0 0 40px rgba(255, 149, 0, 0.3),
+    0 12px 32px rgba(255, 149, 0, 0.22);
+  transform: translateY(-2px);
 }
 
-/* Player names — slightly lighter tint so the score value wins hierarchy */
+.board-score-card.active::before { width: 6px; }
 
-.board-player-name--p1 { color: var(--color-accent); }
-.board-player-name--p2 { color: var(--color-warning); }
+/* Subtle moving sheen on active card (stadium scoreboard scan) */
 
-/* Turn badge (pill) */
+.board-score-card.active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 60%
+  );
+  animation: board-sheen 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes board-sheen {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-score-card.active::after { animation: none; display: none; }
+  .board-score-card.active { transform: none; }
+}
+
+/* Turn indicator strip — hide the old one; identity is the whole card now */
+
+.board-turn-strip { display: none; }
+
+/* ─── Player name — small caps, always in player color for identity ─── */
+
+.board-player-name {
+  font-family: var(--font-numeric);
+  letter-spacing: 0.14em;
+  font-weight: 700;
+}
+
+.board-player-name--p1 { color: var(--color-accent-light); }
+.board-player-name--p2 { color: #ffb95e; }
+
+.board-score-card.active .board-player-name {
+  color: #ffffff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ─── TURN pill — blocky, not pretty ─── */
 
 .board-turn-badge {
-  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-numeric);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 3px 7px !important;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: #0a0a0a;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+  animation: board-turn-bob 1.8s ease-in-out infinite;
 }
 
-.board-turn-badge--p1 {
-  background: var(--color-accent-bg);
-  color: var(--color-accent);
+@keyframes board-turn-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
 }
 
-.board-turn-badge--p2 {
-  background: var(--color-warning-bg-subtle);
-  color: var(--color-warning);
+@media (prefers-reduced-motion: reduce) {
+  .board-turn-badge { animation: none; }
 }
 
-/* Score number */
+/* ─── Score — the hero numeral. Slab-serif, massive, tabular. ─── */
 
 .board-score {
-  color: var(--color-fg);
-  font-family: var(--font-headline);
+  font-family: var(--font-brand), 'Alfa Slab One', serif;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  font-weight: 400;        /* Alfa Slab is single-weight display */
+  font-size: 4rem;         /* 64px baseline */
   line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--color-fg);
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    0 4px 14px rgba(0, 0, 0, 0.35);
+  transition:
+    color var(--duration-normal) ease-out,
+    text-shadow var(--duration-normal) ease-out,
+    transform var(--duration-slow) var(--ease-spring);
 }
 
-/* ─── Power-ups ─── */
+.board-score-card.active .board-score {
+  color: #ffffff;
+  transform: scale(1.06);
+}
+
+.board-score-card--p1.active .board-score {
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(77, 163, 255, 0.55),
+    0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+.board-score-card--p2.active .board-score {
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.55),
+    0 0 18px rgba(255, 149, 0, 0.55),
+    0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+/* ─── Power-ups — solid duotone chips ─── */
 
 .board-powerup {
-  background: var(--color-surface-high);
-  color: var(--color-fg-variant);
-  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   min-width: 3.5rem;
-  text-align: center;
+  min-height: 32px;
   font-family: var(--font-numeric);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.board-score-card.active .board-powerup {
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
 .board-powerup--used {
-  opacity: 0.4;
+  opacity: 0.32;
   text-decoration: line-through;
+  text-decoration-thickness: 2px;
 }
 
+/* Armed 2x — unique electric magenta (#ec4899). Not a design-system token:
+   intentionally bound to this single state so no other component inherits it.
+   Chosen because it doesn't collide with P1 blue, P2 orange, success green,
+   error red, or the battle-royale purple already in use. */
 .board-powerup-armed {
-  background: var(--color-accent-bg);
-  color: var(--color-accent);
+  background: #ec4899 !important;
+  color: #ffffff !important;
   box-shadow:
-    inset 0 0 0 1px var(--color-accent),
-    var(--glow-accent-sm);
-  animation: board-armed-pulse var(--duration-pulse) ease-in-out infinite;
+    inset 0 0 0 2px #ffffff,
+    0 0 20px rgba(236, 72, 153, 0.55) !important;
+  animation: board-armed-pulse 1.2s ease-in-out infinite;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
 @keyframes board-armed-pulse {
-  0%, 100% { box-shadow: inset 0 0 0 1px var(--color-accent), var(--glow-accent-sm); }
-  50%      { box-shadow: inset 0 0 0 1px var(--color-accent), var(--glow-accent-md); }
+  0%, 100% { transform: scale(1);    box-shadow: inset 0 0 0 2px #ffffff, 0 0 20px rgba(236, 72, 153, 0.55); }
+  50%      { transform: scale(1.08); box-shadow: inset 0 0 0 2px #ffffff, 0 0 32px rgba(236, 72, 153, 0.75); }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .board-powerup-armed { animation: none; }
 }
 
+/* Use-2x call-to-action — looks like a button, not a link */
+
 .board-use-double {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--color-accent);
-  color: var(--color-accent);
-  transition: background-color var(--duration-normal) ease-out;
+  background: var(--color-accent);
+  color: #ffffff;
+  box-shadow:
+    0 3px 0 var(--color-accent-dim),
+    0 0 20px rgba(0, 122, 255, 0.3);
+  transition:
+    transform var(--duration-fast) var(--ease-out-quart),
+    box-shadow var(--duration-fast) ease-out;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em;
+  min-height: 44px;        /* Apple HIG / Material 44pt touch target */
+  text-transform: uppercase;
+}
+
+.board-score-card--p2 .board-use-double {
+  background: var(--color-warning);
+  box-shadow:
+    0 3px 0 #cc7700,
+    0 0 20px rgba(255, 149, 0, 0.3);
 }
 
 .board-use-double:hover {
-  background: var(--color-accent-bg);
+  transform: translateY(-1px);
 }
 
-/* Stats row */
+.board-use-double:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--color-accent-dim);
+}
+
+/* ─── Stats row — chips stand out as small trophies, not text ─── */
 
 .board-stat {
-  color: var(--color-fg-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.8);
   font-family: var(--font-numeric);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .board-stat::before {
   content: '';
   display: inline-block;
-  width: 4px;
-  height: 4px;
-  background: var(--color-accent);
+  width: 5px;
+  height: 5px;
+  background: var(--color-success);
   border-radius: 50%;
-  margin-right: 6px;
-  vertical-align: middle;
+  box-shadow: 0 0 6px var(--color-success);
 }
 
-/* ─── VS divider ─── */
+/* ─── VS chunky hexagonal divider ─── */
 
 .board-vs-divider {
-  min-width: 2.5rem;
+  min-width: 3rem;
   flex-shrink: 0;
+  gap: var(--space-2);
+  justify-content: flex-start;
+  padding-top: var(--space-3);
 }
 
 .board-vs {
-  opacity: 0.5;
-  font-family: var(--font-headline);
-  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  font-family: var(--font-brand), serif;
+  font-weight: 400;
+  font-size: var(--text-md);
+  color: #0a0a0a;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #f5f5f5 0%, #c4c4c4 100%);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+  opacity: 1;
+  transform: rotate(0deg);
 }
 
 .board-end-btn {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
-  color: var(--color-fg-muted);
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
   transition:
     background-color var(--duration-normal) ease-out,
-    color var(--duration-normal) ease-out;
+    color var(--duration-normal) ease-out,
+    box-shadow var(--duration-normal) ease-out;
 }
 
 .board-end-btn:hover {
-  background: rgba(179, 38, 30, 0.12);
+  background: rgba(179, 38, 30, 0.25);
   color: var(--color-error);
-  box-shadow: inset 0 0 0 1px rgba(179, 38, 30, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(179, 38, 30, 0.45);
 }
 
-/* ─── Category rows ─── */
+/* ─── Category rows — blocky, colored, with subtle vignette on BG image ─── */
 
 .board-category-row {
-  box-shadow: inset 0 0 0 1px var(--color-border-ghost);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 .board-category-bg {
@@ -202,20 +398,25 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.4;
+  opacity: 0.38;
   pointer-events: none;
+  mix-blend-mode: screen;
 }
 
 .board-category-icon {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
-/* ─── Question circles ─── */
+/* ─── Question circles — chunky, clickable, feel like tokens ─── */
 
 .board-question-circle {
-  background: rgba(0, 0, 0, 0.3);
-  box-shadow: inset 0 0 0 2px var(--color-border-ghost-strong);
+  background: rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.2),
+    0 2px 6px rgba(0, 0, 0, 0.4);
   transition:
     transform var(--duration-fast) var(--ease-out-quart),
     box-shadow var(--duration-fast) ease-out,
@@ -223,16 +424,18 @@
 }
 
 .board-question-circle:not(:disabled):hover {
-  background: rgba(0, 0, 0, 0.45);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
-  transform: scale(1.05);
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.55),
+    0 4px 10px rgba(0, 0, 0, 0.5);
+  transform: scale(1.08);
 }
 
 .board-question-circle:not(:disabled):active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
 .board-question-circle:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: default;
 }

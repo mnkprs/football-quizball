@@ -91,8 +91,9 @@ export const BattleRoyaleStore = signalStore(
       } catch (err: unknown) {
         const status = (err as { status?: number })?.status;
         if (status === 404) {
-          // Room was deleted (stale cleanup or host left) — redirect to lobby
-          router.navigate(['/battle-royale']);
+          // Room was deleted (stale cleanup or host left) — redirect to lobby, preserving mode
+          const mode = store.roomView()?.mode;
+          router.navigate(['/battle-royale'], mode === 'team_logo' ? { queryParams: { mode: 'team_logo' } } : undefined);
         }
       }
     }
