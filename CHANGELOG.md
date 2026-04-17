@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.0.1] - 2026-04-17
+
+### Added
+- **Level-up flash trigger activated in `TopNavComponent.ngOnInit`.** The previously-scaffolded CSS animations (`top-nav__xp-progress--leveling` flash + level number pop) were dormant until a trigger effect was written. Added a signal `effect()` that watches `level()` for real in-session increments and toggles `levelingUp` for 600ms to fire the animation. First-load policy is **strict**: the effect skips the initial transition from the signal default (1) to the loaded profile value by waiting for `statsLoading()` to clear and then anchoring `lastSeenLevel` on the first real value, so the flash never fires on a page refresh, only when a user actually gains a level mid-session. Reuses `this.injector` for the effect registration and `prefers-reduced-motion` is already honored at the CSS layer.
+
 ## [0.8.0.0] - 2026-04-17
 
 ### Added
