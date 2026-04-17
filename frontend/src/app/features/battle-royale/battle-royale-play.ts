@@ -156,8 +156,9 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
   // ── Navigation ────────────────────────────────────────────────────────────
 
   async leaveRoom(): Promise<void> {
+    const mode = this.store.roomView()?.mode;
     await this.store.leaveRoom();
-    this.router.navigate(['/battle-royale']);
+    this.router.navigate(['/battle-royale'], mode === 'team_logo' ? { queryParams: { mode: 'team_logo' } } : undefined);
   }
 
   goHome(): void {

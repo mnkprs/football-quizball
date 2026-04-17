@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.2.1] - 2026-04-17
+
+### Fixed
+- **Battle Royale: leaving a `team_logo` room now returns you to `/battle-royale?mode=team_logo`, not the classic lobby.** Previously, `leaveRoom()` in `battle-royale-play.ts` and the 404 "room deleted" redirect in `battle-royale.store.ts` both hardcoded `router.navigate(['/battle-royale'])` with no query params, dropping `?mode=team_logo` and sending team-logo players to the wrong lobby. Both sites now read `store.roomView()?.mode` (already populated from the backend's `BRPublicView.mode`) and pass `{ queryParams: { mode: 'team_logo' } }` when appropriate. The "no roomId" guard redirect in `ngOnInit` stays unchanged — no mode context to preserve when the URL itself is malformed.
+
 ## [0.8.2.0] - 2026-04-17
 
 ### Changed
