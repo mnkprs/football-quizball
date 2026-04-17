@@ -1,13 +1,10 @@
 <header class="top-nav" [style.--tier-color]="tierColor()">
   @if (auth.isLoggedIn()) {
-    <!-- Logged in: Logo + Avatar + Stats -->
+    <!-- Logged in: Avatar + XP bar + utilities -->
     <div class="top-nav__left">
-      <a routerLink="/" class="top-nav__logo-icon--compact" aria-label="Home">
-        <img ngSrc="/stepover-logo-master.png" alt="StepOver" class="top-nav__logo-img" width="28" height="28" priority />
-      </a>
       <a routerLink="/profile" class="top-nav__avatar pressable" aria-label="Profile"
          [style.border-color]="tierColor()"
-         [style.box-shadow]="'0 0 8px ' + tierGlow() + '33'">
+         [style.box-shadow]="'0 0 10px ' + tierGlow() + '40'">
         @if (avatarUrl() && !avatarFailed()) {
           <img [src]="avatarUrl()" referrerpolicy="no-referrer" class="top-nav__avatar-img" (error)="avatarFailed.set(true)" />
         } @else {
@@ -19,47 +16,28 @@
           </span>
         }
       </a>
+      @if (username()) {
+        <a routerLink="/profile" class="top-nav__username">{{ username() }}</a>
+      }
     </div>
 
     <div class="top-nav__center">
       @if (statsLoading()) {
-        <span class="top-nav__skeleton" style="width:5rem"></span>
+        <span class="top-nav__skeleton" style="width:8rem"></span>
       } @else {
-        <!-- Username -->
-        @if (username()) {
-          <a routerLink="/profile" class="top-nav__username">{{ username() }}</a>
-        }
-        <!-- Compact mode stats row -->
-        <div class="top-nav__mode-stats">
-          <a routerLink="/solo" class="top-nav__mode-chip" aria-label="Solo ELO {{ elo() }}">
-            <span class="top-nav__mode-label">Solo</span>
-            <span class="top-nav__mode-value">{{ eloDisplay() }}</span>
-            @if (sessionDelta() > 0) {
-              <span class="top-nav__delta top-nav__delta--up">▲{{ sessionDelta() }}</span>
-            } @else if (sessionDelta() < 0) {
-              <span class="top-nav__delta top-nav__delta--down">▼{{ -sessionDelta() }}</span>
-            }
-          </a>
-          <a routerLink="/logo-quiz" class="top-nav__mode-chip" aria-label="Logo Quiz ELO {{ logoQuizElo() }}">
-            <span class="top-nav__mode-label">Logo</span>
-            <span class="top-nav__mode-value">{{ logoQuizElo() }}</span>
-          </a>
-          <a routerLink="/leaderboard" class="top-nav__mode-chip" aria-label="Win rate {{ winRatio() }}%">
-            <span class="top-nav__mode-label">W/L</span>
-            <span class="top-nav__mode-value">{{ winRatio() }}%</span>
-          </a>
-          <a routerLink="/profile" class="top-nav__mode-chip top-nav__mode-chip--level" aria-label="Level {{ level() }}">
-            <span class="top-nav__mode-label">Lv</span>
-            <span class="top-nav__mode-value">{{ level() }}</span>
-          </a>
-          <!-- <a routerLink="/leaderboard" class="top-nav__tier-badge pressable"
-             [style.color]="tierColor()"
-             [style.background]="tierColor() + '26'"
-             [style.border-color]="tierColor() + '40'"
-             [attr.aria-label]="tierLabel() + ' tier'">
-            {{ tierLabel() }}
-          </a> -->
-        </div>
+        <a routerLink="/profile"
+           class="top-nav__xp-progress"
+           [class.top-nav__xp-progress--leveling]="levelingUp()"
+           [attr.aria-label]="'Level ' + level() + ', ' + xpToNextLevel() + ' XP to level ' + (level() + 1)">
+          <span class="top-nav__xp-level">Lv {{ level() }}</span>
+          <span class="top-nav__xp-track" role="progressbar"
+                [attr.aria-valuenow]="xpProgressPct()"
+                aria-valuemin="0"
+                aria-valuemax="100">
+            <span class="top-nav__xp-fill" [style.--xp-pct]="xpProgressPct() / 100"></span>
+          </span>
+          <span class="top-nav__xp-suffix">{{ xpToNextLevel() }} XP</span>
+        </a>
       }
     </div>
 
@@ -93,23 +71,6 @@
     </div>
   }
 </header>
-
-<!-- Tier progress bar (logged in only) -->
-@if (auth.isLoggedIn()) {
-  <div class="top-nav__tier-bar"
-       role="progressbar"
-       [attr.aria-valuenow]="tierPct()"
-       aria-valuemin="0"
-       aria-valuemax="100"
-       [attr.aria-label]="store.eloToNextTier() > 0 ? store.eloToNextTier() + ' ELO to ' + tierLabel() : tierLabel() + ' tier'">
-    <div class="top-nav__tier-bar-fill"
-         [style.--progress]="tierPct() / 100"
-         [style.background]="tierColor()"
-         [style.box-shadow]="'0 0 6px ' + tierGlow()"
-         [class.top-nav__tier-bar-fill--max]="tierPct() >= 100">
-    </div>
-  </div>
-}
 
 <!-- Settings panel overlay -->
 @if (settingsOpen()) {
