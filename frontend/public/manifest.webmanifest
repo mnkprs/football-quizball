@@ -30,7 +30,7 @@
     }
   ],
   "related_applications": [
-    { "platform": "play", "id": "com.stepover.app" },
+    { "platform": "play", "id": "com.stepovr.app" },
     { "platform": "itunes", "url": "https://apps.apple.com/app/idXXXXXXXX" }
   ]
 }
