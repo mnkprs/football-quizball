@@ -202,11 +202,14 @@
   </div>
 </ng-template>
 
-<!-- Player ID template — career path only, no hint text -->
+<!-- Player ID template — career path only, no hint text.
+     Safety fallback: if career_path is missing/empty for any reason (legacy
+     question, LLM generation failure, DB integrity issue), render the generic
+     question_text so the player sees SOMETHING to answer, not a blank card. -->
 <ng-template #playerIdTemplate>
   <div class="flex flex-col">
     <div class="question-card bg-card rounded-xl p-6 mb-6">
-      @if (careerPath()) {
+      @if (careerPath() && careerPath()!.length > 0) {
         <div class="space-y-3">
           @for (entry of careerPath(); track $index) {
             <div class="flex items-center gap-3 py-1 hover:bg-white/[0.02] rounded-lg transition-colors">
@@ -224,6 +227,8 @@
             }
           }
         </div>
+      } @else {
+        <p class="text-muted-foreground text-sm font-medium">{{ question()?.question_text }}</p>
       }
     </div>
     @if (!store.fiftyFiftyOptions()) {
