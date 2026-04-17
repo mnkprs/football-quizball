@@ -23,7 +23,12 @@ describe('detectPlatform', () => {
 
   it('returns "other" for macOS Safari user agent', () => {
     const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 Safari/605.1';
-    expect(detectPlatform(ua)).toBe('other');
+    expect(detectPlatform(ua, 0)).toBe('other');
+  });
+
+  it('returns "ios" for iPadOS 13+ Safari (Macintosh UA with touch points)', () => {
+    const ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Safari/605.1';
+    expect(detectPlatform(ua, 5)).toBe('ios');
   });
 
   it('returns "other" for Windows Chrome user agent', () => {

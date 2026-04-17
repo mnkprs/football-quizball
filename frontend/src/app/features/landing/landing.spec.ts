@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { LandingComponent } from './landing';
 
 describe('LandingComponent', () => {
@@ -6,7 +7,10 @@ describe('LandingComponent', () => {
   let el: HTMLElement;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ imports: [LandingComponent] }).compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [LandingComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
     fixture = TestBed.createComponent(LandingComponent);
     fixture.detectChanges();
     el = fixture.nativeElement as HTMLElement;

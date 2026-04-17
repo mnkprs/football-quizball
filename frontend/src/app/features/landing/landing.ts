@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { detectPlatform, Platform } from './platform-detector';
 import {
@@ -10,7 +11,7 @@ import {
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
 })
@@ -29,6 +30,7 @@ export class LandingComponent {
   readonly year = new Date().getFullYear();
 
   readonly platform: Platform = detectPlatform(
-    this.doc.defaultView?.navigator?.userAgent ?? ''
+    this.doc.defaultView?.navigator?.userAgent ?? '',
+    this.doc.defaultView?.navigator?.maxTouchPoints ?? 0,
   );
 }

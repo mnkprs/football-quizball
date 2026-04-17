@@ -91,8 +91,8 @@
     <img src="assets/landing/logomark.svg" alt="StepOver" class="footer__logo" />
     <p class="footer__tagline">{{ footerTagline }}</p>
     <nav class="footer__links">
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
+      <a routerLink="/terms" href="/terms">Terms</a>
+      <a routerLink="/privacy" href="/privacy">Privacy</a>
       <a [href]="'mailto:' + contactEmail">Contact</a>
     </nav>
     <p class="footer__copy">&copy; {{ year }} StepOver</p>
