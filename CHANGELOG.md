@@ -2,6 +2,27 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.0.1] - 2026-04-17
+
+### Added
+- **Level-up flash trigger activated in `TopNavComponent.ngOnInit`.** The previously-scaffolded CSS animations (`top-nav__xp-progress--leveling` flash + level number pop) were dormant until a trigger effect was written. Added a signal `effect()` that watches `level()` for real in-session increments and toggles `levelingUp` for 600ms to fire the animation. First-load policy is **strict**: the effect skips the initial transition from the signal default (1) to the loaded profile value by waiting for `statsLoading()` to clear and then anchoring `lastSeenLevel` on the first real value, so the flash never fires on a page refresh, only when a user actually gains a level mid-session. Reuses `this.injector` for the effect registration and `prefers-reduced-motion` is already honored at the CSS layer.
+
+## [0.8.0.0] - 2026-04-17
+
+### Added
+- **Top navigation XP progress bar.** Replaced the 4-chip mode-stats row (Solo ELO + Logo ELO + W/L% + Level) with a single full-flex XP progress pill that shows `Lv N  ████████░░  X XP to N+1` and links to the profile page. The XP bar is the clearest engagement signal the nav can carry: it changes every game and creates visible progress toward the next level, so every session ends with a visible Zeigarnik/goal-gradient pull back. Uses floodlight cyan (`#06b6d4 → #67e8f9`) as the fill gradient, matching stadium atmosphere and deliberately avoiding the purple/violet "AI slop" palette. On narrow mobile (`<420px`) the username and XP suffix hide so the bar stays readable.
+- **Level-up flash + number pop animation** (class `top-nav__xp-progress--leveling`). When the `level()` signal increments during a session, the pill flashes cyan glow for ~600ms and the level number scales 1→1.28→1 for ~500ms. Both honor `prefers-reduced-motion`. Trigger effect is scaffolded in `top-nav.ts:ngOnInit` with a TODO for the first-load-vs-increment debounce policy (currently dormant until that 5-line effect is written).
+
+### Changed
+- **Username moved from center to the identity cluster next to the avatar.** Previously sat awkwardly before the mode chips, now reads as "avatar + name" — the standard persistent-chrome identity pattern. Brightened from 70% to 85% opacity now that it's the written name of the identity anchor. Truncates to 5rem max-width and hides on narrow mobile.
+- **Avatar bumped from 36×36 to 40×40, border from 2.5px to 3px, tier glow strengthened** (`0 0 10px tierGlow 40` vs `0 0 8px tierGlow 33`). Tier identity now lives entirely in the avatar ring and glow — the old standalone tier progress bar was redundant with the new XP bar.
+- **Top-nav spacing switched from arbitrary rem values to `--space-*` tokens.** Header padding, left cluster gap, center padding, right cluster gap, and XP pill padding all reference the defined scale now.
+
+### Removed
+- **Compact logo icon from the logged-in nav** (`top-nav__logo-icon--compact`). Redundant with the avatar as identity anchor, sub-44px touch target, and home navigation is already reachable via the bottom-nav pill. Logged-out state keeps its full wordmark — brand presence belongs there.
+- **Tier progress bar below the header** (`top-nav__tier-bar` + `top-nav__tier-bar-fill` + `tn-pulse` keyframe). Two parallel progress bars (tier-by-ELO + XP-by-games) couldn't coexist without confusing users. XP won — it changes every game; tier identity stays communicated via the avatar border color.
+- **Dead signals in `TopNavComponent`**: `elo`, `logoQuizElo`, `blitzBest`, `rank`, `sessionDelta`, `correctStreak`, `tierPct`, `tierLabel`, `eloDisplay`, `streakDisplay`. All were defined but had no template references after the redesign.
+
 ## [0.7.5.1] - 2026-04-17
 
 ### Changed
