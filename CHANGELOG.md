@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.7.6.0] - 2026-04-17
+
+### Added
+- **+262 football club logos across 5 new countries.** Logo Quiz and Team Duel now draw from a much richer pool: **Argentina** (+24), **Brazil** (+24), **France** (+35), **Italy** (+71), **Portugal** (+108). Every new logo ships with two difficulty variants: **easy** (team text removed via Gemini 3 Pro Image) and **hard** (text removed + flipped + desaturated). The hard variant is now correctly derived from the text-erased easy source instead of the original, so hard is genuinely harder than easy. Total production pool: **1,661 logos across 60 countries** (from 1,399). Users will see new clubs immediately in solo Logo Quiz, Logo Duel (`/duel?mode=logo`), and Team Logo Battle Royale (`/battle-royale?mode=team_logo`). 290 logos were AI-generated, manually reviewed via `review.html`, and 28 rejected for quality (3 cup/trophy logos — Coupe de France, Coppa Italia, Taça de Portugal — removed at pre-merge review because "what team is this?" has no valid answer for a competition trophy). Previously approved countries (England, Spain, Germany, Netherlands, Greece, Albania) also had their hard variants regenerated from text-erased sources to fix the same latent issue.
+
 ## [0.7.5.1] - 2026-04-17
 
 ### Changed
