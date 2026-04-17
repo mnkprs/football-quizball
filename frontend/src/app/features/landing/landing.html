@@ -1,0 +1,100 @@
+<main class="landing">
+  <!-- HERO -->
+  <section data-test="hero" class="hero">
+    <div class="hero__copy">
+      <img src="assets/landing/logomark.svg" alt="StepOver" class="hero__logo" />
+      <h1 class="hero__headline">{{ heroHeadline }}</h1>
+      <p class="hero__subhead">{{ heroSubhead }}</p>
+      <div class="hero__cta" data-test="hero-cta">
+        @if (platform === 'ios') {
+          <a [href]="stores.appStoreUrl" class="badge badge--primary" data-test="badge-ios">
+            <img src="assets/landing/badge-app-store.svg" alt="Download on the App Store" />
+          </a>
+          <a [href]="stores.playStoreUrl" class="badge badge--secondary" data-test="badge-android">
+            <img src="assets/landing/badge-play-store.svg" alt="Get it on Google Play" />
+          </a>
+        } @else if (platform === 'android') {
+          <a [href]="stores.playStoreUrl" class="badge badge--primary" data-test="badge-android">
+            <img src="assets/landing/badge-play-store.svg" alt="Get it on Google Play" />
+          </a>
+          <a [href]="stores.appStoreUrl" class="badge badge--secondary" data-test="badge-ios">
+            <img src="assets/landing/badge-app-store.svg" alt="Download on the App Store" />
+          </a>
+        } @else {
+          <a [href]="stores.appStoreUrl" class="badge" data-test="badge-ios">
+            <img src="assets/landing/badge-app-store.svg" alt="Download on the App Store" />
+          </a>
+          <a [href]="stores.playStoreUrl" class="badge" data-test="badge-android">
+            <img src="assets/landing/badge-play-store.svg" alt="Get it on Google Play" />
+          </a>
+        }
+      </div>
+    </div>
+    <div class="hero__visual">
+      <img src="assets/landing/hero-phone.png" alt="StepOver app on phone" class="hero__phone" />
+    </div>
+  </section>
+
+  <!-- FEATURE GRID -->
+  <section class="features">
+    <h2 class="section__heading">Six ways to play.</h2>
+    <ul class="features__grid">
+      @for (f of features; track f.name) {
+        <li class="feature-card" data-test="feature-card">
+          <img [src]="f.iconPath" [alt]="f.name" class="feature-card__icon" />
+          <h3 class="feature-card__name">{{ f.name }}</h3>
+          <p class="feature-card__desc">{{ f.description }}</p>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <!-- SCREENSHOTS -->
+  <section data-test="screenshots" class="screenshots">
+    <h2 class="section__heading">Built for your thumb.</h2>
+    <div class="screenshots__strip">
+      @for (src of screenshots; track src) {
+        <img [src]="src" alt="App screenshot" class="screenshots__shot" />
+      }
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <h2 class="section__heading">How it works.</h2>
+    <ol class="how__steps">
+      @for (s of steps; track s.n) {
+        <li class="how-step" data-test="how-step">
+          <span class="how-step__num">{{ s.n }}</span>
+          <h3 class="how-step__title">{{ s.title }}</h3>
+          <p class="how-step__desc">{{ s.description }}</p>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section data-test="final-cta" class="final-cta">
+    <h2 class="final-cta__headline">{{ finalCtaHeadline }}</h2>
+    <div class="final-cta__badges">
+      <a [href]="stores.appStoreUrl" class="badge">
+        <img src="assets/landing/badge-app-store.svg" alt="Download on the App Store" />
+      </a>
+      <a [href]="stores.playStoreUrl" class="badge">
+        <img src="assets/landing/badge-play-store.svg" alt="Get it on Google Play" />
+      </a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer data-test="footer" class="footer">
+    <img src="assets/landing/logomark.svg" alt="StepOver" class="footer__logo" />
+    <p class="footer__tagline">{{ footerTagline }}</p>
+    <nav class="footer__links">
+      <a href="/terms">Terms</a>
+      <a href="/privacy">Privacy</a>
+      <a [href]="'mailto:' + contactEmail">Contact</a>
+    </nav>
+    <p class="footer__copy">&copy; {{ year }} StepOver</p>
+  </footer>
+</main>

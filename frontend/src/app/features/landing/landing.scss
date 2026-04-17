@@ -1,0 +1,61 @@
+:host { display: block; background: #0a0a0a; color: #fff; }
+.landing { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* Typographic scale — hybrid: marketing-large on desktop, comfortable on mobile */
+.hero__headline { font-size: 44px; line-height: 1.05; font-weight: 800; margin: 16px 0 12px; }
+.hero__subhead  { font-size: 16px; line-height: 1.5; color: rgba(255,255,255,0.78); margin-bottom: 24px; }
+.section__heading { font-size: 28px; line-height: 1.15; font-weight: 800; margin: 0 0 32px; }
+
+/* Layout */
+.hero { display: grid; grid-template-columns: 1fr; gap: 32px; padding: 48px 0; }
+.hero__logo { width: 64px; height: 64px; }
+.hero__cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero__phone { width: 100%; max-width: 320px; display: block; margin: 0 auto; }
+
+.features { padding: 48px 0; }
+.features__grid { display: grid; grid-template-columns: 1fr; gap: 16px; list-style: none; padding: 0; margin: 0; }
+.feature-card {
+  background: linear-gradient(180deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04));
+  border: 1px solid rgba(212,175,55,0.24);
+  border-radius: 16px; padding: 20px;
+}
+.feature-card__icon { width: 40px; height: 40px; }
+.feature-card__name { font-size: 18px; font-weight: 700; margin: 12px 0 4px; }
+.feature-card__desc { font-size: 14px; color: rgba(255,255,255,0.72); margin: 0; }
+
+.screenshots { padding: 48px 0; }
+.screenshots__strip { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
+.screenshots__shot { width: 240px; flex: 0 0 auto; scroll-snap-align: start; border-radius: 24px; }
+
+.how { padding: 48px 0; }
+.how__steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 24px; }
+.how-step__num { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(212,175,55,0.2); font-weight: 800; }
+.how-step__title { font-size: 18px; font-weight: 700; margin: 12px 0 4px; }
+.how-step__desc { font-size: 14px; color: rgba(255,255,255,0.72); margin: 0; }
+
+.final-cta { padding: 64px 0; text-align: center; }
+.final-cta__headline { font-size: 36px; font-weight: 800; margin: 0 0 24px; }
+.final-cta__badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.badge { display: inline-block; line-height: 0; }
+.badge img { height: 56px; width: auto; }
+.badge--secondary img { opacity: 0.65; height: 44px; }
+
+.footer { padding: 48px 0 32px; text-align: center; color: rgba(255,255,255,0.6); font-size: 13px; }
+.footer__logo { width: 32px; height: 32px; }
+.footer__tagline { margin: 8px 0 16px; }
+.footer__links { display: flex; gap: 20px; justify-content: center; margin-bottom: 16px; }
+.footer__links a { color: rgba(255,255,255,0.72); text-decoration: none; }
+
+/* Desktop breakpoint — hybrid marketing-scale */
+@media (min-width: 768px) {
+  .landing { padding: 0 32px; }
+  .hero { grid-template-columns: 1.1fr 1fr; gap: 48px; padding: 96px 0; align-items: center; }
+  .hero__headline { font-size: 72px; }
+  .hero__subhead { font-size: 20px; }
+  .section__heading { font-size: 44px; }
+  .features, .screenshots, .how { padding: 96px 0; }
+  .features__grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .how__steps { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .final-cta__headline { font-size: 56px; }
+}
