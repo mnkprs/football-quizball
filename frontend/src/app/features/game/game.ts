@@ -27,6 +27,7 @@ import { ResultsComponent } from '../results/results';
     ResultsComponent,
   ],
   templateUrl: './game.html',
+  styleUrl: './game.css',
 })
 export class GameComponent implements OnInit, OnDestroy {
   store = inject(GameStore);
