@@ -2,6 +2,13 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.2.2] - 2026-04-17
+
+### Fixed
+- **Stacking-context regression in `app-game` fixed before it could trap in-game modals.** `v0.8.2.0`'s `game.css` used `isolation: isolate` on `.game-shell` to confine the floodlit-BG `::before`/`::after` pseudo-elements below z:0 content. That created a new stacking context, which trapped any descendant overlay — specifically `<app-confirm-modal>` inside `<app-board>` (z:100) — at `.game-shell`'s z:auto level in the root context. The fixed `.bottom-nav` at z:40 in root would then paint over the bottom portion of the end-game confirm modal, occluding its action buttons. Dropped `isolation: isolate`; the BG pseudos at z:-2/-1 now render in the body stacking context where they compose correctly with all higher-z overlays, and `.game-shell`'s solid `background-color: var(--color-bg)` remains the visual fallback in case any browser culls the negative-z pseudos.
+- **PLAYER_ID question safety fallback.** `v0.8.2.0` removed the `question_text` hint from the PLAYER_ID template, leaving the career path as the whole puzzle. That assumed `career_path` is always populated. Added an `@else` branch that renders the question's `question_text` if `career_path` is missing or empty (legacy questions, LLM generation failures, DB integrity issues), so the player always has SOMETHING to answer instead of a blank card with a name input below. The happy-path display is unchanged — the hint only appears when there's literally no career data.
+- **Battle Royale `leaveRoom()` now always navigates, even on backend failure.** `v0.8.2.1` fixed the `team_logo` mode preservation when leaving a BR room, but `await this.store.leaveRoom()` could still throw (network error, stale session), and the uncaught throw meant `router.navigate` never ran — the user would be stuck on the BR play screen with cleared local state but no route change. Wrapped the await in `try/finally` so navigation fires unconditionally. The backend failure is still swallowed (intentional — the user clicked leave, respect it), but the user always lands back in the lobby.
+
 ## [0.8.2.1] - 2026-04-17
 
 ### Fixed

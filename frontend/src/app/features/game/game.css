@@ -5,8 +5,15 @@
    ───────────────────────────────────────────────────────── */
 
 .game-shell {
-  isolation: isolate;
+  /* NOTE: No `isolation: isolate` here. An earlier version used it to confine the
+     ::before/::after BG layers below z:0 content, but that created a stacking
+     context that trapped descendant overlays (e.g. the in-game confirm modal
+     at z:100) beneath the fixed bottom-nav at z:40 in the root context.
+     The BG pseudos stay at negative z-index relative to body stacking context
+     instead, and .game-shell's solid background-color is the visual fallback if
+     any browser happens to cull the negative-z pseudos. */
   background-color: var(--color-bg);
+  position: relative;
 }
 
 .game-shell::before,
