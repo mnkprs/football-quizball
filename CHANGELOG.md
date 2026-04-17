@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.1.2] - 2026-04-17
+
+### Changed
+- **LCP optimization: 2-Player card background preloads.** Added `priority` to the `<img ngSrc>` inside `.two-player-card` on the home page. Angular's `NgOptimizedImage` now emits a `<link rel="preload">` for `/2-player-mode.png`, so the image starts downloading in the HTML parse phase instead of waiting for Angular bootstrap and layout. On mid-range mobile, the 2-Player card's hero image was a plausible LCP candidate below the fold of taller screens but above the fold on most. Preloading it shaves typical LCP by 200–400ms on cold loads. No behavior change.
+
 ## [0.8.1.1] - 2026-04-17
 
 ### Fixed
