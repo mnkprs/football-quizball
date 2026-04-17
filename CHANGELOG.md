@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.3.0] - 2026-04-17
+
+### Added
+- **Marketing landing page at `/` behind `environment.landingMode` flag.** New `LandingComponent` (`frontend/src/app/features/landing/`) renders a 6-section marketing page (hero, feature grid, screenshots, how-it-works, final CTA, footer) with device-aware App Store / Play Store CTAs via a pure `detectPlatform()` UA utility. When `landingMode` is `true` in `environment.prod.ts`, the app swaps from the full routes array to a landing-only routes array — `/`, `/terms`, `/privacy` resolve; every other path redirects to `/`. When `landingMode` is `false` (dev default), everything behaves as before. Launch-day cutover is a single boolean flip plus replacement of placeholder store URLs and assets. iOS smart-banner meta tag (`apple-itunes-app`) added to `index.html`; Android `related_applications` array added to `manifest.webmanifest` (informational only). `prefer_related_applications: true` is intentionally deferred to launch day — activating it now would surface a broken install banner to current Android web-app users since the Play Store listing does not yet exist. Visual direction is "Hybrid" — dark background, gold-glass accent panels matching the in-app Pro Arena vocabulary, but marketing-scale typography (hero H1 72px desktop / 44px mobile) and 96px section padding on desktop. All static copy lives in `content.ts` to keep the template lean. Unit tests assert all 6 sections render, feature grid has exactly 6 cards, how-it-works has exactly 3 steps, footer links resolve to `/terms` and `/privacy`, and both store URLs come from `environment.stores`. Placeholder assets and store URLs are marked with `TODO` and `.TODO` sentinel files so the launch checklist can grep-verify readiness.
+
 ## [0.8.2.2] - 2026-04-17
 
 ### Fixed

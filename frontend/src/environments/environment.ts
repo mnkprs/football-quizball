@@ -36,4 +36,12 @@ export const environment = {
   googleWebClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
   /** Apple Client ID (bundle identifier) for Sign in with Apple. */
   appleClientId: 'com.stepovr.app',
+  /** Landing-only mode — when true, root and all unknown routes render the marketing landing page. Flipped to true on native-app launch. */
+  landingMode: false,
+  /** App store links + smart-banner ID. Placeholders until launch. */
+  stores: {
+    appStoreUrl: 'https://apps.apple.com/app/idXXXXXXXX',
+    playStoreUrl: 'https://play.google.com/store/apps/details?id=com.stepovr.app',
+    appStoreId: 'XXXXXXXX',
+  },
 };
