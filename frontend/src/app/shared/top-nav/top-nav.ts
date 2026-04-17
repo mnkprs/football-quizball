@@ -43,6 +43,7 @@ export class TopNavComponent implements OnInit {
   deleteError = signal<string | null>(null);
 
   private settingsTriggerEl: HTMLElement | null = null;
+  private lastSeenLevel: number | null = null;
 
   // Edit profile panel
   editPanelOpen = signal(false);
@@ -97,19 +98,21 @@ export class TopNavComponent implements OnInit {
       }
     }, { injector: this.injector });
 
-    // ─── XP LEVEL-UP DETECTION ─────────────────────────────────────────────
-    // When `level()` increments during a session, toggle `levelingUp` for
-    // ~600ms so the CSS flash/pop animation runs.
-    //
-    // The tradeoff you decide: first-load behavior.
-    //   • Strict — ignore the very first real level value after profile load
-    //     (level transitions from 1 → real). Prevents flash on every refresh.
-    //   • Loose — fire on any increment, including load. Simpler, but flashes
-    //     every page refresh which feels wrong.
-    //
-    // TODO(user): implement the level-up detection effect here (5–10 lines).
-    // Available: this.level() signal, this.levelingUp.set(bool), window.setTimeout.
-    // ────────────────────────────────────────────────────────────────────────
+    // Level-up flash trigger: fire only on real increments during a session,
+    // never on the first-load transition from signal default (1) to real value.
+    effect(() => {
+      if (this.statsLoading()) return;
+      const current = this.level();
+      if (this.lastSeenLevel === null) {
+        this.lastSeenLevel = current;
+        return;
+      }
+      if (current > this.lastSeenLevel) {
+        this.levelingUp.set(true);
+        window.setTimeout(() => this.levelingUp.set(false), 600);
+      }
+      this.lastSeenLevel = current;
+    }, { injector: this.injector });
 
     this.notificationsApi.refreshUnreadCount();
   }
