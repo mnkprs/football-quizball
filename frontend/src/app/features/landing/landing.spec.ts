@@ -41,4 +41,16 @@ describe('LandingComponent', () => {
     expect(footer!.querySelector('a[href="/terms"]')).toBeTruthy();
     expect(footer!.querySelector('a[href="/privacy"]')).toBeTruthy();
   });
+
+  it('uses the App Store URL from environment.stores', () => {
+    const iosBadge = el.querySelector('[data-test="badge-ios"]') as HTMLAnchorElement;
+    expect(iosBadge).toBeTruthy();
+    expect(iosBadge.href).toContain('apps.apple.com');
+  });
+
+  it('uses the Play Store URL from environment.stores', () => {
+    const androidBadge = el.querySelector('[data-test="badge-android"]') as HTMLAnchorElement;
+    expect(androidBadge).toBeTruthy();
+    expect(androidBadge.href).toContain('play.google.com');
+  });
 });
