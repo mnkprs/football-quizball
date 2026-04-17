@@ -32,6 +32,5 @@
   "related_applications": [
     { "platform": "play", "id": "com.stepover.app" },
     { "platform": "itunes", "url": "https://apps.apple.com/app/idXXXXXXXX" }
-  ],
-  "prefer_related_applications": true
+  ]
 }
