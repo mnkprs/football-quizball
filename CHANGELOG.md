@@ -2,6 +2,14 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.4.1] - 2026-04-18
+
+### Fixed
+- **Landing page 404s.** All 16 landing assets (logomark, 6 mode icons, 2 store badges, hero phone, 5 screenshots) were 404ing because they lived under `frontend/src/assets/landing/` but `angular.json` only declares `public/` as the static-asset input. Moved the folder to `frontend/public/assets/landing/` so the existing `assets/landing/...` references in `landing.html` resolve. The 6 PNGs (hero-phone, screenshot-1..5) that were `.TODO` sentinels are now real images generated via Vertex AI; replace with real gameplay captures before production launch.
+
+### Added
+- **Landing-asset Vertex generator.** New `backend/scripts/vertex-generate-landing-assets.js` mirrors the pattern of `vertex-generate-game-bg.js`. Idempotent (skips existing PNGs unless `--force`), sharded (`--only <name>` regenerates one asset at a time), writes directly to `frontend/public/assets/landing/` and clears the matching `.TODO` sentinel on success. Prompts describe UI as shape-language with no readable text to sidestep the image model's garbled-glyph failure mode.
+
 ## [0.8.4.0] - 2026-04-18
 
 ### Added
