@@ -1,5 +1,6 @@
 import { Component, inject, signal, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { AuthModalService } from '../../core/auth-modal.service';
 import { PlatformService } from '../../core/platform.service';
@@ -8,7 +9,7 @@ import { AnalyticsService } from '../../core/analytics.service';
 @Component({
   selector: 'app-auth-modal',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './auth-modal.html',
   styleUrl: './auth-modal.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

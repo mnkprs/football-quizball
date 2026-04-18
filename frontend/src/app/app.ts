@@ -75,6 +75,7 @@ export class App implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     void this.configApi.loadAdConfig();
+    void this.configApi.loadFeatureFlags();
     void this.adService.initialize();
     void this.updateService.check();
     this.registerDeepLinkListener();

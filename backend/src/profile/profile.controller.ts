@@ -11,8 +11,10 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/auth.guard';
 import { SupabaseService } from '../supabase/supabase.service';
+import { rejectUsername } from './username-moderation';
 
 @Controller('api/profile')
 export class ProfileController {
@@ -22,6 +24,7 @@ export class ProfileController {
 
   @Patch('username')
   @UseGuards(AuthGuard)
+  @Throttle({ default: { limit: 5, ttl: 3600000 } })
   @HttpCode(HttpStatus.NO_CONTENT)
   async setUsername(
     @Body() body: { username: string },
@@ -41,6 +44,11 @@ export class ProfileController {
 
     if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
       throw new BadRequestException('Username may only contain letters, numbers, and underscores');
+    }
+
+    const moderationError = rejectUsername(trimmed);
+    if (moderationError) {
+      throw new BadRequestException(moderationError);
     }
 
     try {

@@ -253,3 +253,21 @@
   text-align: center;
   margin: 0;
 }
+
+.auth-modal-legal {
+  color: var(--color-muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  margin: 1rem 0 0;
+}
+
+.auth-modal-legal a {
+  color: var(--color-muted-foreground);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.auth-modal-legal a:hover {
+  color: var(--color-foreground);
+}
