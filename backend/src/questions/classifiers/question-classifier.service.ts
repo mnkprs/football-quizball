@@ -10,7 +10,7 @@ import {
 /**
  * Classifies an existing pool question into structured taxonomy fields that
  * match the new question_pool columns (subject_type/id, competition_id,
- * question_style, mode_compatibility, concept_id, popularity_score, etc.).
+ * question_style, concept_id, popularity_score, etc.).
  *
  * The canonical entity list is embedded in the system prompt so Gemini can
  * only pick slugs that already exist. Anything that drifts is rejected
@@ -26,15 +26,6 @@ export type QuestionStyle =
   | 'higher-or-lower'
   | 'guess-score'
   | 'player-id';
-
-export type GameMode =
-  | 'solo'
-  | 'duel'
-  | 'blitz'
-  | 'battle_royale'
-  | 'mayhem'
-  | 'hardcore'
-  | 'logo_quiz';
 
 export interface ClassifierInput {
   id: string;
@@ -52,7 +43,6 @@ export interface ClassifierOutput {
   competition_id: string | null;
   question_style: QuestionStyle | null;
   answer_type: string | null;
-  mode_compatibility: GameMode[];
   concept_id: string | null;
   popularity_score: number | null;
   time_sensitive: boolean;
@@ -83,16 +73,6 @@ const ALLOWED_STYLES: readonly QuestionStyle[] = [
   'higher-or-lower',
   'guess-score',
   'player-id',
-];
-
-const ALLOWED_MODES: readonly GameMode[] = [
-  'solo',
-  'duel',
-  'blitz',
-  'battle_royale',
-  'mayhem',
-  'hardcore',
-  'logo_quiz',
 ];
 
 const ALLOWED_TYPES: readonly EntityType[] = [
@@ -144,7 +124,6 @@ export class QuestionClassifierService {
       competition_id: string | null;
       question_style: string | null;
       answer_type: string | null;
-      mode_compatibility: string[] | null;
       concept_id: string | null;
       popularity_score: number | null;
       time_sensitive: boolean | null;
@@ -196,7 +175,6 @@ Return JSON with exactly these keys:
   competition_id:      canonical slug of the specific competition scoping the question — either a LEAGUE slug (e.g. "premier-league", "serie-a") OR a TROPHY slug (e.g. "uefa-champions-league", "fifa-world-cup", "europa-league", "copa-del-rey"). null if the question is not scoped to a specific competition.
   question_style:      one of ["trivia","year","top5","multiple-choice","true-false","higher-or-lower","guess-score","player-id"] — the SHAPE of the question, not its content. Infer from phrasing: "How many", "In what year", "Name the top 5", "Higher or lower than X", "Guess the score", "Identify this player".
   answer_type:         short label for the answer's data type: "string", "year", "number", "team_name", "player_name", "country", "score", "boolean", "list".
-  mode_compatibility:  OPTIONAL array of modes this question is safe for, subset of ["solo","duel","blitz","battle_royale","mayhem","hardcore","logo_quiz"]. Return [] if you're not confident — this field is optional and empty is fine. Only populate modes you're sure the question works in. Exclude "blitz" for long-text questions. Exclude "logo_quiz" for anything that isn't a logo-identification question.
   concept_id:          short kebab-case slug describing the UNDERLYING concept being tested, e.g. "world-cup-winners", "ballon-dor-history", "premier-league-top-scorers", "uefa-treble-teams", "club-stadium-matchups", "manager-trophy-history". Aim for broad reusable concepts, not question-specific. null if no clean concept applies.
   popularity_score:    integer 1..100 measuring the FAME of the subject (not the difficulty of the question). Messi/Ronaldo = 95-100. Premier League = 95. A 1990s Greek Super League player = 10-25. Return null only if subject_type is null.
   time_sensitive:      true if the correct answer can change over time (current manager of a club, top scorer of an active season, current league leader). false for historical facts.
@@ -238,7 +216,6 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
       competition_id: string | null;
       question_style: string | null;
       answer_type: string | null;
-      mode_compatibility: string[] | null;
       concept_id: string | null;
       popularity_score: number | null;
       time_sensitive: boolean | null;
@@ -294,13 +271,6 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
       warnings.push(`invalid question_style "${raw.question_style}" — nulled`);
     }
 
-    // mode_compatibility
-    const modes: GameMode[] = [];
-    for (const m of raw.mode_compatibility ?? []) {
-      if (ALLOWED_MODES.includes(m as GameMode)) modes.push(m as GameMode);
-      else warnings.push(`dropped invalid mode "${m}"`);
-    }
-
     // popularity_score
     let popularity: number | null = null;
     if (typeof raw.popularity_score === 'number') {
@@ -346,7 +316,6 @@ Return JSON with the exact keys defined in the system prompt. No extra keys.`;
         competition_id: competitionId,
         question_style: style,
         answer_type: this.validateAnswerType(raw.answer_type, warnings),
-        mode_compatibility: modes,
         concept_id: this.validateConceptId(raw.concept_id, warnings),
         popularity_score: popularity,
         time_sensitive: Boolean(raw.time_sensitive),

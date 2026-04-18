@@ -187,7 +187,6 @@ function renderPilotHtml(rows: PoolRow[], results: ClassifierResult[]): string {
         ? `<div class="warn">⚠ ${r.warnings.map(escHtml).join('; ')}</div>`
         : '';
       const tags = c.tags.length ? c.tags.map((t) => `<code>${escHtml(t)}</code>`).join(' ') : '<span class="dim">—</span>';
-      const modes = c.mode_compatibility.length ? c.mode_compatibility.join(', ') : '<span class="dim">(none)</span>';
       return `<div class="card">
         <div class="q"><strong>Q:</strong> ${escHtml(row.question.question_text ?? '')}</div>
         <div class="a"><strong>A:</strong> ${escHtml(row.question.correct_answer ?? '')}</div>
@@ -200,7 +199,6 @@ function renderPilotHtml(rows: PoolRow[], results: ClassifierResult[]): string {
           <tr><th>competition_id</th><td>${c.competition_id ? '<code>' + escHtml(c.competition_id) + '</code>' : '<span class="dim">null</span>'}</td></tr>
           <tr><th>question_style</th><td>${c.question_style ? '<code>' + escHtml(c.question_style) + '</code>' : '<span class="dim">null</span>'}</td></tr>
           <tr><th>answer_type</th><td>${c.answer_type ? '<code>' + escHtml(c.answer_type) + '</code>' : '<span class="dim">null</span>'}</td></tr>
-          <tr><th>mode_compatibility</th><td>${modes}</td></tr>
           <tr><th>concept_id</th><td>${c.concept_id ? '<code>' + escHtml(c.concept_id) + '</code>' : '<span class="dim">null</span>'}</td></tr>
           <tr><th>popularity_score</th><td>${c.popularity_score ?? '<span class="dim">null</span>'}</td></tr>
           <tr><th>time_sensitive</th><td>${c.time_sensitive ? 'true' : 'false'}${c.valid_until ? ' · valid_until ' + escHtml(c.valid_until) : ''}</td></tr>
@@ -255,7 +253,6 @@ async function maybeApply(
         competition_id: c.competition_id,
         question_style: c.question_style,
         answer_type: c.answer_type,
-        mode_compatibility: c.mode_compatibility.length ? c.mode_compatibility : null,
         concept_id: c.concept_id,
         popularity_score: c.popularity_score,
         time_sensitive: c.time_sensitive,

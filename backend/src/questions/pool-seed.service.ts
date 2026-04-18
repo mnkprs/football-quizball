@@ -724,9 +724,6 @@ export class PoolSeedService {
         competition_id: tax?.competition_id ?? null,
         question_style: tax?.question_style ?? null,
         answer_type: tax?.answer_type ?? null,
-        mode_compatibility: tax?.mode_compatibility && tax.mode_compatibility.length > 0
-          ? tax.mode_compatibility
-          : null,
         concept_id: tax?.concept_id ?? null,
         popularity_score: tax?.popularity_score ?? null,
         time_sensitive: tax?.time_sensitive ?? false,
