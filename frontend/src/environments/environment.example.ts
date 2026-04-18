@@ -18,4 +18,12 @@ export const environment = {
   adSenseSlotId: '',
   /** Admin API key for /admin dashboard. Set to match backend ADMIN_API_KEY for local dev. */
   adminApiKey: 'Manos1995' as string | undefined,
+  /** Landing-only mode — when true, root and all unknown routes render the marketing landing page. Flipped to true on native-app launch. */
+  landingMode: false,
+  /** App store links + smart-banner ID. Placeholders until launch. */
+  stores: {
+    appStoreUrl: 'https://apps.apple.com/app/idXXXXXXXX',
+    playStoreUrl: 'https://play.google.com/store/apps/details?id=com.stepovr.app',
+    appStoreId: 'XXXXXXXX',
+  },
 };
