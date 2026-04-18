@@ -2,6 +2,11 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.4.2] - 2026-04-18
+
+### Removed
+- **`question_pool.mode_compatibility` column dropped.** Introduced in the taxonomy PR (#59, 2026-04-16) as an optional array describing which game modes a question was safe to draw for. The classifier prompt told Gemini the field was optional and "empty is fine" (`question-classifier.service.ts:199`); the LLM obliged, `pool-seed.service.ts:727-729` coerced empty arrays to `NULL`, and **1091 / 1092** new rows (99.9%) ended up `NULL`. Confirmed no read path depended on it — zero RPCs, views, analytics, or frontend references. Product decision is that taxonomy powers user-facing analytics ("top X% on UCL questions"), not mode routing, so the field is not needed. Cleaner to drop than to repair a prompt we don't want. New migration `20260418201736_drop_mode_compatibility.sql` drops the column + GIN index; classifier output type, system prompt, Raw type, validator branch, `GameMode` + `ALLOWED_MODES` consts, pool-seed writer, and backfill display/write are all removed. Applied to prod Supabase on 2026-04-18; Railway cron temporarily paused (`DISABLE_POOL_CRON=1`) to prevent old main code from crashing against the now-missing column. Flip back to `0` after this PR merges + Railway redeploys.
+
 ## [0.8.4.1] - 2026-04-18
 
 ### Fixed
