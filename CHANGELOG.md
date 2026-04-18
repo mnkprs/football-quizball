@@ -2,6 +2,20 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.4.0] - 2026-04-18
+
+### Added
+- **CI build gate.** New `.github/workflows/ci.yml` runs `nest build` + `ng build --configuration production` on every PR and push to `main`, using Node 22 with per-lockfile caching. Replaces the prior no-gate auto-deploy where a broken build could hit Railway/Vercel directly. Does not yet run test suites (opt-in follow-up).
+- **Remote feature-flag / kill-switch.** New `GET /api/config/feature-flags` endpoint reads `app_settings.feature_flags` and merges user overrides with defaults, with a runtime type guard against malformed admin writes. Frontend consumes via `ConfigApiService.loadFeatureFlags()` as a signal, wired into app bootstrap. Lets us disable a broken mode on shipped native builds by upserting a row in Supabase — no store re-review. Defaults to everything enabled so misconfigured or empty `app_settings` is safe.
+- **Universal Links + App Links scaffolding.** `frontend/ios/App/App/App.entitlements` declares Sign in with Apple + `applinks:stepovr.com` associated domains. `AndroidManifest.xml` adds an `android:autoVerify="true"` intent-filter scoped to `/join`, `/duel`, `/battle-royale`, `/logo-quiz` path prefixes so marketing URLs stay in the browser. `frontend/public/.well-known/apple-app-site-association` + `assetlinks.json` shipped with TODO placeholders for Apple Team ID and SHA-256 cert fingerprint. `vercel.json` excludes `/.well-known/*` from the SPA rewrite and sets `Content-Type: application/json` on `apple-app-site-association`.
+- **Username moderation.** New `backend/src/profile/username-moderation.ts` with a curated reserved-patterns list (admin/support/staff/official + brand impersonation covering stepov/stepovr/stepove/stepover) and a seed slur deny-list using normalized leetspeak matching. Wired into `PATCH /api/profile/username` alongside a `@Throttle(5/hr)` decorator to cap impersonation spam.
+- **Sentry setup guide.** New `docs/sentry-setup.md` — complete backend + frontend wire-up instructions intentionally deferred from code so builds don't break until `@sentry/nestjs` + `@sentry/angular` are installed.
+- **Age-rating submission guide.** New `docs/age-rating-submission.md` documents the exact App Store Connect and Google Play IARC questionnaire answers to land StepOver at a defensible 12+/Teen rating under Path A (rate app 13+ + disclose in ToS, no in-app age gate). Cross-checked against existing `terms.html` §3 and `privacy.html` §9 which already declare the 13+ requirement.
+- **Signup legal footer.** Added a muted legal footer to `auth-modal.html` with links to `/terms` and `/privacy` and an explicit "You must be 13 or older to create an account" notice. Belt-and-suspenders against the ToS claim.
+
+### Changed
+- **Stale `pre-production.md` bundle-ID references corrected.** Three `com.stepover.app` occurrences updated to `com.stepovr.app` to match the actual iOS bundle ID / Android package name used everywhere in the code.
+
 ## [0.8.3.0] - 2026-04-17
 
 ### Added

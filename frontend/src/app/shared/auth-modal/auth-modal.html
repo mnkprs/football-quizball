@@ -124,6 +124,14 @@
       @if (error()) {
         <p class="auth-modal-error">{{ error() }}</p>
       }
+
+      <p class="auth-modal-legal">
+        By continuing, you agree to our
+        <a routerLink="/terms" (click)="modalService.close()">Terms</a>
+        and
+        <a routerLink="/privacy" (click)="modalService.close()">Privacy Policy</a>.
+        You must be 13 or older to use StepOver.
+      </p>
     }
   </div>
 </div>

@@ -98,7 +98,7 @@
 
 #### Account & Setup
 - [ ] **Apple Developer Account** — enroll at developer.apple.com ($99/year)
-- [ ] **App Store Connect** — create the app record (bundle ID: `com.stepover.app`)
+- [ ] **App Store Connect** — create the app record (bundle ID: `com.stepovr.app`)
 - [ ] **Certificates & Provisioning** — create Distribution certificate + App Store provisioning profile
 - [ ] **Apple Sign-In** — required by Apple if you offer any social login (Google, etc.). Already planned in Capacitor integration
 
@@ -131,7 +131,7 @@
 
 #### Account & Setup
 - [ ] **Google Play Developer Account** — enroll at play.google.com/console ($25 one-time)
-- [ ] **Create app** in Play Console (package: `com.stepover.app`)
+- [ ] **Create app** in Play Console (package: `com.stepovr.app`)
 - [ ] **Signing key** — use Play App Signing (recommended) or upload your own keystore
 
 #### Required Assets
@@ -183,7 +183,7 @@
   2. Grant role: "Android Publisher" (or link via Play Console → API access)
   3. Create JSON key and download
 - [ ] **Set env vars on Railway:**
-  - `GOOGLE_PLAY_PACKAGE_NAME=com.stepover.app`
+  - `GOOGLE_PLAY_PACKAGE_NAME=com.stepovr.app`
   - `GOOGLE_PLAY_SERVICE_ACCOUNT_KEY=<paste full JSON key content>`
 
 #### Database Migration

@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.stepovr.app",
+        "paths": [
+          "/join/*",
+          "/duel/*",
+          "/battle-royale/*",
+          "/logo-quiz/*",
+          "NOT /api/*"
+        ]
+      }
+    ]
+  }
+}

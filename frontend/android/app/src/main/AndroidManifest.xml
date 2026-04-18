@@ -29,6 +29,23 @@
                 <data android:scheme="stepovr" />
             </intent-filter>
 
+            <!-- Android App Links (https) verified via /.well-known/assetlinks.json -->
+            <!-- TODO: replace stepovr.com with final production domain once purchased -->
+            <!-- Scoped to specific paths so marketing pages (privacy, blog, etc.) stay in the browser -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="stepovr.com" android:pathPrefix="/join" />
+                <data android:scheme="https" android:host="stepovr.com" android:pathPrefix="/duel" />
+                <data android:scheme="https" android:host="stepovr.com" android:pathPrefix="/battle-royale" />
+                <data android:scheme="https" android:host="stepovr.com" android:pathPrefix="/logo-quiz" />
+                <data android:scheme="https" android:host="www.stepovr.com" android:pathPrefix="/join" />
+                <data android:scheme="https" android:host="www.stepovr.com" android:pathPrefix="/duel" />
+                <data android:scheme="https" android:host="www.stepovr.com" android:pathPrefix="/battle-royale" />
+                <data android:scheme="https" android:host="www.stepovr.com" android:pathPrefix="/logo-quiz" />
+            </intent-filter>
+
         </activity>
 
         <meta-data
