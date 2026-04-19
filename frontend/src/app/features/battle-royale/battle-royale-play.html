@@ -36,7 +36,10 @@
             @for (p of team1Players(); track p.userId) {
               <div class="br-play__team-player">
                 <div class="br-play__team-player-avatar">{{ p.username.charAt(0).toUpperCase() }}</div>
-                {{ p.username }}
+                <span class="br-play__team-player-name">{{ p.username }}</span>
+                @if (p.profileRank != null) {
+                  <span class="br-play__rank-badge" title="Logo Quiz global rank">#{{ p.profileRank }}</span>
+                }
               </div>
             }
           </div>
@@ -45,7 +48,10 @@
             @for (p of team2Players(); track p.userId) {
               <div class="br-play__team-player">
                 <div class="br-play__team-player-avatar">{{ p.username.charAt(0).toUpperCase() }}</div>
-                {{ p.username }}
+                <span class="br-play__team-player-name">{{ p.username }}</span>
+                @if (p.profileRank != null) {
+                  <span class="br-play__rank-badge" title="Logo Quiz global rank">#{{ p.profileRank }}</span>
+                }
               </div>
             }
           </div>
@@ -56,7 +62,10 @@
           @for (player of store.players(); track player.userId) {
             <div class="br-play__player-row">
               <span class="material-icons">person</span>
-              <span>{{ player.username }}</span>
+              <span class="br-play__player-row-name">{{ player.username }}</span>
+              @if (player.profileRank != null) {
+                <span class="br-play__rank-badge" title="Solo global rank">#{{ player.profileRank }}</span>
+              }
               @if (player.userId === store.roomView()?.hostId) {
                 <span class="br-play__host-badge">HOST</span>
               }

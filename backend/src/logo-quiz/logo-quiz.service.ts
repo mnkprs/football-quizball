@@ -7,6 +7,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
 import { AchievementsService } from '../achievements/achievements.service';
 import { CacheService } from '../cache/cache.service';
+import { RedisService } from '../redis/redis.service';
 import { XpService } from '../xp/xp.service';
 import type { Difficulty } from '../common/interfaces/question.interface';
 import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
@@ -31,6 +32,7 @@ export class LogoQuizService {
     private readonly eloService: EloService,
     private readonly achievementsService: AchievementsService,
     private readonly cacheService: CacheService,
+    private readonly redisService: RedisService,
     private readonly xpService: XpService,
   ) {}
 
@@ -181,6 +183,13 @@ export class LogoQuizService {
         .from('profiles')
         .update({ [eloCol]: newElo, [gamesCol]: gamesPlayed + 1 })
         .eq('id', userId);
+    }
+
+    // Invalidate cached rank so next read is fresh — mirrors `SupabaseService.updateElo`
+    // pattern. Only the non-hardcore mode has a rank cache key today (`getLogoQuizRank`);
+    // when hardcore gets a getLogoQuizHardcoreRank, add `rank:logo_hardcore:` here too.
+    if (!hardcore) {
+      await this.redisService.del(`rank:logo:${userId}`);
     }
 
     // Increment profile-level questions_answered / correct_answers

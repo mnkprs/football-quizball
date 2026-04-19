@@ -254,6 +254,23 @@ export class BattleRoyaleService {
     const me = players.find((p) => p.user_id === requestingUserId);
     const myIndex = me?.current_question_index ?? 0;
 
+    // Resolve global ELO rank for each player based on room mode.
+    // Per-user ranks are Redis-cached (60s TTL), so this is cheap for 8–20 players.
+    // Failures (Redis outage, Supabase 500) degrade gracefully to "unranked" but
+    // are logged so we can tell silent regressions apart from genuinely-unranked players.
+    const rankFn = isTeamLogoMode
+      ? (id: string) => this.supabaseService.getLogoQuizRank(id)
+      : (id: string) => this.supabaseService.getSoloRank(id);
+    const profileRanks = await Promise.all(
+      players.map((p) =>
+        rankFn(p.user_id).catch((err: unknown) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          this.logger.warn(`[getRoom] rank lookup failed for ${p.user_id}: ${msg}`);
+          return null;
+        }),
+      ),
+    );
+
     const playerEntries: BRPlayerEntry[] = players.map((p, i) => ({
       userId: p.user_id,
       username: p.username,
@@ -261,6 +278,7 @@ export class BattleRoyaleService {
       currentQuestionIndex: p.current_question_index,
       finished: !!p.finished_at,
       rank: i + 1,
+      profileRank: profileRanks[i],
       ...(isTeamLogoMode && { teamId: p.team_id ?? undefined }),
     }));
 

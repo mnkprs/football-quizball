@@ -51,7 +51,14 @@ export interface BRPlayerEntry {
   score: number;
   currentQuestionIndex: number;
   finished: boolean;
+  /** In-room placement during this game (1 = leading), sorted by score desc */
   rank?: number;
+  /**
+   * Global leaderboard rank by ELO at the time the room view was built.
+   * Picks solo ELO rank for classic rooms, logo_quiz ELO rank for team_logo rooms.
+   * `null` means the player is unranked in that mode (e.g. has not played a logo quiz yet).
+   */
+  profileRank?: number | null;
   /** Team Logo Battle Royale: which team this player belongs to (1 or 2) */
   teamId?: number;
 }

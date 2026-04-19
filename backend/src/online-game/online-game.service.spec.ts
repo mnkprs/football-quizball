@@ -126,6 +126,7 @@ describe('OnlineGameService', () => {
           useValue: {
             client: supabaseChain,
             getProfile: jest.fn().mockResolvedValue({ username: 'TestUser' }),
+            saveMatchResult: jest.fn().mockResolvedValue(true),
           },
         },
         {

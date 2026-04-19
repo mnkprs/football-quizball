@@ -2,6 +2,26 @@
 
 All notable changes to Stepover will be documented in this file.
 
+## [0.8.5.0] - 2026-04-19
+
+### Added
+- **Battle Royale player ranks in lobby.** Each player in the BR waiting lobby now displays their global ELO rank as a `#N` badge next to their name. Mode-aware: classic BR rooms show solo ELO rank (`getSoloRank`), team_logo rooms show logo-quiz ELO rank via the new `getLogoQuizRank(userId)` in `supabase.service.ts`. Backend enrichment is per-player via `Promise.all` against the existing 60s Redis-cached rank functions, so 8–20 players costs at most one fresh DB count per player on cold cache. New `profileRank?: number | null` field on `BRPlayerEntry` (kept separate from in-room `rank` to preserve live-leaderboard semantics); `null` means the player is unranked in that mode (e.g. zero logo games played) and the badge is hidden. Refactored existing `getLogoQuizLeaderboardEntryForUser` to delegate to `getLogoQuizRank` so there is a single source of truth for logo rank computation.
+
+### Fixed
+- **Logo-quiz rank cache invalidation gap.** `logo-quiz.service.ts` now invalidates `rank:logo:{userId}` after a logo-quiz answer commit, mirroring `SupabaseService.updateElo`'s existing solo-rank invalidation pattern. Without this fix, BR Logo lobby badges showed stale rank for up to 60s after a player finished a logo game. Hardcore-mode invalidation deferred until `getLogoQuizHardcoreRank` exists. Surfaced by the `/ship` pre-landing review.
+- **Battle Royale rank lookup observability.** `getRoom` enricher's `.catch(() => null)` now logs `Logger.warn` so a Redis outage or Supabase 500 surfaces as a structured warning rather than silently rendering players as "unranked." Genuinely-unranked players still produce no log line.
+- **4 pre-existing test failures** that had been silently broken on `main`. None caused by the rank-display work; surfaced by `/ship`'s test triage and fixed inline so the suite returns to fully green (234/234 backend, 20/20 frontend).
+  - `online-game.service.spec.ts`: `SupabaseService` mock missing `saveMatchResult`. Added `jest.fn().mockResolvedValue(true)`.
+  - `llm.service.spec.ts`: NestJS DI failed because the test module didn't provide `RedisService` (LlmService injects it). Added a stubbed provider.
+  - `mayhem.service.spec.ts`: NestJS DI failed because the test module didn't provide `MayhemStatGuessGenerator`. Stubbed as `{ generate: jest.fn().mockResolvedValue([]) }`.
+  - `app.spec.ts`: scaffold-leftover test still checked for the `ng new` placeholder `<h1>Hello, football-quizball-frontend</h1>` and built `App` without `HttpClient` / router providers (App uses `ConfigApiService`). Rewritten to provide `provideRouter([])`, `provideHttpClient()`, `provideHttpClientTesting()` and assert that `<router-outlet>` renders.
+
+### Removed
+- **Dead `supabase/*.repository.ts` files (≈643 LOC).** `elo.repository.ts`, `leaderboard.repository.ts`, and `profile.repository.ts` were registered as Nest providers in `supabase.module.ts` but never injected anywhere — every method duplicated one already on `SupabaseService`. Likely abandoned mid-refactor (split-the-god-service plan that never landed). Files deleted; module providers/exports trimmed to just `SupabaseService`. Verified zero callers across `backend/src` before deletion.
+
+### Why "Quick Join" stays hidden in BR Logo mode
+- Investigated user-reported asymmetry: classic BR exposes Quick Join, team_logo BR does not. **This is intentional, not a bug.** Three layers gate it (`battle-royale-lobby.html:109` `@if (!isTeamLogoMode())`, `battle-royale-lobby.ts:54` skips public-room polling, and `battle-royale.service.ts:129` hardcodes `joinQueue` to `.eq('mode', 'classic')`). The product call is that team-vs-team play depends on balanced sides — random matchmaking would frequently produce 1v3 splits — so team_logo is invite-only. Documented here for future archeology; no code change.
+
 ## [0.8.4.3] - 2026-04-19
 
 ### Fixed

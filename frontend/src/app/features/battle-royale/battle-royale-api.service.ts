@@ -31,7 +31,13 @@ export interface BRPlayerEntry {
   score: number;
   currentQuestionIndex: number;
   finished: boolean;
+  /** In-room rank during this game (1 = leading) */
   rank?: number;
+  /**
+   * Global ELO rank — solo ELO rank in classic rooms, logo_quiz ELO rank in team_logo rooms.
+   * `null` means the player is unranked in the relevant mode (e.g. has not played a logo quiz yet).
+   */
+  profileRank?: number | null;
   // Team Logo mode: which team this player belongs to
   teamId?: 1 | 2;
 }

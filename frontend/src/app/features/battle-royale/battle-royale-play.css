@@ -153,6 +153,14 @@
   color: var(--color-muted-foreground);
 }
 
+.br-play__player-row-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .br-play__host-badge {
   margin-left: auto;
   font-size: 0.625rem;
@@ -163,6 +171,25 @@
   color: var(--color-accent-foreground);
   padding: 0.2rem 0.5rem;
   border-radius: 0.375rem;
+}
+
+/* Global ELO rank badge — subtle, secondary to player identity */
+.br-play__rank-badge {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--glass-bg-subtle);
+  border: 1px solid var(--glass-border);
+  color: var(--color-muted-foreground);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.375rem;
+  flex-shrink: 0;
+}
+
+/* When both rank and host badge are present, rank sits to the left of HOST */
+.br-play__rank-badge + .br-play__host-badge {
+  margin-left: 0.375rem;
 }
 
 /* ── Team waiting columns — glass with team colors ── */
@@ -209,6 +236,14 @@
   font-weight: 600;
   padding: 0.375rem 0;
   color: var(--color-foreground);
+}
+
+.br-play__team-player-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .br-play__team-player-avatar {
