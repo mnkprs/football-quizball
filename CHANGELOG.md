@@ -2,6 +2,12 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.10] - 2026-04-19
+
+### Fixed
+- **`/news` anon sign-in regression introduced by v0.8.5.8.** The earlier fix skipped the AuthGuard-only `getQuestions()` call for anonymous visitors to silence the 401 log, but that 401 was load-bearing — `error.interceptor.ts:26-27` catches `status === 401` and calls `authModal.open()`, which was the *only* sign-in affordance for anon users on `/news` (the `empty` phase template has just a "Back to Home" button). Silencing the log also silenced the sign-in modal. Now the `!auth.isLoggedIn()` branch explicitly calls `authModal.open()` before dropping into `empty`, restoring the CTA deliberately rather than relying on an error-side effect. Surfaced by the `/review` adversarial pass.
+- **Battle-hero dead-button edge: `mode.locked === true && mode.trialRemaining === 0` made the button fully non-interactive (no click handler, no sign-in modal).** v0.8.5.5 bound `[disabled]` to `mode.trialRemaining === 0` alone, so any mode that was BOTH locked AND trial-exhausted lost its click path. Tightened the binding to `[disabled]="!mode.locked && mode.trialRemaining === 0"` — locked buttons stay clickable (they open the sign-in modal via `lockedModeClick`), only the genuinely-exhausted-and-logged-in case disables. Rare edge state but a strict regression; surfaced by the `/review` adversarial pass.
+
 ## [0.8.5.9] - 2026-04-19
 
 ### Fixed

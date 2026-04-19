@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
 import { NewsApiService, NewsQuestion, NewsAnswerResponse } from '../../core/news-api.service';
 
@@ -23,6 +24,7 @@ export class NewsModeComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private newsApi = inject(NewsApiService);
   private auth = inject(AuthService);
+  private authModal = inject(AuthModalService);
 
   phase = signal<NewsPhase>('loading');
   questions = signal<NewsQuestion[]>([]);
@@ -94,10 +96,13 @@ export class NewsModeComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // `getQuestions` is AuthGuard-protected on the backend. Don't call it for
-      // anonymous visitors — the auth modal on the page is the correct gate.
-      // Firing unauthenticated just logs a noisy 401 and falls through to 'empty'.
+      // `getQuestions` is AuthGuard-protected on the backend. For anonymous
+      // visitors, skip the call and open the sign-in modal directly — the
+      // error-interceptor path that previously surfaced it (401 → authModal)
+      // is replaced here with a deliberate, loggable equivalent. Without this
+      // branch the user would land in the 'empty' state with no sign-in CTA.
       if (!this.auth.isLoggedIn()) {
+        this.authModal.open();
         this.phase.set('empty');
         return;
       }
