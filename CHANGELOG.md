@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.8] - 2026-04-19
+
+### Fixed
+- **`/api/news/mode/questions` logged a 401 for every anonymous visitor and raced signed-in users on cold loads.** `news-mode.ts:loadRound` unconditionally called `newsApi.getQuestions()` whenever `metadata.round_id && metadata.questions_remaining > 0`. The backend route is `@UseGuards(AuthGuard)` (`news.controller.ts:55-58`), so anonymous visits always 401'd, and signed-in users who landed on `/news` before Supabase restored the session from storage also 401'd (their `accessToken` signal was `null` at request time). Two fixes in `loadRound`: (1) `await this.auth.sessionReady` before any fetches so auth-dependent calls always see the restored session; (2) guard `getQuestions()` with `if (!this.auth.isLoggedIn()) { set 'empty'; return; }` so anonymous visitors fall through to the existing empty state cleanly — the auth modal overlay is the correct gate for anon users, not a background 401. Re-verified via `/qa`: anonymous load on `/news` now shows `/api/news/metadata → 200` with no follow-up `/mode/questions` call. Surfaced by full-app `/qa` (ISSUE-001, 2026-04-19).
+
 ## [0.8.5.7] - 2026-04-19
 
 ### Fixed

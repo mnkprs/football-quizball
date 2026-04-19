@@ -3,6 +3,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { NewsApiService, NewsQuestion, NewsAnswerResponse } from '../../core/news-api.service';
 
@@ -21,6 +22,7 @@ export class NewsModeComponent implements OnInit, OnDestroy {
   lang = inject(LanguageService);
   private router = inject(Router);
   private newsApi = inject(NewsApiService);
+  private auth = inject(AuthService);
 
   phase = signal<NewsPhase>('loading');
   questions = signal<NewsQuestion[]>([]);
@@ -65,6 +67,11 @@ export class NewsModeComponent implements OnInit, OnDestroy {
 
   private async loadRound(): Promise<void> {
     try {
+      // Wait for Supabase session restoration before fetching — `getQuestions`
+      // requires a Bearer token and the component can mount before `accessToken`
+      // populates on a cold page load.
+      await this.auth.sessionReady;
+
       const metadata = await firstValueFrom(this.newsApi.getMetadata());
       this.roundId.set(metadata.round_id);
       this.streak.set(metadata.streak);
@@ -84,6 +91,14 @@ export class NewsModeComponent implements OnInit, OnDestroy {
           // No active round
           this.phase.set('empty');
         }
+        return;
+      }
+
+      // `getQuestions` is AuthGuard-protected on the backend. Don't call it for
+      // anonymous visitors — the auth modal on the page is the correct gate.
+      // Firing unauthenticated just logs a noisy 401 and falls through to 'empty'.
+      if (!this.auth.isLoggedIn()) {
+        this.phase.set('empty');
         return;
       }
 
