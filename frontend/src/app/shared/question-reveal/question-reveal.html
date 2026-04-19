@@ -1,4 +1,6 @@
-<div class="qr" [class.qr--correct]="correct()" [class.qr--wrong]="!correct()">
+<div class="qr" [class.qr--correct]="correct()" [class.qr--wrong]="!correct()"
+     role="status" aria-live="polite" aria-atomic="true">
+  <span class="qr__sr-only">{{ correct() ? 'Correct.' : 'Wrong. The correct answer is ' + correctAnswer() + '.' }}</span>
 
   <!-- Strikethrough user answer → connector → correct answer card (text mode, wrong only) -->
   @if (renderMode() === 'text' && !correct() && userAnswer()) {

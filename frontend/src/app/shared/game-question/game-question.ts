@@ -237,11 +237,6 @@ export class GameQuestionComponent {
     return base;
   };
 
-  inputStateClass = computed(() => {
-    if (!this.reveal() || !this.revealResult()) return '';
-    return this.revealResult()!.correct ? 'gq__input--correct' : 'gq__input--wrong';
-  });
-
   // ─── METHODS ──────────────────────────────────────────────────
   submitTextAnswer(): void {
     const answer = this.textAnswer.trim();

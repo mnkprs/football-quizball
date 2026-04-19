@@ -407,43 +407,6 @@
 
 .gq__option-btn--dimmed { opacity:.35!important; transition: opacity 250ms var(--_ease)!important }
 
-/* ─── INPUT REVEAL STATES ───────────────────────────────── */
-.gq__input--correct { background:linear-gradient(135deg,rgba(0,122,255,.12),rgba(0,102,214,.08))!important; box-shadow:inset 0 0 0 2px var(--mode-color),0 0 12px rgba(0,122,255,.15)!important; color:var(--mode-color)!important; font-weight:600; animation: correct-flash 250ms var(--_ease) }
-.gq__input--wrong { background:rgba(147,0,10,.15)!important; box-shadow:inset 0 0 0 2px rgba(255,180,171,.4)!important; color:#ffb4ab!important; animation: wrong-shake-tight 400ms var(--_ease) }
-.gq__input-icon { position:absolute; right:1rem; top:50%; transform:translateY(-50%); width:1.25rem; height:1.25rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem }
-.gq__input-icon--correct { background:rgba(0,122,255,.2); color:var(--mode-color) }
-.gq__input-icon--wrong { background:rgba(255,180,171,.15); color:#ffb4ab }
-
-/* ─── RESULT BADGE ──────────────────────────────────────── */
-.gq__result-badge { display:inline-flex; align-items:center; padding:.5rem 1rem; border-radius:999px; font-size:var(--text-sm); font-weight:700; text-transform:uppercase; letter-spacing:.08em; width:fit-content; animation: badge-pop 300ms var(--_ease) }
-.gq__result-badge--correct { background:rgba(34,197,94,.12); color:var(--color-success); box-shadow:inset 0 0 0 1px rgba(34,197,94,.2) }
-.gq__result-badge--wrong { background:rgba(147,0,10,.2); color:#ffb4ab; box-shadow:inset 0 0 0 1px rgba(255,180,171,.15) }
-
-/* ─── ANSWER REVEAL CARD ────────────────────────────────── */
-.gq__answer-reveal-card { background:rgba(34,197,94,.1); border-radius:.75rem; border:1px solid rgba(34,197,94,.25); padding:.875rem 1rem; animation: anim-stagger-in 300ms var(--_ease) }
-.gq__answer-reveal-card--with-elo { display:flex; align-items:center; justify-content:space-between; gap:.75rem }
-.gq__answer-reveal-main { flex:1; min-width:0 }
-.gq__answer-reveal-label { font-size:.65rem; font-weight:600; color:var(--color-success); text-transform:uppercase; letter-spacing:.1em; margin-bottom:.25rem }
-.gq__answer-reveal-value { font-size:var(--text-md); font-weight:600; color:var(--color-foreground) }
-.gq__answer-reveal-elo { display:flex; flex-direction:column; align-items:center; flex-shrink:0; padding:.5rem .75rem; border-radius:.5rem }
-.gq__answer-reveal-elo--negative { background:rgba(147,0,10,.2) }
-.gq__answer-reveal-elo-value { font-size:var(--text-xl); font-weight:700; color:#ffb4ab }
-.gq__answer-reveal-elo-label { font-size:.6rem; font-weight:600; color:var(--color-muted-foreground); text-transform:uppercase; letter-spacing:.05em }
-
-/* ─── ELO DELTA + REVEAL FOOTER ─────────────────────────── */
-.gq__elo-delta { display:flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:.75rem; animation: anim-stagger-in 300ms var(--_ease) 100ms both }
-.gq__elo-delta--positive { background:rgba(34,197,94,.12); box-shadow:inset 0 0 0 1px rgba(34,197,94,.15) }
-.gq__elo-delta--negative { background:rgba(147,0,10,.15); box-shadow:inset 0 0 0 1px rgba(255,180,171,.15) }
-.gq__elo-delta-value { font-size:var(--text-2xl); font-weight:700 }
-.gq__elo-delta--positive .gq__elo-delta-value { color:var(--color-success) }
-.gq__elo-delta--negative .gq__elo-delta-value { color:#ffb4ab }
-.gq__elo-delta-label { font-size:var(--text-sm); color:var(--color-muted-foreground) }
-.gq__explanation { font-size:var(--text-base); color:var(--color-muted-foreground); line-height:1.5; padding:.5rem 0; animation: anim-stagger-in 300ms var(--_ease) 200ms both }
-
-.gq__next-btn { width:100%; padding:1rem; background:var(--color-accent); color:#fff; font-weight:700; font-size:var(--text-md); text-transform:uppercase; letter-spacing:.05em; border:none; border-radius:.75rem; cursor:pointer; transition:filter var(--duration-normal), transform var(--anim-feedback, 120ms) var(--_ease); animation: anim-stagger-in 300ms var(--_ease) 300ms both }
-.gq__next-btn:active { transform: scale(0.97) }
-.gq__next-btn:hover { filter:brightness(1.1) }
-
 .gq__hol-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
