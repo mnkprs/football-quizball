@@ -194,8 +194,26 @@ export const BattleRoyaleStore = signalStore(
             loading: false,
             questionDeadline: loadedPhase === 'active' && view.currentQuestion ? Date.now() + 30_000 : null,
           });
-        } catch {
-          patchState(store, { loading: false, error: 'Failed to load room' });
+        } catch (err: unknown) {
+          const status = (err as { status?: number })?.status;
+          if (status === 404) {
+            // Room was destroyed (last player left, stale cleanup, or bad link).
+            // Surface a short-lived message, then redirect with replaceUrl so the
+            // dead room URL doesn't sit in history.
+            patchState(store, { loading: false, error: 'This room no longer exists' });
+            setTimeout(() => {
+              patchState(store, { error: null });
+              // Guard: only redirect if the user is still parked on the dead room URL.
+              // The store is providedIn:'root' so this timer outlives the play component;
+              // without the guard, a manual nav (home icon, browser back) during the 2s
+              // window would get yanked to /battle-royale unexpectedly.
+              if (router.url.startsWith('/battle-royale/')) {
+                router.navigate(['/battle-royale'], { replaceUrl: true });
+              }
+            }, 2000);
+          } else {
+            patchState(store, { loading: false, error: 'Failed to load room' });
+          }
         }
       },
 

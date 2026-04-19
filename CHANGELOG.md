@@ -22,6 +22,11 @@ All notable changes to Stepover will be documented in this file.
 ### Why "Quick Join" stays hidden in BR Logo mode
 - Investigated user-reported asymmetry: classic BR exposes Quick Join, team_logo BR does not. **This is intentional, not a bug.** Three layers gate it (`battle-royale-lobby.html:109` `@if (!isTeamLogoMode())`, `battle-royale-lobby.ts:54` skips public-room polling, and `battle-royale.service.ts:129` hardcodes `joinQueue` to `.eq('mode', 'classic')`). The product call is that team-vs-team play depends on balanced sides — random matchmaking would frequently produce 1v3 splits — so team_logo is invite-only. Documented here for future archeology; no code change.
 
+## [0.8.4.3] - 2026-04-19
+
+### Fixed
+- **Battle Royale "Failed to load room" after leaving as last player.** When the last player left a BR room, the room was destroyed (correct) and the user was redirected to `/battle-royale` (correct), but the destroyed `/battle-royale/:id` URL was pushed onto browser history. Pressing back returned to that dead URL, re-invoked `BattleRoyalePlayComponent.ngOnInit()` → `store.loadRoom()`, which 404'd and parked the user on a generic "Failed to load room" error card. Two complementary fixes: (1) `battle-royale-play.ts:leaveRoom()` now navigates with `replaceUrl: true` so the destroyed game URL is replaced in history instead of pushed on top, and (2) `battle-royale.store.ts:loadRoom()` now distinguishes 404 from other errors — on 404 it surfaces a "This room no longer exists" message for 2s then redirects to the lobby with `replaceUrl: true`, mirroring the existing `refreshRoom()` 404 handler at `:91-98`. Defends against the bookmark / forward-nav / shared-link cases too.
+
 ## [0.8.4.2] - 2026-04-18
 
 ### Removed
