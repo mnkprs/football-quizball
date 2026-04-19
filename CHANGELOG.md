@@ -2,6 +2,15 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.4] - 2026-04-20
+
+### Changed
+- **Screen reader users now hear every result across Blitz, Duel, Battle Royale, Mayhem, and Daily.** PR #81 added `role="status" aria-live="polite"` only to the shared `app-question-reveal` component, which serves `/solo` + `/logo-quiz`. The other five modes each render their OWN result UI (flash overlays, colored badges, inline icons) without live regions — so VoiceOver and TalkBack users heard silence on every reveal across 5 of the 7 game modes. This PR backports the announcement pattern to all five: visually-hidden `<span class="sr-only">…</span>` with explicit "Correct." / "Wrong. The correct answer is X." text, wrapped in `role="status" aria-live="polite"` (or `assertive` for time-critical flash overlays in Blitz, Duel, Battle Royale where the user might dismiss before polite announces). Visual elements (emoji, colored badges, score deltas) are now `aria-hidden="true"` so screen readers don't double-announce or read the decorative glyphs.
+- **New global `.sr-only` utility** at `frontend/src/styles/base/_a11y.css` — standard clip-path pattern, registered in the 7-1 styles index so every component can use it without redefining. Replaces the inline `.qr__sr-only` scoped to question-reveal (kept for now since it's in a separately-scoped component stylesheet, harmless duplication).
+
+### User impact
+Players with visual impairments using VoiceOver (iOS) or TalkBack (Android) now get audible feedback when they answer a question in any mode, not just Solo Ranked. Previously: silence after every answer except in Solo/Logo Quiz. Now: full parity across the 7 game modes.
+
 ## [0.8.6.2] - 2026-04-19
 
 ### Added

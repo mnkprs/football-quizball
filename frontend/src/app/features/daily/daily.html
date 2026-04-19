@@ -64,9 +64,9 @@
                 <div class="flex items-center gap-3">
                   @if (showFlash()) {
                     @if (choice.trim().toLowerCase() === (currentQuestion()?.correct_answer ?? '').trim().toLowerCase()) {
-                      <span class="daily-choice-icon daily-choice-icon--correct">✓</span>
+                      <span class="daily-choice-icon daily-choice-icon--correct" aria-hidden="true">✓</span>
                     } @else if (choice === selectedChoice() && !flashCorrect()) {
-                      <span class="daily-choice-icon daily-choice-icon--wrong">✗</span>
+                      <span class="daily-choice-icon daily-choice-icon--wrong" aria-hidden="true">✗</span>
                     }
                   }
                   <span class="font-bold text-lg">{{ choice }}</span>
@@ -86,12 +86,21 @@
 
           <!-- Explanation + Next (after reveal) -->
           @if (showFlash()) {
-            <div class="daily-explanation">
-              <p class="text-muted-foreground text-sm leading-relaxed">{{ translatedText(q, 'explanation') }}</p>
+            <div role="status" aria-live="polite" aria-atomic="true">
+              <span class="sr-only">
+                @if (flashCorrect()) {
+                  Correct.
+                } @else {
+                  Wrong. The correct answer is {{ currentQuestion()?.correct_answer }}.
+                }
+              </span>
+              <div class="daily-explanation">
+                <p class="text-muted-foreground text-sm leading-relaxed">{{ translatedText(q, 'explanation') }}</p>
+              </div>
+              <button (click)="dismissFlash()" class="daily-next-btn">
+                NEXT QUESTION →
+              </button>
             </div>
-            <button (click)="dismissFlash()" class="daily-next-btn">
-              NEXT QUESTION →
-            </button>
           }
         }
       </div>

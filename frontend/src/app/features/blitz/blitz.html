@@ -103,13 +103,15 @@
             (click)="dismissFlash()"
             class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl cursor-pointer"
             [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
+            role="status" aria-live="assertive" aria-atomic="true"
           >
-            <div class="text-5xl mb-3">{{ flashCorrect() ? '✅' : '❌' }}</div>
-            <div class="text-white font-black text-2xl mb-2">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
+            <span class="sr-only">{{ flashCorrect() ? (lang.t().correct + '.') : (lang.t().wrong + '. The answer was ' + flashAnswer() + '.') }}</span>
+            <div class="text-5xl mb-3" aria-hidden="true">{{ flashCorrect() ? '✅' : '❌' }}</div>
+            <div class="text-white font-black text-2xl mb-2" aria-hidden="true">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
             @if (!flashCorrect()) {
-              <div class="text-white/80 text-sm mb-2">{{ flashAnswer() }}</div>
+              <div class="text-white/80 text-sm mb-2" aria-hidden="true">{{ flashAnswer() }}</div>
             }
-            <div class="text-white/70 text-xs">{{ lang.t().tapToContinue }}</div>
+            <div class="text-white/70 text-xs" aria-hidden="true">{{ lang.t().tapToContinue }}</div>
           </div>
         }
       </div>
