@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.2] - 2026-04-19
+
+### Added
+- **`question_pool.entity_slugs` generated column for entity-scoped future modes.** Unlocks single-slug filtering for upcoming "Chelsea quiz", "Drogba quiz", "UCL quiz", "Argentine players quiz" without touching the classifier or backfilling tables. Generated as `array_remove(subject_id ∪ competition_id ∪ nationality ∪ tags, NULL)` and indexed with GIN — turns the old 4-field OR query (`subject_id = 'chelsea' OR 'chelsea' = ANY(tags) OR ...`) into `'chelsea' = ANY(entity_slugs)`. Nationality is unioned in deliberately: the canonical list keeps country slugs (`ar`) distinct from national-team slugs (`argentina`), so "Argentine players" and "Argentina NT" stay separable. Migration: `supabase/migrations/20260614000000_add_question_entity_slugs.sql`. No classifier/app code changes required — Postgres recomputes the column on row write, and existing rows are populated at migration time (`ALTER TABLE` rewrite). Apply via `supabase db push`. Rows with `subject_id IS NULL` produce an empty `entity_slugs` array; run `pool:backfill-taxonomy -- --resume --apply` separately to close that gap.
+
 ## [0.8.6.1] - 2026-04-19
 
 ### Changed
