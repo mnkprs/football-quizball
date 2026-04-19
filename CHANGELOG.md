@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.3] - 2026-04-19
+
+### Fixed
+- **Casual NEWS card labeled "HOURLY" but content is daily.** `language.service.ts:258` had `newsDailyBadge: 'HOURLY'` (the key itself hints at the intent drift), and `btnNewsHint` read "Latest football headlines • Hourly updates". The `/news` route says "New questions drop **daily** from the latest football headlines" and the countdown is ~13h (time-to-midnight). Changed the badge to `'DAILY'` and the hint to "Daily updates" so all three surfaces agree. Surfaced by full-app `/qa` (ISSUE-003, 2026-04-19).
+
 ## [0.8.5.2] - 2026-04-19
 
 ### Fixed
