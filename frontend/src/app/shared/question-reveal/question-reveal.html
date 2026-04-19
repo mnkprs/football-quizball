@@ -1,0 +1,59 @@
+<div class="qr" [class.qr--correct]="correct()" [class.qr--wrong]="!correct()">
+
+  <!-- Strikethrough user answer → connector → correct answer card (text mode, wrong only) -->
+  @if (renderMode() === 'text' && !correct() && userAnswer()) {
+    <div class="qr__answer-pair">
+      <div class="qr__user-answer">
+        <span class="qr__user-answer-label">Your answer</span>
+        <span class="qr__user-answer-value">{{ userAnswer() }}</span>
+      </div>
+      <div class="qr__connector" aria-hidden="true"></div>
+      <div class="qr__correct-answer">
+        <span class="qr__correct-answer-label">Correct answer</span>
+        <div class="qr__correct-answer-row">
+          <span class="qr__correct-answer-value">{{ correctAnswer() }}</span>
+          @if (eloChange() !== undefined) {
+            <span class="qr__elo-inline qr__elo-inline--negative">
+              {{ eloChange() }}<small>ELO</small>
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Correct text answer: compact confirmation with inline ELO -->
+  @if (renderMode() === 'text' && correct()) {
+    <div class="qr__correct-confirm">
+      <span class="qr__correct-confirm-check" aria-hidden="true">&#10003;</span>
+      <span class="qr__correct-confirm-value">{{ correctAnswer() }}</span>
+      @if (eloChange() !== undefined && eloChange()! >= 0) {
+        <span class="qr__elo-inline qr__elo-inline--positive">
+          +{{ eloChange() }}<small>ELO</small>
+        </span>
+      }
+    </div>
+  }
+
+  <!-- Options mode: just a compact ELO chip (options already show correct/wrong in the grid) -->
+  @if (renderMode() === 'options' && eloChange() !== undefined) {
+    <div class="qr__elo-chip"
+         [class.qr__elo-chip--positive]="eloChange()! >= 0"
+         [class.qr__elo-chip--negative]="eloChange()! < 0">
+      <span class="qr__elo-chip-value">
+        {{ eloChange()! >= 0 ? '+' : '' }}{{ eloChange() }}
+      </span>
+      <span class="qr__elo-chip-label">{{ eloChange()! >= 0 ? 'ELO gained' : 'ELO lost' }}</span>
+    </div>
+  }
+
+  <!-- Explanation: quiet left-border quote, no box -->
+  @if (explanation()) {
+    <p class="qr__explanation">{{ explanation() }}</p>
+  }
+
+  <!-- Primary CTA -->
+  <button type="button" class="qr__next-btn" (click)="onNext()">
+    Next Question <span aria-hidden="true">&rarr;</span>
+  </button>
+</div>

@@ -2,6 +2,13 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.1] - 2026-04-19
+
+### Changed
+- **Question reveal state redesigned: 8 stacked boxes → 3 visual zones.** The post-answer screen on `/solo` + `/logo-quiz` previously piled up a glass-pill header wrapper, a WRONG badge, the question card, the red-bordered user input, a green correct-answer card, an explanation paragraph, a red -ELO box, and a blue NEXT button, for a total of eight bordered rectangles competing for attention. The new design collapses this into the question card + a new unified reveal block + the primary CTA, and replaces the three redundant wrong-signals (badge + red input + red ELO) with a single narrative: the user's wrong answer renders struck-through in a red card, a morph-gradient connector bridges down (red → green vertical gradient, ~2px pill-bar sweeping scaleY 0→1 in 450ms), and the correct answer lands in a green card with the ELO delta inlined as a compact chip on the same row. The explanation becomes a quiet left-border quote (no box). Correct-answer flow uses a compact single-row confirmation instead of the two-zone card. `prefers-reduced-motion` disables the connector sweep.
+- **Extracted shared `<app-question-reveal>` component** at `frontend/src/app/shared/question-reveal/`. Two render modes: `text` (CLASSIC / LOGO_QUIZ / PLAYER_ID / GUESS_SCORE — full strikethrough pair) and `options` (MULTIPLE_CHOICE — footer-only, since the MC option grid already conveys correct/wrong inline). Staggered entry animations (answer-pair 0ms → correct-answer 100ms → explanation 200ms → CTA 300ms) remain identical across all question categories, so the end-of-question feel is unified across /solo and /logo-quiz. Blitz and Duel (which ship their own question UIs) can adopt the same component later for cross-mode consistency.
+- **Orphan header wrapper removed from `<app-game-question>`.** The `.gq__header` container's backdrop-filter glass-pill (padding, 1rem border-radius, gradient bg, 1px border, 16px blur) wrapped only two small pills (mode + difficulty) on the reveal screen, creating a visually empty container. Stripped the wrapper chrome, kept the flex layout and `:root:not(.dark)` light-mode override is gone too. Pills now sit flat in flow for lighter hierarchy.
+
 ## [0.8.6.0] - 2026-04-19
 
 ### Fixed
