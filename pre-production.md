@@ -1,4 +1,4 @@
-# Pre-Production Checklist — Stepover
+# Pre-Production Checklist — StepOver
 
 > Last updated: 2026-03-25
 > Target: 400 concurrent players
@@ -111,7 +111,7 @@
 - [ ] **App preview video** (optional but recommended) — 15-30 second gameplay
 
 #### App Store Listing
-- [ ] **App name:** Stepover
+- [ ] **App name:** StepOver
 - [ ] **Subtitle:** Football Trivia & Quiz Game
 - [ ] **Category:** Trivia (primary), Sports (secondary)
 - [ ] **Description** — feature list, modes, what makes it unique
@@ -140,7 +140,7 @@
 - [ ] **Screenshots** — minimum 2, recommended 4-8 (phone + tablet if supporting)
 
 #### Play Store Listing
-- [ ] **App name:** Stepover
+- [ ] **App name:** StepOver
 - [ ] **Short description** (80 chars max)
 - [ ] **Full description** — same as iOS but can be longer
 - [ ] **Category:** Trivia
@@ -159,7 +159,7 @@
 - [ ] **Deep links** — configure app-scheme URLs for duel/game invites
 - [ ] **Push notifications** — Firebase Cloud Messaging for both platforms (optional for launch)
 - [ ] **Offline handling** — graceful error when no network (currently shows nothing)
-- [ ] **Splash screen** — configured via `@capacitor/splash-screen` with new Stepover logo
+- [ ] **Splash screen** — configured via `@capacitor/splash-screen` with new StepOver logo
 - [ ] **Status bar** — dark background to match app theme
 
 ### Payment Architecture — Native IAP Setup (blocks store submission)

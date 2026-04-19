@@ -3,6 +3,8 @@ import { NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../core/auth.service';
+import { AuthModalService } from '../../core/auth-modal.service';
 import { LanguageService } from '../../core/language.service';
 import { NewsApiService, NewsQuestion, NewsAnswerResponse } from '../../core/news-api.service';
 
@@ -21,6 +23,8 @@ export class NewsModeComponent implements OnInit, OnDestroy {
   lang = inject(LanguageService);
   private router = inject(Router);
   private newsApi = inject(NewsApiService);
+  private auth = inject(AuthService);
+  private authModal = inject(AuthModalService);
 
   phase = signal<NewsPhase>('loading');
   questions = signal<NewsQuestion[]>([]);
@@ -65,6 +69,11 @@ export class NewsModeComponent implements OnInit, OnDestroy {
 
   private async loadRound(): Promise<void> {
     try {
+      // Wait for Supabase session restoration before fetching — `getQuestions`
+      // requires a Bearer token and the component can mount before `accessToken`
+      // populates on a cold page load.
+      await this.auth.sessionReady;
+
       const metadata = await firstValueFrom(this.newsApi.getMetadata());
       this.roundId.set(metadata.round_id);
       this.streak.set(metadata.streak);
@@ -84,6 +93,17 @@ export class NewsModeComponent implements OnInit, OnDestroy {
           // No active round
           this.phase.set('empty');
         }
+        return;
+      }
+
+      // `getQuestions` is AuthGuard-protected on the backend. For anonymous
+      // visitors, skip the call and open the sign-in modal directly — the
+      // error-interceptor path that previously surfaced it (401 → authModal)
+      // is replaced here with a deliberate, loggable equivalent. Without this
+      // branch the user would land in the 'empty' state with no sign-in CTA.
+      if (!this.auth.isLoggedIn()) {
+        this.authModal.open();
+        this.phase.set('empty');
         return;
       }
 

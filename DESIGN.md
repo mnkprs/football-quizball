@@ -1,4 +1,4 @@
-# Design System — Stepover
+# Design System — StepOver
 
 > Redesigned via `/design-consultation` · 2026-03-24 · Branch: main
 > Source: Stitch project `11680002323878810353` — "Home Screen - Redesign"

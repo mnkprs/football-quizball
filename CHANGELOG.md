@@ -1,6 +1,57 @@
 # Changelog
 
-All notable changes to Stepover will be documented in this file.
+All notable changes to StepOver will be documented in this file.
+
+## [0.8.5.10] - 2026-04-19
+
+### Fixed
+- **`/news` anon sign-in regression introduced by v0.8.5.8.** The earlier fix skipped the AuthGuard-only `getQuestions()` call for anonymous visitors to silence the 401 log, but that 401 was load-bearing — `error.interceptor.ts:26-27` catches `status === 401` and calls `authModal.open()`, which was the *only* sign-in affordance for anon users on `/news` (the `empty` phase template has just a "Back to Home" button). Silencing the log also silenced the sign-in modal. Now the `!auth.isLoggedIn()` branch explicitly calls `authModal.open()` before dropping into `empty`, restoring the CTA deliberately rather than relying on an error-side effect. Surfaced by the `/review` adversarial pass.
+- **Battle-hero dead-button edge: `mode.locked === true && mode.trialRemaining === 0` made the button fully non-interactive (no click handler, no sign-in modal).** v0.8.5.5 bound `[disabled]` to `mode.trialRemaining === 0` alone, so any mode that was BOTH locked AND trial-exhausted lost its click path. Tightened the binding to `[disabled]="!mode.locked && mode.trialRemaining === 0"` — locked buttons stay clickable (they open the sign-in modal via `lockedModeClick`), only the genuinely-exhausted-and-logged-in case disables. Rare edge state but a strict regression; surfaced by the `/review` adversarial pass.
+
+## [0.8.5.9] - 2026-04-19
+
+### Fixed
+- **Branding case sweep — the rest of "Stepover" → "StepOver".** v0.8.5.1 fixed the HTML `<title>` + OG/Twitter meta, but the pre-landing review caught remaining surfaces that real users see on native and on legal pages. Swept: `frontend/public/manifest.webmanifest` (`name` + `short_name` — shown as the home-screen label on Android PWA/TWA installs), `frontend/src/app/features/legal/privacy.html` (3 user-facing mentions), `frontend/src/app/features/legal/terms.html` (9 user-facing mentions), `frontend/src/app/shared/page-header/page-header.html:19` (screen-reader alt text), and `frontend/src/app/shared/battle-hero/battle-hero.ts:25` (default subtitle, also updated "8-Player" → "20-Player" to match v0.8.5.2). Left untouched intentionally: `stepover_sound`/`stepover_haptic` localStorage keys (lowercase key convention) and `stepover-logo-white-bg.png` asset filename (filesystem convention). Surfaced by the /ship pre-landing review (informational finding escalated to auto-fix).
+
+## [0.8.5.8] - 2026-04-19
+
+### Fixed
+- **`/api/news/mode/questions` logged a 401 for every anonymous visitor and raced signed-in users on cold loads.** `news-mode.ts:loadRound` unconditionally called `newsApi.getQuestions()` whenever `metadata.round_id && metadata.questions_remaining > 0`. The backend route is `@UseGuards(AuthGuard)` (`news.controller.ts:55-58`), so anonymous visits always 401'd, and signed-in users who landed on `/news` before Supabase restored the session from storage also 401'd (their `accessToken` signal was `null` at request time). Two fixes in `loadRound`: (1) `await this.auth.sessionReady` before any fetches so auth-dependent calls always see the restored session; (2) guard `getQuestions()` with `if (!this.auth.isLoggedIn()) { set 'empty'; return; }` so anonymous visitors fall through to the existing empty state cleanly — the auth modal overlay is the correct gate for anon users, not a background 401. Re-verified via `/qa`: anonymous load on `/news` now shows `/api/news/metadata → 200` with no follow-up `/mode/questions` call. Surfaced by full-app `/qa` (ISSUE-001, 2026-04-19).
+
+## [0.8.5.7] - 2026-04-19
+
+### Fixed
+- **Duel lobby H2H stats inflated with local and online 2-player games.** `duel-lobby.ts:loadWinStats` reduced `matchHistory.getHistory(userId)` while only excluding `match_mode === 'battle_royale'`. The `match_mode` enum (`match-history.controller.ts:21`) is `'local' | 'online' | 'duel' | 'battle_royale' | 'team_logo_battle'`, so local same-device 2-player games, online 2-player board games, and team_logo battles all counted toward the 1v1 Duel H2H card. QA account showed "2W · 7D · 1L · 20% H2H WIN RATIO" on `/duel` even though 11 of the 13 underlying matches were `match_mode='local'`. Flipped the filter to an allowlist: `m.match_mode !== 'duel' → skip`. Now only actual online Duels count. Surfaced by full-app `/qa` (ISSUE-008, 2026-04-19).
+
+## [0.8.5.6] - 2026-04-19
+
+### Fixed
+- **Malformed Apple-logo SVG path triggered a console parse error on every sign-in modal render.** `auth-modal.html:117` shipped a hand-tweaked Apple glyph whose second subpath (`M11.395 2.754c…2.679-1.49z`) contained 26 relative coordinates after the cubic `c` command. `c` requires groups of 6, so the renderer parsed four full curves, got two stray numbers (2.679, -1.49), then hit `z` where it expected another number and logged `<path> attribute d: Expected number, "…-.705 2.679-1.49z"`. The visual output rendered close enough to look correct, but every open of the auth modal added another console error. Replaced the path with the canonical Simple Icons Apple glyph (`viewBox="0 0 24 24"`, fully validated) — the rendered size stays at 18×18 via the explicit `width`/`height` attributes. Surfaced by full-app `/qa` (ISSUE-005, 2026-04-19).
+
+## [0.8.5.5] - 2026-04-19
+
+### Fixed
+- **Logo Quiz mode buttons advertised `aria-disabled="true"` while still being clickable.** On the home Logo Quiz hero, the Duel 1v1 and Team PvP buttons render with `battle-hero__mode-btn--locked` when logged out and fire `lockedModeClick` → open the sign-in modal. This is correct behavior (the button IS actionable via the sign-in path), but `aria-disabled="true"` told assistive tech the opposite. Removed the `aria-disabled` binding for the locked state — the existing `aria-label` already spells out " - Sign in to unlock" so screen readers know what tapping does. For the "trial exhausted" state (`trialRemaining === 0`) the button has no meaningful click path, so replaced `aria-disabled` with the native `disabled` attribute, which short-circuits the click and implicitly sets `aria-disabled` for a11y. `battle-hero.ts:onModeClick` already skipped emitting `modeClick` when `trialRemaining === 0`, so the native-disabled change is defense-in-depth, not a behavioral flip. Surfaced by full-app `/qa` (ISSUE-006, 2026-04-19).
+
+## [0.8.5.4] - 2026-04-19
+
+### Fixed
+- **`IapService` browser-mode warning spammed the console on every upgrade-modal open.** `initialize()` checked `if (this.initialized()) return;` before doing anything, but the browser-mode early-return at `:57-59` emitted the warning and bailed without ever setting `initialized.set(true)`. `upgrade-modal.ts:37-39` calls `iap.initialize()` every time the paywall opens when `!initialized()`, so each open produced a fresh `"cordova-plugin-purchase not available (browser mode)"` warning — /qa captured 30+ entries in a single session. Now set `initialized.set(true)` in the browser-mode branch so the warning fires exactly once. Callers who need to know whether IAP actually works already check `products().length` or fall back to hardcoded prices (`upgrade-modal.ts:57-58`), so flipping `initialized()` in browser mode is safe. Surfaced by full-app `/qa` (ISSUE-007, 2026-04-19).
+
+## [0.8.5.3] - 2026-04-19
+
+### Fixed
+- **Casual NEWS card labeled "HOURLY" but content is daily.** `language.service.ts:258` had `newsDailyBadge: 'HOURLY'` (the key itself hints at the intent drift), and `btnNewsHint` read "Latest football headlines • Hourly updates". The `/news` route says "New questions drop **daily** from the latest football headlines" and the countdown is ~13h (time-to-midnight). Changed the badge to `'DAILY'` and the hint to "Daily updates" so all three surfaces agree. Surfaced by full-app `/qa` (ISSUE-003, 2026-04-19).
+
+## [0.8.5.2] - 2026-04-19
+
+### Fixed
+- **Home "Battle Royale" card advertised 8 players; actual room size is 20.** `battle-royale.service.ts:222` hardcodes `maxPlayers: 20` and the `/battle-royale` lobby subtitle already said "20 players · 10 questions · Live leaderboard" — only the home `<app-mode-card>` was stale. First-time users tapped in expecting 8 and hit a 20-player lobby. Updated `home.html:49-50` (hint + tag label) and `tag-colors.ts:16,35` (color/icon keys) so the single home card now matches the rest of the app. Surfaced by full-app `/qa` (ISSUE-002, 2026-04-19).
+
+## [0.8.5.1] - 2026-04-19
+
+### Fixed
+- **HTML `<title>` case: "Stepover" → "StepOver".** Browser tab, bookmark text, Open Graph title, and Twitter card title all inherited from `frontend/src/index.html` rendered the brand with a lowercase middle "o", contradicting the canonical "StepOver" casing used everywhere else in the app. Corrected across five locations in the same file. Surfaced by the full-app `/qa` pass (ISSUE-004, 2026-04-19).
 
 ## [0.8.5.0] - 2026-04-19
 

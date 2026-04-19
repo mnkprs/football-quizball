@@ -22,7 +22,7 @@ export interface HeroMode {
 })
 export class BattleHeroComponent {
   title = input('Battle Royale');
-  subtitle = input('8-Player High-Speed Clash');
+  subtitle = input('20-Player High-Speed Clash');
   tags = input<string[]>([]);
   backgroundImage = input<string>();
   actionLabel = input('Join Battle');
