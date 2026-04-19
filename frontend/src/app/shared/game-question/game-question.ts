@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../core/language.service';
 import { ParticleBurstService } from '../../core/particle-burst.service';
 import { FeedbackService } from '../../core/feedback.service';
+import { QuestionRevealComponent } from '../question-reveal/question-reveal';
 import { inject } from '@angular/core';
 
 export type GameMode = 'solo' | '2p-local' | '2p-online' | 'mayhem' | 'news' | 'blitz';
@@ -79,7 +80,7 @@ export interface QuestionData {
 @Component({
   selector: 'app-game-question',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgOptimizedImage],
+  imports: [CommonModule, FormsModule, NgOptimizedImage, QuestionRevealComponent],
   templateUrl: './game-question.html',
   styleUrl: './game-question.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -235,11 +236,6 @@ export class GameQuestionComponent {
     if (revealing) return `${base} gq__option-btn--dimmed`;
     return base;
   };
-
-  inputStateClass = computed(() => {
-    if (!this.reveal() || !this.revealResult()) return '';
-    return this.revealResult()!.correct ? 'gq__input--correct' : 'gq__input--wrong';
-  });
 
   // ─── METHODS ──────────────────────────────────────────────────
   submitTextAnswer(): void {
