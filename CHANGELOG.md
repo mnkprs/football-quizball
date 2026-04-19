@@ -1,6 +1,16 @@
 # Changelog
 
-All notable changes to Stepover will be documented in this file.
+All notable changes to StepOver will be documented in this file.
+
+## [0.8.5.2] - 2026-04-19
+
+### Fixed
+- **Home "Battle Royale" card advertised 8 players; actual room size is 20.** `battle-royale.service.ts:222` hardcodes `maxPlayers: 20` and the `/battle-royale` lobby subtitle already said "20 players · 10 questions · Live leaderboard" — only the home `<app-mode-card>` was stale. First-time users tapped in expecting 8 and hit a 20-player lobby. Updated `home.html:49-50` (hint + tag label) and `tag-colors.ts:16,35` (color/icon keys) so the single home card now matches the rest of the app. Surfaced by full-app `/qa` (ISSUE-002, 2026-04-19).
+
+## [0.8.5.1] - 2026-04-19
+
+### Fixed
+- **HTML `<title>` case: "Stepover" → "StepOver".** Browser tab, bookmark text, Open Graph title, and Twitter card title all inherited from `frontend/src/index.html` rendered the brand with a lowercase middle "o", contradicting the canonical "StepOver" casing used everywhere else in the app. Corrected across five locations in the same file. Surfaced by the full-app `/qa` pass (ISSUE-004, 2026-04-19).
 
 ## [0.8.5.0] - 2026-04-19
 

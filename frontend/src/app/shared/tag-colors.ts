@@ -13,7 +13,7 @@ export const TAG_COLORS: Record<string, string> = {
   'logos': 'coral',
   'free': 'mint',
   'live': 'coral',
-  '8 players': 'teal',
+  '20 players': 'teal',
   'coming soon': 'amber',
 };
 
@@ -32,7 +32,7 @@ export const TAG_ICONS: Record<string, string> = {
   'logos': 'image_search',
   'free': 'lock_open',
   'live': 'sensors',
-  '8 players': 'group',
+  '20 players': 'group',
   'coming soon': 'schedule',
 };
 
