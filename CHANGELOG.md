@@ -2,6 +2,12 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.3] - 2026-04-20
+
+### Fixed
+- **"AS Roma" now matches stored answer "Roma" in Solo Ranked (and every text-answer mode).** User typed "as roma" in a PSV Eindhoven question where the stored answer was "Roma" and it was marked wrong. Same class of bug affected "fc bayern" → "Bayern", "real madrid cf" → "Real Madrid", "arsenal fc" → "Arsenal", and any football team where the user types the fuller official name than what the LLM stored. Root cause in `backend/src/questions/validators/answer.validator.ts:validateFuzzy`: the existing fuzzy match handled submitted-is-a-PREFIX-of-correct ("inter" for "Inter Milan") and submitted-is-the-last-word-of-correct ("milan" for "Inter Milan"), but not the reverse: submitted wraps qualifier words around correct. For single-word correct answers like "Roma" the `parts.length > 1` branch never fired, so the submitted-contains-correct case fell through entirely. The LLM judge at `fuzzyScore=0.57` could have saved it but the 2-second timeout was too tight and the LLM frequently returned "no" when asked to literally-match "as roma" against "Roma". Fix adds a reverse-prefix rule: if the normalized correct answer appears as a whole-word substring of the submitted (guarded by short qualifier constraint — extra words must average ≤4 chars, ≤2 extra words total), accept. Also widened `JUDGE_TIMEOUT_MS` from 2000 to 3500 so the LLM backstop is less flaky on slower network paths.
+- **Regression-tested** with 9 new cases in `answer.validator.spec.ts` covering AS Roma, FC Bayern, FC Bayern Munich, Real Madrid CF, AC Milan, Arsenal FC, plus guards against "CF" alone matching Real Madrid and sentence-length submissions matching on their last word. 82/82 specs pass.
+
 ## [0.8.6.2] - 2026-04-19
 
 ### Added

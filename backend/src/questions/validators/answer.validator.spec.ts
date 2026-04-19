@@ -152,6 +152,20 @@ describe('AnswerValidator', () => {
       ['Barcelona', 'Madrid', false],
       // first word too short (<3)
       ['AC Milan', 'AC', false],
+      // ── Reverse-prefix: submitted adds qualifier words to correct ──
+      // (Regression for "as roma" → "Roma" bug reported 2026-04-19)
+      ['Roma', 'AS Roma', true],           // "as roma" → "Roma" (2-char prefix qualifier)
+      ['Bayern', 'FC Bayern', true],       // "fc bayern" → "Bayern"
+      ['Bayern', 'FC Bayern Munich', true], // "fc bayern munich" → "Bayern" (suffix qualifier too)
+      ['Real Madrid', 'Real Madrid CF', true], // correct itself is multi-word, "cf" suffix
+      ['Milan', 'AC Milan', true],         // "ac milan" → "Milan" (Levenshtein-equivalent but test the reverse path)
+      ['Arsenal', 'Arsenal FC', true],     // suffix-only qualifier
+      // Guard: short stub alone must NOT match
+      ['Real Madrid', 'CF', false],        // "cf" alone, too ambiguous
+      ['Bayern', 'FC', false],             // "fc" alone
+      // Guard: long sentence with correct word as last token does NOT match
+      ['Roma', 'I really think it is roma', false], // too many extra words
+      ['Roma', 'definitely the answer roma', false], // avg word length too long
     ])(
       'correct="%s" submitted="%s" → %s',
       (correct, submitted, expected) => {
