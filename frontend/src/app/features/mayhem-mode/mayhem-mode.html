@@ -115,52 +115,52 @@
             ></div>
           </div>
 
-          <div class="rounded-2xl p-6 mb-6 border text-center"
-               [class]="lastResult()!.correct ? 'bg-win/10 border-win/50' : 'bg-loss/10 border-loss/50'"
-               role="status" aria-live="polite" aria-atomic="true">
+          <!-- Unified reveal: options grid is the primary correct/wrong signal
+               (inline ✓ CORRECT / ✗ your pick tags). Explanation as a quiet
+               left-border quote, score as a compact inline chip. No standalone
+               result-badge box — the options tell the story. -->
+          <div role="status" aria-live="polite" aria-atomic="true">
             <span class="sr-only">
               @if (lastResult()!.correct) {
-                {{ lang.t().soloCorrect }}.
+                {{ lang.t().soloCorrect }}. {{ lastResult()!.explanation ?? '' }}
               } @else {
-                {{ lang.t().soloWrong }}. {{ lang.t().soloAnswerLabel }} {{ lastResult()!.correct_answer }}.
+                {{ lang.t().soloWrong }}. {{ lang.t().soloAnswerLabel }} {{ lastResult()!.correct_answer }}. {{ lastResult()!.explanation ?? '' }}
               }
             </span>
-            <div class="text-4xl mb-2" aria-hidden="true">{{ lastResult()!.correct ? '✅' : '❌' }}</div>
-            <div class="text-xl font-black text-foreground mb-1" aria-hidden="true">
-              {{ lastResult()!.correct ? lang.t().soloCorrect : lang.t().soloWrong }}
-            </div>
-            @if (!lastResult()!.correct) {
-              <div class="text-foreground text-sm mt-1" aria-hidden="true">
-                {{ lang.t().soloAnswerLabel }} <span class="font-semibold">{{ lastResult()!.correct_answer }}</span>
+
+            <!-- Options highlight with inline correct/wrong tags — THE reveal signal -->
+            @if (currentQuestion()) {
+              <div class="flex flex-col gap-2 mb-4">
+                @for (option of currentQuestion()!.options; track $index) {
+                  <div
+                    class="w-full px-5 py-3 rounded-xl border text-left font-semibold text-sm"
+                    [style]="getOptionResultStyle(option)"
+                  >
+                    {{ option }}
+                    @if (option.trim().toLowerCase() === lastResult()!.correct_answer.trim().toLowerCase()) {
+                      <span class="ml-2 text-xs font-black" aria-hidden="true">✓ CORRECT</span>
+                    } @else if (option === selectedOption()) {
+                      <span class="ml-2 text-xs opacity-70" aria-hidden="true">✗ your pick</span>
+                    }
+                  </div>
+                }
               </div>
             }
+
+            <!-- Explanation: quiet left-border quote, no box -->
             @if (lastResult()!.explanation) {
-              <div class="text-muted-foreground text-sm mt-2">{{ lastResult()!.explanation }}</div>
+              <p class="mb-5 pl-3 border-l-2 border-border text-sm leading-relaxed text-muted-foreground">
+                {{ lastResult()!.explanation }}
+              </p>
             }
-          </div>
 
-          <!-- Options highlight (show correct answer) -->
-          @if (currentQuestion()) {
-            <div class="flex flex-col gap-2 mb-6">
-              @for (option of currentQuestion()!.options; track $index) {
-                <div
-                  class="w-full px-5 py-3 rounded-xl border text-left font-semibold text-sm"
-                  [style]="getOptionResultStyle(option)"
-                >
-                  {{ option }}
-                  @if (option.trim().toLowerCase() === lastResult()!.correct_answer.trim().toLowerCase()) {
-                    <span class="ml-2 text-xs font-black">✓ CORRECT</span>
-                  } @else if (option === selectedOption()) {
-                    <span class="ml-2 text-xs opacity-70">✗ your pick</span>
-                  }
-                </div>
-              }
+            <!-- Score chip (compact inline, no standalone card) -->
+            <div class="flex items-center justify-between mb-4 text-sm">
+              <span class="text-muted-foreground uppercase tracking-wider text-xs">Score</span>
+              <span class="font-black text-lg tabular-nums" style="color: #ff6b2b;">
+                {{ correctCount() }} / {{ currentIndex() + 1 }}
+              </span>
             </div>
-          }
-
-          <div class="bg-card rounded-2xl p-4 mb-6 border border-border flex items-center justify-between">
-            <span class="text-muted-foreground text-sm">Score</span>
-            <span class="font-black text-2xl" style="color: #ff6b2b;">{{ correctCount() }} / {{ currentIndex() + 1 }}</span>
           </div>
 
           <div class="flex gap-3 mt-auto">

@@ -2,6 +2,15 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.5] - 2026-04-20
+
+### Changed
+- **Mayhem result screen collapsed from 5 stacked boxes to 3 visual zones.** After each answer, `/mayhem` previously rendered: (1) a big result-badge box with emoji ✅/❌ + CORRECT/WRONG headline + answer reveal + explanation, (2) the 4-option grid with inline ✓ CORRECT / ✗ your pick tags, (3) a full bg-card score tile showing "Score X / Y", (4) the Next/See-Results button row, plus the progress bar on top. The badge box was a **triple-signal duplicate**: the emoji + text repeated the same correct/wrong state that the option-grid tags already conveyed, and the explanation was buried inside a filled card rather than sitting in its own quiet space. This PR removes the badge box entirely — the option grid IS the reveal signal now (with ✓ CORRECT / ✗ your pick tags carrying the state). The explanation moves to a quiet left-border quote below the options (no box, `border-l-2 border-border`, matches the pattern from PR #81's `<app-question-reveal>`). The score card collapses to a compact inline row (label on left, chip on right) instead of a full card tile. Next/See-Results buttons unchanged.
+- Depends on PR #85 (a11y) for the global `.sr-only` utility. The existing `role="status" aria-live="polite"` announcement from PR #85 moved from the removed badge to the new outer wrapper that contains the options + explanation + score, so screen-reader parity is preserved.
+
+### User impact
+Mayhem's after-answer screen now takes ~30% less vertical space. Sighted users see one clear correct/wrong signal (the option tags) instead of three. Screen-reader users still hear the full announcement on reveal.
+
 ## [0.8.6.4] - 2026-04-20
 
 ### Changed
