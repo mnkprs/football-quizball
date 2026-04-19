@@ -1,6 +1,6 @@
 {
-  "name": "Stepover",
-  "short_name": "Stepover",
+  "name": "StepOver",
+  "short_name": "StepOver",
   "description": "Football trivia quiz - play daily, blitz, or solo modes. Climb the ELO leaderboard!",
   "display": "standalone",
   "orientation": "portrait",

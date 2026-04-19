@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.9] - 2026-04-19
+
+### Fixed
+- **Branding case sweep — the rest of "Stepover" → "StepOver".** v0.8.5.1 fixed the HTML `<title>` + OG/Twitter meta, but the pre-landing review caught remaining surfaces that real users see on native and on legal pages. Swept: `frontend/public/manifest.webmanifest` (`name` + `short_name` — shown as the home-screen label on Android PWA/TWA installs), `frontend/src/app/features/legal/privacy.html` (3 user-facing mentions), `frontend/src/app/features/legal/terms.html` (9 user-facing mentions), `frontend/src/app/shared/page-header/page-header.html:19` (screen-reader alt text), and `frontend/src/app/shared/battle-hero/battle-hero.ts:25` (default subtitle, also updated "8-Player" → "20-Player" to match v0.8.5.2). Left untouched intentionally: `stepover_sound`/`stepover_haptic` localStorage keys (lowercase key convention) and `stepover-logo-white-bg.png` asset filename (filesystem convention). Surfaced by the /ship pre-landing review (informational finding escalated to auto-fix).
+
 ## [0.8.5.8] - 2026-04-19
 
 ### Fixed
