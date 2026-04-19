@@ -111,6 +111,34 @@ export class SupabaseService {
     return rank;
   }
 
+  /**
+   * Returns 1-based rank by logo_quiz_elo (1 = highest). Cached 60s per user.
+   * Returns null for players who have not played a logo quiz yet
+   * (logo_quiz_games_played = 0) — they are excluded from the leaderboard.
+   */
+  async getLogoQuizRank(userId: string): Promise<number | null> {
+    const cacheKey = `rank:logo:${userId}`;
+    const cached = await this.redisService.get<number>(cacheKey);
+    if (cached !== undefined) return cached;
+
+    const { data } = await this.client
+      .from('profiles')
+      .select('logo_quiz_elo, logo_quiz_games_played')
+      .eq('id', userId)
+      .maybeSingle();
+    const row = data as { logo_quiz_elo: number; logo_quiz_games_played: number } | null;
+    if (!row || row.logo_quiz_games_played === 0) return null;
+
+    const { count } = await this.client
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .gt('logo_quiz_elo', row.logo_quiz_elo)
+      .gt('logo_quiz_games_played', 0);
+    const rank = (count ?? 0) + 1;
+    await this.redisService.set(cacheKey, rank, RANK_TTL);
+    return rank;
+  }
+
   async updateElo(userId: string, newElo: number): Promise<void> {
     await this.client.from('profiles').update({ elo: newElo }).eq('id', userId);
     // Invalidate cached rank so next read is fresh
@@ -174,14 +202,8 @@ export class SupabaseService {
     const profile = p as LogoQuizLeaderboardEntry;
     if (profile.logo_quiz_games_played === 0) return null;
 
-    // Count how many players have higher ELO
-    const { count } = await this.client
-      .from('profiles')
-      .select('id', { count: 'exact', head: true })
-      .gt('logo_quiz_elo', profile.logo_quiz_elo)
-      .gt('logo_quiz_games_played', 0);
-
-    return { ...profile, rank: (count ?? 0) + 1 };
+    const rank = await this.getLogoQuizRank(userId);
+    return { ...profile, rank: rank ?? 0 };
   }
 
   async getLogoQuizHardcoreLeaderboard(limit: number): Promise<LogoQuizHardcoreLeaderboardEntry[]> {
