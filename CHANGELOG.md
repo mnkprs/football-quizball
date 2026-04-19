@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.6] - 2026-04-19
+
+### Fixed
+- **Malformed Apple-logo SVG path triggered a console parse error on every sign-in modal render.** `auth-modal.html:117` shipped a hand-tweaked Apple glyph whose second subpath (`M11.395 2.754c…2.679-1.49z`) contained 26 relative coordinates after the cubic `c` command. `c` requires groups of 6, so the renderer parsed four full curves, got two stray numbers (2.679, -1.49), then hit `z` where it expected another number and logged `<path> attribute d: Expected number, "…-.705 2.679-1.49z"`. The visual output rendered close enough to look correct, but every open of the auth modal added another console error. Replaced the path with the canonical Simple Icons Apple glyph (`viewBox="0 0 24 24"`, fully validated) — the rendered size stays at 18×18 via the explicit `width`/`height` attributes. Surfaced by full-app `/qa` (ISSUE-005, 2026-04-19).
+
 ## [0.8.5.5] - 2026-04-19
 
 ### Fixed
