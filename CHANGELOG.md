@@ -2,6 +2,17 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.0] - 2026-04-19
+
+### Fixed
+- **Solo Ranked and Blitz rendered an empty screen after "Start Playing" — the question card never appeared.** Root cause in the shared `<app-screen>` primitive: `screen.html` had two default `<ng-content>` slots, one in each branch of the `@if (mode() === 'padded') / @else` block. Angular's content projection resolves slot → content at **template compile time**, not at runtime — when two `<ng-content>` tags share the same selector (default), only one wins, the other is permanently dead. Whichever branch Angular picked as "the" default slot, the other mode's consumers lost their projected children entirely. On `/solo` and `/blitz`, that meant the padded-mode body projection was the dead slot: signals were correct (`phase === 'question'`, `currentQuestion` populated, timer ticking), but `.screen__body` rendered with zero child nodes — not even @if anchor comments. Fix: gave padded-mode body an explicit named selector `<ng-content select="[screen-body]">`, left the bleed `<ng-content>` as the default, and wrapped the game-content `@if` blocks in both `solo.html` and `blitz.html` with `<ng-container ngProjectAs="[screen-body]">` (zero DOM cost, no layout drift). Bleed lobby untouched. Verified on dev: solo START PLAYING → question card + timer + input all render; blitz START → timer + 4 choices all render; `.screen__body` now projects 9 (solo) / 4 (blitz) child nodes. Regression introduced by #62 (`fbd7bb6`) which first extracted the `<app-screen>` primitive.
+
+### Hardened (adversarial `/review` pass)
+- **Dev-mode assertion in `ScreenComponent`.** Added `ngAfterViewInit` that warns (dev only) when `<app-screen mode="padded">` renders with no projected body content. Named-slot projection silently drops unwrapped children — this catches the next contributor who forgets `<ng-container ngProjectAs="[screen-body]">` before they ship an empty screen to users. Zero prod cost.
+- **Regression test** `screen.spec.ts` with 3 specs locking in the contract: padded-mode body projects through the named slot, bleed-mode body projects through the default slot, and unwrapped padded-mode content is intentionally dropped. Any future refactor that regresses the projection pattern breaks a test instead of silently emptying /solo + /blitz again.
+- **a11y — focus management on solo `finished` phase.** When the phase transitions `question → finished`, focus now moves to the session-complete `<h2>` (`tabindex=-1`, `#finishedHeading` ViewChild + effect + `queueMicrotask` for post-render focus). Before this fix the projection bug meant the finished UI never rendered for real users, so the focus gap was latent. Surfaced by the adversarial review that flagged the now-activated code path.
+- **Inline bleed-branch comment** in `screen.html` explicitly forbids adding a second default `<ng-content>` anywhere in the template so this bug class can't resurface.
+
 ## [0.8.5.10] - 2026-04-19
 
 ### Fixed

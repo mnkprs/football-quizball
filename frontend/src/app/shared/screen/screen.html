@@ -23,11 +23,27 @@
       </header>
     }
     <div class="screen__body">
-      <ng-content></ng-content>
+      <!--
+        Named slot. Angular projects *per selector*; if two default <ng-content>
+        slots exist (padded + bleed @else below), only one wins at compile time
+        and the other is dead. Giving padded an explicit selector breaks the tie
+        so both modes reliably receive projected content. Consumers project via
+        <ng-container ngProjectAs="[screen-body]">…</ng-container>.
+      -->
+      <ng-content select="[screen-body]"></ng-content>
     </div>
   </div>
 } @else {
   <div class="screen__bleed page-stagger">
+    <!--
+      Default slot for bleed mode only. Do NOT add a second unselected
+      <ng-content> anywhere in this template. Two default slots collapse at
+      compile time (Angular projection is compile-time, per selector) and
+      whichever one Angular picks becomes the only live slot — the other is
+      permanently dead. That was exactly the /solo + /blitz empty-body bug
+      fixed in v0.8.6.0. If you need another projection point in either
+      branch, give it a named selector (select="[your-slot]").
+    -->
     <ng-content></ng-content>
   </div>
 }

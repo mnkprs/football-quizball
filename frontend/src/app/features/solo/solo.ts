@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, inject, signal, computed, effect, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -58,6 +58,8 @@ export class SoloComponent implements OnDestroy {
     return profile.rank ?? null;
   });
 
+  @ViewChild('finishedHeading') finishedHeading?: ElementRef<HTMLElement>;
+
   constructor() {
     effect(() => {
       this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
@@ -66,6 +68,13 @@ export class SoloComponent implements OnDestroy {
       if (this.phase() === 'finished' && !this.achievementUnlock.showModal()) {
         if (!this.pro.isPro()) this.pro.showUpgradeModal.set(true);
       }
+    });
+    // a11y: pull screen-reader focus onto the finished-session heading when
+    // phase transitions question -> finished. Without this, focus sits on the
+    // now-removed answer button and falls to <body>, losing context.
+    effect(() => {
+      if (this.phase() !== 'finished') return;
+      queueMicrotask(() => this.finishedHeading?.nativeElement.focus());
     });
     // Load profile to get rank (only if logged in)
     if (this.auth.isLoggedIn()) {
