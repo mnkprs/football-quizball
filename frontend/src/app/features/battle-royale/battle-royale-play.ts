@@ -160,10 +160,14 @@ export class BattleRoyalePlayComponent implements OnInit, OnDestroy {
     // try/finally so navigation always fires even if leaveRoom() throws
     // (network error, stale session) — otherwise the user is stuck on the
     // BR play screen with cleared local state but no route change.
+    // replaceUrl so the (likely destroyed) game URL isn't left in history.
     try {
       await this.store.leaveRoom();
     } finally {
-      this.router.navigate(['/battle-royale'], mode === 'team_logo' ? { queryParams: { mode: 'team_logo' } } : undefined);
+      const extras = mode === 'team_logo'
+        ? { queryParams: { mode: 'team_logo' }, replaceUrl: true }
+        : { replaceUrl: true };
+      this.router.navigate(['/battle-royale'], extras);
     }
   }
 
