@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.3] - 2026-04-19
+
+### Fixed
+- **Repo↔Supabase migration sync restored.** Migration `20260418203808_daily_records_feature` had been applied to prod directly (via MCP `apply_migration`) but the SQL file was never committed to the repo, causing every subsequent `supabase db push` to fail its local-vs-remote sync check. Reconstructed the file from `supabase_migrations.schema_migrations.statements` (solo_session_summaries table + RLS policies + 6 app_settings keys + records_current materialized view covering streak_king / precision_solo / climber_solo / logo_hunter / logo_precision / duel_champion / logo_duel_champion / unique index on (record_type, window_type) + refresh_records_current() SECURITY DEFINER function). Entire migration is idempotent (`IF NOT EXISTS` / `OR REPLACE` / `ON CONFLICT DO NOTHING`) so re-running against prod is a no-op — `supabase db push` will now succeed cleanly for future migrations. Surfaced during v0.8.6.2 rollout when the dry-run blocked on the missing version. Root cause is the "Dashboard SQL or direct-MCP without committing the file" drift class documented in `feedback_run_migrations.md`; future migrations should always land as `db push` OR `MCP apply_migration + commit the .sql file` — not one without the other.
+
 ## [0.8.6.2] - 2026-04-19
 
 ### Added
