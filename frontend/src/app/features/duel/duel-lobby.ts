@@ -83,9 +83,13 @@ export class DuelLobbyComponent implements OnInit {
     if (!userId) return;
     try {
       const history = await firstValueFrom(this.matchHistory.getHistory(userId));
+      // Duel lobby H2H is for online 1v1 Duels only. `match_mode` values that
+      // sneak in from other modes (`local` = local 2-player, `online` = online
+      // 2-player board game, `battle_royale`, `team_logo_battle`) inflate the
+      // win/draw/loss counts for a card that should describe *this* mode.
       const record = history.reduce(
         (acc, m) => {
-          if (m.match_mode === 'battle_royale') return acc;
+          if (m.match_mode !== 'duel') return acc;
           if (m.winner_id === null) acc.draws++;
           else if (m.winner_id === userId) acc.wins++;
           else acc.losses++;

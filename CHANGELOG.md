@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.7] - 2026-04-19
+
+### Fixed
+- **Duel lobby H2H stats inflated with local and online 2-player games.** `duel-lobby.ts:loadWinStats` reduced `matchHistory.getHistory(userId)` while only excluding `match_mode === 'battle_royale'`. The `match_mode` enum (`match-history.controller.ts:21`) is `'local' | 'online' | 'duel' | 'battle_royale' | 'team_logo_battle'`, so local same-device 2-player games, online 2-player board games, and team_logo battles all counted toward the 1v1 Duel H2H card. QA account showed "2W · 7D · 1L · 20% H2H WIN RATIO" on `/duel` even though 11 of the 13 underlying matches were `match_mode='local'`. Flipped the filter to an allowlist: `m.match_mode !== 'duel' → skip`. Now only actual online Duels count. Surfaced by full-app `/qa` (ISSUE-008, 2026-04-19).
+
 ## [0.8.5.6] - 2026-04-19
 
 ### Fixed
