@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.5] - 2026-04-19
+
+### Fixed
+- **Logo Quiz mode buttons advertised `aria-disabled="true"` while still being clickable.** On the home Logo Quiz hero, the Duel 1v1 and Team PvP buttons render with `battle-hero__mode-btn--locked` when logged out and fire `lockedModeClick` → open the sign-in modal. This is correct behavior (the button IS actionable via the sign-in path), but `aria-disabled="true"` told assistive tech the opposite. Removed the `aria-disabled` binding for the locked state — the existing `aria-label` already spells out " - Sign in to unlock" so screen readers know what tapping does. For the "trial exhausted" state (`trialRemaining === 0`) the button has no meaningful click path, so replaced `aria-disabled` with the native `disabled` attribute, which short-circuits the click and implicitly sets `aria-disabled` for a11y. `battle-hero.ts:onModeClick` already skipped emitting `modeClick` when `trialRemaining === 0`, so the native-disabled change is defense-in-depth, not a behavioral flip. Surfaced by full-app `/qa` (ISSUE-006, 2026-04-19).
+
 ## [0.8.5.4] - 2026-04-19
 
 ### Fixed

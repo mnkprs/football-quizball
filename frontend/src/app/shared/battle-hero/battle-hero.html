@@ -61,7 +61,7 @@
             [class.battle-hero__mode-btn--locked]="mode.locked || mode.trialRemaining === 0"
             [class.battle-hero__mode-btn--purple]="theme() === 'purple'"
             [attr.aria-label]="mode.label + ' - ' + mode.sub + (mode.locked ? ' - Sign in to unlock' : mode.trialRemaining === 0 ? ' - Come back tomorrow' : '')"
-            [attr.aria-disabled]="mode.locked || mode.trialRemaining === 0"
+            [disabled]="mode.trialRemaining === 0"
             (click)="onModeClick($index)"
           >
             @if (mode.locked) {
