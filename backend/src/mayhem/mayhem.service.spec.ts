@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Provider } from '@nestjs/common';
 import { MayhemService } from './mayhem.service';
 import { MayhemQuestionGenerator } from './mayhem-question.generator';
+import { MayhemStatGuessGenerator } from './mayhem-stat-guess.generator';
 import { SupabaseService } from '../supabase/supabase.service';
 import { QuestionValidator } from '../questions/validators/question.validator';
 import { QuestionIntegrityService } from '../questions/validators/question-integrity.service';
@@ -50,6 +51,7 @@ async function buildModule(
     providers: [
       MayhemService,
       { provide: MayhemQuestionGenerator, useValue: generator },
+      { provide: MayhemStatGuessGenerator, useValue: { generate: jest.fn().mockResolvedValue([]) } },
       { provide: SupabaseService, useValue: supabase },
       { provide: QuestionValidator, useValue: { validate: jest.fn().mockReturnValue({ valid: true }) } },
       { provide: QuestionIntegrityService, useValue: { isEnabled: false } },

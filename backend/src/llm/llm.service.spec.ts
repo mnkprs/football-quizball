@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { LlmService } from './llm.service';
+import { RedisService } from '../redis/redis.service';
 
 // ─── Mock heavy SDK constructors ──────────────────────────────────────────────
 
@@ -15,6 +16,14 @@ async function buildService(env: Record<string, string | undefined> = {}): Promi
     providers: [
       LlmService,
       { provide: ConfigService, useValue: { get: configGet } },
+      {
+        provide: RedisService,
+        useValue: {
+          get: jest.fn().mockResolvedValue(undefined),
+          set: jest.fn().mockResolvedValue(undefined),
+          del: jest.fn().mockResolvedValue(undefined),
+        },
+      },
     ],
   }).compile();
   return module.get(LlmService);
