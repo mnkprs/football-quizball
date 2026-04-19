@@ -17,6 +17,7 @@ import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
 import { AnalyticsService } from '../../core/analytics.service';
 import { ShareService } from '../../core/share.service';
+import { AnswerFlashComponent } from '../../shared/answer-flash/answer-flash';
 
 const QUESTION_TIME = 30;
 /** Seconds to wait before a bot is guaranteed to be matched. */
@@ -25,7 +26,7 @@ const BOT_MATCH_THRESHOLD = 30;
 @Component({
   selector: 'app-duel-play',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgOptimizedImage],
+  imports: [CommonModule, FormsModule, NgOptimizedImage, AnswerFlashComponent],
   providers: [DuelStore],
   templateUrl: './duel-play.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

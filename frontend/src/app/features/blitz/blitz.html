@@ -97,22 +97,23 @@
           </button>
         </div>
 
-        <!-- Result flash overlay -->
+        <!-- Result flash overlay (shared <app-answer-flash> shell — a11y + motion) -->
         @if (showFlash()) {
-          <div
-            (click)="dismissFlash()"
-            class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl cursor-pointer"
+          <app-answer-flash
+            class="absolute inset-0 flex flex-col items-center justify-center rounded-2xl"
             [class]="flashCorrect() ? 'bg-win/95' : 'bg-loss/95'"
-            role="status" aria-live="assertive" aria-atomic="true"
+            [correct]="flashCorrect()"
+            [announcement]="flashCorrect() ? (lang.t().correct + '.') : (lang.t().wrong + '. The answer was ' + flashAnswer() + '.')"
+            [dismissible]="true"
+            (dismiss)="dismissFlash()"
           >
-            <span class="sr-only">{{ flashCorrect() ? (lang.t().correct + '.') : (lang.t().wrong + '. The answer was ' + flashAnswer() + '.') }}</span>
             <div class="text-5xl mb-3" aria-hidden="true">{{ flashCorrect() ? '✅' : '❌' }}</div>
             <div class="text-white font-black text-2xl mb-2" aria-hidden="true">{{ flashCorrect() ? lang.t().correct : lang.t().wrong }}</div>
             @if (!flashCorrect()) {
               <div class="text-white/80 text-sm mb-2" aria-hidden="true">{{ flashAnswer() }}</div>
             }
             <div class="text-white/70 text-xs" aria-hidden="true">{{ lang.t().tapToContinue }}</div>
-          </div>
+          </app-answer-flash>
         }
       </div>
     }

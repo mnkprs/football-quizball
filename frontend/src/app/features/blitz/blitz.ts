@@ -14,13 +14,14 @@ import { AnalyticsService } from '../../core/analytics.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 import { ScreenComponent } from '../../shared/screen/screen';
 import { PrimaryBtnComponent } from '../../shared/primary-btn/primary-btn';
+import { AnswerFlashComponent } from '../../shared/answer-flash/answer-flash';
 
 type BlitzPhase = 'idle' | 'playing' | 'finished';
 
 @Component({
   selector: 'app-blitz',
   standalone: true,
-  imports: [NgOptimizedImage, ScreenComponent, PrimaryBtnComponent],
+  imports: [NgOptimizedImage, ScreenComponent, PrimaryBtnComponent, AnswerFlashComponent],
   host: { class: 'blitz-host' },
   templateUrl: './blitz.html',
   styleUrl: './blitz.css',

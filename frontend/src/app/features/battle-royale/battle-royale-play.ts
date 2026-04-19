@@ -15,11 +15,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BattleRoyaleStore } from './battle-royale.store';
 import { LogoQuizApiService } from '../../core/logo-quiz-api.service';
 import { ShareService } from '../../core/share.service';
+import { AnswerFlashComponent } from '../../shared/answer-flash/answer-flash';
 
 @Component({
   selector: 'app-battle-royale-play',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgOptimizedImage],
+  imports: [CommonModule, FormsModule, NgOptimizedImage, AnswerFlashComponent],
   templateUrl: './battle-royale-play.html',
   styleUrl: './battle-royale-play.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
