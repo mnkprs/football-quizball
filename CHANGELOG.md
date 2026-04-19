@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.5.4] - 2026-04-19
+
+### Fixed
+- **`IapService` browser-mode warning spammed the console on every upgrade-modal open.** `initialize()` checked `if (this.initialized()) return;` before doing anything, but the browser-mode early-return at `:57-59` emitted the warning and bailed without ever setting `initialized.set(true)`. `upgrade-modal.ts:37-39` calls `iap.initialize()` every time the paywall opens when `!initialized()`, so each open produced a fresh `"cordova-plugin-purchase not available (browser mode)"` warning — /qa captured 30+ entries in a single session. Now set `initialized.set(true)` in the browser-mode branch so the warning fires exactly once. Callers who need to know whether IAP actually works already check `products().length` or fall back to hardcoded prices (`upgrade-modal.ts:57-58`), so flipping `initialized()` in browser mode is safe. Surfaced by full-app `/qa` (ISSUE-007, 2026-04-19).
+
 ## [0.8.5.3] - 2026-04-19
 
 ### Fixed

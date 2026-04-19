@@ -55,6 +55,10 @@ export class IapService {
     // CdvPurchase is a global added by the plugin
     if (typeof CdvPurchase === 'undefined') {
       console.warn('IapService: cordova-plugin-purchase not available (browser mode)');
+      // Short-circuit future calls so the warning fires exactly once per session,
+      // not every time upgrade-modal reopens. Callers should check `products()`
+      // (or `store`) for actual IAP availability — `initialized()` only gates bootstrap.
+      this.initialized.set(true);
       return;
     }
 
