@@ -1,6 +1,6 @@
 # Pre-Production Checklist — StepOver
 
-> Last updated: 2026-03-25
+> Last updated: 2026-04-20
 > Target: 400 concurrent players
 
 ---
@@ -26,9 +26,9 @@
 
 ## Should Have (important for stability)
 
-### 4. Add rate limiting to BR answer endpoint
+### 4. Add rate limiting to BR answer endpoint ✅ Done (v0.8.12.0)
 - **Why:** No rate limit on `POST /api/battle-royale/:id/answer`. A misbehaving client could spam answers. The CAS guard prevents double-scoring but doesn't prevent the DB load from repeated attempts.
-- **How:** Add `@Throttle(10, 1)` (10 requests per second per user) to the BR answer controller. Already using `@nestjs/throttler` in other controllers.
+- **Shipped:** Global `UserThrottlerGuard` (keyed by authenticated user id, not IP) registered in `backend/src/app.module.ts`. BR answer endpoint now has `@Throttle({ answer: { limit: 60, ttl: 60_000 } })` (60/min per user). Same named throttler applied to solo + logo-quiz answer endpoints; `fetch` throttler (40/min) applied to question-fetch endpoints. See CHANGELOG v0.8.12.0.
 
 ### 5. Switch BR realtime from postgres_changes to Broadcast
 - **Why:** `postgres_changes` creates a DB-level subscription per channel. At 50 concurrent games × 2 channels = 100 DB-level listeners triggering on every row change. Broadcast channels are lighter — the backend pushes data directly to the channel, no DB listener needed.
