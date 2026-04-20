@@ -2,6 +2,14 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.10.1] - 2026-04-20
+
+### Changed
+- **Phase 2 (partial) — stripped legacy `question._embedding` from `question_pool` jsonb** (`supabase/migrations/20260615000004_strip_legacy_embedding_from_jsonb.sql`). 507 rows carried a stale duplicate of the top-level pgvector column; `pool-seed.service.ts:726` already excludes `_embedding` from new writes. Verified every affected row had `embedding` (top-level) populated before the strip. No code changes; no data loss.
+
+### Deferred to future PRs
+The audit flagged 9 other jsonb keys that duplicate top-level columns (`category`, `difficulty`, `id`, `points`, `source_url`, `image_url`, plus `category`/`event_year`/`answer_type`/`competition`/`specificity_score`/`combinational_thinking_score`/`fame_score` inside `difficulty_factors`). Stripping them requires a coordinated refactor across 10 reader files (`solo.service`, `game.service`, `online-game.service`, `news.service`, `answer.validator`, `question.validator`, `question-integrity.service`, `questions.service`, `bot-online-game-runner`, `bot-duel-runner`) plus the generator write path — far too large for a single commit. `_embedding` was the only verifiably-dead key in the current codebase shape and ships alone.
+
 ## [0.8.10.0] - 2026-04-20
 
 ### Added
