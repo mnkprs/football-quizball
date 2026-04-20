@@ -139,19 +139,19 @@
               }
             </div>
 
-            <!-- Answer flash overlay -->
+            <!-- Answer flash overlay (shared <app-answer-flash> — a11y + motion) -->
             @if (store.phase() === 'answered') {
-              <div class="br-play__answer-flash"
-                   [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
-                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct"
-                   role="status" aria-live="assertive" aria-atomic="true">
-                <span class="sr-only">
-                  @if (store.lastAnswer()?.correct) {
-                    Correct. You scored {{ store.lastAnswer()?.pointsAwarded }} points.
-                  } @else {
-                    Wrong. The correct answer was {{ store.lastAnswer()?.correctAnswer }}.
-                  }
-                </span>
+              <app-answer-flash
+                class="br-play__answer-flash"
+                [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
+                [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct"
+                [correct]="!!store.lastAnswer()?.correct"
+                [announcement]="
+                  store.lastAnswer()?.correct
+                    ? 'Correct. You scored ' + (store.lastAnswer()?.pointsAwarded ?? 0) + ' points.'
+                    : 'Wrong. The correct answer was ' + (store.lastAnswer()?.correctAnswer ?? '') + '.'
+                "
+              >
                 @if (store.lastAnswer()?.correct) {
                   <span class="material-icons" aria-hidden="true">check_circle</span>
                   <span aria-hidden="true">Correct! +{{ store.lastAnswer()?.pointsAwarded }}</span>
@@ -162,7 +162,7 @@
                   <span class="material-icons" aria-hidden="true">cancel</span>
                   <span aria-hidden="true">Correct: {{ store.lastAnswer()?.correctAnswer }}</span>
                 }
-              </div>
+              </app-answer-flash>
             }
 
             <div class="br-play__logo-input-stack">
@@ -211,19 +211,19 @@
               <h2 class="br-play__q-text">{{ q.question_text }}</h2>
             }
 
-            <!-- Answer flash overlay -->
+            <!-- Answer flash overlay (shared <app-answer-flash> — a11y + motion) -->
             @if (store.phase() === 'answered') {
-              <div class="br-play__answer-flash"
-                   [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
-                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct"
-                   role="status" aria-live="assertive" aria-atomic="true">
-                <span class="sr-only">
-                  @if (store.lastAnswer()?.correct) {
-                    Correct. You scored {{ store.lastAnswer()?.pointsAwarded }} points.
-                  } @else {
-                    Wrong. The correct answer was {{ store.lastAnswer()?.correctAnswer }}.
-                  }
-                </span>
+              <app-answer-flash
+                class="br-play__answer-flash"
+                [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
+                [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct"
+                [correct]="!!store.lastAnswer()?.correct"
+                [announcement]="
+                  store.lastAnswer()?.correct
+                    ? 'Correct. You scored ' + (store.lastAnswer()?.pointsAwarded ?? 0) + ' points.'
+                    : 'Wrong. The correct answer was ' + (store.lastAnswer()?.correctAnswer ?? '') + '.'
+                "
+              >
                 @if (store.lastAnswer()?.correct) {
                   <span class="material-icons" aria-hidden="true">check_circle</span>
                   <span aria-hidden="true">Correct! +{{ store.lastAnswer()?.pointsAwarded }}</span>
@@ -234,7 +234,7 @@
                   <span class="material-icons" aria-hidden="true">cancel</span>
                   <span aria-hidden="true">Correct: {{ store.lastAnswer()?.correctAnswer }}</span>
                 }
-              </div>
+              </app-answer-flash>
             }
 
             <div class="br-play__choices">

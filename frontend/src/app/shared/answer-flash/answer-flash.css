@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+
+.af {
+  --_ease: var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
+  animation: af-enter 200ms var(--_ease) both;
+}
+
+.af--dismissible {
+  cursor: pointer;
+}
+
+@keyframes af-enter {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Global _reset.css also sets animation-duration: 0.01ms in reduced-motion
+ * mode — this explicit block is belt-and-suspenders so the end state
+ * (opacity 1, scale 1) applies even if the global reset changes. */
+@media (prefers-reduced-motion: reduce) {
+  .af {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

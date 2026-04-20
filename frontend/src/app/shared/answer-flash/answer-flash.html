@@ -1,0 +1,13 @@
+<div
+  class="af"
+  [class.af--correct]="correct()"
+  [class.af--wrong]="!correct()"
+  [class.af--dismissible]="dismissible()"
+  (click)="handleClick()"
+  role="status"
+  aria-live="assertive"
+  aria-atomic="true"
+>
+  <span class="sr-only">{{ announcement() }}</span>
+  <ng-content />
+</div>

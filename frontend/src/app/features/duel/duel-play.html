@@ -139,23 +139,27 @@
         </div>
       </div>
 
-      <!-- Flash: opponent got it -->
+      <!-- Flash: opponent got it (shared <app-answer-flash> — a11y + motion) -->
       @if (opponentFlash()) {
-        <div class="p-4 rounded-2xl bg-red-500/20 border border-red-500/50 text-center animate-pulse"
-             role="status" aria-live="assertive" aria-atomic="true">
-          <span class="sr-only">Opponent answered correctly. Next question coming up.</span>
+        <app-answer-flash
+          class="block p-4 rounded-2xl bg-red-500/20 border border-red-500/50 text-center animate-pulse"
+          [correct]="false"
+          announcement="Opponent answered correctly. Next question coming up."
+        >
           <p class="text-red-400 font-black text-lg" aria-hidden="true">😤 Opponent got it!</p>
           <p class="text-xs text-muted-foreground mt-1" aria-hidden="true">Next question coming up...</p>
-        </div>
+        </app-answer-flash>
       }
 
       <!-- Flash: I got it -->
       @if (myFlash()) {
-        <div class="p-4 rounded-2xl bg-green-500/20 border border-green-500/50 text-center"
-             role="status" aria-live="assertive" aria-atomic="true">
-          <span class="sr-only">Correct. You scored a point.</span>
+        <app-answer-flash
+          class="block p-4 rounded-2xl bg-green-500/20 border border-green-500/50 text-center"
+          [correct]="true"
+          announcement="Correct. You scored a point."
+        >
           <p class="text-green-400 font-black text-lg" aria-hidden="true">🎉 You got it! +1</p>
-        </div>
+        </app-answer-flash>
       }
 
       @if (store.currentQuestion(); as q) {

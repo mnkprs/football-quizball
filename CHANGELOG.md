@@ -2,6 +2,22 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.7.0] - 2026-04-20
+
+### Added
+- **New `<app-answer-flash>` shared component** at `frontend/src/app/shared/answer-flash/` — real-time a11y + motion shell used by Blitz, Duel, and Battle Royale to surface in-flow correct/wrong banners. Complements `<app-question-reveal>` (the post-answer panel for Solo/Logo Quiz). Inputs: `correct: boolean`, `announcement: string`, `dismissible?: boolean`. Output: `dismiss`. Consumers provide their own visual content (emoji, colored backgrounds, text deltas) via `<ng-content>` — the component is intentionally NOT opinionated about visuals. What it DOES provide: `role="status" aria-live="assertive" aria-atomic="true"` on the wrapper, a visually-hidden `.sr-only` announcement span that reads the `announcement` input verbatim, consistent 200ms fade-in + scale entrance animation (respects `prefers-reduced-motion`), and optional tap-to-dismiss for overlay-style flashes. 4/4 specs pass in `answer-flash.spec.ts`.
+
+### Changed
+- **Adopted `<app-answer-flash>` across Blitz, Duel (opponent + my flash), and Battle Royale (×2 instances: logo + trivia modes)** — replaces 5 ad-hoc `<div role="status" aria-live="assertive">...</div>` wrappers with a single shared component. The previous pattern was 5 different copy-pasted implementations, which is exactly how PR #81 shipped a11y for one mode and PR #85 had to retrofit the other 5 separately. Centralizing into a shared shell prevents the next class of a11y drift: when we add a new mode with flash UI, it gets live-region + sr-only parity by default rather than "forgot again".
+- **Consistent entrance motion across all real-time flashes.** Previously each mode had its own ad-hoc animation (some had `animate-pulse`, others had nothing, Blitz's overlay had no entrance animation at all). The shared component adds a subtle 200ms fade + scale from 0.96 → 1.0 on mount, giving every mode the same arrival feel. Consumers can still layer their own animations on top (Duel's opponent-flash keeps `animate-pulse`).
+
+### Architecture
+- The shared shell is a **slot component** — it contributes a11y + motion, consumers keep visual ownership. This avoids the design-prescription trap where one component tries to standardize both behavior AND appearance across modes that legitimately look different (Blitz uses a full-screen overlay with bg-win/95 overlay, Duel uses an inline colored panel, Battle Royale uses `.br-play__answer-flash` BEM styling). By shelling out only the behavior layer, each mode keeps its visual identity while sharing the invisible stuff.
+
+### Depends on
+- PR #85 (`fix/a11y-live-regions-all-modes`) for the global `.sr-only` utility. Merge #85 first so the shell's visually-hidden span has its clip-path CSS available.
+
+## [0.8.6.4] - 2026-04-20
 ## [0.8.6.7] - 2026-04-20
 
 ### Changed
