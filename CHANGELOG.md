@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.10.2] - 2026-04-20
+
+### Fixed
+- **`record_answer_outcome` RPC — skip `total_response_ms` accumulation on timeouts** (`supabase/migrations/20260615000005_record_answer_outcome_skip_response_ms_on_timeout.sql`). The column's stated semantics are "divide by (times_correct + times_wrong) for average" — the denominator excludes `times_timed_out`, so the numerator had to as well. Previously it didn't. Concrete failure: `solo.service.ts:201-206` passes `Math.round(elapsed * 1000)` as `response_ms` even on `answer === 'TIMEOUT'`. A session suspended for a week that returns a TIMEOUT would have added 604,800,000 ms to the running sum with no matching increment to the denominator, corrupting the "avg response time" for that question indefinitely. Fix gates the response-ms accumulation on `NOT p_timed_out` inside the RPC — callers don't need changes. Caught by /review adversarial pass before merge.
+
 ## [0.8.10.1] - 2026-04-20
 
 ### Changed
