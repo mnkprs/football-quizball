@@ -12,6 +12,8 @@ export {
   getAvoidQuestionsInstruction,
   getFactualAccuracyInstruction,
   getSquadPlayerInstruction,
+  getConceptSteeringInstruction,
+  getEntityTargetsInstruction,
 } from './diversity/prompt-helpers';
 export {
   minorityScaleForDifficulty,

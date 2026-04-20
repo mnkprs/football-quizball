@@ -95,10 +95,13 @@ export function isKnownSlug(
  * section headers or control sequences that could mislead the classifier.
  * The canonical review pass should catch these, but defence-in-depth is cheap.
  */
-function sanitiseForPrompt(s: string, max = 120): string {
+export function sanitiseForPrompt(s: string, max = 120): string {
+  // Order matters: strip line-start '#' headers BEFORE collapsing newlines.
+  // Otherwise "name\n## injection" becomes "name ## injection" and the
+  // ^#+ regex (which only matches at line start) can no longer reach it.
   return s
-    .replace(/[\r\n]+/g, ' ')
     .replace(/^#+\s*/gm, '')
+    .replace(/[\r\n]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, max);
