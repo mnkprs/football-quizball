@@ -27,6 +27,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { SupabaseService } from '../src/supabase/supabase.service';
 import { LlmService } from '../src/llm/llm.service';
+import { readArgs } from './utils/script-args';
 
 interface Args {
   apply: boolean;
@@ -36,16 +37,12 @@ interface Args {
 }
 
 function parseArgs(): Args {
-  const args = process.argv.slice(2);
-  const get = (f: string): string | undefined => {
-    const i = args.indexOf(f);
-    return i >= 0 ? args[i + 1] : undefined;
-  };
+  const a = readArgs();
   return {
-    apply: args.includes('--apply'),
-    category: get('--category') ?? null,
-    limit: get('--limit') ? Number(get('--limit')) : null,
-    batchSize: Number(get('--batch-size') ?? 20),
+    apply: a.has('--apply'),
+    category: a.get('--category') ?? null,
+    limit: a.getNumberOrNull('--limit'),
+    batchSize: a.getNumber('--batch-size', 20),
   };
 }
 
@@ -178,9 +175,10 @@ async function main() {
       ok += 1;
     }
 
-    const elapsedS = Math.round((Date.now() - started) / 1000);
-    const rate = ok > 0 ? (ok / elapsedS).toFixed(1) : '0.0';
-    const remainingS = ok > 0 ? Math.round(((rows.length - ok - failed) / (ok / elapsedS))) : 0;
+    const elapsedS = Math.max(Math.round((Date.now() - started) / 1000), 1);
+    const perSec = ok / elapsedS;
+    const rate = perSec > 0 ? perSec.toFixed(1) : '0.0';
+    const remainingS = perSec > 0 ? Math.round((rows.length - ok - failed) / perSec) : 0;
     process.stdout.write(
       `\r  progress: ${ok + failed}/${rows.length}  ok=${ok}  failed=${failed}  rate=${rate}/s  eta=${remainingS}s     `,
     );

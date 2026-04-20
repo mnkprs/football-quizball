@@ -393,7 +393,7 @@ export class PoolSeedService {
           const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
             ? difficulty
             : undefined;
-          const inserted = await this.insertQuestions(category, accepted, difficultyOverride);
+          const inserted = await this.persistQuestionsToPool(category, accepted, difficultyOverride);
           for (const q of inserted) {
             addedTotals[difficulty] += 1;
             questionIds.push(q.id);
@@ -508,7 +508,7 @@ export class PoolSeedService {
       const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
         ? difficulty
         : undefined;
-      const inserted = await this.insertQuestions(category, accepted, difficultyOverride);
+      const inserted = await this.persistQuestionsToPool(category, accepted, difficultyOverride);
       for (const q of inserted) {
         added += 1;
         questionIds.push(q.id);
@@ -583,15 +583,14 @@ export class PoolSeedService {
       return [];
     }
 
-    let inserted: GeneratedQuestion[] = [];
     try {
-      inserted = await this.persistQuestionsToPool(category, semanticFiltered, difficulty);
+      const inserted = await this.persistQuestionsToPool(category, semanticFiltered, difficulty);
+      this.logger.debug(`[fillSlot] Inserted ${inserted.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - inserted.length} duplicates/near-dups skipped)`);
+      return inserted.map((q) => q.question_text);
     } catch (err) {
       this.logger.error(`[fillSlot] ${(err as Error).message}`);
       return [];
     }
-    this.logger.debug(`[fillSlot] Inserted ${inserted.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - inserted.length} duplicates/near-dups skipped)`);
-    return inserted.map((q) => q.question_text);
   }
 
   private async fillCategoryUntilSatisfied(
@@ -657,13 +656,10 @@ export class PoolSeedService {
           const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
             ? difficulty
             : undefined;
-          const inserted = await this.insertQuestions(category, accepted, difficultyOverride);
+          const inserted = await this.persistQuestionsToPool(category, accepted, difficultyOverride);
           if (inserted.length > 0) anyAccepted = true;
-          for (const _ of inserted) {
-            const current = needs[difficulty] ?? 0;
-            needs[difficulty] = Math.max(0, current - 1);
-            addedTotals[difficulty] += 1;
-          }
+          needs[difficulty] = Math.max(0, (needs[difficulty] ?? 0) - inserted.length);
+          addedTotals[difficulty] += inserted.length;
           if (inserted.length < accepted.length) {
             this.logger.debug(
               `[fillCategory] ${category}/${difficulty}: inserted ${inserted.length}/${accepted.length} (${accepted.length - inserted.length} dropped by insert guard)`,
@@ -676,14 +672,6 @@ export class PoolSeedService {
     }
 
     return addedTotals;
-  }
-
-  private async insertQuestions(
-    category: QuestionCategory,
-    questions: GeneratedQuestion[],
-    difficultyOverride?: Difficulty,
-  ): Promise<GeneratedQuestion[]> {
-    return this.persistQuestionsToPool(category, questions, difficultyOverride);
   }
 
   /**
@@ -715,6 +703,18 @@ export class PoolSeedService {
       category,
     );
     if (embeddedQuestions.length === 0) return [];
+
+    // Defense-in-depth: ensureEmbeddingsAndDedup already guarantees every
+    // row carries an embedding, but assert it before the map so a future
+    // refactor of the guard path can't silently reintroduce null-embedding
+    // inserts. Hoisted out of the row literal to keep the row declarative.
+    for (const q of embeddedQuestions) {
+      if (!(q as GeneratedQuestion & { _embedding?: number[] })._embedding) {
+        throw new Error(
+          `[persistQuestionsToPool] Missing embedding for "${q.question_text?.slice(0, 60)}" — aborting insert to avoid dedup blind spot`,
+        );
+      }
+    }
 
     // Classify against canonical entity list. Failures degrade to null taxonomy
     // so a classifier outage never blocks pool seeding.
@@ -748,18 +748,9 @@ export class PoolSeedService {
           _embedding: undefined,
         },
         raw_score: q.raw_score ?? null,
-        // Embedding is guaranteed by ensureEmbeddingsAndDedup above. If we
-        // ever reach here without one, abort — a null-embedding row would
-        // be permanently invisible to future dedup passes.
-        embedding: (() => {
-          const emb = (q as GeneratedQuestion & { _embedding?: number[] })._embedding;
-          if (!emb) {
-            throw new Error(
-              `[persistQuestionsToPool] Missing embedding for "${q.question_text?.slice(0, 60)}" — aborting insert to avoid dedup blind spot`,
-            );
-          }
-          return emb;
-        })(),
+        // Non-null assertion is safe: the loop above already verified every
+        // row carries `_embedding`. Kept declarative for clarity.
+        embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding!,
         // league_tier and competition_type are auto-populated by the
         // sync_question_pool_competition_meta trigger based on competition_id.
         // era is a generated column (derived from event_year), no longer writable.
@@ -1004,6 +995,15 @@ export class PoolSeedService {
         keys.add(`${r.question_text}|||${r.correct_answer}`);
       }
       if (rows.length < PAGE_SIZE) break;
+      // If the last page filled completely AND we're about to hit the cap,
+      // exact-text dedup will silently miss older rows. Warn so the
+      // regression is visible in logs rather than re-creating the bug
+      // that the old 200-row cap caused.
+      if (offset + PAGE_SIZE >= MAX_KEYS) {
+        this.logger.warn(
+          `[getExistingQuestionKeys] Category ${category} has >=${MAX_KEYS} rows; exact-dedup may miss older entries — raise MAX_KEYS or switch to DB-side dedup`,
+        );
+      }
     }
 
     return keys;

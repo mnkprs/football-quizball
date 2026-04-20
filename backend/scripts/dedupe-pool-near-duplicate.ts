@@ -3,8 +3,9 @@
 /**
  * Delete near-duplicate rows from question_pool using a 3-layer filter:
  *
- *   Layer 1 — pgvector cosine similarity < threshold (default 0.12, same as
- *             find_near_duplicate_in_pool RPC). Cheap, noisy.
+ *   Layer 1 — pgvector cosine DISTANCE < threshold (default 0.12 =
+ *             similarity > ~0.88, same as find_near_duplicate_in_pool
+ *             RPC). Cheap, noisy.
  *   Layer 2 — same correct_answer + taxonomy-compatible (no field where
  *             both sides are populated and differ). Kills structural
  *             false positives like Galatasaray-Istanbul vs Fenerbahce-
@@ -38,6 +39,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { SupabaseService } from '../src/supabase/supabase.service';
 import { LlmService } from '../src/llm/llm.service';
+import { readArgs } from './utils/script-args';
 
 interface Args {
   apply: boolean;
@@ -48,17 +50,13 @@ interface Args {
 }
 
 function parseArgs(): Args {
-  const args = process.argv.slice(2);
-  const get = (f: string): string | undefined => {
-    const i = args.indexOf(f);
-    return i >= 0 ? args[i + 1] : undefined;
-  };
+  const a = readArgs();
   return {
-    apply: args.includes('--apply'),
-    threshold: Number(get('--threshold') ?? 0.12),
-    category: get('--category') ?? null,
-    skipLlm: args.includes('--skip-llm'),
-    sameAnswer: !args.includes('--no-same-answer'),
+    apply: a.has('--apply'),
+    threshold: a.getNumber('--threshold', 0.12),
+    category: a.get('--category') ?? null,
+    skipLlm: a.has('--skip-llm'),
+    sameAnswer: !a.has('--no-same-answer'),
   };
 }
 
@@ -317,10 +315,13 @@ async function main() {
     for (let i = 0; i < candidates.length; i++) {
       const p = candidates[i];
       const verdict = await llmVerify(llm, p);
-      if (verdict.same_question) {
+      // Strict === true — if the LLM returns "true" as a string or an
+      // unexpected truthy value, fail closed (keep both rows) rather than
+      // risk a false-positive delete.
+      if (verdict.same_question === true) {
         confirmed.push(p);
       } else {
-        rejected.push({ pair: p, reason: verdict.reason });
+        rejected.push({ pair: p, reason: verdict.reason ?? 'no-reason' });
       }
       const elapsedS = Math.round((Date.now() - started) / 1000);
       const rate = (i + 1) / Math.max(elapsedS, 1);

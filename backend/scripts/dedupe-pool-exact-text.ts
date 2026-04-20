@@ -24,6 +24,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../src/app.module';
 import { SupabaseService } from '../src/supabase/supabase.service';
+import { readArgs } from './utils/script-args';
 
 interface Args {
   apply: boolean;
@@ -31,14 +32,10 @@ interface Args {
 }
 
 function parseArgs(): Args {
-  const args = process.argv.slice(2);
-  const get = (f: string): string | undefined => {
-    const i = args.indexOf(f);
-    return i >= 0 ? args[i + 1] : undefined;
-  };
+  const a = readArgs();
   return {
-    apply: args.includes('--apply'),
-    category: get('--category') ?? null,
+    apply: a.has('--apply'),
+    category: a.get('--category') ?? null,
   };
 }
 
