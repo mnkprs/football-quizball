@@ -1,7 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../../supabase/supabase.service';
 
-export type AntiCheatMode = 'solo' | 'logo_quiz' | 'blitz' | 'duel' | 'battle_royale';
+/**
+ * Modes that AnomalyFlagService can operate on. Must stay aligned with
+ * `elo_history.mode` (migration 20260611000000) because checkSustainedAccuracy
+ * reads that table — filtering on a mode that never appears there would
+ * silently return zero rows and never fire a flag.
+ *
+ * To add a mode: ensure its commit_*_answer RPC writes the new value to
+ * elo_history.mode, widen elo_history.mode CHECK, widen cheating_flags.mode
+ * CHECK, then add it here. The order matters — widen the reader last.
+ */
+export type AntiCheatMode = 'solo' | 'logo_quiz' | 'logo_quiz_hardcore';
 export type FlagType = 'sustained_high_accuracy' | 'answer_too_fast_burst' | 'impossible_speed';
 
 /**

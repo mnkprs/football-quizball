@@ -2,6 +2,18 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.12.1] - 2026-04-20
+
+### Fixed — /review feedback on v0.8.12.0
+
+Code review surfaced three honest-code issues, all applied:
+
+- **`cheating_flags.mode` CHECK aligned to `elo_history.mode`.** Follow-up migration narrows the constraint from `('solo', 'logo_quiz', 'blitz', 'duel', 'battle_royale')` to `('solo', 'logo_quiz', 'logo_quiz_hardcore')`. The original list included modes that never write to `elo_history` (blitz/duel/BR) and missed one that does (logo_quiz_hardcore). Misalignment would have caused either silent no-ops (flagger reads zero rows) or insert failures if hardcore were ever wired.
+- **`AntiCheatMode` type narrowed to match.** Type now truthfully reflects the modes the flagger can operate on. Adding a mode now requires widening elo_history, cheating_flags, and the type in lockstep — order documented in the type comment.
+- **Removed unused `ExecutionContext` import** from `UserThrottlerGuard`.
+
+Deferred: dedup race-condition fix (partial unique index) and sim retry-loop max-retry guard — both flagged in review as acceptable known-limits.
+
 ## [0.8.12.0] - 2026-04-20
 
 ### Security — Anti-cheat answer hardening
