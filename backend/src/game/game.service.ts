@@ -160,7 +160,19 @@ export class GameService {
     const session = await this.getGame(gameId);
     const question = session.questions.find((q) => q.id === questionId);
     if (!question) throw new NotFoundException(`Question ${questionId} not found`);
-    return { correct_answer: question.correct_answer, answer_type: question.difficulty_factors?.answer_type };
+    // Phase 2B: answer_type now lives on the top-level question_pool column
+    // (difficulty_factors stripped from jsonb for new rows). Falls back to the
+    // legacy in-memory jsonb field for not-yet-migrated rows.
+    let answerType: string | undefined = question.difficulty_factors?.answer_type;
+    if (!answerType && !questionId.startsWith('solo-') && !questionId.startsWith('fallback-')) {
+      const { data } = await this.supabaseService.client
+        .from('question_pool')
+        .select('answer_type')
+        .eq('id', questionId)
+        .maybeSingle();
+      answerType = (data?.answer_type as string | undefined) ?? undefined;
+    }
+    return { correct_answer: question.correct_answer, answer_type: answerType };
   }
 
   async submitAnswer(gameId: string, dto: SubmitAnswerDto): Promise<AnswerResult> {

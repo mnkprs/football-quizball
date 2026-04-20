@@ -305,10 +305,13 @@ export class LogoQuizService {
     const client = this.supabaseService.client;
 
     // Over-fetch so the random shuffle has enough candidates.
-    // Select only the JSONB fields we need instead of the entire question object.
+    // Phase 2B: image_url and difficulty now live as top-level columns
+    // (promoted in migration 20260615000001). correct_answer stays in jsonb
+    // (behavior-specific, not a duplicate); meta also stays (container for
+    // slug/league/country/original_image_url/hard_image_url/easy_image_url).
     const { data, error } = await client
       .from('question_pool')
-      .select('id, question_elo, correct_answer:question->correct_answer, image_url:question->image_url, difficulty:question->difficulty, meta:question->meta')
+      .select('id, question_elo, image_url, difficulty, correct_answer:question->correct_answer, meta:question->meta')
       .eq('category', 'LOGO_QUIZ')
       .limit(count * 4);
 

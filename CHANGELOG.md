@@ -2,6 +2,64 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.11.0] - 2026-04-20
+
+### Added — Full Phase 2 jsonb cleanup
+The follow-up to the phased cleanup that started in v0.8.9.0. All four sub-phases shipped.
+
+### Phase 2A — Stop writing jsonb duplicates (code-only)
+- `pool-seed.service.ts:persistQuestionsToPool` now destructures `id`, `category`, `difficulty`, `points`, `difficulty_factors`, `raw_score`, `allowedDifficulties`, `analytics_tags` OUT of the jsonb payload before insert. These all duplicated top-level columns or derivable values. New rows persist a clean jsonb body — roughly 40% smaller than before.
+- `question-draw.service.ts` loaders (`drawBoard`, `drawSlot`) now defensively destructure the same keys from `row.question` on hydration and re-populate them from the authoritative top-level columns. Legacy rows with stale jsonb copies flow through correctly; new rows that lack the keys in jsonb also flow through correctly.
+- `DrawBoardRow` / `DrawQuestionsRow` types extended with `id: string` (already present on the RPC return, now typed).
+
+### Phase 2B — Migrate direct SQL jsonb projections
+- `logo-quiz.service.ts:drawLogosForTeamMode` — Supabase `.select()` projection switched from `image_url:question->image_url, difficulty:question->difficulty` to bare `image_url, difficulty` (top-level columns). Saves a jsonb traversal per row.
+- `game.service.ts:peekAnswer` — now reads `answer_type` from the top-level column via a maybeSingle DB lookup, with a defensive fallback to the legacy in-memory `difficulty_factors.answer_type` for any session that still carries it.
+
+### Phase 2C — Unify LOGO_QUIZ id semantics (data migration, HIGH RISK)
+Root cause: LOGO_QUIZ seed scripts (`backend/scripts/seed-logo-questions.ts` and four siblings) set `question: { id: uuid(), ... }` without a top-level `id`, so Postgres auto-generated a second, different uuid. This caused 2206 rows where `question_pool.id != (question->>'id')::uuid`. Every app-facing path (draw exclude_ids, `user_question_history`, the frontend's seen-list cache) used the jsonb id; the pool row id was internal-only. A real dual-id model hiding in plain sight.
+
+Migration 20260615000006 does it atomically:
+1. **Snapshot** — `_phase2c_id_remapping` table captures the 2206 `(pool_id, old_jsonb_id)` pairs. Retained 30 days for rollback.
+2. **user_question_history re-keyed** — 36 rows (all LOGO_QUIZ) updated from the old jsonb id to the pool row id.
+3. **Draw RPCs rewritten** — `draw_board`, `draw_questions`, and both `draw_logo_questions_by_elo` overloads switched from `qp.question->>'id' = ANY(p_exclude_ids)` to `qp.id::text = ANY(p_exclude_ids)`, and their `user_question_history` INSERTs now write the pool id directly. News exclusion now also uses `nq.id`.
+4. **return_questions_to_pool simplified** — dual-id defensive check removed; pool id is the only currency now.
+5. **Permanent guardrail** — `enforce_question_jsonb_shape()` trigger on INSERT/UPDATE OF question strips any future jsonb-level `id`, `category`, `difficulty`, `points`, or `difficulty_factors`. Legacy seed scripts that still try to write jsonb.id silently have it removed before the row lands. No future divergence possible.
+
+Verified: 36 uqh rows migrated, 0 left pointing at old jsonb ids, trigger installed.
+
+**Known one-time user glitch**: Users with an in-flight session whose `session.drawnQuestionIds` array cached the old jsonb ids will no longer match — those ids no longer exist post-migration. Next draw may re-serve a logo they saw in the current session. Sessions are short-lived so the window is narrow; new sessions are immune.
+
+### Phase 2D — Strip jsonb duplicates + extend RPC returns
+Two coordinated migrations:
+
+- **20260615000007** — `UPDATE question_pool SET question = question - 'id' - 'category' - 'difficulty' - 'points' - 'source_url' - 'image_url' - 'difficulty_factors'`. Strips every legacy duplicate. Verified zero rows retain any of the 7 keys; behavior-specific keys (`question_text`, `correct_answer`, `wrong_choices`, `fifty_fifty_hint`, `fifty_fifty_applicable`, `explanation`, `meta`) preserved on 100% of rows.
+
+- **20260615000008** — RPC returns extended to include `image_url`, `source_url`, `answer_type` as top-level columns alongside the jsonb body. Required because `online-game.service.ts:545`, `duel.service.ts:787-788`, and `onboarding.service.ts:117-118` read `question.image_url` on in-memory hydrated questions — the loader now pulls these from the row columns and surfaces them on the hydrated `GeneratedQuestion` so those call sites keep working unchanged. The loader destructures the jsonb image_url/source_url keys (historical LEGACY path for any row the strip missed) and the top-level ones always win.
+
+### Final state
+
+```
+question_pool jsonb sample (HISTORY):
+  keys: question_text, correct_answer, fifty_fifty_hint,
+        fifty_fifty_applicable, explanation
+
+question_pool jsonb sample (LOGO_QUIZ):
+  keys: question_text, correct_answer, fifty_fifty_hint,
+        fifty_fifty_applicable, explanation, meta
+```
+
+Every `question_pool` row has the same clean shape. Every caller reads from top-level columns (canonical source) with legacy jsonb fallbacks removed. Every draw RPC now trafficks in pool ids exclusively. The BEFORE INSERT/UPDATE trigger prevents drift from legacy scripts.
+
+### Architecture notes
+- The 4-phase execution (A → B → C → D) let each step be verified before the next. 2C was the cliff — HIGH RISK, user-visible glitch window — and it was de-risked with the snapshot table + trigger so rollback is possible without data loss.
+- The trigger is slightly redundant given the updated seed + LOGO scripts, but it's insurance against future contributors (or AI agents) writing shortcut inserts. Zero maintenance cost; permanent.
+- Five migrations (006-008) and one new trigger. Schema now strictly normalized.
+
+### Deferred / follow-up
+- LOGO_QUIZ seed scripts (`seed-logo-questions.ts` and 4 others) still write `question: { id, category, difficulty, points, ... }` — the trigger silently strips these, so functionally fine, but the scripts have dead code in them. Low-priority script cleanup.
+- Rollback snapshot `_phase2c_id_remapping` can be dropped after 2026-05-20.
+
 ## [0.8.10.2] - 2026-04-20
 
 ### Fixed
