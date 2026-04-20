@@ -393,13 +393,13 @@ export class PoolSeedService {
           const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
             ? difficulty
             : undefined;
-          await this.insertQuestions(category, accepted, difficultyOverride);
-          for (const q of accepted) {
+          const inserted = await this.persistQuestionsToPool(category, accepted, difficultyOverride);
+          for (const q of inserted) {
             addedTotals[difficulty] += 1;
             questionIds.push(q.id);
           }
           this.logger.debug(
-            `[seedPool] ${category}/${difficulty} pass ${pass + 1}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'}`,
+            `[seedPool] ${category}/${difficulty} pass ${pass + 1}: inserted ${inserted.length}/${accepted.length} question${inserted.length === 1 ? '' : 's'}${inserted.length < accepted.length ? ` (${accepted.length - inserted.length} dropped by insert guard)` : ''}`,
           );
         }
 
@@ -508,13 +508,13 @@ export class PoolSeedService {
       const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
         ? difficulty
         : undefined;
-      await this.insertQuestions(category, accepted, difficultyOverride);
-      for (const q of accepted) {
+      const inserted = await this.persistQuestionsToPool(category, accepted, difficultyOverride);
+      for (const q of inserted) {
         added += 1;
         questionIds.push(q.id);
       }
       this.logger.debug(
-        `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'} (total: ${added}/${targetCount})`,
+        `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${inserted.length}/${accepted.length} question${inserted.length === 1 ? '' : 's'}${inserted.length < accepted.length ? ` (${accepted.length - inserted.length} dropped by insert guard)` : ''} (total: ${added}/${targetCount})`,
       );
     }
 
@@ -584,13 +584,13 @@ export class PoolSeedService {
     }
 
     try {
-      await this.persistQuestionsToPool(category, semanticFiltered, difficulty);
+      const inserted = await this.persistQuestionsToPool(category, semanticFiltered, difficulty);
+      this.logger.debug(`[fillSlot] Inserted ${inserted.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - inserted.length} duplicates/near-dups skipped)`);
+      return inserted.map((q) => q.question_text);
     } catch (err) {
       this.logger.error(`[fillSlot] ${(err as Error).message}`);
       return [];
     }
-    this.logger.debug(`[fillSlot] Inserted ${semanticFiltered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - semanticFiltered.length} duplicates/near-dups skipped)`);
-    return semanticFiltered.map((q) => q.question_text);
   }
 
   private async fillCategoryUntilSatisfied(
@@ -653,15 +653,17 @@ export class PoolSeedService {
         }
 
         if (accepted.length > 0) {
-          anyAccepted = true;
           const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
             ? difficulty
             : undefined;
-          await this.insertQuestions(category, accepted, difficultyOverride);
-          for (const q of accepted) {
-            const current = needs[difficulty] ?? 0;
-            needs[difficulty] = Math.max(0, current - 1);
-            addedTotals[difficulty] += 1;
+          const inserted = await this.persistQuestionsToPool(category, accepted, difficultyOverride);
+          if (inserted.length > 0) anyAccepted = true;
+          needs[difficulty] = Math.max(0, (needs[difficulty] ?? 0) - inserted.length);
+          addedTotals[difficulty] += inserted.length;
+          if (inserted.length < accepted.length) {
+            this.logger.debug(
+              `[fillCategory] ${category}/${difficulty}: inserted ${inserted.length}/${accepted.length} (${accepted.length - inserted.length} dropped by insert guard)`,
+            );
           }
         }
 
@@ -672,17 +674,14 @@ export class PoolSeedService {
     return addedTotals;
   }
 
-  private async insertQuestions(
-    category: QuestionCategory,
-    questions: GeneratedQuestion[],
-    difficultyOverride?: Difficulty,
-  ): Promise<void> {
-    await this.persistQuestionsToPool(category, questions, difficultyOverride);
-  }
-
   /**
    * Inserts questions into the pool. No translation — pool is English-only.
    * Throws if the DB insert fails.
+   *
+   * Returns the subset of questions that actually landed in the DB —
+   * `ensureEmbeddingsAndDedup` may drop near-duplicates or rows whose
+   * embedding failed, so the returned list can be shorter than the input.
+   * Callers rely on this to keep seed counters honest.
    *
    * @param difficultyOverride Force a specific difficulty on the row (used by seedSlot).
    *   If omitted, uses each question's own scored difficulty.
@@ -691,18 +690,41 @@ export class PoolSeedService {
     category: QuestionCategory,
     questions: GeneratedQuestion[],
     difficultyOverride?: Difficulty,
-  ): Promise<void> {
-    if (questions.length === 0) return;
+  ): Promise<GeneratedQuestion[]> {
+    if (questions.length === 0) return [];
+
+    // Last-chance embedding guard. Rows arriving here without `_embedding`
+    // bypassed semanticDedup (e.g. takeClosestByRawScore fallback paths).
+    // Embed them inline and run the near-duplicate check; rows that still
+    // have no embedding after this are dropped rather than inserted with
+    // null — a null-embedding row is invisible to every future dedup pass.
+    const embeddedQuestions = await this.ensureEmbeddingsAndDedup(
+      questions,
+      category,
+    );
+    if (embeddedQuestions.length === 0) return [];
+
+    // Defense-in-depth: ensureEmbeddingsAndDedup already guarantees every
+    // row carries an embedding, but assert it before the map so a future
+    // refactor of the guard path can't silently reintroduce null-embedding
+    // inserts. Hoisted out of the row literal to keep the row declarative.
+    for (const q of embeddedQuestions) {
+      if (!(q as GeneratedQuestion & { _embedding?: number[] })._embedding) {
+        throw new Error(
+          `[persistQuestionsToPool] Missing embedding for "${q.question_text?.slice(0, 60)}" — aborting insert to avoid dedup blind spot`,
+        );
+      }
+    }
 
     // Classify against canonical entity list. Failures degrade to null taxonomy
     // so a classifier outage never blocks pool seeding.
     const taxonomyByQuestion = await this.classifyBatch(
-      questions,
+      embeddedQuestions,
       category,
-      difficultyOverride ?? questions[0].difficulty,
+      difficultyOverride ?? embeddedQuestions[0].difficulty,
     );
 
-    const rows = questions.map((q) => {
+    const rows = embeddedQuestions.map((q) => {
       const difficulty = difficultyOverride ?? q.difficulty;
       let allowedDifficulties = q.allowedDifficulties ?? [difficulty];
       // When forcing a question into a slot (difficultyOverride), ensure it can be drawn for that slot.
@@ -745,7 +767,9 @@ export class PoolSeedService {
           _embedding: undefined,
         },
         raw_score: q.raw_score ?? null,
-        embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,
+        // Non-null assertion is safe: the loop above already verified every
+        // row carries `_embedding`. Kept declarative for clarity.
+        embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding!,
         // league_tier and competition_type are auto-populated by the
         // sync_question_pool_competition_meta trigger based on competition_id.
         // era is a generated column (derived from event_year), no longer writable.
@@ -787,6 +811,7 @@ export class PoolSeedService {
     if (error) {
       throw new Error(`[persistQuestionsToPool] Insert error for ${category}: ${error.message}`);
     }
+    return embeddedQuestions;
   }
 
   /**
@@ -866,20 +891,25 @@ export class PoolSeedService {
     candidates: GeneratedQuestion[],
     category: QuestionCategory,
   ): Promise<GeneratedQuestion[]> {
+    if (candidates.length === 0) return [];
     const texts = candidates.map((q) => q.question_text);
-    let embeddings: (number[] | null)[];
-    try {
-      embeddings = await this.llmService.embedTexts(texts);
-    } catch (err) {
-      this.logger.warn(`[semanticDedup] embedTexts failed — skipping semantic dedup: ${(err as Error).message}`);
-      return candidates;
-    }
+    // Previously swallowed errors and returned candidates unchanged, which
+    // let rows insert with a null embedding — those rows became permanent
+    // blind spots for every subsequent dedup check (find_near_duplicate_in_pool
+    // filters `embedding IS NOT NULL`). Now we throw so the caller retries
+    // the batch instead of silently corrupting the pool.
+    const embeddings = await this.llmService.embedTexts(texts);
 
     const results: GeneratedQuestion[] = [];
     for (let i = 0; i < candidates.length; i++) {
       const emb = embeddings[i];
       if (!emb) {
-        results.push(candidates[i]);
+        // Individual embed failure (e.g. 429 after 3 retries). Drop this
+        // item — inserting without an embedding would create a dedup blind
+        // spot for every future candidate.
+        this.logger.warn(
+          `[semanticDedup] Dropping candidate with no embedding: "${candidates[i].question_text?.slice(0, 60)}"`,
+        );
         continue;
       }
       const isDup = await this.isNearDuplicate(emb, category);
@@ -891,6 +921,55 @@ export class PoolSeedService {
       }
     }
     return results;
+  }
+
+  /**
+   * Last-chance guard before insert: guarantees every question carries an
+   * embedding AND has been checked against the existing pool for near-dupes.
+   * Covers code paths that bypass `semanticDedup` (e.g. takeClosestByRawScore
+   * fallbacks). Rows that already carry `_embedding` are trusted and only
+   * the new ones are embedded + dedup-checked here.
+   */
+  private async ensureEmbeddingsAndDedup(
+    questions: GeneratedQuestion[],
+    category: QuestionCategory,
+  ): Promise<GeneratedQuestion[]> {
+    const missing: Array<{ idx: number; text: string }> = [];
+    questions.forEach((q, idx) => {
+      const emb = (q as GeneratedQuestion & { _embedding?: number[] })._embedding;
+      if (!emb) missing.push({ idx, text: q.question_text });
+    });
+
+    if (missing.length === 0) return questions;
+
+    this.logger.debug(
+      `[persistQuestionsToPool] Embedding ${missing.length}/${questions.length} questions inline (fallback path)`,
+    );
+
+    const embeddings = await this.llmService.embedTexts(missing.map((m) => m.text));
+    const dropped = new Set<number>();
+
+    for (let i = 0; i < missing.length; i++) {
+      const emb = embeddings[i];
+      const { idx, text } = missing[i];
+      if (!emb) {
+        this.logger.warn(
+          `[persistQuestionsToPool] Dropping "${text.slice(0, 60)}" — embedding failed`,
+        );
+        dropped.add(idx);
+        continue;
+      }
+      if (await this.isNearDuplicate(emb, category)) {
+        this.logger.debug(
+          `[persistQuestionsToPool] Dropping "${text.slice(0, 60)}" — near-duplicate of existing pool row`,
+        );
+        dropped.add(idx);
+        continue;
+      }
+      (questions[idx] as GeneratedQuestion & { _embedding?: number[] })._embedding = emb;
+    }
+
+    return questions.filter((_, idx) => !dropped.has(idx));
   }
 
   private async isNearDuplicate(embedding: number[], category: QuestionCategory): Promise<boolean> {
@@ -905,23 +984,48 @@ export class PoolSeedService {
     return Array.isArray(data) && data.length > 0;
   }
 
-  /** Returns a Set of "question_text|||correct_answer" keys for the most recent 200 pool rows in a category. */
+  /**
+   * Returns a Set of "question_text|||correct_answer" keys for ALL pool rows
+   * in a category (paginated, bounded at 5000 to cap memory). Previously
+   * capped at 200 most-recent rows, which meant any question older than the
+   * last 200 was invisible to exact-text dedup — an obvious leak once a
+   * category crossed 200 rows.
+   */
   private async getExistingQuestionKeys(category: QuestionCategory): Promise<Set<string>> {
-    const { data, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('question->question_text, question->correct_answer')
-      .eq('category', category)
-      .order('created_at', { ascending: false })
-      .limit(200);
+    const PAGE_SIZE = 1000;
+    const MAX_KEYS = 5000;
+    const keys = new Set<string>();
 
-    if (error) {
-      this.logger.error(`[getExistingQuestionKeys] Query error: ${error.message}`);
-      return new Set();
+    for (let offset = 0; offset < MAX_KEYS; offset += PAGE_SIZE) {
+      const { data, error } = await this.supabaseService.client
+        .from('question_pool')
+        .select('question->question_text, question->correct_answer')
+        .eq('category', category)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) {
+        this.logger.error(`[getExistingQuestionKeys] Query error: ${error.message}`);
+        return keys;
+      }
+
+      const rows = (data ?? []) as ExistingQuestionRow[];
+      for (const r of rows) {
+        keys.add(`${r.question_text}|||${r.correct_answer}`);
+      }
+      if (rows.length < PAGE_SIZE) break;
+      // If the last page filled completely AND we're about to hit the cap,
+      // exact-text dedup will silently miss older rows. Warn so the
+      // regression is visible in logs rather than re-creating the bug
+      // that the old 200-row cap caused.
+      if (offset + PAGE_SIZE >= MAX_KEYS) {
+        this.logger.warn(
+          `[getExistingQuestionKeys] Category ${category} has >=${MAX_KEYS} rows; exact-dedup may miss older entries — raise MAX_KEYS or switch to DB-side dedup`,
+        );
+      }
     }
 
-    return new Set(
-      (data as ExistingQuestionRow[]).map((r) => `${r.question_text}|||${r.correct_answer}`),
-    );
+    return keys;
   }
 
   /**

@@ -2,6 +2,38 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.11.3] - 2026-04-20
+
+### Fixed — Semantic dedup silent-failure chain (3 layers)
+
+Root cause: three silent-failure paths in `PoolSeedService` let 2,775 of 4,366 pool rows (63%) insert with `embedding=NULL`. The `find_near_duplicate_in_pool` RPC filters `embedding IS NOT NULL`, so those rows became permanent dedup blind spots — every future near-duplicate against them slipped through. Combined with bulk seed days (2026-03-28: 1116/1116 null, 2026-04-16: 566/566 null, 2026-04-17: 524/524 null), this accumulated to 32 exact-text clusters spanning 2,240 excess rows, plus uncounted near-duplicates.
+
+Defense-in-depth fix across three layers of `backend/src/questions/pool-seed.service.ts`:
+
+1. **`semanticDedup` now throws on batch `embedTexts` failure** instead of catching and returning candidates unchanged. Force caller retry instead of silently corrupting the pool. Individual items with null per-item embedding are dropped with a warn log.
+2. **New `ensureEmbeddingsAndDedup` guard in `persistQuestionsToPool`** acts as last-chance coverage: any row that bypassed `semanticDedup` (e.g. `takeClosestByRawScore` fallbacks) gets embedded + dedup-checked inline. Rows without embeddings are dropped rather than inserted.
+3. **Row builder asserts `_embedding` is non-null** before the insert. Null-embedding inserts are now structurally impossible.
+
+Also:
+- **`getExistingQuestionKeys` was capped at 200 most-recent rows per category** — exact-text dedup was blind to anything older. Paginates up to 5000 now, with a warn log if the cap is hit (prevents silent regression of the same bug class).
+- **Counter honesty in seed loops**: `persistQuestionsToPool` now returns the actually-inserted `GeneratedQuestion[]` (was `void`). All three seed paths (`seedPool`, `seedSlot`, `fillCategoryUntilSatisfied`) + `fillSlot` count the returned length instead of pre-guard `accepted.length`. Operators used to see "added: 10" when only 6 landed; now the log reads `inserted X/Y (Z dropped by insert guard)` with matching DB state.
+- **`insertQuestions` method removed** — it was a one-line pass-through to `persistQuestionsToPool`. All three callers updated.
+
+### Added — ops scripts (dry-run by default, `--apply` to mutate)
+
+- **`backend/scripts/backfill-pool-embeddings.ts`** (`npm run pool:backfill-embeddings`) — restores embeddings on the 577 historical null-embedding rows in text categories (LOGO_QUIZ excluded — different pipeline, no dedup dependency). `--category X`, `--limit N`, `--batch-size N` flags. Idempotent.
+- **`backend/scripts/dedupe-pool-exact-text.ts`** (`npm run pool:dedupe-exact`) — deletes exact-text duplicate rows (identical `category + normalized question_text + normalized correct_answer`), keeping the oldest per cluster. LOGO_QUIZ excluded (variant images share text legitimately).
+- **`backend/scripts/dedupe-pool-near-duplicate.ts`** (`npm run pool:dedupe-near`) — 3-layer near-duplicate cleanup targeting the Steaua-style case (same concept, different wording, slipped past exact-text dedup). Layer 1: pgvector cosine distance under threshold (default 0.12 = similarity > ~0.88, same as `find_near_duplicate_in_pool` RPC). Layer 2: NULL-safe taxonomy compatibility — rules out pairs where `subject_id`, `competition_id`, `event_year`, `concept_id`, or `answer_type` are both populated on either side and differ. This kills structural false positives like "Galatasaray in Istanbul" vs "Fenerbahçe in Istanbul" (different `subject_id`) or "Dortmund 2013 UCL" vs "Bayern 2012 DFB-Pokal" (different year + subject). Layer 3: Gemini YES/NO verdict on remaining pairs catches the subtler cases where taxonomy agrees but stats differ (e.g. Messi 80g all-comps vs Messi 45g La Liga, same subject + year). `--skip-llm`, `--threshold N`, `--category X`, `--no-same-answer` flags.
+- **`backend/scripts/utils/script-args.ts`** — shared `readArgs()` helper used by all three scripts (flag/value/number parsing).
+
+### Tests
+
+- **`backend/src/questions/pool-seed.service.spec.ts`** (new, 13 tests) — covers `semanticDedup` (empty, null per-item, near-dup, throw propagation, _embedding attachment), `ensureEmbeddingsAndDedup` (all-present short-circuit, mixed embed, embedding failure drop, near-dup drop), `persistQuestionsToPool` empty input, and `getExistingQuestionKeys` pagination (single page, multi-page, partial-on-error). All 13 pass; full suite stays green at 290/290.
+
+### Verified live
+
+Before merge: ran `npm run pool:backfill-embeddings --apply` (577/577 rows embedded, 0 failures), `pool:dedupe-exact --apply` (43 rows deleted), `pool:dedupe-near --apply` (94 candidates → 89 LLM-confirmed deletes — zero false positives on the 4 HIGHER_OR_LOWER stat-differs cases that taxonomy couldn't catch). Then `npm run pool:seed 1` across all text categories — 21 new rows inserted, 21/21 with embeddings, 4 near-dupes correctly caught by the new insert guards. The original Steaua/Barcelona 1986 cluster reduced from 6 rows to 3 (remaining 3 differ in qualifier ("Italian club") or answer spelling ("FC Barcelona" vs "Barcelona") — intentionally kept).
+
 ## [0.8.11.2] - 2026-04-20
 
 ### Fixed — Logo Quiz answer submit returning 404 after Phase 2D

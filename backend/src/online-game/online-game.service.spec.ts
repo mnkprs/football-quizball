@@ -127,6 +127,10 @@ describe('OnlineGameService', () => {
             client: supabaseChain,
             getProfile: jest.fn().mockResolvedValue({ username: 'TestUser' }),
             saveMatchResult: jest.fn().mockResolvedValue(true),
+            // Added by PR #91 (v0.8.9.0) — answer-outcome counter RPC wiring.
+            // Tests were not updated when the call site was added; surfaced
+            // by this merge. See pool-seed fix branch.
+            recordAnswerOutcome: jest.fn().mockResolvedValue(undefined),
           },
         },
         {
