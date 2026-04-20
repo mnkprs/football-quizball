@@ -728,7 +728,19 @@ export class PoolSeedService {
         popularity_score: tax?.popularity_score ?? null,
         time_sensitive: tax?.time_sensitive ?? false,
         valid_until: tax?.valid_until ?? null,
-        tags: tax?.tags && tax.tags.length > 0 ? tax.tags : null,
+        // tags carries the FULL UNION: subject_id + competition_id + nationality
+        // + LLM-provided secondary mentions. Single queryable bag for entity-scoped
+        // modes. See migration 20260615000000.
+        tags: (() => {
+          const nationality = q.analytics_tags?.nationality ?? tax?.nationality ?? null;
+          const union = [
+            tax?.subject_id ?? null,
+            tax?.competition_id ?? null,
+            nationality,
+            ...(tax?.tags ?? []),
+          ].filter((s): s is string => typeof s === 'string' && s.length > 0);
+          return union.length > 0 ? union : null;
+        })(),
       };
     });
 

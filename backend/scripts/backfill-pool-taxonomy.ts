@@ -257,7 +257,13 @@ async function maybeApply(
         popularity_score: c.popularity_score,
         time_sensitive: c.time_sensitive,
         valid_until: c.valid_until,
-        tags: c.tags.length ? c.tags : null,
+        // tags = full union (subject + competition + nationality + LLM secondaries).
+        // See migration 20260615000000.
+        tags: (() => {
+          const union = [c.subject_id, c.competition_id, c.nationality, ...c.tags]
+            .filter((s): s is string => typeof s === 'string' && s.length > 0);
+          return union.length ? union : null;
+        })(),
         // league_tier + competition_type now filled by the competition_metadata
         // trigger. era is a generated column. event_year + nationality remain
         // classifier-sourced.
