@@ -393,13 +393,13 @@ export class PoolSeedService {
           const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
             ? difficulty
             : undefined;
-          await this.insertQuestions(category, accepted, difficultyOverride);
-          for (const q of accepted) {
+          const inserted = await this.insertQuestions(category, accepted, difficultyOverride);
+          for (const q of inserted) {
             addedTotals[difficulty] += 1;
             questionIds.push(q.id);
           }
           this.logger.debug(
-            `[seedPool] ${category}/${difficulty} pass ${pass + 1}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'}`,
+            `[seedPool] ${category}/${difficulty} pass ${pass + 1}: inserted ${inserted.length}/${accepted.length} question${inserted.length === 1 ? '' : 's'}${inserted.length < accepted.length ? ` (${accepted.length - inserted.length} dropped by insert guard)` : ''}`,
           );
         }
 
@@ -508,13 +508,13 @@ export class PoolSeedService {
       const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
         ? difficulty
         : undefined;
-      await this.insertQuestions(category, accepted, difficultyOverride);
-      for (const q of accepted) {
+      const inserted = await this.insertQuestions(category, accepted, difficultyOverride);
+      for (const q of inserted) {
         added += 1;
         questionIds.push(q.id);
       }
       this.logger.debug(
-        `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${accepted.length} question${accepted.length === 1 ? '' : 's'} (total: ${added}/${targetCount})`,
+        `[seedSlot] ${category}/${difficulty} pass ${pass}: inserted ${inserted.length}/${accepted.length} question${inserted.length === 1 ? '' : 's'}${inserted.length < accepted.length ? ` (${accepted.length - inserted.length} dropped by insert guard)` : ''} (total: ${added}/${targetCount})`,
       );
     }
 
@@ -583,14 +583,15 @@ export class PoolSeedService {
       return [];
     }
 
+    let inserted: GeneratedQuestion[] = [];
     try {
-      await this.persistQuestionsToPool(category, semanticFiltered, difficulty);
+      inserted = await this.persistQuestionsToPool(category, semanticFiltered, difficulty);
     } catch (err) {
       this.logger.error(`[fillSlot] ${(err as Error).message}`);
       return [];
     }
-    this.logger.debug(`[fillSlot] Inserted ${semanticFiltered.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - semanticFiltered.length} duplicates/near-dups skipped)`);
-    return semanticFiltered.map((q) => q.question_text);
+    this.logger.debug(`[fillSlot] Inserted ${inserted.length}/${candidates.length} questions for ${category}/${difficulty} (${candidates.length - inserted.length} duplicates/near-dups skipped)`);
+    return inserted.map((q) => q.question_text);
   }
 
   private async fillCategoryUntilSatisfied(
@@ -653,15 +654,20 @@ export class PoolSeedService {
         }
 
         if (accepted.length > 0) {
-          anyAccepted = true;
           const difficultyOverride = accepted.some((q) => q.difficulty !== difficulty)
             ? difficulty
             : undefined;
-          await this.insertQuestions(category, accepted, difficultyOverride);
-          for (const q of accepted) {
+          const inserted = await this.insertQuestions(category, accepted, difficultyOverride);
+          if (inserted.length > 0) anyAccepted = true;
+          for (const _ of inserted) {
             const current = needs[difficulty] ?? 0;
             needs[difficulty] = Math.max(0, current - 1);
             addedTotals[difficulty] += 1;
+          }
+          if (inserted.length < accepted.length) {
+            this.logger.debug(
+              `[fillCategory] ${category}/${difficulty}: inserted ${inserted.length}/${accepted.length} (${accepted.length - inserted.length} dropped by insert guard)`,
+            );
           }
         }
 
@@ -676,13 +682,18 @@ export class PoolSeedService {
     category: QuestionCategory,
     questions: GeneratedQuestion[],
     difficultyOverride?: Difficulty,
-  ): Promise<void> {
-    await this.persistQuestionsToPool(category, questions, difficultyOverride);
+  ): Promise<GeneratedQuestion[]> {
+    return this.persistQuestionsToPool(category, questions, difficultyOverride);
   }
 
   /**
    * Inserts questions into the pool. No translation — pool is English-only.
    * Throws if the DB insert fails.
+   *
+   * Returns the subset of questions that actually landed in the DB —
+   * `ensureEmbeddingsAndDedup` may drop near-duplicates or rows whose
+   * embedding failed, so the returned list can be shorter than the input.
+   * Callers rely on this to keep seed counters honest.
    *
    * @param difficultyOverride Force a specific difficulty on the row (used by seedSlot).
    *   If omitted, uses each question's own scored difficulty.
@@ -691,8 +702,8 @@ export class PoolSeedService {
     category: QuestionCategory,
     questions: GeneratedQuestion[],
     difficultyOverride?: Difficulty,
-  ): Promise<void> {
-    if (questions.length === 0) return;
+  ): Promise<GeneratedQuestion[]> {
+    if (questions.length === 0) return [];
 
     // Last-chance embedding guard. Rows arriving here without `_embedding`
     // bypassed semanticDedup (e.g. takeClosestByRawScore fallback paths).
@@ -703,7 +714,7 @@ export class PoolSeedService {
       questions,
       category,
     );
-    if (embeddedQuestions.length === 0) return;
+    if (embeddedQuestions.length === 0) return [];
 
     // Classify against canonical entity list. Failures degrade to null taxonomy
     // so a classifier outage never blocks pool seeding.
@@ -790,6 +801,7 @@ export class PoolSeedService {
     if (error) {
       throw new Error(`[persistQuestionsToPool] Insert error for ${category}: ${error.message}`);
     }
+    return embeddedQuestions;
   }
 
   /**
