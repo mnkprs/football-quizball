@@ -36,11 +36,16 @@ export interface BRPublicQuestion {
   choices: string[];
   category: string;
   difficulty: string;
+  /**
+   * For PLAYER_ID questions only. Must NEVER contain slug/league/country for
+   * logo-mode questions — those reveal the answer and are stripped server-side.
+   */
   meta?: { career?: BRCareerEntry[] };
   /** Team logo quiz: degraded/medium image shown during gameplay */
   image_url?: string;
-  /** Team logo quiz: original full-quality image for the reveal */
-  original_image_url?: string;
+  // NOTE: original_image_url was removed from this shape in the anti-cheat
+  // hardening pass — shipping it pre-answer lets a user identify the logo
+  // without guessing. It now appears only on BRAnswerResult after submission.
 }
 
 // ── Player view ───────────────────────────────────────────────────────────────
@@ -89,11 +94,21 @@ export interface BRPublicView {
 export interface BRAnswerResult {
   correct: boolean;
   correct_answer: string;
+  /**
+   * Team Logo Battle: unobscured logo of the question that was just
+   * answered. Revealed only here (not on the pre-answer question fetch)
+   * so cheaters can't pre-identify the logo.
+   */
+  original_image_url?: string;
+  /** Team Logo Battle: safe to reveal post-answer; used by leaderboard surface. */
+  team_metadata?: { slug: string; league: string; country: string };
   myScore: number;
   nextQuestion: BRPublicQuestion | null;
   finished: boolean;
   pointsAwarded: number;
   timeBonus: number;
+  /** Set true when the submission was rejected as too-fast (anti-robot). */
+  rejected_too_fast?: boolean;
 }
 
 // ── Team logo question as stored in player_questions JSONB ───────────────────

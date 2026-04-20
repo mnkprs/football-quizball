@@ -2,6 +2,71 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.12.2] - 2026-04-20
+
+### Security — Bind logo-quiz answer submissions to the user that was served the question
+
+The /ship adversarial review surfaced a critical gap in v0.8.12.0's leak fix: the fix relocated answer-revealing fields from `GET /api/logo-quiz/question` to the `POST /api/logo-quiz/answer` reveal response, but the POST handler accepted any `question_id` the client supplied — it did not verify the authenticated user had ever been served that question. Any authenticated user could read `correct_answer` + `original_image_url` + `team_metadata` for any question_id they obtained, defeating the leak-strip.
+
+Fix (`backend/src/logo-quiz/logo-quiz.service.ts`):
+
+- **Binding check runs before answer validation.** The Redis key `logo:served:{userId}:{questionId}` (written by `getQuestion`, 120s TTL) is now a two-way contract: speed-check AND user-question binding. No key → `BadRequestException`.
+- **Runs regardless of `timed_out` flag.** Client-sent `timed_out=true` used to bypass the speed check; now also bypassed for binding. Closes a zero-cost attack that submits `timed_out: true` on harvested ids.
+- **Fail-open on Redis outage only.** Distinguish "Redis responsive, key missing" (reject — cheat attempt) from "Redis unreachable, throws" (allow — degrade gracefully). Logs the degradation for ops visibility.
+- **Replay protection.** Served-at key is deleted after a successful submission. A second POST with the same question_id falls through to binding check and is rejected.
+- **Forensic log.** `event: logo_answer_unbound_question` warn-log carries userId and questionId for anomaly detection.
+
+Regression tests (`logo-quiz-binding.service.spec.ts`, 5 specs): key-missing reject, timed_out=true reject, Redis-outage pass-through, key-present pass, replay-deletes-key.
+
+Backend suite: 22/22 suites, 315/315 tests (+5 binding + 14 specialist-generated in v0.8.12.1 commit).
+
+### Deferred (other adversarial findings)
+
+- Anomaly dedup race (known-limit from v0.8.12.0 review, acceptable admin noise)
+- `GET /api/logo-quiz/teams` throttle + auth review (the 500-name catalog is listed in backend as "names are not sensitive"; revisit if image→team scraping becomes a pattern)
+- Trust-proxy verification for `UserThrottlerGuard` IP fallback
+- Onboarding still ships answer inline (client-side scored; no leaderboard impact)
+
+## [0.8.12.1] - 2026-04-20
+
+### Fixed — /review feedback on v0.8.12.0
+
+Code review surfaced three honest-code issues, all applied:
+
+- **`cheating_flags.mode` CHECK aligned to `elo_history.mode`.** Follow-up migration narrows the constraint from `('solo', 'logo_quiz', 'blitz', 'duel', 'battle_royale')` to `('solo', 'logo_quiz', 'logo_quiz_hardcore')`. The original list included modes that never write to `elo_history` (blitz/duel/BR) and missed one that does (logo_quiz_hardcore). Misalignment would have caused either silent no-ops (flagger reads zero rows) or insert failures if hardcore were ever wired.
+- **`AntiCheatMode` type narrowed to match.** Type now truthfully reflects the modes the flagger can operate on. Adding a mode now requires widening elo_history, cheating_flags, and the type in lockstep — order documented in the type comment.
+- **Removed unused `ExecutionContext` import** from `UserThrottlerGuard`.
+
+Deferred: dedup race-condition fix (partial unique index) and sim retry-loop max-retry guard — both flagged in review as acceptable known-limits.
+
+## [0.8.12.0] - 2026-04-20
+
+### Security — Anti-cheat answer hardening
+
+Logo-quiz and battle-royale logo modes were shipping the answer in the pre-answer GET response, letting anyone with Proxyman (or a modified client) read `team_name` / `original_image_url` off the wire and cheat the leaderboard. Solo ranked was already safe; onboarding is exempt (no server-side scoring). Fix moves the reveal payload out of the question-fetch response and into the answer-submit response — same UX, no answer pre-disclosure.
+
+Defense-in-depth additions on top of the leak fix:
+
+1. **Global rate limiting** — `@nestjs/throttler` registered globally with `UserThrottlerGuard` (keyed by authenticated user id, not IP — carrier NAT makes IP useless, and cheaters can rotate IPs but not auth tokens). Named throttlers: `default` 120/min, `answer` 60/min, `fetch` 40/min. Applied to solo + logo-quiz + battle-royale answer endpoints and solo+logo question-fetch endpoints.
+2. **Inline speed check** in solo and logo-quiz `submitAnswer`. Per-difficulty `MIN_THINK_MS` (solo 800–1500ms by difficulty; logo 400/600ms). Submissions faster than the floor are rejected as `rejected_too_fast` with no ELO change, no question consumption, and the correct_answer is withheld (don't hand the bot the answer). Logo-quiz served-at tracking uses Redis (120s TTL) since logo has no session concept.
+3. **Anomaly flagging** — new `cheating_flags` table + `AnomalyFlagService`. Rolling window (last 20 HARD/EXPERT solo answers); if accuracy ≥ 90% and no same-type flag exists in the last 24h, a `sustained_high_accuracy` flag is written with evidence snapshot (difficulty breakdown, timestamps). Async fire-and-forget — gameplay is never blocked.
+
+E2E sim updated: logo-quiz simulator now peeks `question_pool.correct_answer` via service role (same pattern as solo) since `team_name` no longer ships; both simulators handle `rejected_too_fast` with retry-after-pause. Sim `jitterSleep` already exceeds the speed-check floor.
+
+Regression tests: 6 targeted specs on `LogoQuizService.toPublicQuestion` pin the public shape so any future re-add of `team_name` / `original_image_url` / `slug` / `league` / `country` breaks CI. Full suite 296/296.
+
+### Fixed
+
+- `LogoQuizService` was missing its `Logger` — added alongside the anti-cheat warn logs.
+
+### Deferred
+
+- Duel / battle-royale standard speed check (both have server-side `question_started_at`; low priority — PvP limits exploit value)
+- Onboarding hardening (client-side scoring, no server persistence)
+- Admin review UI for `cheating_flags` (inserts only today; reviewed via SQL)
+- Response-time normalization (timing side-channel; low impact)
+- Single-session-per-mode enforcement
+
 ## [0.8.11.3] - 2026-04-20
 
 ### Fixed — Semantic dedup silent-failure chain (3 layers)

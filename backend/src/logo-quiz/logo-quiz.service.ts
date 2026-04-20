@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   Injectable,
   ForbiddenException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -10,7 +12,7 @@ import { CacheService } from '../cache/cache.service';
 import { RedisService } from '../redis/redis.service';
 import { XpService } from '../xp/xp.service';
 import type { Difficulty } from '../common/interfaces/question.interface';
-import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
+import type { LogoQuestion, LogoQuestionPublic, LogoQuizAnswerResult } from './logo-quiz.types';
 
 /**
  * Logo Quiz questions are seeded into question_pool with category='LOGO_QUIZ'.
@@ -23,9 +25,26 @@ import type { LogoQuestion, LogoQuizAnswerResult } from './logo-quiz.types';
  */
 @Injectable()
 export class LogoQuizService {
+  private readonly logger = new Logger(LogoQuizService.name);
   private static readonly FREE_LOGO_POOL_SIZE = 100;
   private static readonly CUTOFF_CACHE_KEY = 'logo:free_pool_cutoff';
   private static readonly CUTOFF_CACHE_TTL = 3600; // 1 hour
+
+  /**
+   * Minimum think time (ms) before a logo-quiz answer can be accepted.
+   * Below this threshold the server rejects the submission as too-fast.
+   *   • EASY: 400ms — image recognition + tap on the searchable list
+   *   • HARD: 600ms — flipped/desaturated image takes longer to identify
+   * The goal isn't to block perfect-speed cheats (a patient bot can wait out
+   * the threshold) but to force cheaters into the speed band where the
+   * anomaly flagger can detect sustained unnatural accuracy.
+   */
+  private static readonly MIN_THINK_MS: Record<'EASY' | 'HARD', number> = {
+    EASY: 400,
+    HARD: 600,
+  };
+  /** Redis key TTL for question-served tracking. 2× longest timer is enough. */
+  private static readonly SERVED_KEY_TTL_SEC = 120;
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -59,7 +78,7 @@ export class LogoQuizService {
     userId: string,
     difficulty?: Difficulty,
     hardcore = false,
-  ): Promise<LogoQuestion> {
+  ): Promise<LogoQuestionPublic> {
     const profile = await this.supabaseService.getProfile(userId);
     if (!profile) throw new NotFoundException('Profile not found');
 
@@ -82,10 +101,12 @@ export class LogoQuizService {
 
       if (!error && data?.length) {
         const row = data[0];
-        return {
-          ...this.mapQuestion(row, row.difficulty as Difficulty, hardcore),
-          question_elo: row.question_elo,
-        };
+        const pub = this.toPublicQuestion(
+          this.mapQuestion(row, row.difficulty as Difficulty, hardcore),
+          row.question_elo,
+        );
+        await this.markServed(userId, pub.id);
+        return pub;
       }
     }
 
@@ -99,10 +120,40 @@ export class LogoQuizService {
         p_max_elo: maxElo,
       });
       if (fb?.length) {
-        return this.mapQuestion(fb[0], fallback, hardcore);
+        const pub = this.toPublicQuestion(this.mapQuestion(fb[0], fallback, hardcore));
+        await this.markServed(userId, pub.id);
+        return pub;
       }
     }
     throw new NotFoundException('No logo questions available');
+  }
+
+  /** Record server time when a logo question was handed to a user. */
+  private async markServed(userId: string, questionId: string): Promise<void> {
+    await this.redisService.set(
+      this.servedKey(userId, questionId),
+      Date.now(),
+      LogoQuizService.SERVED_KEY_TTL_SEC,
+    );
+  }
+
+  /**
+   * Strip answer-revealing fields before serving a question to the client.
+   * team_name / slug / league / country / original_image_url all reveal the
+   * answer and must only appear in the POST /answer response.
+   */
+  private toPublicQuestion(full: LogoQuestion, questionElo?: number): LogoQuestionPublic {
+    return {
+      id: full.id,
+      difficulty: full.difficulty,
+      image_url: full.image_url,
+      ...(questionElo !== undefined ? { question_elo: questionElo } : {}),
+    };
+  }
+
+  /** Redis key for tracking when a logo question was served to a user. */
+  private servedKey(userId: string, questionId: string): string {
+    return `logo:served:${userId}:${questionId}`;
   }
 
   /**
@@ -127,16 +178,91 @@ export class LogoQuizService {
     const client = this.supabaseService.client;
     const { data } = await client
       .from('question_pool')
-      .select('id, question, difficulty, question_elo')
+      .select('id, question, difficulty, question_elo, image_url')
       .eq('category', 'LOGO_QUIZ')
       .eq('id', questionId)
       .maybeSingle();
 
     if (!data) throw new NotFoundException('Question not found');
 
-    const correctAnswer = data.question.correct_answer;
+    const correctAnswer = data.question.correct_answer as string;
+    const meta = (data.question.meta ?? {}) as {
+      slug?: string;
+      league?: string;
+      country?: string;
+      original_image_url?: string;
+    };
+    const topLevelImageUrl = (data as unknown as { image_url?: string }).image_url;
+    const originalImageUrl = meta.original_image_url ?? topLevelImageUrl ?? '';
     const difficulty = data.difficulty as Difficulty;
+
+    // Anti-cheat binding check: verify THIS user was served THIS question.
+    // Without this, any authenticated user could submit any question_id they
+    // obtain and read correct_answer + original_image_url + team_metadata off
+    // the POST /answer reveal path — the leak-strip fix would be defeated.
+    //
+    // Implementation: getQuestion writes a Redis key (120s TTL) per
+    // (user, question_id). Submission must find that key.
+    //   • Key present → record servedAt for the speed check below.
+    //   • Key absent (Redis responsive) → user never legitimately played
+    //     this question. REJECT with 400.
+    //   • Redis unreachable (throws) → fail-open to keep gameplay working
+    //     during a Redis outage, log the degradation for ops visibility.
+    let servedAt: number | null = null;
+    let redisAvailable = true;
+    try {
+      const raw = await this.redisService.get<number>(this.servedKey(userId, questionId));
+      servedAt = raw ?? null;
+    } catch (err: unknown) {
+      redisAvailable = false;
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`[logo] Redis unreachable, skipping binding check: ${msg}`);
+    }
+
+    if (redisAvailable && servedAt === null) {
+      this.logger.warn(JSON.stringify({
+        event: 'logo_answer_unbound_question',
+        userId,
+        questionId,
+      }));
+      // No body leaks the answer on this path.
+      throw new BadRequestException('Question not served to this user or session expired');
+    }
+
+    // Speed check: only runs when we have a servedAt timestamp AND the
+    // user didn't explicitly time out. Too-fast submissions are rejected
+    // with correct_answer withheld so the bot gains no information.
+    if (!timedOut && servedAt !== null) {
+      const elapsedMs = Date.now() - Number(servedAt);
+      const threshold = LogoQuizService.MIN_THINK_MS[difficulty === 'HARD' ? 'HARD' : 'EASY'];
+      if (elapsedMs < threshold) {
+        this.logger.warn(JSON.stringify({
+          event: 'logo_answer_too_fast',
+          userId,
+          difficulty,
+          elapsedMs,
+          threshold,
+        }));
+        return {
+          correct: false,
+          timed_out: false,
+          // Withhold the answer — don't hand the bot what it's fishing for.
+          correct_answer: '',
+          elo_before: logoElo,
+          elo_after: logoElo,
+          elo_change: 0,
+          rejected_too_fast: true,
+        };
+      }
+    }
+
     const correct = !timedOut && this.fuzzyMatch(answer, correctAnswer);
+
+    // Invalidate the served-at key now so a replay of the same question_id
+    // fails the binding check above. Fire-and-forget; replay protection
+    // degrades to "1 extra submission within 120s" on Redis error, which
+    // is acceptable.
+    void this.redisService.del(this.servedKey(userId, questionId)).catch(() => {});
 
     // Calculate ELO change — use composite question_elo when available
     const gamesPlayed = hardcore ? profile.logo_quiz_hardcore_games_played : profile.logo_quiz_games_played;
@@ -209,6 +335,14 @@ export class LogoQuizService {
       correct,
       timed_out: timedOut,
       correct_answer: correctAnswer,
+      // Revealed only after submission so cheaters can't intercept the
+      // unobscured logo from the pre-answer GET /question payload.
+      original_image_url: originalImageUrl,
+      team_metadata: {
+        slug: meta.slug ?? '',
+        league: meta.league ?? '',
+        country: meta.country ?? '',
+      },
       elo_before: logoElo,
       elo_after: newElo,
       elo_change: newElo - logoElo,

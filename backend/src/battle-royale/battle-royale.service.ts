@@ -295,8 +295,8 @@ export class BattleRoyaleService {
             category: 'LOGO_QUIZ',
             difficulty: logoQ.difficulty,
             image_url: logoQ.image_url,
-            original_image_url: logoQ.original_image_url,
-            meta: logoQ.meta as BRPublicQuestion['meta'],
+            // original_image_url + meta (slug/league/country) omitted — see
+            // BRPublicQuestion comment. Revealed only on answer submit.
           };
         }
       } else if (myIndex < room.questions.length) {
@@ -485,11 +485,21 @@ export class BattleRoyaleService {
     // For team_logo rooms, questions live on the player row; standard rooms use room.questions.
     let correctAnswer: string;
     let questionPoolId: string | null = null;
+    // Captured here (pre-answer reveal path) so we can return it in the
+    // response for the reveal UI — the public question shape no longer ships it.
+    let revealImageUrl: string | undefined;
+    let revealMetadata: { slug: string; league: string; country: string } | undefined;
     if (isTeamLogoMode) {
       const logoQuestion = (player.player_questions ?? [])[questionIndex];
       if (!logoQuestion) throw new BadRequestException('Question not found');
       correctAnswer = logoQuestion.correct_answer;
       questionPoolId = logoQuestion.question_id ?? null;
+      revealImageUrl = logoQuestion.original_image_url;
+      revealMetadata = {
+        slug: logoQuestion.meta?.slug ?? '',
+        league: logoQuestion.meta?.league ?? '',
+        country: logoQuestion.meta?.country ?? '',
+      };
     } else {
       const question = room.questions[questionIndex] as BlitzQuestion;
       if (!question) throw new BadRequestException('Question not found');
@@ -621,8 +631,8 @@ export class BattleRoyaleService {
             category: 'LOGO_QUIZ',
             difficulty: nextLogoQ.difficulty,
             image_url: nextLogoQ.image_url,
-            original_image_url: nextLogoQ.original_image_url,
-            meta: nextLogoQ.meta as BRPublicQuestion['meta'],
+            // original_image_url + meta stripped — they reveal the answer and
+            // will be returned only after THIS next question is answered.
           };
         }
       } else if (room.questions[newIndex]) {
@@ -633,6 +643,9 @@ export class BattleRoyaleService {
     return {
       correct,
       correct_answer: correctAnswer,
+      // Reveal payload for the JUST-answered logo only — never for the next one.
+      ...(revealImageUrl !== undefined ? { original_image_url: revealImageUrl } : {}),
+      ...(revealMetadata !== undefined ? { team_metadata: revealMetadata } : {}),
       myScore: newScore,
       nextQuestion,
       finished: isLastQuestion,
