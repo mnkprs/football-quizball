@@ -10,6 +10,26 @@ import type {
 
 const MIN_SAMPLE_FOR_RANKING = 5;
 
+/**
+ * Minimum gap between strongest and weakest accuracy before we show BOTH
+ * callouts. Below this, showing "strongest" and "needs work" back-to-back
+ * misleads the user — their play is actually well-balanced and the weakest
+ * bucket is only trivially weaker than the strongest. Calibrated at 10pp
+ * (0.10) based on the UX goal of only surfacing a "needs work" callout
+ * when the contrast is informative.
+ */
+const MIN_ACCURACY_SPREAD_FOR_WEAKEST = 0.10;
+
+/**
+ * Bucket label used when a question event lacks the relevant dimension.
+ * This happens for rows joined to question_pool via a null question_id
+ * (LLM-fallback solo questions are not persisted to the pool, so their
+ * elo_history row carries question_id=null and the join returns no
+ * taxonomy fields). Not a data quality bug — it's the known fallback
+ * path. Hidden from the user-facing breakdown lists.
+ */
+const UNKNOWN_BUCKET = 'unknown';
+
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly supabase: SupabaseService) {}
@@ -43,21 +63,30 @@ export class AnalyticsService {
       .map((e) => ({ t: e.created_at, elo: e.elo_after }))
       .sort((a, b) => a.t.localeCompare(b.t));
 
+    // User-facing breakdowns: the `UNKNOWN_BUCKET` fallback is a plumbing
+    // artifact, not a meaningful category. Strip it from every dimension
+    // before handing to the widget layer — an `Unknown 20% n=5` row is
+    // noise the user can't act on.
     const by_difficulty = bucket(questions, (q) => q.difficulty);
-    const by_era = bucket(questions, (q) => q.era ?? 'unknown');
-    const by_competition_type = bucket(questions, (q) => q.competition_type ?? 'unknown');
-    const by_league_tier = bucket(questions, (q) =>
-      q.league_tier ? `tier_${q.league_tier}` : 'unknown',
+    const by_era = stripUnknown(bucket(questions, (q) => q.era ?? UNKNOWN_BUCKET));
+    const by_competition_type = stripUnknown(
+      bucket(questions, (q) => q.competition_type ?? UNKNOWN_BUCKET),
     );
-    const by_category = bucket(questions, (q) => q.category ?? 'unknown');
+    const by_league_tier = stripUnknown(
+      bucket(questions, (q) => (q.league_tier ? `tier_${q.league_tier}` : UNKNOWN_BUCKET)),
+    );
+    const by_category = stripUnknown(bucket(questions, (q) => q.category ?? UNKNOWN_BUCKET));
 
+    // Rankable categories: enough sample size, not the unknown bucket.
+    // After the list-level strip above, the `!== UNKNOWN_BUCKET` check here
+    // is redundant but intentionally kept for defense-in-depth: ranking
+    // logic must never point at the unknown bucket even if a future edit
+    // reintroduces it into `by_category`.
     const rankable = by_category.filter(
-      (b) => b.total >= MIN_SAMPLE_FOR_RANKING && b.bucket !== 'unknown',
+      (b) => b.total >= MIN_SAMPLE_FOR_RANKING && b.bucket !== UNKNOWN_BUCKET,
     );
-    const strongest =
-      rankable.length > 0 ? [...rankable].sort((a, b) => b.accuracy - a.accuracy)[0] : null;
-    const weakest =
-      rankable.length > 0 ? [...rankable].sort((a, b) => a.accuracy - b.accuracy)[0] : null;
+
+    const { strongest, weakest } = pickStrongestWeakest(rankable);
 
     return {
       totals: {
@@ -78,6 +107,42 @@ export class AnalyticsService {
       weakest,
     };
   }
+}
+
+/**
+ * Pick the best and worst rankable buckets, with two guardrails so the
+ * "needs work" callout only appears when it's informative:
+ *
+ *   1. **At least two distinct rankable buckets.** With only one qualifying
+ *      category, strongest and weakest would resolve to the same bucket —
+ *      useless to the user (was the original bug).
+ *   2. **Accuracy spread ≥ MIN_ACCURACY_SPREAD_FOR_WEAKEST.** When a user is
+ *      evenly balanced (all categories within 5pp of each other), labelling
+ *      any of them "needs work" is misleading. We show only `strongest`.
+ *
+ * `strongest` is always returned when any rankable bucket exists — it's a
+ * positive signal and safe to surface even for balanced players.
+ */
+function pickStrongestWeakest(
+  rankable: AccuracyBreakdown[],
+): { strongest: AccuracyBreakdown | null; weakest: AccuracyBreakdown | null } {
+  if (rankable.length === 0) return { strongest: null, weakest: null };
+
+  const sortedDesc = [...rankable].sort((a, b) => b.accuracy - a.accuracy);
+  const strongest = sortedDesc[0];
+
+  if (sortedDesc.length < 2) return { strongest, weakest: null };
+
+  const weakest = sortedDesc[sortedDesc.length - 1];
+  if (strongest.accuracy - weakest.accuracy < MIN_ACCURACY_SPREAD_FOR_WEAKEST) {
+    return { strongest, weakest: null };
+  }
+
+  return { strongest, weakest };
+}
+
+function stripUnknown(breakdowns: AccuracyBreakdown[]): AccuracyBreakdown[] {
+  return breakdowns.filter((b) => b.bucket !== UNKNOWN_BUCKET);
 }
 
 function bucket(

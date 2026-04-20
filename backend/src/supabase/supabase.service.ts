@@ -1077,6 +1077,15 @@ export class SupabaseService {
 
   // Canonical type lives in analytics/analytics.types.ts (RawQuestionEvent).
   // Inlined here to avoid a circular import: analytics.service → supabase.service → analytics.types.
+  //
+  // Null-taxonomy rows: elo_history.question_id can be NULL. This happens for
+  // LLM-fallback solo questions (SoloQuestionGenerator returns synthetic ids
+  // prefixed `solo-` which are not persisted to question_pool; the solo
+  // service writes NULL to elo_history.question_id to avoid FK violations —
+  // see solo.service.ts:214). The join below returns no taxonomy fields for
+  // those rows; category/era/competition_type/league_tier are undefined here
+  // and bucketed as 'unknown' in AnalyticsService, which strips that bucket
+  // before the widget layer. This is expected behavior, not a data bug.
   async getQuestionEventsRaw(
     userId: string,
     mode: string,

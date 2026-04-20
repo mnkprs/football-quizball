@@ -2,6 +2,35 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.14.0] - 2026-04-20
+
+### Fixed — Analytics Category Strengths widget (issue #95)
+
+Three defects in the Category Strengths section of the analytics screen, resolved end-to-end in the backend aggregator.
+
+**Bug 1 — "Strongest" and "Needs work" resolved to the same category.** When only one category passed the min-sample threshold (5 answers), the old code sorted the same single-element array ascending and descending, landing both callouts on the same bucket. `pickStrongestWeakest` in `backend/src/analytics/analytics.service.ts` now requires at least 2 distinct rankable buckets before computing `weakest`; with one qualifying category, `strongest` is returned and `weakest` is `null` (the widget then hides the "Needs work" callout).
+
+**Bug 2 — `Unknown` bucket leaking into user-facing breakdown lists.** The old code stripped `'unknown'` from the strongest/weakest ranking but left it in the `by_category`, `by_era`, `by_competition_type`, and `by_league_tier` arrays the widget rendered. Added a `stripUnknown` pass that filters that bucket from every user-facing breakdown list. Documented the root cause in `getQuestionEventsRaw`: LLM-fallback solo questions are not persisted to `question_pool`, so their `elo_history.question_id` is NULL and the join returns no taxonomy — this is expected behavior, not a data-quality regression.
+
+**Bug 3 — "Needs work" callout fired on balanced players.** Added a minimum-spread guard (`MIN_ACCURACY_SPREAD_FOR_WEAKEST = 10pp`). When the strongest and weakest buckets differ by less than 10 percentage points, only `strongest` is returned. A user with 60% HISTORY vs. 55% LOGO no longer sees a misleading "Needs work: LOGO" callout.
+
+### Added — Competition-type accuracy breakdown widget
+
+Backend already aggregated `by_competition_type` (club / national_team / youth / continental / international) but the analytics screen never surfaced it. New `CompetitionTypeBreakdownComponent` (`frontend/src/app/features/analytics/widgets/competition-type-breakdown.ts`) mirrors the era / league-tier chart style (horizontal bar, percentage axis) and is wired into `analytics.html` next to the other breakdowns. Users now see accuracy split across competition types alongside difficulty, era, and league tier.
+
+### Tests
+
+Nine new specs in `analytics.service.spec.ts`:
+- single-rankable-category → strongest set, weakest null
+- strongest/weakest never resolve to the same bucket (the original bug)
+- min-spread suppression at <10pp gap
+- min-spread surfacing at ≥10pp gap
+- `'unknown'` stripped from by_category / by_era / by_competition_type / by_league_tier
+- `'unknown'` never ranked strongest even at 100% accuracy (defense-in-depth against future regressions)
+- `by_difficulty` preserved (difficulty always has a value; stripUnknown must not accidentally touch it)
+
+Suite: 22/22 suites, 324/324 tests, typecheck clean.
+
 ## [0.8.13.1] - 2026-04-20
 
 ### Fixed — e2e-game-sim peek query reads the correct JSONB path

@@ -9,6 +9,7 @@ import { CategoryHeatmapComponent } from './widgets/category-heatmap';
 import { DifficultyBreakdownComponent } from './widgets/difficulty-breakdown';
 import { EraBreakdownComponent } from './widgets/era-breakdown';
 import { LeagueTierBreakdownComponent } from './widgets/league-tier-breakdown';
+import { CompetitionTypeBreakdownComponent } from './widgets/competition-type-breakdown';
 import { ProTeaserComponent } from './widgets/pro-teaser';
 
 @Component({
@@ -21,6 +22,7 @@ import { ProTeaserComponent } from './widgets/pro-teaser';
     DifficultyBreakdownComponent,
     EraBreakdownComponent,
     LeagueTierBreakdownComponent,
+    CompetitionTypeBreakdownComponent,
     ProTeaserComponent,
   ],
   templateUrl: './analytics.html',
