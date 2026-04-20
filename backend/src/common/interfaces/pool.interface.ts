@@ -20,7 +20,6 @@ export interface DrawBoardRow {
   // them onto the in-memory GeneratedQuestion without a second DB fetch.
   image_url: string | null;
   source_url: string | null;
-  answer_type: string | null;
 }
 
 export interface DrawQuestionsRow {
@@ -30,7 +29,6 @@ export interface DrawQuestionsRow {
   category: string;
   image_url: string | null;
   source_url: string | null;
-  answer_type: string | null;
 }
 
 export interface PoolStatsRow {

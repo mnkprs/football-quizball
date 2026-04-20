@@ -214,16 +214,16 @@ export class QuestionDrawService {
       } = row.question as GeneratedQuestion & { _embedding?: unknown };
       void _embedding; void _jsonbId; void _jsonbCategory; void _jsonbDifficulty;
       void _jsonbPoints; void _jsonbImageUrl; void _jsonbSourceUrl;
-      // answer_type from row is carried by peekAnswer's own DB fallback path
-      // (game.service.ts:peekAnswer) — no need to reconstruct the full
-      // difficulty_factors shape just for one field.
-      void row.answer_type;
       return {
         ...q,
         id: row.id,
         category: row.category as QuestionCategory,
         difficulty: row.difficulty as Difficulty,
-        points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
+        // Pass row.category directly — q.category was destructured out above,
+        // so q.category is undefined and resolveQuestionPoints would silently
+        // fall through to the difficulty-only base value, ignoring any
+        // CATEGORY_POINT_OVERRIDES entry that didn't match by coincidence.
+        points: resolveQuestionPoints(row.category as QuestionCategory, row.difficulty as Difficulty),
         image_url: row.image_url,
         source_url: row.source_url,
         source_question_text: q.question_text,
@@ -306,13 +306,12 @@ export class QuestionDrawService {
       } = row.question as GeneratedQuestion & { _embedding?: unknown };
       void _embedding; void _jsonbId; void _jsonbCategory; void _jsonbDifficulty;
       void _jsonbPoints; void _jsonbImageUrl; void _jsonbSourceUrl;
-      void row.answer_type;
       return {
         ...q,
         id: row.id,
         category: row.category as QuestionCategory,
         difficulty: row.difficulty as Difficulty,
-        points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
+        points: resolveQuestionPoints(row.category as QuestionCategory, row.difficulty as Difficulty),
         image_url: row.image_url,
         source_url: row.source_url,
         source_question_text: q.question_text,

@@ -2,6 +2,26 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.11.1] - 2026-04-20
+
+### Fixed — review-driven cleanups on top of Phase 2
+
+Three findings from the /review adversarial pass on v0.8.11.0.
+
+- **`resolvePoints` passed undefined category** (`backend/src/questions/question-draw.service.ts:226, 319`). The Phase 2A loader destructured `category: _jsonbCategory` out of the jsonb payload and then passed the resulting `q` object (with `category` undefined) through `resolvePoints(q, difficulty)` → `resolveQuestionPoints(q.category, difficulty)`. Only worked today because the one `CATEGORY_POINT_OVERRIDES` entry (`TOP_5 = 3`) coincidentally equals `DIFFICULTY_POINTS['HARD']`. Any new override differing from the base value would silently return wrong points. Fix: pass `row.category` directly to `resolveQuestionPoints` — the authoritative top-level column.
+
+- **`pool-integrity-verifier.service.ts` wrote `source_url` into stripped jsonb** (`:139, 143`). After Phase 2D promoted `source_url` to a top-level column and the enforce trigger strips it from jsonb, writing `source_url: vr.sourceUrl` into the jsonb payload was silently dropped by the trigger AND left the top-level column stale. Rewired the update to write `source_url` to the top-level column; jsonb payload now carries only behavior-specific fields (correct_answer, question_text, explanation, meta).
+
+- **Trigger stripped 5 keys, 7 needed** (`supabase/migrations/20260615000009_trigger_strip_all_duplicates.sql`). `enforce_question_jsonb_shape` covered id/category/difficulty/points/difficulty_factors but not source_url/image_url. The verifier fix above removes the immediate exposure, but extending the trigger closes the window permanently against future writers. Now strips all 7.
+
+### Changed — answer_type removed from RPC returns
+
+- **`supabase/migrations/20260615000010_draw_rpcs_drop_unused_answer_type.sql`** — Phase 2D added `answer_type` to the RPC return shapes intending to let the loader reconstruct `difficulty_factors.answer_type`. The reconstruction was backed out due to `DifficultyFactors` type constraints (all fields non-optional), so `answer_type` ended up as dead payload acknowledged with `void row.answer_type` in the loader. peekAnswer already has a direct DB fallback for the same field. Dropped `answer_type` from all 4 RPC returns; restored 7-column shapes. `DrawBoardRow` / `DrawQuestionsRow` types updated to match.
+
+### Added — scheduled drop for Phase 2C snapshot
+
+- **`supabase/migrations/20260615000011_drop_phase2c_snapshot_after_retention.sql`** — self-gated migration that drops `_phase2c_id_remapping` once the 30-day retention window closes on 2026-05-20. Safe to deploy now: it's a no-op until the date passes, then automatically cleans up on the first post-retention `db push`. Replaces the previous CHANGELOG-note-only reminder with an actual scheduled action.
+
 ## [0.8.11.0] - 2026-04-20
 
 ### Added — Full Phase 2 jsonb cleanup
