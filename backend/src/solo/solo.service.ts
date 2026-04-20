@@ -197,6 +197,14 @@ export class SoloService {
       }),
     ]);
 
+    // Fire-and-forget per-question outcome counter bump.
+    void this.supabaseService.recordAnswerOutcome(
+      questionPoolId,
+      correct,
+      timedOut,
+      Math.round(elapsed * 1000),
+    ).catch(() => {});
+
     // Award XP for the answer (and streak bonus on correct). Non-critical: failures fall through with zeros.
     const xpResult = await this.xpService.awardForAnswer(userId, correct, 'solo');
     let streakBonusAmount: number | undefined;

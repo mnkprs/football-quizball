@@ -159,6 +159,10 @@ export class LogoQuizService {
       }
     }
 
+    // Fire-and-forget per-question outcome counter bump. Logo Quiz doesn't
+    // time individual answers at this layer, so response_ms=null.
+    void this.supabaseService.recordAnswerOutcome(data.id, correct, timedOut, null).catch(() => {});
+
     // Atomic DB update — use the correct RPC for normal vs hardcore
     const rpcName = hardcore ? 'commit_logo_quiz_hardcore_answer' : 'commit_logo_quiz_answer';
     const rpcMode = hardcore ? 'logo_quiz_hardcore' : 'logo_quiz';

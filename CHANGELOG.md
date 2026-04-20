@@ -2,6 +2,42 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.10.0] - 2026-04-20
+
+### Added
+- **Monotonic stats now actually tracked.** Phases 3 + 4 of the question_pool schema cleanup wire up every write path that was left dangling by v0.8.9.0.
+
+### Phase 3 — counter bumps in draw RPCs (`supabase/migrations/20260615000002_draw_rpcs_bump_stats_counters.sql`)
+Five functions updated to bump `times_shown = times_shown + 1, last_shown_at = now()` alongside their existing `used = true, used_at = now()` writes:
+- `draw_board` — board-game draw (bulk UPDATE after sequential slot iteration)
+- `draw_questions` — solo + logo-by-category draw (CTE `UPDATE … FROM drawn`)
+- `draw_logo_questions_by_elo` (4-arg and 5-arg overloads) — logo-quiz ELO-matched draw. Also picked up `used_at = now()` which was missing in the original definition.
+- `mark_blitz_questions_seen` — blitz/BR path. This RPC never flipped `used` (blitz uses `blitz_user_seen_questions` for per-user dedup), so this migration is the first place blitz draws get reflected in pool-wide stats. Only newly-inserted seen rows trigger a bump (`RETURNING question_id` from the INSERT), preventing double-counts on network retries.
+
+### Phase 4 — `record_answer_outcome` RPC + 7 answer-submit wirings (`supabase/migrations/20260615000003_record_answer_outcome_rpc.sql`)
+- **New RPC `record_answer_outcome(p_question_id uuid, p_correct boolean, p_timed_out boolean, p_response_ms integer)`** — bumps `times_correct` / `times_timed_out` / `times_wrong` / `total_response_ms`. Accepts EITHER the `question_pool` row id OR the inner `question.id` jsonb field (2206 LOGO_QUIZ rows have divergent ids, and some callers only have one form on hand). Failure is silent — the callers wrap in `.catch()` so gameplay is unaffected by a stats-write hiccup.
+- **New helper `SupabaseService.recordAnswerOutcome(id, correct, timedOut, responseMs)`** — centralizes the call, normalises null/undefined ids, logs failures at warn level.
+- **Wired into all 7 answer-submit paths:**
+  - `game.service.ts` — 2-player phase game (timed_out=false, response_ms=null)
+  - `solo.service.ts` — solo (passes real `elapsed * 1000` as response_ms, real `timedOut` flag)
+  - `blitz.service.ts` — blitz (session-level timer, so per-answer timed_out=false)
+  - `duel.service.ts` — duel (race semantics, both players' answers get recorded)
+  - `online-game.service.ts` — online 2-player
+  - `battle-royale.service.ts` — BR (passes real `question_started_at → now` elapsed as response_ms for standard and team_logo modes)
+  - `logo-quiz.service.ts` — logo-quiz solo (hardcore and standard, passes real `timedOut` flag)
+
+### Why a separate outcome RPC (rather than folding into existing `commit_*_answer` RPCs)
+Only Solo and Logo-Quiz use those commit-RPCs for ELO/history. Game, blitz, duel, online-game, battle-royale do NOT — they just update Redis session state + insert into `match_history`. A single per-answer counter RPC gives every mode a consistent call site and keeps ELO logic decoupled from stats logic.
+
+### Edge cases handled
+- Unknown or null question id → RPC silently no-ops (WHERE fails).
+- Negative `response_ms` → clamped to 0 via `GREATEST(COALESCE(…, 0), 0)`.
+- LOGO_QUIZ id divergence → RPC matches `question_pool.id` OR `(question->>'id')::uuid`.
+- Blitz `mark_blitz_questions_seen` race on retries → bump only on newly-inserted rows via `RETURNING`.
+
+### Still ahead (Phase 2, not in this PR)
+- Migrate the 10 reader files off jsonb probes (`question.category`, `difficulty_factors.*`) onto top-level columns, then strip the jsonb duplicates. Readers: `solo.service`, `game.service`, `online-game.service`, `news.service`, `answer.validator`, `question.validator`, `question-integrity.service`, `questions.service`, `bot-online-game-runner`, `bot-duel-runner`. Separate commit.
+
 ## [0.8.9.0] - 2026-04-20
 
 ### Added

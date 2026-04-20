@@ -466,6 +466,8 @@ export class OnlineGameService {
     const player = row.players[myIndex];
 
     const correct = await this.answerValidator.validateAsync(question, dto.answer);
+    // Fire-and-forget per-question outcome counter bump.
+    void this.supabaseService.recordAnswerOutcome(dto.questionId, correct, false, null).catch(() => {});
 
     if (!correct) {
       // Append wrong attempt and broadcast via Realtime

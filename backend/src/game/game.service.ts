@@ -5,6 +5,7 @@ import { CacheService } from '../cache/cache.service';
 import { QuestionsService } from '../questions/questions.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
+import { SupabaseService } from '../supabase/supabase.service';
 import {
   GeneratedQuestion,
   DIFFICULTY_POINTS,
@@ -37,6 +38,7 @@ export class GameService {
     private readonly questionsService: QuestionsService,
     private readonly questionPoolService: QuestionPoolService,
     private readonly answerValidator: AnswerValidator,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   async createGame(dto: CreateGameDto): Promise<GameSession> {
@@ -185,6 +187,7 @@ export class GameService {
     const doubleApplied = !!dto.useDouble && !player.doubleUsed;
 
     const correct = this.answerValidator.validate(question, dto.answer);
+    void this.supabaseService.recordAnswerOutcome(dto.questionId, correct).catch(() => {});
     // If 50-50 was used on this question, cell.points is already reduced to 1
     const basePoints = correct ? cell.points : 0;
     const points_awarded = correct && doubleApplied ? basePoints * 2 : basePoints;

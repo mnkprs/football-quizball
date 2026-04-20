@@ -527,6 +527,33 @@ export class SupabaseService {
     }
   }
 
+  /**
+   * Fire-and-forget per-answer outcome recorder. Bumps
+   * times_correct/times_timed_out/times_wrong/total_response_ms on question_pool.
+   * Never throws — failure is logged so the caller's gameplay flow is unaffected.
+   *
+   * `questionId` must be the question_pool row id (the uuid returned by every
+   * draw RPC as `id`), not the inner jsonb `question.id` (which differs for
+   * LOGO_QUIZ rows).
+   */
+  async recordAnswerOutcome(
+    questionId: string | null | undefined,
+    correct: boolean,
+    timedOut = false,
+    responseMs: number | null = null,
+  ): Promise<void> {
+    if (!questionId) return;
+    const { error } = await this.client.rpc('record_answer_outcome', {
+      p_question_id: questionId,
+      p_correct: correct,
+      p_timed_out: timedOut,
+      p_response_ms: responseMs,
+    });
+    if (error) {
+      this.logger.warn(`[recordAnswerOutcome] ${questionId} failed: ${error.message}`);
+    }
+  }
+
   // --- Mayhem Mode Stats ---
 
   async getMayhemStats(userId: string): Promise<MayhemStats | null> {
