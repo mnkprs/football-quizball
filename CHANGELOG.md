@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.6.4] - 2026-04-19
+
+### Changed
+- **Collapsed `entity_slugs` + `tags` into a single `tags` field on `question_pool`.** v0.8.6.2 introduced a generated `entity_slugs TEXT[]` column alongside the existing LLM-written `tags TEXT[]` to give entity-scoped modes a single-field filter. User feedback: the two fields were confusing, and empirical verification confirmed `tags ⊆ entity_slugs` holds on 100% of rows (0 violations across 1,950 tagged rows) — the separate `tags` column was query-redundant. Migration `20260615000000_collapse_entity_slugs_into_tags.sql` backfills `tags` to equal the current `entity_slugs` union, drops the generated column, and reindexes. Classifier writes (`pool-seed.service.ts:731`, `backfill-pool-taxonomy.ts:260`) now compute the full union (`subject_id + competition_id + nationality + LLM secondaries`) directly before inserting/updating, making the classifier the sole source of truth for `tags`. Downstream queries against `entity_slugs` must migrate to `tags` (zero such queries exist today — the column was added only 2 commits ago, not yet consumed by app code). Trade: gives up the Postgres-GENERATED invariant in exchange for schema clarity; acceptable because the only writers are the two classifier sites above and neither mutates scalar fields (subject_id/competition_id/nationality) independently of tags. GIN index on new `tags` preserves query performance.
+
 ## [0.8.6.3] - 2026-04-19
 
 ### Fixed
