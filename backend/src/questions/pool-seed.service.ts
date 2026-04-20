@@ -14,6 +14,7 @@ import {
   CanonicalIndex,
   loadCanonicalEntities,
 } from './classifiers/canonical-entities';
+import { SteeringService, type BatchSteeringPlan } from './steering';
 import { RedisService } from '../redis/redis.service';
 import {
   BoardCategory,
@@ -58,6 +59,7 @@ export class PoolSeedService {
     private questionValidator: QuestionValidator,
     private questionIntegrity: QuestionIntegrityService,
     private questionClassifier: QuestionClassifierService,
+    private steeringService: SteeringService,
     private redisService: RedisService,
     private readonly configService: ConfigService,
   ) {}
@@ -320,10 +322,16 @@ export class PoolSeedService {
         let attempt = 0;
 
         while (attempt <= DUPLICATE_RETRY_ATTEMPTS) {
+          const plan = await this.steeringService.planBatch(category, difficulty);
+          this.logSteering('seedPool', category, difficulty, plan);
           const batch = await this.questionsService.generateBatch(category, {
             questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
             targetDifficulty: difficulty,
             avoidQuestions,
+            concept: plan.concept
+              ? { id: plan.concept.id, samples: plan.concept.samples }
+              : undefined,
+            entityTargets: plan.entityTargets,
           });
           const candidates = batch.filter(
             (q) =>
@@ -432,10 +440,16 @@ export class PoolSeedService {
     while (added < targetCount && pass < MAX_CATEGORY_BATCH_ATTEMPTS) {
       pass += 1;
       this.logger.debug(`[seedSlot] ${category}/${difficulty} pass ${pass}`);
+      const plan = await this.steeringService.planBatch(category, difficulty);
+      this.logSteering('seedSlot', category, difficulty, plan);
       const batch = await this.questionsService.generateBatch(category, {
         questionCount: CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
         targetDifficulty: difficulty,
         avoidQuestions,
+        concept: plan.concept
+          ? { id: plan.concept.id, samples: plan.concept.samples }
+          : undefined,
+        entityTargets: plan.entityTargets,
       });
       const candidates = batch.filter(
         (q) =>
@@ -600,10 +614,16 @@ export class PoolSeedService {
           needed,
           CATEGORY_BATCH_SIZES[category] ?? GENERATION_BATCH_SIZE,
         );
+        const plan = await this.steeringService.planBatch(category, difficulty);
+        this.logSteering('fillCategory', category, difficulty, plan);
         const batch = await this.questionsService.generateBatch(category, {
           questionCount: batchSize,
           targetDifficulty: difficulty,
           avoidQuestions,
+          concept: plan.concept
+            ? { id: plan.concept.id, samples: plan.concept.samples }
+            : undefined,
+          entityTargets: plan.entityTargets,
         });
 
         const candidates = batch.filter(
@@ -999,6 +1019,20 @@ export class PoolSeedService {
 
   private hasRemainingNeeds(needs: Partial<Record<Difficulty, number>>): boolean {
     return (needs.EASY ?? 0) > 0 || (needs.MEDIUM ?? 0) > 0 || (needs.HARD ?? 0) > 0;
+  }
+
+  /** Emits a structured log line describing the steering plan for one batch. */
+  private logSteering(
+    tag: string,
+    category: QuestionCategory,
+    difficulty: Difficulty,
+    plan: BatchSteeringPlan,
+  ): void {
+    const conceptPart = plan.concept
+      ? `concept=${plan.concept.id}(tier=${plan.concept.tier},cov=${plan.concept.existingCoverage},samples=${plan.concept.samples.length})`
+      : 'concept=none';
+    const targetPart = `targets=${plan.entityTargets.length}${plan.entityTargets.length > 0 ? `[${plan.entityTargets.slice(0, 3).join('|')}${plan.entityTargets.length > 3 ? '...' : ''}]` : ''}`;
+    this.logger.debug(`[${tag}] ${category}/${difficulty} steering: ${conceptPart} ${targetPart}`);
   }
 
   /** Fetches seed pool stats (used by seedPool minDrawable filter). */
