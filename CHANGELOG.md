@@ -2,6 +2,22 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.11.2] - 2026-04-20
+
+### Fixed — Logo Quiz answer submit returning 404 after Phase 2D
+
+Two Phase 2D regressions in `backend/src/logo-quiz/logo-quiz.service.ts` that together broke `POST /api/logo-quiz/answer`.
+
+- **`submitAnswer` lookup used `question->>'id'` filter** (`:133`). Phase 2D stripped the `id` key from the jsonb payload, so every lookup matched zero rows → `NotFoundException` → 404 at the controller. Fixed to query by top-level `id` column directly (now the canonical id post-Phase 2C).
+- **`mapQuestion` read `q.id` and `q.image_url` from the stripped jsonb body**. The mapper returned `id: undefined, image_url: ''` to the client. Frontend then submitted undefined back → same 404. Rewrote mapQuestion to accept the full row, sourcing `id` and `image_url` from the top-level columns; jsonb still carries `correct_answer`, `meta`, `meta.hard_image_url`, `meta.easy_image_url`, `meta.original_image_url` which were preserved.
+
+### Root cause analysis
+Phase 2D's bulk strip moved 7 keys out of jsonb without migrating the handful of consumers that still probed those paths. The `question-draw.service.ts` loaders were updated correctly in the same commit. Logo-quiz was a missed path — caught by your first smoke test of the prod flow. Takeaway for next time: `git grep "question->>"` and `grep "\.question\."` as a post-strip checklist before claiming the migration complete.
+
+### Verified
+- `POST /api/logo-quiz/answer` returns `401` (auth required) instead of `404` (missing route/NotFoundException)
+- TS type check clean (no new errors)
+
 ## [0.8.11.1] - 2026-04-20
 
 ### Fixed — review-driven cleanups on top of Phase 2
