@@ -2,6 +2,11 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.8.2] - 2026-04-20
+
+### Added
+- **`backend/scripts/dedupe-pool-near-duplicate.ts`** (`npm run pool:dedupe-near`) — 3-layer near-duplicate cleanup targeting the Steaua-style case (same concept, different wording, slipped past exact-text dedup). Layer 1: pgvector cosine similarity under threshold (default 0.12, matches `find_near_duplicate_in_pool` RPC). Layer 2: NULL-safe taxonomy compatibility — rules out pairs where `subject_id`, `competition_id`, `event_year`, `concept_id`, or `answer_type` are both populated on either side and differ. This kills structural false positives like "Galatasaray in Istanbul" vs "Fenerbahçe in Istanbul" (different `subject_id`) or "Dortmund 2013 UCL" vs "Bayern 2012 DFB-Pokal" (different year + subject). Layer 3: Gemini YES/NO verdict on remaining pairs catches the subtler cases where taxonomy agrees but stats differ (e.g. Messi-80g-all-comps vs Messi-45g-La-Liga, same subject + year). Dry-run by default; keeps the oldest row per cluster. Layer breakdown on current pool: 419 pgvector candidates → 94 after taxonomy → LLM verdict pending. `--skip-llm` flag for aggressive taxonomy-only mode; `--threshold N`, `--category X`, `--no-same-answer` flags.
+
 ## [0.8.8.1] - 2026-04-20
 
 ### Fixed
