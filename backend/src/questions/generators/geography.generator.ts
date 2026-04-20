@@ -5,6 +5,8 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAvoidQuestionsInstruction,
+  getConceptSteeringInstruction,
+  getEntityTargetsInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
   getSingleAnswerInstruction,
@@ -76,7 +78,7 @@ ${getSingleAnswerInstruction()}${getAntiConvergenceInstruction()}${getCompactQue
 Return ONLY a valid JSON object with a "questions" array. Each item must include question_text, correct_answer, answer_type, fifty_fifty_hint, wrong_choices (array of 3 plausible wrong answers), explanation, source_url, event_year, competition, fame_score, specificity_score, combinational_thinking_score.
 fifty_fifty_hint: Must be the SAME type as correct_answer (e.g. if answer is a country, hint is another country; if city, another city). NOT a description.
     ${getLeagueFameGuidanceForBatch('GEOGRAPHY', options?.targetDifficulty)}`;
-    const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
+    const userPrompt = `Generate ${questionCount} football geography questions in one batch. ${getRelativityConstraint('GEOGRAPHY', questionCount)}${getConceptSteeringInstruction(options?.concept)}${getEntityTargetsInstruction(options?.entityTargets)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: GeographyPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));

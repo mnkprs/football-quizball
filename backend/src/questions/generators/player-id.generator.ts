@@ -5,6 +5,8 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAvoidQuestionsInstruction,
+  getConceptSteeringInstruction,
+  getEntityTargetsInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
   getSingleAnswerInstruction,
@@ -106,7 +108,7 @@ Return ONLY a valid JSON object with a "questions" array. Each question must inc
 Set "is_loan": true for any loan spell in the career path, otherwise false.
 CRITICAL: career must be COMPLETE from first professional club to last — never omit early clubs. Verify via source_url (Wikipedia, Transfermarkt).
 ${getLeagueFameGuidanceForBatch('PLAYER_ID')}`;
-    const userPrompt = `Generate ${questionCount} player-id questions in one batch. ${getRelativityConstraint('PLAYER_ID', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
+    const userPrompt = `Generate ${questionCount} player-id questions in one batch. ${getRelativityConstraint('PLAYER_ID', questionCount)}${getConceptSteeringInstruction(options?.concept)}${getEntityTargetsInstruction(options?.entityTargets)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: PlayerIdPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));

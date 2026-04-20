@@ -5,6 +5,8 @@ import {
   getExplicitConstraintsWithMeta,
   getAvoidInstruction,
   getAvoidQuestionsInstruction,
+  getConceptSteeringInstruction,
+  getEntityTargetsInstruction,
   getAntiConvergenceInstruction,
   getCompactQuestionInstruction,
   getSingleAnswerInstruction,
@@ -93,7 +95,7 @@ Return ONLY valid JSON:
   ]
 }
 ${getLeagueFameGuidanceForBatch('HIGHER_OR_LOWER')}`;
-    const userPrompt = `Generate ${questionCount} Higher or Lower questions in one batch. ${getRelativityConstraint('HIGHER_OR_LOWER', questionCount)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
+    const userPrompt = `Generate ${questionCount} Higher or Lower questions in one batch. ${getRelativityConstraint('HIGHER_OR_LOWER', questionCount)}${getConceptSteeringInstruction(options?.concept)}${getEntityTargetsInstruction(options?.entityTargets)}${getAvoidInstruction(options?.avoidAnswers)}${getAvoidQuestionsInstruction(options?.avoidQuestions)}`;
 
     const result = await this.llmService.generateStructuredJson<{ questions: HolPayload[] }>(systemPrompt, userPrompt);
     return this.mapBatchItems(result.questions ?? [], (item) => this.mapQuestion(item));
