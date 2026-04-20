@@ -241,7 +241,9 @@ export class LogoQuizComponent implements OnDestroy {
         user_answer: answer,
         elo_change: result.elo_change,
         elo_after: result.elo_after,
-        original_image_url: q.original_image_url,
+        // Revealed by the server only on the POST /answer response — it is
+        // intentionally absent from the pre-answer GET /question payload.
+        original_image_url: result.original_image_url,
       });
       this.revealing.set(true);
       this.pulseHeaderAnimations(result.correct);
@@ -273,7 +275,7 @@ export class LogoQuizComponent implements OnDestroy {
         timed_out: true,
         elo_change: result.elo_change,
         elo_after: result.elo_after,
-        original_image_url: q.original_image_url,
+        original_image_url: result.original_image_url,
       });
       this.revealing.set(true);
       this.pulseHeaderAnimations(false);

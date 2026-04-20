@@ -2,6 +2,34 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.12.0] - 2026-04-20
+
+### Security — Anti-cheat answer hardening
+
+Logo-quiz and battle-royale logo modes were shipping the answer in the pre-answer GET response, letting anyone with Proxyman (or a modified client) read `team_name` / `original_image_url` off the wire and cheat the leaderboard. Solo ranked was already safe; onboarding is exempt (no server-side scoring). Fix moves the reveal payload out of the question-fetch response and into the answer-submit response — same UX, no answer pre-disclosure.
+
+Defense-in-depth additions on top of the leak fix:
+
+1. **Global rate limiting** — `@nestjs/throttler` registered globally with `UserThrottlerGuard` (keyed by authenticated user id, not IP — carrier NAT makes IP useless, and cheaters can rotate IPs but not auth tokens). Named throttlers: `default` 120/min, `answer` 60/min, `fetch` 40/min. Applied to solo + logo-quiz + battle-royale answer endpoints and solo+logo question-fetch endpoints.
+2. **Inline speed check** in solo and logo-quiz `submitAnswer`. Per-difficulty `MIN_THINK_MS` (solo 800–1500ms by difficulty; logo 400/600ms). Submissions faster than the floor are rejected as `rejected_too_fast` with no ELO change, no question consumption, and the correct_answer is withheld (don't hand the bot the answer). Logo-quiz served-at tracking uses Redis (120s TTL) since logo has no session concept.
+3. **Anomaly flagging** — new `cheating_flags` table + `AnomalyFlagService`. Rolling window (last 20 HARD/EXPERT solo answers); if accuracy ≥ 90% and no same-type flag exists in the last 24h, a `sustained_high_accuracy` flag is written with evidence snapshot (difficulty breakdown, timestamps). Async fire-and-forget — gameplay is never blocked.
+
+E2E sim updated: logo-quiz simulator now peeks `question_pool.correct_answer` via service role (same pattern as solo) since `team_name` no longer ships; both simulators handle `rejected_too_fast` with retry-after-pause. Sim `jitterSleep` already exceeds the speed-check floor.
+
+Regression tests: 6 targeted specs on `LogoQuizService.toPublicQuestion` pin the public shape so any future re-add of `team_name` / `original_image_url` / `slug` / `league` / `country` breaks CI. Full suite 296/296.
+
+### Fixed
+
+- `LogoQuizService` was missing its `Logger` — added alongside the anti-cheat warn logs.
+
+### Deferred
+
+- Duel / battle-royale standard speed check (both have server-side `question_started_at`; low priority — PvP limits exploit value)
+- Onboarding hardening (client-side scoring, no server persistence)
+- Admin review UI for `cheating_flags` (inserts only today; reviewed via SQL)
+- Response-time normalization (timing side-channel; low impact)
+- Single-session-per-mode enforcement
+
 ## [0.8.11.3] - 2026-04-20
 
 ### Fixed — Semantic dedup silent-failure chain (3 layers)

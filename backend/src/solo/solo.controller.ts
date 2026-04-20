@@ -1,4 +1,5 @@
 import { Controller, Post, Get, Param, Body, UseGuards, Req } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/auth.guard';
 import { SoloService } from './solo.service';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -20,12 +21,14 @@ export class SoloController {
 
   @Get('session/:id/next')
   @UseGuards(AuthGuard)
+  @Throttle({ fetch: { limit: 40, ttl: 60_000 } })
   getNextQuestion(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.soloService.getNextQuestion(id, req.user.id);
   }
 
   @Post('session/:id/answer')
   @UseGuards(AuthGuard)
+  @Throttle({ answer: { limit: 60, ttl: 60_000 } })
   submitAnswer(@Param('id') id: string, @Body() body: SubmitAnswerDto, @Req() req: AuthenticatedRequest) {
     return this.soloService.submitAnswer(id, req.user.id, body.answer);
   }

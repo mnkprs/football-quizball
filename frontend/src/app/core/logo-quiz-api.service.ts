@@ -4,25 +4,31 @@ import { Observable, shareReplay } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
+/**
+ * Shape of GET /api/logo-quiz/question — intentionally omits answer-revealing
+ * fields. team_name / slug / league / country / original_image_url now arrive
+ * only on the POST /answer reveal response (see LogoAnswerResponse).
+ */
 export interface LogoQuestionResponse {
   id: string;
-  team_name: string;
-  slug: string;
-  league: string;
-  country: string;
   difficulty: 'EASY' | 'HARD';
   image_url: string;
-  original_image_url: string;
+  question_elo?: number;
 }
 
 export interface LogoAnswerResponse {
   correct: boolean;
   timed_out: boolean;
   correct_answer: string;
+  /** Unobscured logo — revealed only after submission. */
+  original_image_url?: string;
+  /** Metadata revealed only after submission (reveal screen + profile surface). */
+  team_metadata?: { slug: string; league: string; country: string };
   elo_before: number;
   elo_after: number;
   elo_change: number;
   elo_capped?: boolean;
+  rejected_too_fast?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

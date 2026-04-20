@@ -11,9 +11,10 @@ import { LlmModule } from '../llm/llm.module';
 import { AchievementsModule } from '../achievements/achievements.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { XpModule } from '../xp/xp.module';
+import { AntiCheatModule } from '../common/anti-cheat/anti-cheat.module';
 
 @Module({
-  imports: [AuthModule, SessionStoreModule, SupabaseModule, QuestionsModule, LlmModule, AchievementsModule, NotificationsModule, XpModule],
+  imports: [AuthModule, SessionStoreModule, SupabaseModule, QuestionsModule, LlmModule, AchievementsModule, NotificationsModule, XpModule, AntiCheatModule],
   controllers: [SoloController],
   providers: [SoloService, EloService, SoloQuestionGenerator],
 })

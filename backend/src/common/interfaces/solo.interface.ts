@@ -39,4 +39,10 @@ export interface SoloAnswerResult {
   questions_answered: number;
   correct_answers: number;
   xp?: { xp_gained: number; total_xp: number; level: number; leveled_up: boolean; streak_bonus?: number };
+  /**
+   * Set true when the server rejected the submission as too-fast (below
+   * per-difficulty minimum think time). No ELO change, no question consumption;
+   * the client should re-submit at human speed.
+   */
+  rejected_too_fast?: boolean;
 }

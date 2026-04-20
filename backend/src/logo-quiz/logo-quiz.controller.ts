@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/auth.guard';
 import { LogoQuizService } from './logo-quiz.service';
 import type { Difficulty } from '../common/interfaces/question.interface';
@@ -26,6 +27,7 @@ export class LogoQuizController {
    */
   @Get('question')
   @UseGuards(AuthGuard)
+  @Throttle({ fetch: { limit: 40, ttl: 60_000 } })
   async getQuestion(
     @Req() req: AuthenticatedRequest,
     @Query('difficulty') difficulty?: string,
@@ -43,6 +45,7 @@ export class LogoQuizController {
    */
   @Post('answer')
   @UseGuards(AuthGuard)
+  @Throttle({ answer: { limit: 60, ttl: 60_000 } })
   async submitAnswer(
     @Req() req: AuthenticatedRequest,
     @Body() body: { question_id: string; answer: string; timed_out?: boolean; hardcore?: boolean },

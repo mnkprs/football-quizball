@@ -4,12 +4,13 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { EloService } from './elo.service';
 import { SoloQuestionGenerator } from './solo-question.generator';
-import { SoloSession, SoloAnswerResult, TIME_LIMITS } from './solo.types';
+import { SoloSession, SoloAnswerResult, TIME_LIMITS, MIN_THINK_MS } from './solo.types';
 import { AnswerValidator } from '../questions/validators/answer.validator';
 import { AchievementsService } from '../achievements/achievements.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { XpService } from '../xp/xp.service';
 import { XP_VALUES } from '../xp/xp.constants';
+import { AnomalyFlagService } from '../common/anti-cheat/anomaly-flag.service';
 
 const SESSION_TTL = 7200; // 2h
 
@@ -27,6 +28,7 @@ export class SoloService {
     private readonly achievementsService: AchievementsService,
     private readonly notificationsService: NotificationsService,
     private readonly xpService: XpService,
+    private readonly anomalyFlagService: AnomalyFlagService,
   ) {}
 
   private sessionKey(id: string) { return `solo:${id}`; }
@@ -150,8 +152,37 @@ export class SoloService {
     if (!session.servedAt) throw new BadRequestException('Question not served yet');
 
     const timeLimit = TIME_LIMITS[question.difficulty];
-    const elapsed = (Date.now() - new Date(session.servedAt).getTime()) / 1000;
+    const elapsedMs = Date.now() - new Date(session.servedAt).getTime();
+    const elapsed = elapsedMs / 1000;
     const timedOut = answer === 'TIMEOUT' || elapsed > timeLimit + 2; // 2s grace
+
+    // Anti-bot: reject submissions below the per-difficulty minimum think time.
+    // The question stays active (servedAt, currentQuestion intact), no DB
+    // writes happen, and no ELO changes — the client is expected to retry at
+    // human speed. We still log the event so the anomaly flagger sees the
+    // pattern for this user.
+    const minThinkMs = MIN_THINK_MS[question.difficulty];
+    if (!timedOut && answer !== 'TIMEOUT' && elapsedMs < minThinkMs) {
+      this.logger.warn(JSON.stringify({
+        event: 'answer_too_fast',
+        userId,
+        difficulty: question.difficulty,
+        elapsedMs,
+        minThinkMs,
+      }));
+      return {
+        correct: false,
+        timed_out: false,
+        correct_answer: '', // deliberately withheld — don't hand the bot the answer
+        explanation: '',
+        elo_before: session.currentElo,
+        elo_after: session.currentElo,
+        elo_change: 0,
+        questions_answered: session.questionsAnswered,
+        correct_answers: session.correctAnswers,
+        rejected_too_fast: true,
+      };
+    }
 
     let correct = false;
     if (!timedOut) {
@@ -204,6 +235,13 @@ export class SoloService {
       timedOut,
       Math.round(elapsed * 1000),
     ).catch(() => {});
+
+    // Fire-and-forget anomaly check — only runs for HARD/EXPERT answers (the
+    // flagger short-circuits below that). Gameplay is never blocked even if
+    // the flagger throws.
+    if (question.difficulty === 'HARD' || question.difficulty === 'EXPERT') {
+      void this.anomalyFlagService.checkSustainedAccuracy(userId, 'solo');
+    }
 
     // Award XP for the answer (and streak bonus on correct). Non-critical: failures fall through with zeros.
     const xpResult = await this.xpService.awardForAnswer(userId, correct, 'solo');

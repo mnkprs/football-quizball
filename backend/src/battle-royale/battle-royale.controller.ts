@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthGuard } from '../auth/auth.guard';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BattleRoyaleService } from './battle-royale.service';
@@ -77,6 +78,7 @@ export class BattleRoyaleController {
   /** Submit an answer for the current question */
   @Post(':id/answer')
   @UseGuards(AuthGuard)
+  @Throttle({ answer: { limit: 60, ttl: 60_000 } })
   async submitAnswer(
     @Param('id') id: string,
     @Request() req: AuthRequest,

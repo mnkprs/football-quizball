@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { UserThrottlerGuard } from './common/throttler/user-throttler.guard';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from './redis/redis.module';
 import { RedisService } from './redis/redis.service';
@@ -47,7 +48,20 @@ import { OnboardingModule } from './onboarding/onboarding.module';
       imports: [RedisModule],
       inject: [RedisService],
       useFactory: (redisService: RedisService) => ({
-        throttlers: [{ ttl: 60000, limit: 60 }],
+        // Multiple named throttlers — routes opt into stricter ones via @Throttle.
+        // All limits are per authenticated user (see UserThrottlerGuard); anon
+        // traffic is tracked per IP as a fallback.
+        throttlers: [
+          // Baseline for every authenticated request across the API.
+          { name: 'default', ttl: 60_000, limit: 120 },
+          // Submit endpoints (/answer). One-per-second is already well above a
+          // human cap — anything faster is a bot grinding the pool.
+          { name: 'answer', ttl: 60_000, limit: 60 },
+          // Question-fetch endpoints (/next, /question). Lower than answer to
+          // prevent skip-the-pool grinds where a cheater fetches + discards
+          // questions looking for easy ones.
+          { name: 'fetch', ttl: 60_000, limit: 40 },
+        ],
         storage: new ThrottlerStorageRedisService(redisService.client),
       }),
     }),
@@ -93,6 +107,10 @@ import { OnboardingModule } from './onboarding/onboarding.module';
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    // Registers ThrottlerGuard globally, keyed by authenticated user id.
+    // Routes inherit the `default` throttler (120/min); answer/fetch routes
+    // opt into stricter named throttlers via @Throttle({ answer: {...} }).
+    { provide: APP_GUARD, useClass: UserThrottlerGuard },
   ],
 })
 export class AppModule {}

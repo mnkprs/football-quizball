@@ -20,9 +20,10 @@ export interface BRPublicQuestion {
   category: string;
   difficulty: string;
   meta: { career: BRCareerEntry[] };
-  // Team Logo mode fields
+  // Team Logo mode: obscured/medium image shown during gameplay
   image_url?: string;
-  original_image_url?: string;
+  // NOTE: original_image_url intentionally absent — arrives via BRAnswerResult
+  // after the user submits their guess for this question.
 }
 
 export interface BRPlayerEntry {
@@ -83,6 +84,10 @@ export interface BRAnswerResult {
   timeBonus: number;
   // Team Logo mode: original logo revealed after answering
   original_image_url?: string;
+  // Team Logo mode: team metadata revealed after answering
+  team_metadata?: { slug: string; league: string; country: string };
+  // Set true when the server rejected the submission as too-fast (anti-robot).
+  rejected_too_fast?: boolean;
 }
 
 // ── Service ───────────────────────────────────────────────────────────────────

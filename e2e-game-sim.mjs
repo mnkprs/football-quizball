@@ -1,27 +1,98 @@
 /**
  * E2E Game Simulation Script
- * Simulates completing: 1 logo duel, 1 battle royale, 1 two-player game
+ * Simulates: duel, battle royale, 2-player, N solo-ranked sessions, N logo-quiz sessions.
  * Uses production backend API.
+ *
+ * Phase toggles (all default ON):
+ *   SIM_DUEL, SIM_BR, SIM_2P, SIM_SOLO, SIM_LOGO   → set to "0" to skip.
+ *
+ * Counts & targets:
+ *   SOLO_SESSIONS=3        // number of solo-ranked sessions to run
+ *   SOLO_QUESTIONS=20      // questions per solo session
+ *   LOGO_SESSIONS=2        // number of logo-quiz sessions to run
+ *   LOGO_QUESTIONS=20      // questions per logo-quiz session
+ *   TARGET_ACCURACY=0.5    // target correctness rate for both
+ *
+ * The solo simulator peeks `question_pool.correct_answer` via service role
+ * to deterministically hit the requested accuracy; the logo simulator reads
+ * `team_name` directly from the question response (no DB peek needed).
  */
 
 import { createRequire } from 'module';
+import { readFileSync } from 'fs';
+import { pickShouldAnswerCorrectly } from './sim-realism.mjs';
 const require = createRequire(import.meta.url);
 const { createClient } = require('./backend/node_modules/@supabase/supabase-js');
 
+// ─── Load backend/.env so SUPABASE_SERVICE_ROLE_KEY / ADMIN_API_KEY flow in
+// ─── without manual export. We only read; never mutate the file.
+function loadBackendEnv() {
+  try {
+    const raw = readFileSync(new URL('./backend/.env', import.meta.url), 'utf8');
+    for (const line of raw.split('\n')) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+      if (!m) continue;
+      const [, key, rawVal] = m;
+      if (process.env[key]) continue; // shell-provided wins
+      // Strip surrounding quotes
+      const val = rawVal.replace(/^['"]|['"]$/g, '');
+      process.env[key] = val;
+    }
+  } catch { /* fine — fall back to shell env */ }
+}
+loadBackendEnv();
+
 const API = process.env.API_URL || 'https://football-quizball-production.up.railway.app';
 const ADMIN_KEY = process.env.ADMIN_API_KEY || '';
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 // Per-player accuracy rate used to decide whether to submit the correct answer.
 const P1_ACCURACY = Number(process.env.P1_ACCURACY ?? 0.65);
 const P2_ACCURACY = Number(process.env.P2_ACCURACY ?? 0.45);
+const TARGET_ACCURACY = Number(process.env.TARGET_ACCURACY ?? 0.5);
+const SOLO_SESSIONS = Number(process.env.SOLO_SESSIONS ?? 3);
+const SOLO_QUESTIONS = Number(process.env.SOLO_QUESTIONS ?? 20);
+const LOGO_SESSIONS = Number(process.env.LOGO_SESSIONS ?? 2);
+const LOGO_QUESTIONS = Number(process.env.LOGO_QUESTIONS ?? 20);
 const SUPABASE_URL = 'https://npwneqworgyclzaofuln.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5wd25lcXdvcmd5Y2x6YW9mdWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5ODU3ODEsImV4cCI6MjA4ODU2MTc4MX0.RutdVolELWFbYNv1FKC74xb6ZUrjY62OxsPFJgXmhOo';
 
+const phaseOn = (key) => process.env[key] !== '0';
+
 let MY_USER_ID; // set after auth
+let SERVICE_CLIENT = null; // service-role Supabase client (lazy)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const jitterSleep = (min, max) => sleep(min + Math.random() * (max - min));
 
 // Realistic wrong answers for failed guesses
 const WRONG_ANSWERS = ['unknown', 'nobody', 'random', 'not sure', 'idk', 'maybe', 'uncertain'];
+
+// ─── Service-role client for DB peek (question_pool.correct_answer) ──────
+function getServiceClient() {
+  if (SERVICE_CLIENT) return SERVICE_CLIENT;
+  if (!SERVICE_ROLE_KEY) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY not set (add it to backend/.env or export it)');
+  }
+  SERVICE_CLIENT = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return SERVICE_CLIENT;
+}
+
+async function peekPoolCorrectAnswer(questionId) {
+  // LLM-fallback questions use synthetic ids like "solo-xxxx" and are not in question_pool.
+  if (!questionId || typeof questionId !== 'string' || questionId.startsWith('solo-')) {
+    return null;
+  }
+  const client = getServiceClient();
+  const { data, error } = await client
+    .from('question_pool')
+    .select('correct_answer')
+    .eq('id', questionId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data.correct_answer ?? null;
+}
 
 // ─── Auth ───────────────────────────────────────────────────────────
 async function getToken() {
@@ -495,6 +566,169 @@ async function save2PlayerMatch(token, gameId, board) {
   }
 }
 
+// ─── 4. SOLO RANKED SESSION (single run) ────────────────────────────
+// Simulates the end-to-end solo flow: start → N×(next, answer) → end.
+// Accuracy is driven by pickShouldAnswerCorrectly + DB peek of correct_answer.
+async function simulateSoloSession(token, { target = SOLO_QUESTIONS, targetAccuracy = TARGET_ACCURACY, label = '' } = {}) {
+  const tag = label ? ` [${label}]` : '';
+  console.log(`\n── SOLO SESSION${tag} — target=${target}q, accuracy=${(targetAccuracy * 100).toFixed(0)}% ──`);
+
+  const { session_id: sessionId, user_elo: startElo } = await api('POST', '/api/solo/session', token);
+  console.log(`  Session ${sessionId.slice(0, 8)}… startElo=${startElo}`);
+
+  let lastCorrect = null;
+  let correctSoFar = 0;
+  let answered = 0;
+
+  for (let i = 0; i < target; i++) {
+    let q;
+    try {
+      q = await api('GET', `/api/solo/session/${sessionId}/next`, token);
+    } catch (e) {
+      console.log(`  Q${i}: next failed — ${e.message}`);
+      break;
+    }
+
+    const shouldBeCorrect = pickShouldAnswerCorrectly({
+      questionIndex: i,
+      sessionLength: target,
+      difficulty: q.difficulty,
+      lastCorrect,
+      correctSoFar,
+      targetAccuracy,
+    });
+
+    let answer;
+    if (shouldBeCorrect) {
+      const peeked = await peekPoolCorrectAnswer(q.question_id);
+      if (peeked) {
+        answer = peeked;
+      } else {
+        // LLM-fallback question (id starts with 'solo-') — we can't peek.
+        // Fall through to wrong guess; accuracy will skew down slightly.
+        answer = WRONG_ANSWERS[Math.floor(Math.random() * WRONG_ANSWERS.length)];
+      }
+    } else {
+      answer = WRONG_ANSWERS[Math.floor(Math.random() * WRONG_ANSWERS.length)];
+    }
+
+    // Simulate think time (1.5–3.5s) — above the highest speed-check floor
+    // (1500ms for EXPERT) and well under the shortest 12s timer.
+    await jitterSleep(1500, 3500);
+
+    try {
+      const res = await api('POST', `/api/solo/session/${sessionId}/answer`, token, { answer });
+      if (res.rejected_too_fast) {
+        // Server clamp fired — wait out the minimum and re-issue the iteration.
+        console.log(`  Q${i + 1}: server rejected as too-fast — retrying after a pause`);
+        await sleep(800);
+        i--;
+        continue;
+      }
+      answered++;
+      lastCorrect = !!res.correct;
+      if (res.correct) correctSoFar++;
+      const flag = res.correct ? '✓' : '✗';
+      console.log(`  Q${i + 1}/${target} ${flag} ${q.difficulty.padEnd(6)} elo=${res.elo_after} (${res.elo_change >= 0 ? '+' : ''}${res.elo_change})`);
+    } catch (e) {
+      console.log(`  Q${i + 1}: answer failed — ${e.message}`);
+      // Continue: one failed submit shouldn't kill the session.
+    }
+  }
+
+  let summary = { questions_answered: answered, correct_answers: correctSoFar, elo_delta: 0 };
+  try {
+    summary = await api('POST', `/api/solo/session/${sessionId}/end`, token);
+  } catch (e) {
+    console.log(`  ⚠ endSession failed: ${e.message}`);
+  }
+  const pct = summary.questions_answered > 0
+    ? ((summary.correct_answers / summary.questions_answered) * 100).toFixed(1)
+    : '0.0';
+  console.log(`  → ${summary.correct_answers}/${summary.questions_answered} correct (${pct}%)  elo Δ ${summary.elo_delta ?? 0}`);
+  return { success: summary.questions_answered > 0, ...summary };
+}
+
+// ─── 5. LOGO QUIZ SESSION (N questions) ─────────────────────────────
+// No session endpoint — logo quiz is one-question-at-a-time. We loop N
+// GET /question + POST /answer calls, then POST /check-achievements.
+// team_name is in the GET response, so no DB peek needed.
+async function simulateLogoQuizSession(token, { target = LOGO_QUESTIONS, targetAccuracy = TARGET_ACCURACY, label = '' } = {}) {
+  const tag = label ? ` [${label}]` : '';
+  console.log(`\n── LOGO QUIZ${tag} — target=${target}q, accuracy=${(targetAccuracy * 100).toFixed(0)}% ──`);
+
+  let answered = 0;
+  let correctSoFar = 0;
+  let lastCorrect = null;
+
+  for (let i = 0; i < target; i++) {
+    let q;
+    try {
+      q = await api('GET', '/api/logo-quiz/question', token);
+    } catch (e) {
+      console.log(`  Q${i + 1}: get question failed — ${e.message}`);
+      break;
+    }
+    const questionId = q.id;
+    if (!questionId) {
+      console.log(`  Q${i + 1}: malformed question response (no id)`);
+      break;
+    }
+
+    // Post-hardening, the GET response no longer ships team_name. Peek
+    // question_pool.correct_answer via service role — same pattern as solo.
+    const peekedAnswer = await peekPoolCorrectAnswer(questionId);
+
+    const shouldBeCorrect = pickShouldAnswerCorrectly({
+      questionIndex: i,
+      sessionLength: target,
+      difficulty: q.difficulty || 'EASY',
+      lastCorrect,
+      correctSoFar,
+      targetAccuracy,
+    });
+
+    const answer = shouldBeCorrect && peekedAnswer
+      ? peekedAnswer
+      : WRONG_ANSWERS[Math.floor(Math.random() * WRONG_ANSWERS.length)];
+
+    // 1.2–3.0s think time — comfortably above the 400/600ms speed-check floor.
+    await jitterSleep(1200, 3000);
+
+    try {
+      const res = await api('POST', '/api/logo-quiz/answer', token, {
+        question_id: questionId,
+        answer,
+        timed_out: false,
+      });
+      if (res.rejected_too_fast) {
+        // Defensive: shouldn't happen with our jitter but log + retry-like skip.
+        console.log(`  Q${i + 1}: server rejected as too-fast — retrying after a pause`);
+        await sleep(800);
+        i--; // re-issue this iteration
+        continue;
+      }
+      answered++;
+      lastCorrect = !!res.correct;
+      if (res.correct) correctSoFar++;
+      const flag = res.correct ? '✓' : '✗';
+      const revealed = res.correct_answer ? res.correct_answer.slice(0, 24) : '?';
+      console.log(`  Q${i + 1}/${target} ${flag} ${(q.difficulty || '?').padEnd(6)} "${revealed}" elo=${res.elo_after} (${res.elo_change >= 0 ? '+' : ''}${res.elo_change})`);
+    } catch (e) {
+      console.log(`  Q${i + 1}: answer failed — ${e.message}`);
+    }
+  }
+
+  // Fire achievement check (what the frontend calls at session end)
+  try {
+    await api('POST', '/api/logo-quiz/check-achievements', token, { session_correct: correctSoFar });
+  } catch { /* non-fatal */ }
+
+  const pct = answered > 0 ? ((correctSoFar / answered) * 100).toFixed(1) : '0.0';
+  console.log(`  → ${correctSoFar}/${answered} correct (${pct}%)`);
+  return { success: answered > 0, answered, correct: correctSoFar };
+}
+
 // ─── Main ────────────────────────────────────────────────────────────
 async function main() {
   console.log('╔══════════════════════════════════════════╗');
@@ -505,32 +739,98 @@ async function main() {
   const results = {};
 
   // 1. Duel
-  try {
-    results.duel = await simulateDuel(token);
-  } catch (e) {
-    console.error(`\n✗ DUEL FAILED: ${e.message}`);
-    results.duel = { success: false, error: e.message };
+  if (phaseOn('SIM_DUEL')) {
+    try {
+      results.duel = await simulateDuel(token);
+    } catch (e) {
+      console.error(`\n✗ DUEL FAILED: ${e.message}`);
+      results.duel = { success: false, error: e.message };
+    }
   }
 
   // 2. Battle Royale
-  try {
-    results.battleRoyale = await simulateBattleRoyale(token);
-  } catch (e) {
-    console.error(`\n✗ BATTLE ROYALE FAILED: ${e.message}`);
-    results.battleRoyale = { success: false, error: e.message };
+  if (phaseOn('SIM_BR')) {
+    try {
+      results.battleRoyale = await simulateBattleRoyale(token);
+    } catch (e) {
+      console.error(`\n✗ BATTLE ROYALE FAILED: ${e.message}`);
+      results.battleRoyale = { success: false, error: e.message };
+    }
   }
 
   // 3. 2-Player
-  try {
-    results.twoPlayer = await simulate2Player();
-    // Save to match history so it appears in profile
-    if (results.twoPlayer.success) {
-      const board = await api('GET', `/api/games/${results.twoPlayer.gameId}`, null);
-      await save2PlayerMatch(token, results.twoPlayer.gameId, board);
+  if (phaseOn('SIM_2P')) {
+    try {
+      results.twoPlayer = await simulate2Player();
+      // Save to match history so it appears in profile
+      if (results.twoPlayer.success) {
+        const board = await api('GET', `/api/games/${results.twoPlayer.gameId}`, null);
+        await save2PlayerMatch(token, results.twoPlayer.gameId, board);
+      }
+    } catch (e) {
+      console.error(`\n✗ 2-PLAYER FAILED: ${e.message}`);
+      results.twoPlayer = { success: false, error: e.message };
     }
-  } catch (e) {
-    console.error(`\n✗ 2-PLAYER FAILED: ${e.message}`);
-    results.twoPlayer = { success: false, error: e.message };
+  }
+
+  // 4. N × Solo ranked sessions (short)
+  if (phaseOn('SIM_SOLO')) {
+    console.log('\n══════════════════════════════════════');
+    console.log(`  SOLO RANKED — ${SOLO_SESSIONS} × ${SOLO_QUESTIONS}q @ ${(TARGET_ACCURACY * 100).toFixed(0)}%`);
+    console.log('══════════════════════════════════════');
+    const soloRuns = [];
+    for (let i = 0; i < SOLO_SESSIONS; i++) {
+      try {
+        const r = await simulateSoloSession(token, { label: `${i + 1}/${SOLO_SESSIONS}` });
+        soloRuns.push(r);
+      } catch (e) {
+        console.error(`✗ SOLO SESSION ${i + 1} FAILED: ${e.message}`);
+        soloRuns.push({ success: false, error: e.message });
+      }
+      await sleep(1000); // breathing room between sessions
+    }
+    const totals = soloRuns.reduce(
+      (acc, r) => ({
+        answered: acc.answered + (r.questions_answered ?? 0),
+        correct: acc.correct + (r.correct_answers ?? 0),
+      }),
+      { answered: 0, correct: 0 },
+    );
+    results.solo = {
+      success: soloRuns.every((r) => r.success),
+      runs: soloRuns.length,
+      ...totals,
+    };
+  }
+
+  // 5. N × Logo Quiz sessions
+  if (phaseOn('SIM_LOGO')) {
+    console.log('\n══════════════════════════════════════');
+    console.log(`  LOGO QUIZ — ${LOGO_SESSIONS} × ${LOGO_QUESTIONS}q @ ${(TARGET_ACCURACY * 100).toFixed(0)}%`);
+    console.log('══════════════════════════════════════');
+    const logoRuns = [];
+    for (let i = 0; i < LOGO_SESSIONS; i++) {
+      try {
+        const r = await simulateLogoQuizSession(token, { label: `${i + 1}/${LOGO_SESSIONS}` });
+        logoRuns.push(r);
+      } catch (e) {
+        console.error(`✗ LOGO SESSION ${i + 1} FAILED: ${e.message}`);
+        logoRuns.push({ success: false, error: e.message });
+      }
+      await sleep(1000);
+    }
+    const totals = logoRuns.reduce(
+      (acc, r) => ({
+        answered: acc.answered + (r.answered ?? 0),
+        correct: acc.correct + (r.correct ?? 0),
+      }),
+      { answered: 0, correct: 0 },
+    );
+    results.logoQuiz = {
+      success: logoRuns.every((r) => r.success),
+      runs: logoRuns.length,
+      ...totals,
+    };
   }
 
   // Summary
