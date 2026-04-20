@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   ForbiddenException,
   Logger,
@@ -195,37 +196,73 @@ export class LogoQuizService {
     const originalImageUrl = meta.original_image_url ?? topLevelImageUrl ?? '';
     const difficulty = data.difficulty as Difficulty;
 
-    // Anti-bot: compare wall-clock elapsed to the difficulty floor. If the
-    // question wasn't tracked (Redis miss — e.g., restart, expired key, or
-    // client skipped getQuestion) we skip the check rather than false-reject.
-    if (!timedOut) {
-      const servedAt = await this.redisService.get<number>(this.servedKey(userId, questionId));
-      if (servedAt) {
-        const elapsedMs = Date.now() - Number(servedAt);
-        const threshold = LogoQuizService.MIN_THINK_MS[difficulty === 'HARD' ? 'HARD' : 'EASY'];
-        if (elapsedMs < threshold) {
-          this.logger.warn(JSON.stringify({
-            event: 'logo_answer_too_fast',
-            userId,
-            difficulty,
-            elapsedMs,
-            threshold,
-          }));
-          return {
-            correct: false,
-            timed_out: false,
-            // Withhold the answer — don't hand the bot what it's fishing for.
-            correct_answer: '',
-            elo_before: logoElo,
-            elo_after: logoElo,
-            elo_change: 0,
-            rejected_too_fast: true,
-          };
-        }
+    // Anti-cheat binding check: verify THIS user was served THIS question.
+    // Without this, any authenticated user could submit any question_id they
+    // obtain and read correct_answer + original_image_url + team_metadata off
+    // the POST /answer reveal path — the leak-strip fix would be defeated.
+    //
+    // Implementation: getQuestion writes a Redis key (120s TTL) per
+    // (user, question_id). Submission must find that key.
+    //   • Key present → record servedAt for the speed check below.
+    //   • Key absent (Redis responsive) → user never legitimately played
+    //     this question. REJECT with 400.
+    //   • Redis unreachable (throws) → fail-open to keep gameplay working
+    //     during a Redis outage, log the degradation for ops visibility.
+    let servedAt: number | null = null;
+    let redisAvailable = true;
+    try {
+      const raw = await this.redisService.get<number>(this.servedKey(userId, questionId));
+      servedAt = raw ?? null;
+    } catch (err: unknown) {
+      redisAvailable = false;
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`[logo] Redis unreachable, skipping binding check: ${msg}`);
+    }
+
+    if (redisAvailable && servedAt === null) {
+      this.logger.warn(JSON.stringify({
+        event: 'logo_answer_unbound_question',
+        userId,
+        questionId,
+      }));
+      // No body leaks the answer on this path.
+      throw new BadRequestException('Question not served to this user or session expired');
+    }
+
+    // Speed check: only runs when we have a servedAt timestamp AND the
+    // user didn't explicitly time out. Too-fast submissions are rejected
+    // with correct_answer withheld so the bot gains no information.
+    if (!timedOut && servedAt !== null) {
+      const elapsedMs = Date.now() - Number(servedAt);
+      const threshold = LogoQuizService.MIN_THINK_MS[difficulty === 'HARD' ? 'HARD' : 'EASY'];
+      if (elapsedMs < threshold) {
+        this.logger.warn(JSON.stringify({
+          event: 'logo_answer_too_fast',
+          userId,
+          difficulty,
+          elapsedMs,
+          threshold,
+        }));
+        return {
+          correct: false,
+          timed_out: false,
+          // Withhold the answer — don't hand the bot what it's fishing for.
+          correct_answer: '',
+          elo_before: logoElo,
+          elo_after: logoElo,
+          elo_change: 0,
+          rejected_too_fast: true,
+        };
       }
     }
 
     const correct = !timedOut && this.fuzzyMatch(answer, correctAnswer);
+
+    // Invalidate the served-at key now so a replay of the same question_id
+    // fails the binding check above. Fire-and-forget; replay protection
+    // degrades to "1 extra submission within 120s" on Redis error, which
+    // is acceptable.
+    void this.redisService.del(this.servedKey(userId, questionId)).catch(() => {});
 
     // Calculate ELO change — use composite question_elo when available
     const gamesPlayed = hardcore ? profile.logo_quiz_hardcore_games_played : profile.logo_quiz_games_played;

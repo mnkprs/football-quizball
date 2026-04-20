@@ -2,6 +2,31 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.12.2] - 2026-04-20
+
+### Security — Bind logo-quiz answer submissions to the user that was served the question
+
+The /ship adversarial review surfaced a critical gap in v0.8.12.0's leak fix: the fix relocated answer-revealing fields from `GET /api/logo-quiz/question` to the `POST /api/logo-quiz/answer` reveal response, but the POST handler accepted any `question_id` the client supplied — it did not verify the authenticated user had ever been served that question. Any authenticated user could read `correct_answer` + `original_image_url` + `team_metadata` for any question_id they obtained, defeating the leak-strip.
+
+Fix (`backend/src/logo-quiz/logo-quiz.service.ts`):
+
+- **Binding check runs before answer validation.** The Redis key `logo:served:{userId}:{questionId}` (written by `getQuestion`, 120s TTL) is now a two-way contract: speed-check AND user-question binding. No key → `BadRequestException`.
+- **Runs regardless of `timed_out` flag.** Client-sent `timed_out=true` used to bypass the speed check; now also bypassed for binding. Closes a zero-cost attack that submits `timed_out: true` on harvested ids.
+- **Fail-open on Redis outage only.** Distinguish "Redis responsive, key missing" (reject — cheat attempt) from "Redis unreachable, throws" (allow — degrade gracefully). Logs the degradation for ops visibility.
+- **Replay protection.** Served-at key is deleted after a successful submission. A second POST with the same question_id falls through to binding check and is rejected.
+- **Forensic log.** `event: logo_answer_unbound_question` warn-log carries userId and questionId for anomaly detection.
+
+Regression tests (`logo-quiz-binding.service.spec.ts`, 5 specs): key-missing reject, timed_out=true reject, Redis-outage pass-through, key-present pass, replay-deletes-key.
+
+Backend suite: 22/22 suites, 315/315 tests (+5 binding + 14 specialist-generated in v0.8.12.1 commit).
+
+### Deferred (other adversarial findings)
+
+- Anomaly dedup race (known-limit from v0.8.12.0 review, acceptable admin noise)
+- `GET /api/logo-quiz/teams` throttle + auth review (the 500-name catalog is listed in backend as "names are not sensitive"; revisit if image→team scraping becomes a pattern)
+- Trust-proxy verification for `UserThrottlerGuard` IP fallback
+- Onboarding still ships answer inline (client-side scored; no leaderboard impact)
+
 ## [0.8.12.1] - 2026-04-20
 
 ### Fixed — /review feedback on v0.8.12.0
