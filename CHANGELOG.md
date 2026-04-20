@@ -2,7 +2,7 @@
 
 All notable changes to StepOver will be documented in this file.
 
-## [0.8.6.5] - 2026-04-20
+## [0.8.6.7] - 2026-04-20
 
 ### Changed
 - **Mayhem result screen collapsed from 5 stacked boxes to 3 visual zones.** After each answer, `/mayhem` previously rendered: (1) a big result-badge box with emoji ✅/❌ + CORRECT/WRONG headline + answer reveal + explanation, (2) the 4-option grid with inline ✓ CORRECT / ✗ your pick tags, (3) a full bg-card score tile showing "Score X / Y", (4) the Next/See-Results button row, plus the progress bar on top. The badge box was a **triple-signal duplicate**: the emoji + text repeated the same correct/wrong state that the option-grid tags already conveyed, and the explanation was buried inside a filled card rather than sitting in its own quiet space. This PR removes the badge box entirely — the option grid IS the reveal signal now (with ✓ CORRECT / ✗ your pick tags carrying the state). The explanation moves to a quiet left-border quote below the options (no box, `border-l-2 border-border`, matches the pattern from PR #81's `<app-question-reveal>`). The score card collapses to a compact inline row (label on left, chip on right) instead of a full card tile. Next/See-Results buttons unchanged.
@@ -11,7 +11,7 @@ All notable changes to StepOver will be documented in this file.
 ### User impact
 Mayhem's after-answer screen now takes ~30% less vertical space. Sighted users see one clear correct/wrong signal (the option tags) instead of three. Screen-reader users still hear the full announcement on reveal.
 
-## [0.8.6.4] - 2026-04-20
+## [0.8.6.6] - 2026-04-20
 
 ### Changed
 - **Screen reader users now hear every result across Blitz, Duel, Battle Royale, Mayhem, and Daily.** PR #81 added `role="status" aria-live="polite"` only to the shared `app-question-reveal` component, which serves `/solo` + `/logo-quiz`. The other five modes each render their OWN result UI (flash overlays, colored badges, inline icons) without live regions — so VoiceOver and TalkBack users heard silence on every reveal across 5 of the 7 game modes. This PR backports the announcement pattern to all five: visually-hidden `<span class="sr-only">…</span>` with explicit "Correct." / "Wrong. The correct answer is X." text, wrapped in `role="status" aria-live="polite"` (or `assertive` for time-critical flash overlays in Blitz, Duel, Battle Royale where the user might dismiss before polite announces). Visual elements (emoji, colored badges, score deltas) are now `aria-hidden="true"` so screen readers don't double-announce or read the decorative glyphs.
@@ -19,6 +19,21 @@ Mayhem's after-answer screen now takes ~30% less vertical space. Sighted users s
 
 ### User impact
 Players with visual impairments using VoiceOver (iOS) or TalkBack (Android) now get audible feedback when they answer a question in any mode, not just Solo Ranked. Previously: silence after every answer except in Solo/Logo Quiz. Now: full parity across the 7 game modes.
+
+## [0.8.6.5] - 2026-04-20
+
+### Fixed
+- **"AS Roma" now matches stored answer "Roma" in Solo Ranked (and every text-answer mode).** User typed "as roma" in a PSV Eindhoven question where the stored answer was "Roma" and it was marked wrong. Same class of bug affected "fc bayern" → "Bayern", "real madrid cf" → "Real Madrid", "arsenal fc" → "Arsenal", and any football team where the user types the fuller official name than what the LLM stored. Root cause in `backend/src/questions/validators/answer.validator.ts:validateFuzzy`: the existing fuzzy match handled submitted-is-a-PREFIX-of-correct ("inter" for "Inter Milan") and submitted-is-the-last-word-of-correct ("milan" for "Inter Milan"), but not the reverse: submitted wraps qualifier words around correct. For single-word correct answers like "Roma" the `parts.length > 1` branch never fired, so the submitted-contains-correct case fell through entirely. The LLM judge at `fuzzyScore=0.57` could have saved it but the 2-second timeout was too tight and the LLM frequently returned "no" when asked to literally-match "as roma" against "Roma". Fix adds a reverse-prefix rule: if the normalized correct answer appears as a whole-word substring of the submitted (guarded by short qualifier constraint — extra words must average ≤4 chars, ≤2 extra words total), accept. Also widened `JUDGE_TIMEOUT_MS` from 2000 to 3500 so the LLM backstop is less flaky on slower network paths.
+- **Regression-tested** with 9 new cases in `answer.validator.spec.ts` covering AS Roma, FC Bayern, FC Bayern Munich, Real Madrid CF, AC Milan, Arsenal FC, plus guards against "CF" alone matching Real Madrid and sentence-length submissions matching on their last word. 82/82 specs pass.
+## [0.8.6.4] - 2026-04-19
+
+### Changed
+- **Collapsed `entity_slugs` + `tags` into a single `tags` field on `question_pool`.** v0.8.6.2 introduced a generated `entity_slugs TEXT[]` column alongside the existing LLM-written `tags TEXT[]` to give entity-scoped modes a single-field filter. User feedback: the two fields were confusing, and empirical verification confirmed `tags ⊆ entity_slugs` holds on 100% of rows (0 violations across 1,950 tagged rows) — the separate `tags` column was query-redundant. Migration `20260615000000_collapse_entity_slugs_into_tags.sql` backfills `tags` to equal the current `entity_slugs` union, drops the generated column, and reindexes. Classifier writes (`pool-seed.service.ts:731`, `backfill-pool-taxonomy.ts:260`) now compute the full union (`subject_id + competition_id + nationality + LLM secondaries`) directly before inserting/updating, making the classifier the sole source of truth for `tags`. Downstream queries against `entity_slugs` must migrate to `tags` (zero such queries exist today — the column was added only 2 commits ago, not yet consumed by app code). Trade: gives up the Postgres-GENERATED invariant in exchange for schema clarity; acceptable because the only writers are the two classifier sites above and neither mutates scalar fields (subject_id/competition_id/nationality) independently of tags. GIN index on new `tags` preserves query performance.
+
+## [0.8.6.3] - 2026-04-19
+
+### Fixed
+- **Repo↔Supabase migration sync restored.** Migration `20260418203808_daily_records_feature` had been applied to prod directly (via MCP `apply_migration`) but the SQL file was never committed to the repo, causing every subsequent `supabase db push` to fail its local-vs-remote sync check. Reconstructed the file from `supabase_migrations.schema_migrations.statements` (solo_session_summaries table + RLS policies + 6 app_settings keys + records_current materialized view covering streak_king / precision_solo / climber_solo / logo_hunter / logo_precision / duel_champion / logo_duel_champion / unique index on (record_type, window_type) + refresh_records_current() SECURITY DEFINER function). Entire migration is idempotent (`IF NOT EXISTS` / `OR REPLACE` / `ON CONFLICT DO NOTHING`) so re-running against prod is a no-op — `supabase db push` will now succeed cleanly for future migrations. Surfaced during v0.8.6.2 rollout when the dry-run blocked on the missing version. Root cause is the "Dashboard SQL or direct-MCP without committing the file" drift class documented in `feedback_run_migrations.md`; future migrations should always land as `db push` OR `MCP apply_migration + commit the .sql file` — not one without the other.
 
 ## [0.8.6.2] - 2026-04-19
 
