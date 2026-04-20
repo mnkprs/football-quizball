@@ -27,6 +27,8 @@
     "pool:extract-entities": "ts-node -r tsconfig-paths/register scripts/extract-canonical-entities.ts",
     "pool:review-entities": "ts-node -r tsconfig-paths/register scripts/review-canonical-entities.ts",
     "pool:backfill-taxonomy": "ts-node -r tsconfig-paths/register scripts/backfill-pool-taxonomy.ts",
+    "pool:backfill-embeddings": "ts-node -r tsconfig-paths/register scripts/backfill-pool-embeddings.ts",
+    "pool:dedupe-exact": "ts-node -r tsconfig-paths/register scripts/dedupe-pool-exact-text.ts",
     "pool:extract-competitions": "ts-node -r tsconfig-paths/register scripts/extract-competition-metadata.ts",
     "pool:seed-competitions": "ts-node -r tsconfig-paths/register scripts/seed-competition-metadata.ts",
     "build": "nest build",

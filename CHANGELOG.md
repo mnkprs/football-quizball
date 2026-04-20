@@ -2,6 +2,19 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.8.1] - 2026-04-20
+
+### Fixed
+- **Semantic dedup was silently letting duplicates into the pool** — root cause was a three-layer silent-failure chain: (1) `PoolSeedService.semanticDedup` caught `embedTexts` errors and returned candidates unchanged with no embedding attached, (2) per-item embedding failures from `LlmService.embedTexts` (rate limits, empty responses) pushed candidates with `_embedding=null`, (3) `persistQuestionsToPool` then wrote `embedding: null` to the DB. The `find_near_duplicate_in_pool` RPC filters `embedding IS NOT NULL`, so those null-embedding rows became permanent blind spots for every subsequent dedup check. Combined with bulk seed days (2026-03-28: 1116/1116 null, 2026-04-16: 566/566 null, 2026-04-17: 524/524 null), this accumulated to 2,775 of 4,366 rows (63%) with null embeddings and 32 exact-text duplicate clusters spanning 2,240 excess rows. Fix is defense-in-depth across three layers: `semanticDedup` now throws on batch embedTexts failure (force caller retry) and drops individual items with null per-item embedding; `persistQuestionsToPool` calls new `ensureEmbeddingsAndDedup` as a last-chance guard that embeds + dedup-checks any row bypassing `semanticDedup` (e.g. `takeClosestByRawScore` fallbacks); insert builder throws if any row still lacks `_embedding`, making null-embedding inserts structurally impossible.
+- **`getExistingQuestionKeys` was blind to older rows** — previously capped at 200 most-recent rows per category. HISTORY alone has 639 rows, so exact-text dedup within a seed session silently missed anything older than the last 200. Now paginates up to 5,000 rows per category.
+
+### Added
+- **`backend/scripts/backfill-pool-embeddings.ts`** (`npm run pool:backfill-embeddings`) — backfills embeddings for the 2,775 historical null-embedding rows, restoring dedup coverage for the existing pool. Dry-run by default; `--apply` to write. `--category X`, `--limit N`, `--batch-size N` flags. Idempotent (only touches `embedding IS NULL` rows) so safe to re-run.
+- **`backend/scripts/dedupe-pool-exact-text.ts`** (`npm run pool:dedupe-exact`) — finds clusters of rows with identical `(category, normalized question_text, normalized correct_answer)` and deletes all but the oldest per cluster (preserving the canonical id in case of analytics/ELO/gameplay references). Dry-run by default with full impact report; `--apply` to delete.
+
+### Known follow-up
+- **Near-duplicate dedup** (same concept, different wording — e.g. the 4 Steaua/Barcelona 1986 European Cup rows) is NOT caught by exact-text dedup. Requires a second pass using pgvector cosine distance against the `find_near_duplicate_in_pool` threshold (0.12). Not included in this fix — runs after the embedding backfill completes, so there's enough embedding coverage for pairwise comparison to make sense.
+
 ## [0.8.8.0] - 2026-04-20
 
 ### Added

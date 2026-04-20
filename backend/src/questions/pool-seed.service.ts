@@ -694,15 +694,26 @@ export class PoolSeedService {
   ): Promise<void> {
     if (questions.length === 0) return;
 
+    // Last-chance embedding guard. Rows arriving here without `_embedding`
+    // bypassed semanticDedup (e.g. takeClosestByRawScore fallback paths).
+    // Embed them inline and run the near-duplicate check; rows that still
+    // have no embedding after this are dropped rather than inserted with
+    // null — a null-embedding row is invisible to every future dedup pass.
+    const embeddedQuestions = await this.ensureEmbeddingsAndDedup(
+      questions,
+      category,
+    );
+    if (embeddedQuestions.length === 0) return;
+
     // Classify against canonical entity list. Failures degrade to null taxonomy
     // so a classifier outage never blocks pool seeding.
     const taxonomyByQuestion = await this.classifyBatch(
-      questions,
+      embeddedQuestions,
       category,
-      difficultyOverride ?? questions[0].difficulty,
+      difficultyOverride ?? embeddedQuestions[0].difficulty,
     );
 
-    const rows = questions.map((q) => {
+    const rows = embeddedQuestions.map((q) => {
       const difficulty = difficultyOverride ?? q.difficulty;
       let allowedDifficulties = q.allowedDifficulties ?? [difficulty];
       // When forcing a question into a slot (difficultyOverride), ensure it can be drawn for that slot.
@@ -726,7 +737,18 @@ export class PoolSeedService {
           _embedding: undefined,
         },
         raw_score: q.raw_score ?? null,
-        embedding: (q as GeneratedQuestion & { _embedding?: number[] })._embedding ?? null,
+        // Embedding is guaranteed by ensureEmbeddingsAndDedup above. If we
+        // ever reach here without one, abort — a null-embedding row would
+        // be permanently invisible to future dedup passes.
+        embedding: (() => {
+          const emb = (q as GeneratedQuestion & { _embedding?: number[] })._embedding;
+          if (!emb) {
+            throw new Error(
+              `[persistQuestionsToPool] Missing embedding for "${q.question_text?.slice(0, 60)}" — aborting insert to avoid dedup blind spot`,
+            );
+          }
+          return emb;
+        })(),
         // league_tier and competition_type are auto-populated by the
         // sync_question_pool_competition_meta trigger based on competition_id.
         // era is a generated column (derived from event_year), no longer writable.
@@ -847,20 +869,25 @@ export class PoolSeedService {
     candidates: GeneratedQuestion[],
     category: QuestionCategory,
   ): Promise<GeneratedQuestion[]> {
+    if (candidates.length === 0) return [];
     const texts = candidates.map((q) => q.question_text);
-    let embeddings: (number[] | null)[];
-    try {
-      embeddings = await this.llmService.embedTexts(texts);
-    } catch (err) {
-      this.logger.warn(`[semanticDedup] embedTexts failed — skipping semantic dedup: ${(err as Error).message}`);
-      return candidates;
-    }
+    // Previously swallowed errors and returned candidates unchanged, which
+    // let rows insert with a null embedding — those rows became permanent
+    // blind spots for every subsequent dedup check (find_near_duplicate_in_pool
+    // filters `embedding IS NOT NULL`). Now we throw so the caller retries
+    // the batch instead of silently corrupting the pool.
+    const embeddings = await this.llmService.embedTexts(texts);
 
     const results: GeneratedQuestion[] = [];
     for (let i = 0; i < candidates.length; i++) {
       const emb = embeddings[i];
       if (!emb) {
-        results.push(candidates[i]);
+        // Individual embed failure (e.g. 429 after 3 retries). Drop this
+        // item — inserting without an embedding would create a dedup blind
+        // spot for every future candidate.
+        this.logger.warn(
+          `[semanticDedup] Dropping candidate with no embedding: "${candidates[i].question_text?.slice(0, 60)}"`,
+        );
         continue;
       }
       const isDup = await this.isNearDuplicate(emb, category);
@@ -872,6 +899,55 @@ export class PoolSeedService {
       }
     }
     return results;
+  }
+
+  /**
+   * Last-chance guard before insert: guarantees every question carries an
+   * embedding AND has been checked against the existing pool for near-dupes.
+   * Covers code paths that bypass `semanticDedup` (e.g. takeClosestByRawScore
+   * fallbacks). Rows that already carry `_embedding` are trusted and only
+   * the new ones are embedded + dedup-checked here.
+   */
+  private async ensureEmbeddingsAndDedup(
+    questions: GeneratedQuestion[],
+    category: QuestionCategory,
+  ): Promise<GeneratedQuestion[]> {
+    const missing: Array<{ idx: number; text: string }> = [];
+    questions.forEach((q, idx) => {
+      const emb = (q as GeneratedQuestion & { _embedding?: number[] })._embedding;
+      if (!emb) missing.push({ idx, text: q.question_text });
+    });
+
+    if (missing.length === 0) return questions;
+
+    this.logger.debug(
+      `[persistQuestionsToPool] Embedding ${missing.length}/${questions.length} questions inline (fallback path)`,
+    );
+
+    const embeddings = await this.llmService.embedTexts(missing.map((m) => m.text));
+    const dropped = new Set<number>();
+
+    for (let i = 0; i < missing.length; i++) {
+      const emb = embeddings[i];
+      const { idx, text } = missing[i];
+      if (!emb) {
+        this.logger.warn(
+          `[persistQuestionsToPool] Dropping "${text.slice(0, 60)}" — embedding failed`,
+        );
+        dropped.add(idx);
+        continue;
+      }
+      if (await this.isNearDuplicate(emb, category)) {
+        this.logger.debug(
+          `[persistQuestionsToPool] Dropping "${text.slice(0, 60)}" — near-duplicate of existing pool row`,
+        );
+        dropped.add(idx);
+        continue;
+      }
+      (questions[idx] as GeneratedQuestion & { _embedding?: number[] })._embedding = emb;
+    }
+
+    return questions.filter((_, idx) => !dropped.has(idx));
   }
 
   private async isNearDuplicate(embedding: number[], category: QuestionCategory): Promise<boolean> {
@@ -886,23 +962,39 @@ export class PoolSeedService {
     return Array.isArray(data) && data.length > 0;
   }
 
-  /** Returns a Set of "question_text|||correct_answer" keys for the most recent 200 pool rows in a category. */
+  /**
+   * Returns a Set of "question_text|||correct_answer" keys for ALL pool rows
+   * in a category (paginated, bounded at 5000 to cap memory). Previously
+   * capped at 200 most-recent rows, which meant any question older than the
+   * last 200 was invisible to exact-text dedup — an obvious leak once a
+   * category crossed 200 rows.
+   */
   private async getExistingQuestionKeys(category: QuestionCategory): Promise<Set<string>> {
-    const { data, error } = await this.supabaseService.client
-      .from('question_pool')
-      .select('question->question_text, question->correct_answer')
-      .eq('category', category)
-      .order('created_at', { ascending: false })
-      .limit(200);
+    const PAGE_SIZE = 1000;
+    const MAX_KEYS = 5000;
+    const keys = new Set<string>();
 
-    if (error) {
-      this.logger.error(`[getExistingQuestionKeys] Query error: ${error.message}`);
-      return new Set();
+    for (let offset = 0; offset < MAX_KEYS; offset += PAGE_SIZE) {
+      const { data, error } = await this.supabaseService.client
+        .from('question_pool')
+        .select('question->question_text, question->correct_answer')
+        .eq('category', category)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
+
+      if (error) {
+        this.logger.error(`[getExistingQuestionKeys] Query error: ${error.message}`);
+        return keys;
+      }
+
+      const rows = (data ?? []) as ExistingQuestionRow[];
+      for (const r of rows) {
+        keys.add(`${r.question_text}|||${r.correct_answer}`);
+      }
+      if (rows.length < PAGE_SIZE) break;
     }
 
-    return new Set(
-      (data as ExistingQuestionRow[]).map((r) => `${r.question_text}|||${r.correct_answer}`),
-    );
+    return keys;
   }
 
   /**
