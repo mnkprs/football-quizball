@@ -2,6 +2,16 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.13.1] - 2026-04-20
+
+### Fixed — e2e-game-sim peek query reads the correct JSONB path
+
+The sim's `peekPoolCorrectAnswer` helper was selecting a top-level column `correct_answer` from `question_pool`, but since the Phase 2 schema cleanup (v0.8.11.x), `correct_answer` lives inside the `question` JSONB column. Every peek silently returned null, the "should answer correctly" branch always fell through to the wrong-answer pool, and live sim runs looked like they worked (no errors, sessions completed) but landed at 0% accuracy instead of the configured target.
+
+One-file fix: select the `question` JSONB and read `question.correct_answer` inside the sim. Verified by running `SOLO_SESSIONS=3 SOLO_QUESTIONS=20 LOGO_SESSIONS=2 LOGO_QUESTIONS=20 TARGET_ACCURACY=0.5 node e2e-game-sim.mjs` — 53/100 correct (53%), bang on the 50% target.
+
+No production code touched; this is dev-only tooling. Analytics generated during the broken run on the test account are legitimate play data (the server validated every answer correctly — the sim just fed it bad guesses).
+
 ## [0.8.13.0] - 2026-04-20
 
 ### Added — Bot matchmaker fills logo duels

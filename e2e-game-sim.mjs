@@ -85,13 +85,17 @@ async function peekPoolCorrectAnswer(questionId) {
     return null;
   }
   const client = getServiceClient();
+  // question_pool has no top-level correct_answer column — it lives inside
+  // the `question` JSONB. Fetch the whole JSONB and read the field.
   const { data, error } = await client
     .from('question_pool')
-    .select('correct_answer')
+    .select('question')
     .eq('id', questionId)
     .maybeSingle();
   if (error || !data) return null;
-  return data.correct_answer ?? null;
+  const q = data.question;
+  if (!q || typeof q !== 'object') return null;
+  return q.correct_answer ?? null;
 }
 
 // ─── Auth ───────────────────────────────────────────────────────────
