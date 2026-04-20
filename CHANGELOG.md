@@ -2,6 +2,28 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.8.0] - 2026-04-20
+
+### Added
+- **Concept-driven seed steering** — new `backend/src/questions/steering/` module replaces the old "25 random questions to avoid" hint with a coverage-driven concept + entity steering layer. Before each `generateBatch`, `SteeringService.planBatch(category, difficulty)` aggregates `concept_id → count` from `question_pool` scoped to the category, picks ONE concept via `selectConcept` (weighted toward singleton coverage=1 and scarce 2–3 tiers, bans overused >10, per-difficulty weights push harder at EXPERT), fetches 1–2 sample questions of that concept as a concrete reference, and runs `selectScarcityTargets` against canonical entities filtered by the category's relevant types (e.g. `PLAYER_ID = players only`) to offer 8 underused entities as a soft focus hint. Motivation: pool analysis on 2026-04-20 showed 50–97% of concept_ids per category are singletons while the top 5 concepts dominate with 49–72 questions each — textbook LLM default-mode behavior that blind generation can't escape. Leans on the existing `QuestionIntegrityService` web-search verification to correct hallucinated answers in-flight rather than avoid them, so steering can push harder at obscure concepts without tanking yield.
+- **`GeneratorBatchOptions.concept` and `.entityTargets`** — new optional fields threaded through all 7 batch generators (HISTORY, PLAYER_ID, HIGHER_OR_LOWER, GUESS_SCORE, TOP_5, GEOGRAPHY, GOSSIP). Injected into the user prompt as **primary** concept steer (CONCEPT FOCUS block — commits the whole batch to one concept shape) and **secondary** entity diversification hint.
+- **`CATEGORY_ENTITY_TYPES` map** — per-category list of canonical entity types appropriate for steering. Prevents off-topic steering (no entity hints of `player` type when the concept is a stadium-location question).
+- **33 unit tests** across 5 spec files — 15 for the pure selectors (tier bucketing, per-difficulty weight distributions, bucket-empty fallbacks, `recentlyTargeted` oscillation prevention, TOP_5 all-singleton case) plus 18 service-layer tests with a mocked `SupabaseService` covering: coverage aggregation correctness, fail-open behavior on Supabase errors, canonical-file-missing fallback, `recentConcepts` rolling-window invariants (10-entry cap, no oscillation), and a defense-in-depth test that injects an adversarial `display_name` with embedded markdown headers to verify `sanitiseForPrompt` strips them end-to-end.
+- **Fixed a latent bug in `sanitiseForPrompt`** (`backend/src/questions/classifiers/canonical-entities.ts`) exposed by the defense-in-depth test: the order of operations was `collapse-newlines` → `strip-line-start-headers`, which meant a newline-embedded `## injection` payload got collapsed into the single-line form `"name ## injection"` BEFORE the `/^#+/gm` regex could strip it. Swapped the order so header-stripping runs first while `\n` boundaries still exist. Pre-existing and unused in practice (the current canonical file has no adversarial content), but would have bitten the moment someone seeded a malicious entry.
+
+### Changed
+- `PoolSeedService.seedCategoryPasses`, `seedSlotPasses`, and `fillCategoryUntilSatisfied` call `steeringService.planBatch(...)` INSIDE their retry loops. Fresh plan per retry → when duplicates cause retry, a different concept is picked via the 10-entry `recentlyTargeted` rolling window.
+- `GENERATION_VERSION` bumped `3.0.2` → `3.1.0` — concept-steered rows are a distinct generation vintage for analytics/rollback.
+
+### Architecture
+- **Three-layer generation steering**: (L1) Concept commits the batch shape, primary/coercive. (L2) Entity scarcity hints underused subjects, secondary/soft. (L3) Pre-existing `QuestionIntegrityService` fixes hallucinated answers via `correctedAnswer` path — corrections > rejections.
+- **Pure selector functions + NestJS orchestrator**: `selectConcept` / `selectScarcityTargets` are pure with RNG hooks for deterministic testing.
+- **Client-side aggregation for coverage queries** — pool is <10k rows/category, cheaper than adding an RPC + migration. Trivial to swap to RPC if perf ever matters.
+- **Fails open** — canonical entities missing, Supabase errors, or null coverage all degrade to "no steering" and generators fall back to the old prompt shape.
+
+### Known follow-up
+- **49% of question_pool rows have `concept_id = NULL`** (2,225 of 4,366 on 2026-04-20) — classifier missed half the pool. Steering works off the 51% with populated concepts (still thousands of signal rows) but a backfill script would bring coverage to 100%. Not blocking — ships separately.
+
 ## [0.8.7.0] - 2026-04-20
 
 ### Added

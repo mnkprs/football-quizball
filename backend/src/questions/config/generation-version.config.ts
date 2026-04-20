@@ -18,4 +18,4 @@
  *
  * Legacy backfill: migration 20260326120000 maps created_at to versions using these commit dates.
  */
-export const GENERATION_VERSION = '3.0.1';
+export const GENERATION_VERSION = '3.1.0';

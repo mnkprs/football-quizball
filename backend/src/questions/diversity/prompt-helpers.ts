@@ -209,6 +209,48 @@ export function getAvoidQuestionsInstruction(avoidQuestions: string[] | undefine
 }
 
 /**
+ * Primary steering instruction: commit the batch to a specific concept_id.
+ * The concept slug names a broad question shape (e.g. "manager-trophy-history");
+ * samples illustrate it concretely. The LLM is asked to produce fresh variations
+ * of the same conceptual shape — different entities, different eras, different
+ * details — so the batch diversifies *within* a concept rather than drifting
+ * back to the pool's dominant concepts.
+ */
+export function getConceptSteeringInstruction(
+  concept: { id: string; samples: string[] } | undefined,
+): string {
+  if (!concept) return '';
+  const samplesBlock = concept.samples.length
+    ? `\nExamples of this concept already in our pool (generate DIFFERENT entities/seasons/matches, not variations of these):\n${concept.samples.map((s) => `  - "${s.slice(0, 140)}"`).join('\n')}`
+    : '';
+  return `
+
+CONCEPT FOCUS (strictly enforced):
+- Every question in this batch must test the same underlying concept: "${concept.id}".
+- The slug names the concept; you must infer its shape and generate NEW questions that fit it.
+- Vary the specific entities (different players, teams, seasons, tournaments) within this concept.
+- Do NOT drift to a different concept or mix concepts in one batch.${samplesBlock}`;
+}
+
+/**
+ * Secondary steering hint: offer underused canonical entities as optional
+ * focus subjects. Deliberately soft — the concept comes first, entity steer
+ * only kicks in if the LLM can fit these into the concept shape.
+ */
+export function getEntityTargetsInstruction(
+  entityTargets: string[] | undefined,
+): string {
+  if (!entityTargets?.length) return '';
+  const list = entityTargets.slice(0, 10).join(', ');
+  return `
+
+ENTITY DIVERSIFICATION HINT (optional):
+- Our pool is thin on these subjects: ${list}.
+- If any of them fit the concept above, prefer them over the usual defaults (Messi, Ronaldo, Real Madrid, Barcelona).
+- Skip this hint entirely if it doesn't fit the concept — concept coherence beats entity coverage.`;
+}
+
+/**
  * Instruction for player-centric generators (PLAYER_ID, HIGHER_OR_LOWER) to target
  * squad members and non-stars rather than universally famous players.
  *

@@ -21,10 +21,11 @@ import { Top5Generator } from './generators/top5.generator';
 import { GeographyGenerator } from './generators/geography.generator';
 import { GossipGenerator } from './generators/gossip.generator';
 import { MigratePoolDifficultyService } from './migrate-pool-difficulty.service';
+import { SteeringModule } from './steering';
 import { LlmModule } from '../llm/llm.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), LlmModule],
+  imports: [ScheduleModule.forRoot(), LlmModule, SteeringModule],
   providers: [
     AnswerTypeModifierService,
     ThresholdConfigService,
