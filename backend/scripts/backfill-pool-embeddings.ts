@@ -73,7 +73,18 @@ async function fetchNullEmbeddingRows(
       .is('embedding', null)
       .order('created_at', { ascending: true })
       .range(from, from + pageSize - 1);
-    if (category) q = q.eq('category', category);
+    if (category) {
+      q = q.eq('category', category);
+    } else {
+      // LOGO_QUIZ is intentionally excluded when no category filter is
+      // specified. Every LOGO_QUIZ row has the same question_text
+      // ("Identify this football club from its logo") — embedding 2000+
+      // near-identical strings produces zero dedup signal and wastes API
+      // calls. LOGO_QUIZ also uses its own pipeline (LogoQuizService) that
+      // never calls find_near_duplicate_in_pool. Pass --category LOGO_QUIZ
+      // explicitly to override.
+      q = q.neq('category', 'LOGO_QUIZ');
+    }
     const { data, error } = await q;
     if (error) throw error;
     const batch = (data ?? []) as PoolRow[];

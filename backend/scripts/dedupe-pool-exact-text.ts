@@ -66,7 +66,17 @@ async function fetchAll(
       .select('id, category, created_at, question')
       .order('created_at', { ascending: true })
       .range(from, from + PAGE - 1);
-    if (category) q = q.eq('category', category);
+    if (category) {
+      q = q.eq('category', category);
+    } else {
+      // LOGO_QUIZ rows legitimately share the same question_text and often
+      // the same correct_answer (with different image URLs / erasure
+      // levels / difficulties as separate variants). Exact-text clustering
+      // would flag these as dupes and destroy the variant catalog. LOGO_QUIZ
+      // dedup, if ever needed, should key on image_url — that's a different
+      // script. Pass --category LOGO_QUIZ explicitly to override.
+      q = q.neq('category', 'LOGO_QUIZ');
+    }
     const { data, error } = await q;
     if (error) throw error;
     const batch = (data ?? []) as PoolRow[];
