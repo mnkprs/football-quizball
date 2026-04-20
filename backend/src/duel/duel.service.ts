@@ -370,6 +370,10 @@ export class DuelService {
       ? this.logoQuizService.fuzzyMatch(dto.answer, question.correct_answer)
       : await this.answerValidator.validateAsync(question, dto.answer);
 
+    // Fire-and-forget per-question outcome counter bump. Duel is a race with
+    // no per-answer timer, so timed_out=false and response_ms=null.
+    void this.supabaseService.recordAnswerOutcome(question.id, correct, false, null).catch(() => {});
+
     if (!correct) {
       // Increment profile-level questions_answered (wrong answer still counts as answered)
       void this.supabaseService.incrementQuestionStats(userId, 0).catch((err) =>

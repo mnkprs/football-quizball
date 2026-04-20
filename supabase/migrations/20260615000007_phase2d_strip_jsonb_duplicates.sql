@@ -1,0 +1,32 @@
+-- Phase 2D: bulk strip the legacy jsonb duplicates from existing question_pool rows.
+--
+-- Prerequisites (all done by 20260615000006):
+--   - uqh rows re-keyed to pool id
+--   - Draw RPCs rewritten to use qp.id (no more qp.question->>'id' probes)
+--   - Trigger enforce_question_jsonb_shape strips these keys on any future write
+--
+-- The trigger doesn't back-fill historical rows. This migration does.
+--
+-- Keys stripped from top-level jsonb:
+--   - id         (lives on qp.id; loaders now hydrate from row.id)
+--   - category   (lives on qp.category; loaders hydrate from row.category)
+--   - difficulty (lives on qp.difficulty; loaders hydrate from row.difficulty)
+--   - points     (derivable via resolveQuestionPoints(category, difficulty))
+--   - source_url (promoted to qp.source_url in Phase 1)
+--   - image_url  (promoted to qp.image_url in Phase 1)
+--   - difficulty_factors (entire sub-object)
+--       * category, event_year, answer_type, competition → already top-level
+--       * specificity_score, combinational_thinking_score → promoted in Phase 1
+--       * fame_score → replaced by qp.popularity_score (authoritative)
+--
+-- Keys KEPT in jsonb (behavior-specific, not duplicates):
+--   question_text, correct_answer, wrong_choices, fifty_fifty_hint,
+--   fifty_fifty_applicable, explanation, meta
+--
+-- The trigger from 2C would otherwise fire and re-strip on every UPDATE we do
+-- here; that's fine — it's idempotent.
+
+UPDATE question_pool
+SET question = question
+  - 'id' - 'category' - 'difficulty' - 'points'
+  - 'source_url' - 'image_url' - 'difficulty_factors';

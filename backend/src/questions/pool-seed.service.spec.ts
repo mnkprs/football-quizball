@@ -11,13 +11,10 @@ import { SteeringService } from './steering';
 import { RedisService } from '../redis/redis.service';
 import type { GeneratedQuestion, QuestionCategory } from './config';
 
-type TestableService = PoolSeedService & {
-  semanticDedup(candidates: GeneratedQuestion[], category: QuestionCategory): Promise<GeneratedQuestion[]>;
-  ensureEmbeddingsAndDedup(questions: GeneratedQuestion[], category: QuestionCategory): Promise<GeneratedQuestion[]>;
-  isNearDuplicate(embedding: number[], category: QuestionCategory): Promise<boolean>;
-  getExistingQuestionKeys(category: QuestionCategory): Promise<Set<string>>;
-  persistQuestionsToPool(category: QuestionCategory, questions: GeneratedQuestion[]): Promise<GeneratedQuestion[]>;
-};
+// Tests reach private methods via bracket notation on this alias to bypass
+// TypeScript's access check. Intersection types reduce to `never` when the
+// same property is private in one constituent and public in another.
+type PrivateAccessor = PoolSeedService & Record<string, (...args: any[]) => any>;
 
 function makeQuestion(id: string, withEmbedding = false): GeneratedQuestion {
   const q = {
@@ -43,7 +40,7 @@ async function buildService(overrides: {
   embedTexts?: jest.Mock;
   rpcNearDuplicate?: jest.Mock;
   selectChain?: jest.Mock;
-}): Promise<TestableService> {
+}): Promise<PrivateAccessor> {
   const embedTexts = overrides.embedTexts ?? jest.fn();
   const rpc = overrides.rpcNearDuplicate ?? jest.fn().mockResolvedValue({ data: [], error: null });
 
@@ -76,7 +73,7 @@ async function buildService(overrides: {
     ],
   }).compile();
 
-  return module.get<PoolSeedService>(PoolSeedService) as TestableService;
+  return module.get<PoolSeedService>(PoolSeedService) as PrivateAccessor;
 }
 
 // ─── T2: semanticDedup ────────────────────────────────────────────────────────
@@ -87,7 +84,7 @@ describe('PoolSeedService — semanticDedup', () => {
   it('empty input returns [] without calling embedTexts', async () => {
     const embedTexts = jest.fn();
     const service = await buildService({ embedTexts });
-    const result = await service.semanticDedup([], 'HISTORY');
+    const result = await service["semanticDedup"]([], 'HISTORY');
     expect(result).toEqual([]);
     expect(embedTexts).not.toHaveBeenCalled();
   });
@@ -95,7 +92,7 @@ describe('PoolSeedService — semanticDedup', () => {
   it('drops items whose per-item embedding is null', async () => {
     const embedTexts = jest.fn().mockResolvedValue([makeEmbedding(1), null]);
     const service = await buildService({ embedTexts });
-    const result = await service.semanticDedup(
+    const result = await service["semanticDedup"](
       [makeQuestion('a'), makeQuestion('b')],
       'HISTORY',
     );
@@ -110,7 +107,7 @@ describe('PoolSeedService — semanticDedup', () => {
       error: null,
     });
     const service = await buildService({ embedTexts, rpcNearDuplicate });
-    const result = await service.semanticDedup([makeQuestion('a')], 'HISTORY');
+    const result = await service["semanticDedup"]([makeQuestion('a')], 'HISTORY');
     expect(result.length).toBe(0);
   });
 
@@ -118,7 +115,7 @@ describe('PoolSeedService — semanticDedup', () => {
     const embedTexts = jest.fn().mockRejectedValue(new Error('429 rate-limit'));
     const service = await buildService({ embedTexts });
     await expect(
-      service.semanticDedup([makeQuestion('a')], 'HISTORY'),
+      service["semanticDedup"]([makeQuestion('a')], 'HISTORY'),
     ).rejects.toThrow('429 rate-limit');
   });
 
@@ -126,7 +123,7 @@ describe('PoolSeedService — semanticDedup', () => {
     const emb = makeEmbedding(1);
     const embedTexts = jest.fn().mockResolvedValue([emb]);
     const service = await buildService({ embedTexts });
-    const result = await service.semanticDedup([makeQuestion('a')], 'HISTORY');
+    const result = await service["semanticDedup"]([makeQuestion('a')], 'HISTORY');
     expect(result.length).toBe(1);
     expect(
       (result[0] as GeneratedQuestion & { _embedding?: number[] })._embedding,
@@ -143,7 +140,7 @@ describe('PoolSeedService — ensureEmbeddingsAndDedup', () => {
     const embedTexts = jest.fn();
     const service = await buildService({ embedTexts });
     const input = [makeQuestion('a', true), makeQuestion('b', true)];
-    const result = await service.ensureEmbeddingsAndDedup(input, 'HISTORY');
+    const result = await service["ensureEmbeddingsAndDedup"](input, 'HISTORY');
     expect(result.length).toBe(2);
     expect(embedTexts).not.toHaveBeenCalled();
   });
@@ -152,7 +149,7 @@ describe('PoolSeedService — ensureEmbeddingsAndDedup', () => {
     const embedTexts = jest.fn().mockResolvedValue([makeEmbedding(99)]);
     const service = await buildService({ embedTexts });
     const input = [makeQuestion('already', true), makeQuestion('missing', false)];
-    const result = await service.ensureEmbeddingsAndDedup(input, 'HISTORY');
+    const result = await service["ensureEmbeddingsAndDedup"](input, 'HISTORY');
     expect(embedTexts).toHaveBeenCalledTimes(1);
     expect(embedTexts.mock.calls[0][0]).toEqual(['Q missing?']);
     expect(result.length).toBe(2);
@@ -161,7 +158,7 @@ describe('PoolSeedService — ensureEmbeddingsAndDedup', () => {
   it('drops rows whose inline embedding failed', async () => {
     const embedTexts = jest.fn().mockResolvedValue([null]);
     const service = await buildService({ embedTexts });
-    const result = await service.ensureEmbeddingsAndDedup(
+    const result = await service["ensureEmbeddingsAndDedup"](
       [makeQuestion('missing', false)],
       'HISTORY',
     );
@@ -175,7 +172,7 @@ describe('PoolSeedService — ensureEmbeddingsAndDedup', () => {
       error: null,
     });
     const service = await buildService({ embedTexts, rpcNearDuplicate });
-    const result = await service.ensureEmbeddingsAndDedup(
+    const result = await service["ensureEmbeddingsAndDedup"](
       [makeQuestion('new', false)],
       'HISTORY',
     );
@@ -190,7 +187,7 @@ describe('PoolSeedService — persistQuestionsToPool assertion', () => {
 
   it('empty input returns [] without any DB call', async () => {
     const service = await buildService({});
-    const result = await service.persistQuestionsToPool('HISTORY', []);
+    const result = await service["persistQuestionsToPool"]('HISTORY', []);
     expect(result).toEqual([]);
   });
 
@@ -231,7 +228,7 @@ describe('PoolSeedService — getExistingQuestionKeys pagination', () => {
       [{ question_text: 'Q1', correct_answer: 'A1' }],
     ]);
     const service = await buildService({ selectChain });
-    const keys = await service.getExistingQuestionKeys('HISTORY');
+    const keys = await service["getExistingQuestionKeys"]('HISTORY');
     expect(keys.size).toBe(1);
     expect(keys.has('Q1|||A1')).toBe(true);
     expect(rangeFn).toHaveBeenCalledTimes(1);
@@ -245,7 +242,7 @@ describe('PoolSeedService — getExistingQuestionKeys pagination', () => {
     const shortPage = [{ question_text: 'Qlast', correct_answer: 'Alast' }];
     const { selectChain, rangeFn } = mockRangeWithPages([fullPage, shortPage]);
     const service = await buildService({ selectChain });
-    const keys = await service.getExistingQuestionKeys('HISTORY');
+    const keys = await service["getExistingQuestionKeys"]('HISTORY');
     expect(keys.size).toBe(1001);
     expect(rangeFn).toHaveBeenCalledTimes(2);
   });
@@ -268,7 +265,7 @@ describe('PoolSeedService — getExistingQuestionKeys pagination', () => {
       range: rangeFn,
     }));
     const service = await buildService({ selectChain });
-    const keys = await service.getExistingQuestionKeys('HISTORY');
+    const keys = await service["getExistingQuestionKeys"]('HISTORY');
     expect(keys.size).toBe(1000); // page 1 succeeded
     expect(rangeFn).toHaveBeenCalledTimes(2); // page 2 errored
   });

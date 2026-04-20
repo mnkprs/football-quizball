@@ -484,14 +484,17 @@ export class BattleRoyaleService {
 
     // For team_logo rooms, questions live on the player row; standard rooms use room.questions.
     let correctAnswer: string;
+    let questionPoolId: string | null = null;
     if (isTeamLogoMode) {
       const logoQuestion = (player.player_questions ?? [])[questionIndex];
       if (!logoQuestion) throw new BadRequestException('Question not found');
       correctAnswer = logoQuestion.correct_answer;
+      questionPoolId = logoQuestion.question_id ?? null;
     } else {
       const question = room.questions[questionIndex] as BlitzQuestion;
       if (!question) throw new BadRequestException('Question not found');
       correctAnswer = question.correct_answer;
+      questionPoolId = question.poolRowId ?? null;
     }
 
     const correct = isTeamLogoMode
@@ -500,6 +503,14 @@ export class BattleRoyaleService {
           const normalise = (s: string) => s.toLowerCase().trim();
           return normalise(answer) === normalise(correctAnswer);
         })();
+
+    // Fire-and-forget per-question outcome counter bump. BR tracks per-question
+    // timing via player.question_started_at (see secondsTaken below), so we can
+    // pass a real response_ms here.
+    const responseMs = player.question_started_at
+      ? Math.max(0, Date.now() - new Date(player.question_started_at).getTime())
+      : null;
+    void this.supabaseService.recordAnswerOutcome(questionPoolId, correct, false, responseMs).catch(() => {});
 
     const newIndex = questionIndex + 1;
     const isLastQuestion = newIndex >= room.question_count;

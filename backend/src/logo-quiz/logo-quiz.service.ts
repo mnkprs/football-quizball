@@ -82,9 +82,8 @@ export class LogoQuizService {
 
       if (!error && data?.length) {
         const row = data[0];
-        const q = row.question;
         return {
-          ...this.mapQuestion(q, row.difficulty as Difficulty, hardcore),
+          ...this.mapQuestion(row, row.difficulty as Difficulty, hardcore),
           question_elo: row.question_elo,
         };
       }
@@ -100,8 +99,7 @@ export class LogoQuizService {
         p_max_elo: maxElo,
       });
       if (fb?.length) {
-        const q = fb[0].question;
-        return this.mapQuestion(q, fallback, hardcore);
+        return this.mapQuestion(fb[0], fallback, hardcore);
       }
     }
     throw new NotFoundException('No logo questions available');
@@ -122,17 +120,17 @@ export class LogoQuizService {
 
     const logoElo = hardcore ? profile.logo_quiz_hardcore_elo : profile.logo_quiz_elo;
 
-    // Look up the question to get correct answer, question_elo, and the pool row's
-    // primary key (needed for elo_history.question_id FK — distinct from the JSONB's
-    // inner id that the client sends).
+    // Phase 2C unified LOGO_QUIZ ids (qp.id == what jsonb.id used to be for
+    // LOGO rows). Phase 2D stripped the jsonb `id` key entirely. The client
+    // sends back the unified id it got from getQuestion; we look up directly
+    // by pool row id.
     const client = this.supabaseService.client;
     const { data } = await client
       .from('question_pool')
       .select('id, question, difficulty, question_elo')
       .eq('category', 'LOGO_QUIZ')
-      .filter('question->>id', 'eq', questionId)
-      .limit(1)
-      .single();
+      .eq('id', questionId)
+      .maybeSingle();
 
     if (!data) throw new NotFoundException('Question not found');
 
@@ -158,6 +156,10 @@ export class LogoQuizService {
         eloCapped = true;
       }
     }
+
+    // Fire-and-forget per-question outcome counter bump. Logo Quiz doesn't
+    // time individual answers at this layer, so response_ms=null.
+    void this.supabaseService.recordAnswerOutcome(data.id, correct, timedOut, null).catch(() => {});
 
     // Atomic DB update — use the correct RPC for normal vs hardcore
     const rpcName = hardcore ? 'commit_logo_quiz_hardcore_answer' : 'commit_logo_quiz_answer';
@@ -301,10 +303,13 @@ export class LogoQuizService {
     const client = this.supabaseService.client;
 
     // Over-fetch so the random shuffle has enough candidates.
-    // Select only the JSONB fields we need instead of the entire question object.
+    // Phase 2B: image_url and difficulty now live as top-level columns
+    // (promoted in migration 20260615000001). correct_answer stays in jsonb
+    // (behavior-specific, not a duplicate); meta also stays (container for
+    // slug/league/country/original_image_url/hard_image_url/easy_image_url).
     const { data, error } = await client
       .from('question_pool')
-      .select('id, question_elo, correct_answer:question->correct_answer, image_url:question->image_url, difficulty:question->difficulty, meta:question->meta')
+      .select('id, question_elo, image_url, difficulty, correct_answer:question->correct_answer, meta:question->meta')
       .eq('category', 'LOGO_QUIZ')
       .limit(count * 4);
 
@@ -348,19 +353,27 @@ export class LogoQuizService {
     });
   }
 
-  private mapQuestion(q: any, difficulty: Difficulty, hardcore = false): LogoQuestion {
+  /**
+   * Phase 2D-aware mapper. Accepts a row returned by draw_logo_questions_by_elo
+   * or draw_questions (both return `id`, `question` jsonb, and promoted
+   * `image_url` at the top level). id + image_url come from the row; other
+   * LOGO_QUIZ-specific fields live in row.question.meta + row.question.correct_answer.
+   */
+  private mapQuestion(row: any, difficulty: Difficulty, hardcore = false): LogoQuestion {
+    const q = row.question ?? {};
+    const topLevelImageUrl = row.image_url as string | null | undefined;
     const imageUrl = hardcore
-      ? (q.meta?.hard_image_url ?? q.image_url)
-      : (q.meta?.easy_image_url ?? q.image_url);
+      ? (q.meta?.hard_image_url ?? topLevelImageUrl)
+      : (q.meta?.easy_image_url ?? topLevelImageUrl);
     return {
-      id: q.id,
+      id: row.id,
       team_name: q.correct_answer,
       slug: q.meta?.slug ?? '',
       league: q.meta?.league ?? '',
       country: q.meta?.country ?? '',
       difficulty,
-      image_url: imageUrl,
-      original_image_url: q.meta?.original_image_url ?? '',
+      image_url: imageUrl ?? '',
+      original_image_url: (q.meta?.original_image_url as string) ?? topLevelImageUrl ?? '',
     };
   }
 

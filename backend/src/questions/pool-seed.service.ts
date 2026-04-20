@@ -732,6 +732,29 @@ export class PoolSeedService {
         allowedDifficulties = [...allowedDifficulties, difficultyOverride];
       }
       const tax = taxonomyByQuestion.get(q.id);
+      // Phase 2A: strip fields from the jsonb payload that are already top-level
+      // columns (or derivable from them). The loader in question-draw.service.ts
+      // restores these on hydration from row top-level.
+      //   - id, category, difficulty: live as top-level columns on question_pool
+      //   - points: derivable via resolveQuestionPoints(category, difficulty)
+      //   - difficulty_factors: generation-time scoring signal; its fields are
+      //     already promoted to top-level (event_year, answer_type, competition_id,
+      //     specificity_score, combo_score) or replaced by popularity_score (fame_score).
+      //     Stripping from jsonb. peekAnswer in game.service.ts will need to read
+      //     answer_type from the top-level column instead — covered in Phase 2B.
+      const {
+        id: _qId,
+        category: _qCategory,
+        difficulty: _qDifficulty,
+        points: _qPoints,
+        difficulty_factors: _qDiffFactors,
+        raw_score: _qRawScore,
+        allowedDifficulties: _qAllowed,
+        analytics_tags: _qAnalytics,
+        ...questionPayload
+      } = q;
+      void _qId; void _qCategory; void _qDifficulty; void _qPoints;
+      void _qDiffFactors; void _qRawScore; void _qAllowed; void _qAnalytics;
       return {
         id: q.id,
         category,
@@ -740,11 +763,7 @@ export class PoolSeedService {
         allowed_difficulties: allowedDifficulties,
         generation_version: GENERATION_VERSION,
         question: {
-          ...q,
-          difficulty,
-          points: resolveQuestionPoints(q.category, difficulty),
-          raw_score: undefined,
-          allowedDifficulties: undefined,
+          ...questionPayload,
           _embedding: undefined,
         },
         raw_score: q.raw_score ?? null,

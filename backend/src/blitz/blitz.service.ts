@@ -112,6 +112,9 @@ export class BlitzService {
       void this.xpService.awardForAnswer(userId, correct, 'blitz').catch((err) =>
         this.logger.warn(`[blitz] XP award failed: ${err?.message}`),
       );
+      // Fire-and-forget: bump per-question outcome counters. Blitz doesn't time
+      // out individual answers (the whole session has a 60s timer), so timed_out=false.
+      void this.supabaseService.recordAnswerOutcome(question.poolRowId, correct, false, null).catch(() => {});
     }
 
     const nextQ = timeUp || session.currentIndex >= session.questions.length
