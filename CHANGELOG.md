@@ -2,6 +2,25 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.13.0] - 2026-04-20
+
+### Added — Bot matchmaker fills logo duels
+
+Until now, logo duels had no bot support. A user who queued for a logo duel with no other human in queue would wait forever (120s timeout abandoned the game). Only standard duels were bot-filled. This left logo duels functionally unplayable for solo users.
+
+The bot matchmaker (`backend/src/bot/bot-matchmaker.service.ts`) now fills both standard AND logo waiting duels:
+
+- `injectBotsIntoDuelQueues` changed `.eq('game_type', 'standard')` to `.in('game_type', ['standard', 'logo'])`. Same 60s queue-timeout-then-fill behavior applies.
+- `matchBotForDuel` now takes a `gameType` param and picks the bot skill tier using `logo_quiz_elo` for logo duels (vs. the player's solo `elo` for standard). Solo and logo ELOs diverge a lot — a player can sit at Challenger on solo but Iron on logo — so matching against the mode-appropriate ELO produces fair opponents per mode.
+
+The bot duel runner (`bot-duel-runner.service.ts`) needed no changes. It reads `row.questions[index].correct_answer`, which the duel service already populates correctly for logo duels (team names drawn via `LogoQuizService.drawLogosForTeamMode`). Logo duel answer validation uses `fuzzyMatch`, which accepts the exact `correct_answer` string the bot submits.
+
+Tests: 22/22 suites, 315/315 — unchanged. A unit test for the filter-surface change would just mock the Supabase query chain and give low signal; real verification happens post-deploy via the e2e sim's forthcoming 10 std + 10 logo duel sweep.
+
+### Fixed
+
+- `logo-quiz-binding.service.spec.ts` had a tuple-access type error (`delSpy.mock.calls[0][0] as string`) flagged by strict tsc. Fixed the cast; runtime tests were unaffected.
+
 ## [0.8.12.2] - 2026-04-20
 
 ### Security — Bind logo-quiz answer submissions to the user that was served the question

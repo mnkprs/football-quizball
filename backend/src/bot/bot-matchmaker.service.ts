@@ -179,11 +179,17 @@ export class BotMatchmakerService implements OnModuleInit {
   private async injectBotsIntoDuelQueues(): Promise<void> {
     const cutoff = new Date(Date.now() - QUEUE_TIMEOUT_SECONDS * 1000).toISOString();
 
+    // Fill BOTH standard and logo duel queues. The bot runner is generic
+    // (reads questions[index].correct_answer which the duel service
+    // populates correctly for either game_type), and logo duel answer
+    // validation uses fuzzyMatch which accepts the exact team_name the
+    // bot submits. For bot skill matching we prefer logo_quiz_elo on
+    // logo duels so the matchup is fair to the player's logo tier.
     const { data: games, error } = await this.supabaseService.client
       .from('duel_games')
-      .select('id, host_id')
+      .select('id, host_id, game_type')
       .eq('status', 'waiting')
-      .eq('game_type', 'standard')
+      .in('game_type', ['standard', 'logo'])
       .is('invite_code', null)
       .is('guest_id', null)
       .lt('created_at', cutoff)
@@ -192,19 +198,30 @@ export class BotMatchmakerService implements OnModuleInit {
     if (error || !games || games.length === 0) return;
 
     for (const game of games) {
-      await this.matchBotForDuel(game.id, game.host_id).catch((err) => {
-        this.logger.warn(`Duel ${game.id} bot inject failed: ${err}`);
+      const gameType = (game as { game_type?: string }).game_type === 'logo' ? 'logo' : 'standard';
+      await this.matchBotForDuel(game.id, game.host_id, gameType).catch((err) => {
+        this.logger.warn(`Duel ${game.id} (${gameType}) bot inject failed: ${err}`);
       });
     }
   }
 
-  private async matchBotForDuel(gameId: string, hostId: string): Promise<void> {
+  private async matchBotForDuel(
+    gameId: string,
+    hostId: string,
+    gameType: 'standard' | 'logo' = 'standard',
+  ): Promise<void> {
     const hostProfile = await this.supabaseService.getProfile(hostId);
-    const playerElo = hostProfile?.elo ?? 1000;
+    // Match bot skill against the player's tier IN THIS MODE. Logo and
+    // solo ELOs often diverge significantly (a player can be Challenger
+    // solo but Iron logo), so using the wrong one produces mismatched
+    // bots for one mode.
+    const playerElo = gameType === 'logo'
+      ? (hostProfile?.logo_quiz_elo ?? 1000)
+      : (hostProfile?.elo ?? 1000);
 
     const bot = await this.botService.selectBot(playerElo);
     if (!bot) {
-      this.logger.warn(`No bot available for duel ${gameId}`);
+      this.logger.warn(`No bot available for duel ${gameId} (${gameType})`);
       return;
     }
 
@@ -228,7 +245,7 @@ export class BotMatchmakerService implements OnModuleInit {
       return;
     }
 
-    this.logger.debug(`Bot "${bot.username}" matched into duel ${gameId}`);
+    this.logger.debug(`Bot "${bot.username}" matched into ${gameType} duel ${gameId}`);
     this.duelRunner.runDuelBot(gameId, bot.id, bot.bot_skill);
   }
 
