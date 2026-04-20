@@ -143,16 +143,24 @@
             @if (store.phase() === 'answered') {
               <div class="br-play__answer-flash"
                    [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
-                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct">
+                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct"
+                   role="status" aria-live="assertive" aria-atomic="true">
+                <span class="sr-only">
+                  @if (store.lastAnswer()?.correct) {
+                    Correct. You scored {{ store.lastAnswer()?.pointsAwarded }} points.
+                  } @else {
+                    Wrong. The correct answer was {{ store.lastAnswer()?.correctAnswer }}.
+                  }
+                </span>
                 @if (store.lastAnswer()?.correct) {
-                  <span class="material-icons">check_circle</span>
-                  Correct! +{{ store.lastAnswer()?.pointsAwarded }}
+                  <span class="material-icons" aria-hidden="true">check_circle</span>
+                  <span aria-hidden="true">Correct! +{{ store.lastAnswer()?.pointsAwarded }}</span>
                   @if ((store.lastAnswer()?.timeBonus ?? 0) > 0) {
-                    <span class="br-play__speed-bonus">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
+                    <span class="br-play__speed-bonus" aria-hidden="true">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
                   }
                 } @else {
-                  <span class="material-icons">cancel</span>
-                  Correct: {{ store.lastAnswer()?.correctAnswer }}
+                  <span class="material-icons" aria-hidden="true">cancel</span>
+                  <span aria-hidden="true">Correct: {{ store.lastAnswer()?.correctAnswer }}</span>
                 }
               </div>
             }
@@ -207,16 +215,24 @@
             @if (store.phase() === 'answered') {
               <div class="br-play__answer-flash"
                    [class.br-play__answer-flash--correct]="store.lastAnswer()?.correct"
-                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct">
+                   [class.br-play__answer-flash--wrong]="!store.lastAnswer()?.correct"
+                   role="status" aria-live="assertive" aria-atomic="true">
+                <span class="sr-only">
+                  @if (store.lastAnswer()?.correct) {
+                    Correct. You scored {{ store.lastAnswer()?.pointsAwarded }} points.
+                  } @else {
+                    Wrong. The correct answer was {{ store.lastAnswer()?.correctAnswer }}.
+                  }
+                </span>
                 @if (store.lastAnswer()?.correct) {
-                  <span class="material-icons">check_circle</span>
-                  Correct! +{{ store.lastAnswer()?.pointsAwarded }}
+                  <span class="material-icons" aria-hidden="true">check_circle</span>
+                  <span aria-hidden="true">Correct! +{{ store.lastAnswer()?.pointsAwarded }}</span>
                   @if ((store.lastAnswer()?.timeBonus ?? 0) > 0) {
-                    <span class="br-play__speed-bonus">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
+                    <span class="br-play__speed-bonus" aria-hidden="true">(+{{ store.lastAnswer()?.timeBonus }} speed)</span>
                   }
                 } @else {
-                  <span class="material-icons">cancel</span>
-                  Correct: {{ store.lastAnswer()?.correctAnswer }}
+                  <span class="material-icons" aria-hidden="true">cancel</span>
+                  <span aria-hidden="true">Correct: {{ store.lastAnswer()?.correctAnswer }}</span>
                 }
               </div>
             }

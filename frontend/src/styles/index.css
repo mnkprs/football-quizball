@@ -7,11 +7,12 @@
 /* Abstracts — tokens (CSS custom properties) */
 @import './abstracts/_tokens.css';
 
-/* Base — resets, typography, animations */
+/* Base — resets, typography, animations, a11y */
 @import './base/_reset.css';
 @import './base/_typography.css';
 @import './base/_animations.css';
 @import './base/_animation-utils.css';
+@import './base/_a11y.css';
 
 /* Components — shared utility classes */
 @import './components/_glass.css';

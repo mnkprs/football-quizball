@@ -1,0 +1,24 @@
+/* ==========================================================
+   Accessibility utilities
+   ========================================================== */
+
+/*
+ * Visually-hidden text for screen readers only.
+ * Use inside role="status" / aria-live regions so VoiceOver
+ * and TalkBack can announce result state to users who can't
+ * see the visual reveal (color, strikethrough, emoji, badges).
+ *
+ * Standard clip-path pattern — hides from sighted users AND
+ * from layout flow, but remains in the accessibility tree.
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

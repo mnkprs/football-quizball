@@ -116,13 +116,21 @@
           </div>
 
           <div class="rounded-2xl p-6 mb-6 border text-center"
-               [class]="lastResult()!.correct ? 'bg-win/10 border-win/50' : 'bg-loss/10 border-loss/50'">
-            <div class="text-4xl mb-2">{{ lastResult()!.correct ? '✅' : '❌' }}</div>
-            <div class="text-xl font-black text-foreground mb-1">
+               [class]="lastResult()!.correct ? 'bg-win/10 border-win/50' : 'bg-loss/10 border-loss/50'"
+               role="status" aria-live="polite" aria-atomic="true">
+            <span class="sr-only">
+              @if (lastResult()!.correct) {
+                {{ lang.t().soloCorrect }}.
+              } @else {
+                {{ lang.t().soloWrong }}. {{ lang.t().soloAnswerLabel }} {{ lastResult()!.correct_answer }}.
+              }
+            </span>
+            <div class="text-4xl mb-2" aria-hidden="true">{{ lastResult()!.correct ? '✅' : '❌' }}</div>
+            <div class="text-xl font-black text-foreground mb-1" aria-hidden="true">
               {{ lastResult()!.correct ? lang.t().soloCorrect : lang.t().soloWrong }}
             </div>
             @if (!lastResult()!.correct) {
-              <div class="text-foreground text-sm mt-1">
+              <div class="text-foreground text-sm mt-1" aria-hidden="true">
                 {{ lang.t().soloAnswerLabel }} <span class="font-semibold">{{ lastResult()!.correct_answer }}</span>
               </div>
             }
