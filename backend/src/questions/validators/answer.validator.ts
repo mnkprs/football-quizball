@@ -5,7 +5,7 @@ import { LlmService } from '../../llm/llm.service';
 
 const JUDGE_MIN_SCORE = 0.4;
 const JUDGE_MAX_SCORE = 0.75;
-const JUDGE_TIMEOUT_MS = 2000;
+const JUDGE_TIMEOUT_MS = 3500;
 
 /** Categories where deterministic rules are sufficient — skip LLM judge. */
 const SKIP_JUDGE_CATEGORIES = new Set(['HIGHER_OR_LOWER', 'GUESS_SCORE', 'PLAYER_ID', 'TOP_5', 'LOGO_QUIZ']);
@@ -59,6 +59,25 @@ export class AnswerValidator {
       if (lastName === normalSubmitted && lastName.length >= 3) return true;
       if (Levenshtein.get(firstName, normalSubmitted) <= 1 && firstName.length > 4) return true;
       if (Levenshtein.get(lastName, normalSubmitted) <= 1 && lastName.length > 4) return true;
+    }
+
+    // Reverse-prefix match: submitted adds qualifier words around correct.
+    // Examples: "as roma" → "Roma", "fc bayern" → "Bayern", "real madrid cf" → "Real Madrid",
+    // "fc bayern munich" → "Bayern" (correct appears mid-string).
+    // Guard against "cf" alone matching "Real Madrid CF" by requiring the correct answer's
+    // full normalized form to appear as a whole-word-boundaried substring of submitted,
+    // AND extra qualifier words to be short (avg ≤4 chars), AND total extra words ≤2.
+    const submittedParts = normalSubmitted.split(' ');
+    const correctWordCount = normalCorrect.split(' ').length;
+    if (submittedParts.length > correctWordCount && normalCorrect.length >= 3) {
+      // Pad both sides with spaces so prefix / suffix / mid-string matches all work via includes().
+      const paddedSubmitted = ` ${normalSubmitted} `;
+      const paddedCorrect = ` ${normalCorrect} `;
+      if (paddedSubmitted.includes(paddedCorrect)) {
+        const extraWords = submittedParts.length - correctWordCount;
+        const extraChars = normalSubmitted.length - normalCorrect.length - extraWords; // subtract joining spaces
+        if (extraWords <= 2 && extraChars / Math.max(1, extraWords) <= 4) return true;
+      }
     }
 
     return false;
