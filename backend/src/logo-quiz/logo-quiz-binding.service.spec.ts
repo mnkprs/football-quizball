@@ -149,6 +149,7 @@ describe('LogoQuizService.submitAnswer — binding check (v0.8.12.2)', () => {
     await service.submitAnswer('user-1', 'q-abc', 'Arsenal', false, false);
     // The key for (user-1, q-abc) must have been deleted so a replay fails.
     expect(delSpy).toHaveBeenCalledWith(expect.stringContaining('user-1'));
-    expect(delSpy.mock.calls[0][0] as string).toContain('q-abc');
+    const firstCallArg = (delSpy.mock.calls[0] as unknown[])[0] as string;
+    expect(firstCallArg).toContain('q-abc');
   });
 });
