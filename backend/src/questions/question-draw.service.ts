@@ -199,12 +199,33 @@ export class QuestionDrawService {
     const rows = (data ?? []) as DrawBoardRow[];
 
     const questions = rows.map((row) => {
-      const { _embedding, ...q } = row.question as GeneratedQuestion & { _embedding?: unknown };
-      void _embedding;
+      // Phase 2A + 2D: pull id/category/difficulty from top-level row columns,
+      // plus hydrate the promoted columns (image_url, source_url, answer_type)
+      // that the RPC now returns alongside the stripped jsonb body.
+      const {
+        _embedding,
+        id: _jsonbId,
+        category: _jsonbCategory,
+        difficulty: _jsonbDifficulty,
+        points: _jsonbPoints,
+        image_url: _jsonbImageUrl,
+        source_url: _jsonbSourceUrl,
+        ...q
+      } = row.question as GeneratedQuestion & { _embedding?: unknown };
+      void _embedding; void _jsonbId; void _jsonbCategory; void _jsonbDifficulty;
+      void _jsonbPoints; void _jsonbImageUrl; void _jsonbSourceUrl;
       return {
         ...q,
+        id: row.id,
+        category: row.category as QuestionCategory,
         difficulty: row.difficulty as Difficulty,
-        points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
+        // Pass row.category directly — q.category was destructured out above,
+        // so q.category is undefined and resolveQuestionPoints would silently
+        // fall through to the difficulty-only base value, ignoring any
+        // CATEGORY_POINT_OVERRIDES entry that didn't match by coincidence.
+        points: resolveQuestionPoints(row.category as QuestionCategory, row.difficulty as Difficulty),
+        image_url: row.image_url,
+        source_url: row.source_url,
         source_question_text: q.question_text,
         source_explanation: q.explanation,
       } as GeneratedQuestion;
@@ -272,12 +293,27 @@ export class QuestionDrawService {
     const rows = (data ?? []) as DrawQuestionsRow[];
 
     return rows.map((row) => {
-      const { _embedding, ...q } = row.question as GeneratedQuestion & { _embedding?: unknown };
-      void _embedding;
+      // Phase 2A + 2D: same pattern as drawBoard loader.
+      const {
+        _embedding,
+        id: _jsonbId,
+        category: _jsonbCategory,
+        difficulty: _jsonbDifficulty,
+        points: _jsonbPoints,
+        image_url: _jsonbImageUrl,
+        source_url: _jsonbSourceUrl,
+        ...q
+      } = row.question as GeneratedQuestion & { _embedding?: unknown };
+      void _embedding; void _jsonbId; void _jsonbCategory; void _jsonbDifficulty;
+      void _jsonbPoints; void _jsonbImageUrl; void _jsonbSourceUrl;
       return {
         ...q,
+        id: row.id,
+        category: row.category as QuestionCategory,
         difficulty: row.difficulty as Difficulty,
-        points: this.resolvePoints(q as GeneratedQuestion, row.difficulty as Difficulty),
+        points: resolveQuestionPoints(row.category as QuestionCategory, row.difficulty as Difficulty),
+        image_url: row.image_url,
+        source_url: row.source_url,
         source_question_text: q.question_text,
         source_explanation: q.explanation,
       } as GeneratedQuestion;

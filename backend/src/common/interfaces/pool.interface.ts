@@ -16,12 +16,19 @@ export interface DrawBoardRow {
   question: GeneratedQuestion;
   difficulty: string;
   category: string;
+  // Phase 2D: promoted columns returned by the RPC so the loader can hydrate
+  // them onto the in-memory GeneratedQuestion without a second DB fetch.
+  image_url: string | null;
+  source_url: string | null;
 }
 
 export interface DrawQuestionsRow {
+  id: string;
   question: GeneratedQuestion;
   difficulty: string;
   category: string;
+  image_url: string | null;
+  source_url: string | null;
 }
 
 export interface PoolStatsRow {

@@ -2,6 +2,179 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.11.2] - 2026-04-20
+
+### Fixed — Logo Quiz answer submit returning 404 after Phase 2D
+
+Two Phase 2D regressions in `backend/src/logo-quiz/logo-quiz.service.ts` that together broke `POST /api/logo-quiz/answer`.
+
+- **`submitAnswer` lookup used `question->>'id'` filter** (`:133`). Phase 2D stripped the `id` key from the jsonb payload, so every lookup matched zero rows → `NotFoundException` → 404 at the controller. Fixed to query by top-level `id` column directly (now the canonical id post-Phase 2C).
+- **`mapQuestion` read `q.id` and `q.image_url` from the stripped jsonb body**. The mapper returned `id: undefined, image_url: ''` to the client. Frontend then submitted undefined back → same 404. Rewrote mapQuestion to accept the full row, sourcing `id` and `image_url` from the top-level columns; jsonb still carries `correct_answer`, `meta`, `meta.hard_image_url`, `meta.easy_image_url`, `meta.original_image_url` which were preserved.
+
+### Root cause analysis
+Phase 2D's bulk strip moved 7 keys out of jsonb without migrating the handful of consumers that still probed those paths. The `question-draw.service.ts` loaders were updated correctly in the same commit. Logo-quiz was a missed path — caught by your first smoke test of the prod flow. Takeaway for next time: `git grep "question->>"` and `grep "\.question\."` as a post-strip checklist before claiming the migration complete.
+
+### Verified
+- `POST /api/logo-quiz/answer` returns `401` (auth required) instead of `404` (missing route/NotFoundException)
+- TS type check clean (no new errors)
+
+## [0.8.11.1] - 2026-04-20
+
+### Fixed — review-driven cleanups on top of Phase 2
+
+Three findings from the /review adversarial pass on v0.8.11.0.
+
+- **`resolvePoints` passed undefined category** (`backend/src/questions/question-draw.service.ts:226, 319`). The Phase 2A loader destructured `category: _jsonbCategory` out of the jsonb payload and then passed the resulting `q` object (with `category` undefined) through `resolvePoints(q, difficulty)` → `resolveQuestionPoints(q.category, difficulty)`. Only worked today because the one `CATEGORY_POINT_OVERRIDES` entry (`TOP_5 = 3`) coincidentally equals `DIFFICULTY_POINTS['HARD']`. Any new override differing from the base value would silently return wrong points. Fix: pass `row.category` directly to `resolveQuestionPoints` — the authoritative top-level column.
+
+- **`pool-integrity-verifier.service.ts` wrote `source_url` into stripped jsonb** (`:139, 143`). After Phase 2D promoted `source_url` to a top-level column and the enforce trigger strips it from jsonb, writing `source_url: vr.sourceUrl` into the jsonb payload was silently dropped by the trigger AND left the top-level column stale. Rewired the update to write `source_url` to the top-level column; jsonb payload now carries only behavior-specific fields (correct_answer, question_text, explanation, meta).
+
+- **Trigger stripped 5 keys, 7 needed** (`supabase/migrations/20260615000009_trigger_strip_all_duplicates.sql`). `enforce_question_jsonb_shape` covered id/category/difficulty/points/difficulty_factors but not source_url/image_url. The verifier fix above removes the immediate exposure, but extending the trigger closes the window permanently against future writers. Now strips all 7.
+
+### Changed — answer_type removed from RPC returns
+
+- **`supabase/migrations/20260615000010_draw_rpcs_drop_unused_answer_type.sql`** — Phase 2D added `answer_type` to the RPC return shapes intending to let the loader reconstruct `difficulty_factors.answer_type`. The reconstruction was backed out due to `DifficultyFactors` type constraints (all fields non-optional), so `answer_type` ended up as dead payload acknowledged with `void row.answer_type` in the loader. peekAnswer already has a direct DB fallback for the same field. Dropped `answer_type` from all 4 RPC returns; restored 7-column shapes. `DrawBoardRow` / `DrawQuestionsRow` types updated to match.
+
+### Added — scheduled drop for Phase 2C snapshot
+
+- **`supabase/migrations/20260615000011_drop_phase2c_snapshot_after_retention.sql`** — self-gated migration that drops `_phase2c_id_remapping` once the 30-day retention window closes on 2026-05-20. Safe to deploy now: it's a no-op until the date passes, then automatically cleans up on the first post-retention `db push`. Replaces the previous CHANGELOG-note-only reminder with an actual scheduled action.
+
+## [0.8.11.0] - 2026-04-20
+
+### Added — Full Phase 2 jsonb cleanup
+The follow-up to the phased cleanup that started in v0.8.9.0. All four sub-phases shipped.
+
+### Phase 2A — Stop writing jsonb duplicates (code-only)
+- `pool-seed.service.ts:persistQuestionsToPool` now destructures `id`, `category`, `difficulty`, `points`, `difficulty_factors`, `raw_score`, `allowedDifficulties`, `analytics_tags` OUT of the jsonb payload before insert. These all duplicated top-level columns or derivable values. New rows persist a clean jsonb body — roughly 40% smaller than before.
+- `question-draw.service.ts` loaders (`drawBoard`, `drawSlot`) now defensively destructure the same keys from `row.question` on hydration and re-populate them from the authoritative top-level columns. Legacy rows with stale jsonb copies flow through correctly; new rows that lack the keys in jsonb also flow through correctly.
+- `DrawBoardRow` / `DrawQuestionsRow` types extended with `id: string` (already present on the RPC return, now typed).
+
+### Phase 2B — Migrate direct SQL jsonb projections
+- `logo-quiz.service.ts:drawLogosForTeamMode` — Supabase `.select()` projection switched from `image_url:question->image_url, difficulty:question->difficulty` to bare `image_url, difficulty` (top-level columns). Saves a jsonb traversal per row.
+- `game.service.ts:peekAnswer` — now reads `answer_type` from the top-level column via a maybeSingle DB lookup, with a defensive fallback to the legacy in-memory `difficulty_factors.answer_type` for any session that still carries it.
+
+### Phase 2C — Unify LOGO_QUIZ id semantics (data migration, HIGH RISK)
+Root cause: LOGO_QUIZ seed scripts (`backend/scripts/seed-logo-questions.ts` and four siblings) set `question: { id: uuid(), ... }` without a top-level `id`, so Postgres auto-generated a second, different uuid. This caused 2206 rows where `question_pool.id != (question->>'id')::uuid`. Every app-facing path (draw exclude_ids, `user_question_history`, the frontend's seen-list cache) used the jsonb id; the pool row id was internal-only. A real dual-id model hiding in plain sight.
+
+Migration 20260615000006 does it atomically:
+1. **Snapshot** — `_phase2c_id_remapping` table captures the 2206 `(pool_id, old_jsonb_id)` pairs. Retained 30 days for rollback.
+2. **user_question_history re-keyed** — 36 rows (all LOGO_QUIZ) updated from the old jsonb id to the pool row id.
+3. **Draw RPCs rewritten** — `draw_board`, `draw_questions`, and both `draw_logo_questions_by_elo` overloads switched from `qp.question->>'id' = ANY(p_exclude_ids)` to `qp.id::text = ANY(p_exclude_ids)`, and their `user_question_history` INSERTs now write the pool id directly. News exclusion now also uses `nq.id`.
+4. **return_questions_to_pool simplified** — dual-id defensive check removed; pool id is the only currency now.
+5. **Permanent guardrail** — `enforce_question_jsonb_shape()` trigger on INSERT/UPDATE OF question strips any future jsonb-level `id`, `category`, `difficulty`, `points`, or `difficulty_factors`. Legacy seed scripts that still try to write jsonb.id silently have it removed before the row lands. No future divergence possible.
+
+Verified: 36 uqh rows migrated, 0 left pointing at old jsonb ids, trigger installed.
+
+**Known one-time user glitch**: Users with an in-flight session whose `session.drawnQuestionIds` array cached the old jsonb ids will no longer match — those ids no longer exist post-migration. Next draw may re-serve a logo they saw in the current session. Sessions are short-lived so the window is narrow; new sessions are immune.
+
+### Phase 2D — Strip jsonb duplicates + extend RPC returns
+Two coordinated migrations:
+
+- **20260615000007** — `UPDATE question_pool SET question = question - 'id' - 'category' - 'difficulty' - 'points' - 'source_url' - 'image_url' - 'difficulty_factors'`. Strips every legacy duplicate. Verified zero rows retain any of the 7 keys; behavior-specific keys (`question_text`, `correct_answer`, `wrong_choices`, `fifty_fifty_hint`, `fifty_fifty_applicable`, `explanation`, `meta`) preserved on 100% of rows.
+
+- **20260615000008** — RPC returns extended to include `image_url`, `source_url`, `answer_type` as top-level columns alongside the jsonb body. Required because `online-game.service.ts:545`, `duel.service.ts:787-788`, and `onboarding.service.ts:117-118` read `question.image_url` on in-memory hydrated questions — the loader now pulls these from the row columns and surfaces them on the hydrated `GeneratedQuestion` so those call sites keep working unchanged. The loader destructures the jsonb image_url/source_url keys (historical LEGACY path for any row the strip missed) and the top-level ones always win.
+
+### Final state
+
+```
+question_pool jsonb sample (HISTORY):
+  keys: question_text, correct_answer, fifty_fifty_hint,
+        fifty_fifty_applicable, explanation
+
+question_pool jsonb sample (LOGO_QUIZ):
+  keys: question_text, correct_answer, fifty_fifty_hint,
+        fifty_fifty_applicable, explanation, meta
+```
+
+Every `question_pool` row has the same clean shape. Every caller reads from top-level columns (canonical source) with legacy jsonb fallbacks removed. Every draw RPC now trafficks in pool ids exclusively. The BEFORE INSERT/UPDATE trigger prevents drift from legacy scripts.
+
+### Architecture notes
+- The 4-phase execution (A → B → C → D) let each step be verified before the next. 2C was the cliff — HIGH RISK, user-visible glitch window — and it was de-risked with the snapshot table + trigger so rollback is possible without data loss.
+- The trigger is slightly redundant given the updated seed + LOGO scripts, but it's insurance against future contributors (or AI agents) writing shortcut inserts. Zero maintenance cost; permanent.
+- Five migrations (006-008) and one new trigger. Schema now strictly normalized.
+
+### Deferred / follow-up
+- LOGO_QUIZ seed scripts (`seed-logo-questions.ts` and 4 others) still write `question: { id, category, difficulty, points, ... }` — the trigger silently strips these, so functionally fine, but the scripts have dead code in them. Low-priority script cleanup.
+- Rollback snapshot `_phase2c_id_remapping` can be dropped after 2026-05-20.
+
+## [0.8.10.2] - 2026-04-20
+
+### Fixed
+- **`record_answer_outcome` RPC — skip `total_response_ms` accumulation on timeouts** (`supabase/migrations/20260615000005_record_answer_outcome_skip_response_ms_on_timeout.sql`). The column's stated semantics are "divide by (times_correct + times_wrong) for average" — the denominator excludes `times_timed_out`, so the numerator had to as well. Previously it didn't. Concrete failure: `solo.service.ts:201-206` passes `Math.round(elapsed * 1000)` as `response_ms` even on `answer === 'TIMEOUT'`. A session suspended for a week that returns a TIMEOUT would have added 604,800,000 ms to the running sum with no matching increment to the denominator, corrupting the "avg response time" for that question indefinitely. Fix gates the response-ms accumulation on `NOT p_timed_out` inside the RPC — callers don't need changes. Caught by /review adversarial pass before merge.
+
+## [0.8.10.1] - 2026-04-20
+
+### Changed
+- **Phase 2 (partial) — stripped legacy `question._embedding` from `question_pool` jsonb** (`supabase/migrations/20260615000004_strip_legacy_embedding_from_jsonb.sql`). 507 rows carried a stale duplicate of the top-level pgvector column; `pool-seed.service.ts:726` already excludes `_embedding` from new writes. Verified every affected row had `embedding` (top-level) populated before the strip. No code changes; no data loss.
+
+### Deferred to future PRs
+The audit flagged 9 other jsonb keys that duplicate top-level columns (`category`, `difficulty`, `id`, `points`, `source_url`, `image_url`, plus `category`/`event_year`/`answer_type`/`competition`/`specificity_score`/`combinational_thinking_score`/`fame_score` inside `difficulty_factors`). Stripping them requires a coordinated refactor across 10 reader files (`solo.service`, `game.service`, `online-game.service`, `news.service`, `answer.validator`, `question.validator`, `question-integrity.service`, `questions.service`, `bot-online-game-runner`, `bot-duel-runner`) plus the generator write path — far too large for a single commit. `_embedding` was the only verifiably-dead key in the current codebase shape and ships alone.
+
+## [0.8.10.0] - 2026-04-20
+
+### Added
+- **Monotonic stats now actually tracked.** Phases 3 + 4 of the question_pool schema cleanup wire up every write path that was left dangling by v0.8.9.0.
+
+### Phase 3 — counter bumps in draw RPCs (`supabase/migrations/20260615000002_draw_rpcs_bump_stats_counters.sql`)
+Five functions updated to bump `times_shown = times_shown + 1, last_shown_at = now()` alongside their existing `used = true, used_at = now()` writes:
+- `draw_board` — board-game draw (bulk UPDATE after sequential slot iteration)
+- `draw_questions` — solo + logo-by-category draw (CTE `UPDATE … FROM drawn`)
+- `draw_logo_questions_by_elo` (4-arg and 5-arg overloads) — logo-quiz ELO-matched draw. Also picked up `used_at = now()` which was missing in the original definition.
+- `mark_blitz_questions_seen` — blitz/BR path. This RPC never flipped `used` (blitz uses `blitz_user_seen_questions` for per-user dedup), so this migration is the first place blitz draws get reflected in pool-wide stats. Only newly-inserted seen rows trigger a bump (`RETURNING question_id` from the INSERT), preventing double-counts on network retries.
+
+### Phase 4 — `record_answer_outcome` RPC + 7 answer-submit wirings (`supabase/migrations/20260615000003_record_answer_outcome_rpc.sql`)
+- **New RPC `record_answer_outcome(p_question_id uuid, p_correct boolean, p_timed_out boolean, p_response_ms integer)`** — bumps `times_correct` / `times_timed_out` / `times_wrong` / `total_response_ms`. Accepts EITHER the `question_pool` row id OR the inner `question.id` jsonb field (2206 LOGO_QUIZ rows have divergent ids, and some callers only have one form on hand). Failure is silent — the callers wrap in `.catch()` so gameplay is unaffected by a stats-write hiccup.
+- **New helper `SupabaseService.recordAnswerOutcome(id, correct, timedOut, responseMs)`** — centralizes the call, normalises null/undefined ids, logs failures at warn level.
+- **Wired into all 7 answer-submit paths:**
+  - `game.service.ts` — 2-player phase game (timed_out=false, response_ms=null)
+  - `solo.service.ts` — solo (passes real `elapsed * 1000` as response_ms, real `timedOut` flag)
+  - `blitz.service.ts` — blitz (session-level timer, so per-answer timed_out=false)
+  - `duel.service.ts` — duel (race semantics, both players' answers get recorded)
+  - `online-game.service.ts` — online 2-player
+  - `battle-royale.service.ts` — BR (passes real `question_started_at → now` elapsed as response_ms for standard and team_logo modes)
+  - `logo-quiz.service.ts` — logo-quiz solo (hardcore and standard, passes real `timedOut` flag)
+
+### Why a separate outcome RPC (rather than folding into existing `commit_*_answer` RPCs)
+Only Solo and Logo-Quiz use those commit-RPCs for ELO/history. Game, blitz, duel, online-game, battle-royale do NOT — they just update Redis session state + insert into `match_history`. A single per-answer counter RPC gives every mode a consistent call site and keeps ELO logic decoupled from stats logic.
+
+### Edge cases handled
+- Unknown or null question id → RPC silently no-ops (WHERE fails).
+- Negative `response_ms` → clamped to 0 via `GREATEST(COALESCE(…, 0), 0)`.
+- LOGO_QUIZ id divergence → RPC matches `question_pool.id` OR `(question->>'id')::uuid`.
+- Blitz `mark_blitz_questions_seen` race on retries → bump only on newly-inserted rows via `RETURNING`.
+
+### Still ahead (Phase 2, not in this PR)
+- Migrate the 10 reader files off jsonb probes (`question.category`, `difficulty_factors.*`) onto top-level columns, then strip the jsonb duplicates. Readers: `solo.service`, `game.service`, `online-game.service`, `news.service`, `answer.validator`, `question.validator`, `question-integrity.service`, `questions.service`, `bot-online-game-runner`, `bot-duel-runner`. Separate commit.
+
+## [0.8.9.0] - 2026-04-20
+
+### Added
+- **10 new top-level columns on `question_pool`** (`supabase/migrations/20260615000001_question_pool_stats_and_promote_columns.sql`):
+  - **Play-stats counters** — `times_shown`, `times_correct`, `times_timed_out`, `times_wrong`, `total_response_ms`, `last_shown_at`. Unlike the existing `used` boolean (which every `draw_*` RPC recycles back to `false` when a category/difficulty slot drains of available questions), these are **monotonic** — only increment, never reset. Enables per-question telemetry, staleness detection across pool-recycling cycles, automatic difficulty recalibration from actual play data, and recency-sensitive draw heuristics.
+  - **Promoted columns** — `specificity_score`, `combo_score` (from `question.difficulty_factors`), `source_url`, `image_url` (from the top-level `question` jsonb). These were already produced by the generators but trapped inside jsonb, unqueryable without per-row `->>` probes. Now indexable, filterable, and type-checked.
+- **Partial index `idx_question_pool_last_shown_at`** on `(last_shown_at) WHERE last_shown_at IS NOT NULL` — prepares for "oldest-drawn first" draw heuristics. Skips never-drawn rows since they're already favored by the `used = false` cursor.
+- **COMMENT metadata on every new column** — each column documents its semantics, which ones are immediately populated (promoted columns, `last_shown_at` from `used_at`), and which need follow-up PRs to be written during gameplay (correctness counters, response times).
+
+### Backfill
+- `times_shown = CASE WHEN used THEN 1 ELSE 0 END` — conservative prior. True value is almost certainly higher for many questions (pool recycling flips `used` back to `false` periodically, losing the original draw count) but the history isn't recoverable. Future draws increment from this floor.
+- `last_shown_at = used_at` — direct copy. Note `used_at` gets nulled on recycle; `last_shown_at` won't once the counter-bump is wired into draw RPCs.
+- `specificity_score`, `combo_score` — pulled from `question->'difficulty_factors'->>'...'` where present. `NULLIF(..., '')` guards against empty strings that would otherwise blow up the `::smallint` cast.
+- `source_url`, `image_url` — pulled from `question->>'...'` where present. 2028/4366 rows have `source_url`, 4364/4366 have `image_url`.
+
+### Motivation
+Schema audit on 2026-04-20 (triggered by "0% used on GOSSIP" investigation — unrelated root cause, but surfaced the broader schema drift) found:
+- `difficulty_factors.fame_score` vs top-level `popularity_score` — Pearson correlation 0.546, mean abs diff 66, zero exact matches across 2115 rows. They measure related-but-different things: `fame_score` is LLM self-reported at generation time, `popularity_score` comes from the canonical entity index. Keep `popularity_score` as authoritative; `fame_score` joins the jsonb-duplicate strip list for the follow-up PR.
+- `question.id`, `question.category`, `question.difficulty`, `question.points`, `question._embedding`, and six keys under `difficulty_factors` (`category`, `event_year`, `answer_type`, `competition`, `specificity_score`, `combinational_thinking_score`) are dead-weight duplicates of existing top-level columns. Also caught a lurking type inconsistency: `difficulty_factors.event_year` is stored as both `"2023"` (string) and `2023` (int) across rows, while the top-level `event_year SMALLINT` column is consistent.
+- The `question` jsonb payload is being used as a shock absorber for schema evolution (promote fields to columns when filter needs arise, but never go back and strip jsonb copies). Normal and cheap, but drift accumulates. This PR starts the cleanup.
+
+### Known follow-up (not in this PR — deliberate scope limit)
+- **Phase 2 — jsonb strip**: 10 reader files (`solo.service`, `game.service`, `online-game.service`, `news.service`, `answer.validator`, `question.validator`, `question-integrity.service`, `questions.service`, `bot-online-game-runner`, `bot-duel-runner`) still probe jsonb paths like `question.category` / `difficulty_factors.*`. They must migrate to the top-level columns before the jsonb strip can run. Separate PR.
+- **Phase 3 — counter wiring in draw RPCs**: `times_shown++` and `last_shown_at = now()` need to fire in every `draw_*` RPC alongside the existing `used = true, used_at = now()` writes. Migrations to update: `20260414000000_draw_board_user_history`, `20260429000000_add_question_elo_and_draw_rpc`, `20260407050000_free_logo_pool_rpc`, `20260314000001_draw_blitz_mark_used`.
+- **Phase 4 — `record_answer_outcome` RPC + wiring**: new SQL function `record_answer_outcome(question_id, correct, timed_out, response_ms)` + integration in the 5 answer-submit paths (`game.service`, `online-game.service`, `solo.service`, `blitz.service`, `battle-royale.service`). Populates `times_correct`, `times_timed_out`, `times_wrong`, `total_response_ms`.
+
+### Architecture
+- **Counters coexist with `used`, don't replace it.** The `used` column is a *recycling eligibility cursor* in this codebase (see the `SET used = false, used_at = NULL` blocks in every draw RPC — they reset `used` when a slot drains, so the pool is reusable). Replacing it with `times_shown > 0` would require either decrementing `times_shown` on recycle (destroys the stat) or adding a separate eligibility flag (which is what `used` already is). So this PR keeps `used` as the cursor bit and adds monotonic counters on the side.
+- **Additive-only for zero-risk deploy.** All existing code paths keep reading the jsonb duplicates — nothing changes for readers. The new columns sit unused until Phase 3/4 wire them up. If we need to roll back, drop the columns and nothing downstream cares.
+
 ## [0.8.8.0] - 2026-04-20
 
 ### Added

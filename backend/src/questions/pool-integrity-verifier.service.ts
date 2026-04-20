@@ -130,17 +130,26 @@ export class PoolIntegrityVerifierService {
           const hasMetaChange =
             (vr.correctedMeta && Object.keys(vr.correctedMeta).length > 0) || (vr.correctedTop5 && row.category === 'TOP_5');
 
+          // Phase 2D: source_url was promoted to a top-level column and
+          // stripped from jsonb. Writing source_url into the jsonb payload
+          // would be silently erased by enforce_question_jsonb_shape trigger
+          // AND would leave the top-level column stale. Route the write to
+          // the top-level column instead; keep the jsonb payload for the
+          // behavior-specific fields only.
           const updatedQuestion: GeneratedQuestion = {
             ...row.question,
             ...(to && { correct_answer: to }),
             ...(vr.correctedQuestionText && { question_text: vr.correctedQuestionText }),
             ...(vr.correctedExplanation && { explanation: vr.correctedExplanation }),
             ...(hasMetaChange && { meta: finalMeta }),
-            ...(vr.sourceUrl && { source_url: vr.sourceUrl }),
           };
+          const updatePayload: { question: GeneratedQuestion; source_url?: string } = {
+            question: updatedQuestion,
+          };
+          if (vr.sourceUrl) updatePayload.source_url = vr.sourceUrl;
           const { error: updErr } = await this.supabaseService.client
             .from('question_pool')
-            .update({ question: updatedQuestion })
+            .update(updatePayload)
             .eq('id', row.id);
           if (updErr) {
             this.logger.error(`[verifyPoolIntegrity] Update error ${row.id}: ${updErr.message}`);
