@@ -2,6 +2,36 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.9.0] - 2026-04-20
+
+### Added
+- **10 new top-level columns on `question_pool`** (`supabase/migrations/20260615000001_question_pool_stats_and_promote_columns.sql`):
+  - **Play-stats counters** — `times_shown`, `times_correct`, `times_timed_out`, `times_wrong`, `total_response_ms`, `last_shown_at`. Unlike the existing `used` boolean (which every `draw_*` RPC recycles back to `false` when a category/difficulty slot drains of available questions), these are **monotonic** — only increment, never reset. Enables per-question telemetry, staleness detection across pool-recycling cycles, automatic difficulty recalibration from actual play data, and recency-sensitive draw heuristics.
+  - **Promoted columns** — `specificity_score`, `combo_score` (from `question.difficulty_factors`), `source_url`, `image_url` (from the top-level `question` jsonb). These were already produced by the generators but trapped inside jsonb, unqueryable without per-row `->>` probes. Now indexable, filterable, and type-checked.
+- **Partial index `idx_question_pool_last_shown_at`** on `(last_shown_at) WHERE last_shown_at IS NOT NULL` — prepares for "oldest-drawn first" draw heuristics. Skips never-drawn rows since they're already favored by the `used = false` cursor.
+- **COMMENT metadata on every new column** — each column documents its semantics, which ones are immediately populated (promoted columns, `last_shown_at` from `used_at`), and which need follow-up PRs to be written during gameplay (correctness counters, response times).
+
+### Backfill
+- `times_shown = CASE WHEN used THEN 1 ELSE 0 END` — conservative prior. True value is almost certainly higher for many questions (pool recycling flips `used` back to `false` periodically, losing the original draw count) but the history isn't recoverable. Future draws increment from this floor.
+- `last_shown_at = used_at` — direct copy. Note `used_at` gets nulled on recycle; `last_shown_at` won't once the counter-bump is wired into draw RPCs.
+- `specificity_score`, `combo_score` — pulled from `question->'difficulty_factors'->>'...'` where present. `NULLIF(..., '')` guards against empty strings that would otherwise blow up the `::smallint` cast.
+- `source_url`, `image_url` — pulled from `question->>'...'` where present. 2028/4366 rows have `source_url`, 4364/4366 have `image_url`.
+
+### Motivation
+Schema audit on 2026-04-20 (triggered by "0% used on GOSSIP" investigation — unrelated root cause, but surfaced the broader schema drift) found:
+- `difficulty_factors.fame_score` vs top-level `popularity_score` — Pearson correlation 0.546, mean abs diff 66, zero exact matches across 2115 rows. They measure related-but-different things: `fame_score` is LLM self-reported at generation time, `popularity_score` comes from the canonical entity index. Keep `popularity_score` as authoritative; `fame_score` joins the jsonb-duplicate strip list for the follow-up PR.
+- `question.id`, `question.category`, `question.difficulty`, `question.points`, `question._embedding`, and six keys under `difficulty_factors` (`category`, `event_year`, `answer_type`, `competition`, `specificity_score`, `combinational_thinking_score`) are dead-weight duplicates of existing top-level columns. Also caught a lurking type inconsistency: `difficulty_factors.event_year` is stored as both `"2023"` (string) and `2023` (int) across rows, while the top-level `event_year SMALLINT` column is consistent.
+- The `question` jsonb payload is being used as a shock absorber for schema evolution (promote fields to columns when filter needs arise, but never go back and strip jsonb copies). Normal and cheap, but drift accumulates. This PR starts the cleanup.
+
+### Known follow-up (not in this PR — deliberate scope limit)
+- **Phase 2 — jsonb strip**: 10 reader files (`solo.service`, `game.service`, `online-game.service`, `news.service`, `answer.validator`, `question.validator`, `question-integrity.service`, `questions.service`, `bot-online-game-runner`, `bot-duel-runner`) still probe jsonb paths like `question.category` / `difficulty_factors.*`. They must migrate to the top-level columns before the jsonb strip can run. Separate PR.
+- **Phase 3 — counter wiring in draw RPCs**: `times_shown++` and `last_shown_at = now()` need to fire in every `draw_*` RPC alongside the existing `used = true, used_at = now()` writes. Migrations to update: `20260414000000_draw_board_user_history`, `20260429000000_add_question_elo_and_draw_rpc`, `20260407050000_free_logo_pool_rpc`, `20260314000001_draw_blitz_mark_used`.
+- **Phase 4 — `record_answer_outcome` RPC + wiring**: new SQL function `record_answer_outcome(question_id, correct, timed_out, response_ms)` + integration in the 5 answer-submit paths (`game.service`, `online-game.service`, `solo.service`, `blitz.service`, `battle-royale.service`). Populates `times_correct`, `times_timed_out`, `times_wrong`, `total_response_ms`.
+
+### Architecture
+- **Counters coexist with `used`, don't replace it.** The `used` column is a *recycling eligibility cursor* in this codebase (see the `SET used = false, used_at = NULL` blocks in every draw RPC — they reset `used` when a slot drains, so the pool is reusable). Replacing it with `times_shown > 0` would require either decrementing `times_shown` on recycle (destroys the stat) or adding a separate eligibility flag (which is what `used` already is). So this PR keeps `used` as the cursor bit and adds monotonic counters on the side.
+- **Additive-only for zero-risk deploy.** All existing code paths keep reading the jsonb duplicates — nothing changes for readers. The new columns sit unused until Phase 3/4 wire them up. If we need to roll back, drop the columns and nothing downstream cares.
+
 ## [0.8.8.0] - 2026-04-20
 
 ### Added
