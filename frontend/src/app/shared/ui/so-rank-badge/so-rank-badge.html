@@ -1,0 +1,5 @@
+<div class="so-badge">
+  <div class="so-stripe" [style.background]="tierColor()"></div>
+  <span class="so-tier font-headline">{{ tier() }}</span>
+  @if (elo()) { <span class="so-elo font-numeric">{{ elo() }}</span> }
+</div>

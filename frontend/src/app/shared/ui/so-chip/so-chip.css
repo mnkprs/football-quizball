@@ -1,0 +1,11 @@
+.size-xs { padding: 2px 8px;  font-size: 10px; }
+.size-sm { padding: 3px 10px; font-size: 11px; }
+.size-md { padding: 5px 12px; font-size: 12px; }
+
+.variant-default { background: var(--color-surface-highest); color: var(--color-foreground); }
+.variant-accent  { background: rgba(0,122,255,0.15); color: var(--color-accent); }
+.variant-success { background: rgba(34,197,94,0.12); color: var(--color-win); box-shadow: inset 0 0 0 1px rgba(34,197,94,0.25); }
+.variant-error   { background: rgba(147,0,10,0.25); color: var(--color-destructive); box-shadow: inset 0 0 0 1px rgba(255,180,171,0.15); }
+.variant-warn    { background: rgba(255,149,0,0.14); color: var(--color-warning); }
+.variant-gold    { background: rgba(230,168,0,0.12); color: var(--color-pro); box-shadow: inset 0 0 0 1px rgba(230,168,0,0.2); }
+.variant-glass   { background: rgba(255,255,255,0.1); color: #fff; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }

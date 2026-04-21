@@ -1,0 +1,100 @@
+/* =========================================================
+   StepOver Design System — Tokens (Angular/Tailwind bridge)
+   Drop-in for: frontend/src/styles/tokens.css
+   Import once in styles.scss: @import './styles/tokens.css';
+   ========================================================= */
+
+:root {
+  /* ---- Surfaces (darkest → lightest) ---- */
+  --color-bg:              #131313;
+  --color-surface-lowest:  #0e0e0e;
+  --color-surface-low:     #1c1b1b;
+  --color-surface:         #201f1f;
+  --color-surface-high:    #2a2a2a;
+  --color-surface-highest: #353534;
+  --color-surface-bright:  #3a3939;
+
+  /* ---- Your existing tailwind.config.js variable names (remapped) ---- */
+  --color-background:       var(--color-bg);
+  --color-foreground:       #e5e2e1;
+  --color-card:             var(--color-surface-low);
+  --color-card-foreground:  #e5e2e1;
+  --color-border:           rgba(42, 53, 68, 0.15);
+  --color-muted:            var(--color-surface-high);
+  --color-muted-foreground: #a8b3c4;
+
+  --color-accent:            #007AFF;
+  --color-accent-foreground: #ffffff;
+  --color-accent-light:      #3395ff;
+  --color-accent-dim:        #0066d6;
+  --color-accent-bg:         rgba(0, 122, 255, 0.15);
+  --color-accent-glow:       rgba(0, 122, 255, 0.30);
+
+  --color-destructive: #ef4444;
+  --color-win:  #22C55E;
+  --color-loss: #ef4444;
+  --color-draw: #eab308;
+  --color-ring: var(--color-accent);
+
+  --color-warning: #FF9500;
+  --color-pro:     #e6a800;
+  --color-pro-bg:  rgba(230, 168, 0, 0.08);
+
+  /* ---- ELO tiers ---- */
+  --tier-legend:     #007AFF;
+  --tier-elite:      #C0C0C0;
+  --tier-challenger: #CD7F32;
+  --tier-contender:  #4A90D9;
+  --tier-grassroots: #6b7a8d;
+
+  /* ---- Radii, spacing, motion ---- */
+  --radius-sm: 4px;  --radius-md: 8px;  --radius-lg: 12px;  --radius-xl: 24px;  --radius-full: 9999px;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  --anim-tap: 100ms; --anim-feedback: 150ms; --anim-reveal: 200ms; --anim-transition: 250ms;
+  --ease-out-quart:  cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ---- Glass / shadows ---- */
+  --glass-bg:            rgba(58, 57, 57, 0.40);
+  --glass-bg-subtle:     rgba(255, 255, 255, 0.08);
+  --glass-blur:          blur(20px);
+  --glass-border:        rgba(255, 255, 255, 0.06);
+  --glass-border-strong: rgba(255, 255, 255, 0.12);
+  --neon-glow:           0 0 15px rgba(0, 122, 255, 0.30);
+  --floodlit-glow:       0 0 60px -15px rgba(0, 122, 255, 0.30);
+  --ghost-border:        inset 0 0 0 1px rgba(42, 53, 68, 0.15);
+
+  /* ---- Layout ---- */
+  --app-max-width: 480px;
+}
+
+/* =========================================================
+   Angular Material system override — makes existing
+   components using --mat-sys-* inherit StepOver automatically.
+   ========================================================= */
+:root, html {
+  --mat-sys-surface:              var(--color-surface-lowest);
+  --mat-sys-surface-container:    var(--color-surface);
+  --mat-sys-surface-container-low: var(--color-surface-low);
+  --mat-sys-surface-container-high: var(--color-surface-high);
+  --mat-sys-surface-container-highest: var(--color-surface-highest);
+  --mat-sys-on-surface:           var(--color-foreground);
+  --mat-sys-on-surface-variant:   var(--color-muted-foreground);
+  --mat-sys-primary:              var(--color-accent);
+  --mat-sys-on-primary:           var(--color-accent-foreground);
+  --mat-sys-outline:              var(--color-border);
+  --mat-sys-error:                var(--color-destructive);
+  --mat-sys-corner-small:  var(--radius-sm);
+  --mat-sys-corner-medium: var(--radius-md);
+  --mat-sys-corner-large:  var(--radius-lg);
+}
+
+html, body { background: var(--color-bg); color: var(--color-foreground); }
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

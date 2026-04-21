@@ -1,0 +1,6 @@
+<div class="so-avatar" [style.width.px]="size()" [style.height.px]="size()"
+     [style.font-size.px]="size() * 0.38"
+     [style.background-image]="src() ? 'url(' + src() + ')' : null"
+     [style.box-shadow]="ringShadow()">
+  @if (!src()) { {{ initials() }} }
+</div>

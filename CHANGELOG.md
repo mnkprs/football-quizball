@@ -2,6 +2,57 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.17.0] - 2026-04-21
+
+### Added — Home page on StepOver design system (Phase 3, screen 1)
+
+First feature screen rebuilt on the `so-*` primitive library landed in v0.8.16.0. Home now renders entirely through `so-mode-card` / `so-mode-row` / `so-chip` instead of the legacy `battle-hero` / `mode-card` / `section-header` stack.
+
+**Three tiers, cleaner layout.** TIER 1 hero is a Logo Quiz `<so-mode-card>` (220px, gemini-logo background). TIER 2 is the bespoke 2-player card, preserved as-is because its Local/Online action pair is genuinely unique to that surface. TIER 3 Pro Arena stacks Battle Royale / Duel / Solo / Blitz as `<so-mode-row>` entries inside a gold-glass breathing container that subtly animates to pull the eye. Home CSS keeps the background drift animation and adds staggered reveal on first paint, with a `prefers-reduced-motion` guard for accessibility.
+
+**Home component shrank.** `home.ts` drops `battle-hero` / `mode-card` / `section-header` / `logoModes` computed / `HeroMode` type + `onLockedModeClick` / `onLogoModeClick` / `goLogoDuel` / `goTeamLogoQuiz` / `goNews` / `goDaily` plumbing. Net: 178 insertions, 413 deletions across `home.ts` / `home.html` / `home.css`.
+
+### Changed — Material Symbols icon subset
+
+`index.html` Google Fonts request expanded from 6 icons (`casino,groups_3,key,military_tech,shield,swords`) to 12 (`arrow_back,bolt,casino,emoji_events,filter_list,groups_3,key,military_tech,search,settings,shield,swords`). Without the expansion, Home's Solo tile (`materialIcon="emoji_events"`) and Blitz tile (`materialIcon="bolt"`) rendered the literal text "emoji_events" / "bolt" instead of the glyph, because the subsetted Material Symbols font didn't contain those ligatures. The legacy `Material Icons` font (also loaded, unsubsetted) carried the glyphs for elements using `class="material-icons"`, which is why some icons appeared to work while others didn't.
+
+### Fixed — Pre-landing review follow-ups
+
+Three small corrections caught by `/review` before shipping:
+
+- `so-mode-row.html` — legacy `*ngIf="materialIcon()"` converted to `@if (materialIcon()) { ... }`. Every other new `so-*` component uses Angular 17+ control-flow; this one was inherited from the bundle and stuck out.
+- `ui-gallery.html` / `ui-gallery.css` — inline `style="font-family: 'Space Grotesk'; ..."` on the gallery `<h1>` extracted to a `.ug-title` class in `ui-gallery.css`.
+- `tokens.css` — `--color-destructive` restored from pale pink `#ffb4ab` (Material on-dark-error palette) back to strong red `#ef4444`. Battle Royale loss banners (`battle-royale-play.css:318-319`) use this token for border + text color and pale pink washed out the visual urgency.
+
+### Scope
+
+Only the home screen is migrated in this release. `/solo`, `/leaderboard`, `/profile`, `/duel`, `/battle-royale`, `/blitz`, `/mayhem`, `/logo-quiz`, `/daily`, `/news` still render on the legacy `app-*` shared components — those migrations ship independently in follow-up Phase 3 PRs per the playbook tier order.
+
+## [0.8.16.0] - 2026-04-21
+
+### Added — StepOver design system foundation (Phase 1 + 2)
+
+Tokens, mixins, tailwind extensions, and 12 `so-*` primitive components landed behind a dev-only verification route — with **zero feature screens edited**. This is the foundation the screen-by-screen migration (Phase 3) will consume.
+
+**Foundation.** `frontend/tailwind.config.js` merges the StepOver bundle additively: new `surface.*`, `tier.*`, `warning`, `pro`, `accent.dim` colors; `fontFamily.display` alias; radii, glow shadows, glass backdropBlur; `pulse-accent` animation. The orphan `tailwind.config.js` at repo root is removed. `frontend/src/styles/tokens.css` and `frontend/src/styles/mixins.css` now load via `angular.json` styles array **after** `styles.scss` — that ordering is what lets StepOver `--mat-sys-*` overrides beat the `mat.theme()` SCSS output and re-skin every existing Material component in place. Google-Fonts `@import url()` stripped from `tokens.css` (already delivered via `<link>` in `index.html`), and Space Grotesk weight 500 added to the existing font link.
+
+**Component library.** 12 new standalone Angular 20 components under `frontend/src/app/shared/ui/`, each split into `.ts`/`.html`/`.css`: `so-button`, `so-chip`, `so-mode-card`, `so-mode-row`, `so-answer-card`, `so-progress-track`, `so-avatar`, `so-rank-badge`, `so-leaderboard-row`, `so-stat-card`, `so-top-bar`, `so-icon-button`. Barrel at `shared/ui/index.ts`. `@app/*` path alias added to `tsconfig.json` so consumers can write `import { SoButtonComponent } from '@app/shared/ui'`.
+
+**Dev verification route.** `/dev/ui-gallery` (unlinked, not in nav) renders every component in every documented state. Used to validate the library before Phase 3 screen migration starts.
+
+### Scope
+
+Foundation only. No feature screen edited; existing `app-primary-btn`, `app-mode-card`, `app-page-header`, per-feature answer buttons all unchanged. Phase 3 screen migration per `docs/superpowers/specs/2026-04-21-design-system-phase-1-2.md` Tier 1 deferred to its own PR.
+
+### Known items deferred to Phase 3
+
+- **Tier taxonomy mismatch.** The `SoTier` type used by `so-avatar`, `so-rank-badge`, `so-leaderboard-row` is 5 values (Legend/Elite/Challenger/Contender/Grassroots). The live ELO system is 7 tiers (Iron/Bronze/Silver/Gold/Platinum/Diamond/Challenger). Reconciliation (replacement vs. presentation grouping) is a Phase 3 design decision.
+- **Legacy `styles/abstracts/_tokens.css`** remains loaded alongside new tokens (new overrides win). Cleanup deferred.
+
+### Tests
+
+No new unit tests (components are pure presentation; build + `/dev/ui-gallery` is the verification gate). `npm run build` passes. `npm run test` unchanged.
+
 ## [0.8.15.0] - 2026-04-21
 
 ### Added — Logo duel review: image + masked answers + eye toggle

@@ -35,7 +35,9 @@
             "styles": [
               "src/tailwind.css",
               "src/styles/index.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "src/styles/tokens.css",
+              "src/styles/mixins.css"
             ]
           },
           "configurations": {
@@ -105,7 +107,9 @@
             "styles": [
               "src/tailwind.css",
               "src/styles/index.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "src/styles/tokens.css",
+              "src/styles/mixins.css"
             ]
           }
         }

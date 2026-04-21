@@ -1,0 +1,6 @@
+<button type="button" class="so-answer" [ngClass]="'state-' + state()" (click)="pressed.emit()">
+  <span class="so-letter">{{ letter() }}</span>
+  <span class="so-label"><ng-content /></span>
+  @if (state() === 'correct') { <span class="so-indicator">✓</span> }
+  @else if (state() === 'wrong') { <span class="so-indicator wrong">✕</span> }
+</button>

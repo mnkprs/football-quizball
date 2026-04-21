@@ -1,0 +1,10 @@
+:host { display: block; background: var(--color-bg); color: var(--color-foreground); min-height: 100vh; }
+.ug-container { max-width: 960px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 40px; }
+.ug-title     { font-family: 'Space Grotesk', sans-serif; font-size: 28px; margin: 0; color: #fff; }
+.ug-section   { display: flex; flex-direction: column; gap: 12px; }
+.ug-section h2 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; margin: 0; color: #fff; }
+.ug-section h3 { font-family: 'Lexend', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--color-muted-foreground); margin: 12px 0 0; }
+.ug-row       { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.ug-grid-2    { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ug-stack     { display: flex; flex-direction: column; gap: 8px; }
+.ug-note      { font-size: 12px; color: var(--color-muted-foreground); }

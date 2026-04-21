@@ -1,0 +1,20 @@
+:host { display: block; }
+.so-lbrow {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px 10px 11px; border-radius: 12px;
+  border-left: 3px solid transparent;
+}
+.so-lbrow.me {
+  background: rgba(0,122,255,0.08);
+  box-shadow: inset 0 0 0 1px rgba(0,122,255,0.3);
+  padding-left: 14px; border-left: 0;
+}
+.so-rank       { width: 28px; text-align: center; font-weight: 600; font-size: 13px; color: var(--color-muted-foreground); font-family: 'Lexend'; }
+.so-rank.top   { font-size: 18px; color: #fff; font-family: inherit; }
+.so-info       { flex: 1; min-width: 0; }
+.so-name       { font-weight: 600; font-size: 14px; color: #fff; }
+.so-you        { color: var(--color-accent); margin-left: 6px; font-size: 11px; }
+.so-tier       { font-size: 11px; color: var(--color-muted-foreground); }
+.so-right      { text-align: right; }
+.so-elo        { font-weight: 700; font-size: 15px; color: #fff; }
+.so-delta      { font-family: 'Lexend'; font-size: 11px; }

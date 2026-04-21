@@ -1,0 +1,177 @@
+<div class="ug-container">
+  <h1 class="ug-title">StepOver UI Gallery</h1>
+  <p class="ug-note">Dev-only route. Every so-* component in every documented state.</p>
+
+  <!-- so-button -->
+  <section class="ug-section">
+    <h2>so-button</h2>
+    <h3>Variants (size md)</h3>
+    <div class="ug-row">
+      <so-button variant="primary">Primary</so-button>
+      <so-button variant="secondary">Secondary</so-button>
+      <so-button variant="ghost">Ghost</so-button>
+      <so-button variant="tertiary">Tertiary</so-button>
+      <so-button variant="danger">Danger</so-button>
+    </div>
+    <h3>Sizes (variant primary)</h3>
+    <div class="ug-row">
+      <so-button size="sm">Small</so-button>
+      <so-button size="md">Medium</so-button>
+      <so-button size="lg">Large</so-button>
+    </div>
+    <h3>States</h3>
+    <div class="ug-row">
+      <so-button [disabled]="true">Disabled</so-button>
+      <so-button [fullWidth]="true">Full width</so-button>
+    </div>
+  </section>
+
+  <!-- so-icon-button -->
+  <section class="ug-section">
+    <h2>so-icon-button</h2>
+    <div class="ug-row">
+      <so-icon-button><span class="material-symbols-outlined">search</span></so-icon-button>
+      <so-icon-button [glass]="true"><span class="material-symbols-outlined">settings</span></so-icon-button>
+    </div>
+  </section>
+
+  <!-- so-chip -->
+  <section class="ug-section">
+    <h2>so-chip</h2>
+    <h3>Variants (size md)</h3>
+    <div class="ug-row">
+      <so-chip variant="default">default</so-chip>
+      <so-chip variant="accent">accent</so-chip>
+      <so-chip variant="success">success</so-chip>
+      <so-chip variant="error">error</so-chip>
+      <so-chip variant="warn">warn</so-chip>
+      <so-chip variant="gold">gold</so-chip>
+      <so-chip variant="glass">glass</so-chip>
+    </div>
+    <h3>Sizes</h3>
+    <div class="ug-row">
+      <so-chip size="xs" variant="accent">xs</so-chip>
+      <so-chip size="sm" variant="accent">sm</so-chip>
+      <so-chip size="md" variant="accent">md</so-chip>
+    </div>
+  </section>
+
+  <!-- so-mode-card -->
+  <section class="ug-section">
+    <h2>so-mode-card</h2>
+    <div class="ug-grid-2">
+      <so-mode-card title="Solo Ranked" subtitle="Climb the ladder" badge="NEW" />
+      <so-mode-card title="Battle Royale" subtitle="50-player tournament" />
+    </div>
+  </section>
+
+  <!-- so-mode-row -->
+  <section class="ug-section">
+    <h2>so-mode-row</h2>
+    <div class="ug-stack">
+      <so-mode-row title="Daily Challenge" subtitle="3 questions, ranked" materialIcon="casino" />
+      <so-mode-row title="Blitz" subtitle="60 seconds" badge="HOT" materialIcon="bolt" />
+    </div>
+  </section>
+
+  <!-- so-answer-card -->
+  <section class="ug-section">
+    <h2>so-answer-card</h2>
+    <div class="ug-stack">
+      <so-answer-card letter="A" state="default">Default state option</so-answer-card>
+      <so-answer-card letter="B" state="selected">Selected state option</so-answer-card>
+      <so-answer-card letter="C" state="correct">Correct answer</so-answer-card>
+      <so-answer-card letter="D" state="wrong">Wrong answer</so-answer-card>
+      <so-answer-card letter="E" state="dim">Dimmed option</so-answer-card>
+    </div>
+  </section>
+
+  <!-- so-progress-track -->
+  <section class="ug-section">
+    <h2>so-progress-track</h2>
+    <h3>Values</h3>
+    <so-progress-track [value]="0" />
+    <so-progress-track [value]="50" />
+    <so-progress-track [value]="100" />
+    <h3>Heights</h3>
+    <so-progress-track [value]="60" [height]="2" />
+    <so-progress-track [value]="60" [height]="4" />
+    <so-progress-track [value]="60" [height]="8" />
+    <h3>Glow off + custom color</h3>
+    <so-progress-track [value]="70" [glow]="false" color="var(--color-pro)" />
+  </section>
+
+  <!-- so-avatar -->
+  <section class="ug-section">
+    <h2>so-avatar</h2>
+    <h3>Sizes</h3>
+    <div class="ug-row">
+      <so-avatar [size]="24" initials="SO" />
+      <so-avatar [size]="36" initials="SO" />
+      <so-avatar [size]="48" initials="SO" />
+      <so-avatar [size]="72" initials="SO" />
+    </div>
+    <h3>Tier rings (size 48)</h3>
+    <div class="ug-row">
+      <so-avatar [size]="48" initials="L" [ring]="true" tier="Legend" />
+      <so-avatar [size]="48" initials="E" [ring]="true" tier="Elite" />
+      <so-avatar [size]="48" initials="C" [ring]="true" tier="Challenger" />
+      <so-avatar [size]="48" initials="N" [ring]="true" tier="Contender" />
+      <so-avatar [size]="48" initials="G" [ring]="true" tier="Grassroots" />
+    </div>
+  </section>
+
+  <!-- so-rank-badge -->
+  <section class="ug-section">
+    <h2>so-rank-badge</h2>
+    <div class="ug-row">
+      <so-rank-badge tier="Legend" [elo]="2450" />
+      <so-rank-badge tier="Elite" [elo]="2050" />
+      <so-rank-badge tier="Challenger" [elo]="1750" />
+      <so-rank-badge tier="Contender" [elo]="1150" />
+      <so-rank-badge tier="Grassroots" [elo]="800" />
+    </div>
+    <h3>Without elo</h3>
+    <div class="ug-row">
+      <so-rank-badge tier="Legend" />
+    </div>
+  </section>
+
+  <!-- so-leaderboard-row -->
+  <section class="ug-section">
+    <h2>so-leaderboard-row</h2>
+    <div class="ug-stack">
+      <so-leaderboard-row [rank]="1" name="Alex Stepover" tier="Legend" [elo]="2450" [delta]="12" avatarInitials="AS" />
+      <so-leaderboard-row [rank]="2" name="Maria Pele" tier="Elite" [elo]="2100" [delta]="-4" avatarInitials="MP" />
+      <so-leaderboard-row [rank]="3" name="Juan Messi" tier="Elite" [elo]="2050" [delta]="0" avatarInitials="JM" />
+      <so-leaderboard-row [rank]="4" name="You" tier="Challenger" [elo]="1700" [delta]="24" avatarInitials="Y" [me]="true" />
+      <so-leaderboard-row [rank]="12" name="Sam Fan" tier="Contender" [elo]="1200" avatarInitials="SF" />
+    </div>
+  </section>
+
+  <!-- so-stat-card -->
+  <section class="ug-section">
+    <h2>so-stat-card</h2>
+    <div class="ug-grid-2">
+      <so-stat-card label="Games played" [value]="248" delta="+12" />
+      <so-stat-card label="Accuracy" [value]="76" unit="%" delta="-2" />
+      <so-stat-card label="Streak" [value]="5" unit="wins" />
+      <so-stat-card label="ELO" [value]="1705" color="var(--color-accent)" delta="+45" />
+    </div>
+  </section>
+
+  <!-- so-top-bar -->
+  <section class="ug-section">
+    <h2>so-top-bar</h2>
+    <h3>Compact</h3>
+    <so-top-bar title="Leaderboard">
+      <so-icon-button leading><span class="material-symbols-outlined">arrow_back</span></so-icon-button>
+      <so-icon-button trailing [glass]="true"><span class="material-symbols-outlined">filter_list</span></so-icon-button>
+    </so-top-bar>
+    <h3>Large</h3>
+    <so-top-bar title="Your Profile" subtitle="Grassroots — 820 ELO" [large]="true">
+      <so-icon-button leading><span class="material-symbols-outlined">arrow_back</span></so-icon-button>
+      <so-icon-button trailing [glass]="true"><span class="material-symbols-outlined">settings</span></so-icon-button>
+    </so-top-bar>
+  </section>
+</div>

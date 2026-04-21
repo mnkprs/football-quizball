@@ -1,0 +1,13 @@
+@if (large()) {
+  <div class="so-bar so-bar--large">
+    <div class="so-actions"><ng-content select="[leading]"/><span class="so-spacer"></span><ng-content select="[trailing]"/></div>
+    <div class="so-title so-title--large font-headline">{{ title() }}</div>
+    @if (subtitle()) { <div class="so-subtitle">{{ subtitle() }}</div> }
+  </div>
+} @else {
+  <div class="so-bar">
+    <div class="so-leading"><ng-content select="[leading]"/></div>
+    <div class="so-title font-headline">{{ title() }}</div>
+    <div class="so-trailing"><ng-content select="[trailing]"/></div>
+  </div>
+}

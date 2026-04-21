@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="so-btn inline-flex items-center justify-center gap-2 font-semibold uppercase tracking-[0.08em] rounded-lg whitespace-nowrap select-none transition-[transform,box-shadow] duration-150 ease-out"
+  [class.opacity-60]="disabled()"
+  [class.cursor-not-allowed]="disabled()"
+  [class.w-full]="fullWidth()"
+  [ngClass]="[sizeClass(), variantClass()]"
+  [disabled]="disabled()"
+  (click)="pressed.emit()">
+  <ng-content select="[leading]" />
+  <ng-content />
+  <ng-content select="[trailing]" />
+</button>

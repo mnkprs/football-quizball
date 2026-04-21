@@ -35,6 +35,7 @@ const fullRoutes: Routes = [
   { path: 'login', loadComponent: () => import('./features/login/login').then(m => m.LoginComponent) },
   { path: 'admin', loadComponent: () => import('./features/admin/admin-dashboard').then(m => m.AdminDashboardComponent) },
   { path: 'admin-legacy', loadComponent: () => import('./features/admin/admin-legacy').then(m => m.AdminLegacyComponent) },
+  { path: 'dev/ui-gallery', loadComponent: () => import('./features/dev/ui-gallery/ui-gallery').then(m => m.UiGalleryComponent) },
   { path: 'onboarding', loadComponent: () => import('./features/onboarding/onboarding').then(m => m.OnboardingComponent) },
   { path: 'terms', loadComponent: () => import('./features/legal/terms').then(m => m.TermsComponent) },
   { path: 'privacy', loadComponent: () => import('./features/legal/privacy').then(m => m.PrivacyComponent) },

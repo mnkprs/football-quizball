@@ -5,10 +5,13 @@ import { AuthService } from '../../core/auth.service';
 import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
 import { ProfileStore } from '../../core/profile-store.service';
-import { SectionHeaderComponent } from '../../shared/section-header/section-header';
-import { ModeCardComponent } from '../../shared/mode-card/mode-card';
-import { BattleHeroComponent, HeroMode } from '../../shared/battle-hero/battle-hero';
 import { AnalyticsService } from '../../core/analytics.service';
+import {
+  SoModeCardComponent,
+  SoModeRowComponent,
+  SoChipComponent,
+  SoButtonComponent,
+} from '@app/shared/ui';
 
 @Component({
   selector: 'app-home',
@@ -17,15 +20,15 @@ import { AnalyticsService } from '../../core/analytics.service';
   imports: [
     CommonModule,
     NgOptimizedImage,
-    SectionHeaderComponent,
-    ModeCardComponent,
-    BattleHeroComponent,
+    SoModeCardComponent,
+    SoModeRowComponent,
+    SoChipComponent,
+    SoButtonComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
 export class HomeComponent implements OnInit {
-
   auth = inject(AuthService);
   lang = inject(LanguageService);
   pro = inject(ProService);
@@ -35,23 +38,7 @@ export class HomeComponent implements OnInit {
 
   onlinePlayers = signal(Math.floor(Math.random() * 40) + 12);
 
-  logoModes = computed<HeroMode[]>(() => {
-    const loggedIn = this.auth.isLoggedIn();
-    const isPro = this.pro.isPro();
-    const duelsLeft = this.pro.dailyDuelsRemaining();
-    const trial = loggedIn && !isPro ? duelsLeft : null;
-
-    return [
-      { label: 'Solo', sub: 'Free', icon: 'person', locked: false },
-      { label: 'Duel', sub: '1v1', icon: 'swords', iconClass: 'material-symbols-outlined', locked: !loggedIn, trialRemaining: trial },
-      { label: 'Team', sub: 'PvP', icon: 'shield', iconClass: 'material-symbols-outlined', locked: !loggedIn, trialRemaining: trial },
-    ];
-  });
-
-  private userElo(): number {
-    return this.store.elo();
-  }
-
+  private userElo(): number { return this.store.elo(); }
   private eloRank(): string {
     const r = this.store.rank();
     return r != null ? String(r) : '—';
@@ -63,9 +50,22 @@ export class HomeComponent implements OnInit {
     return `${t.soloStatsHint} ${this.userElo()} · ${t.rankLabel} #${this.eloRank()}`;
   });
 
+  duelHint = computed(() => {
+    if (!this.auth.isLoggedIn()) return '1v1 · Login required';
+    if (this.pro.isPro()) return '1v1 · Unlimited';
+    const left = this.pro.dailyDuelsRemaining();
+    return left > 0 ? `1v1 · ${left} free today` : '1v1 · Come back tomorrow';
+  });
+
   duelBadge = computed(() => {
-    if (!this.auth.isLoggedIn() || !this.store.profile()) return '';
+    if (!this.auth.isLoggedIn() || !this.store.profile()) return undefined;
     return `ELO ${this.userElo()}`;
+  });
+
+  battleRoyaleBadge = computed(() => {
+    if (!this.auth.isLoggedIn() || this.pro.isPro()) return undefined;
+    const n = this.pro.trialBattleRoyaleRemaining();
+    return n > 0 ? `${n} free` : undefined;
   });
 
   ngOnInit(): void {
@@ -78,40 +78,26 @@ export class HomeComponent implements OnInit {
   }
 
   hasActive2PlayerGame(): boolean {
-    try {
-      return !!localStorage.getItem('quizball_game_id');
-    } catch {
-      return false;
-    }
+    try { return !!localStorage.getItem('quizball_game_id'); } catch { return false; }
   }
 
   go2Player(): void {
     this.analytics.track('select_content', { content_type: 'game_mode', item_id: '2player' });
     this.router.navigate(['/game']);
   }
-
   goOnline(): void {
-    if (this.auth.isLoggedIn()) {
-      this.router.navigate(['/online-game']);
-    } else {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/online-game' } });
-    }
+    if (this.auth.isLoggedIn()) this.router.navigate(['/online-game']);
+    else this.router.navigate(['/login'], { queryParams: { redirect: '/online-game' } });
   }
-
   goSolo(): void {
+    if (!this.auth.isLoggedIn()) { this.router.navigate(['/login']); return; }
     this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'solo' });
     this.router.navigate(['/solo']);
   }
-
   goLogoQuiz(): void {
     this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'logo_quiz' });
     this.router.navigate(['/logo-quiz']);
   }
-
-  goNews(): void {
-    this.router.navigate(['/news']);
-  }
-
   goBattleRoyale(): void {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
@@ -120,45 +106,13 @@ export class HomeComponent implements OnInit {
     this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'battle_royale' });
     this.router.navigate(['/battle-royale']);
   }
-
-  onLockedModeClick(): void {
-    this.router.navigate(['/login']);
-  }
-
-  onLogoModeClick(index: number): void {
-    switch (index) {
-      case 0: this.goLogoQuiz(); break;
-      case 1: this.goLogoDuel(); break;
-      case 2: this.goTeamLogoQuiz(); break;
-    }
-  }
-
-  goLogoDuel(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/duel?mode=logo' } });
-      return;
-    }
-    this.router.navigate(['/duel'], { queryParams: { mode: 'logo' } });
-  }
-
-  goTeamLogoQuiz(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });
-      return;
-    }
-    this.router.navigate(['/battle-royale'], { queryParams: { mode: 'team_logo' } });
-  }
-
   goDuel(): void {
-    if (this.auth.isLoggedIn()) {
-      this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'duel' });
-      this.router.navigate(['/duel']);
-    } else {
+    if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/duel' } });
+      return;
     }
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'duel' });
+    this.router.navigate(['/duel']);
   }
-
-  goDaily(): void {
-    this.router.navigate(['/daily']);
-  }
+  goBlitz(): void { /* locked — noop */ }
 }
