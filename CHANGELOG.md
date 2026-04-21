@@ -2,6 +2,35 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.15.0] - 2026-04-21
+
+### Added — Logo duel review: image + masked answers + eye toggle
+
+Pro users who review a past logo duel can now see the obscured logo they played plus mask-and-reveal each question's answers. Turns the match-detail screen into a practice surface — "who was this?" → try to remember → tap the eye → see the truth.
+
+**Backend enrichment.** `MatchHistoryService.getMatchDetail` (`backend/src/match-history/match-history.service.ts`) now folds `game.questions[i].image_url` into each `question_results[i]` when `game.game_type === 'logo'`. Standard duels fall through unchanged. Non-Pro users get `question_results` stripped as before, so the new `image_url` field rides through the existing Pro gate with no new leak vector. `getDuelGameById` (`backend/src/supabase/supabase.service.ts`) now selects the `questions` column; `DuelQuestionDetail` (`backend/src/common/interfaces/match.interface.ts`) gains an `image_url?: string` field.
+
+**Frontend review UX.** `MatchDetailComponent` (`frontend/src/app/features/match-detail/match-detail.ts`) adds:
+- `isLogoDuel` computed — true when any question in the breakdown carries `image_url`.
+- `revealedQuestions: Set<number>` signal — per-question reveal state, default empty.
+- `toggleReveal(index)` / `isRevealed(index)` — flip state per question.
+- `maskAnswer(value)` — replaces non-whitespace chars with `*` and caps at 14 to avoid revealing extreme-length answers. Spaces preserved so word count is still a clue.
+
+**Template + styles.** `match-detail.html` renders the obscured logo above each logo-duel question, plus a `Reveal`/`Hide` pill with `visibility` / `visibility_off` Material icons. Per option B of the pre-build design check: **all three answers** (correct, host, guest) are masked until the eye is tapped. Reveal-button active state uses the same accent treatment as the all-matches screen (`rgba(56, 189, 248, 0.12)` + `#38bdf8` text).
+
+### Scope — Pro only, logo duels only (v1)
+
+- Non-Pro users still see the existing "Unlock question review with Pro" paywall — the image + mask UX is additive on top of the already-Pro-gated question breakdown.
+- Team Logo Battle (BR path, `br_questions`) not touched in v1 — different data plumbing. Deferred until requested.
+- Solo Logo Quiz has no match-history entry today, so no change there.
+
+### Tests
+
+Three new specs in `backend/src/match-history/match-history.service.spec.ts`:
+- `enriches duel question_results with image_url for logo duels` — Arsenal + Chelsea mock, verifies per-index pairing.
+- `leaves question_results unchanged for standard (non-logo) duels` — regression guard so the enrichment branch is bypassed when `game_type !== 'logo'`.
+- `strips image_url for non-pro users along with the rest of question_results` — confirms the new field rides the existing Pro gate.
+
 ## [0.8.14.1] - 2026-04-21
 
 ### Changed — Sim tooling polish
