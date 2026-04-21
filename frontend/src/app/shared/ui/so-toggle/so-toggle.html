@@ -5,7 +5,7 @@
   [class.so-toggle--checked]="checked()"
   [ngClass]="variantClass()"
   [attr.aria-checked]="checked()"
-  [attr.aria-label]="label()"
+  [attr.aria-label]="accessibleLabel()"
   [disabled]="disabled()"
   (click)="toggled.emit()">
   <div class="so-toggle__row">

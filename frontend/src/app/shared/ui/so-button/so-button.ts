@@ -11,6 +11,9 @@ export type SoButtonSize    = 'sm' | 'md' | 'lg';
   imports: [CommonModule],
   templateUrl: './so-button.html',
   styleUrl: './so-button.css',
+  host: {
+    '[class.is-full-width]': 'fullWidth()',
+  },
 })
 export class SoButtonComponent {
   variant   = input<SoButtonVariant>('primary');

@@ -1,5 +1,5 @@
 :host { display: inline-block; }
-:host([full-width]) { display: block; }
+:host(.is-full-width) { display: block; width: 100%; }
 .so-btn:active:not(:disabled) { transform: scale(0.98); }
 .variant-primary   { background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%); color: var(--color-accent-foreground); box-shadow: 0 0 15px rgba(0,122,255,0.30); }
 .variant-secondary { background: var(--glass-bg); color: var(--color-foreground); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }

@@ -44,7 +44,11 @@
 .lq-free-hint {
   background: none;
   border: none;
-  padding: 0;
+  padding: var(--space-2) var(--space-3);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   margin-top: calc(var(--space-1) * -1);
   -webkit-tap-highlight-color: transparent;
@@ -218,6 +222,10 @@
   font-size: var(--text-sm);
   color: var(--color-muted-foreground);
   text-decoration: none;
+  padding: var(--space-3) var(--space-4);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* ═══════════════════════════════════════════ */

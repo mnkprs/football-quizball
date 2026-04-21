@@ -34,7 +34,15 @@ export class SoToggleComponent {
   checked     = input<boolean>(false);
   variant     = input<SoToggleVariant>('default');
   disabled    = input<boolean>(false);
+  /**
+   * Optional override for the assistive-tech announcement.
+   * Use this when `label` contains decorative emoji or stylized casing
+   * that screen readers would verbalize awkwardly (e.g. "💀 HARDCORE").
+   * Defaults to `label()` when not provided.
+   */
+  ariaLabel   = input<string>();
   toggled     = output<void>();
 
   variantClass() { return `variant-${this.variant()}`; }
+  accessibleLabel() { return this.ariaLabel() ?? this.label(); }
 }

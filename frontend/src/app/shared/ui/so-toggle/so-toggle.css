@@ -7,9 +7,9 @@
   width: 100%;
   padding: var(--space-4) var(--space-5);
   background: var(--glass-bg-ultra-subtle, rgba(255, 255, 255, 0.04));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(var(--glass-blur-lg, 20px));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg, 20px));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: background 300ms var(--ease-out-quart),
@@ -45,7 +45,7 @@
   width: 44px;
   height: 24px;
   border-radius: var(--radius-full, 9999px);
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--glass-border-strong);
   position: relative;
   transition: background 300ms var(--ease-out-quart);
   flex-shrink: 0;
@@ -58,7 +58,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--color-white, #ffffff);
   transition: transform 300ms var(--ease-out-quart);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -75,8 +75,8 @@
   background: rgba(239, 68, 68, 0.08);
   animation: so-toggle-pulse-danger 2s infinite;
 }
-.variant-danger.so-toggle--checked .so-toggle__label { color: #ef4444; }
-.variant-danger .so-toggle__switch--on { background: #ef4444; }
+.variant-danger.so-toggle--checked .so-toggle__label { color: var(--color-destructive, #ef4444); }
+.variant-danger .so-toggle__switch--on { background: var(--color-destructive, #ef4444); }
 
 @keyframes so-toggle-pulse-danger {
   0%, 100% {

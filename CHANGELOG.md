@@ -23,9 +23,27 @@ Second feature screen migrated to the design system after v0.8.17's home rebuild
 
 **CSS cleanup.** `logo-quiz.css` drops the 80-line bespoke toggle (moves to `so-toggle.css`) and the duplicated stat-card internal selectors (the shared `.lobby-stat-card__*` classes were sufficient — the `.lq-elo-card__*` selectors weren't referenced anywhere). Session-header animations (ELO bump, tier promotion, border glow, delta pop) stay local — they're genuinely bespoke to the in-game surface.
 
+### Fixed — Design system primitive bugs caught by `/review`
+
+Two bugs in the `so-*` primitive library caught during pre-landing review:
+
+- **`so-button [fullWidth]` was a no-op** across 5 live screens (blitz, solo ×3, onboarding) since v0.8.16. The CSS rule `:host([full-width])` expected a DOM attribute that Angular signal inputs never set. Root cause: signal inputs bind to properties, not reflected attributes. Every `<so-button fullWidth>` on production has been rendering content-width instead of stretching to the column width. Fixed by replacing the attribute selector with a host class binding: `host: { '[class.is-full-width]': 'fullWidth()' }` + `:host(.is-full-width) { display: block; width: 100%; }`. Retroactively fixes all 5 existing callsites, not just logo-quiz.
+- **`so-toggle` `aria-label` announced decorative emoji.** The original bundle bound `aria-label` directly to the `label` input. With Logo Quiz using `label="💀 HARDCORE"`, screen readers announced "skull HARDCORE" instead of the previous clean "Hardcore mode". Fixed by adding an optional `ariaLabel` input that overrides the visual label for assistive tech. Logo Quiz now passes `ariaLabel="Hardcore mode"` alongside the visual `label`.
+
+### Fixed — Logo Quiz accessibility tap targets
+
+Pre-landing review caught two sub-44px tap targets in the new template:
+
+- `.lq-free-hint` (the "Playing with 100 free logos" pill) had `padding: 0`, rendering at ~14px height — well below WCAG 2.5.5 / iOS HIG 44px minimum. Now has `min-height: 44px` + centered layout.
+- `.lq-finished__back` link ("Back to Home") was a bare `<a>` with no padding at ~12px font height. Now has `padding: var(--space-3) var(--space-4)` + `min-height: 44px`.
+
+### Fixed — `so-toggle` token drift
+
+Hardcoded CSS values in `so-toggle.css` replaced with the corresponding tokens: `blur(20px)` → `var(--glass-blur-lg)`, two glass border values → `var(--glass-border)` / `var(--glass-border-strong)`, `#ef4444` → `var(--color-destructive)`, `#ffffff` thumb → `var(--color-white)`. Keeps the design system single-sourced.
+
 ### Scope
 
-Logo Quiz only. No other screen touched. `logo-quiz.ts` unchanged except for 3 new imports. Zero behavior changes — same methods, same signals, same phase state machine, same game flow.
+Logo Quiz screen + incidental design-system fixes surfaced during review. `logo-quiz.ts` logic unchanged except for 3 new imports. Zero behavior changes — same methods, same signals, same phase state machine, same game flow.
 
 ### Feature parity — verified
 
