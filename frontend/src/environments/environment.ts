@@ -40,8 +40,10 @@ export const environment = {
   admobBannerIos: '',
   /** AdMob banner ad unit ID for Android. */
   admobBannerAndroid: '',
-  /** Google OAuth Web Client ID for native sign-in. Get from Google Cloud Console → Credentials. */
+  /** Google OAuth Web Client ID — used by Android as the id_token audience and by the Supabase web OAuth flow. */
   googleWebClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
+  /** Google OAuth iOS Client ID — used by the iOS native Google Sign-In flow. */
+  googleIosClientId: '215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com',
   /** Apple Client ID (bundle identifier) for Sign in with Apple. */
   appleClientId: 'com.stepovr.app',
   /** Landing-only mode — when true, root and all unknown routes render the marketing landing page. Flipped to true on native-app launch. */

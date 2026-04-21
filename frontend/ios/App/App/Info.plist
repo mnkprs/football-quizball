@@ -28,6 +28,14 @@
 				<string>stepovr</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps.215249721443-dldujn3efff1onlmft2u30ikih89q294</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.215249721443-dldujn3efff1onlmft2u30ikih89q294</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>

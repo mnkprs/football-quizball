@@ -23,26 +23,28 @@ export const environment = {
   adSenseClientId: 'ca-pub-7781323448253047',
   /** AdSense ad slot ID (numeric). Create in AdSense → Ads → By ad unit. */
   adSenseSlotId: '9966834671',
-  /** AdMob interstitial ad unit ID for iOS. Get from AdMob console → Ad units. Replace before release. */
-  admobInterstitialIos: '',
+  /** AdMob interstitial ad unit ID for iOS. Get from AdMob console → Ad units. */
+  admobInterstitialIos: 'ca-app-pub-7781323448253047/9397669011',
   /** AdMob interstitial ad unit ID for Android. Get from AdMob console → Ad units. */
   admobInterstitialAndroid: 'ca-app-pub-7781323448253047/4423313001',
   /** AdMob rewarded video ad unit ID for iOS. Get from AdMob console → Ad units. */
-  admobRewardedIos: '',
+  admobRewardedIos: 'ca-app-pub-7781323448253047/8084587342',
   /** AdMob rewarded video ad unit ID for Android. Get from AdMob console → Ad units. */
   admobRewardedAndroid: 'ca-app-pub-7781323448253047/7729899558',
-  /** AdMob App ID for iOS. Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX. Set after AdMob iOS app creation. */
-  admobAppIdIos: '',
-  /** AdMob App ID for Android. Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX. Set after AdMob Android app creation. */
-  admobAppIdAndroid: '',
+  /** AdMob App ID for iOS. Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX. */
+  admobAppIdIos: 'ca-app-pub-7781323448253047~5298641906',
+  /** AdMob App ID for Android. Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX. */
+  admobAppIdAndroid: 'ca-app-pub-7781323448253047~6079077395',
   /** AdMob banner ad unit ID for iOS. */
-  admobBannerIos: '',
+  admobBannerIos: 'ca-app-pub-7781323448253047/8618727786',
   /** AdMob banner ad unit ID for Android. */
   admobBannerAndroid: '',
   /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
   adminApiKey: undefined as string | undefined,
-  /** Google OAuth Web Client ID for native sign-in. Get from Google Cloud Console → Credentials. */
+  /** Google OAuth Web Client ID — used by Android as the id_token audience and by the Supabase web OAuth flow. */
   googleWebClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
+  /** Google OAuth iOS Client ID — used by the iOS native Google Sign-In flow. */
+  googleIosClientId: '215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com',
   /** Apple Client ID (bundle identifier) for Sign in with Apple. */
   appleClientId: 'com.stepovr.app',
   /** Landing-only mode — when true, root and all unknown routes render the marketing landing page. Flipped to true on native-app launch. */

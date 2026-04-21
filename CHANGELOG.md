@@ -2,6 +2,24 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.8.19.2] - 2026-04-21
+
+### Added — iOS Google OAuth client ID + real iOS AdMob ad unit IDs
+
+Replaced the iOS placeholder values in the Capacitor and environment configs with the production credentials now that the AdMob iOS app and the iOS Google OAuth client ID exist.
+
+**Google Sign-In — separate iOS + Web client IDs.** The `GoogleAuth` plugin config previously set `clientId` to the Web OAuth client ID, which only happened to work for the Android audience check — on iOS the native sign-in sheet requires a platform-specific iOS OAuth client ID. Split into two fields:
+- `clientId`: `215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com` (new iOS OAuth client)
+- `serverClientId`: the existing Web OAuth client ID (used by Android as the `aud` claim on the id_token, and by the backend when verifying ID tokens with `google-auth-library`)
+
+Added the reversed iOS client ID (`com.googleusercontent.apps.215249721443-dldujn3efff1onlmft2u30ikih89q294`) as a second entry under `CFBundleURLTypes` in `Info.plist`. Google's OAuth flow redirects back to the app via this scheme after the user authenticates — without it, the native sign-in sheet hangs after consent. The existing `stepovr://` scheme is preserved.
+
+Added `googleIosClientId` field to both `environment.ts` and `environment.prod.ts` so code paths that need the iOS client ID (e.g. backend token audience when verifying iOS-issued tokens, or future native sign-in debug logs) can read it from the same env surface as `googleWebClientId`.
+
+**AdMob iOS — real App ID + 3 ad unit IDs.** The `~5298641906` App ID replaces the `~6079077395` placeholder (which was the Android App ID duplicated into the iOS slot). `appIdIos` in `capacitor.config.ts` + `admobAppIdIos` in env both now use the real iOS value. Populated `admobBannerIos`, `admobInterstitialIos`, and `admobRewardedIos` with their respective AdMob-issued ad unit IDs. Android `admobBannerAndroid` is still empty — pending banner ad unit creation on the Android side (interstitial + rewarded Android IDs were already populated from prior work).
+
+Ran `npx cap sync ios` to copy the updated `capacitor.config.ts` → `ios/App/App/capacitor.config.json` so the runtime picks up the new plugin values. Verified `GoogleService-Info.plist` is still registered in the pbxproj after sync (registration helper is idempotent).
+
 ## [0.8.19.1] - 2026-04-21
 
 ### Added — iOS native project generated + Firebase SDK wired + push/splash/network plugins
