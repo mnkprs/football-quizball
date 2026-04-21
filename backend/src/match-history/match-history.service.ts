@@ -88,7 +88,20 @@ export class MatchHistoryService {
           case 'duel': {
             const game = await this.supabaseService.getDuelGameById(match.game_ref_id);
             if (game) {
-              detail.question_results = game.question_results ?? [];
+              const results = game.question_results ?? [];
+              // Logo duels: fold the obscured image_url from game.questions[i]
+              // into each question result so the match-review UI can render
+              // the logo the players saw. Standard duels have no image_url
+              // to fold — they fall through unchanged.
+              if (game.game_type === 'logo' && Array.isArray(game.questions)) {
+                const questionsById = game.questions as Array<{ image_url?: string }>;
+                detail.question_results = results.map((r) => {
+                  const q = questionsById[r.index];
+                  return q?.image_url ? { ...r, image_url: q.image_url } : r;
+                });
+              } else {
+                detail.question_results = results;
+              }
             }
             break;
           }

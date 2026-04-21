@@ -177,5 +177,87 @@ describe('MatchHistoryService', () => {
       const detail = await service.getMatchDetail(matchId, userId);
       expect(detail.questionsAvailable).toBe(false);
     });
+
+    it('enriches duel question_results with image_url for logo duels', async () => {
+      supabase.getMatchById = jest.fn().mockResolvedValue({
+        id: matchId,
+        player1_id: userId,
+        player2_id: null,
+        match_mode: 'duel',
+        game_ref_id: 'g1',
+        game_ref_type: 'duel',
+        detail_snapshot: null,
+      });
+      supabase.getDuelGameById = jest.fn().mockResolvedValue({
+        id: 'g1',
+        game_type: 'logo',
+        question_results: [
+          { index: 0, winner: 'host', question_text: 'Identify this club', correct_answer: 'Arsenal' },
+          { index: 1, winner: 'guest', question_text: 'Identify this club', correct_answer: 'Chelsea' },
+        ],
+        questions: [
+          { image_url: 'https://cdn/arsenal-obscured.png' },
+          { image_url: 'https://cdn/chelsea-obscured.png' },
+        ],
+      });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: true });
+
+      const detail = await service.getMatchDetail(matchId, userId);
+      expect(detail.question_results?.[0]?.image_url).toBe('https://cdn/arsenal-obscured.png');
+      expect(detail.question_results?.[1]?.image_url).toBe('https://cdn/chelsea-obscured.png');
+    });
+
+    it('leaves question_results unchanged for standard (non-logo) duels', async () => {
+      supabase.getMatchById = jest.fn().mockResolvedValue({
+        id: matchId,
+        player1_id: userId,
+        player2_id: null,
+        match_mode: 'duel',
+        game_ref_id: 'g1',
+        game_ref_type: 'duel',
+        detail_snapshot: null,
+      });
+      supabase.getDuelGameById = jest.fn().mockResolvedValue({
+        id: 'g1',
+        game_type: 'standard',
+        question_results: [
+          { index: 0, winner: 'host', question_text: 'Who scored?', correct_answer: 'Messi' },
+        ],
+        questions: [
+          // Standard duels may still carry question objects, but they have no image_url
+          // and the enrichment path must leave results untouched.
+          { category: 'HISTORY', difficulty: 'medium' },
+        ],
+      });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: true });
+
+      const detail = await service.getMatchDetail(matchId, userId);
+      expect(detail.question_results?.[0]?.image_url).toBeUndefined();
+    });
+
+    it('strips image_url for non-pro users along with the rest of question_results', async () => {
+      supabase.getMatchById = jest.fn().mockResolvedValue({
+        id: matchId,
+        player1_id: userId,
+        player2_id: null,
+        match_mode: 'duel',
+        game_ref_id: 'g1',
+        game_ref_type: 'duel',
+        detail_snapshot: null,
+      });
+      supabase.getDuelGameById = jest.fn().mockResolvedValue({
+        id: 'g1',
+        game_type: 'logo',
+        question_results: [
+          { index: 0, winner: 'host', question_text: 'Identify this club', correct_answer: 'Arsenal' },
+        ],
+        questions: [{ image_url: 'https://cdn/arsenal-obscured.png' }],
+      });
+      supabase.getProStatus = jest.fn().mockResolvedValue({ is_pro: false });
+
+      const detail = await service.getMatchDetail(matchId, userId);
+      // question_results deleted entirely for non-pro — image_url implicitly gone.
+      expect((detail as unknown as { question_results?: unknown }).question_results).toBeUndefined();
+    });
   });
 });
