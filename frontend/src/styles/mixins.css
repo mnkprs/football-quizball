@@ -1,0 +1,68 @@
+/* =========================================================
+   StepOver — CSS utility mixins
+   Drop-in for: frontend/src/styles/mixins.css
+   Import in styles.scss AFTER tokens.css + Tailwind:
+     @tailwind base; @tailwind components; @tailwind utilities;
+     @import './styles/tokens.css';
+     @import './styles/mixins.css';
+   ========================================================= */
+
+/* Atmospheric overlay — put on any image-background card */
+.so-overlay-vertical::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom,
+    rgba(14,14,14,0.25) 0%,
+    rgba(14,14,14,0.85) 75%,
+    rgba(14,14,14,0.95) 100%);
+}
+.so-overlay-horizontal::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(14,14,14,0.88) 0%,
+    rgba(14,14,14,0.45) 100%);
+}
+.so-overlay-radial::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at top,
+    rgba(14,14,14,0.10) 0%,
+    rgba(14,14,14,0.92) 85%);
+}
+
+/* Glass surface — nav pills, bottom nav, modal cards */
+.so-glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: inset 0 0 0 1px var(--glass-border);
+}
+.so-glass-subtle {
+  background: var(--glass-bg-subtle);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* Accent glow — primary CTAs & active states */
+.so-glow        { box-shadow: var(--neon-glow); }
+.so-glow-floodlit { box-shadow: var(--floodlit-glow); }
+
+/* Tonal border (no visible line — inset shadow instead) */
+.so-ghost-border { box-shadow: var(--ghost-border); }
+
+/* Tier stripe (left-border 3px for leaderboard rows, mode rows) */
+.so-tier-legend     { border-left: 3px solid var(--tier-legend); }
+.so-tier-elite      { border-left: 3px solid var(--tier-elite); }
+.so-tier-challenger { border-left: 3px solid var(--tier-challenger); }
+.so-tier-contender  { border-left: 3px solid var(--tier-contender); }
+.so-tier-grassroots { border-left: 3px solid var(--tier-grassroots); }
+
+/* Answer reveal shake — preserves your existing wrong-shake */
+@keyframes so-pulse-accent {
+  0%, 100% { box-shadow: 0 0 15px rgba(0,122,255,0.30); }
+  50%      { box-shadow: 0 0 25px rgba(0,122,255,0.55); }
+}
+.so-pulse-accent { animation: so-pulse-accent 1.8s ease-in-out infinite; }
+
+/* Text treatments */
+.so-text-display  { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+.so-text-numeric  { font-family: 'Lexend', sans-serif; font-variant-numeric: tabular-nums; }
+.so-text-label    { font-family: 'Lexend', sans-serif; text-transform: uppercase; letter-spacing: 0.14em; font-size: 10px; color: var(--color-muted-foreground); }
