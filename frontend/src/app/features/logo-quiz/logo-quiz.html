@@ -5,10 +5,11 @@
     <!-- IDLE — Start Screen                         -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'idle') {
-      <div class="lq-start lobby-screen spotlight">
+      <div class="lq-start lobby-screen spotlight" [class.lq-start--hardcore]="hardcoreMode()">
         <!-- Hero image -->
         <div class="hero-bg">
-          <img [ngSrc]="hardcoreMode() ? '/emblem-hardcore.png' : '/emblem.png'" alt="Logo Quiz" class="hero-bg__img" fill />
+          <img [ngSrc]="hardcoreMode() ? '/emblem-hardcore.png' : '/emblem.png'"
+               alt="Logo Quiz" class="hero-bg__img" fill />
           <div class="hero-bg__overlay"></div>
         </div>
 
@@ -19,60 +20,56 @@
             Identify football clubs from their modified logos.
             Difficulty adjusts based on your ELO rating.
           </p>
+
           @if (auth.isLoggedIn() && !proService.isPro()) {
             <button type="button" class="lq-free-hint" (click)="openProUpgrade()">
-              Playing with 100 free logos · <span class="lq-free-hint__link">Unlock all 1,000+</span>
+              <so-chip variant="glass" size="xs">
+                Playing with 100 free logos · <span class="lq-free-hint__link">Unlock 1,000+</span>
+              </so-chip>
             </button>
           }
 
           <!-- Stats Row: ELO + Rank -->
           <div class="lq-stats-row lobby-stats-row">
-            <div class="lq-elo-card lobby-stat-card lobby-stat-card--elo" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
-              <span class="lq-elo-card__label lobby-stat-card__label">ELO RATING</span>
-              <span class="lq-elo-card__value lobby-stat-card__value">{{ currentElo() | number }}</span>
-              <span class="lq-elo-card__tier lobby-stat-card__tier" [style.color]="eloTier().color">
+            <div class="lq-elo-card lobby-stat-card lobby-stat-card--elo"
+                 [style.border-color]="eloTier().color"
+                 [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+              <span class="lobby-stat-card__label">ELO RATING</span>
+              <span class="lobby-stat-card__value">{{ currentElo() | number }}</span>
+              <span class="lobby-stat-card__tier" [style.color]="eloTier().color">
                 {{ eloTier().label | uppercase }}
               </span>
             </div>
             <div class="lq-rank-card lobby-stat-card">
-              <span class="lq-rank-card__label lobby-stat-card__label">RANK</span>
+              <span class="lobby-stat-card__label">RANK</span>
               @if (myRank() !== null) {
-                <span class="lq-rank-card__value lobby-stat-card__value">#{{ myRank() }}</span>
+                <span class="lobby-stat-card__value">#{{ myRank() }}</span>
               } @else {
-                <span class="lq-rank-card__value lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
+                <span class="lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
               }
-              <span class="lq-rank-card__tier lobby-stat-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+              <span class="lobby-stat-card__tier">
+                {{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}
+              </span>
             </div>
           </div>
 
-          <!-- Hardcore Toggle -->
-          <button
-            type="button"
-            role="switch"
-            [attr.aria-checked]="hardcoreMode()"
-            aria-label="Hardcore mode"
-            class="lq-hardcore"
-            [class.lq-hardcore--active]="hardcoreMode()"
-            (click)="toggleHardcore()"
-          >
-            <div class="lq-hardcore__row">
-              <span class="lq-hardcore__label">💀 HARDCORE</span>
-              <div class="lq-toggle" [class.lq-toggle--on]="hardcoreMode()">
-                <div class="lq-toggle__thumb"></div>
-              </div>
-            </div>
-            <span class="lq-hardcore__desc">Logos are inverted and desaturated</span>
-          </button>
+          <!-- Hardcore Toggle (new reusable component) -->
+          <so-toggle
+            label="💀 HARDCORE"
+            description="Logos are inverted and desaturated"
+            variant="danger"
+            [checked]="hardcoreMode()"
+            (toggled)="toggleHardcore()" />
 
           <!-- Start Button -->
-          <button
-            class="lq-start-btn lobby-start-btn lobby-start-btn--purple"
-            (click)="startPlaying()"
+          <so-button
+            variant="primary"
+            size="lg"
+            [fullWidth]="true"
             [disabled]="loading()"
-          >
+            (pressed)="startPlaying()">
             {{ loading() ? 'Loading...' : 'START QUIZ' }}
-          </button>
-
+          </so-button>
         </div>
       </div>
     }
@@ -81,9 +78,10 @@
     <!-- LOADING                                     -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'loading') {
-      <div class="flex-1 flex items-center justify-center" style="min-height: 60dvh">
+      <div class="lq-loading">
         <div class="loading-tile" role="status" aria-label="Loading">
-          <img src="/stepover-logo-white-bg.png" alt="" class="w-12 h-12 object-contain" width="48" height="48" aria-hidden="true" />
+          <img src="/stepover-logo-white-bg.png" alt=""
+               width="48" height="48" aria-hidden="true" />
         </div>
       </div>
     }
@@ -92,25 +90,46 @@
     <!-- QUESTION                                    -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'question' && currentQuestion()) {
-      <!-- Header -->
-      <div class="lq-session-header" [class.lq-session-header--glow]="borderGlow() === 'glow'" [class.lq-session-header--glow-strong]="borderGlow() === 'glow-strong'" role="status" aria-live="polite" [style.--tier-color]="eloTier().color" [style.--tier-glow]="eloTier().glow + '40'" [attr.aria-label]="'ELO ' + currentElo() + ' ' + eloTier().label + ', ' + correctAnswers() + ' of ' + questionsAnswered() + ' correct'">
+      <!-- Session header — ELO + score -->
+      <div class="lq-session-header"
+           [class.lq-session-header--glow]="borderGlow() === 'glow'"
+           [class.lq-session-header--glow-strong]="borderGlow() === 'glow-strong'"
+           role="status"
+           aria-live="polite"
+           [style.--tier-color]="eloTier().color"
+           [style.--tier-glow]="eloTier().glow + '40'"
+           [attr.aria-label]="'ELO ' + currentElo() + ' ' + eloTier().label + ', ' + correctAnswers() + ' of ' + questionsAnswered() + ' correct'">
         <div class="lq-session-elo">
-          <span class="lq-session-elo__value" [class.lq-session-elo__value--bumped]="eloBumped()">{{ currentElo() | number }}</span>
-          <span class="lq-session-elo__tier" [class.lq-session-elo__tier--promoted]="tierPromoted()" [style.color]="eloTier().color">{{ eloTier().label }}</span>
+          <span class="lq-session-elo__value"
+                [class.lq-session-elo__value--bumped]="eloBumped()">
+            {{ currentElo() | number }}
+          </span>
+          <span class="lq-session-elo__tier"
+                [class.lq-session-elo__tier--promoted]="tierPromoted()"
+                [style.color]="eloTier().color">
+            {{ eloTier().label }}
+          </span>
           @if (eloDelta() !== 0) {
-            <span class="lq-session-elo__delta" [class.lq-session-elo__delta--up]="eloDelta() > 0" [class.lq-session-elo__delta--down]="eloDelta() < 0" [class.lq-session-elo__delta--refreshed]="deltaRefreshed()">
+            <span class="lq-session-elo__delta"
+                  [class.lq-session-elo__delta--up]="eloDelta() > 0"
+                  [class.lq-session-elo__delta--down]="eloDelta() < 0"
+                  [class.lq-session-elo__delta--refreshed]="deltaRefreshed()">
               {{ eloDelta() > 0 ? '+' : '' }}{{ eloDelta() }}
             </span>
           }
         </div>
         <div class="lq-session-score">
-          <span class="lq-session-score__correct" [class.lq-session-score__correct--ticked]="scoreTicked()">{{ correctAnswers() }}</span>
+          <span class="lq-session-score__correct"
+                [class.lq-session-score__correct--ticked]="scoreTicked()">
+            {{ correctAnswers() }}
+          </span>
           <span class="lq-session-score__sep">/</span>
           <span class="lq-session-score__total">{{ questionsAnswered() }}</span>
           <span class="lq-session-score__label">correct</span>
         </div>
       </div>
 
+      <!-- Game question — delegated component -->
       <app-game-question
         mode="solo"
         [question]="questionData()"
@@ -124,34 +143,30 @@
         [teamNames]="teamNames()"
         (answerSubmitted)="submitAnswer($event)"
         (reportClicked)="reportQuestion()"
-        (nextClicked)="nextQuestion()"
-      />
+        (nextClicked)="nextQuestion()" />
+
       @if (revealing()) {
         @if (showMasteryUpsell()) {
-          <div class="mx-4 mt-3 p-4 rounded-xl bg-purple-500/15 border border-purple-500/30">
-            <p class="text-sm text-purple-300 font-medium mb-2">You've mastered the free logos! Unlock 1,000+ more with Pro.</p>
-            <div class="flex gap-2">
-              <button
-                (click)="openProUpgrade()"
-                class="px-4 py-2 rounded-lg bg-purple-500 text-white text-xs font-bold hover:bg-purple-400 transition"
-              >
+          <div class="lq-upsell">
+            <p class="lq-upsell__copy">
+              You've mastered the free logos! Unlock 1,000+ more with Pro.
+            </p>
+            <div class="lq-upsell__actions">
+              <so-button variant="primary" size="sm" (pressed)="openProUpgrade()">
                 Upgrade
-              </button>
-              <button
-                (click)="dismissMasteryUpsell()"
-                class="px-4 py-2 rounded-lg bg-transparent text-purple-400 text-xs font-medium hover:text-purple-300 transition"
-              >
+              </so-button>
+              <so-button variant="ghost" size="sm" (pressed)="dismissMasteryUpsell()">
                 Dismiss
-              </button>
+              </so-button>
             </div>
           </div>
         }
-        <button
-          class="mt-3 px-6 py-2 rounded-lg border border-border text-muted-foreground text-sm mx-auto block"
-          (click)="endSession()"
-        >
-          End Session
-        </button>
+
+        <div class="lq-end-session-wrap">
+          <so-button variant="ghost" size="sm" (pressed)="endSession()">
+            End Session
+          </so-button>
+        </div>
       }
     }
 
@@ -159,42 +174,45 @@
     <!-- FINISHED                                    -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'finished') {
-      <div class="flex-1 flex flex-col items-center justify-center gap-4 p-4">
-        <div class="text-5xl">🏁</div>
-        <h2 class="text-2xl font-bold text-foreground">Session Complete</h2>
+      <div class="lq-finished">
+        <div class="lq-finished__flag">🏁</div>
+        <h2 class="lq-finished__title">Session Complete</h2>
 
         @if (error()) {
-          <p class="text-sm text-loss">{{ error() }}</p>
+          <p class="lq-finished__error">{{ error() }}</p>
         }
 
-        <div class="w-full max-w-xs space-y-3 mt-4">
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">Questions</span>
-            <span class="font-bold text-foreground">{{ questionsAnswered() }}</span>
+        <div class="lq-finished__stats">
+          <div class="lq-finished__stat">
+            <span class="lq-finished__stat-label">Questions</span>
+            <span class="lq-finished__stat-value">{{ questionsAnswered() }}</span>
           </div>
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">Correct</span>
-            <span class="font-bold text-win">{{ correctAnswers() }}</span>
+          <div class="lq-finished__stat">
+            <span class="lq-finished__stat-label">Correct</span>
+            <span class="lq-finished__stat-value lq-finished__stat-value--win">
+              {{ correctAnswers() }}
+            </span>
           </div>
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">Accuracy</span>
-            <span class="font-bold text-foreground">{{ accuracy() }}%</span>
+          <div class="lq-finished__stat">
+            <span class="lq-finished__stat-label">Accuracy</span>
+            <span class="lq-finished__stat-value">{{ accuracy() }}%</span>
           </div>
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">ELO Change</span>
-            <span class="font-bold" [class.text-win]="eloDelta() >= 0" [class.text-loss]="eloDelta() < 0">
+          <div class="lq-finished__stat">
+            <span class="lq-finished__stat-label">ELO Change</span>
+            <span class="lq-finished__stat-value"
+                  [class.lq-finished__stat-value--win]="eloDelta() >= 0"
+                  [class.lq-finished__stat-value--loss]="eloDelta() < 0">
               {{ eloDelta() >= 0 ? '+' : '' }}{{ eloDelta() }}
             </span>
           </div>
         </div>
 
-        <button
-          class="mt-6 px-8 py-3 rounded-xl bg-accent text-accent-foreground font-bold"
-          (click)="resetToIdle()"
-        >
-          Play Again
-        </button>
-        <a routerLink="/" class="text-sm text-muted-foreground mt-2">Back to Home</a>
+        <div class="lq-finished__actions">
+          <so-button variant="primary" size="lg" (pressed)="resetToIdle()">
+            Play Again
+          </so-button>
+          <a routerLink="/" class="lq-finished__back">Back to Home</a>
+        </div>
       </div>
     }
 
@@ -203,15 +221,12 @@
 
 <!-- Problem reported popup -->
 @if (problemReported()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
-    <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
-      <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
-      <button
-        (click)="dismissProblemReported()"
-        class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
-      >
+  <div class="lq-report-modal" (click)="dismissProblemReported()">
+    <div class="lq-report-modal__card" (click)="$event.stopPropagation()">
+      <p class="lq-report-modal__title">{{ lang.t().problemReported }}</p>
+      <so-button variant="primary" size="md" (pressed)="dismissProblemReported()">
         OK
-      </button>
+      </so-button>
     </div>
   </div>
 }

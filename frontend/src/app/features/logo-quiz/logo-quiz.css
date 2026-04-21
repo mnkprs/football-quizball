@@ -5,6 +5,8 @@
   min-height: 0;
 }
 
+/* ── Page scaffold ─────────────────────────── */
+
 .logo-quiz-root {
   flex: 1;
   min-height: 100dvh;
@@ -25,163 +27,81 @@
   padding-bottom: 0;
 }
 
-/* ── Start Screen ─────────────────────────── */
+/* ── Start Screen ──────────────────────────── */
 
-/* Spotlights — uses .spotlight utility from _glows.css */
+/* Spotlights — cyan/purple for normal, pulsing red for hardcore */
 .lq-start {
-  --spotlight-left: rgba(168, 85, 247, 0.2);
+  --spotlight-left: rgba(168, 85, 247, 0.20);
   --spotlight-right: rgba(0, 122, 255, 0.14);
 }
 
-/* Hardcore Toggle */
-.lq-hardcore {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 1rem 1.25rem;
-  background: var(--glass-bg-ultra-subtle);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
-  cursor: pointer;
-  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
-  -webkit-tap-highlight-color: transparent;
+.lq-start--hardcore {
+  --spotlight-left: rgba(239, 68, 68, 0.22);
+  --spotlight-right: rgba(239, 68, 68, 0.14);
 }
 
-.lq-hardcore--active {
-  background: rgba(239, 68, 68, 0.08);
-  animation: pulse-danger 2s infinite;
-}
-
-.lq-hardcore__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.lq-hardcore__label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
-  transition: color 0.3s;
-}
-
-.lq-hardcore--active .lq-hardcore__label {
-  color: #ef4444;
-}
-
-.lq-hardcore__desc {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-/* Toggle Switch */
-.lq-toggle {
-  width: 2.75rem;
-  height: 1.5rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.12);
-  position: relative;
-  transition: background 0.3s;
-  flex-shrink: 0;
-}
-
-.lq-toggle--on {
-  background: #ef4444;
-}
-
-.lq-toggle__thumb {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 1.125rem;
-  height: 1.125rem;
-  border-radius: 50%;
-  background: #ffffff;
-  transition: transform 0.3s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.lq-toggle--on .lq-toggle__thumb {
-  transform: translateX(1.25rem);
-}
-
-/* Pulse Danger Animation */
-@keyframes pulse-danger {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
-    border-color: rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
-    border-color: rgba(239, 68, 68, 0.8);
-  }
-}
-
-/* Free tier hint — discreet text below start button */
+/* Free-tier hint wrapper (so-chip handles visual styling) */
 .lq-free-hint {
-  display: block;
-  width: 100%;
-  margin-top: 0.375rem;
-  padding: 0;
   background: none;
   border: none;
+  padding: 0;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.35);
-  text-align: center;
-  letter-spacing: 0.01em;
+  margin-top: calc(var(--space-1) * -1);
   -webkit-tap-highlight-color: transparent;
 }
 
 .lq-free-hint__link {
-  color: rgba(168, 85, 247, 0.6);
+  color: var(--color-purple, rgba(168, 85, 247, 0.9));
   font-weight: 600;
 }
 
-/* ── Session Header (in-game) ────────────── */
+/* ── Loading ──────────────────────────────── */
+
+.lq-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60dvh;
+}
+
+/* ═══════════════════════════════════════════ */
+/*  Session Header — in-game ELO / score      */
+/* ═══════════════════════════════════════════ */
 
 .lq-session-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.75rem;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
   background: var(--glass-bg-subtle);
   border: 1px solid var(--glass-border-strong);
   border-left: 3px solid var(--tier-color, var(--color-fg-muted));
   border-radius: var(--radius-lg);
-  animation: anim-fade-in 300ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation: anim-fade-in 300ms var(--ease-out-quart) both;
 }
 
-/* ELO cluster — value + tier + delta */
 .lq-session-elo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .lq-session-elo__value {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-headline);
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--color-fg);
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 200ms var(--ease-out-quart);
 }
-
-.lq-session-elo__value--bumped {
-  animation: elo-bump 350ms cubic-bezier(0.25, 1, 0.5, 1);
-}
+.lq-session-elo__value--bumped { animation: elo-bump 350ms var(--ease-out-quart); }
 
 .lq-session-elo__tier {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -191,95 +111,152 @@
 }
 
 .lq-session-elo__delta {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.75rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  padding: 0.1875rem 0.5rem;
-  border-radius: 0.375rem;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
   line-height: 1;
-  animation: delta-pop-in 350ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation: delta-pop-in 350ms var(--ease-out-quart) both;
 }
+.lq-session-elo__delta--refreshed { animation: delta-pop-in 300ms var(--ease-out-quart) both; }
+.lq-session-elo__delta--up   { color: var(--color-success); background: var(--color-success-bg); box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2); }
+.lq-session-elo__delta--down { color: var(--color-error);   background: var(--color-error-surface); box-shadow: inset 0 0 0 1px var(--color-error-surface-border); }
 
-.lq-session-elo__delta--refreshed {
-  animation: delta-pop-in 300ms cubic-bezier(0.25, 1, 0.5, 1) both;
-}
-
-.lq-session-elo__delta--up {
-  color: var(--color-success);
-  background: var(--color-success-bg);
-  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.2);
-}
-
-.lq-session-elo__delta--down {
-  color: var(--color-error);
-  background: var(--color-error-surface);
-  box-shadow: inset 0 0 0 1px var(--color-error-surface-border);
-}
-
-/* Score cluster — correct / total + label */
 .lq-session-score {
   display: flex;
   align-items: baseline;
-  gap: 0.125rem;
+  gap: 2px;
+}
+.lq-session-score__correct { font-family: var(--font-headline); font-size: 1.25rem; font-weight: 800; color: var(--color-success); font-variant-numeric: tabular-nums; line-height: 1; transition: transform 200ms var(--ease-out-quart); }
+.lq-session-score__correct--ticked { animation: counter-tick 250ms var(--ease-out-quart); }
+.lq-session-score__sep   { font-size: 0.75rem; color: var(--color-fg-dim); font-weight: 400; margin: 0 1px; }
+.lq-session-score__total { font-family: var(--font-headline); font-size: 0.875rem; font-weight: 600; color: var(--color-fg-variant); font-variant-numeric: tabular-nums; line-height: 1; }
+.lq-session-score__label { font-family: var(--font-numeric); font-size: 0.625rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-fg-muted); margin-left: 6px; line-height: 1; }
+
+.lq-session-header--glow        { animation: border-glow 500ms var(--ease-out-quart); }
+.lq-session-header--glow-strong { animation: border-glow-strong 700ms var(--ease-out-quart); }
+.lq-session-elo__tier--promoted { animation: tier-promote 500ms var(--ease-out-quart); }
+
+/* ═══════════════════════════════════════════ */
+/*  Mastery upsell + End-session              */
+/* ═══════════════════════════════════════════ */
+
+.lq-upsell {
+  margin: var(--space-3) var(--space-4) 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.30);
+}
+.lq-upsell__copy {
+  font-size: var(--text-sm);
+  color: rgb(216, 180, 254);
+  font-weight: 500;
+  margin: 0 0 var(--space-2);
+}
+.lq-upsell__actions {
+  display: flex;
+  gap: var(--space-2);
 }
 
-.lq-session-score__correct {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-success);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  transition: transform 200ms cubic-bezier(0.25, 1, 0.5, 1);
+.lq-end-session-wrap {
+  margin-top: var(--space-3);
+  display: flex;
+  justify-content: center;
 }
 
-.lq-session-score__correct--ticked {
-  animation: counter-tick 250ms cubic-bezier(0.25, 1, 0.5, 1);
+/* ═══════════════════════════════════════════ */
+/*  Finished screen                           */
+/* ═══════════════════════════════════════════ */
+
+.lq-finished {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
 }
 
-.lq-session-score__sep {
-  font-size: 0.75rem;
-  color: var(--color-fg-dim);
-  font-weight: 400;
-  margin: 0 0.0625rem;
+.lq-finished__flag  { font-size: 3rem; line-height: 1; }
+.lq-finished__title { font-family: var(--font-headline); font-size: var(--text-2xl); font-weight: 700; color: var(--color-fg); margin: 0; }
+.lq-finished__error { font-size: var(--text-sm); color: var(--color-loss); margin: 0; }
+
+.lq-finished__stats {
+  width: 100%;
+  max-width: 20rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.lq-finished__stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+}
+.lq-finished__stat-label { font-size: var(--text-sm); color: var(--color-muted-foreground); }
+.lq-finished__stat-value { font-family: var(--font-headline); font-weight: 700; color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.lq-finished__stat-value--win  { color: var(--color-win); }
+.lq-finished__stat-value--loss { color: var(--color-loss); }
+
+.lq-finished__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.lq-finished__back {
+  font-size: var(--text-sm);
+  color: var(--color-muted-foreground);
+  text-decoration: none;
 }
 
-.lq-session-score__total {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.875rem;
+/* ═══════════════════════════════════════════ */
+/*  Problem reported modal                    */
+/* ═══════════════════════════════════════════ */
+
+.lq-report-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.5);
+}
+.lq-report-modal__card {
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  max-width: 22rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+.lq-report-modal__title {
+  font-family: var(--font-headline);
+  font-size: var(--text-lg);
   font-weight: 600;
-  color: var(--color-fg-variant);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
+  color: var(--color-fg);
+  margin: 0;
 }
 
-.lq-session-score__label {
-  font-family: 'Lexend', sans-serif;
-  font-size: 0.625rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-fg-muted);
-  margin-left: 0.375rem;
-  line-height: 1;
-}
+/* ── Reduced motion ────────────────────────── */
 
-/* ── Border glow on ELO change ──────────────── */
-.lq-session-header--glow {
-  animation: border-glow 500ms cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.lq-session-header--glow-strong {
-  animation: border-glow-strong 700ms cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-/* ── Tier promotion ─────────────────────────── */
-.lq-session-elo__tier--promoted {
-  animation: tier-promote 500ms cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-/* Reduced motion — disable session header animations */
 @media (prefers-reduced-motion: reduce) {
   .lq-session-header,
   .lq-session-header--glow,

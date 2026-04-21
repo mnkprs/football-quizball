@@ -27,6 +27,7 @@ import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
 import { AnalyticsService } from '../../core/analytics.service';
 import { ShellUiService } from '../../core/shell-ui.service';
+import { SoButtonComponent, SoChipComponent, SoToggleComponent } from '../../shared/ui';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 
@@ -34,7 +35,11 @@ type Phase = 'idle' | 'loading' | 'question' | 'finished';
   selector: 'app-logo-quiz',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DecimalPipe, UpperCasePipe, GameQuestionComponent, NgOptimizedImage],
+  imports: [
+    RouterLink, DecimalPipe, UpperCasePipe, NgOptimizedImage,
+    GameQuestionComponent,
+    SoButtonComponent, SoChipComponent, SoToggleComponent,
+  ],
   templateUrl: './logo-quiz.html',
   styleUrl: './logo-quiz.css',
 })

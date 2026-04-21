@@ -2,6 +2,43 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.18.0] - 2026-04-21
+
+### Added — Logo Quiz on StepOver design system (Phase 3, screen 2) + `so-toggle` primitive
+
+Second feature screen migrated to the design system after v0.8.17's home rebuild. Logo Quiz now consumes `so-button`, `so-chip`, and a new `so-toggle` primitive instead of redeclaring bespoke styles locally.
+
+**New design system primitive — `so-toggle`.** Reusable switch tile at `frontend/src/app/shared/ui/so-toggle/` with 4 variants (`default`, `danger`, `success`, `pro`). `danger` variant adds a pulsing red glow — used for Logo Quiz Hardcore mode. Glass tile design with label, optional description, and right-aligned pill switch. Covers the "lobby settings that change gameplay" pattern that previously each lobby re-implemented inline. Future consumers (`blitz` lobby burn-in toggle, `duel` lobby spectator toggle, settings page) can drop it in.
+
+**Logo Quiz template rewrite.** Zero logic changes in `logo-quiz.ts` (three new imports: `SoButtonComponent`, `SoChipComponent`, `SoToggleComponent`). Template replacements:
+- Hardcore toggle: 35 lines of bespoke HTML + 80 lines of CSS → `<so-toggle label="💀 HARDCORE" variant="danger">`
+- Start button: `<button class="lq-start-btn lobby-start-btn lobby-start-btn--purple">` → `<so-button variant="primary" size="lg" fullWidth>` (purple accent now carried by the spotlight + hardcore emblem, not the button fill)
+- Free-tier hint: custom `.lq-free-hint` pill styling → `<so-chip variant="glass" size="xs">` inside a transparent click wrapper
+- Mastery upsell: 10 lines of raw Tailwind soup (`px-4 py-2 rounded-lg bg-purple-500`...) → `.lq-upsell` BEM + `<so-button variant="primary">` / `<so-button variant="ghost">`
+- Finished screen: raw Tailwind `p-3 rounded-lg bg-card border border-border` stat rows → `.lq-finished__stat` BEM. Play Again button → `<so-button variant="primary" size="lg">`
+- Problem-reported modal OK button → `<so-button variant="primary">`
+- End Session button → `<so-button variant="ghost" size="sm">`
+
+**Additive visual improvement.** New `.lq-start--hardcore` class binding on the start screen container — shifts the spotlight gradient from purple/cyan to pulsing red when hardcore is active. Previously the hardcore state only showed in the toggle and the emblem swap; now the whole screen tints subtly.
+
+**CSS cleanup.** `logo-quiz.css` drops the 80-line bespoke toggle (moves to `so-toggle.css`) and the duplicated stat-card internal selectors (the shared `.lobby-stat-card__*` classes were sufficient — the `.lq-elo-card__*` selectors weren't referenced anywhere). Session-header animations (ELO bump, tier promotion, border glow, delta pop) stay local — they're genuinely bespoke to the in-game surface.
+
+### Scope
+
+Logo Quiz only. No other screen touched. `logo-quiz.ts` unchanged except for 3 new imports. Zero behavior changes — same methods, same signals, same phase state machine, same game flow.
+
+### Feature parity — verified
+
+Every interactive element in the old template has a match in the new template. Verified via symbol diff: `grep -oE '(\w+\(\))' old.html` vs new.html — identical method-call sets. No orphaned routes, no dropped CTAs, no missing entry points (lesson from v0.8.17.1's home regression applied: feature-parity grep before declaring migration complete).
+
+### Tests
+
+No new unit tests (template rewrite, zero new logic). Build passes (`npm run build --configuration=development`). `/dev/ui-gallery` unaffected.
+
+### Future Phase 3 screens
+
+`so-toggle` unblocks toggle migrations in `blitz` lobby (burn-in), `duel` lobby (spectator), and settings page. Tier taxonomy reconciliation (5-tier `SoTier` vs 7-tier live `EloTier`) still pending — blocks `leaderboard` and `profile` migrations.
+
 ## [0.8.17.1] - 2026-04-21
 
 ### Fixed — Home page: restore Logo Quiz Duel + Team entry points
