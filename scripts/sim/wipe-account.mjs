@@ -12,17 +12,17 @@
  */
 
 import { createRequire } from 'module';
-import * as fs from 'fs';
-import * as path from 'path';
+import { readFileSync } from 'fs';
 const require = createRequire(import.meta.url);
-const { createClient } = require('./backend/node_modules/@supabase/supabase-js');
+const { createClient } = require('../../backend/node_modules/@supabase/supabase-js');
 
+// Path-independent env read — resolves backend/.env relative to this file,
+// not the caller's cwd. Same pattern as e2e-game-sim.mjs / duel-batch.mjs.
 function readEnvKey(key) {
-  const envPath = path.join(process.cwd(), 'backend', '.env');
-  const raw = fs.readFileSync(envPath, 'utf8');
+  const raw = readFileSync(new URL('../../backend/.env', import.meta.url), 'utf8');
   const line = raw.split('\n').find((l) => l.startsWith(`${key}=`));
   if (!line) throw new Error(`${key} not found in backend/.env`);
-  return line.split('=').slice(1).join('=').trim();
+  return line.split('=').slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
 }
 
 // Supabase URL + anon key are safe to embed (anon is a public key by design)
