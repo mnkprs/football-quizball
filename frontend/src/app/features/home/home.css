@@ -68,6 +68,25 @@
   margin-top: clamp(0.5rem, 2vw, 1rem);
 }
 
+/* Logo Quiz modes — stacked mode rows, purple ambient (matches hero sub-brand) */
+.logo-modes-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(168,85,247,0.07) 0%, rgba(168,85,247,0.02) 40%, transparent 60%);
+  border: 1px solid rgba(168,85,247,0.08);
+  margin-top: -8px;  /* pull up to visually group with hero above */
+}
+.logo-modes-tier > so-mode-row {
+  opacity: 0;
+  animation: anim-stagger-in 250ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1)) forwards;
+}
+.logo-modes-tier > so-mode-row:nth-child(1) { animation-delay: 120ms; }
+.logo-modes-tier > so-mode-row:nth-child(2) { animation-delay: 180ms; }
+.logo-modes-tier > so-mode-row:nth-child(3) { animation-delay: 240ms; }
+
 /* Pro Arena — stacked mode rows, gold glass ambient */
 .pro-arena-tier {
   display: flex;
@@ -191,6 +210,7 @@
   .home-content > *  { animation: none; opacity: 1; }
   .pro-arena-tier    { animation: none; }
   .pro-arena-tier > so-mode-row { animation: none; opacity: 1; }
+  .logo-modes-tier > so-mode-row { animation: none; opacity: 1; }
   .two-player-card   { transition: none; }
   .two-player-card__bg-image { transition: none; }
 }
