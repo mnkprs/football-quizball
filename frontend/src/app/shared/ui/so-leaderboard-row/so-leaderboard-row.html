@@ -1,0 +1,15 @@
+<div class="so-lbrow" [class.me]="me()"
+     [style.border-left-color]="me() ? 'transparent' : tierColor()">
+  <div class="so-rank" [class.top]="rank() <= 3">{{ rankDisplay() }}</div>
+  <so-avatar [size]="36" [initials]="avatarInitials()" />
+  <div class="so-info">
+    <div class="so-name">{{ name() }} @if (me()) { <span class="so-you">(YOU)</span> }</div>
+    <div class="so-tier">{{ tier() }}</div>
+  </div>
+  <div class="so-right">
+    <div class="so-elo font-headline">{{ elo() }}</div>
+    @if (delta() != null) {
+      <div class="so-delta" [style.color]="deltaColor()">{{ deltaStr() }}</div>
+    }
+  </div>
+</div>
