@@ -7,7 +7,7 @@
  */
 export const environment = {
   production: false,
-  appVersion: '1.7.0-dev',
+  appVersion: '1.0.0-dev',
   apiUrl: 'http://localhost:3001',
   /** Admin API key for /admin dashboard. Set in .env or environment.ts for local dev. */
   adminApiKey: 'Manos1995' as string | undefined,
@@ -32,6 +32,14 @@ export const environment = {
   admobRewardedIos: '',
   /** AdMob rewarded video ad unit ID for Android. Leave empty in dev. */
   admobRewardedAndroid: '',
+  /** AdMob App ID for iOS. Empty in dev (uses test device IDs). */
+  admobAppIdIos: '',
+  /** AdMob App ID for Android. Empty in dev. */
+  admobAppIdAndroid: '',
+  /** AdMob banner ad unit ID for iOS. */
+  admobBannerIos: '',
+  /** AdMob banner ad unit ID for Android. */
+  admobBannerAndroid: '',
   /** Google OAuth Web Client ID for native sign-in. Get from Google Cloud Console → Credentials. */
   googleWebClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
   /** Apple Client ID (bundle identifier) for Sign in with Apple. */
@@ -40,8 +48,8 @@ export const environment = {
   landingMode: false,
   /** App store links + smart-banner ID. Placeholders until launch. */
   stores: {
-    appStoreUrl: 'https://apps.apple.com/app/idXXXXXXXX',
+    appStoreUrl: 'https://apps.apple.com/app/id6762849377',
     playStoreUrl: 'https://play.google.com/store/apps/details?id=com.stepovr.app',
-    appStoreId: 'XXXXXXXX',
+    appStoreId: '6762849377',
   },
 };

@@ -27,6 +27,16 @@ const config: CapacitorConfig = {
       appIdIos: 'ca-app-pub-7781323448253047~6079077395',     // TODO: replace with iOS App ID once created
       appIdAndroid: 'ca-app-pub-7781323448253047~6079077395',
     },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: '#000000',
+      showSpinner: false,
+      launchFadeOutDuration: 600,
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
+    },
   },
 };
 

@@ -3,7 +3,7 @@
     "apps": [],
     "details": [
       {
-        "appID": "TEAMID.com.stepovr.app",
+        "appID": "6WSPY24ZZS.com.stepovr.app",
         "paths": [
           "/join/*",
           "/duel/*",
@@ -13,5 +13,8 @@
         ]
       }
     ]
+  },
+  "webcredentials": {
+    "apps": ["6WSPY24ZZS.com.stepovr.app"]
   }
 }

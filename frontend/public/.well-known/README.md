@@ -6,8 +6,7 @@ These files are served by Vercel at the production domain root (e.g. `https://st
 
 ### `apple-app-site-association` (iOS)
 
-- `TEAMID.com.stepovr.app` — replace `TEAMID` with the 10-character Apple Developer Team ID.
-  - Find it at: https://developer.apple.com/account → Membership → Team ID.
+- Team ID `6WSPY24ZZS` is filled in. `webcredentials` entry added for Sign In with Apple autofill.
 
 ### `assetlinks.json` (Android)
 

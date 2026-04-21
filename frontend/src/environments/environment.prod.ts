@@ -7,7 +7,7 @@
  */
 export const environment = {
   production: true,
-  appVersion: '1.7.0',
+  appVersion: '1.0.0',
   apiUrl: 'https://football-quizball-production.up.railway.app',
   /** Frontend URL for OAuth redirects. Update to your production domain (e.g. Vercel, Netlify). */
   appUrl: 'https://football-quizball.vercel.app',
@@ -31,6 +31,14 @@ export const environment = {
   admobRewardedIos: '',
   /** AdMob rewarded video ad unit ID for Android. Get from AdMob console → Ad units. */
   admobRewardedAndroid: 'ca-app-pub-7781323448253047/7729899558',
+  /** AdMob App ID for iOS. Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX. Set after AdMob iOS app creation. */
+  admobAppIdIos: '',
+  /** AdMob App ID for Android. Format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX. Set after AdMob Android app creation. */
+  admobAppIdAndroid: '',
+  /** AdMob banner ad unit ID for iOS. */
+  admobBannerIos: '',
+  /** AdMob banner ad unit ID for Android. */
+  admobBannerAndroid: '',
   /** Admin API key. Leave empty in prod; admin dashboard requires key from env. */
   adminApiKey: undefined as string | undefined,
   /** Google OAuth Web Client ID for native sign-in. Get from Google Cloud Console → Credentials. */
@@ -41,8 +49,8 @@ export const environment = {
   landingMode: false,
   /** App store links + smart-banner ID. Placeholders until launch. */
   stores: {
-    appStoreUrl: 'https://apps.apple.com/app/idXXXXXXXX',
+    appStoreUrl: 'https://apps.apple.com/app/id6762849377',
     playStoreUrl: 'https://play.google.com/store/apps/details?id=com.stepovr.app',
-    appStoreId: 'XXXXXXXX',
+    appStoreId: '6762849377',
   },
 };

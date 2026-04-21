@@ -1,6 +1,28 @@
 # Changelog
 
-All notable changes to StepOver will be documented in this file.
+All notable changes to StepOvr will be documented in this file.
+
+## [0.8.19.0] - 2026-04-21
+
+### Added — App Store launch prep: real Apple identifiers + push/splash config
+
+Pre-launch config wiring now that Apple Developer Program access is live. No runtime behavior changes in the Angular app — this just replaces placeholders with real identifiers and scaffolds native plugin config for the upcoming iOS/Android build.
+
+**Universal Links AASA — real Team ID + webcredentials.** `frontend/public/.well-known/apple-app-site-association` now uses `6WSPY24ZZS.com.stepovr.app` (Apple Team ID `6WSPY24ZZS`) instead of the `TEAMID.com.stepovr.app` placeholder. Added `webcredentials.apps: ["6WSPY24ZZS.com.stepovr.app"]` so the iOS app can receive password autofill suggestions for the stepovr.com domain — required for Sign In with Apple account linking.
+
+**Capacitor plugin config scaffolded.** `capacitor.config.ts` gains two plugin blocks ahead of their `npm install`:
+- `SplashScreen` — 2s display, auto-hide, black background, 600ms fade-out (matches the existing `AppComponent` web splash behavior).
+- `PushNotifications` — presents badge/sound/alert when a notification arrives while the app is foregrounded.
+
+Existing `Keyboard`, `GoogleAuth`, and `AdMob` plugin configs are untouched (real values preserved).
+
+**App name standardized to "StepOvr".** `frontend/public/manifest.webmanifest` was still using the legacy "StepOver" spelling — updated to match the Capacitor `appName`, Supabase profile display, and App Store listing. Description updated to reflect current modes (duels, battle royale, logo quiz). Related applications entry for iTunes now points at the real App Store ID `6762849377`.
+
+**`appVersion` reset to `1.0.0` / `1.0.0-dev`.** The internal `VERSION` file continues the 0.8.x scheme for development iterations, but the user-facing `environment.appVersion` reset from `1.7.0` → `1.0.0` (prod) and `1.7.0-dev` → `1.0.0-dev` (dev) — this is the first version in the App Store and Play Store, so the in-app version indicator must show `1.0.0` on launch day.
+
+**AdMob App ID + banner ad unit fields scaffolded.** New empty env fields (`admobAppIdIos`, `admobAppIdAndroid`, `admobBannerIos`, `admobBannerAndroid`) in both environment files — will be populated once the AdMob console setup produces iOS-specific App IDs and banner ad units. Interstitial and rewarded ad unit IDs (already wired for Android) are untouched.
+
+**Real App Store ID `6762849377` populated** in `environment.stores.appStoreUrl` and `appStoreId` — replaces the `XXXXXXXX` placeholder. Unblocks the App Store smart banner on the marketing landing page and any in-app "rate us" / "update available" prompts that link back to the App Store.
 
 ## [0.8.17.1] - 2026-04-21
 
