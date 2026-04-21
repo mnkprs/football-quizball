@@ -1,0 +1,10 @@
+<div class="so-stat">
+  <div class="so-label">{{ label() }}</div>
+  <div class="so-main">
+    <span class="so-value font-headline" [style.color]="color() || '#fff'">{{ value() }}</span>
+    @if (unit()) { <span class="so-unit">{{ unit() }}</span> }
+  </div>
+  @if (delta()) {
+    <div class="so-delta" [style.color]="deltaColor()">{{ delta() }}</div>
+  }
+</div>

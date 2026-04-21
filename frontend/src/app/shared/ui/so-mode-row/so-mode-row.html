@@ -1,0 +1,18 @@
+<button type="button" class="so-row so-overlay-horizontal"
+        [style.background-image]="image() ? 'url(' + image() + ')' : null"
+        [style.border-left-color]="accent()"
+        (click)="pressed.emit()">
+  <div class="so-icon" [style.background]="iconBg() || 'rgba(0,122,255,0.15)'"
+       [style.color]="iconColor() || 'var(--color-accent)'">
+    <span class="material-symbols-outlined" *ngIf="materialIcon()">{{ materialIcon() }}</span>
+    <ng-content select="[icon]" />
+  </div>
+  <div class="so-text">
+    <div class="so-title">
+      <span class="font-headline">{{ title() }}</span>
+      @if (badge()) { <so-chip variant="accent" size="xs">{{ badge() }}</so-chip> }
+    </div>
+    @if (subtitle()) { <div class="so-sub">{{ subtitle() }}</div> }
+  </div>
+  <div class="so-chev">›</div>
+</button>
