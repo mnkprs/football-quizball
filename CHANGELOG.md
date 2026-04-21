@@ -2,6 +2,31 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.16.0] - 2026-04-21
+
+### Added — StepOver design system foundation (Phase 1 + 2)
+
+Tokens, mixins, tailwind extensions, and 12 `so-*` primitive components landed behind a dev-only verification route — with **zero feature screens edited**. This is the foundation the screen-by-screen migration (Phase 3) will consume.
+
+**Foundation.** `frontend/tailwind.config.js` merges the StepOver bundle additively: new `surface.*`, `tier.*`, `warning`, `pro`, `accent.dim` colors; `fontFamily.display` alias; radii, glow shadows, glass backdropBlur; `pulse-accent` animation. The orphan `tailwind.config.js` at repo root is removed. `frontend/src/styles/tokens.css` and `frontend/src/styles/mixins.css` now load via `angular.json` styles array **after** `styles.scss` — that ordering is what lets StepOver `--mat-sys-*` overrides beat the `mat.theme()` SCSS output and re-skin every existing Material component in place. Google-Fonts `@import url()` stripped from `tokens.css` (already delivered via `<link>` in `index.html`), and Space Grotesk weight 500 added to the existing font link.
+
+**Component library.** 12 new standalone Angular 20 components under `frontend/src/app/shared/ui/`, each split into `.ts`/`.html`/`.css`: `so-button`, `so-chip`, `so-mode-card`, `so-mode-row`, `so-answer-card`, `so-progress-track`, `so-avatar`, `so-rank-badge`, `so-leaderboard-row`, `so-stat-card`, `so-top-bar`, `so-icon-button`. Barrel at `shared/ui/index.ts`. `@app/*` path alias added to `tsconfig.json` so consumers can write `import { SoButtonComponent } from '@app/shared/ui'`.
+
+**Dev verification route.** `/dev/ui-gallery` (unlinked, not in nav) renders every component in every documented state. Used to validate the library before Phase 3 screen migration starts.
+
+### Scope
+
+Foundation only. No feature screen edited; existing `app-primary-btn`, `app-mode-card`, `app-page-header`, per-feature answer buttons all unchanged. Phase 3 screen migration per `docs/superpowers/specs/2026-04-21-design-system-phase-1-2.md` Tier 1 deferred to its own PR.
+
+### Known items deferred to Phase 3
+
+- **Tier taxonomy mismatch.** The `SoTier` type used by `so-avatar`, `so-rank-badge`, `so-leaderboard-row` is 5 values (Legend/Elite/Challenger/Contender/Grassroots). The live ELO system is 7 tiers (Iron/Bronze/Silver/Gold/Platinum/Diamond/Challenger). Reconciliation (replacement vs. presentation grouping) is a Phase 3 design decision.
+- **Legacy `styles/abstracts/_tokens.css`** remains loaded alongside new tokens (new overrides win). Cleanup deferred.
+
+### Tests
+
+No new unit tests (components are pure presentation; build + `/dev/ui-gallery` is the verification gate). `npm run build` passes. `npm run test` unchanged.
+
 ## [0.8.15.0] - 2026-04-21
 
 ### Added — Logo duel review: image + masked answers + eye toggle
