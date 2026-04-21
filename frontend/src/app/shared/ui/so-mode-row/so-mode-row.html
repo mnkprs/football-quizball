@@ -4,7 +4,7 @@
         (click)="pressed.emit()">
   <div class="so-icon" [style.background]="iconBg() || 'rgba(0,122,255,0.15)'"
        [style.color]="iconColor() || 'var(--color-accent)'">
-    <span class="material-symbols-outlined" *ngIf="materialIcon()">{{ materialIcon() }}</span>
+    @if (materialIcon()) { <span class="material-symbols-outlined">{{ materialIcon() }}</span> }
     <ng-content select="[icon]" />
   </div>
   <div class="so-text">
