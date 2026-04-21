@@ -8,24 +8,8 @@ export type SoTier = 'Legend' | 'Elite' | 'Challenger' | 'Contender' | 'Grassroo
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
-  template: `
-    <div class="so-avatar" [style.width.px]="size()" [style.height.px]="size()"
-         [style.font-size.px]="size() * 0.38"
-         [style.background-image]="src() ? 'url(' + src() + ')' : null"
-         [style.box-shadow]="ringShadow()">
-      @if (!src()) { {{ initials() }} }
-    </div>
-  `,
-  styles: [`
-    :host { display: inline-block; flex-shrink: 0; }
-    .so-avatar {
-      border-radius: 50%;
-      background: var(--color-surface-highest); color: var(--color-foreground);
-      display: grid; place-items: center;
-      font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-      background-size: cover; background-position: center;
-    }
-  `],
+  templateUrl: './so-avatar.html',
+  styleUrl: './so-avatar.css',
 })
 export class SoAvatarComponent {
   size     = input<number>(40);
