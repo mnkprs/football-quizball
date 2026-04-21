@@ -38,6 +38,7 @@ import { XpModule } from './xp/xp.module';
 import { AppConfigModule } from './config/config.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
+import { PushModule } from './push/push.module';
 
 @Module({
   imports: [
@@ -104,6 +105,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
     AppConfigModule,
     AnalyticsModule,
     OnboardingModule,
+    PushModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
