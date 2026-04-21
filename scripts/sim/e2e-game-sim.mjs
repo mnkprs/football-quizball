@@ -22,13 +22,13 @@ import { createRequire } from 'module';
 import { readFileSync } from 'fs';
 import { pickShouldAnswerCorrectly } from './sim-realism.mjs';
 const require = createRequire(import.meta.url);
-const { createClient } = require('./backend/node_modules/@supabase/supabase-js');
+const { createClient } = require('../../backend/node_modules/@supabase/supabase-js');
 
 // ─── Load backend/.env so SUPABASE_SERVICE_ROLE_KEY / ADMIN_API_KEY flow in
 // ─── without manual export. We only read; never mutate the file.
 function loadBackendEnv() {
   try {
-    const raw = readFileSync(new URL('./backend/.env', import.meta.url), 'utf8');
+    const raw = readFileSync(new URL('../../backend/.env', import.meta.url), 'utf8');
     for (const line of raw.split('\n')) {
       const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
       if (!m) continue;
@@ -100,11 +100,17 @@ async function peekPoolCorrectAnswer(questionId) {
 
 // ─── Auth ───────────────────────────────────────────────────────────
 async function getToken() {
+  const email = process.env.SIM_EMAIL;
+  const password = process.env.SIM_PASSWORD;
+  if (!email || !password) {
+    throw new Error(
+      'SIM_EMAIL and SIM_PASSWORD must be set. Add them to backend/.env ' +
+      '(they auto-load via loadBackendEnv above) or export before running. ' +
+      'Never hardcode — this file ships in git.',
+    );
+  }
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: 'mnkzyy@hotmail.com',
-    password: 'Manos1995',
-  });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error(`Auth failed: ${error.message}`);
   MY_USER_ID = data.user.id;
   console.log(`✓ Authenticated as ${data.user.id}`);

@@ -2,6 +2,22 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.14.1] - 2026-04-21
+
+### Changed — Sim tooling polish
+
+Three consolidated hygiene wins on the dev-only simulation tooling.
+
+**Moved sim files into `scripts/sim/`.** `e2e-game-sim.mjs`, `duel-batch.mjs`, `sim-realism.mjs`, and `wipe-account.mjs` were cluttering the project root alongside `VERSION`, `CHANGELOG.md`, and `package.json`. They now live under `scripts/sim/` where they belong, clearly flagged as tooling. Relative paths (`backend/.env` env-loader, `backend/node_modules/@supabase/supabase-js` require) updated to `../../backend/...` and verified to still resolve when the scripts are invoked from any working directory (ran a smoke test from `/tmp` — finds backend/.env correctly via `import.meta.url`-anchored URL).
+
+**Credentials no longer hardcoded.** `e2e-game-sim.mjs` and `duel-batch.mjs` had `email: 'mnkzyy@hotmail.com'` + `password: 'Manos1995'` literals in `getToken()`. Both now read `SIM_EMAIL` and `SIM_PASSWORD` from `process.env` (auto-loaded from `backend/.env` by the existing `loadBackendEnv` / `readFileSync` code already in those files). Missing vars throw a clear error telling the operator where to set them. `wipe-account.mjs` already used `WIPE_EMAIL` / `WIPE_PASSWORD` correctly.
+
+**Fixed logo-duel win skew in `duel-batch.mjs`.** Prior behavior: peeked-correct answers submitted instantly, beating the bot's realistic 3–8s think time nearly every question. Result: `ANSWER_CORRECT_RATE=0.5` produced ~80% duel wins (10/10 on logo, 8/10 on standard). Fix: inject a human-like pre-submit pause — 2.5–5.5s for correct answers, 1.2–3.0s for wrong — so the bot gets a fair shot at beating us. Also removed the trailing fixed `sleep(1200)` that was redundant with the new pre-submit delay. Future batches should land closer to the requested rate.
+
+Operator setup for future sim runs: add `SIM_EMAIL=...` and `SIM_PASSWORD=...` to `backend/.env` (never commit), OR export them in the shell before running.
+
+No production code touched; this is dev-only tooling consolidation.
+
 ## [0.8.14.0] - 2026-04-20
 
 ### Fixed — Analytics Category Strengths widget (issue #95)
