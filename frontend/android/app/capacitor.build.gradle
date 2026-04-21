@@ -12,11 +12,17 @@ dependencies {
     implementation project(':capacitor-community-admob')
     implementation project(':capacitor-community-apple-sign-in')
     implementation project(':capacitor-firebase-analytics')
+    implementation project(':capacitor-firebase-app')
+    implementation project(':capacitor-firebase-crashlytics')
+    implementation project(':capacitor-firebase-messaging')
     implementation project(':capacitor-app')
     implementation project(':capacitor-clipboard')
     implementation project(':capacitor-haptics')
     implementation project(':capacitor-keyboard')
+    implementation project(':capacitor-network')
+    implementation project(':capacitor-push-notifications')
     implementation project(':capacitor-share')
+    implementation project(':capacitor-splash-screen')
     implementation project(':southdevs-capacitor-google-auth')
     implementation "com.android.billingclient:billing:8.3.0"
 }

@@ -1,7 +1,7 @@
 {
-  "name": "StepOver",
-  "short_name": "StepOver",
-  "description": "Football trivia quiz - play daily, blitz, or solo modes. Climb the ELO leaderboard!",
+  "name": "StepOvr",
+  "short_name": "StepOvr",
+  "description": "Football trivia quiz — duels, battle royale, logo quiz, and ELO ranking!",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#000000",
@@ -11,19 +11,19 @@
   "categories": ["games", "sports", "entertainment"],
   "icons": [
     {
-      "src": "stepover-logo-white-bg.png",
+      "src": "icons/stepovr-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "stepover-logo-white-bg.png",
+      "src": "icons/stepovr-logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "stepover-logo-white-bg.png",
+      "src": "icons/stepovr-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -31,6 +31,6 @@
   ],
   "related_applications": [
     { "platform": "play", "id": "com.stepovr.app" },
-    { "platform": "itunes", "url": "https://apps.apple.com/app/idXXXXXXXX" }
+    { "platform": "itunes", "url": "https://apps.apple.com/app/id6762849377" }
   ]
 }

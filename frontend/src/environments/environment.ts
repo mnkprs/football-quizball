@@ -7,7 +7,7 @@
  */
 export const environment = {
   production: false,
-  appVersion: '1.7.0-dev',
+  appVersion: '1.0.0-dev',
   apiUrl: 'http://localhost:3001',
   /** Admin API key for /admin dashboard. Set in .env or environment.ts for local dev. */
   adminApiKey: 'Manos1995' as string | undefined,
@@ -32,16 +32,26 @@ export const environment = {
   admobRewardedIos: '',
   /** AdMob rewarded video ad unit ID for Android. Leave empty in dev. */
   admobRewardedAndroid: '',
-  /** Google OAuth Web Client ID for native sign-in. Get from Google Cloud Console → Credentials. */
+  /** AdMob App ID for iOS. Empty in dev (uses test device IDs). */
+  admobAppIdIos: '',
+  /** AdMob App ID for Android. Empty in dev. */
+  admobAppIdAndroid: '',
+  /** AdMob banner ad unit ID for iOS. */
+  admobBannerIos: '',
+  /** AdMob banner ad unit ID for Android. */
+  admobBannerAndroid: '',
+  /** Google OAuth Web Client ID — used by Android as the id_token audience and by the Supabase web OAuth flow. */
   googleWebClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
+  /** Google OAuth iOS Client ID — used by the iOS native Google Sign-In flow. */
+  googleIosClientId: '215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com',
   /** Apple Client ID (bundle identifier) for Sign in with Apple. */
   appleClientId: 'com.stepovr.app',
   /** Landing-only mode — when true, root and all unknown routes render the marketing landing page. Flipped to true on native-app launch. */
   landingMode: false,
   /** App store links + smart-banner ID. Placeholders until launch. */
   stores: {
-    appStoreUrl: 'https://apps.apple.com/app/idXXXXXXXX',
+    appStoreUrl: 'https://apps.apple.com/app/id6762849377',
     playStoreUrl: 'https://play.google.com/store/apps/details?id=com.stepovr.app',
-    appStoreId: 'XXXXXXXX',
+    appStoreId: '6762849377',
   },
 };

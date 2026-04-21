@@ -1,6 +1,75 @@
 # Changelog
 
-All notable changes to StepOver will be documented in this file.
+All notable changes to StepOvr will be documented in this file.
+
+## [0.8.19.2] - 2026-04-21
+
+### Added — iOS Google OAuth client ID + real iOS AdMob ad unit IDs
+
+Replaced the iOS placeholder values in the Capacitor and environment configs with the production credentials now that the AdMob iOS app and the iOS Google OAuth client ID exist.
+
+**Google Sign-In — separate iOS + Web client IDs.** The `GoogleAuth` plugin config previously set `clientId` to the Web OAuth client ID, which only happened to work for the Android audience check — on iOS the native sign-in sheet requires a platform-specific iOS OAuth client ID. Split into two fields:
+- `clientId`: `215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com` (new iOS OAuth client)
+- `serverClientId`: the existing Web OAuth client ID (used by Android as the `aud` claim on the id_token, and by the backend when verifying ID tokens with `google-auth-library`)
+
+Added the reversed iOS client ID (`com.googleusercontent.apps.215249721443-dldujn3efff1onlmft2u30ikih89q294`) as a second entry under `CFBundleURLTypes` in `Info.plist`. Google's OAuth flow redirects back to the app via this scheme after the user authenticates — without it, the native sign-in sheet hangs after consent. The existing `stepovr://` scheme is preserved.
+
+Added `googleIosClientId` field to both `environment.ts` and `environment.prod.ts` so code paths that need the iOS client ID (e.g. backend token audience when verifying iOS-issued tokens, or future native sign-in debug logs) can read it from the same env surface as `googleWebClientId`.
+
+**AdMob iOS — real App ID + 3 ad unit IDs.** The `~5298641906` App ID replaces the `~6079077395` placeholder (which was the Android App ID duplicated into the iOS slot). `appIdIos` in `capacitor.config.ts` + `admobAppIdIos` in env both now use the real iOS value. Populated `admobBannerIos`, `admobInterstitialIos`, and `admobRewardedIos` with their respective AdMob-issued ad unit IDs. Android `admobBannerAndroid` is still empty — pending banner ad unit creation on the Android side (interstitial + rewarded Android IDs were already populated from prior work).
+
+Ran `npx cap sync ios` to copy the updated `capacitor.config.ts` → `ios/App/App/capacitor.config.json` so the runtime picks up the new plugin values. Verified `GoogleService-Info.plist` is still registered in the pbxproj after sync (registration helper is idempotent).
+
+## [0.8.19.1] - 2026-04-21
+
+### Added — iOS native project generated + Firebase SDK wired + push/splash/network plugins
+
+First runnable iOS native project for StepOvr. `npx cap add ios` generated `frontend/ios/App/` (Xcode project + CocoaPods workspace + App target). This commit wires Firebase into the iOS build and adds the Capacitor plugins the launch plan requires.
+
+**`GoogleService-Info.plist` registered in Xcode project.** `cap add ios` placed the plist at `frontend/ios/App/App/GoogleService-Info.plist` but did not register it as a bundle resource — so the Firebase SDK would not have found it at runtime. Added a one-off helper at `frontend/scripts/add-googleservice-plist.js` that calls the `xcode` npm package's low-level primitives (`addToPbxBuildFileSection`, `addToPbxFileReferenceSection`, `addToPbxResourcesBuildPhase`, `addToPbxGroup`) to insert the 4 required pbxproj entries into the "App" group and the App target's Resources build phase. The script is idempotent — re-running after `cap add` is safe. The built-in `addResourceFile` helper doesn't work for Capacitor projects because Capacitor's "App" group is identified by `path`, not `name`, and the project has no flat "Resources" group.
+
+**`AppDelegate.swift` rewritten for Firebase + push notifications.** Imports `FirebaseCore`, `FirebaseMessaging`, and `UserNotifications`. Calls `FirebaseApp.configure()` at the top of `didFinishLaunchingWithOptions` (must run before any Firebase SDK usage), then wires the messaging delegate + notification center delegate to `self`. Adds `didRegisterForRemoteNotificationsWithDeviceToken` (sets `Messaging.messaging().apnsToken` for FCM+APNs bridging *and* posts `capacitorDidRegisterForRemoteNotifications` so `@capacitor/push-notifications` can fire its `registration` event) plus the matching `didFailToRegisterForRemoteNotificationsWithError` handler. The pre-existing `ApplicationDelegateProxy` URL + user-activity handlers are preserved unchanged — they still route deep links through Capacitor.
+
+**`Info.plist` — push background mode, App Tracking Transparency, portrait lock.** Added `UIBackgroundModes: [remote-notification]` so the app can receive silent push payloads while suspended. Added `NSUserTrackingUsageDescription` (required before iOS 14.5+ can present the ATT prompt for AdMob's IDFA access — without it, the app crashes on `ATTrackingManager.requestTrackingAuthorization`). Added `ITSAppUsesNonExemptEncryption: false` so App Store Connect doesn't prompt for export compliance on every upload. Removed iPhone landscape orientations — the UI is portrait-only per `capacitor.config.ts` and the manifest; iPad keeps portrait + upside-down portrait.
+
+**`App.entitlements` — push capability + webcredentials.** Added `aps-environment: development` (dev/TestFlight APNs sandbox — must flip to `production` before archiving for App Store; comment in the file marks this as a pre-release checklist item). Added `webcredentials:stepovr.com` to the associated-domains array so iOS password autofill recognizes the stepovr.com domain alongside the existing `applinks:` entries.
+
+**Capacitor plugins installed + synced.** 6 new plugins wired into `package.json`:
+- `@capacitor-firebase/app@^8.2.0` — initializes FirebaseApp on both platforms, required peer for other `@capacitor-firebase/*` plugins
+- `@capacitor-firebase/crashlytics@^8.2.0` — captures unhandled JS exceptions + native crashes, uploads to Firebase Crashlytics
+- `@capacitor-firebase/messaging@^8.2.0` — FCM token retrieval + foreground/background push handling (iOS receives via FCM-APNs bridge)
+- `@capacitor/push-notifications@^8.0.3` — permission prompt API + local notification presentation (paired with `@capacitor-firebase/messaging` — the former handles the iOS user-facing permission flow, the latter handles the token round-trip)
+- `@capacitor/splash-screen@^8.0.1` — native splash screen (replaces the web-only setTimeout + CSS fade)
+- `@capacitor/network@^8.0.1` — offline detection for the upcoming `OfflineBanner` component
+
+`npx cap sync` ran `pod install` on iOS (added 7 new Capacitor-Firebase pods + FirebaseCore/Crashlytics/Messaging transitive dependencies — 62s pod resolution) and regenerated the Android `capacitor.settings.gradle` + `capacitor.build.gradle` plugin manifests. Android Firebase wiring (google-services gradle plugin, firebase-bom, firebase-analytics + firebase-crashlytics in `app/build.gradle`) was already in place from earlier work.
+
+**Known follow-ups (deferred):**
+- `aps-environment` must flip to `production` before archiving for App Store (TODO comment in entitlements).
+- The Firebase project ID in the plist is `gen-lang-client-0272230126` — consider renaming in the Firebase Console if a cleaner project ID is preferred before launch (changing it now requires regenerating the plist + `google-services.json`).
+- No `FirebaseMessaging` delegate implementation yet — token retrieval + delivery handling will land with the `PushNotificationService` in the next commit.
+
+## [0.8.19.0] - 2026-04-21
+
+### Added — App Store launch prep: real Apple identifiers + push/splash config
+
+Pre-launch config wiring now that Apple Developer Program access is live. No runtime behavior changes in the Angular app — this just replaces placeholders with real identifiers and scaffolds native plugin config for the upcoming iOS/Android build.
+
+**Universal Links AASA — real Team ID + webcredentials.** `frontend/public/.well-known/apple-app-site-association` now uses `6WSPY24ZZS.com.stepovr.app` (Apple Team ID `6WSPY24ZZS`) instead of the `TEAMID.com.stepovr.app` placeholder. Added `webcredentials.apps: ["6WSPY24ZZS.com.stepovr.app"]` so the iOS app can receive password autofill suggestions for the stepovr.com domain — required for Sign In with Apple account linking.
+
+**Capacitor plugin config scaffolded.** `capacitor.config.ts` gains two plugin blocks ahead of their `npm install`:
+- `SplashScreen` — 2s display, auto-hide, black background, 600ms fade-out (matches the existing `AppComponent` web splash behavior).
+- `PushNotifications` — presents badge/sound/alert when a notification arrives while the app is foregrounded.
+
+Existing `Keyboard`, `GoogleAuth`, and `AdMob` plugin configs are untouched (real values preserved).
+
+**App name standardized to "StepOvr".** `frontend/public/manifest.webmanifest` was still using the legacy "StepOver" spelling — updated to match the Capacitor `appName`, Supabase profile display, and App Store listing. Description updated to reflect current modes (duels, battle royale, logo quiz). Related applications entry for iTunes now points at the real App Store ID `6762849377`.
+
+**`appVersion` reset to `1.0.0` / `1.0.0-dev`.** The internal `VERSION` file continues the 0.8.x scheme for development iterations, but the user-facing `environment.appVersion` reset from `1.7.0` → `1.0.0` (prod) and `1.7.0-dev` → `1.0.0-dev` (dev) — this is the first version in the App Store and Play Store, so the in-app version indicator must show `1.0.0` on launch day.
+
+**AdMob App ID + banner ad unit fields scaffolded.** New empty env fields (`admobAppIdIos`, `admobAppIdAndroid`, `admobBannerIos`, `admobBannerAndroid`) in both environment files — will be populated once the AdMob console setup produces iOS-specific App IDs and banner ad units. Interstitial and rewarded ad unit IDs (already wired for Android) are untouched.
+
+**Real App Store ID `6762849377` populated** in `environment.stores.appStoreUrl` and `appStoreId` — replaces the `XXXXXXXX` placeholder. Unblocks the App Store smart banner on the marketing landing page and any in-app "rate us" / "update available" prompts that link back to the App Store.
 
 ## [0.8.17.1] - 2026-04-21
 

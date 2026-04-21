@@ -11,6 +11,10 @@
 		<!-- TODO: replace stepovr.com with final production domain once purchased -->
 		<string>applinks:stepovr.com</string>
 		<string>applinks:www.stepovr.com</string>
+		<string>webcredentials:stepovr.com</string>
 	</array>
+	<!-- Switch to "production" before archiving for App Store. Sandbox APNs for dev/TestFlight builds. -->
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

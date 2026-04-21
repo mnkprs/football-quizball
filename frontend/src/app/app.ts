@@ -19,12 +19,17 @@ import { ToastComponent } from './shared/toast/toast';
 import { UpdateService } from './core/update.service';
 import { ForceUpdateBannerComponent } from './shared/force-update-banner/force-update-banner';
 import { LevelUpOverlayComponent } from './shared/level-up-overlay/level-up-overlay';
+import { OfflineBannerComponent } from './shared/offline-banner/offline-banner';
 import { App as CapacitorApp } from '@capacitor/app';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { PlatformService } from './core/platform.service';
+import { CrashlyticsService } from './core/crashlytics.service';
+import { PushNotificationService } from './core/push-notification.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, NgOptimizedImage, ForceUpdateBannerComponent, LevelUpOverlayComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, NgOptimizedImage, ForceUpdateBannerComponent, LevelUpOverlayComponent, OfflineBannerComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +47,9 @@ export class App implements OnInit, OnDestroy {
   private configApi = inject(ConfigApiService);
   private adService = inject(AdService);
   private updateService = inject(UpdateService);
+  private platform = inject(PlatformService);
+  private crashlytics = inject(CrashlyticsService);
+  private pushNotifications = inject(PushNotificationService);
   isAdminRoute = signal(false);
 
   showSplash = signal(true);
@@ -52,6 +60,8 @@ export class App implements OnInit, OnDestroy {
       const user = this.auth.user();
       if (user) {
         this.analytics.identify(user.id);
+        void this.crashlytics.setUserId(user.id);
+        void this.pushNotifications.initialize(user.id);
         this.checkUsernameSetup(user.id);
       } else {
         this.analytics.reset();
@@ -94,19 +104,45 @@ export class App implements OnInit, OnDestroy {
         });
       this.swUpdate.checkForUpdate();
     }
-    // Splash: only show on home/root, skip for deep-linked inner pages
+    this.initSplash();
+  }
+
+  /**
+   * Splash handoff strategy:
+   * - Native (iOS/Android): Capacitor's SplashScreen plugin covers the launch
+   *   through first paint. We hide the web CSS splash immediately (would only
+   *   duplicate the native splash) and hide the Capacitor splash on the next
+   *   tick, once Angular has rendered the root view.
+   * - Web, deep-linked URL: skip splash — the user wants the destination page.
+   * - Web, root URL: show the CSS splash for 2s, fade 600ms, then proceed.
+   */
+  private initSplash(): void {
+    if (this.platform.isNative) {
+      this.showSplash.set(false);
+      // Defer to the next tick so the first Angular render happens before
+      // the native splash fades out — avoids a white flash.
+      queueMicrotask(() => {
+        SplashScreen.hide({ fadeOutDuration: 400 }).catch(() => {
+          // Plugin not registered (e.g. early dev build) — no-op.
+        });
+      });
+      this.checkOnboarding();
+      return;
+    }
+
     if (this.router.url !== '/' && this.router.url !== '') {
       this.showSplash.set(false);
       this.checkOnboarding();
-    } else {
-      setTimeout(() => {
-        this.splashFading.set(true);
-        setTimeout(() => {
-          this.showSplash.set(false);
-          this.checkOnboarding();
-        }, 600);
-      }, 2000);
+      return;
     }
+
+    setTimeout(() => {
+      this.splashFading.set(true);
+      setTimeout(() => {
+        this.showSplash.set(false);
+        this.checkOnboarding();
+      }, 600);
+    }, 2000);
   }
 
   ngOnDestroy(): void {

@@ -17,15 +17,25 @@ const config: CapacitorConfig = {
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
-      clientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
+      // iOS OAuth client ID (platform = iOS in Google Cloud Console)
+      clientId: '215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com',
+      // Web OAuth client ID — used by Android as the audience for the id_token
+      serverClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
     },
     AdMob: {
-      // TODO: Replace with real App IDs from AdMob console before release
-      // iOS App ID format:  ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX
-      // Android App ID format: ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX
-      appIdIos: 'ca-app-pub-7781323448253047~6079077395',     // TODO: replace with iOS App ID once created
+      appIdIos: 'ca-app-pub-7781323448253047~5298641906',
       appIdAndroid: 'ca-app-pub-7781323448253047~6079077395',
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: '#000000',
+      showSpinner: false,
+      launchFadeOutDuration: 600,
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
 };
