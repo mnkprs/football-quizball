@@ -98,6 +98,22 @@ export class HomeComponent implements OnInit {
     this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'logo_quiz' });
     this.router.navigate(['/logo-quiz']);
   }
+  goLogoDuel(): void {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/duel?mode=logo' } });
+      return;
+    }
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'logo_duel' });
+    this.router.navigate(['/duel'], { queryParams: { mode: 'logo' } });
+  }
+  goTeamLogoQuiz(): void {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale?mode=team_logo' } });
+      return;
+    }
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'team_logo_quiz' });
+    this.router.navigate(['/battle-royale'], { queryParams: { mode: 'team_logo' } });
+  }
   goBattleRoyale(): void {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale' } });

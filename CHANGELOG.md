@@ -2,6 +2,22 @@
 
 All notable changes to StepOver will be documented in this file.
 
+## [0.8.17.1] - 2026-04-21
+
+### Fixed — Home page: restore Logo Quiz Duel + Team entry points
+
+The Phase 3 home migration (v0.8.17.0) dropped the 3-mode Logo Quiz hero from the old `<app-battle-hero>` — it became a single `<so-mode-card>` that navigated only to `/logo-quiz`. Two entry points that used to live inline inside the hero were orphaned: **Logo Duel** (`/duel?mode=logo`) and **Team Logo** (`/battle-royale?mode=team_logo`). The routes still worked if you typed the query param manually, but the home-page discovery surface was gone.
+
+**Fix.** New section added directly under the Logo Quiz hero: 3 `<so-mode-row>` tiles — Solo Quiz, Logo Duel, Team Logo — in a purple-tinted ambient container (`rgba(168,85,247,0.07)` gradient, 1px purple border) that visually pulls up into the hero above (`margin-top: -8px`). Stagger reveal 120ms / 180ms / 240ms to match the Pro Arena pattern without competing for attention. `prefers-reduced-motion` guard extended.
+
+**Methods restored on `HomeComponent`:** `goLogoDuel()` (auth-gated, navigates `/duel?mode=logo`), `goTeamLogoQuiz()` (auth-gated, navigates `/battle-royale?mode=team_logo`). Both emit `select_content` analytics events (`logo_duel`, `team_logo_quiz`). Solo Quiz row reuses the existing `goLogoQuiz()` method.
+
+**State wiring:** Logo Duel row badge + subtitle bind to the existing `duelHint()` / `duelBadge()` computed signals (Pro quota is shared with standard Duel). Team Logo row badge binds to `battleRoyaleBadge()` (shared BR trial quota). No new computed signals needed.
+
+### Scope
+
+Home page only. No other screen touched. Visual purple accent uses legacy `--color-purple` (#a855f7) token, consistent with the Logo Quiz sub-brand from the pre-migration home.
+
 ## [0.8.17.0] - 2026-04-21
 
 ### Added — Home page on StepOver design system (Phase 3, screen 1)

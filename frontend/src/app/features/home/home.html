@@ -1,15 +1,48 @@
 <div class="home-page" #homePage>
   <div class="home-content page-stagger">
 
-    <!-- TIER 1 — Logo Quiz hero -->
+    <!-- TIER 1 — Logo Quiz hero + 3 mode entry points -->
     <so-mode-card
       title="Logo Quiz"
       subtitle="Guess the club from its logo"
       badge="FEATURED"
       image="/gemini-logo.png"
       [height]="220"
+      accent="var(--color-purple)"
       (pressed)="goLogoQuiz()"
     />
+
+    <div class="section-modes logo-modes-tier">
+      <so-mode-row
+        title="Solo Quiz"
+        subtitle="Free · unranked"
+        materialIcon="emoji_events"
+        [iconBg]="'rgba(168,85,247,0.15)'"
+        [iconColor]="'var(--color-purple)'"
+        accent="var(--color-purple)"
+        (pressed)="goLogoQuiz()"
+      />
+      <so-mode-row
+        title="Logo Duel"
+        [subtitle]="duelHint()"
+        materialIcon="swords"
+        [iconBg]="'rgba(239,68,68,0.15)'"
+        [iconColor]="'#ef4444'"
+        [badge]="duelBadge()"
+        accent="var(--color-purple)"
+        (pressed)="goLogoDuel()"
+      />
+      <so-mode-row
+        title="Team Logo"
+        subtitle="BR-style team battle"
+        materialIcon="shield"
+        [iconBg]="'rgba(168,85,247,0.15)'"
+        [iconColor]="'var(--color-purple)'"
+        [badge]="battleRoyaleBadge()"
+        accent="var(--color-purple)"
+        (pressed)="goTeamLogoQuiz()"
+      />
+    </div>
 
     <!-- TIER 2 — 2-Player multiplayer card -->
     <div class="two-player-card">
