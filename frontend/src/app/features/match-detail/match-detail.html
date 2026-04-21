@@ -71,7 +71,7 @@
             <!-- Full question list -->
             <div class="question-list">
               @for (q of duelQuestions(); track q.index) {
-                <div class="question-card">
+                <div class="question-card" [class.question-card--logo]="isLogoDuel()">
                   <div class="question-card__top">
                     <p class="question-card__text">{{ q.question_text }}</p>
                     @if (q.winner === myDuelRole()) {
@@ -82,18 +82,58 @@
                       <span class="question-card__tag question-card__tag--loss">Opponent</span>
                     }
                   </div>
-                  <p class="question-card__answer">Answer: <span>{{ q.correct_answer }}</span></p>
-                  <!-- Per-player answers -->
-                  <div class="question-card__player-answers">
-                    <span class="player-answer">
-                      <span class="player-answer__name">{{ d.player1_username }}</span>:
-                      <span class="player-answer__val">{{ q.host_answer ?? '—' }}</span>
-                    </span>
-                    <span class="player-answer">
-                      <span class="player-answer__name">{{ d.player2_username }}</span>:
-                      <span class="player-answer__val">{{ q.guest_answer ?? '—' }}</span>
-                    </span>
-                  </div>
+
+                  @if (q.image_url) {
+                    <!-- Logo duel: show the obscured logo the players saw -->
+                    <div class="question-card__logo">
+                      <img [src]="q.image_url" [alt]="'Logo from question ' + (q.index + 1)" loading="lazy" />
+                    </div>
+                  }
+
+                  @if (isLogoDuel()) {
+                    <!-- Logo-duel review: gate on the MATCH being a logo duel (not per-question image presence) —
+                         if a single question's image_url is missing due to data drift, the answers must still stay masked. -->
+                    <div class="question-card__review">
+                      <button
+                        type="button"
+                        class="reveal-btn"
+                        (click)="toggleReveal(q.index)"
+                        [attr.aria-pressed]="isRevealed(q.index)"
+                        [attr.aria-label]="isRevealed(q.index) ? 'Hide answers' : 'Reveal answers'">
+                        <span class="material-icons">{{ isRevealed(q.index) ? 'visibility_off' : 'visibility' }}</span>
+                        {{ isRevealed(q.index) ? 'Hide' : 'Reveal' }}
+                      </button>
+
+                      <p class="question-card__answer" [class.question-card__answer--masked]="!isRevealed(q.index)">
+                        Answer:
+                        <span>{{ isRevealed(q.index) ? q.correct_answer : maskAnswer(q.correct_answer) }}</span>
+                      </p>
+
+                      <div class="question-card__player-answers">
+                        <span class="player-answer" [class.player-answer--masked]="!isRevealed(q.index)">
+                          <span class="player-answer__name">{{ d.player1_username }}</span>:
+                          <span class="player-answer__val">{{ isRevealed(q.index) ? (q.host_answer ?? '—') : maskAnswer(q.host_answer) }}</span>
+                        </span>
+                        <span class="player-answer" [class.player-answer--masked]="!isRevealed(q.index)">
+                          <span class="player-answer__name">{{ d.player2_username }}</span>:
+                          <span class="player-answer__val">{{ isRevealed(q.index) ? (q.guest_answer ?? '—') : maskAnswer(q.guest_answer) }}</span>
+                        </span>
+                      </div>
+                    </div>
+                  } @else {
+                    <!-- Standard duel question: current behavior unchanged -->
+                    <p class="question-card__answer">Answer: <span>{{ q.correct_answer }}</span></p>
+                    <div class="question-card__player-answers">
+                      <span class="player-answer">
+                        <span class="player-answer__name">{{ d.player1_username }}</span>:
+                        <span class="player-answer__val">{{ q.host_answer ?? '—' }}</span>
+                      </span>
+                      <span class="player-answer">
+                        <span class="player-answer__name">{{ d.player2_username }}</span>:
+                        <span class="player-answer__val">{{ q.guest_answer ?? '—' }}</span>
+                      </span>
+                    </div>
+                  }
                 </div>
               }
             </div>

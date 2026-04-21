@@ -772,3 +772,77 @@
   text-decoration: line-through;
   text-decoration-thickness: 1px;
 }
+
+/* ─── LOGO DUEL REVIEW: image + masked answers + eye toggle ─── */
+.question-card--logo {
+  gap: 0.5rem;
+}
+
+.question-card__logo {
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.question-card__logo img {
+  max-width: 100%;
+  max-height: 160px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 0.375rem;
+}
+
+.question-card__review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.reveal-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  min-height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.reveal-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+}
+
+.reveal-btn[aria-pressed="true"] {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+}
+
+.reveal-btn .material-icons { font-size: 16px; }
+
+/* Masked state — letter-spacing widens asterisks for a padlock feel */
+.question-card__answer--masked span,
+.player-answer--masked .player-answer__val {
+  letter-spacing: 0.12em;
+  color: #64748b;
+  font-family: var(--font-numeric, monospace);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-btn { transition: none; }
+}

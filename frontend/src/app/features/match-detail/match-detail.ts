@@ -54,6 +54,21 @@ export class MatchDetailComponent implements OnInit {
     return d.duel_questions ?? d.question_results ?? [];
   });
 
+  /** True when this match is a logo duel — drives the image + masked-answer review UX. */
+  isLogoDuel = computed<boolean>(() => {
+    const d = this.detail();
+    if (!d || d.game_ref_type !== 'duel') return false;
+    // A logo duel is detectable by any question in the breakdown carrying
+    // an image_url (match-history enriches only for `game_type === 'logo'`).
+    return this.duelQuestions().some((q) => !!q.image_url);
+  });
+
+  /**
+   * Indexes of questions the user has actively revealed via the eye toggle.
+   * Default = empty set = everything masked.
+   */
+  revealedQuestions = signal<Set<number>>(new Set<number>());
+
   async ngOnInit(): Promise<void> {
     const matchId = this.route.snapshot.paramMap.get('id');
     if (!matchId) {
@@ -61,6 +76,11 @@ export class MatchDetailComponent implements OnInit {
       this.loading.set(false);
       return;
     }
+
+    // Reset reveal state on every match load — Angular may reuse this component
+    // instance when the :id param changes, and we do NOT want revealed-question
+    // indexes from match A to silently pre-reveal questions in match B.
+    this.revealedQuestions.set(new Set<number>());
 
     try {
       const detail = await firstValueFrom(this.matchHistoryApi.getMatchDetail(matchId));
@@ -163,5 +183,30 @@ export class MatchDetailComponent implements OnInit {
     if (!entry) return { answer: null, correct: false };
     // Trust the server's is_correct — matches the fuzzy matcher used during gameplay.
     return { answer: entry.answer, correct: entry.is_correct };
+  }
+
+  /** Logo-duel review: tap eye icon → reveal this question's answers. Tap again to hide. */
+  toggleReveal(index: number): void {
+    this.revealedQuestions.update((set) => {
+      const next = new Set(set);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  }
+
+  isRevealed(index: number): boolean {
+    return this.revealedQuestions().has(index);
+  }
+
+  /**
+   * Masks any answer string with asterisks matching its length. Preserves
+   * spaces so word count is visible ("Manchester United" → "********** ******").
+   * Length-matching is intentional: the player is meant to retry the guess
+   * before revealing, and letter count is a normal crossword-style clue.
+   */
+  maskAnswer(value: string | null | undefined): string {
+    if (!value) return '—';
+    return value.replace(/[^\s]/g, '*');
   }
 }
