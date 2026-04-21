@@ -28,6 +28,9 @@
     "@capacitor-community/admob": "^7.2.0",
     "@capacitor-community/apple-sign-in": "^7.1.0",
     "@capacitor-firebase/analytics": "^8.2.0",
+    "@capacitor-firebase/app": "^8.2.0",
+    "@capacitor-firebase/crashlytics": "^8.2.0",
+    "@capacitor-firebase/messaging": "^8.2.0",
     "@capacitor/android": "^7.6.0",
     "@capacitor/app": "^7.1.2",
     "@capacitor/cli": "^7.6.0",
@@ -36,7 +39,10 @@
     "@capacitor/haptics": "^7.0.5",
     "@capacitor/ios": "^7.6.0",
     "@capacitor/keyboard": "^7.0.6",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/push-notifications": "^8.0.3",
     "@capacitor/share": "^7.0.2",
+    "@capacitor/splash-screen": "^8.0.1",
     "@ngrx/signals": "^20.1.0",
     "@southdevs/capacitor-google-auth": "^7.0.0",
     "@supabase/supabase-js": "^2.98.0",
@@ -63,6 +69,7 @@
     "patch-package": "^8.0.1",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.19",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "xcode": "^3.0.1"
   }
 }

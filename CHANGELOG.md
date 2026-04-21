@@ -2,6 +2,35 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.8.19.1] - 2026-04-21
+
+### Added — iOS native project generated + Firebase SDK wired + push/splash/network plugins
+
+First runnable iOS native project for StepOvr. `npx cap add ios` generated `frontend/ios/App/` (Xcode project + CocoaPods workspace + App target). This commit wires Firebase into the iOS build and adds the Capacitor plugins the launch plan requires.
+
+**`GoogleService-Info.plist` registered in Xcode project.** `cap add ios` placed the plist at `frontend/ios/App/App/GoogleService-Info.plist` but did not register it as a bundle resource — so the Firebase SDK would not have found it at runtime. Added a one-off helper at `frontend/scripts/add-googleservice-plist.js` that calls the `xcode` npm package's low-level primitives (`addToPbxBuildFileSection`, `addToPbxFileReferenceSection`, `addToPbxResourcesBuildPhase`, `addToPbxGroup`) to insert the 4 required pbxproj entries into the "App" group and the App target's Resources build phase. The script is idempotent — re-running after `cap add` is safe. The built-in `addResourceFile` helper doesn't work for Capacitor projects because Capacitor's "App" group is identified by `path`, not `name`, and the project has no flat "Resources" group.
+
+**`AppDelegate.swift` rewritten for Firebase + push notifications.** Imports `FirebaseCore`, `FirebaseMessaging`, and `UserNotifications`. Calls `FirebaseApp.configure()` at the top of `didFinishLaunchingWithOptions` (must run before any Firebase SDK usage), then wires the messaging delegate + notification center delegate to `self`. Adds `didRegisterForRemoteNotificationsWithDeviceToken` (sets `Messaging.messaging().apnsToken` for FCM+APNs bridging *and* posts `capacitorDidRegisterForRemoteNotifications` so `@capacitor/push-notifications` can fire its `registration` event) plus the matching `didFailToRegisterForRemoteNotificationsWithError` handler. The pre-existing `ApplicationDelegateProxy` URL + user-activity handlers are preserved unchanged — they still route deep links through Capacitor.
+
+**`Info.plist` — push background mode, App Tracking Transparency, portrait lock.** Added `UIBackgroundModes: [remote-notification]` so the app can receive silent push payloads while suspended. Added `NSUserTrackingUsageDescription` (required before iOS 14.5+ can present the ATT prompt for AdMob's IDFA access — without it, the app crashes on `ATTrackingManager.requestTrackingAuthorization`). Added `ITSAppUsesNonExemptEncryption: false` so App Store Connect doesn't prompt for export compliance on every upload. Removed iPhone landscape orientations — the UI is portrait-only per `capacitor.config.ts` and the manifest; iPad keeps portrait + upside-down portrait.
+
+**`App.entitlements` — push capability + webcredentials.** Added `aps-environment: development` (dev/TestFlight APNs sandbox — must flip to `production` before archiving for App Store; comment in the file marks this as a pre-release checklist item). Added `webcredentials:stepovr.com` to the associated-domains array so iOS password autofill recognizes the stepovr.com domain alongside the existing `applinks:` entries.
+
+**Capacitor plugins installed + synced.** 6 new plugins wired into `package.json`:
+- `@capacitor-firebase/app@^8.2.0` — initializes FirebaseApp on both platforms, required peer for other `@capacitor-firebase/*` plugins
+- `@capacitor-firebase/crashlytics@^8.2.0` — captures unhandled JS exceptions + native crashes, uploads to Firebase Crashlytics
+- `@capacitor-firebase/messaging@^8.2.0` — FCM token retrieval + foreground/background push handling (iOS receives via FCM-APNs bridge)
+- `@capacitor/push-notifications@^8.0.3` — permission prompt API + local notification presentation (paired with `@capacitor-firebase/messaging` — the former handles the iOS user-facing permission flow, the latter handles the token round-trip)
+- `@capacitor/splash-screen@^8.0.1` — native splash screen (replaces the web-only setTimeout + CSS fade)
+- `@capacitor/network@^8.0.1` — offline detection for the upcoming `OfflineBanner` component
+
+`npx cap sync` ran `pod install` on iOS (added 7 new Capacitor-Firebase pods + FirebaseCore/Crashlytics/Messaging transitive dependencies — 62s pod resolution) and regenerated the Android `capacitor.settings.gradle` + `capacitor.build.gradle` plugin manifests. Android Firebase wiring (google-services gradle plugin, firebase-bom, firebase-analytics + firebase-crashlytics in `app/build.gradle`) was already in place from earlier work.
+
+**Known follow-ups (deferred):**
+- `aps-environment` must flip to `production` before archiving for App Store (TODO comment in entitlements).
+- The Firebase project ID in the plist is `gen-lang-client-0272230126` — consider renaming in the Firebase Console if a cleaner project ID is preferred before launch (changing it now requires regenerating the plist + `google-services.json`).
+- No `FirebaseMessaging` delegate implementation yet — token retrieval + delivery handling will land with the `PushNotificationService` in the next commit.
+
 ## [0.8.19.0] - 2026-04-21
 
 ### Added — App Store launch prep: real Apple identifiers + push/splash config
