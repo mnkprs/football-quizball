@@ -1,33 +1,37 @@
 <div class="home-page" #homePage>
   <div class="home-content page-stagger">
-    <!-- TIER 1: Logo Quiz Hub Hero -->
-    <app-battle-hero
+
+    <!-- TIER 1 — Logo Quiz hero -->
+    <so-mode-card
       title="Logo Quiz"
-      subtitle="Guess the Club From Its Logo"
-      [tags]="['visual', 'logos', 'free']"
-      backgroundImage="/gemini-logo.png"
-      theme="purple"
-      [featured]="true"
-      [onlineCount]="onlinePlayers()"
-      [modes]="logoModes()"
-      (modeClick)="onLogoModeClick($event)"
-      (lockedModeClick)="onLockedModeClick()"
+      subtitle="Guess the club from its logo"
+      badge="FEATURED"
+      image="/gemini-logo.png"
+      [height]="220"
+      (pressed)="goLogoQuiz()"
     />
 
-    <!-- 2-Player Card -->
+    <!-- TIER 2 — 2-Player multiplayer card -->
     <div class="two-player-card">
       <img class="two-player-card__bg-image" ngSrc="/2-player-mode.png" alt="" aria-hidden="true" fill priority />
       <span class="two-player-card__bg-overlay" aria-hidden="true"></span>
-      <span class="two-player-card__badge">{{ lang.t().localMultiplayer }}</span>
-      <h3 class="two-player-card__title">{{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}</h3>
+
+      <so-chip variant="accent" size="xs" class="two-player-card__badge">
+        {{ lang.t().localMultiplayer }}
+      </so-chip>
+
+      <h3 class="two-player-card__title">
+        {{ hasActive2PlayerGame() ? lang.t().btn2PlayerResume : lang.t().btn2Player }}
+      </h3>
       <p class="two-player-card__hint">{{ lang.t().btn2PlayerHint }}</p>
+
       <div class="two-player-card__actions">
-        <button class="two-player-card__btn" (click)="go2Player()">
+        <button type="button" class="two-player-card__btn" (click)="go2Player()">
           <span class="material-icons two-player-card__btn-icon">smartphone</span>
           <span class="two-player-card__btn-label">Local</span>
           <span class="two-player-card__btn-sub">Same device</span>
         </button>
-        <button class="two-player-card__btn" (click)="goOnline()">
+        <button type="button" class="two-player-card__btn" (click)="goOnline()">
           <span class="material-icons two-player-card__btn-icon">public</span>
           <span class="two-player-card__btn-label">Online</span>
           <span class="two-player-card__btn-sub">Play ranked</span>
@@ -35,70 +39,56 @@
       </div>
     </div>
 
-    <!-- TIER 3: Pro Arena -->
-    <app-section-header
-      [title]="lang.t().proArena"
-    />
+    <!-- TIER 3 — Pro Arena section -->
+    <div class="so-section-header">{{ lang.t().proArena }}</div>
 
     <div class="section-modes pro-arena-tier">
-      <app-mode-card
-        icon="military_tech"
-        iconClass="material-symbols-outlined"
-        iconBgColor="gold"
+      <so-mode-row
         title="Battle Royale"
-        hint="20-player elimination — last one standing wins"
-        [tags]="['20 players', 'multi', 'pvp']"
-        backgroundImage="/royale.png"
-        variant="accent"
-        size="medium"
-        [velvetLock]="true"
-        [locked]="!auth.isLoggedIn()"
-        [onlineCount]="onlinePlayers()"
-        [trialInfo]="auth.isLoggedIn() && !pro.isPro() ? { remaining: pro.trialBattleRoyaleRemaining(), total: 1 } : null"
-        (cardClick)="goBattleRoyale()"
+        subtitle="20-player elimination"
+        image="/royale.png"
+        materialIcon="military_tech"
+        [iconBg]="'rgba(230,168,0,0.15)'"
+        [iconColor]="'var(--color-pro)'"
+        [badge]="battleRoyaleBadge()"
+        accent="var(--color-pro)"
+        (pressed)="goBattleRoyale()"
       />
-      <app-mode-card
-        icon="swords"
-        iconClass="material-symbols-outlined"
-        iconBgColor="red"
+
+      <so-mode-row
         title="Duel"
-        [hint]="auth.isLoggedIn() ? (pro.isPro() ? '1v1 High-Stakes Face-off • Unlimited' : pro.dailyDuelsRemaining() > 0 ? '1v1 High-Stakes Face-off • ' + pro.dailyDuelsRemaining() + ' free today' : '1v1 High-Stakes Face-off • Come back tomorrow') : '1v1 High-Stakes Face-off • Login required'"
+        [subtitle]="duelHint()"
+        image="/duel-mode.png"
+        materialIcon="swords"
+        [iconBg]="'rgba(239,68,68,0.15)'"
+        [iconColor]="'#ef4444'"
         [badge]="duelBadge()"
-        badgeColor="accent"
-        [tags]="['pvp', 'ranked']"
-        backgroundImage="/duel-mode.png"
-        variant="accent"
-        size="medium"
-        [velvetLock]="true"
-        [locked]="!auth.isLoggedIn()"
-        [rateLimit]="auth.isLoggedIn() && !pro.isPro() ? pro.dailyDuelsRemaining() : null"
-        (cardClick)="goDuel()"
+        (pressed)="goDuel()"
       />
-      <app-mode-card
-        icon="emoji_events"
-        iconBgColor="gold"
+
+      <so-mode-row
         [title]="lang.t().btnSolo"
-        [hint]="soloHint()"
-        [tags]="['solo', 'ranked', 'elo']"
-        [footerText]="lang.t().playersOnline"
-        backgroundImage="/solo-mode.png"
-        variant="accent"
-        size="medium"
-        [velvetLock]="true"
-        [locked]="!auth.isLoggedIn()"
-        (cardClick)="goSolo()"
+        [subtitle]="soloHint()"
+        image="/solo-mode.png"
+        materialIcon="emoji_events"
+        [iconBg]="'rgba(230,168,0,0.15)'"
+        [iconColor]="'var(--color-pro)'"
+        accent="var(--color-pro)"
+        (pressed)="goSolo()"
       />
-      <app-mode-card
-        icon="bolt"
-        iconBgColor="orange"
+
+      <so-mode-row
         title="Blitz"
-        hint="Answer as many as you can before time runs out"
-        [tags]="['coming soon']"
-        backgroundImage="/blitz-mode.png"
-        variant="accent"
-        size="medium"
-        [locked]="true"
+        subtitle="Coming soon"
+        image="/blitz-mode.png"
+        materialIcon="bolt"
+        [iconBg]="'rgba(255,149,0,0.15)'"
+        [iconColor]="'var(--color-warning)'"
+        accent="var(--color-warning)"
+        badge="SOON"
+        (pressed)="goBlitz()"
       />
     </div>
+
   </div>
 </div>
