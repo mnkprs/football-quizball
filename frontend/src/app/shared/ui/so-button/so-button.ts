@@ -1,0 +1,50 @@
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+export type SoButtonVariant = 'primary' | 'secondary' | 'ghost' | 'tertiary' | 'danger';
+export type SoButtonSize    = 'sm' | 'md' | 'lg';
+
+@Component({
+  selector: 'so-button',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule],
+  template: `
+    <button
+      type="button"
+      class="so-btn inline-flex items-center justify-center gap-2 font-semibold uppercase tracking-[0.08em] rounded-lg whitespace-nowrap select-none transition-[transform,box-shadow] duration-150 ease-out"
+      [class.opacity-60]="disabled()"
+      [class.cursor-not-allowed]="disabled()"
+      [class.w-full]="fullWidth()"
+      [ngClass]="[sizeClass(), variantClass()]"
+      [disabled]="disabled()"
+      (click)="pressed.emit()">
+      <ng-content select="[leading]" />
+      <ng-content />
+      <ng-content select="[trailing]" />
+    </button>
+  `,
+  styles: [`
+    :host { display: inline-block; }
+    :host([full-width]) { display: block; }
+    .so-btn:active:not(:disabled) { transform: scale(0.98); }
+    .variant-primary   { background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%); color: var(--color-accent-foreground); box-shadow: 0 0 15px rgba(0,122,255,0.30); }
+    .variant-secondary { background: var(--glass-bg); color: var(--color-foreground); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
+    .variant-ghost     { background: transparent; color: var(--color-foreground); box-shadow: inset 0 0 0 1px rgba(107,122,141,0.3); }
+    .variant-tertiary  { background: transparent; color: var(--color-foreground); border-radius: 0; border-bottom: 1px solid rgba(107,122,141,0.4); padding: 10px 4px; text-transform: none; letter-spacing: 0; font-weight: 500; }
+    .variant-danger    { background: #93000a; color: #ffb4ab; }
+    .size-sm { height: 36px; padding: 0 14px; font-size: 12px; }
+    .size-md { height: 48px; padding: 0 22px; font-size: 13px; }
+    .size-lg { height: 56px; padding: 0 24px; font-size: 14px; }
+  `],
+})
+export class SoButtonComponent {
+  variant   = input<SoButtonVariant>('primary');
+  size      = input<SoButtonSize>('md');
+  disabled  = input<boolean>(false);
+  fullWidth = input<boolean>(false);
+  pressed   = output<void>();
+
+  variantClass() { return `variant-${this.variant()}`; }
+  sizeClass()    { return `size-${this.size()}`; }
+}
