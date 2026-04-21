@@ -39,6 +39,8 @@ export interface DuelQuestionDetail {
   is_pro_logo?: boolean;
   host_answer?: string | null;
   guest_answer?: string | null;
+  /** Obscured logo image — only populated for logo duels. */
+  image_url?: string;
 }
 
 /** Per-player answer entry for a BR question — includes server-computed correctness. */

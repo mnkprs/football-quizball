@@ -910,10 +910,17 @@ export class SupabaseService {
     return data;
   }
 
+  /**
+   * WARNING: the `questions` JSONB array contains `original_image_url` per logo
+   * question — this is the UNOBSCURED cheat-reveal image and must NEVER be
+   * exposed to clients, even post-match. Callers that forward `game.questions`
+   * downstream must hand-pick only `image_url` (the obscured, in-game image).
+   * See `MatchHistoryService.getMatchDetail` for the canonical safe pattern.
+   */
   async getDuelGameById(gameId: string) {
     const { data } = await this.client
       .from('duel_games')
-      .select('id, scores, question_results, game_type, host_id, guest_id')
+      .select('id, scores, question_results, questions, game_type, host_id, guest_id')
       .eq('id', gameId)
       .maybeSingle();
     return data;

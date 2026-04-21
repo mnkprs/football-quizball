@@ -50,6 +50,13 @@ export interface DuelQuestionDetail {
   host_answer?: string | null;
   guest_answer?: string | null;
   tags?: AnalyticsTags;
+  /**
+   * Obscured logo image the players saw during gameplay. Only populated for
+   * logo duels (`game_type === 'logo'`) via match-history enrichment — the
+   * original_image_url (unobscured) is never exposed, even post-match, to
+   * keep the review UX focused on what the player actually played.
+   */
+  image_url?: string;
 }
 
 /** Per-player answer entry for a BR question — includes server-computed correctness. */
