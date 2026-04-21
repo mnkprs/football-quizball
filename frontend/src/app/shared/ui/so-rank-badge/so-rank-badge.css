@@ -1,0 +1,9 @@
+:host { display: inline-block; }
+.so-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 10px 4px 8px; background: var(--color-surface-low);
+  border-radius: 999px;
+}
+.so-stripe { width: 3px; height: 14px; border-radius: 2px; }
+.so-tier   { font-weight: 600; font-size: 13px; color: #fff; }
+.so-elo    { font-size: 11px; color: var(--color-muted-foreground); letter-spacing: 0.04em; }
