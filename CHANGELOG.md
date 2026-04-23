@@ -2,6 +2,12 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.0.1] - 2026-04-23
+
+### Fixed — CI npm ci failure after adding @capacitor/assets
+
+`frontend/package-lock.json` was out of sync with `frontend/package.json` because v0.9.0.0 added `@capacitor/assets@^3.0.5` to devDependencies without regenerating the lockfile. GitHub Actions (`npm ci`) failed with ~260 "Missing from lock file" entries covering the `@capacitor/assets` → `@trapezedev/project` → `sharp` transitive tree. Regenerated the lockfile with `npm install --package-lock-only`; `npm ci --dry-run` now installs cleanly. Railway was unaffected — its build uses the forgiving `npm install` rather than strict `npm ci`.
+
 ## [0.9.0.0] - 2026-04-23
 
 ### Added — Logo Quiz lobby overhaul with 3 sub-mode tabs
