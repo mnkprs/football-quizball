@@ -96,7 +96,7 @@ export class OnboardingComponent implements OnInit {
   choiceClass(choice: string): string {
     const base = 'w-full py-4 px-5 rounded-2xl font-bold text-left text-base transition pressable';
     if (!this.showFlash()) {
-      return `${base} bg-card border border-border text-foreground hover:border-accent hover:bg-muted active:scale-95`;
+      return `${base} onboarding-choice bg-card border border-border text-foreground active:scale-95`;
     }
     const isSelected = choice === this.selectedChoice();
     const correctAns = this.currentQuestion()?.correct_answer ?? '';
@@ -147,6 +147,7 @@ export class OnboardingComponent implements OnInit {
       clearTimeout(this.advanceTimeout);
       this.advanceTimeout = null;
     }
+    (document.activeElement as HTMLElement)?.blur();
     this.showFlash.set(false);
     this.selectedChoice.set(null);
 

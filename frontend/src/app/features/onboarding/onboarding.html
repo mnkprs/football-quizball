@@ -83,7 +83,7 @@
 
           <!-- Choices (shared across variants) -->
           <div class="flex flex-col gap-3">
-            @for (choice of q.choices; track $index) {
+            @for (choice of q.choices; track currentIndex() + '-' + $index) {
               <button
                 (click)="selectChoice(choice)"
                 [disabled]="showFlash()"
