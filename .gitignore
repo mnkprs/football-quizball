@@ -42,3 +42,7 @@ backend/scripts/_logo-output/
 
 # Crawled football-logos.cc images (reviewed locally, not tracked)
 backend/scripts/_flcc-downloads/*/
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

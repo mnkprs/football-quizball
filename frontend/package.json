@@ -7,8 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "cap:sync": "npx cap sync",
-    "cap:build": "ng build --configuration production && npx cap sync",
+    "cap:sync": "npx cap sync && sed -i '' \"s|pod 'CapacitorFirebaseAnalytics'|pod 'CapacitorFirebaseAnalytics/Analytics'|\" ios/App/Podfile && cd ios/App && pod install",
+    "cap:build": "ng build --configuration production && npm run cap:sync",
     "cap:ios": "npx cap open ios",
     "cap:android": "npx cap open android",
     "postinstall": "patch-package"
