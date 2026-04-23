@@ -63,6 +63,50 @@
       Firebase Analytics data is collected automatically to improve app quality. You can opt out via your device settings.
     </p>
 
+    <h3>Crash and Diagnostics Data</h3>
+    <p>
+      We use Firebase Crashlytics to detect and fix stability issues. When the App crashes or encounters an
+      error, Crashlytics automatically collects:
+    </p>
+    <ul>
+      <li>Crash logs and stack traces</li>
+      <li>Device model, operating system version, and orientation</li>
+      <li>Available memory and disk space at the time of the crash</li>
+      <li>Your user ID (to help us correlate crash reports with accounts, if you are logged in)</li>
+    </ul>
+    <p>
+      This data is used solely to diagnose and resolve technical issues.
+    </p>
+
+    <h3>Advertising Data</h3>
+    <p>
+      The App displays ads via Google AdMob. AdMob and its ad network partners may automatically collect:
+    </p>
+    <ul>
+      <li>Advertising identifier (IDFA on iOS, GAID on Android)</li>
+      <li>Device information (model, OS version, screen size)</li>
+      <li>Ad interaction data (impressions, clicks)</li>
+      <li>Approximate location (derived from IP address)</li>
+    </ul>
+    <p>
+      This data is used by Google to serve and measure ads. You can opt out of personalised ads via your device
+      settings (iOS: Settings → Privacy → Tracking; Android: Settings → Google → Ads). Pro subscribers do not
+      see ads and no advertising data is collected for them.
+    </p>
+
+    <h3>Push Notification Data</h3>
+    <p>
+      If you grant notification permissions, we use Firebase Cloud Messaging (FCM) to send you push
+      notifications. We collect and store:
+    </p>
+    <ul>
+      <li>Your FCM device token (a unique identifier for delivering notifications to your device)</li>
+    </ul>
+    <p>
+      Your device token is sent to our server and associated with your account so we can deliver notifications.
+      You can revoke notification permissions at any time via your device settings.
+    </p>
+
     <h3>Payment Data</h3>
     <p>
       Pro subscriptions are processed through the Apple App Store or Google Play Store. We do not collect or
@@ -114,10 +158,17 @@
       <li><strong>Onboarding status</strong> — remembers if you have completed the onboarding flow</li>
     </ul>
 
-    <h3>Analytics</h3>
+    <h3>Analytics and Diagnostics</h3>
     <p>
-      We use Firebase Analytics to understand how users interact with the App. You can opt out of analytics
-      data collection via your device settings or by disabling "Analytics Storage" in the App's permissions.
+      We use Firebase Analytics to understand how users interact with the App and Firebase Crashlytics to
+      detect stability issues. You can opt out of analytics data collection via your device settings or by
+      disabling "Analytics Storage" in the App's permissions.
+    </p>
+
+    <h3>Advertising</h3>
+    <p>
+      The App uses Google AdMob to display ads. You can opt out of personalised advertising via your device
+      settings. Pro subscribers do not see ads.
     </p>
 
     <h2>5. Data Storage</h2>
@@ -135,7 +186,8 @@
     <ul>
       <li>
         <strong>Google LLC</strong> — Sign In with Google (OAuth identity provider), Google Play Billing
-        (subscription payments), Firebase Analytics (product analytics and crash reporting).
+        (subscription payments), Firebase Analytics (product analytics), Firebase Crashlytics (crash
+        reporting), Firebase Cloud Messaging (push notifications), and Google AdMob (advertising).
         <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>
       </li>
       <li>
@@ -208,14 +260,14 @@
 
     <h2>9. Children's Privacy</h2>
     <p>
-      The Service is intended for users aged <strong>13 and over</strong>. We do not knowingly collect personal
-      data from children under 13. If you believe a child under 13 has provided us with personal data, please
-      contact us at <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a> and we will promptly delete
-      that data.
+      The Service is suitable for all ages. However, we do not knowingly collect personal data from children
+      under the age of digital consent in their jurisdiction (e.g., 16 in the EU under GDPR Article 8, 13 in
+      the US under COPPA). If you believe a child under the applicable age has provided us with personal data
+      without parental consent, please contact us at
+      <a href="mailto:mkaparos95@gmail.com">mkaparos95@gmail.com</a> and we will promptly delete that data.
     </p>
     <p>
-      Users between 13 and 16 in the EU may require parental consent under GDPR Article 8. We rely on parents
-      and guardians to supervise minors' use of the Service.
+      We encourage parents and guardians to supervise their children's use of the Service.
     </p>
 
     <h2>10. Data Security</h2>
