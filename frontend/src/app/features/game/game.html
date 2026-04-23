@@ -1,4 +1,4 @@
-<div class="game-shell relative min-h-screen max-w-md mx-auto flex flex-col">
+<div class="game-shell relative min-h-screen max-w-md mx-auto flex flex-col pt-safe pb-safe">
   @if (store.phase() !== 'loading' && store.phase() !== 'finished' && store.phase() !== 'question') {
     <button
       (click)="goBack()"

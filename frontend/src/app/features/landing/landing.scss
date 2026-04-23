@@ -1,5 +1,13 @@
 :host { display: block; background: #0a0a0a; color: #fff; }
-.landing { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.landing {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding:
+    env(safe-area-inset-top, 0px)
+    calc(env(safe-area-inset-right, 0px) + 24px)
+    env(safe-area-inset-bottom, 0px)
+    calc(env(safe-area-inset-left, 0px) + 24px);
+}
 
 /* Typographic scale — hybrid: marketing-large on desktop, comfortable on mobile */
 .hero__headline { font-size: 44px; line-height: 1.05; font-weight: 800; margin: 16px 0 12px; }
@@ -49,7 +57,13 @@
 
 /* Desktop breakpoint — hybrid marketing-scale */
 @media (min-width: 768px) {
-  .landing { padding: 0 32px; }
+  .landing {
+    padding:
+      env(safe-area-inset-top, 0px)
+      calc(env(safe-area-inset-right, 0px) + 32px)
+      env(safe-area-inset-bottom, 0px)
+      calc(env(safe-area-inset-left, 0px) + 32px);
+  }
   .hero { grid-template-columns: 1.1fr 1fr; gap: 48px; padding: 96px 0; align-items: center; }
   .hero__headline { font-size: 72px; }
   .hero__subhead { font-size: 20px; }

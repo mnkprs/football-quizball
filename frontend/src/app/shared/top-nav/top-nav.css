@@ -1,15 +1,20 @@
 .top-nav {
   position: fixed;
+  /* Bleed up to y:0 so the glass background covers the iOS notch /
+     Dynamic Island area instead of leaving a transparent strip. */
   top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--app-max-width);
-  height: 3.75rem;
+  /* Visible chrome height stays 3.75rem; total grows by the inset. */
+  height: calc(3.75rem + env(safe-area-inset-top, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-4);
+  /* Inset padding pushes interactive children below the notch while the
+     background continues to fill the safe-area band above. */
+  padding: env(safe-area-inset-top, 0px) var(--space-4) 0;
   z-index: 50;
   background: var(--glass-bg-default);
   backdrop-filter: blur(var(--glass-blur-lg));

@@ -13,6 +13,7 @@
 @import './base/_animations.css';
 @import './base/_animation-utils.css';
 @import './base/_a11y.css';
+@import './base/_safe-area.css';
 
 /* Components — shared utility classes */
 @import './components/_glass.css';

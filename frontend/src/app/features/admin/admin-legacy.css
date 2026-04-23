@@ -3,7 +3,11 @@
   background: #0f0f12;
   color: #e4e4e7;
   min-height: 100vh;
-  padding: 2rem;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 2rem)
+    calc(env(safe-area-inset-right, 0px) + 2rem)
+    calc(env(safe-area-inset-bottom, 0px) + 2rem)
+    calc(env(safe-area-inset-left, 0px) + 2rem);
 }
 
 .admin-header {
