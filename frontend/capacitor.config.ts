@@ -17,9 +17,15 @@ const config: CapacitorConfig = {
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
-      // iOS OAuth client ID (platform = iOS in Google Cloud Console)
-      clientId: '215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com',
-      // Web OAuth client ID — used by Android as the audience for the id_token
+      // iOS OAuth client ID (type=2 in Google Cloud — registered with iOS bundle id)
+      iosClientId: '215249721443-dldujn3efff1onlmft2u30ikih89q294.apps.googleusercontent.com',
+      // Android uses the Web OAuth client as the audience for requestIdToken()
+      // because the @southdevs/capacitor-google-auth plugin's initialize() reads
+      // androidClientId → clientId → R.string.server_client_id, in that order.
+      // The Web client has no SHA fingerprint, but it's what Supabase validates.
+      androidClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
+      // Same Web client id, also exposed via the dedicated serverClientId field
+      // for the plugin paths that read it directly.
       serverClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
       forceCodeForRefreshToken: true,
     },
