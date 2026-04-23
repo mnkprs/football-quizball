@@ -22,6 +22,13 @@ export class AuthService {
       auth: {
         // Use no-op lock to avoid NavigatorLockAcquireTimeoutError (multi-tab / strict mode contention)
         lock: async (_name, _acquireTimeout, fn) => fn(),
+        // Use PKCE for browser OAuth — avoids implicit-flow nonce mismatches
+        // ("Passed nonce and nonce in id_token should either both exist or not")
+        // when redirecting back from Google / Apple.
+        flowType: 'pkce',
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true,
       },
     });
     // Restore session from localStorage — guard must await sessionReady before checking
@@ -59,11 +66,35 @@ export class AuthService {
     return (data as { username_set?: boolean } | null)?.username_set ?? false;
   }
 
+  /**
+   * Returns both `username_set` and the current `username` so callers can
+   * decide whether to (re)open the username modal — e.g. when the stored
+   * username is still an Apple Hide-My-Email relay id from a legacy signup.
+   */
+  async fetchProfileMeta(userId: string): Promise<{ usernameSet: boolean; username: string | null }> {
+    const { data } = await this.supabase
+      .from('profiles')
+      .select('username_set, username')
+      .eq('id', userId)
+      .single();
+    const row = data as { username_set?: boolean; username?: string | null } | null;
+    return {
+      usernameSet: row?.username_set ?? false,
+      username: row?.username ?? null,
+    };
+  }
+
   async signInWithGoogle(): Promise<void> {
     if (Capacitor.isNativePlatform()) {
       const { GoogleAuth } = await import('@southdevs/capacitor-google-auth');
       await GoogleAuth.initialize();
-      const googleUser = await GoogleAuth.signIn({ scopes: ['profile', 'email'] });
+      const googleUser = await GoogleAuth.signIn({
+        scopes: ['profile', 'email'],
+        serverClientId: '215249721443-drub176d1u1jha7pl9uvvuo596uspbo5.apps.googleusercontent.com',
+      });
+      // Note: requires "Skip nonce checks" enabled on the Google provider in
+      // Supabase — the native @southdevs/capacitor-google-auth SDK doesn't
+      // expose the nonce used when issuing the id_token.
       const { error } = await this.supabase.auth.signInWithIdToken({
         provider: 'google',
         token: googleUser.authentication.idToken,
@@ -144,5 +175,27 @@ export class AuthService {
   async resetPasswordForEmail(email: string): Promise<void> {
     const { error } = await this.supabase.auth.resetPasswordForEmail(email);
     if (error) throw error;
+  }
+
+  /**
+   * Patch the locally-cached Supabase user metadata (e.g. after the user picks
+   * a username for the first time) so any signal computed from `auth.user()`
+   * — like the top-nav `displayName` — updates immediately, without waiting
+   * for a page reload or the next auth event.
+   */
+  async refreshUserMetadata(patch: Record<string, unknown>): Promise<void> {
+    const { data, error } = await this.supabase.auth.updateUser({ data: patch });
+    if (error) throw error;
+    if (data.user) this._user.set(data.user);
+  }
+
+  /**
+   * Apple Sign in with Hide-My-Email returns an address of the form
+   *   {hex}@privaterelay.appleid.com
+   * which is fine for delivery but ugly to display in the UI. This helper
+   * lets the UI substitute a friendlier label.
+   */
+  static isPrivateRelayEmail(email: string | null | undefined): boolean {
+    return !!email && /@privaterelay\.appleid\.com$/i.test(email);
   }
 }

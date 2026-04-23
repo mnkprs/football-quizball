@@ -30,7 +30,12 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       } else if (err.status === 0) {
         toast.show('Connection lost. Check your network.', 'error');
       } else if (err.status >= 500) {
-        toast.show('Something went wrong. Please try again.', 'error');
+        const serverMsg =
+          (typeof err.error === 'string' ? err.error : null) ??
+          err.error?.message ??
+          err.error?.error ??
+          err.message;
+        toast.show(serverMsg ? `Server error: ${serverMsg}` : 'Something went wrong. Please try again.', 'error');
       }
       return throwError(() => err);
     }),

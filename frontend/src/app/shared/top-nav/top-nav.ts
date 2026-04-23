@@ -75,11 +75,28 @@ export class TopNavComponent implements OnInit {
     return typeof fromIdentity === 'string' ? fromIdentity : null;
   });
 
-  displayName = computed(() =>
-    this.auth.user()?.user_metadata?.['username'] ??
-    this.auth.user()?.user_metadata?.['full_name'] ??
-    this.auth.user()?.email ?? 'User'
-  );
+  displayName = computed(() => {
+    const user = this.auth.user();
+    if (!user) return 'User';
+    const meta = user.user_metadata ?? {};
+    const fromMeta = (meta['username'] as string | undefined) ?? (meta['full_name'] as string | undefined);
+    if (fromMeta) return fromMeta;
+    const profileUsername = this.store.profile()?.username;
+    if (profileUsername && !this.looksLikePrivateRelayId(profileUsername)) return profileUsername;
+    if (user.email && !AuthService.isPrivateRelayEmail(user.email)) return user.email;
+    return 'Player';
+  });
+
+  /** Email shown in the settings panel — hide ugly Apple Hide-My-Email relay addresses. */
+  visibleEmail = computed(() => {
+    const email = this.auth.user()?.email ?? '';
+    return AuthService.isPrivateRelayEmail(email) ? '' : email;
+  });
+
+  private looksLikePrivateRelayId(name: string): boolean {
+    // Hide-My-Email default usernames look like 32+ char hex strings
+    return /^[a-f0-9]{16,}$/i.test(name);
+  }
 
   initials = computed(() => {
     const name = String(this.displayName());
