@@ -1,0 +1,105 @@
+:host { display: block; width: 100%; }
+
+.so-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-4) var(--space-5);
+  background: var(--glass-bg-ultra-subtle, rgba(255, 255, 255, 0.04));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 300ms var(--ease-out-quart),
+              border-color 300ms var(--ease-out-quart),
+              box-shadow 300ms var(--ease-out-quart);
+  -webkit-tap-highlight-color: transparent;
+  text-align: left;
+}
+.so-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.so-toggle__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.so-toggle__label {
+  font-family: var(--font-headline, 'Space Grotesk', sans-serif);
+  font-size: var(--text-base, 1rem);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  transition: color 300ms var(--ease-out-quart);
+}
+
+.so-toggle__desc {
+  font-size: var(--text-xs, 0.75rem);
+  color: rgba(255, 255, 255, 0.40);
+}
+
+/* ── Switch pill ───────────────────────── */
+
+.so-toggle__switch {
+  width: 44px;
+  height: 24px;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(255, 255, 255, 0.12);
+  position: relative;
+  transition: background 300ms var(--ease-out-quart);
+  flex-shrink: 0;
+}
+
+.so-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 300ms var(--ease-out-quart);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.so-toggle__switch--on .so-toggle__thumb { transform: translateX(20px); }
+
+/* ── Variants ──────────────────────────── */
+
+/* default — neutral accent when checked */
+.variant-default.so-toggle--checked .so-toggle__switch--on { background: var(--color-accent); }
+
+/* danger — red pulse when checked (for Hardcore) */
+.variant-danger.so-toggle--checked {
+  background: rgba(239, 68, 68, 0.08);
+  animation: so-toggle-pulse-danger 2s infinite;
+}
+.variant-danger.so-toggle--checked .so-toggle__label { color: #ef4444; }
+.variant-danger .so-toggle__switch--on { background: #ef4444; }
+
+@keyframes so-toggle-pulse-danger {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+    border-color: rgba(239, 68, 68, 0.8);
+  }
+}
+
+/* success — green tile when checked */
+.variant-success.so-toggle--checked { background: rgba(34, 197, 94, 0.08); }
+.variant-success.so-toggle--checked .so-toggle__label { color: var(--color-success, #22c55e); }
+.variant-success .so-toggle__switch--on { background: var(--color-success, #22c55e); }
+
+/* pro — gold tile when checked */
+.variant-pro.so-toggle--checked { background: rgba(230, 168, 0, 0.10); }
+.variant-pro.so-toggle--checked .so-toggle__label { color: var(--color-pro, #e6a800); }
+.variant-pro .so-toggle__switch--on { background: var(--color-pro, #e6a800); }
+
+@media (prefers-reduced-motion: reduce) {
+  .variant-danger.so-toggle--checked { animation: none; }
+  .so-toggle, .so-toggle__switch, .so-toggle__thumb, .so-toggle__label { transition: none; }
+}

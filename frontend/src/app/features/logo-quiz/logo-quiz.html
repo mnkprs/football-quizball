@@ -2,76 +2,194 @@
   <div class="lq-container">
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- IDLE — Start Screen                         -->
+    <!-- IDLE — Lobby w/ 3 sub-mode tabs             -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'idle') {
+      @let subMode = activeSubMode();
+
       <div class="lq-start lobby-screen spotlight">
-        <!-- Hero image -->
-        <div class="hero-bg">
-          <img [ngSrc]="hardcoreMode() ? '/emblem-hardcore.png' : '/emblem.png'" alt="Logo Quiz" class="hero-bg__img" fill />
+
+        <!-- Hero — SVG crest + radial glow + tinted bg; all swap with active sub-mode.
+             Color palette set via CSS vars in logo-quiz.css based on data-mode + data-hardcore. -->
+        <div class="hero-bg"
+             [attr.data-mode]="subMode"
+             [attr.data-hardcore]="subMode === 'solo' && hardcoreMode() ? '' : null">
+          <div class="hero-bg__solid"></div>
+          <div class="hero-bg__radial"></div>
+          <svg class="hero-bg__crest" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="lq-crest-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="var(--crest-a)" />
+                <stop offset="100%" stop-color="var(--crest-b)" />
+              </linearGradient>
+            </defs>
+            <!-- shield -->
+            <path d="M50 8 L86 20 Q86 56 50 92 Q14 56 14 20 Z"
+                  fill="url(#lq-crest-gradient)" stroke="#fff" stroke-width="2" opacity="0.95" />
+            <!-- horizontal band -->
+            <rect x="14" y="42" width="72" height="14" fill="#fff" opacity="0.18" />
+            <!-- star -->
+            <polygon points="50,32 54,44 66,44 56,51 60,63 50,56 40,63 44,51 34,44 46,44"
+                     fill="#ffd700" opacity="0.9" />
+            <!-- FC monogram -->
+            <text x="50" y="78" text-anchor="middle"
+                  font-family="Space Grotesk, sans-serif" font-weight="900"
+                  font-size="14" fill="#fff" letter-spacing="-0.5">FC</text>
+          </svg>
           <div class="hero-bg__overlay"></div>
         </div>
 
         <!-- Content -->
         <div class="lq-start__content lobby-content">
-          <h1 class="lq-title lobby-title">LOGO QUIZ</h1>
-          <p class="lq-subtitle lobby-subtitle">
-            Identify football clubs from their modified logos.
-            Difficulty adjusts based on your ELO rating.
-          </p>
-          @if (auth.isLoggedIn() && !proService.isPro()) {
-            <button type="button" class="lq-free-hint" (click)="openProUpgrade()">
-              Playing with 100 free logos · <span class="lq-free-hint__link">Unlock all 1,000+</span>
-            </button>
-          }
 
-          <!-- Stats Row: ELO + Rank -->
-          <div class="lq-stats-row lobby-stats-row">
-            <div class="lq-elo-card lobby-stat-card lobby-stat-card--elo" [style.border-color]="eloTier().color" [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
-              <span class="lq-elo-card__label lobby-stat-card__label">ELO RATING</span>
-              <span class="lq-elo-card__value lobby-stat-card__value">{{ currentElo() | number }}</span>
-              <span class="lq-elo-card__tier lobby-stat-card__tier" [style.color]="eloTier().color">
-                {{ eloTier().label | uppercase }}
-              </span>
-            </div>
-            <div class="lq-rank-card lobby-stat-card">
-              <span class="lq-rank-card__label lobby-stat-card__label">RANK</span>
-              @if (myRank() !== null) {
-                <span class="lq-rank-card__value lobby-stat-card__value">#{{ myRank() }}</span>
-              } @else {
-                <span class="lq-rank-card__value lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
-              }
-              <span class="lq-rank-card__tier lobby-stat-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
-            </div>
+          <!-- Title cluster — shared across tabs -->
+          <div class="lq-hero-head">
+            <so-chip [variant]="subMode === 'solo' ? 'accent' : subMode === 'duel' ? 'error' : 'gold'" size="xs">
+              {{ subMode === 'solo' ? 'SOLO CLIMB' : subMode === 'duel' ? '1V1 RANKED' : '20 PLAYERS' }}
+            </so-chip>
+            <h1 class="lq-title lobby-title">LOGO<br/>QUIZ.</h1>
+            <p class="lq-subtitle lobby-subtitle">
+              Identify football clubs from their modified crests. Difficulty scales to your ELO.
+            </p>
           </div>
 
-          <!-- Hardcore Toggle -->
-          <button
-            type="button"
-            role="switch"
-            [attr.aria-checked]="hardcoreMode()"
-            aria-label="Hardcore mode"
-            class="lq-hardcore"
-            [class.lq-hardcore--active]="hardcoreMode()"
-            (click)="toggleHardcore()"
-          >
-            <div class="lq-hardcore__row">
-              <span class="lq-hardcore__label">💀 HARDCORE</span>
-              <div class="lq-toggle" [class.lq-toggle--on]="hardcoreMode()">
-                <div class="lq-toggle__thumb"></div>
-              </div>
-            </div>
-            <span class="lq-hardcore__desc">Logos are inverted and desaturated</span>
-          </button>
+          <!-- Sub-mode tab strip -->
+          <so-tab-strip
+            class="lq-submode-tabs"
+            tabIdPrefix="lq-tab-"
+            [tabs]="submodeTabs"
+            [active]="subMode"
+            (activeChange)="setSubMode($event)"
+          />
 
-          <!-- Start Button -->
-          <button
-            class="lq-start-btn lobby-start-btn lobby-start-btn--purple"
-            (click)="startPlaying()"
-            [disabled]="loading()"
-          >
-            {{ loading() ? 'Loading...' : 'START QUIZ' }}
-          </button>
+          <!-- ─── SOLO ─────────────────────────────── -->
+          @if (subMode === 'solo') {
+            <div class="lq-tab-panel" role="tabpanel" id="lq-panel-solo" aria-labelledby="lq-tab-solo">
+              <div class="lq-stats-row lobby-stats-row">
+                <div class="lq-elo-card lobby-stat-card lobby-stat-card--elo"
+                     [style.border-color]="eloTier().color"
+                     [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+                  <span class="lobby-stat-card__label">ELO RATING</span>
+                  <span class="lobby-stat-card__value">{{ currentElo() | number }}</span>
+                  <span class="lobby-stat-card__tier" [style.color]="eloTier().color">
+                    {{ eloTier().label | uppercase }}
+                  </span>
+                </div>
+                <div class="lq-rank-card lobby-stat-card">
+                  <span class="lobby-stat-card__label">RANK</span>
+                  @if (myRank() !== null) {
+                    <span class="lobby-stat-card__value">#{{ myRank() }}</span>
+                  } @else {
+                    <span class="lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
+                  }
+                  <span class="lobby-stat-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
+                </div>
+              </div>
+
+              <so-toggle
+                variant="danger"
+                label="💀 HARDCORE"
+                description="Logos are inverted and desaturated. Separate leaderboard."
+                [checked]="hardcoreMode()"
+                (checkedChange)="toggleHardcore()" />
+
+              <so-button
+                variant="primary"
+                size="lg"
+                [fullWidth]="true"
+                [disabled]="loading()"
+                (click)="startPlaying()">
+                {{ loading() ? 'Loading…' : 'START QUIZ' }}
+              </so-button>
+
+              @if (!proService.isPro()) {
+                <button type="button" class="lq-free-hint" (click)="openProUpgrade()">
+                  Playing with 100 free logos · <span class="lq-free-hint__link">Unlock all 1,000+</span>
+                </button>
+              }
+            </div>
+          }
+
+          <!-- ─── DUEL ─────────────────────────────── -->
+          @if (subMode === 'duel') {
+            <div class="lq-tab-panel" role="tabpanel" id="lq-panel-duel" aria-labelledby="lq-tab-duel">
+              <div class="lq-versus-card">
+                <div class="lq-versus-card__row">
+                  <div class="lq-versus-avatar" [style.background]="eloTier().glow + '33'">
+                    <span class="lq-versus-avatar__initials">{{ (auth.user()?.email?.slice(0,2)?.toUpperCase()) || 'YOU' }}</span>
+                  </div>
+                  <span class="lq-versus-card__vs">VS</span>
+                  <div class="lq-versus-avatar lq-versus-avatar--unknown">
+                    <span class="lq-versus-avatar__initials">?</span>
+                  </div>
+                  <div class="lq-versus-card__me">
+                    @if (duelStats(); as d) {
+                      <span class="lq-versus-card__me-label">WIN · RANK</span>
+                      <span class="lq-versus-card__me-value">
+                        {{ duelWinRate() | percent:'1.0-0' }} · #{{ d.rank }}
+                      </span>
+                      <span class="lq-versus-card__me-sub">{{ d.wins }}W / {{ d.games_played - d.wins }}L · {{ d.games_played }} played</span>
+                    } @else {
+                      <span class="lq-versus-card__me-label">NEW CHALLENGER</span>
+                      <span class="lq-versus-card__me-value">—</span>
+                      <span class="lq-versus-card__me-sub">First duel awaits</span>
+                    }
+                  </div>
+                </div>
+                <p class="lq-versus-card__desc">
+                  10 rounds, 20s each. You and your opponent see the same logos.
+                  Fastest correct wins the round.
+                </p>
+              </div>
+
+              <so-button
+                variant="error"
+                size="lg"
+                [fullWidth]="true"
+                routerLink="/duel"
+                [queryParams]="{ mode: 'logo' }">
+                Find Duel
+              </so-button>
+            </div>
+          }
+
+          <!-- ─── ROYALE ───────────────────────────── -->
+          @if (subMode === 'royale') {
+            <div class="lq-tab-panel" role="tabpanel" id="lq-panel-royale" aria-labelledby="lq-tab-royale">
+              <div class="lq-royale-card">
+                <div class="lq-royale-card__head">
+                  <span class="lq-royale-card__head-title">Team Logo Royale</span>
+                  <so-chip variant="gold" size="xs">INVITE-ONLY</so-chip>
+                </div>
+                <div class="lq-royale-card__body">
+                  <p class="lq-royale-card__desc">
+                    20 players split into two teams. 10 logos each. Team with the
+                    highest average score wins.
+                  </p>
+                  <ul class="lq-royale-rules">
+                    <li>● Split into 2 teams automatically</li>
+                    <li>● 10 logos each · +100 per correct + speed bonus</li>
+                    <li>● Team with highest average wins</li>
+                  </ul>
+                </div>
+              </div>
+
+              <so-button
+                variant="gold"
+                size="lg"
+                [fullWidth]="true"
+                [disabled]="royaleLoading()"
+                (click)="openRoyaleSheet()">
+                {{ royaleLoading() ? 'Loading…' : 'Enter Royale' }}
+              </so-button>
+
+              @if (!proService.isPro()) {
+                <button type="button" class="lq-free-hint lq-free-hint--centered" (click)="openProUpgrade()">
+                  1 free entry today · <span class="lq-free-hint__link">Pro unlocks unlimited</span>
+                </button>
+              }
+            </div>
+          }
 
         </div>
       </div>
@@ -81,30 +199,46 @@
     <!-- LOADING                                     -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'loading') {
-      <div class="flex-1 flex items-center justify-center" style="min-height: 60dvh">
-        <div class="loading-tile" role="status" aria-label="Loading">
-          <img src="/stepover-logo-white-bg.png" alt="" class="w-12 h-12 object-contain" width="48" height="48" aria-hidden="true" />
+      <div class="lq-loading" role="status" aria-label="Loading">
+        <div class="loading-tile">
+          <img src="/stepover-logo-white-bg.png" alt="" width="48" height="48" aria-hidden="true" />
         </div>
       </div>
     }
 
     <!-- ═══════════════════════════════════════════ -->
-    <!-- QUESTION                                    -->
+    <!-- QUESTION (unchanged — uses app-game-question) -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'question' && currentQuestion()) {
-      <!-- Header -->
-      <div class="lq-session-header" [class.lq-session-header--glow]="borderGlow() === 'glow'" [class.lq-session-header--glow-strong]="borderGlow() === 'glow-strong'" role="status" aria-live="polite" [style.--tier-color]="eloTier().color" [style.--tier-glow]="eloTier().glow + '40'" [attr.aria-label]="'ELO ' + currentElo() + ' ' + eloTier().label + ', ' + correctAnswers() + ' of ' + questionsAnswered() + ' correct'">
+      <div class="lq-session-header"
+           [class.lq-session-header--glow]="borderGlow() === 'glow'"
+           [class.lq-session-header--glow-strong]="borderGlow() === 'glow-strong'"
+           role="status" aria-live="polite"
+           [style.--tier-color]="eloTier().color"
+           [style.--tier-glow]="eloTier().glow + '40'"
+           [attr.aria-label]="'ELO ' + currentElo() + ' ' + eloTier().label + ', ' + correctAnswers() + ' of ' + questionsAnswered() + ' correct'">
         <div class="lq-session-elo">
-          <span class="lq-session-elo__value" [class.lq-session-elo__value--bumped]="eloBumped()">{{ currentElo() | number }}</span>
-          <span class="lq-session-elo__tier" [class.lq-session-elo__tier--promoted]="tierPromoted()" [style.color]="eloTier().color">{{ eloTier().label }}</span>
+          <span class="lq-session-elo__value" [class.lq-session-elo__value--bumped]="eloBumped()">
+            {{ currentElo() | number }}
+          </span>
+          <span class="lq-session-elo__tier"
+                [class.lq-session-elo__tier--promoted]="tierPromoted()"
+                [style.color]="eloTier().color">
+            {{ eloTier().label }}
+          </span>
           @if (eloDelta() !== 0) {
-            <span class="lq-session-elo__delta" [class.lq-session-elo__delta--up]="eloDelta() > 0" [class.lq-session-elo__delta--down]="eloDelta() < 0" [class.lq-session-elo__delta--refreshed]="deltaRefreshed()">
+            <span class="lq-session-elo__delta"
+                  [class.lq-session-elo__delta--up]="eloDelta() > 0"
+                  [class.lq-session-elo__delta--down]="eloDelta() < 0"
+                  [class.lq-session-elo__delta--refreshed]="deltaRefreshed()">
               {{ eloDelta() > 0 ? '+' : '' }}{{ eloDelta() }}
             </span>
           }
         </div>
         <div class="lq-session-score">
-          <span class="lq-session-score__correct" [class.lq-session-score__correct--ticked]="scoreTicked()">{{ correctAnswers() }}</span>
+          <span class="lq-session-score__correct" [class.lq-session-score__correct--ticked]="scoreTicked()">
+            {{ correctAnswers() }}
+          </span>
           <span class="lq-session-score__sep">/</span>
           <span class="lq-session-score__total">{{ questionsAnswered() }}</span>
           <span class="lq-session-score__label">correct</span>
@@ -126,32 +260,22 @@
         (reportClicked)="reportQuestion()"
         (nextClicked)="nextQuestion()"
       />
+
       @if (revealing()) {
         @if (showMasteryUpsell()) {
-          <div class="mx-4 mt-3 p-4 rounded-xl bg-purple-500/15 border border-purple-500/30">
-            <p class="text-sm text-purple-300 font-medium mb-2">You've mastered the free logos! Unlock 1,000+ more with Pro.</p>
-            <div class="flex gap-2">
-              <button
-                (click)="openProUpgrade()"
-                class="px-4 py-2 rounded-lg bg-purple-500 text-white text-xs font-bold hover:bg-purple-400 transition"
-              >
-                Upgrade
-              </button>
-              <button
-                (click)="dismissMasteryUpsell()"
-                class="px-4 py-2 rounded-lg bg-transparent text-purple-400 text-xs font-medium hover:text-purple-300 transition"
-              >
-                Dismiss
-              </button>
+          <div class="lq-mastery-upsell">
+            <p class="lq-mastery-upsell__copy">
+              You've mastered the free logos. Unlock 1,000+ more with Pro.
+            </p>
+            <div class="lq-mastery-upsell__actions">
+              <so-button variant="primary" size="sm" (click)="openProUpgrade()">Upgrade</so-button>
+              <so-button variant="ghost" size="sm" (click)="dismissMasteryUpsell()">Dismiss</so-button>
             </div>
           </div>
         }
-        <button
-          class="mt-3 px-6 py-2 rounded-lg border border-border text-muted-foreground text-sm mx-auto block"
-          (click)="endSession()"
-        >
+        <so-button class="lq-end-session" variant="ghost" size="sm" (click)="endSession()">
           End Session
-        </button>
+        </so-button>
       }
     }
 
@@ -159,59 +283,109 @@
     <!-- FINISHED                                    -->
     <!-- ═══════════════════════════════════════════ -->
     @if (phase() === 'finished') {
-      <div class="flex-1 flex flex-col items-center justify-center gap-4 p-4">
-        <div class="text-5xl">🏁</div>
-        <h2 class="text-2xl font-bold text-foreground">Session Complete</h2>
+      <div class="lq-finished">
+        <div class="lq-finished__flag" aria-hidden="true">🏁</div>
+        <h2 class="lq-finished__title">Session Complete</h2>
 
         @if (error()) {
-          <p class="text-sm text-loss">{{ error() }}</p>
+          <p class="lq-finished__error">{{ error() }}</p>
         }
 
-        <div class="w-full max-w-xs space-y-3 mt-4">
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">Questions</span>
-            <span class="font-bold text-foreground">{{ questionsAnswered() }}</span>
+        <!-- Hero stat — ELO delta dominates -->
+        <div class="lq-finished__hero"
+             [class.lq-finished__hero--up]="eloDelta() >= 0"
+             [class.lq-finished__hero--down]="eloDelta() < 0">
+          <span class="lq-finished__hero-label">ELO CHANGE</span>
+          <span class="lq-finished__hero-value">
+            {{ eloDelta() >= 0 ? '+' : '' }}{{ eloDelta() }}
+          </span>
+          <span class="lq-finished__hero-tier" [style.color]="eloTier().color">
+            {{ eloTier().label | uppercase }} · {{ currentElo() | number }}
+          </span>
+        </div>
+
+        <!-- Secondary stats grid -->
+        <div class="lq-finished__grid">
+          <div class="lq-finished__stat">
+            <span class="lq-finished__stat-label">ANSWERED</span>
+            <span class="lq-finished__stat-value">{{ questionsAnswered() }}</span>
           </div>
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">Correct</span>
-            <span class="font-bold text-win">{{ correctAnswers() }}</span>
+          <div class="lq-finished__stat">
+            <span class="lq-finished__stat-label">CORRECT</span>
+            <span class="lq-finished__stat-value lq-finished__stat-value--win">{{ correctAnswers() }}</span>
           </div>
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">Accuracy</span>
-            <span class="font-bold text-foreground">{{ accuracy() }}%</span>
-          </div>
-          <div class="flex justify-between items-center p-3 rounded-lg bg-card border border-border">
-            <span class="text-sm text-muted-foreground">ELO Change</span>
-            <span class="font-bold" [class.text-win]="eloDelta() >= 0" [class.text-loss]="eloDelta() < 0">
-              {{ eloDelta() >= 0 ? '+' : '' }}{{ eloDelta() }}
-            </span>
+          <div class="lq-finished__stat">
+            <span class="lq-finished__stat-label">ACCURACY</span>
+            <span class="lq-finished__stat-value">{{ accuracy() }}%</span>
           </div>
         </div>
 
-        <button
-          class="mt-6 px-8 py-3 rounded-xl bg-accent text-accent-foreground font-bold"
-          (click)="resetToIdle()"
-        >
-          Play Again
-        </button>
-        <a routerLink="/" class="text-sm text-muted-foreground mt-2">Back to Home</a>
+        <div class="lq-finished__actions">
+          <so-button variant="primary" size="lg" [fullWidth]="true" (click)="resetToIdle()">
+            Play Again
+          </so-button>
+          <so-button variant="ghost" size="md" [fullWidth]="true" routerLink="/">
+            Back to Home
+          </so-button>
+        </div>
       </div>
     }
 
   </div>
 </div>
 
-<!-- Problem reported popup -->
+<!-- Problem reported popup — unchanged semantics, DS chrome -->
 @if (problemReported()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="dismissProblemReported()">
-    <div class="bg-card rounded-2xl p-6 border border-border shadow-xl max-w-sm text-center" (click)="$event.stopPropagation()">
-      <p class="text-foreground font-semibold text-lg">{{ lang.t().problemReported }}</p>
-      <button
-        (click)="dismissProblemReported()"
-        class="mt-4 px-6 py-2 rounded-xl bg-accent text-accent-foreground font-medium hover:bg-accent-light transition"
-      >
-        OK
-      </button>
+  <div class="lq-modal-backdrop" (click)="dismissProblemReported()" aria-hidden="true"></div>
+  <div class="lq-modal" role="dialog" aria-modal="true" aria-label="Problem reported" (click)="$event.stopPropagation()">
+    <p class="lq-modal__copy">{{ lang.t().problemReported }}</p>
+    <so-button variant="primary" size="md" (click)="dismissProblemReported()">OK</so-button>
+  </div>
+}
+
+<!-- Royale play sheet — bottom drawer replacing the old redirect to /battle-royale. -->
+@if (showRoyaleSheet()) {
+  <div class="lq-sheet-backdrop" (click)="closeRoyaleSheet()" aria-hidden="true"></div>
+  <div class="lq-sheet" role="dialog" aria-modal="true" aria-label="Team Logo Royale — create or join a room">
+    <div class="lq-sheet__handle"></div>
+    <h2 class="lq-sheet__title">Team Logo Royale</h2>
+    <p class="lq-sheet__subtitle">Invite-only. Create a room and share the code with friends.</p>
+
+    <button type="button" class="lq-sheet__option" (click)="royaleCreatePrivate()" [disabled]="royaleLoading()">
+      <span class="material-symbols-outlined lq-sheet__option-icon">key</span>
+      <div class="lq-sheet__option-text">
+        <span class="lq-sheet__option-title">Create Private Room</span>
+        <span class="lq-sheet__option-desc">Host a team game. You'll get a 6-char invite code.</span>
+      </div>
+    </button>
+
+    <div class="lq-sheet__option lq-sheet__option--code">
+      <span class="material-symbols-outlined lq-sheet__option-icon">groups_3</span>
+      <div class="lq-sheet__option-text">
+        <span class="lq-sheet__option-title">Join With Code</span>
+        <div class="lq-sheet__code-row">
+          <input
+            class="lq-sheet__code-input"
+            type="text"
+            placeholder="XXXXXX"
+            maxlength="6"
+            [(ngModel)]="royaleInviteCode"
+            (keyup.enter)="royaleJoinByCode()"
+            aria-label="Room invite code"
+          />
+          <button
+            type="button"
+            class="lq-sheet__code-btn"
+            (click)="royaleJoinByCode()"
+            [disabled]="royaleLoading() || !royaleInviteCode.trim()">
+            Join
+          </button>
+        </div>
+      </div>
     </div>
+
+    @if (royaleError()) {
+      <p class="lq-sheet__error">{{ royaleError() }}</p>
+    }
   </div>
 }

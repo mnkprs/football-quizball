@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type SoButtonVariant = 'primary' | 'secondary' | 'ghost' | 'tertiary' | 'danger';
+export type SoButtonVariant = 'primary' | 'secondary' | 'ghost' | 'tertiary' | 'danger' | 'error' | 'gold';
 export type SoButtonSize    = 'sm' | 'md' | 'lg';
 
 @Component({

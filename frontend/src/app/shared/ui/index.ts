@@ -11,3 +11,5 @@ export * from './so-leaderboard-row/so-leaderboard-row';
 export * from './so-stat-card/so-stat-card';
 export * from './so-top-bar/so-top-bar';
 export * from './so-icon-button/so-icon-button';
+export * from './so-tab-strip/so-tab-strip';
+export * from './so-toggle/so-toggle';
