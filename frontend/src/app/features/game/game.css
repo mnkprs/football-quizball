@@ -54,6 +54,9 @@
 }
 
 .game-back-btn {
+  /* Push beneath the notch / Dynamic Island on iOS. */
+  top: calc(env(safe-area-inset-top, 0px) + 1rem) !important;
+  left: calc(env(safe-area-inset-left, 0px) + 1rem) !important;
   background: rgba(20, 20, 22, 0.45);
   backdrop-filter: blur(var(--glass-blur-sm)) saturate(1.4);
   -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(1.4);
