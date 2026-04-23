@@ -19,9 +19,11 @@ export class DuelTimeoutService {
     private readonly redisService: RedisService,
   ) {}
 
-  /** Runs every 30 seconds. Finds active duels whose current question has been open for >30s
-   *  and advances them. Handles the AFK case where neither player's browser calls the timeout endpoint. */
-  @Cron('*/30 * * * * *')
+  /** Runs every 2 minutes. Finds active duels whose current question has been open for >30s
+   *  and advances them. Handles the AFK case where neither player's browser calls the timeout endpoint.
+   *  Frequency was dropped from 30s to 2min to reduce Upstash Redis command volume — AFK duels now
+   *  take up to 2min to auto-advance instead of 30s, which is acceptable for a single-player-stuck case. */
+  @Cron('0 */2 * * * *')
   async advanceTimedOutQuestions(): Promise<void> {
     const acquired = await this.redisService.acquireLock('lock:cron:duel-timeout', 10);
     if (!acquired) return;
