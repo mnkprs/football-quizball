@@ -72,8 +72,12 @@ export class App implements OnInit, OnDestroy {
 
   private async checkUsernameSetup(userId: string): Promise<void> {
     try {
-      const isSet = await this.auth.fetchUsernameSet(userId);
-      if (!isSet) {
+      const { usernameSet, username } = await this.auth.fetchProfileMeta(userId);
+      // Force the modal even if username_set is true when the stored username
+      // is still an Apple Hide-My-Email relay id (legacy rows from before
+      // migration 20260616000001) — it's effectively unusable as a display name.
+      const looksLikeRelayId = !!username && /^[a-f0-9]{16,}$/i.test(username);
+      if (!usernameSet || looksLikeRelayId) {
         this.usernameModal.open();
       } else {
         this.usernameModal.close();

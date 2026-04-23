@@ -52,7 +52,8 @@ export class AuthModalComponent {
         this.modalService.close();
       }
     } catch (err: any) {
-      this.error.set(err?.message ?? 'Authentication failed');
+      const msg = err?.error?.message ?? err?.error_description ?? err?.message;
+      this.error.set(msg ? `Sign-in failed: ${msg}` : 'Authentication failed. Please try again.');
     } finally {
       this.loading.set(false);
     }
@@ -67,7 +68,8 @@ export class AuthModalComponent {
       this.analytics.track('login', { method: 'google' });
       if (this.platform.isNative) this.modalService.close();
     } catch (err: any) {
-      this.error.set(err?.message ?? 'Google sign-in failed');
+      const msg = err?.error?.message ?? err?.error_description ?? err?.message;
+      this.error.set(msg ? `Google sign-in failed: ${msg}` : 'Google sign-in failed. Please try again.');
       this.loading.set(false);
       this.googleLoading.set(false);
     }
@@ -82,7 +84,14 @@ export class AuthModalComponent {
       this.analytics.track('login', { method: 'apple' });
       if (this.platform.isNative) this.modalService.close();
     } catch (err: any) {
-      this.error.set(err?.message ?? 'Apple sign-in failed');
+      // Capacitor / Apple cancellations shouldn't be surfaced as errors
+      const code = err?.code ?? err?.error;
+      if (code === 'ERR_CANCELED' || code === '1001' || /cancel/i.test(String(err?.message ?? ''))) {
+        this.error.set(null);
+      } else {
+        const msg = err?.error?.message ?? err?.error_description ?? err?.message;
+        this.error.set(msg ? `Apple sign-in failed: ${msg}` : 'Apple sign-in failed. Please try again.');
+      }
     } finally {
       this.loading.set(false);
       this.appleLoading.set(false);
