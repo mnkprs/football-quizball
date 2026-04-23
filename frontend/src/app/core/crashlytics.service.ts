@@ -7,11 +7,27 @@ export class CrashlyticsService {
 
   constructor(private ngZone: NgZone) {}
 
-  async recordException(error: unknown): Promise<void> {
+  async recordException(error: unknown, context?: Record<string, string | number | boolean>): Promise<void> {
     if (!this.isNative) return;
     try {
       const { FirebaseCrashlytics } = await import('@capacitor-firebase/crashlytics');
-      const message = error instanceof Error ? error.message : String(error);
+      const baseMessage = error instanceof Error ? error.message : String(error);
+      const ctxSuffix = context
+        ? ' | ' +
+          Object.entries(context)
+            .map(([k, v]) => `${k}=${v}`)
+            .join(' ')
+        : '';
+      const message = (baseMessage || 'Unknown error') + ctxSuffix;
+
+      if (context) {
+        await Promise.all(
+          Object.entries(context).map(([key, value]) =>
+            FirebaseCrashlytics.setCustomKey({ key, value: String(value), type: 'string' }).catch(() => {}),
+          ),
+        );
+      }
+
       await FirebaseCrashlytics.recordException({ message });
     } catch {
       // Plugin not available — no-op
