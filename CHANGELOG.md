@@ -2,6 +2,14 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.1.1] - 2026-04-24
+
+### Fixed — Duel-timeout cron frequency dropped from 30s to 2min to cut Upstash Redis load
+
+The `DuelTimeoutService.advanceTimedOutQuestions` cron in `backend/src/duel/duel-timeout.service.ts` ran every 30 seconds, calling `acquireLock` + `releaseLock` on every tick (2 Redis commands × 2 runs/min × 60 × 24 × 30 ≈ **173k commands/month**, just from this one idle cron on Railway with zero user traffic). That single cron was responsible for the 50k/month Upstash threshold being crossed in pure dev.
+
+Lowered the schedule from `*/30 * * * * *` to `0 */2 * * * *` — ~4× fewer runs per hour, dropping this cron to ~43k commands/month. AFK duels now auto-advance within 2 minutes instead of 30 seconds, which is acceptable because the client already calls the timeout endpoint on question expiry; this cron only catches the rare case where neither player's browser is active.
+
 ## [0.9.1.0] - 2026-04-23
 
 ### Changed — Home-flow refactor: Logo Quiz surfaced once, 2 new DS primitives
