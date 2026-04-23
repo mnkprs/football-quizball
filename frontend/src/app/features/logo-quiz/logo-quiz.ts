@@ -175,33 +175,23 @@ export class LogoQuizComponent implements OnDestroy {
     });
   }
 
-  // Analytics continuity for sub-mode selection.
-  //
-  // Context:
-  //   Before the v0.9.0.0 lobby overhaul, the home page had dedicated rows for
-  //   Logo Duel and Team Logo Quiz. Each fired a `select_content` event with
-  //   item_id 'logo_duel' / 'team_logo_quiz' on click. After home-flow refactor
-  //   those rows are gone — the lobby's tab strip is the new entry point.
-  //
-  //   This hook fires on every sub-mode tab selection. It's the bridge between
-  //   tab switching and the legacy analytics contract dashboards may still rely on.
-  //
-  // Decisions for YOU to make (5–10 lines):
-  //   1. Mapping: which `item_id` (if any) do you fire for each SubMode?
-  //        'solo'   → ?
-  //        'duel'   → 'logo_duel'        (matches legacy)
-  //        'royale' → 'team_logo_quiz'   (matches legacy)
-  //   2. Dedup: should re-selecting the same tab (next === previous) fire again?
-  //      Initial mount sets active='solo' once — consider if that should fire too.
-  //   3. Event shape: use the legacy 'select_content' / 'game_mode' contract,
-  //      or introduce a new event name like 'logo_quiz_tab_selected'?
-  //
-  // Available:
-  //   this.analytics.track(eventName: string, params: Record<string, unknown>)
-  //
-  // See home.ts (previous revision) for the legacy call shape.
+  // Bridges the `select_content` events that used to fire from home rows
+  // ('logo_duel' / 'team_logo_quiz') into the lobby's tab strip. Same event
+  // name, same content_type, same item_id strings, so existing dashboards
+  // keep working. Solo has no event on purpose: the hero card already fires
+  // 'logo_quiz' and Solo is its default landing tab, so adding one here
+  // would double-count. Dedup prevents tab-fidgeting noise. Deep-links bypass
+  // this (the URL effect sets activeSubMode directly without calling
+  // setSubMode), matching the pre-refactor behavior where deep-links to
+  // /duel?mode=logo also never fired 'logo_duel' from home.
   private trackSubModeSelection(next: SubMode, previous: SubMode): void {
-    // TODO(you): implement the mapping + dedup + event shape decided above.
+    if (next === previous) return;
+    const itemId: string | null =
+      next === 'duel'   ? 'logo_duel' :
+      next === 'royale' ? 'team_logo_quiz' :
+      null;
+    if (!itemId) return;
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: itemId });
   }
   readonly submodeTabs: SoTab[] = [
     { id: 'solo',   label: 'SOLO',   sublabel: 'Climb ladder', color: 'var(--color-accent)', controls: 'lq-panel-solo' },

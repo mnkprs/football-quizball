@@ -127,6 +127,7 @@ const TRANSLATIONS = {
     gameModes: 'Game Modes',
     compete: 'Compete',
     proArena: 'Pro Arena',
+    logoQuizHeroSubtitle: 'Guess the club from its crest · Solo, Duel, or Royale',
     viewAll: 'View All',
     startMatch: 'Start Match',
     localMultiplayer: 'Local Multiplayer',
