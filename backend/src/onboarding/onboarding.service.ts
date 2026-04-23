@@ -20,13 +20,14 @@ const ONBOARDING_CATEGORIES: OnboardingCategory[] = [
 const CANDIDATES_PER_CATEGORY = 40;
 
 interface PoolRow {
+  image_url?: string | null;
+  answer_type?: string | null;
   question: {
     id?: string;
     question_text?: string;
     correct_answer?: string;
     wrong_choices?: string[];
     explanation?: string;
-    image_url?: string | null;
     meta?: { original_image_url?: string } & Record<string, unknown>;
   };
 }
@@ -60,7 +61,7 @@ export class OnboardingService {
   private async drawOne(category: OnboardingCategory): Promise<OnboardingQuestion | null> {
     const { data, error } = await this.supabaseService.client
       .from('question_pool')
-      .select('question')
+      .select('question, image_url, answer_type')
       .eq('category', category)
       .eq('difficulty', 'EASY')
       .limit(CANDIDATES_PER_CATEGORY);
@@ -71,8 +72,7 @@ export class OnboardingService {
     }
 
     const rows = ((data ?? []) as PoolRow[])
-      .map((r) => r.question)
-      .filter((q) => !!q?.question_text && !!q?.correct_answer);
+      .filter((r) => !!r.question?.question_text && !!r.question?.correct_answer);
 
     if (rows.length === 0) return null;
 
@@ -81,15 +81,21 @@ export class OnboardingService {
     // at least one wrong_choice. Everything else can borrow correct_answers from
     // sibling rows as distractors (team names, player names, cities, years).
     const candidates = category === 'HIGHER_OR_LOWER'
-      ? rows.filter((q) => (q.wrong_choices ?? []).length >= 1)
+      ? rows.filter((r) => (r.question.wrong_choices ?? []).length >= 1)
       : rows;
 
     if (candidates.length === 0) return null;
 
     const picked = candidates[Math.floor(Math.random() * candidates.length)];
+    // Only use sibling rows with the same answer_type as distractors so city
+    // questions get city options, country questions get country options, etc.
+    const pickedType = picked.answer_type;
     const donorPool = rows
-      .filter((q) => q.correct_answer !== picked.correct_answer)
-      .map((q) => q.correct_answer!)
+      .filter((r) =>
+        r.question.correct_answer !== picked.question.correct_answer &&
+        (!pickedType || r.answer_type === pickedType),
+      )
+      .map((r) => r.question.correct_answer!)
       .filter(Boolean);
 
     return this.buildQuestion(category, picked, donorPool);
@@ -97,9 +103,10 @@ export class OnboardingService {
 
   private buildQuestion(
     category: OnboardingCategory,
-    q: PoolRow['question'],
+    row: PoolRow,
     donorPool: string[],
   ): OnboardingQuestion | null {
+    const q = row.question;
     const prompt = q.question_text?.trim();
     const correct = q.correct_answer?.trim();
     if (!prompt || !correct) return null;
@@ -111,11 +118,12 @@ export class OnboardingService {
     if (choices.length < 2) return null;
 
     const isLogo = category === 'LOGO_QUIZ';
+    const topLevelImageUrl = row.image_url ?? undefined;
     return {
       category,
       prompt,
-      image_url: isLogo ? q.image_url ?? undefined : undefined,
-      original_image_url: isLogo ? q.meta?.original_image_url ?? q.image_url ?? undefined : undefined,
+      image_url: isLogo ? topLevelImageUrl : undefined,
+      original_image_url: isLogo ? q.meta?.original_image_url ?? topLevelImageUrl : undefined,
       choices: this.shuffle(choices),
       correct_answer: correct,
       explanation: q.explanation?.trim() ?? '',
