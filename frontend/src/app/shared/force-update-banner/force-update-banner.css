@@ -70,6 +70,13 @@
 /* ── Soft update banner (reuses notification-banner pattern) ── */
 
 .banner {
+  position: fixed;
+  bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  width: calc(100% - 2rem);
+  max-width: var(--app-max-width);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -83,8 +90,8 @@
 }
 
 @keyframes banner-slide-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 .banner--update {

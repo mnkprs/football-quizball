@@ -13,6 +13,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  padding-top: env(safe-area-inset-top, 0px);
   /* Reserve space so fixed bottom-nav never covers page content.
      ~64px pill + 8px top padding + 8px bottom padding + safe area. */
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
