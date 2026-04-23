@@ -13,3 +13,5 @@ export * from './so-top-bar/so-top-bar';
 export * from './so-icon-button/so-icon-button';
 export * from './so-tab-strip/so-tab-strip';
 export * from './so-toggle/so-toggle';
+export * from './so-multiplayer-card/so-multiplayer-card';
+export * from './so-section-header/so-section-header';

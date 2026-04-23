@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth.service';
 import { ProService } from '../../core/pro.service';
 import { LanguageService } from '../../core/language.service';
@@ -9,8 +9,8 @@ import { AnalyticsService } from '../../core/analytics.service';
 import {
   SoModeCardComponent,
   SoModeRowComponent,
-  SoChipComponent,
-  SoButtonComponent,
+  SoMultiplayerCardComponent,
+  SoSectionHeaderComponent,
 } from '@app/shared/ui';
 
 @Component({
@@ -19,11 +19,10 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    NgOptimizedImage,
     SoModeCardComponent,
     SoModeRowComponent,
-    SoChipComponent,
-    SoButtonComponent,
+    SoMultiplayerCardComponent,
+    SoSectionHeaderComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.css',
@@ -97,22 +96,6 @@ export class HomeComponent implements OnInit {
   goLogoQuiz(): void {
     this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'logo_quiz' });
     this.router.navigate(['/logo-quiz']);
-  }
-  goLogoDuel(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/duel?mode=logo' } });
-      return;
-    }
-    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'logo_duel' });
-    this.router.navigate(['/duel'], { queryParams: { mode: 'logo' } });
-  }
-  goTeamLogoQuiz(): void {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { redirect: '/battle-royale?mode=team_logo' } });
-      return;
-    }
-    this.analytics.track('select_content', { content_type: 'game_mode', item_id: 'team_logo_quiz' });
-    this.router.navigate(['/battle-royale'], { queryParams: { mode: 'team_logo' } });
   }
   goBattleRoyale(): void {
     if (!this.auth.isLoggedIn()) {

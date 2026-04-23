@@ -165,12 +165,43 @@ export class LogoQuizComponent implements OnDestroy {
   }
   setSubMode(id: string): void {
     const next = this.coerceSubMode(id);
+    const previous = this.activeSubMode();
+    this.trackSubModeSelection(next, previous);
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab: next === 'solo' ? null : next },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  // Analytics continuity for sub-mode selection.
+  //
+  // Context:
+  //   Before the v0.9.0.0 lobby overhaul, the home page had dedicated rows for
+  //   Logo Duel and Team Logo Quiz. Each fired a `select_content` event with
+  //   item_id 'logo_duel' / 'team_logo_quiz' on click. After home-flow refactor
+  //   those rows are gone — the lobby's tab strip is the new entry point.
+  //
+  //   This hook fires on every sub-mode tab selection. It's the bridge between
+  //   tab switching and the legacy analytics contract dashboards may still rely on.
+  //
+  // Decisions for YOU to make (5–10 lines):
+  //   1. Mapping: which `item_id` (if any) do you fire for each SubMode?
+  //        'solo'   → ?
+  //        'duel'   → 'logo_duel'        (matches legacy)
+  //        'royale' → 'team_logo_quiz'   (matches legacy)
+  //   2. Dedup: should re-selecting the same tab (next === previous) fire again?
+  //      Initial mount sets active='solo' once — consider if that should fire too.
+  //   3. Event shape: use the legacy 'select_content' / 'game_mode' contract,
+  //      or introduce a new event name like 'logo_quiz_tab_selected'?
+  //
+  // Available:
+  //   this.analytics.track(eventName: string, params: Record<string, unknown>)
+  //
+  // See home.ts (previous revision) for the legacy call shape.
+  private trackSubModeSelection(next: SubMode, previous: SubMode): void {
+    // TODO(you): implement the mapping + dedup + event shape decided above.
   }
   readonly submodeTabs: SoTab[] = [
     { id: 'solo',   label: 'SOLO',   sublabel: 'Climb ladder', color: 'var(--color-accent)', controls: 'lq-panel-solo' },
