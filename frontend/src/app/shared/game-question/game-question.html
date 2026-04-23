@@ -199,21 +199,36 @@
 
 <!-- Logo Quiz -->
 <ng-template #logoTemplate>
-  <div class="gq__question-card gq__question-card--logo">
-    <p class="gq__question-subtext">{{ question()?.question_text }}</p>
-    @if (reveal() && revealResult()?.original_image_url) {
-      <img [ngSrc]="revealResult()!.original_image_url!" alt="Original Logo" class="gq__logo-image" width="192" height="192" />
-    } @else if (question()?.image_url) {
-      <img [ngSrc]="question()!.image_url!" alt="Logo" class="gq__logo-image" width="192" height="192" />
-    }
+  <div class="gq__logo-stage">
+    <!-- Mode-colored glow halo behind the crest -->
+    <div class="gq__logo-glow" aria-hidden="true"></div>
+
+    <!-- The crest itself — hero image, large -->
+    <div class="gq__logo-frame">
+      @if (reveal() && revealResult()?.original_image_url) {
+        <img [ngSrc]="revealResult()!.original_image_url!"
+             alt="Original club logo"
+             class="gq__logo-hero"
+             width="256" height="256" />
+        <span class="gq__logo-reveal-tag">ORIGINAL</span>
+      } @else if (question()?.image_url) {
+        <img [ngSrc]="question()!.image_url!"
+             alt="Modified club logo"
+             class="gq__logo-hero"
+             width="256" height="256" />
+      }
+    </div>
+
+    <p class="gq__logo-prompt">{{ question()?.question_text }}</p>
   </div>
+
   @if (!reveal()) {
-    <div class="gq__input-stack">
-      <div class="gq__input-wrap gq__logo-select-wrap">
+    <div class="gq__logo-input">
+      <div class="gq__logo-select-wrap">
         @if (logoDropdownOpen() && filteredTeams().length) {
           <div class="gq__logo-dropdown gq__logo-dropdown--above" role="listbox" aria-label="Search results">
             @for (team of filteredTeams(); track team) {
-              <button class="gq__logo-dropdown-item" role="option" (click)="selectTeam(team)">
+              <button type="button" class="gq__logo-dropdown-item" role="option" (click)="selectTeam(team)">
                 {{ team }}
               </button>
             }
@@ -221,13 +236,13 @@
         }
         <input
           type="text"
-          class="gq__input"
+          class="gq__input gq__input--logo"
           [value]="textAnswer"
           (input)="onLogoSearchInput($any($event.target).value)"
           (keydown.enter)="submitTextAnswer()"
           [placeholder]="lang.t().clubName"
           autocomplete="off"
-          aria-label="Type your answer"
+          aria-label="Type the club name"
         />
       </div>
       <button class="gq__submit-btn gq__submit-btn--full" (click)="submitTextAnswer()" [disabled]="!textAnswer.trim() || submitting()">
@@ -235,6 +250,7 @@
       </button>
     </div>
   }
+
   @if (reveal() && revealResult()) {
     <app-question-reveal
       renderMode="text"

@@ -2,6 +2,54 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.0.1] - 2026-04-23
+
+### Fixed — CI npm ci failure after adding @capacitor/assets
+
+`frontend/package-lock.json` was out of sync with `frontend/package.json` because v0.9.0.0 added `@capacitor/assets@^3.0.5` to devDependencies without regenerating the lockfile. GitHub Actions (`npm ci`) failed with ~260 "Missing from lock file" entries covering the `@capacitor/assets` → `@trapezedev/project` → `sharp` transitive tree. Regenerated the lockfile with `npm install --package-lock-only`; `npm ci --dry-run` now installs cleanly. Railway was unaffected — its build uses the forgiving `npm install` rather than strict `npm ci`.
+
+## [0.9.0.0] - 2026-04-23
+
+### Added — Logo Quiz lobby overhaul with 3 sub-mode tabs
+
+Logo Quiz now has a full-featured lobby that lets players pick their game mode without leaving the page. Tapping the Logo Quiz card reveals three sub-mode tabs — Solo, Duel, and Royale — each with its own color identity, hero treatment, and primary action. The whole experience is redesigned around the new StepOver design system spec.
+
+**Three sub-mode tabs in the lobby.** Solo keeps the existing climb-the-ladder flow. Duel surfaces your duel win rate and leaderboard rank in a versus card, then routes to `/duel?mode=logo` on tap. Royale opens a bottom drawer with Create Private Room + Join With Code options — no more navigating away to the battle-royale lobby just to tap another button. The active tab is synced to the URL as `?tab=duel|royale`, so deep-links and browser back/forward work.
+
+**Per-mode visual identity.** The hero background is now a color-matched shield-and-star SVG crest with a radial glow — blue for Solo, red for Duel, gold for Royale (and red when Hardcore is on). Replaced ~1.2MB of PNG backgrounds with a ~2KB inline SVG that switches instantly on tab change. Each sub-mode's primary CTA inherits its tab color: Find Duel is red, Enter Royale is gold, Start Quiz stays StepOver blue.
+
+**Logo-prominent question template.** The in-game question screen for LOGO_QUIZ category now centers a large crest (72vw, up to 18rem) with a mode-colored glow halo, an "ORIGINAL" pill on reveal, and a centered input below. The searchable team-name autocomplete, 30s timer, and fuzzy-match backend are unchanged — only the visual treatment changed.
+
+**Redesigned Session Complete screen.** ELO delta is now the hero stat in a 3rem display, with a color-coded up/down border stripe. Three supporting stat tiles (Answered / Correct / Accuracy) replace the old list-of-pairs layout. Primary CTA is full-width Play Again; secondary is ghost Back to Home.
+
+**Duel compact stats in versus card.** Shows win rate percent, rank, and W/L/games-played sub-line. Falls back to a "NEW CHALLENGER" empty state when the player has no duel history. Stats come from the existing backend `duelMe` endpoint which aggregates all duel game_types — a future backend split by `game_type='logo'` will make these logo-duel-specific.
+
+### Added — Two new design-system primitives
+
+**`so-tab-strip`** — segmented tablist with full WAI-ARIA support (roving tabindex, ArrowLeft/Right/Home/End key navigation, `aria-controls`/`aria-labelledby` bidirectional linking). Each tab can optionally route via `routerLink` (renders as `<a>`) or emit a `tabChange` event (renders as `<button>`). Supports an optional sublabel and per-tab accent color. Re-usable across any future tabbed lobby.
+
+**`so-toggle`** — glass-tile switch with label + description + pill switch. Four variants (default / danger / success / pro), with danger pulsing red when active (for destructive mode toggles like Hardcore). Emits the new boolean value via `checkedChange`. Replaces the old bespoke Hardcore toggle markup.
+
+### Changed — `so-button` primary variant feels heavier
+
+Font weight 600 → 700 across all variants; primary box-shadow changed from symmetric glow to drop shadow (`0 6px 20px rgba(0,122,255,0.35)`) for more grounded visual weight. Added two new variants matching `so-chip`'s vocabulary: `error` (bright red with matching drop shadow, used for Find Duel CTA) and `gold` (pro-gold with dark text, used for Enter Royale CTA). Size `lg` grew 56px → 60px for a more commanding presence.
+
+### Removed — Dead CSS selectors
+
+- `.lobby-start-btn--purple` from `_lobby.css` — logo-quiz was its only consumer and has migrated to `<so-button>`.
+- `.gq__question-card--logo` and `.gq__logo-image` from `game-question.css` — superseded by the new `.gq__logo-stage` / `.gq__logo-frame` / `.gq__logo-hero` treatment.
+
+### Fixed — Accessibility and correctness polish from pre-landing review
+
+- Royale tab's "Pro unlocks unlimited" upsell hint was a `<span (click)>` inside `<p>` — not keyboard-focusable. Converted to a proper `<button>` so screen-reader and keyboard users can activate it.
+- `so-toggle` description is now announced via `aria-describedby` — previously only the label was exposed to assistive tech, leaving users without context on what a toggle does.
+- Removed `priority` from per-question and per-tab `ngSrc` image bindings to eliminate NgOptimizedImage LCP warnings that would fire on every question reveal.
+- Replaced `??` with `||` on the versus-card initials fallback so empty-string Supabase emails (phone-auth, Apple private-relay) correctly fall through to "YOU" instead of rendering blank.
+- Sub-mode tab state is now URL-first: `setSubMode` writes to the query param, a `queryParamMap` subscription updates the signal. No bidirectional sync loop; deep-links, back/forward, and invalid `?tab=xyz` values (fallback to Solo) all work.
+- Title and subtitle in the lobby hero are now left-aligned (overriding the shared `.lobby-title`/`.lobby-subtitle` center default). Matches the designer mockup and is more natural for mobile read-flow.
+- Stat cards in the Solo panel now use left-aligned content and compact horizontal padding — "ELO RATING" and multi-word tier names like "SUNDAY LEAGUE" no longer wrap to two lines and inflate card height.
+- Tab-panel container has `min-height: 19rem` so the outer frame stays stable when switching between Solo/Duel/Royale — prevents a jolt on tab change.
+
 ## [0.8.19.2] - 2026-04-21
 
 ### Added — iOS Google OAuth client ID + real iOS AdMob ad unit IDs

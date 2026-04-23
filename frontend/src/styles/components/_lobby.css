@@ -152,9 +152,3 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-/* Purple variant for logo-quiz / battle-royale */
-.lobby-start-btn--purple {
-  background: var(--color-purple);
-  box-shadow: var(--glow-purple-md);
-}

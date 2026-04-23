@@ -9,10 +9,19 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
-import { DecimalPipe, NgOptimizedImage, UpperCasePipe } from '@angular/common';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DecimalPipe, UpperCasePipe, PercentPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { BattleRoyaleStore } from '../battle-royale/battle-royale.store';
 import { GameQuestionComponent, type QuestionData, type RevealResult } from '../../shared/game-question/game-question';
+import {
+  SoTabStripComponent,
+  type SoTab,
+  SoButtonComponent,
+  SoChipComponent,
+  SoToggleComponent,
+} from '../../shared/ui';
 import { LogoQuizApiService, type LogoQuestionResponse } from '../../core/logo-quiz-api.service';
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
@@ -29,12 +38,24 @@ import { AnalyticsService } from '../../core/analytics.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
+type SubMode = 'solo' | 'duel' | 'royale';
 
 @Component({
   selector: 'app-logo-quiz',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DecimalPipe, UpperCasePipe, GameQuestionComponent, NgOptimizedImage],
+  imports: [
+    RouterLink,
+    FormsModule,
+    DecimalPipe,
+    PercentPipe,
+    UpperCasePipe,
+    GameQuestionComponent,
+    SoTabStripComponent,
+    SoButtonComponent,
+    SoChipComponent,
+    SoToggleComponent,
+  ],
   templateUrl: './logo-quiz.html',
   styleUrl: './logo-quiz.css',
 })
@@ -50,6 +71,8 @@ export class LogoQuizComponent implements OnDestroy {
   protected proService = inject(ProService);
   private analytics = inject(AnalyticsService);
   private shellUi = inject(ShellUiService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   lang = inject(LanguageService);
 
   // State
@@ -76,6 +99,15 @@ export class LogoQuizComponent implements OnDestroy {
   private normalRank = signal<number | null>(null);
   private hardcoreRank = signal<number | null>(null);
 
+  // Duel-specific stats for the Duel sub-mode versus-card
+  // NOTE: backend's duelMe aggregates all duel game_types. A future backend split
+  // (game_type='logo') would give logo-duel-only stats; for now this is combined.
+  duelStats = signal<{ rank: number; wins: number; games_played: number } | null>(null);
+  duelWinRate = computed(() => {
+    const d = this.duelStats();
+    return d && d.games_played > 0 ? d.wins / d.games_played : 0;
+  });
+
   // Report
   private reportCooldown = createReportCooldown();
   reportDisabled = this.reportCooldown.disabled;
@@ -87,6 +119,64 @@ export class LogoQuizComponent implements OnDestroy {
 
   // Hardcore mode
   hardcoreMode = signal(false);
+
+  // Royale drawer — replaces the old "route to /battle-royale" redirect so users pick
+  // Create Private / Join Code right here. Team Logo Royale is invite-only (no Quick Join).
+  private brStore = inject(BattleRoyaleStore);
+  showRoyaleSheet = signal(false);
+  royaleLoading = signal(false);
+  royaleError = signal<string | null>(null);
+  royaleInviteCode = '';
+  openRoyaleSheet(): void { this.showRoyaleSheet.set(true); this.royaleError.set(null); }
+  closeRoyaleSheet(): void { this.showRoyaleSheet.set(false); }
+  async royaleCreatePrivate(): Promise<void> {
+    this.royaleLoading.set(true);
+    this.royaleError.set(null);
+    const roomId = await this.brStore.createTeamLogoRoom();
+    this.royaleLoading.set(false);
+    if (roomId) {
+      this.closeRoyaleSheet();
+      this.router.navigate(['/battle-royale', roomId]);
+    } else {
+      this.royaleError.set(this.brStore.error() ?? 'Failed to create room');
+    }
+  }
+  async royaleJoinByCode(): Promise<void> {
+    const code = this.royaleInviteCode.trim().toUpperCase();
+    if (!code) return;
+    this.royaleLoading.set(true);
+    this.royaleError.set(null);
+    const roomId = await this.brStore.joinByCode(code);
+    this.royaleLoading.set(false);
+    if (roomId) {
+      this.closeRoyaleSheet();
+      this.router.navigate(['/battle-royale', roomId]);
+    } else {
+      this.royaleError.set(this.brStore.error() ?? 'Failed to join room');
+    }
+  }
+
+  // Sub-mode tabs — Solo stays on this page; Duel/Royale route away via routerLink on their CTAs.
+  // URL (?tab=duel|royale) is the source of truth so deep-links and back/forward work.
+  activeSubMode = signal<SubMode>('solo');
+  private static readonly VALID_SUB_MODES: ReadonlyArray<SubMode> = ['solo', 'duel', 'royale'];
+  private coerceSubMode(v: string | null | undefined): SubMode {
+    return LogoQuizComponent.VALID_SUB_MODES.includes(v as SubMode) ? (v as SubMode) : 'solo';
+  }
+  setSubMode(id: string): void {
+    const next = this.coerceSubMode(id);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: next === 'solo' ? null : next },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+  readonly submodeTabs: SoTab[] = [
+    { id: 'solo',   label: 'SOLO',   sublabel: 'Climb ladder', color: 'var(--color-accent)', controls: 'lq-panel-solo' },
+    { id: 'duel',   label: 'DUEL',   sublabel: '1v1 ranked',   color: '#ef4444',             controls: 'lq-panel-duel' },
+    { id: 'royale', label: 'ROYALE', sublabel: 'Up to 20',     color: 'var(--color-pro)',    controls: 'lq-panel-royale' },
+  ];
 
   // Animation triggers
   eloBumped = signal(false);
@@ -129,6 +219,14 @@ export class LogoQuizComponent implements OnDestroy {
       this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
     });
 
+    // URL → activeSubMode (single direction; setSubMode writes URL, this effect syncs state).
+    // Fires on initial mount and on browser back/forward / deep-links.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        this.activeSubMode.set(this.coerceSubMode(params.get('tab')));
+      });
+
     // Preload team names
     this.api.getTeamNames().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(names => this.teamNames.set(names));
     // Load logo quiz ELO from profile store (separate from solo ELO)
@@ -137,12 +235,15 @@ export class LogoQuizComponent implements OnDestroy {
       this.currentElo.set(elo);
       this.startElo.set(elo);
     });
-    // Load logo quiz ranks (normal + hardcore)
+    // Load logo quiz ranks (normal + hardcore) + duel stats
     this.leaderboardApi.getMyLeaderboardEntries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.normalRank.set(res.logoQuizMe?.rank ?? null);
         this.hardcoreRank.set(res.logoQuizHardcoreMe?.rank ?? null);
         this.myRank.set(this.hardcoreMode() ? this.hardcoreRank() : this.normalRank());
+        this.duelStats.set(res.duelMe
+          ? { rank: res.duelMe.rank, wins: res.duelMe.wins, games_played: res.duelMe.games_played }
+          : null);
       },
     });
   }

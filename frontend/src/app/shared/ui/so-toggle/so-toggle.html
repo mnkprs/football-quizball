@@ -1,0 +1,21 @@
+<button
+  type="button"
+  role="switch"
+  class="so-toggle"
+  [class.so-toggle--checked]="checked()"
+  [ngClass]="variantClass()"
+  [attr.aria-checked]="checked()"
+  [attr.aria-label]="label()"
+  [attr.aria-describedby]="description() ? 'so-toggle-desc-' + label() : null"
+  [disabled]="disabled()"
+  (click)="onClick()">
+  <div class="so-toggle__row">
+    <span class="so-toggle__label">{{ label() }}</span>
+    <div class="so-toggle__switch" [class.so-toggle__switch--on]="checked()">
+      <div class="so-toggle__thumb"></div>
+    </div>
+  </div>
+  @if (description()) {
+    <span class="so-toggle__desc" [id]="'so-toggle-desc-' + label()">{{ description() }}</span>
+  }
+</button>
