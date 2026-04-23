@@ -2,6 +2,31 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.0.2] - 2026-04-23
+
+### Changed — Native app icon + splash refresh, version bump to v1.1.7
+
+Regenerated the Android and iOS launcher icons and splash screens from a new source-asset set (`frontend/assets/icon.png`, `icon-foreground.png`, `icon-background.png`) via `@capacitor/assets`.
+
+**Android — v1.1.6 → v1.1.7:**
+- `versionCode 16 → 17`, `versionName "1.1.6" → "1.1.7"` in `build.gradle`.
+- Adaptive icon background switched from the color drawable `@color/ic_launcher_background` to a full-raster `@mipmap/ic_launcher_background` (new `ic_launcher_background.png` per DPI bucket). Gives the icon proper contrast and depth on Android 8+ launchers that render adaptive-icon background layers independently of the foreground.
+- Added `ldpi` DPI bucket coverage (both mipmap and drawable) — earlier releases omitted it, which left very low-DPI devices scaling from larger buckets.
+- Full night-mode splash coverage (`drawable-land-night-*` and `drawable-port-night-*` across every DPI bucket, plus a `drawable-night` default). Prevents the splash from looking out of place on devices with system dark theme active during cold launch.
+- Minor `AndroidManifest.xml` formatting cleanup (no behavior change).
+
+**iOS — v1.5 → v1.6:**
+- `CURRENT_PROJECT_VERSION 6 → 8`, `MARKETING_VERSION 1.5 → 1.6` in `project.pbxproj`.
+- `IPHONEOS_DEPLOYMENT_TARGET 15.0 → 15` (Xcode auto-normalization; no effective deployment-target change).
+
+### Changed — Shell bottom-nav inner padding bump
+
+Bumped `.bottom-nav` inner padding from `0.5rem + safe-area-inset-bottom` to `1rem + safe-area-inset-bottom`. Gives nav items more breathing room above the home indicator / safe-area zone and matches the density used elsewhere in the shell. Removed an unused `gap` and `padding` declaration on `.bottom-nav__item` that was being overridden in practice.
+
+### Added — Flagship redesign brief doc
+
+Captured the brief used during the 2026-04-23 design-system session at `docs/superpowers/specs/2026-04-23-design-system-flagship-brief.md`. Intended as a handoff target for the claude-design agent or any future design-focused redesign pass: forge the reusable `so-*` primitive set against one real consumer (`/blitz`) before fanning out to all features.
+
 ## [0.9.0.1] - 2026-04-23
 
 ### Fixed — CI npm ci failure after adding @capacitor/assets
