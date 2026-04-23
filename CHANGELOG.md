@@ -2,6 +2,24 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.1.0] - 2026-04-23
+
+### Changed — Home-flow refactor: Logo Quiz surfaced once, 2 new DS primitives
+
+Home page information architecture simplified from three tiers to three sections: Featured → Multiplayer → Pro Arena. Logo Quiz now appears **once** (as the Featured hero) instead of four times — the three sub-mode rows (Solo Quiz / Logo Duel / Team Logo) are gone because the v0.9.0.0 lobby already surfaces Solo / Duel / Royale tabs. The "Team Logo" surface is no longer a home-level entry; it's reached via the lobby's Royale tab.
+
+**`so-multiplayer-card`** — new shared DS component. Generalises the inlined `.two-player-card` pattern from `home.html` into a hero-image card with a split-CTA footer (`primary` / `secondary` inputs typed as `{label, sub?, icon?}`, outputs `primaryPressed` / `secondaryPressed`). Accepts an `accent` CSS color that drives the button press-glow via `--mp-accent`. Reusable for future friend-challenge and private-room invite surfaces. Visuals are the lifted `.two-player-card` rules; outer is a `<div role="group">` (was a `<div>`), no more nested-button anti-pattern.
+
+**`so-section-header`** — new shared DS component. Eyebrow label above a group of mode rows / cards, with an optional right-side `action` string (e.g. "See all") that emits `actionClicked`. Replaces the ad-hoc `<div class="so-section-header">` in `home.html`. `tight` input removes the top margin for cases where the header sits flush under another element.
+
+**Logo sub-mode rows removed, ~40 lines gone from `home.html`.** `goLogoDuel()` and `goTeamLogoQuiz()` handlers deleted from `home.ts`. Routes `/duel?mode=logo` and `/battle-royale?mode=team_logo` still work — the lobby's tab strip is the new entry point.
+
+**`home.css` shrinks from 217 → 116 lines (-46%).** Removed: `.two-player-card*` (now in the DS component), `.logo-modes-tier` (surface deleted), `.so-section-header` (now in the DS component). Layout rules, stagger reveal, Pro Arena breathing ambient, and reduced-motion fallbacks all preserved.
+
+**Analytics continuity in `logo-quiz.ts#setSubMode`.** Every sub-mode tab selection now fires the same `select_content` event the old home-page rows fired: `item_id: 'logo_duel'` for the Duel tab and `'team_logo_quiz'` for the Royale tab. Same event name, same `content_type`, same item_id strings, so existing dashboards keep working with zero migration. Solo tab deliberately fires no event (the hero card already fires `'logo_quiz'` and Solo is its default landing tab; an additional event here would double-count). Dedup on `next === previous` prevents tab-fidgeting noise. Deep-links (e.g. `/logo-quiz?tab=duel`) bypass this path via the URL→activeSubMode effect, matching the pre-refactor behavior where deep-links to `/duel?mode=logo` also never fired `'logo_duel'` from home.
+
+**Small UX fixes from `/review`.** Removed a misleading `cursor: pointer` + active-scale from the `so-multiplayer-card` outer container (only the inner CTAs are clickable; the pointer cursor on the dead zone between title and buttons was a carry-over from the old `.two-player-card` that fooled the hover state). Moved the Logo Quiz hero subtitle through `LanguageService.t().logoQuizHeroSubtitle` so the one string unique to this refactor isn't adding to the i18n backlog.
+
 ## [0.9.0.2] - 2026-04-23
 
 ### Changed — Native app icon + splash refresh, version bump to v1.1.7

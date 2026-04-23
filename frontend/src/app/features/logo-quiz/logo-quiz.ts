@@ -165,12 +165,33 @@ export class LogoQuizComponent implements OnDestroy {
   }
   setSubMode(id: string): void {
     const next = this.coerceSubMode(id);
+    const previous = this.activeSubMode();
+    this.trackSubModeSelection(next, previous);
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab: next === 'solo' ? null : next },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
+  }
+
+  // Bridges the `select_content` events that used to fire from home rows
+  // ('logo_duel' / 'team_logo_quiz') into the lobby's tab strip. Same event
+  // name, same content_type, same item_id strings, so existing dashboards
+  // keep working. Solo has no event on purpose: the hero card already fires
+  // 'logo_quiz' and Solo is its default landing tab, so adding one here
+  // would double-count. Dedup prevents tab-fidgeting noise. Deep-links bypass
+  // this (the URL effect sets activeSubMode directly without calling
+  // setSubMode), matching the pre-refactor behavior where deep-links to
+  // /duel?mode=logo also never fired 'logo_duel' from home.
+  private trackSubModeSelection(next: SubMode, previous: SubMode): void {
+    if (next === previous) return;
+    const itemId: string | null =
+      next === 'duel'   ? 'logo_duel' :
+      next === 'royale' ? 'team_logo_quiz' :
+      null;
+    if (!itemId) return;
+    this.analytics.track('select_content', { content_type: 'game_mode', item_id: itemId });
   }
   readonly submodeTabs: SoTab[] = [
     { id: 'solo',   label: 'SOLO',   sublabel: 'Climb ladder', color: 'var(--color-accent)', controls: 'lq-panel-solo' },

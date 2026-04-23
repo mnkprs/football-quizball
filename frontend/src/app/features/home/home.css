@@ -46,55 +46,29 @@
   opacity: 0;
   animation: anim-stagger-in 300ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1)) forwards;
 }
-.home-content > *:nth-child(1) { animation-delay: 0ms; }
-.home-content > *:nth-child(2) { animation-delay: 50ms; }
-.home-content > *:nth-child(3) { animation-delay: 100ms; }
-.home-content > *:nth-child(4) { animation-delay: 150ms; }
+.home-content > *:nth-child(1) { animation-delay:   0ms; }
+.home-content > *:nth-child(2) { animation-delay:  60ms; }
+.home-content > *:nth-child(3) { animation-delay: 120ms; }
+.home-content > *:nth-child(4) { animation-delay: 180ms; }
 
 @keyframes anim-stagger-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Section header — eyebrow label, uses .so-text-label from mixins.css */
-.so-section-header {
-  font-family: 'Lexend', sans-serif;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-weight: 500;
-  color: var(--color-muted-foreground);
-  padding: 0 4px;
-  margin-top: clamp(0.5rem, 2vw, 1rem);
-}
-
-/* Logo Quiz modes — stacked mode rows, purple ambient (matches hero sub-brand) */
-.logo-modes-tier {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: linear-gradient(160deg, rgba(168,85,247,0.07) 0%, rgba(168,85,247,0.02) 40%, transparent 60%);
-  border: 1px solid rgba(168,85,247,0.08);
-  margin-top: -8px;  /* pull up to visually group with hero above */
-}
-.logo-modes-tier > so-mode-row {
-  opacity: 0;
-  animation: anim-stagger-in 250ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1)) forwards;
-}
-.logo-modes-tier > so-mode-row:nth-child(1) { animation-delay: 120ms; }
-.logo-modes-tier > so-mode-row:nth-child(2) { animation-delay: 180ms; }
-.logo-modes-tier > so-mode-row:nth-child(3) { animation-delay: 240ms; }
-
-/* Pro Arena — stacked mode rows, gold glass ambient */
+/* ═══════════════════════════════════════════════
+ * Pro Arena — stacked mode rows, gold glass ambient
+ * ═══════════════════════════════════════════════ */
 .pro-arena-tier {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px;
   border-radius: 20px;
-  background: linear-gradient(160deg, rgba(230,168,0,0.08) 0%, rgba(230,168,0,0.02) 40%, transparent 60%);
+  background: linear-gradient(160deg,
+    rgba(230,168,0,0.08) 0%,
+    rgba(230,168,0,0.02) 40%,
+    transparent 60%);
   border: 1px solid rgba(230,168,0,0.1);
   animation: pro-arena-breathe 4s ease-in-out infinite;
 }
@@ -108,91 +82,21 @@
 .pro-arena-tier > so-mode-row:nth-child(4) { animation-delay: 440ms; }
 
 @keyframes pro-arena-breathe {
-  0%, 100% { border-color: rgba(230,168,0,0.1); box-shadow: 0 0 0 rgba(230,168,0,0); }
-  50%      { border-color: rgba(230,168,0,0.2); box-shadow: 0 0 24px rgba(230,168,0,0.06); }
+  0%, 100% { border-color: rgba(230,168,0,0.1);  box-shadow: 0 0 0   rgba(230,168,0,0);    }
+  50%      { border-color: rgba(230,168,0,0.2);  box-shadow: 0 0 24px rgba(230,168,0,0.06); }
 }
 
-/* 2-Player card — bespoke hero, preserved from original */
-.two-player-card {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 10rem;
-  padding: 1.25rem;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  border: 1px solid var(--glass-border);
-  background: var(--color-surface-low);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
-  cursor: pointer;
-  transition: transform 150ms var(--ease-out-quart, cubic-bezier(0.25, 1, 0.5, 1));
-}
-.two-player-card:active { transform: scale(0.97); }
-.two-player-card__bg-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; pointer-events: none; transition: transform 0.7s ease; }
-.two-player-card:hover .two-player-card__bg-image { transform: scale(1.05); }
-.two-player-card__bg-overlay {
-  position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to top, var(--color-bg) 0%, rgba(19,19,19,0.4) 50%, transparent 100%);
-}
-.two-player-card__badge {
-  align-self: flex-start;
-  margin-bottom: 0.375rem;
-  position: relative;
-  z-index: 1;
-}
-.two-player-card__title {
-  position: relative; z-index: 1;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
-  font-weight: 700;
-  line-height: 1.05;
-  margin: 0;
-  color: var(--color-foreground);
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
-  font-style: italic;
-}
-.two-player-card__hint {
-  position: relative; z-index: 1;
-  font-size: 0.875rem;
-  margin: 0.25rem 0 0;
-  line-height: 1.4;
-  color: rgba(255,255,255,0.7);
-}
-.two-player-card__actions {
-  position: relative; z-index: 1;
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-.two-player-card__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.125rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--glass-bg-subtle);
-  border: 1px solid var(--glass-border-strong);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  color: #fff;
-  transition: background 0.15s, transform 0.1s;
-}
-.two-player-card__btn:hover  { background: rgba(255,255,255,0.14); }
-.two-player-card__btn:active { background: rgba(255,255,255,0.18); transform: scale(0.95); box-shadow: 0 0 16px rgba(0,122,255,0.25); }
-.two-player-card__btn:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.two-player-card__btn-icon  { font-size: 1.125rem; color: var(--color-accent); }
-.two-player-card__btn-label { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em; }
-.two-player-card__btn-sub   { font-size: 0.625rem; font-weight: 500; opacity: 0.5; }
+/* ═══════════════════════════════════════════════
+ * REMOVED from previous version:
+ *   .so-section-header  (→ so-section-header component)
+ *   .logo-modes-tier    (→ deleted; lobby handles sub-mode picking)
+ *   .two-player-card*   (→ so-multiplayer-card component)
+ * ═══════════════════════════════════════════════ */
 
-/* Tablet */
+/* Tablet / desktop */
 @media (min-width: 768px) {
   .home-page { padding: 5.5rem 1.5rem 7.5rem; }
   .home-content { max-width: 44rem; }
-  .two-player-card { min-height: 14rem; padding: 1.75rem; }
 }
 @media (min-width: 1024px) {
   .home-content { max-width: 56rem; }
@@ -202,7 +106,6 @@
     gap: 12px;
     padding: 16px;
   }
-  .two-player-card { min-height: 16rem; padding: 2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -210,7 +113,4 @@
   .home-content > *  { animation: none; opacity: 1; }
   .pro-arena-tier    { animation: none; }
   .pro-arena-tier > so-mode-row { animation: none; opacity: 1; }
-  .logo-modes-tier > so-mode-row { animation: none; opacity: 1; }
-  .two-player-card   { transition: none; }
-  .two-player-card__bg-image { transition: none; }
 }

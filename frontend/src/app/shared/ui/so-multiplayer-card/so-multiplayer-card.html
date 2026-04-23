@@ -1,0 +1,63 @@
+<!--
+  so-multiplayer-card.html — hero-style card with split-CTA footer.
+  Generalizes the bespoke .two-player-card pattern from the old home.html.
+
+  Inputs:
+    title, subtitle      — copy
+    badge                — optional chip label (e.g. LOCAL MULTIPLAYER)
+    badgeVariant         — chip variant ('accent' | 'gold' | 'danger' | 'default')
+    image                — background image url (ngSrc, fill)
+    primary / secondary  — { label, sub, icon } for each CTA button
+    accent               — CSS color used for active-press glow on buttons
+
+  Outputs:
+    primaryPressed, secondaryPressed
+-->
+<div class="so-mp-card"
+     [style.--mp-accent]="accent()"
+     role="group"
+     [attr.aria-label]="title()">
+
+  @if (image()) {
+    <img class="so-mp-card__bg" [ngSrc]="image()!" alt="" aria-hidden="true" fill priority />
+    <span class="so-mp-card__overlay" aria-hidden="true"></span>
+  }
+
+  @if (badge()) {
+    <span class="so-mp-card__badge">
+      <so-chip [variant]="badgeVariant()" size="xs">{{ badge() }}</so-chip>
+    </span>
+  }
+
+  <h3 class="so-mp-card__title">{{ title() }}</h3>
+  @if (subtitle()) {
+    <p class="so-mp-card__sub">{{ subtitle() }}</p>
+  }
+
+  <div class="so-mp-card__actions">
+    <button type="button"
+            class="so-mp-card__btn"
+            (click)="primaryPressed.emit()"
+            [attr.aria-label]="primary().label">
+      @if (primary().icon) {
+        <span class="material-icons so-mp-card__btn-icon">{{ primary().icon }}</span>
+      }
+      <span class="so-mp-card__btn-label">{{ primary().label }}</span>
+      @if (primary().sub) {
+        <span class="so-mp-card__btn-sub">{{ primary().sub }}</span>
+      }
+    </button>
+    <button type="button"
+            class="so-mp-card__btn"
+            (click)="secondaryPressed.emit()"
+            [attr.aria-label]="secondary().label">
+      @if (secondary().icon) {
+        <span class="material-icons so-mp-card__btn-icon">{{ secondary().icon }}</span>
+      }
+      <span class="so-mp-card__btn-label">{{ secondary().label }}</span>
+      @if (secondary().sub) {
+        <span class="so-mp-card__btn-sub">{{ secondary().sub }}</span>
+      }
+    </button>
+  </div>
+</div>
