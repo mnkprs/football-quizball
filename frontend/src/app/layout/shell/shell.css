@@ -41,7 +41,7 @@
   max-width: var(--app-max-width);
   z-index: 40;
   padding: 0.5rem 1rem;
-  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
 .bottom-nav--hidden {
