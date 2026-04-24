@@ -20,39 +20,40 @@
     </div>
 
   } @else {
-    <!-- ─── HERO BANNER ─────────────────────────────── -->
+    <!-- ─── HERO ─────────────────────────────────── -->
     <div
       class="hero"
       [style.--tier-color]="rankTier().color"
       [style.--tier-glow]="rankTier().glow"
       [style.--border-w]="rankTier().borderWidth + 'px'"
     >
-      <!-- Pitch pattern overlay -->
-      <div class="hero__pitch" aria-hidden="true">
-        <svg viewBox="0 0 360 180" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
-          <circle cx="180" cy="90" r="50" stroke="currentColor" stroke-width="1"/>
-          <line x1="180" y1="0" x2="180" y2="180" stroke="currentColor" stroke-width="1"/>
-          <rect x="4" y="30" width="60" height="120" rx="2" stroke="currentColor" stroke-width="1"/>
-          <rect x="296" y="30" width="60" height="120" rx="2" stroke="currentColor" stroke-width="1"/>
-        </svg>
+      <!-- Photo background (drop the pitch-pattern SVG per bundle direction) -->
+      <div class="hero__bg" aria-hidden="true"></div>
+      <div class="hero__scrim" aria-hidden="true"></div>
+
+      <!-- Top chrome: back (other user), pro chip, edit (own), tier chip -->
+      <div class="hero__top">
+        @if (!isOwnProfile()) {
+          <a routerLink="/leaderboard" class="hero__top-btn" aria-label="Back to leaderboard">
+            <span class="material-icons">arrow_back</span>
+          </a>
+        } @else {
+          <span class="hero__top-spacer" aria-hidden="true"></span>
+        }
+        <div class="hero__top-right">
+          @if (pro.isPro()) {
+            <div class="hero__pro-chip">PRO</div>
+          }
+          @if (isOwnProfile()) {
+            <button type="button" class="hero__top-btn" (click)="openEditSheet()" aria-label="Edit profile">
+              <span class="material-icons">edit</span>
+            </button>
+          }
+          <div class="hero__tier-chip">{{ rankTier().label }}</div>
+        </div>
       </div>
 
-      <!-- Back button (viewing other user) -->
-      @if (!isOwnProfile()) {
-        <a routerLink="/leaderboard" class="hero__back">
-          <span class="material-icons">arrow_back</span>
-        </a>
-      }
-
-      <!-- Pro badge (top-left) -->
-      @if (pro.isPro()) {
-        <div class="hero__pro-chip">PRO</div>
-      }
-
-      <!-- Tier chip -->
-      <div class="hero__tier-chip">{{ rankTier().label }}</div>
-
-      <!-- Avatar -->
+      <!-- Avatar (wrap so-avatar in upload zone so click + file input still work) -->
       <input
         #avatarInput
         type="file"
@@ -69,28 +70,26 @@
         (click)="isOwnProfile() && triggerAvatarUpload()"
         (keydown.enter)="isOwnProfile() && triggerAvatarUpload()"
       >
-        <div class="hero__avatar">
-          @if (avatarUrl()) {
-            <img [ngSrc]="avatarUrl()!" alt="avatar" width="80" height="80" />
-          } @else {
-            {{ initials() }}
-          }
-          @if (isOwnProfile()) {
-            <div class="hero__upload-badge" [class.uploading]="avatarUploading()">
-              @if (avatarUploading()) {
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
-                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                </svg>
-              } @else {
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="17 8 12 3 7 8"/>
-                  <line x1="12" y1="3" x2="12" y2="15"/>
-                </svg>
-              }
-            </div>
-          }
-        </div>
+        <so-avatar
+          [size]="96"
+          [initials]="initials()"
+          [src]="avatarUrl() ?? undefined"
+        />
+        @if (isOwnProfile()) {
+          <div class="hero__upload-badge" [class.uploading]="avatarUploading()">
+            @if (avatarUploading()) {
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+            } @else {
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            }
+          </div>
+        }
       </div>
 
       <!-- Name + meta -->
@@ -120,47 +119,46 @@
           </div>
         </a>
       }
-
-      <!-- XP Level progress -->
-      <div class="xp-progress">
-        <div class="xp-progress__labels">
-          <span class="xp-progress__level">Level {{ level() }}</span>
-          <span class="xp-progress__total">{{ xp() }} XP</span>
-        </div>
-        <div class="xp-progress__track" role="progressbar" aria-label="XP progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="xpPct()">
-          <div class="xp-progress__fill" [style.--progress]="xpPct() / 100"></div>
-        </div>
-        <div class="xp-progress__footer">{{ xpRemaining() }} XP to Level {{ level() + 1 }}</div>
-      </div>
-
-      <!-- Quick stats -->
-      <div class="hero__stats">
-        <div class="hero__stat">
-          <span class="hero__stat-val">{{ profile()?.max_elo ?? profile()?.elo ?? 1000 }}</span>
-          <span class="hero__stat-lbl">Peak ELO</span>
-        </div>
-        <div class="hero__stat-div"></div>
-        <div class="hero__stat">
-          <span class="hero__stat-val">{{ accuracy() }}%</span>
-          <span class="hero__stat-lbl">Accuracy</span>
-        </div>
-        <div class="hero__stat-div"></div>
-        <div class="hero__stat">
-          <span class="hero__stat-val">{{ profile()?.questions_answered ?? 0 }}</span>
-          <span class="hero__stat-lbl">Total Questions Played</span>
-        </div>
-        <div class="hero__stat-div"></div>
-        <div class="hero__stat">
-          <span class="hero__stat-val">{{ achievementsEarned() }} / {{ achievements().length }}</span>
-          <span class="hero__stat-lbl">Achievements</span>
-        </div>
-      </div>
     </div>
 
-    <!-- ─── ELO SPARKLINE ───────────────────────────── -->
+    <!-- ─── XP / LEVEL ────────────────────────────── -->
+    <section class="section">
+      <div class="xp-card">
+        <div class="xp-card__head">
+          <span class="xp-card__level">Level {{ level() }}</span>
+          <span class="xp-card__total">{{ xp() }} XP</span>
+        </div>
+        <div class="xp-card__track" role="progressbar" aria-label="XP progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="xpPct()">
+          <div class="xp-card__fill" [style.--progress]="xpPct() / 100"></div>
+        </div>
+        <div class="xp-card__foot">{{ xpRemaining() }} XP to Level {{ level() + 1 }}</div>
+      </div>
+    </section>
+
+    <!-- ─── THIS SEASON ────────────────────────────── -->
+    <section class="section">
+      <so-section-header label="This Season" />
+      <div class="stat-grid">
+        <so-stat-card
+          label="Peak ELO"
+          [value]="profile()?.max_elo ?? profile()?.elo ?? 1000" />
+        <so-stat-card
+          label="Accuracy"
+          [value]="accuracy()"
+          unit="%" />
+        <so-stat-card
+          label="Questions"
+          [value]="profile()?.questions_answered ?? 0" />
+        <so-stat-card
+          label="Achievements"
+          [value]="achievementsEarned() + ' / ' + achievements().length" />
+      </div>
+    </section>
+
+    <!-- ─── ELO PROGRESSION ────────────────────────── -->
     @if (sparklineData(); as spark) {
       <section class="section">
-        <h2 class="section__title">ELO Progression</h2>
+        <so-section-header label="ELO Progression" />
         <div class="sparkline-card">
           <div class="sparkline__labels">
             <span>{{ spark.minElo }}</span>
@@ -181,19 +179,17 @@
       </section>
     }
 
-    <!-- ─── FULL ANALYTICS LINK (Pro, own profile) ───── -->
+    <!-- ─── FULL ANALYTICS (Pro, own profile) ────── -->
     @if (isOwnProfile() && pro.isPro()) {
       <a class="analytics-link analytics-link--standalone" routerLink="/analytics">
         View full analytics →
       </a>
     }
 
-    <!-- ─── MODE STATS ────────────────────────────── -->
+    <!-- ─── MODE STATS ─────────────────────────────── -->
     <section class="section">
-      <h2 class="section__title">Mode Stats</h2>
+      <so-section-header label="Mode Stats" />
       <div class="mode-grid">
-
-        <!-- Solo -->
         <div class="mode-card mode-card--solo">
           <div class="mode-card__head">
             <span class="material-icons mode-card__icon">military_tech</span>
@@ -214,17 +210,14 @@
             </div>
           </div>
         </div>
-
-        <!-- Mayhem + Blitz: hidden until modes launch -->
-
       </div>
     </section>
 
-    <!-- ─── MATCH HISTORY ───────────────────────────── -->
+    <!-- ─── RECENT MATCHES ─────────────────────────── -->
     @if (matchHistory().length > 0) {
       <section class="section">
-        <div class="section__head">
-          <h2 class="section__title">Last 10 games</h2>
+        <so-section-header label="Last 10 games" />
+        <div class="section__head-extras">
           <div class="match-record">
             <span class="match-record__chip match-record__chip--win">{{ winRecord().wins }}W</span>
             <span class="match-record__sep">&middot;</span>
@@ -232,58 +225,22 @@
             <span class="match-record__sep">&middot;</span>
             <span class="match-record__chip match-record__chip--loss">{{ winRecord().losses }}L</span>
           </div>
+          @if (isOwnProfile()) {
+            <a class="section__see-all" routerLink="/profile/history">See all matches ›</a>
+          }
         </div>
-        @if (isOwnProfile()) {
-          <a class="section__see-all" routerLink="/profile/history">See all matches ›</a>
-        }
         <div class="match-list">
-          @for (match of matchHistory(); track match.id) {
-            <div class="match-row match-row--clickable"
-                 (click)="openMatchDetail(match)"
-                 [class.match-row--win]="match.match_mode !== 'battle_royale' && match.match_mode !== 'team_logo_battle' && match.winner_id === currentUserId()"
-                 [class.match-row--loss]="match.match_mode !== 'battle_royale' && match.match_mode !== 'team_logo_battle' && match.winner_id !== null && match.winner_id !== currentUserId()"
-                 [class.match-row--br]="match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle'">
-              <div class="match-row__result">
-                @if (match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle') {
-                  <span class="match-row__result-tag match-row__result-tag--br">BR</span>
-                } @else if (match.winner_id === null) {
-                  <span class="match-row__result-tag match-row__result-tag--draw">D</span>
-                } @else if (match.winner_id === currentUserId()) {
-                  <span class="match-row__result-tag match-row__result-tag--win">W</span>
-                } @else {
-                  <span class="match-row__result-tag match-row__result-tag--loss">L</span>
-                }
-              </div>
-              <div class="match-row__body">
-                <div class="match-row__vs">
-                  <span class="match-row__p1">{{ match.player1_username }}</span>
-                  @if (match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle') {
-                    <span class="match-row__score">{{ match.player1_score }} pts</span>
-                  } @else {
-                    <span class="match-row__score">{{ match.player1_score }} – {{ match.player2_score }}</span>
-                  }
-                  @if (match.match_mode !== 'battle_royale' && match.match_mode !== 'team_logo_battle') {
-                    <span class="match-row__p2">{{ match.player2_username }}</span>
-                  }
-                </div>
-                <div class="match-row__footer">
-                  <span class="match-badge"
-                        [class.match-badge--online]="match.match_mode === 'online'"
-                        [class.match-badge--duel]="match.match_mode === 'duel'"
-                        [class.match-badge--local]="match.match_mode === 'local'"
-                        [class.match-badge--br]="match.match_mode === 'battle_royale' || match.match_mode === 'team_logo_battle'">
-                    {{ match.match_mode === 'online' ? 'Online' : match.match_mode === 'duel' ? 'Duel' : match.match_mode === 'battle_royale' ? 'BR' : match.match_mode === 'team_logo_battle' ? 'TLB' : 'Local' }}
-                  </span>
-                  <span class="match-row__date">{{ formatDate(match.played_at) }}</span>
-                </div>
-              </div>
-            </div>
+          @for (row of historyRows(); track row.matchId) {
+            <so-history-row
+              [row]="row"
+              [hideElo]="true"
+              (rowClicked)="onHistoryRowClicked(row)" />
           }
         </div>
       </section>
     } @else {
       <section class="section">
-        <h2 class="section__title">Last 10 games</h2>
+        <so-section-header label="Last 10 games" />
         <app-empty-state
           icon="history"
           title="No matches played"
@@ -294,11 +251,11 @@
       </section>
     }
 
-    <!-- ─── ACHIEVEMENTS ───────────────────────────── -->
+    <!-- ─── ACHIEVEMENTS ──────────────────────────── -->
     @if (achievements().length > 0) {
       <section class="section">
-        <div class="section__head">
-          <h2 class="section__title">{{ lang.t().achievements }}</h2>
+        <so-section-header [label]="lang.t().achievements" />
+        <div class="section__head-extras">
           <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
         </div>
         @for (group of categorizedAchievements(); track group.key) {
@@ -329,7 +286,7 @@
       </section>
     } @else {
       <section class="section">
-        <h2 class="section__title">{{ lang.t().achievements }}</h2>
+        <so-section-header [label]="lang.t().achievements" />
         <app-empty-state
           icon="emoji_events"
           title="No achievements yet"
@@ -342,17 +299,15 @@
 
     <!-- ─── ACCOUNT ACTIONS ─────────────────────────── -->
     @if (isOwnProfile()) {
-      <section class="section">
-        <div class="account-actions">
-          <button class="account-action-btn" (click)="openEditSheet()">
-            <span class="material-icons">edit</span>
-            Edit Profile
-          </button>
-          <button class="account-action-btn account-action-btn--danger" (click)="showDeleteConfirm.set(true)">
-            <span class="material-icons">delete_forever</span>
-            Delete Account
-          </button>
-        </div>
+      <section class="section account-actions">
+        <so-button variant="secondary" [fullWidth]="true" (pressed)="openEditSheet()">
+          <span class="material-icons" style="font-size:1.125rem;vertical-align:middle;margin-right:0.5rem">edit</span>
+          Edit Profile
+        </so-button>
+        <so-button variant="danger" [fullWidth]="true" (pressed)="showDeleteConfirm.set(true)">
+          <span class="material-icons" style="font-size:1.125rem;vertical-align:middle;margin-right:0.5rem">delete_forever</span>
+          Delete Account
+        </so-button>
       </section>
     }
 

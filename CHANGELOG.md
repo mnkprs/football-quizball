@@ -2,6 +2,30 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.5.0] - 2026-04-24
+
+### Changed — Profile main screen now uses the so-* design system
+
+The main profile screen is re-composed against the 2026-04-24 profile-flow bundle's Artboard A design language. **Every existing feature is preserved** — this is a visual refactor using the shared DS components, not a product redesign.
+
+**Hero.** Photo background (reuses `/header-banner-bg.jpg`) with a dark scrim + tier-colored glow wash replaces the inline `hero__pitch` SVG. Top chrome reorganised as a single row: back button (when viewing another user), pro chip (when Pro), edit icon (own profile), tier chip. The existing bottom "Edit Profile" button stays too — the icon is a supplementary entry point, not a replacement. Avatar now renders via `so-avatar` (wrapped in the upload zone so click-to-change still works). Tier-colored ring kept via `outline` on the avatar container — `so-avatar`'s internal `[tier]` input was aligned to the 7-tier system in 0.9.4.0, so we could also use it directly; keeping the outline ring as a lightweight alternative that doesn't require passing a tier into the component.
+
+**Sections now use `so-section-header`.** Every eyebrow label ("This Season", "ELO Progression", "Mode Stats", "Last 10 games", achievements) uses the DS component. Consistent vertical rhythm across the screen.
+
+**"This Season" 4-stat grid.** The old absolute-positioned stat row is now a 2×2 grid of `so-stat-card` components: Peak ELO, Accuracy, Questions, Achievements (count). Cleaner, tighter, uses the same visual language as the `/profile/tier` hero.
+
+**Last 10 games.** Custom `.match-row` markup replaced by `so-history-row` (with `[hideElo]=true` because `MatchHistoryEntry` doesn't carry per-match deltas yet — same reason as `/profile/history`). The W/L/D record chips and new "See all matches ›" link (when viewing your own profile) sit in a new `.section__head-extras` row under the section header. Added a `historyRows` computed to `profile.ts` that mirrors the mapper in `/profile/history`, flipping scores to the viewer's perspective and treating BR/TLB matches as neutral stripes (those modes don't have a per-viewer W/L/D notion).
+
+**Account actions use `so-button`.** "Edit Profile" (secondary variant) and "Delete Account" (danger variant) replace the bespoke `.account-action-btn` markup. They stack vertically now instead of side-by-side for better touch targets.
+
+**Preserved verbatim:** tier-progress strip link to `/profile/tier` (new in 0.9.3.0), XP/Level card (renamed `.xp-progress*` → `.xp-card*`, visual unchanged), ELO progression sparkline (SVG), Pro-only "View full analytics →" link, Mode Stats solo card, achievements grid with groups + progress + tap-to-popup, edit profile sheet, achievement detail popup, delete-account confirm modal, guest state, per-user-mode `isOwnProfile()` gating.
+
+**CSS footprint:** `profile.css` shrank from 1,248 lines to 817 (-35%) — the custom `.match-row*`, `.match-badge*`, `.hero__pitch*`, `.hero__stat*`, `.account-action-btn*`, `.xp-progress*` rulesets are all gone, replaced by DS component styles or a handful of fresh selectors (`.hero__bg`, `.hero__top`, `.hero__top-btn`, `.stat-grid`, `.xp-card*`, `.section__head-extras`). Added reduced-motion fallback for all new transitions.
+
+**Not included from the bundle.** Artboard A's "Top Categories" section (no data source), `@handle` and "location" meta line (no fields in the data model), "Share Profile" button (routes to the deferred `/profile/share` screen). The bundle's favourite-team feature (from Artboard E — Edit Profile) also omitted. These are follow-ups, not regressions.
+
+---
+
 ## [0.9.4.0] - 2026-04-24
 
 ### Changed — Leaderboard-flow refactor + shared tier-promotion overlay
