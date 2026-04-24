@@ -147,9 +147,11 @@
   display: flex;
   justify-content: center;
   margin-bottom: 0.875rem;
-  /* Tier-colored ring via outline (so-avatar's internal ring is the old
-     5-tier color palette — we use outline + outline-offset here to keep
-     the real 7-tier colors). */
+  /* Tier-colored ring via outline on the wrapper. so-avatar supports
+     [tier] natively as of 0.9.4.0, but we keep the outline here because
+     the rankTier() source already carries the exact color + glow + border
+     width we want (single source: core/elo-tier.ts), avoiding a second
+     tier-id lookup inside so-avatar. */
 }
 .hero__avatar-zone so-avatar {
   display: inline-block;
