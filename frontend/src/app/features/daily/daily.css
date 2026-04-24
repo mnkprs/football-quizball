@@ -7,7 +7,7 @@
 
 .daily-root {
   flex: 1;
-  min-height: 100dvh;
+  min-height: 100%;
   position: relative;
   overflow: hidden;
 }

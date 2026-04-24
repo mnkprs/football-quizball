@@ -1,10 +1,10 @@
 :host.mayhem-mode-host {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 100%;
 }
 .mayhem-root {
-  min-height: 100dvh;
+  min-height: 100%;
   flex: 1;
 }
 
@@ -13,7 +13,7 @@
 .mayhem-start {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  min-height: 100%;
   position: relative;
   overflow: hidden;
   background: var(--color-bg);
