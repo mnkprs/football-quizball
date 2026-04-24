@@ -76,7 +76,7 @@
 @if (settingsOpen()) {
   <div class="top-nav__overlay" (click)="closeSettings()" role="presentation"></div>
   <div class="top-nav__settings-panel" role="dialog" aria-label="Settings"
-       cdkTrapFocus [cdkTrapFocusAutoCapture]="!editPanelOpen()" [cdkTrapFocusEnabled]="!editPanelOpen()">
+       [cdkTrapFocus]="!editPanelOpen()" [cdkTrapFocusAutoCapture]="!editPanelOpen()">
       <div class="tsp__header">
         <h2 class="tsp__title">{{ lang.t().settingsTitle }}</h2>
         <button class="tsp__close" (click)="closeSettings()" aria-label="Close">
