@@ -473,7 +473,7 @@ export class DuelService {
           winner_id: winnerId,
           player1_score: newScores.host,
           player2_score: newScores.guest,
-          match_mode: 'duel',
+          match_mode: row.game_type === 'logo' ? 'logo_duel' : 'duel',
           game_ref_id: gameId,
           game_ref_type: 'duel',
         });
@@ -629,7 +629,7 @@ export class DuelService {
           winner_id: winnerId,
           player1_score: row.scores.host,
           player2_score: row.scores.guest,
-          match_mode: 'duel',
+          match_mode: row.game_type === 'logo' ? 'logo_duel' : 'duel',
           game_ref_id: row.id,
           game_ref_type: 'duel',
         });

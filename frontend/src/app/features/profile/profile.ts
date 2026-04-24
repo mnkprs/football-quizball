@@ -126,6 +126,7 @@ export class ProfileComponent implements OnInit {
       const modeLabel =
         m.match_mode === 'online' ? 'Online' :
         m.match_mode === 'duel' ? 'Duel' :
+        m.match_mode === 'logo_duel' ? 'Logo Duel' :
         m.match_mode === 'local' ? '2-Player' :
         m.match_mode === 'battle_royale' ? 'Battle Royale' :
         m.match_mode === 'team_logo_battle' ? 'Team Logo' :
