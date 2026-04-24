@@ -9,7 +9,7 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
-import { getEloTier, nextTierThreshold, xpForLevel, xpProgressPct, xpToNextLevel } from '../../core/elo-tier';
+import { getEloTier, nextTierThreshold, xpForLevel } from '../../core/elo-tier';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { environment } from '../../../environments/environment';
@@ -103,8 +103,7 @@ export class ProfileComponent implements OnInit {
 
   xp = computed(() => this.profile()?.xp ?? 0);
   level = computed(() => this.profile()?.level ?? 1);
-  xpPct = computed(() => xpProgressPct(this.xp(), this.level()));
-  xpRemaining = computed(() => xpToNextLevel(this.xp(), this.level()));
+  xpLevelStart = computed(() => xpForLevel(this.level()));
   xpNextLevel = computed(() => xpForLevel(this.level() + 1));
 
   /**
