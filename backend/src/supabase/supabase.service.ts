@@ -48,7 +48,7 @@ export class SupabaseService {
   async getProfile(userId: string): Promise<Profile | null> {
     const { data: profile } = await this.client
       .from('profiles')
-      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code, max_correct_streak, logo_quiz_correct, duel_wins, br_wins, last_active_date, current_daily_streak, total_questions_all_modes, modes_played, xp, level')
+      .select('id, username, elo, logo_quiz_elo, logo_quiz_hardcore_elo, logo_quiz_games_played, logo_quiz_hardcore_games_played, games_played, questions_answered, correct_answers, country_code, max_correct_streak, logo_quiz_correct, duel_wins, logo_duel_wins, br_wins, last_active_date, current_daily_streak, total_questions_all_modes, modes_played, xp, level')
       .eq('id', userId)
       .maybeSingle();
     if (profile) return profile as Profile;
@@ -69,6 +69,7 @@ export class SupabaseService {
       max_correct_streak: 0,
       logo_quiz_correct: 0,
       duel_wins: 0,
+      logo_duel_wins: 0,
       br_wins: 0,
       last_active_date: null,
       current_daily_streak: 0,
@@ -372,6 +373,33 @@ export class SupabaseService {
     };
   }
 
+  async getLogoDuelLeaderboard(limit: number): Promise<DuelLeaderboardEntry[]> {
+    const cacheKey = `leaderboard:logo_duel:${limit}`;
+    const cached = await this.redisService.get<DuelLeaderboardEntry[]>(cacheKey);
+    if (cached) return cached;
+    const { data } = await this.client.rpc('get_logo_duel_leaderboard', { p_limit: limit });
+    const result = (data ?? []) as DuelLeaderboardEntry[];
+    await this.redisService.set(cacheKey, result, LEADERBOARD_TTL);
+    return result;
+  }
+
+  async getLogoDuelLeaderboardEntryForUser(userId: string): Promise<DuelLeaderboardEntryWithRank | null> {
+    const profile = await this.getProfile(userId);
+    if (!profile) return null;
+    const { data: stats } = await this.client.rpc('get_logo_duel_user_stats', { p_user_id: userId });
+    const row = (stats as Array<{ wins: number; losses: number; games_played: number }> | null)?.[0];
+    if (!row || row.wins === 0) return null;
+    const { data: rank } = await this.client.rpc('get_logo_duel_rank', { p_user_id: userId });
+    return {
+      user_id: userId,
+      username: profile.username,
+      wins: row.wins,
+      losses: row.losses,
+      games_played: row.games_played,
+      rank: (rank as number) ?? 0,
+    };
+  }
+
   async getBlitzStatsForUser(userId: string): Promise<BlitzStats | null> {
     const { data: p } = await this.client
       .from('profiles')
@@ -634,12 +662,14 @@ export class SupabaseService {
     return new Set((data ?? []).map((r: { achievement_id: string }) => r.achievement_id));
   }
 
-  async getDuelWinCount(userId: string): Promise<number> {
-    const { data } = await this.client
+  async getDuelWinCount(userId: string, gameType?: 'standard' | 'logo'): Promise<number> {
+    let query = this.client
       .from('duel_games')
       .select('id, host_id, guest_id, scores')
       .eq('status', 'finished')
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`);
+    if (gameType) query = query.eq('game_type', gameType);
+    const { data } = await query;
     if (!data) return 0;
     return data.filter((g: { host_id: string; guest_id: string; scores: { host: number; guest: number } }) => {
       const isHost = g.host_id === userId;
@@ -647,12 +677,14 @@ export class SupabaseService {
     }).length;
   }
 
-  async getDuelGameCount(userId: string): Promise<number> {
-    const { count } = await this.client
+  async getDuelGameCount(userId: string, gameType?: 'standard' | 'logo'): Promise<number> {
+    let query = this.client
       .from('duel_games')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'finished')
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`);
+    if (gameType) query = query.eq('game_type', gameType);
+    const { count } = await query;
     return count ?? 0;
   }
 
@@ -788,16 +820,18 @@ export class SupabaseService {
     return newTotal;
   }
 
-  async incrementDuelWins(userId: string): Promise<number> {
+  async incrementDuelWins(userId: string, gameType: 'standard' | 'logo' = 'standard'): Promise<number> {
+    const column = gameType === 'logo' ? 'logo_duel_wins' : 'duel_wins';
     const { data: profile } = await this.client
       .from('profiles')
-      .select('duel_wins')
+      .select(column)
       .eq('id', userId)
       .maybeSingle();
-    const newCount = (profile?.duel_wins ?? 0) + 1;
+    const current = (profile as Record<string, number> | null)?.[column] ?? 0;
+    const newCount = current + 1;
     await this.client
       .from('profiles')
-      .update({ duel_wins: newCount })
+      .update({ [column]: newCount })
       .eq('id', userId);
     return newCount;
   }
