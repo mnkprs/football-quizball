@@ -19,6 +19,10 @@ const fullRoutes: Routes = [
       { path: 'leaderboard', loadComponent: () => import('./features/leaderboard/leaderboard').then(m => m.LeaderboardComponent) },
       { path: 'notifications', loadComponent: () => import('./features/notifications/notifications').then(m => m.NotificationsComponent), canActivate: [authGuard] },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
+      // Drilldown routes — MUST precede `profile/:userId`, otherwise the :userId
+      // wildcard swallows "tier" and "history" and they never match.
+      { path: 'profile/tier', loadComponent: () => import('./features/profile-tier/profile-tier').then(m => m.ProfileTierComponent) },
+      { path: 'profile/history', loadComponent: () => import('./features/profile-history/profile-history').then(m => m.ProfileHistoryComponent), canActivate: [authGuard] },
       { path: 'profile/:userId', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },
       { path: 'duel', loadComponent: () => import('./features/duel/duel-lobby').then(m => m.DuelLobbyComponent), canActivate: [authGuard] },
       { path: 'battle-royale', canActivate: [authGuard], loadComponent: () => import('./features/battle-royale/battle-royale-lobby').then(m => m.BattleRoyaleLobbyComponent) },
