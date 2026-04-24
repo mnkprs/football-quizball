@@ -22,6 +22,7 @@ const fullRoutes: Routes = [
       // Drilldown routes — MUST precede `profile/:userId`, otherwise the :userId
       // wildcard swallows "tier" and "history" and they never match.
       { path: 'profile/tier', loadComponent: () => import('./features/profile-tier/profile-tier').then(m => m.ProfileTierComponent) },
+      { path: 'profile/achievements', loadComponent: () => import('./features/profile-achievements/profile-achievements').then(m => m.ProfileAchievementsComponent), canActivate: [authGuard] },
       { path: 'profile/history', loadComponent: () => import('./features/profile-history/profile-history').then(m => m.ProfileHistoryComponent), canActivate: [authGuard] },
       { path: 'profile/:userId', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },
       { path: 'duel', loadComponent: () => import('./features/duel/duel-lobby').then(m => m.DuelLobbyComponent), canActivate: [authGuard] },
