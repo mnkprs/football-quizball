@@ -1,0 +1,806 @@
+{
+  "generated_at": "2026-04-15T22:58:00.042Z",
+  "count": 28,
+  "results": [
+    {
+      "question_id": "69ae2273-f161-499f-b971-6af16a7b65cd",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "aritz-aduriz",
+        "subject_name": "Aritz Aduriz",
+        "competition_id": "uefa-europa-league",
+        "question_style": "higher-or-lower",
+        "answer_type": "boolean",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale"
+        ],
+        "concept_id": "player-competition-goals",
+        "popularity_score": 55,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "athletic-bilbao"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "aritz-aduriz",
+      "raw_competition_slug": "uefa-europa-league"
+    },
+    {
+      "question_id": "8b4479e1-59cb-4836-a34e-4caa328637f9",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "just-fontaine",
+        "subject_name": "Just Fontaine",
+        "competition_id": "fifa-world-cup",
+        "question_style": "higher-or-lower",
+        "answer_type": "string",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem"
+        ],
+        "concept_id": "player-world-cup-goals",
+        "popularity_score": 50,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "france-national-football-team"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "just-fontaine",
+      "raw_competition_slug": "fifa-world-cup"
+    },
+    {
+      "question_id": "40e43f32-5406-493a-8bef-c47039d23fbd",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "aritz-aduriz",
+        "subject_name": "Aritz Aduriz",
+        "competition_id": "uefa-europa-league",
+        "question_style": "higher-or-lower",
+        "answer_type": "string",
+        "mode_compatibility": [],
+        "concept_id": "player-season-goals",
+        "popularity_score": 50,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "athletic-bilbao"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "aritz-aduriz",
+      "raw_competition_slug": "uefa-europa-league"
+    },
+    {
+      "question_id": "c895b578-0bf5-4387-aaed-4d93399e1b83",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "alan-shearer",
+        "subject_name": "Alan Shearer",
+        "competition_id": "uefa-champions-league",
+        "question_style": "higher-or-lower",
+        "answer_type": "string",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale"
+        ],
+        "concept_id": "player-competition-goals",
+        "popularity_score": 75,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "newcastle-united"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "alan-shearer",
+      "raw_competition_slug": "uefa-champions-league"
+    },
+    {
+      "question_id": "9cf0e9a7-23e4-4491-aae9-e0cb6c34ec60",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "west-germany",
+        "subject_name": "West Germany",
+        "competition_id": "fifa-world-cup",
+        "question_style": "trivia",
+        "answer_type": "country",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "world-cup-final-winners",
+        "popularity_score": 80,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "de",
+          "nl",
+          "franz-beckenbauer",
+          "johan-cruyff"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "west-germany",
+      "raw_competition_slug": "fifa-world-cup"
+    },
+    {
+      "question_id": "f69a0810-a1d7-4dc5-b02d-20052f2b071b",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "borussia-monchengladbach",
+        "subject_name": "Borussia Mönchengladbach",
+        "competition_id": "uefa-cup",
+        "question_style": "trivia",
+        "answer_type": "team_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "uefa-cup-finals",
+        "popularity_score": 60,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "fk-crvena-zvezda"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "borussia-monchengladbach",
+      "raw_competition_slug": "uefa-cup"
+    },
+    {
+      "question_id": "ddb26811-8435-470f-a2cb-ee4ed1eebcd0",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "psv-eindhoven",
+        "subject_name": "PSV Eindhoven",
+        "competition_id": "european-cup",
+        "question_style": "trivia",
+        "answer_type": "team_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem"
+        ],
+        "concept_id": "european-cup-winners",
+        "popularity_score": 75,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "sl-benfica",
+          "pt",
+          "nl"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "psv-eindhoven",
+      "raw_competition_slug": "european-cup"
+    },
+    {
+      "question_id": "f03fdd1c-a37a-4c3a-a51e-1d7d54d42cd3",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "psv-eindhoven",
+        "subject_name": "PSV Eindhoven",
+        "competition_id": "knvb-cup",
+        "question_style": "trivia",
+        "answer_type": "team_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "knvb-cup-winners",
+        "popularity_score": 70,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "ajax"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "psv-eindhoven",
+      "raw_competition_slug": "knvb-cup"
+    },
+    {
+      "question_id": "33e333aa-9a2f-490a-a14a-4c310455d5f5",
+      "classification": {
+        "subject_type": "stadium",
+        "subject_id": "rsc-olimpiyskiy",
+        "subject_name": "RSC Olimpiyskiy",
+        "competition_id": null,
+        "question_style": "trivia",
+        "answer_type": "stadium",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "stadium-competition-host",
+        "popularity_score": 30,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "ua",
+          "england-national-football-team"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "rsc-olimpiyskiy"
+    },
+    {
+      "question_id": "8bad682a-ae10-4990-b906-24568c025abd",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "fk-vojvodina",
+        "subject_name": "FK Vojvodina",
+        "competition_id": "serbian-superliga",
+        "question_style": "trivia",
+        "answer_type": "string",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale"
+        ],
+        "concept_id": "club-stadium-location",
+        "popularity_score": 30,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "rs",
+          "karadorde-stadium"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "fk-vojvodina",
+      "raw_competition_slug": "serbian-superliga"
+    },
+    {
+      "question_id": "72791ad2-552e-4351-a4d0-04bbe51b2482",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "boavista",
+        "subject_name": "Boavista",
+        "competition_id": null,
+        "question_style": "trivia",
+        "answer_type": "stadium",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem"
+        ],
+        "concept_id": "club-stadiums",
+        "popularity_score": 30,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "pt",
+          "estadio-do-bessa-seculo-xxi"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "boavista"
+    },
+    {
+      "question_id": "086b35db-db7c-45d7-ba08-40f6b1332e02",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "dynamo-kyiv",
+        "subject_name": "Dynamo Kyiv",
+        "competition_id": null,
+        "question_style": "trivia",
+        "answer_type": "string",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale"
+        ],
+        "concept_id": "club-stadium-matchups",
+        "popularity_score": 50,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "olimpiyskiy-national-sports-complex"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "dynamo-kyiv"
+    },
+    {
+      "question_id": "51a186e9-dcf8-434a-b4e0-6fa242f78d45",
+      "classification": {
+        "subject_type": "trophy",
+        "subject_id": "caf-champions-league",
+        "subject_name": "African Champions League",
+        "competition_id": "caf-champions-league",
+        "question_style": "top5",
+        "answer_type": "list",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "battle_royale"
+        ],
+        "concept_id": "caf-champions-league-most-titles",
+        "popularity_score": 75,
+        "time_sensitive": true,
+        "valid_until": "2025-05-31",
+        "tags": [
+          "al-ahly",
+          "zamalek",
+          "tp-mazembe",
+          "esperance-de-tunis",
+          "wydad-ac"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "caf-champions-league",
+      "raw_competition_slug": "caf-champions-league"
+    },
+    {
+      "question_id": "96dc7442-28d3-46a4-bdae-9e01941de36f",
+      "classification": {
+        "subject_type": "league",
+        "subject_id": "super-lig",
+        "subject_name": "Süper Lig",
+        "competition_id": "super-lig",
+        "question_style": "top5",
+        "answer_type": "list",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "battle_royale"
+        ],
+        "concept_id": "super-lig-most-titles",
+        "popularity_score": 50,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "galatasaray-sk",
+          "fenerbahce-sk",
+          "besiktas-jk",
+          "trabzonspor",
+          "bursaspor",
+          "istanbul-basaksehir"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "super-lig",
+      "raw_competition_slug": "super-lig"
+    },
+    {
+      "question_id": "a53de3e6-c048-4233-81e7-23580f35ec18",
+      "classification": {
+        "subject_type": null,
+        "subject_id": null,
+        "subject_name": null,
+        "competition_id": null,
+        "question_style": "top5",
+        "answer_type": "list",
+        "mode_compatibility": [
+          "solo",
+          "duel"
+        ],
+        "concept_id": "most-consecutive-league-titles-europe",
+        "popularity_score": 50,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "skonto-riga",
+          "lincoln-red-imps",
+          "bate-borisov",
+          "rosenborg",
+          "dinamo-zagreb"
+        ]
+      },
+      "warnings": []
+    },
+    {
+      "question_id": "64afb3b2-c0c5-4786-b05a-bd7535fef6f5",
+      "classification": {
+        "subject_type": "trophy",
+        "subject_id": "afc-asian-cup",
+        "subject_name": "AFC Asian Cup",
+        "competition_id": "afc-asian-cup",
+        "question_style": "top5",
+        "answer_type": "list",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "battle_royale"
+        ],
+        "concept_id": "afc-asian-cup-top-scorers",
+        "popularity_score": 50,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "ali-daei",
+          "lee-dong-gook",
+          "almoez-ali",
+          "naohiro-takahara",
+          "ali-mabkhout",
+          "younis-mahmoud"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "afc-asian-cup",
+      "raw_competition_slug": "afc-asian-cup"
+    },
+    {
+      "question_id": "930f143f-a516-479c-ade4-fd9ec5b519af",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "bayern-munich",
+        "subject_name": "Bayern Munich",
+        "competition_id": "uefa-champions-league",
+        "question_style": "guess-score",
+        "answer_type": "score",
+        "mode_compatibility": [
+          "solo",
+          "duel"
+        ],
+        "concept_id": "champions-league-match-scores",
+        "popularity_score": 95,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "fc-porto"
+        ]
+      },
+      "warnings": [
+        "dropped unknown tag \"porto\""
+      ],
+      "raw_subject_slug": "bayern-munich",
+      "raw_competition_slug": "uefa-champions-league"
+    },
+    {
+      "question_id": "3f8d5f9d-bd11-4d76-b18e-c991dc6ba828",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "chelsea",
+        "subject_name": "Chelsea",
+        "competition_id": "fa-cup",
+        "question_style": "guess-score",
+        "answer_type": "score",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem"
+        ],
+        "concept_id": "fa-cup-final-scores",
+        "popularity_score": 90,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "arsenal"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "chelsea",
+      "raw_competition_slug": "fa-cup"
+    },
+    {
+      "question_id": "9668c788-c4a4-46b7-aa6d-c6b38b24d262",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "arsenal",
+        "subject_name": "Arsenal",
+        "competition_id": "premier-league",
+        "question_style": "guess-score",
+        "answer_type": "score",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "north-london-derby-scores",
+        "popularity_score": 90,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "tottenham-hotspur"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "arsenal",
+      "raw_competition_slug": "premier-league"
+    },
+    {
+      "question_id": "61cd15c4-cad8-43a2-bc20-f1bf6bfe5095",
+      "classification": {
+        "subject_type": "team",
+        "subject_id": "manchester-united",
+        "subject_name": "Manchester United",
+        "competition_id": "premier-league",
+        "question_style": "guess-score",
+        "answer_type": "score",
+        "mode_compatibility": [
+          "solo",
+          "duel"
+        ],
+        "concept_id": "match-scores",
+        "popularity_score": 95,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "tottenham-hotspur",
+          "bruno-fernandes",
+          "tanguy-ndombele",
+          "son-heung-min",
+          "anthony-martial",
+          "harry-kane",
+          "serge-aurier"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "manchester-united",
+      "raw_competition_slug": "premier-league"
+    },
+    {
+      "question_id": "2c0769a9-08fa-4930-9d45-3bc934ae6200",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "jermain-defoe",
+        "subject_name": "Jermain Defoe",
+        "competition_id": "premier-league",
+        "question_style": "player-id",
+        "answer_type": "player_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale"
+        ],
+        "concept_id": "premier-league-top-scorers",
+        "popularity_score": 75,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "west-ham-united",
+          "tottenham-hotspur",
+          "portsmouth",
+          "sunderland",
+          "bournemouth"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "jermain-defoe",
+      "raw_competition_slug": "premier-league"
+    },
+    {
+      "question_id": "27b6ee4e-d7c7-4895-8e2a-15aa52c56fb6",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "patrick-kluivert",
+        "subject_name": "Patrick Kluivert",
+        "competition_id": null,
+        "question_style": "player-id",
+        "answer_type": "player_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "player-career-path",
+        "popularity_score": 75,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "ajax",
+          "ac-milan",
+          "fc-barcelona",
+          "eredivisie",
+          "psv-eindhoven",
+          "nl"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "patrick-kluivert"
+    },
+    {
+      "question_id": "d5725e72-c593-469b-9388-dc73d643cbb9",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "brian-laudrup",
+        "subject_name": "Brian Laudrup",
+        "competition_id": null,
+        "question_style": "player-id",
+        "answer_type": "player_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "player-career-path",
+        "popularity_score": 60,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "bayern-munich",
+          "ac-milan",
+          "rangers",
+          "denmark",
+          "michael-laudrup"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "brian-laudrup"
+    },
+    {
+      "question_id": "7d9773bf-9bfc-4520-ba6a-f324ab7b6bd9",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "xabi-alonso",
+        "subject_name": "Xabi Alonso",
+        "competition_id": "uefa-champions-league",
+        "question_style": "trivia",
+        "answer_type": "player_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem"
+        ],
+        "concept_id": "player-trophy-history",
+        "popularity_score": 80,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "liverpool",
+          "real-madrid",
+          "es"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "xabi-alonso",
+      "raw_competition_slug": "uefa-champions-league"
+    },
+    {
+      "question_id": "03d3e0d2-0ac1-4ab0-95b9-87a4f1a78982",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "gerard-pique",
+        "subject_name": "Gerard Pique",
+        "competition_id": null,
+        "question_style": "trivia",
+        "answer_type": "player_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem",
+          "hardcore"
+        ],
+        "concept_id": "player-post-career-ventures",
+        "popularity_score": 85,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "fc-barcelona",
+          "es"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "gerard-pique"
+    },
+    {
+      "question_id": "a2ecf71e-5fa9-4dcc-99dc-1268e25eaa18",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "neymar-jr",
+        "subject_name": "Neymar Jr.",
+        "competition_id": "saudi-pro-league",
+        "question_style": "trivia",
+        "answer_type": "player_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz",
+          "battle_royale",
+          "mayhem"
+        ],
+        "concept_id": "player-contract-clauses",
+        "popularity_score": 95,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "al-hilal"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "neymar-jr",
+      "raw_competition_slug": "saudi-pro-league"
+    },
+    {
+      "question_id": "5fec9703-d3fe-4ef5-b88b-7fa833177253",
+      "classification": {
+        "subject_type": "player",
+        "subject_id": "pedri",
+        "subject_name": "Pedri",
+        "competition_id": "la-liga",
+        "question_style": "trivia",
+        "answer_type": "player_name",
+        "mode_compatibility": [],
+        "concept_id": null,
+        "popularity_score": 85,
+        "time_sensitive": true,
+        "valid_until": "2024-06-30",
+        "tags": [
+          "fc-barcelona",
+          "es"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "pedri",
+      "raw_competition_slug": "la-liga"
+    },
+    {
+      "question_id": "3dde25b5-efe4-4425-aa4e-8e32993a82ca",
+      "classification": {
+        "subject_type": "manager",
+        "subject_id": "frank-lampard",
+        "subject_name": "Frank Lampard",
+        "competition_id": "premier-league",
+        "question_style": "trivia",
+        "answer_type": "manager_name",
+        "mode_compatibility": [
+          "solo",
+          "duel",
+          "blitz"
+        ],
+        "concept_id": "manager-press-conference-controversy",
+        "popularity_score": 75,
+        "time_sensitive": false,
+        "valid_until": null,
+        "tags": [
+          "chelsea"
+        ]
+      },
+      "warnings": [],
+      "raw_subject_slug": "frank-lampard",
+      "raw_competition_slug": "premier-league"
+    }
+  ]
+}

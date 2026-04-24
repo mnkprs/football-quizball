@@ -1,0 +1,525 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Backfill pilot review</title>
+<style>
+  body { font: 14px/1.5 -apple-system, system-ui, sans-serif; margin: 0; background: #fafafa; color: #111; }
+  header { background: #fff; border-bottom: 1px solid #e5e7eb; padding: 1rem 1.5rem; position: sticky; top: 0; }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: .75rem; }
+  .card.err { border-color: #dc2626; background: #fef2f2; }
+  .fail { color: #dc2626; font-weight: 600; }
+  .q { font-size: 1.02em; margin-bottom: .2rem; }
+  .a { color: #059669; margin-bottom: .3rem; }
+  .meta { color: #6b7280; font-size: .85em; margin-bottom: .5rem; }
+  .warn { background: #fef3c7; color: #78350f; padding: .3rem .6rem; border-radius: 4px; font-size: .85em; margin-bottom: .5rem; }
+  table.tax { width: 100%; border-collapse: collapse; font-size: .9em; }
+  table.tax th { text-align: left; width: 160px; padding: .25rem .5rem; color: #475569; font-weight: 500; border-bottom: 1px solid #f1f5f9; }
+  table.tax td { padding: .25rem .5rem; border-bottom: 1px solid #f1f5f9; }
+  code { background: #f1f5f9; padding: 1px 6px; border-radius: 3px; font-family: ui-monospace, Menlo, monospace; font-size: .88em; }
+  .dim { color: #9ca3af; }
+</style></head><body>
+<header><strong>Backfill pilot review</strong> · 28 questions · 1 with warnings · 0 failed</header>
+<main><div class="card">
+        <div class="q"><strong>Q:</strong> Aritz Aduriz scored 25 goals for Athletic Bilbao in the Europa League. Was his actual total higher or lower?</div>
+        <div class="a"><strong>A:</strong> higher</div>
+        <div class="meta">HIGHER_OR_LOWER · MEDIUM · <code>69ae2273</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>aritz-aduriz</code></td></tr>
+          <tr><th>subject_name</th><td>Aritz Aduriz</td></tr>
+          <tr><th>competition_id</th><td><code>uefa-europa-league</code></td></tr>
+          <tr><th>question_style</th><td><code>higher-or-lower</code></td></tr>
+          <tr><th>answer_type</th><td><code>boolean</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>player-competition-goals</code></td></tr>
+          <tr><th>popularity_score</th><td>55</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>athletic-bilbao</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Just Fontaine scored 10 goals in the 1958 FIFA World Cup for France. Was his actual goal tally higher or lower?</div>
+        <div class="a"><strong>A:</strong> higher</div>
+        <div class="meta">HIGHER_OR_LOWER · MEDIUM · <code>8b4479e1</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>just-fontaine</code></td></tr>
+          <tr><th>subject_name</th><td>Just Fontaine</td></tr>
+          <tr><th>competition_id</th><td><code>fifa-world-cup</code></td></tr>
+          <tr><th>question_style</th><td><code>higher-or-lower</code></td></tr>
+          <tr><th>answer_type</th><td><code>string</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem</td></tr>
+          <tr><th>concept_id</th><td><code>player-world-cup-goals</code></td></tr>
+          <tr><th>popularity_score</th><td>50</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>france-national-football-team</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Aritz Aduriz scored 8 Europa League goals for Athletic Bilbao in the 2015-16 season. Was his actual goal tally higher or lower?</div>
+        <div class="a"><strong>A:</strong> higher</div>
+        <div class="meta">HIGHER_OR_LOWER · MEDIUM · <code>40e43f32</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>aritz-aduriz</code></td></tr>
+          <tr><th>subject_name</th><td>Aritz Aduriz</td></tr>
+          <tr><th>competition_id</th><td><code>uefa-europa-league</code></td></tr>
+          <tr><th>question_style</th><td><code>higher-or-lower</code></td></tr>
+          <tr><th>answer_type</th><td><code>string</code></td></tr>
+          <tr><th>mode_compatibility</th><td><span class="dim">(none)</span></td></tr>
+          <tr><th>concept_id</th><td><code>player-season-goals</code></td></tr>
+          <tr><th>popularity_score</th><td>50</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>athletic-bilbao</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Alan Shearer scored 10 Champions League goals for Newcastle United. Was his actual goal tally higher or lower?</div>
+        <div class="a"><strong>A:</strong> lower</div>
+        <div class="meta">HIGHER_OR_LOWER · MEDIUM · <code>c895b578</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>alan-shearer</code></td></tr>
+          <tr><th>subject_name</th><td>Alan Shearer</td></tr>
+          <tr><th>competition_id</th><td><code>uefa-champions-league</code></td></tr>
+          <tr><th>question_style</th><td><code>higher-or-lower</code></td></tr>
+          <tr><th>answer_type</th><td><code>string</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>player-competition-goals</code></td></tr>
+          <tr><th>popularity_score</th><td>75</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>newcastle-united</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which national team did West Germany defeat in the final of the 1974 FIFA World Cup?</div>
+        <div class="a"><strong>A:</strong> Netherlands</div>
+        <div class="meta">HISTORY · EASY · <code>9cf0e9a7</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>west-germany</code></td></tr>
+          <tr><th>subject_name</th><td>West Germany</td></tr>
+          <tr><th>competition_id</th><td><code>fifa-world-cup</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>country</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>world-cup-final-winners</code></td></tr>
+          <tr><th>popularity_score</th><td>80</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>de</code> <code>nl</code> <code>franz-beckenbauer</code> <code>johan-cruyff</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which club did Borussia Mönchengladbach defeat in the 1979 UEFA Cup Final?</div>
+        <div class="a"><strong>A:</strong> Red Star Belgrade</div>
+        <div class="meta">HISTORY · EASY · <code>f69a0810</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>borussia-monchengladbach</code></td></tr>
+          <tr><th>subject_name</th><td>Borussia Mönchengladbach</td></tr>
+          <tr><th>competition_id</th><td><code>uefa-cup</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>team_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>uefa-cup-finals</code></td></tr>
+          <tr><th>popularity_score</th><td>60</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>fk-crvena-zvezda</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which club did PSV Eindhoven defeat in the 1988 European Cup final?</div>
+        <div class="a"><strong>A:</strong> Benfica</div>
+        <div class="meta">HISTORY · EASY · <code>ddb26811</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>psv-eindhoven</code></td></tr>
+          <tr><th>subject_name</th><td>PSV Eindhoven</td></tr>
+          <tr><th>competition_id</th><td><code>european-cup</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>team_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem</td></tr>
+          <tr><th>concept_id</th><td><code>european-cup-winners</code></td></tr>
+          <tr><th>popularity_score</th><td>75</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>sl-benfica</code> <code>pt</code> <code>nl</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which club did PSV Eindhoven defeat in the 2022 KNVB Cup final, winning 2-1?</div>
+        <div class="a"><strong>A:</strong> Ajax</div>
+        <div class="meta">HISTORY · MEDIUM · <code>f03fdd1c</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>psv-eindhoven</code></td></tr>
+          <tr><th>subject_name</th><td>PSV Eindhoven</td></tr>
+          <tr><th>competition_id</th><td><code>knvb-cup</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>team_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>knvb-cup-winners</code></td></tr>
+          <tr><th>popularity_score</th><td>70</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>ajax</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which stadium in Ukraine hosted the final of the 2009 UEFA European Under-19 Championship?</div>
+        <div class="a"><strong>A:</strong> RSC Olimpiyskiy</div>
+        <div class="meta">GEOGRAPHY · HARD · <code>33e333aa</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>stadium</code></td></tr>
+          <tr><th>subject_id</th><td><code>rsc-olimpiyskiy</code></td></tr>
+          <tr><th>subject_name</th><td>RSC Olimpiyskiy</td></tr>
+          <tr><th>competition_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>stadium</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>stadium-competition-host</code></td></tr>
+          <tr><th>popularity_score</th><td>30</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>ua</code> <code>england-national-football-team</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> In which city is the home stadium of FK Vojvodina located, a club that has competed in the top-tier Serbian SuperLiga?</div>
+        <div class="a"><strong>A:</strong> Novi Sad</div>
+        <div class="meta">GEOGRAPHY · HARD · <code>8bad682a</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>fk-vojvodina</code></td></tr>
+          <tr><th>subject_name</th><td>FK Vojvodina</td></tr>
+          <tr><th>competition_id</th><td><code>serbian-superliga</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>string</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>club-stadium-location</code></td></tr>
+          <tr><th>popularity_score</th><td>30</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>rs</code> <code>karadorde-stadium</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which stadium in Portugal serves as the home ground for Boavista F.C., known for its distinctive checkerboard pattern?</div>
+        <div class="a"><strong>A:</strong> Estádio do Bessa Século XXI</div>
+        <div class="meta">GEOGRAPHY · HARD · <code>72791ad2</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>boavista</code></td></tr>
+          <tr><th>subject_name</th><td>Boavista</td></tr>
+          <tr><th>competition_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>stadium</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem</td></tr>
+          <tr><th>concept_id</th><td><code>club-stadiums</code></td></tr>
+          <tr><th>popularity_score</th><td>30</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>pt</code> <code>estadio-do-bessa-seculo-xxi</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which stadium is the home ground for the football club Dynamo Kyiv?</div>
+        <div class="a"><strong>A:</strong> Olimpiyskiy National Sports Complex</div>
+        <div class="meta">GEOGRAPHY · EASY · <code>086b35db</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>dynamo-kyiv</code></td></tr>
+          <tr><th>subject_name</th><td>Dynamo Kyiv</td></tr>
+          <tr><th>competition_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>string</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>club-stadium-matchups</code></td></tr>
+          <tr><th>popularity_score</th><td>50</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>olimpiyskiy-national-sports-complex</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Name the top 5 clubs with the most titles in the African Champions League (CAF Champions League).</div>
+        <div class="a"><strong>A:</strong> Al Ahly, Zamalek, TP Mazembe, Espérance de Tunis, Wydad AC</div>
+        <div class="meta">TOP_5 · HARD · <code>51a186e9</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>trophy</code></td></tr>
+          <tr><th>subject_id</th><td><code>caf-champions-league</code></td></tr>
+          <tr><th>subject_name</th><td>African Champions League</td></tr>
+          <tr><th>competition_id</th><td><code>caf-champions-league</code></td></tr>
+          <tr><th>question_style</th><td><code>top5</code></td></tr>
+          <tr><th>answer_type</th><td><code>list</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>caf-champions-league-most-titles</code></td></tr>
+          <tr><th>popularity_score</th><td>75</td></tr>
+          <tr><th>time_sensitive</th><td>true · valid_until 2025-05-31</td></tr>
+          <tr><th>tags</th><td><code>al-ahly</code> <code>zamalek</code> <code>tp-mazembe</code> <code>esperance-de-tunis</code> <code>wydad-ac</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Name the top 5 clubs with the most league titles in the Turkish Süper Lig.</div>
+        <div class="a"><strong>A:</strong> Galatasaray SK, Fenerbahçe SK, Beşiktaş JK, Trabzonspor, Bursaspor</div>
+        <div class="meta">TOP_5 · HARD · <code>96dc7442</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>league</code></td></tr>
+          <tr><th>subject_id</th><td><code>super-lig</code></td></tr>
+          <tr><th>subject_name</th><td>Süper Lig</td></tr>
+          <tr><th>competition_id</th><td><code>super-lig</code></td></tr>
+          <tr><th>question_style</th><td><code>top5</code></td></tr>
+          <tr><th>answer_type</th><td><code>list</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>super-lig-most-titles</code></td></tr>
+          <tr><th>popularity_score</th><td>50</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>galatasaray-sk</code> <code>fenerbahce-sk</code> <code>besiktas-jk</code> <code>trabzonspor</code> <code>bursaspor</code> <code>istanbul-basaksehir</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Name the top 5 clubs with the most consecutive league titles in European top-flight football.</div>
+        <div class="a"><strong>A:</strong> Skonto Riga, Lincoln Red Imps, BATE Borisov, Rosenborg, Dinamo Zagreb</div>
+        <div class="meta">TOP_5 · HARD · <code>a53de3e6</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><span class="dim">null</span></td></tr>
+          <tr><th>subject_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>subject_name</th><td><span class="dim">null</span></td></tr>
+          <tr><th>competition_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>question_style</th><td><code>top5</code></td></tr>
+          <tr><th>answer_type</th><td><code>list</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel</td></tr>
+          <tr><th>concept_id</th><td><code>most-consecutive-league-titles-europe</code></td></tr>
+          <tr><th>popularity_score</th><td>50</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>skonto-riga</code> <code>lincoln-red-imps</code> <code>bate-borisov</code> <code>rosenborg</code> <code>dinamo-zagreb</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Name the top 5 players with the most goals scored in the history of the AFC Asian Cup.</div>
+        <div class="a"><strong>A:</strong> Ali Daei, Lee Dong-gook, Almoez Ali, Naohiro Takahara, Ali Mabkhout</div>
+        <div class="meta">TOP_5 · HARD · <code>64afb3b2</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>trophy</code></td></tr>
+          <tr><th>subject_id</th><td><code>afc-asian-cup</code></td></tr>
+          <tr><th>subject_name</th><td>AFC Asian Cup</td></tr>
+          <tr><th>competition_id</th><td><code>afc-asian-cup</code></td></tr>
+          <tr><th>question_style</th><td><code>top5</code></td></tr>
+          <tr><th>answer_type</th><td><code>list</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>afc-asian-cup-top-scorers</code></td></tr>
+          <tr><th>popularity_score</th><td>50</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>ali-daei</code> <code>lee-dong-gook</code> <code>almoez-ali</code> <code>naohiro-takahara</code> <code>ali-mabkhout</code> <code>younis-mahmoud</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> What was the score when Bayern Munich hosted Porto in the second leg of the 2015 Champions League quarter-final?</div>
+        <div class="a"><strong>A:</strong> 6-1</div>
+        <div class="meta">GUESS_SCORE · MEDIUM · <code>930f143f</code></div>
+        <div class="warn">⚠ dropped unknown tag &quot;porto&quot;</div>
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>bayern-munich</code></td></tr>
+          <tr><th>subject_name</th><td>Bayern Munich</td></tr>
+          <tr><th>competition_id</th><td><code>uefa-champions-league</code></td></tr>
+          <tr><th>question_style</th><td><code>guess-score</code></td></tr>
+          <tr><th>answer_type</th><td><code>score</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel</td></tr>
+          <tr><th>concept_id</th><td><code>champions-league-match-scores</code></td></tr>
+          <tr><th>popularity_score</th><td>95</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>fc-porto</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> What was the final score when Chelsea faced Arsenal in the 2017 FA Cup Final?</div>
+        <div class="a"><strong>A:</strong> 1-2</div>
+        <div class="meta">GUESS_SCORE · EASY · <code>3f8d5f9d</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>chelsea</code></td></tr>
+          <tr><th>subject_name</th><td>Chelsea</td></tr>
+          <tr><th>competition_id</th><td><code>fa-cup</code></td></tr>
+          <tr><th>question_style</th><td><code>guess-score</code></td></tr>
+          <tr><th>answer_type</th><td><code>score</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem</td></tr>
+          <tr><th>concept_id</th><td><code>fa-cup-final-scores</code></td></tr>
+          <tr><th>popularity_score</th><td>90</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>arsenal</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> What was the final score when Arsenal came from two goals down to defeat Tottenham Hotspur in the North London Derby on 26 February 2012?</div>
+        <div class="a"><strong>A:</strong> 5-2</div>
+        <div class="meta">GUESS_SCORE · HARD · <code>9668c788</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>arsenal</code></td></tr>
+          <tr><th>subject_name</th><td>Arsenal</td></tr>
+          <tr><th>competition_id</th><td><code>premier-league</code></td></tr>
+          <tr><th>question_style</th><td><code>guess-score</code></td></tr>
+          <tr><th>answer_type</th><td><code>score</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>north-london-derby-scores</code></td></tr>
+          <tr><th>popularity_score</th><td>90</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>tottenham-hotspur</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> What was the final score when Manchester United hosted Tottenham Hotspur in the Premier League on 4 October 2020?</div>
+        <div class="a"><strong>A:</strong> 1-6</div>
+        <div class="meta">GUESS_SCORE · HARD · <code>61cd15c4</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>team</code></td></tr>
+          <tr><th>subject_id</th><td><code>manchester-united</code></td></tr>
+          <tr><th>subject_name</th><td>Manchester United</td></tr>
+          <tr><th>competition_id</th><td><code>premier-league</code></td></tr>
+          <tr><th>question_style</th><td><code>guess-score</code></td></tr>
+          <tr><th>answer_type</th><td><code>score</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel</td></tr>
+          <tr><th>concept_id</th><td><code>match-scores</code></td></tr>
+          <tr><th>popularity_score</th><td>95</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>tottenham-hotspur</code> <code>bruno-fernandes</code> <code>tanguy-ndombele</code> <code>son-heung-min</code> <code>anthony-martial</code> <code>harry-kane</code> <code>serge-aurier</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> I am one of the top goalscorers in Premier League history, having played for West Ham, Tottenham (twice), Portsmouth, Sunderland (twice), and Bournemouth. Who am I?</div>
+        <div class="a"><strong>A:</strong> Jermain Defoe</div>
+        <div class="meta">PLAYER_ID · MEDIUM · <code>2c0769a9</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>jermain-defoe</code></td></tr>
+          <tr><th>subject_name</th><td>Jermain Defoe</td></tr>
+          <tr><th>competition_id</th><td><code>premier-league</code></td></tr>
+          <tr><th>question_style</th><td><code>player-id</code></td></tr>
+          <tr><th>answer_type</th><td><code>player_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale</td></tr>
+          <tr><th>concept_id</th><td><code>premier-league-top-scorers</code></td></tr>
+          <tr><th>popularity_score</th><td>75</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>west-ham-united</code> <code>tottenham-hotspur</code> <code>portsmouth</code> <code>sunderland</code> <code>bournemouth</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> I am a Dutch striker who started at Ajax, played for AC Milan, had a long spell at Barcelona, and later returned to the Eredivisie with PSV. Who am I?</div>
+        <div class="a"><strong>A:</strong> Patrick Kluivert</div>
+        <div class="meta">PLAYER_ID · MEDIUM · <code>27b6ee4e</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>patrick-kluivert</code></td></tr>
+          <tr><th>subject_name</th><td>Patrick Kluivert</td></tr>
+          <tr><th>competition_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>question_style</th><td><code>player-id</code></td></tr>
+          <tr><th>answer_type</th><td><code>player_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>player-career-path</code></td></tr>
+          <tr><th>popularity_score</th><td>75</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>ajax</code> <code>ac-milan</code> <code>fc-barcelona</code> <code>eredivisie</code> <code>psv-eindhoven</code> <code>nl</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> I started my career in Denmark, played for Bayern Munich, AC Milan, and won multiple league titles with Rangers. Who am I?</div>
+        <div class="a"><strong>A:</strong> Brian Laudrup</div>
+        <div class="meta">PLAYER_ID · MEDIUM · <code>d5725e72</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>brian-laudrup</code></td></tr>
+          <tr><th>subject_name</th><td>Brian Laudrup</td></tr>
+          <tr><th>competition_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>question_style</th><td><code>player-id</code></td></tr>
+          <tr><th>answer_type</th><td><code>player_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>player-career-path</code></td></tr>
+          <tr><th>popularity_score</th><td>60</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>bayern-munich</code> <code>ac-milan</code> <code>rangers</code> <code>denmark</code> <code>michael-laudrup</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which Spanish midfielder won the UEFA Champions League with Liverpool in 2005 and Real Madrid in 2014?</div>
+        <div class="a"><strong>A:</strong> Xabi Alonso</div>
+        <div class="meta">PLAYER_ID · EASY · <code>7d9773bf</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>xabi-alonso</code></td></tr>
+          <tr><th>subject_name</th><td>Xabi Alonso</td></tr>
+          <tr><th>competition_id</th><td><code>uefa-champions-league</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>player_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem</td></tr>
+          <tr><th>concept_id</th><td><code>player-trophy-history</code></td></tr>
+          <tr><th>popularity_score</th><td>80</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>liverpool</code> <code>real-madrid</code> <code>es</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which well-known former Barcelona and Spain defender, who retired from football in 2022, is now heavily involved in sports business ventures including a major tennis tournament?</div>
+        <div class="a"><strong>A:</strong> Gerard Pique</div>
+        <div class="meta">GOSSIP · MEDIUM · <code>03d3e0d2</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>gerard-pique</code></td></tr>
+          <tr><th>subject_name</th><td>Gerard Pique</td></tr>
+          <tr><th>competition_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>player_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem, hardcore</td></tr>
+          <tr><th>concept_id</th><td><code>player-post-career-ventures</code></td></tr>
+          <tr><th>popularity_score</th><td>85</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>fc-barcelona</code> <code>es</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which player, during his medical for a Saudi Pro League club in 2023, reportedly had a clause inserted in his contract to limit his camel riding activities?</div>
+        <div class="a"><strong>A:</strong> Neymar</div>
+        <div class="meta">GOSSIP · MEDIUM · <code>a2ecf71e</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>neymar-jr</code></td></tr>
+          <tr><th>subject_name</th><td>Neymar Jr.</td></tr>
+          <tr><th>competition_id</th><td><code>saudi-pro-league</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>player_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz, battle_royale, mayhem</td></tr>
+          <tr><th>concept_id</th><td><code>player-contract-clauses</code></td></tr>
+          <tr><th>popularity_score</th><td>95</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>al-hilal</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which Spanish midfielder, playing in La Liga, was widely reported in early 2024 to have had a public spat with his club's board over contract extension terms?</div>
+        <div class="a"><strong>A:</strong> Pedri</div>
+        <div class="meta">GOSSIP · MEDIUM · <code>5fec9703</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>player</code></td></tr>
+          <tr><th>subject_id</th><td><code>pedri</code></td></tr>
+          <tr><th>subject_name</th><td>Pedri</td></tr>
+          <tr><th>competition_id</th><td><code>la-liga</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>player_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td><span class="dim">(none)</span></td></tr>
+          <tr><th>concept_id</th><td><span class="dim">null</span></td></tr>
+          <tr><th>popularity_score</th><td>85</td></tr>
+          <tr><th>time_sensitive</th><td>true · valid_until 2024-06-30</td></tr>
+          <tr><th>tags</th><td><code>fc-barcelona</code> <code>es</code></td></tr>
+        </table>
+      </div><div class="card">
+        <div class="q"><strong>Q:</strong> Which manager, after a string of poor results in early 2021, responded to critical questions from journalists by lashing out and accusing them of 'confirmation bias' during a post-match press conference?</div>
+        <div class="a"><strong>A:</strong> Frank Lampard</div>
+        <div class="meta">GOSSIP · MEDIUM · <code>3dde25b5</code></div>
+        
+        <table class="tax">
+          <tr><th>subject_type</th><td><code>manager</code></td></tr>
+          <tr><th>subject_id</th><td><code>frank-lampard</code></td></tr>
+          <tr><th>subject_name</th><td>Frank Lampard</td></tr>
+          <tr><th>competition_id</th><td><code>premier-league</code></td></tr>
+          <tr><th>question_style</th><td><code>trivia</code></td></tr>
+          <tr><th>answer_type</th><td><code>manager_name</code></td></tr>
+          <tr><th>mode_compatibility</th><td>solo, duel, blitz</td></tr>
+          <tr><th>concept_id</th><td><code>manager-press-conference-controversy</code></td></tr>
+          <tr><th>popularity_score</th><td>75</td></tr>
+          <tr><th>time_sensitive</th><td>false</td></tr>
+          <tr><th>tags</th><td><code>chelsea</code></td></tr>
+        </table>
+      </div></main>
+</body></html>

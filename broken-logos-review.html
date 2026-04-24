@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Broken Logo Review — 52 entries missing erasures</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f1115; color: #e8e8ea; padding: 24px; margin: 0; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: #9aa0a6; font-size: 13px; margin-bottom: 20px; }
+
+  .controls { position: sticky; top: 0; background: #0f1115; padding: 12px 0; border-bottom: 1px solid #2a2d33; z-index: 10; display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  input[type=search] { background: #1a1d23; border: 1px solid #2a2d33; color: #e8e8ea; padding: 8px 12px; border-radius: 6px; min-width: 260px; font-size: 14px; }
+  select { background: #1a1d23; border: 1px solid #2a2d33; color: #e8e8ea; padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+  .count-pill { background: #1a1d23; border: 1px solid #2a2d33; padding: 6px 10px; border-radius: 999px; font-size: 12px; color: #9aa0a6; }
+  .action-bar { margin-left: auto; display: flex; gap: 8px; }
+  button { background: #2a2d33; color: #e8e8ea; border: 1px solid #3a3d43; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  button:hover { background: #3a3d43; }
+  button.primary { background: #4f46e5; border-color: #4f46e5; }
+  button.primary:hover { background: #4338ca; }
+  button.danger { background: #991b1b; border-color: #991b1b; }
+  button.danger:hover { background: #7f1d1d; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card { background: #1a1d23; border: 1px solid #2a2d33; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.15s, border-color 0.15s; }
+  .card:hover { border-color: #4f46e5; }
+  .card.marked-delete { border-color: #991b1b; opacity: 0.7; }
+  .card.marked-regen { border-color: #059669; }
+  .card.marked-skip { opacity: 0.4; }
+
+  .logo-wrap { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #fff; padding: 16px; position: relative; }
+  .logo-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .logo-wrap .no-img { color: #9aa0a6; font-size: 12px; }
+
+  .info { padding: 10px 12px; flex: 1; }
+  .team-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .meta { color: #9aa0a6; font-size: 12px; line-height: 1.5; }
+  .meta span { display: inline-block; }
+  .slug { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #6b7280; word-break: break-all; margin-top: 4px; }
+
+  .missing { margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap; }
+  .pill { font-size: 10px; padding: 2px 6px; border-radius: 999px; background: #451a1a; color: #fca5a5; border: 1px solid #7f1d1d; }
+
+  .actions { display: flex; gap: 4px; padding: 8px 12px; border-top: 1px solid #2a2d33; background: #14161b; }
+  .actions button { flex: 1; padding: 6px 4px; font-size: 11px; }
+  .actions .btn-regen { background: #065f46; border-color: #065f46; }
+  .actions .btn-skip { background: #1a1d23; border-color: #2a2d33; color: #9aa0a6; }
+  .actions .btn-delete { background: #7f1d1d; border-color: #991b1b; }
+  .actions button.active { outline: 2px solid #fff; }
+
+  .flag-competition { color: #fbbf24; font-weight: 600; }
+  .export-area { margin-top: 24px; padding: 16px; background: #1a1d23; border: 1px solid #2a2d33; border-radius: 8px; display: none; }
+  .export-area.show { display: block; }
+  .export-area pre { background: #0f1115; padding: 12px; border-radius: 6px; overflow: auto; font-size: 11px; max-height: 400px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<h1>Broken Logo Review</h1>
+<div class="sub" id="subtitle">52 entries in footy-logos.json with a real_image_url but no easy/medium/hard erasures — can't be used in Logo Quiz.</div>
+
+<div class="controls">
+  <input type="search" id="search" placeholder="Search team, slug, country…">
+  <select id="compFilter">
+    <option value="">All competitions</option>
+  </select>
+  <select id="markFilter">
+    <option value="">All marks</option>
+    <option value="unmarked">Unmarked</option>
+    <option value="regen">Marked: Regenerate</option>
+    <option value="delete">Marked: Delete</option>
+    <option value="skip">Marked: Skip</option>
+  </select>
+  <span class="count-pill" id="visibleCount">52 visible</span>
+  <div class="action-bar">
+    <button onclick="toggleFlagComps()">Flag competition-rows</button>
+    <button onclick="exportDecisions()" class="primary">Export decisions JSON</button>
+    <button onclick="clearAll()">Clear marks</button>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="export-area" id="exportArea">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <strong>Decisions JSON</strong>
+    <button onclick="copyExport()">Copy</button>
+  </div>
+  <pre id="exportContent"></pre>
+</div>
+
+<script>
+const DATA = [
+  {
+    "comp": "3-liga",
+    "slug": "rot-weiss-essen",
+    "team_name": "Rot Weiss Essen",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/rot-weiss-essen.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "a-league-men",
+    "slug": "a-league-men-australia",
+    "team_name": "A League Men Australia",
+    "country": "Australia",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/a-league-men-australia.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "armenian-premier-league",
+    "slug": "fc-noah-yerevan",
+    "team_name": "Fc Noah Yerevan",
+    "country": "Armenia",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/fc-noah-yerevan.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "armenian-premier-league",
+    "slug": "fc-pyunik-yerevan",
+    "team_name": "Fc Pyunik Yerevan",
+    "country": "Armenia",
+    "real_image_url": "https://cdn.prod.website-files.com/68f550992570ca0322737dc2/68fe42eeb8c1adce49bdf9e4_fc-pyunik-footballlogos-org.svg",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "austrian-bundesliga",
+    "slug": "tsv-hartberg",
+    "team_name": "Tsv Hartberg",
+    "country": "Austria",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/tsv-hartberg.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "belgian-pro-league",
+    "slug": "kvc-westerlo",
+    "team_name": "Kvc Westerlo",
+    "country": "Belgium",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/kvc-westerlo.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "besta-deild",
+    "slug": "vikingur-r",
+    "team_name": "Vikingur R",
+    "country": "Iceland",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/vikingur-r.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "botola-pro-1",
+    "slug": "as-far",
+    "team_name": "As Far",
+    "country": "Morocco",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/as-far.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "botola-pro-1",
+    "slug": "raja-casablanca",
+    "team_name": "Raja Casablanca",
+    "country": "Morocco",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/raja-casablanca.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "bundesliga",
+    "slug": "borussia-dortmund",
+    "team_name": "Borussia Dortmund",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/borussia-dortmund.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "bundesliga",
+    "slug": "hamburger-sv",
+    "team_name": "Hamburger Sv",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/hamburger-sv.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "bundesliga-2",
+    "slug": "fc-nurnberg",
+    "team_name": "Fc Nurnberg",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/fc-nurnberg.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "bundesliga-2",
+    "slug": "holstein-kiel",
+    "team_name": "Holstein Kiel",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/holstein-kiel.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "bundesliga-2",
+    "slug": "karlsruher-sc",
+    "team_name": "Karlsruher Sc",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/karlsruher-sc.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "bundesliga-2",
+    "slug": "spvgg-greuther-furth",
+    "team_name": "Spvgg Greuther Furth",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/spvgg-greuther-furth.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "bundesliga-2",
+    "slug": "vfl-bochum",
+    "team_name": "Vfl Bochum",
+    "country": "Germany",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/vfl-bochum.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "canadian-premier-league",
+    "slug": "canadian-premier-league",
+    "team_name": "Canadian Premier League",
+    "country": "Canada",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/canadian-premier-league.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "canadian-premier-league",
+    "slug": "vancouver-fc",
+    "team_name": "Vancouver Fc",
+    "country": "Canada",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/vancouver-fc.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "chance-liga",
+    "slug": "1-fc-slovacko",
+    "team_name": "1 Fc Slovacko",
+    "country": "Czech Republic",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/1-fc-slovacko.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "chance-liga",
+    "slug": "chance-liga-czech-republic",
+    "team_name": "Chance Liga Czech Republic",
+    "country": "Czech Republic",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/chance-liga-czech-republic.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "chance-liga",
+    "slug": "fc-slovan-liberec",
+    "team_name": "Fc Slovan Liberec",
+    "country": "Czech Republic",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/fc-slovan-liberec.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "eerste-divisie",
+    "slug": "eerste-divisie",
+    "team_name": "Eerste Divisie",
+    "country": "Netherlands",
+    "real_image_url": "https://cdn.prod.website-files.com/plugins/Basic/assets/placeholder.60f9b1840c.svg",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "efl-league-one",
+    "slug": "bolton-wanderers",
+    "team_name": "Bolton Wanderers",
+    "country": "England",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/bolton-wanderers.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "efl-league-one",
+    "slug": "lincoln-city",
+    "team_name": "Lincoln City",
+    "country": "England",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/lincoln-city.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "efl-league-two",
+    "slug": "cheltenham-town",
+    "team_name": "Cheltenham Town",
+    "country": "England",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/cheltenham-town.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "efl-league-two",
+    "slug": "salford-city",
+    "team_name": "Salford City",
+    "country": "England",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/salford-city.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "eliteserien",
+    "slug": "sarpsborg-08",
+    "team_name": "Sarpsborg 08",
+    "country": "Norway",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/sarpsborg-08.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "fifa-world-cup-2026",
+    "slug": "switzerland-national-team",
+    "team_name": "Switzerland National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/switzerland-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "israeli-premier-league",
+    "slug": "israeli-premier-league",
+    "team_name": "Israeli Premier League",
+    "country": "Israel",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/israeli-premier-league.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "j1-league",
+    "slug": "sagan-tosu",
+    "team_name": "Sagan Tosu",
+    "country": "Japan",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/sagan-tosu.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "k-league-1",
+    "slug": "fc-seoul",
+    "team_name": "Fc Seoul",
+    "country": "South Korea",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/fc-seoul.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "league-of-ireland",
+    "slug": "sligo-rovers",
+    "team_name": "Sligo Rovers",
+    "country": "Ireland",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/sligo-rovers.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "ligapro-serie-a",
+    "slug": "mushuc-runa-sc",
+    "team_name": "Mushuc Runa Sc",
+    "country": "Ecuador",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/mushuc-runa-sc.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "premier-league-azerbaijan",
+    "slug": "neftchi-pfk",
+    "team_name": "Neftchi Pfk",
+    "country": "Azerbaijan",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/neftchi-pfk.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "russian-premier-league",
+    "slug": "russian-premier-league",
+    "team_name": "Russian Premier League",
+    "country": "Russia",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/russian-premier-league.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "russian-premier-league",
+    "slug": "spartak-moscow",
+    "team_name": "Spartak Moscow",
+    "country": "Russia",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/spartak-moscow.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "saudi-pro-league",
+    "slug": "al-qadsiah",
+    "team_name": "Al Qadsiah",
+    "country": "Saudi Arabia",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/al-qadsiah.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "serie-b",
+    "slug": "uc-sampdoria",
+    "team_name": "Uc Sampdoria",
+    "country": "Italy",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/uc-sampdoria.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "serie-b",
+    "slug": "venezia-fc",
+    "team_name": "Venezia Fc",
+    "country": "Italy",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/venezia-fc.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "swiss-super-league",
+    "slug": "lausanne-sport",
+    "team_name": "Lausanne Sport",
+    "country": "Switzerland",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/lausanne-sport.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "veikkausliiga",
+    "slug": "ilves",
+    "team_name": "Ilves",
+    "country": "Finland",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/ilves.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "cameroon-national-team",
+    "team_name": "Cameroon National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/cameroon-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "czechia-national-team",
+    "team_name": "Czechia National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/czechia-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "georgia-national-team",
+    "team_name": "Georgia National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/georgia-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "iceland-national-team",
+    "team_name": "Iceland National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/iceland-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "indonesia-national-team",
+    "team_name": "Indonesia National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/indonesia-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "poland-national-team",
+    "team_name": "Poland National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/poland-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "russia-national-team",
+    "team_name": "Russia National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/russia-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "slovakia-national-team",
+    "team_name": "Slovakia National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/slovakia-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "turkey-national-team",
+    "team_name": "Turkey National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/turkey-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "venezuela-national-team",
+    "team_name": "Venezuela National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/venezuela-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  },
+  {
+    "comp": "world-cup-2026-qualifiers",
+    "slug": "wales-national-team",
+    "team_name": "Wales National Team",
+    "country": "International",
+    "real_image_url": "https://npwneqworgyclzaofuln.supabase.co/storage/v1/object/public/logo-quiz/originals/wales-national-team.webp",
+    "missing": {
+      "easy": true,
+      "medium": true,
+      "hard": true
+    }
+  }
+];
+
+const MARKS_KEY = 'broken-logos-marks-v1';
+let marks = JSON.parse(localStorage.getItem(MARKS_KEY) || '{}');
+
+// Detect likely "competition-as-team" rows (team name = competition name or contains "Premier League", etc.)
+const COMP_ROW_PATTERNS = [
+  /premier league/i,
+  /^a league/i,
+  /^serie [a-z]/i,
+  /bundesliga/i,
+  /chance liga/i,
+  /eerste divisie/i,
+  /^3[ -]liga$/i,
+];
+function isLikelyCompetitionRow(e) {
+  return COMP_ROW_PATTERNS.some(p => p.test(e.team_name)) && e.slug.includes(e.comp);
+}
+
+const grid = document.getElementById('grid');
+const searchInput = document.getElementById('search');
+const compFilter = document.getElementById('compFilter');
+const markFilter = document.getElementById('markFilter');
+const visibleCount = document.getElementById('visibleCount');
+
+// Populate competition filter
+const comps = [...new Set(DATA.map(d => d.comp))].sort();
+for (const c of comps) {
+  const o = document.createElement('option');
+  o.value = c;
+  o.textContent = c + ' (' + DATA.filter(d => d.comp === c).length + ')';
+  compFilter.appendChild(o);
+}
+
+function getMark(key) { return marks[key] || null; }
+function setMark(key, mark) {
+  if (mark === null) delete marks[key];
+  else marks[key] = mark;
+  localStorage.setItem(MARKS_KEY, JSON.stringify(marks));
+}
+
+function render() {
+  const q = searchInput.value.toLowerCase().trim();
+  const comp = compFilter.value;
+  const markF = markFilter.value;
+
+  grid.innerHTML = '';
+  let visible = 0;
+
+  for (const e of DATA) {
+    const key = e.comp + '/' + e.slug;
+    const mark = getMark(key);
+
+    // Filters
+    if (q) {
+      const hay = (e.team_name + ' ' + e.slug + ' ' + e.country + ' ' + e.comp).toLowerCase();
+      if (!hay.includes(q)) continue;
+    }
+    if (comp && e.comp !== comp) continue;
+    if (markF === 'unmarked' && mark) continue;
+    if (markF && markF !== 'unmarked' && mark !== markF) continue;
+
+    const card = document.createElement('div');
+    card.className = 'card' + (mark ? ' marked-' + mark : '');
+
+    const missingPills = [];
+    if (e.missing.easy) missingPills.push('<span class="pill">easy</span>');
+    if (e.missing.medium) missingPills.push('<span class="pill">medium</span>');
+    if (e.missing.hard) missingPills.push('<span class="pill">hard</span>');
+
+    const flagged = isLikelyCompetitionRow(e);
+
+    card.innerHTML = '' +
+      '<div class="logo-wrap">' +
+        (e.real_image_url ? '<img src="' + escapeAttr(e.real_image_url) + '" alt="' + escapeAttr(e.team_name) + '" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement(\'span\'),{className:\'no-img\',textContent:\'Image failed to load\'}))">' : '<span class="no-img">No image</span>') +
+      '</div>' +
+      '<div class="info">' +
+        '<div class="team-name ' + (flagged ? 'flag-competition' : '') + '">' + escapeHtml(e.team_name) + (flagged ? ' ⚠' : '') + '</div>' +
+        '<div class="meta">' +
+          '<span>' + escapeHtml(e.comp) + '</span> · <span>' + escapeHtml(e.country) + '</span>' +
+        '</div>' +
+        '<div class="slug">' + escapeHtml(e.slug) + '</div>' +
+        '<div class="missing">' + missingPills.join('') + '</div>' +
+      '</div>' +
+      '<div class="actions">' +
+        '<button class="btn-regen ' + (mark === 'regen' ? 'active' : '') + '" data-key="' + escapeAttr(key) + '" data-action="regen">Regenerate</button>' +
+        '<button class="btn-skip ' + (mark === 'skip' ? 'active' : '') + '" data-key="' + escapeAttr(key) + '" data-action="skip">Skip</button>' +
+        '<button class="btn-delete ' + (mark === 'delete' ? 'active' : '') + '" data-key="' + escapeAttr(key) + '" data-action="delete">Delete</button>' +
+      '</div>';
+    grid.appendChild(card);
+    visible++;
+  }
+
+  visibleCount.textContent = visible + ' visible';
+}
+
+grid.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('button[data-action]');
+  if (!btn) return;
+  const key = btn.dataset.key;
+  const action = btn.dataset.action;
+  if (getMark(key) === action) setMark(key, null);
+  else setMark(key, action);
+  render();
+});
+
+function toggleFlagComps() {
+  // Auto-mark competition rows as "delete"
+  let changed = 0;
+  for (const e of DATA) {
+    if (isLikelyCompetitionRow(e)) {
+      const key = e.comp + '/' + e.slug;
+      if (!getMark(key)) { setMark(key, 'delete'); changed++; }
+    }
+  }
+  alert('Auto-marked ' + changed + ' likely competition-row entries as DELETE.');
+  render();
+}
+
+function exportDecisions() {
+  const out = { regenerate: [], delete: [], skip: [], unmarked: [] };
+  for (const e of DATA) {
+    const key = e.comp + '/' + e.slug;
+    const m = getMark(key) || 'unmarked';
+    out[m].push({ comp: e.comp, slug: e.slug, team_name: e.team_name, country: e.country });
+  }
+  document.getElementById('exportContent').textContent = JSON.stringify(out, null, 2);
+  document.getElementById('exportArea').classList.add('show');
+  document.getElementById('exportArea').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyExport() {
+  navigator.clipboard.writeText(document.getElementById('exportContent').textContent);
+}
+
+function clearAll() {
+  if (!confirm('Clear all marks?')) return;
+  marks = {};
+  localStorage.removeItem(MARKS_KEY);
+  render();
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+searchInput.addEventListener('input', render);
+compFilter.addEventListener('change', render);
+markFilter.addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

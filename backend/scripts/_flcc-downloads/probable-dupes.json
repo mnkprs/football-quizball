@@ -1,0 +1,1643 @@
+{
+  "count": 273,
+  "dupes": [
+    {
+      "country": "Albania",
+      "slug": "bylis",
+      "team_name": "Bylis",
+      "matches_existing": "fk-bylis"
+    },
+    {
+      "country": "Albania",
+      "slug": "dinamo-city",
+      "team_name": "Dinamo City",
+      "matches_existing": "fc-dinamo-city"
+    },
+    {
+      "country": "Albania",
+      "slug": "egnatia",
+      "team_name": "Egnatia",
+      "matches_existing": "kf-egnatia"
+    },
+    {
+      "country": "Albania",
+      "slug": "flamurtari",
+      "team_name": "Flamurtari",
+      "matches_existing": "flamurtari-fc"
+    },
+    {
+      "country": "Albania",
+      "slug": "partizani",
+      "team_name": "Partizani",
+      "matches_existing": "fk-partizani"
+    },
+    {
+      "country": "Albania",
+      "slug": "teuta",
+      "team_name": "Teuta",
+      "matches_existing": "kf-teuta"
+    },
+    {
+      "country": "Albania",
+      "slug": "tirana",
+      "team_name": "Tirana",
+      "matches_existing": "kf-tirana"
+    },
+    {
+      "country": "Albania",
+      "slug": "vllaznia",
+      "team_name": "Vllaznia",
+      "matches_existing": "kf-vllaznia"
+    },
+    {
+      "country": "Algeria",
+      "slug": "cr-belouizdad",
+      "team_name": "CR Belouizdad",
+      "matches_existing": "crb"
+    },
+    {
+      "country": "Argentina",
+      "slug": "argeninos-juniors",
+      "team_name": "Argeninos Juniors",
+      "matches_existing": "argentinos-juniors"
+    },
+    {
+      "country": "Argentina",
+      "slug": "ca-huracan",
+      "team_name": "CA Hurac\u00e1n",
+      "matches_existing": "huracan"
+    },
+    {
+      "country": "Austria",
+      "slug": "ried",
+      "team_name": "Ried",
+      "matches_existing": "sv-ried"
+    },
+    {
+      "country": "Austria",
+      "slug": "rapid-vienna",
+      "team_name": "Rapid Vienna",
+      "matches_existing": "rapid-wien"
+    },
+    {
+      "country": "Austria",
+      "slug": "sturm-graz",
+      "team_name": "Sturm Graz",
+      "matches_existing": "sk-sturm-graz"
+    },
+    {
+      "country": "Azerbaijan",
+      "slug": "gabala",
+      "team_name": "Gabala",
+      "matches_existing": "fk-gabala"
+    },
+    {
+      "country": "Azerbaijan",
+      "slug": "qarabag",
+      "team_name": "Qaraba\u011f",
+      "matches_existing": "qarabag-fk"
+    },
+    {
+      "country": "Azerbaijan",
+      "slug": "sabah",
+      "team_name": "Sabah",
+      "matches_existing": "sabah-fk"
+    },
+    {
+      "country": "Azerbaijan",
+      "slug": "samaxi",
+      "team_name": "\u015eamax\u0131",
+      "matches_existing": "samaxi-fk"
+    },
+    {
+      "country": "Belgium",
+      "slug": "anderlecht",
+      "team_name": "RSC Anderlecht",
+      "matches_existing": "rsc-anderlecht"
+    },
+    {
+      "country": "Belgium",
+      "slug": "antwerp",
+      "team_name": "Royal Antwerp FC",
+      "matches_existing": "royal-antwerp"
+    },
+    {
+      "country": "Belgium",
+      "slug": "genk",
+      "team_name": "KRC Genk",
+      "matches_existing": "krc-genk"
+    },
+    {
+      "country": "Belgium",
+      "slug": "gent",
+      "team_name": "KAA Gent",
+      "matches_existing": "kaa-gent"
+    },
+    {
+      "country": "Belgium",
+      "slug": "mechelen",
+      "team_name": "KV Mechelen",
+      "matches_existing": "kv-mechelen"
+    },
+    {
+      "country": "Belgium",
+      "slug": "westerlo",
+      "team_name": "KVC Westerlo",
+      "matches_existing": "kvc-westerlo"
+    },
+    {
+      "country": "Belgium",
+      "slug": "eupen",
+      "team_name": "KAS Eupen",
+      "matches_existing": "kas-eupen"
+    },
+    {
+      "country": "Belgium",
+      "slug": "kortrijk",
+      "team_name": "KV Kortrijk",
+      "matches_existing": "kv-kortrijk"
+    },
+    {
+      "country": "Belgium",
+      "slug": "oostende",
+      "team_name": "KV Oostende",
+      "matches_existing": "kv-oostende"
+    },
+    {
+      "country": "Brazil",
+      "slug": "avai",
+      "team_name": "Avai",
+      "matches_existing": "avai-fc"
+    },
+    {
+      "country": "Brazil",
+      "slug": "ceara",
+      "team_name": "Cear\u00e1",
+      "matches_existing": "ceara-sc"
+    },
+    {
+      "country": "Brazil",
+      "slug": "internacional",
+      "team_name": "Internacional",
+      "matches_existing": "sc-internacional"
+    },
+    {
+      "country": "Brazil",
+      "slug": "mirassol",
+      "team_name": "Mirassol",
+      "matches_existing": "mirassol-fc"
+    },
+    {
+      "country": "Brazil",
+      "slug": "sao-paulo",
+      "team_name": "S\u00e3o Paulo",
+      "matches_existing": "sao-paulo-fc"
+    },
+    {
+      "country": "Brazil",
+      "slug": "santos",
+      "team_name": "Santos FC",
+      "matches_existing": "santos-fc"
+    },
+    {
+      "country": "Chile",
+      "slug": "universidad-catolica",
+      "team_name": "Universidad Cat\u00f3lica",
+      "matches_existing": "cd-universidad-catolica"
+    },
+    {
+      "country": "China",
+      "slug": "henan-songshan-longmen",
+      "team_name": "Henan Songshan Longmen",
+      "matches_existing": "henan-fc"
+    },
+    {
+      "country": "Croatia",
+      "slug": "dinamo-zagreb",
+      "team_name": "GNK Dinamo Zagreb",
+      "matches_existing": "gnk-dinamo-zagreb"
+    },
+    {
+      "country": "Croatia",
+      "slug": "gorica",
+      "team_name": "HNK Gorica",
+      "matches_existing": "hnk-gorica"
+    },
+    {
+      "country": "Croatia",
+      "slug": "hajduk-split",
+      "team_name": "Hajduk Split",
+      "matches_existing": "hnk-hajduk-split"
+    },
+    {
+      "country": "Croatia",
+      "slug": "rijeka",
+      "team_name": "Rijeka",
+      "matches_existing": "hnk-rijeka"
+    },
+    {
+      "country": "Cyprus",
+      "slug": "ael",
+      "team_name": "AEL Limassol",
+      "matches_existing": "ael-limassol"
+    },
+    {
+      "country": "Cyprus",
+      "slug": "anorthosis",
+      "team_name": "Anorthosis Famagusta",
+      "matches_existing": "anorthosis-famagusta"
+    },
+    {
+      "country": "Cyprus",
+      "slug": "apollon",
+      "team_name": "Apollon Limassol",
+      "matches_existing": "apollon-limassol"
+    },
+    {
+      "country": "Cyprus",
+      "slug": "krasava-ypsonas",
+      "team_name": "Krasava Ypsonas",
+      "matches_existing": "krasava-ypsonas-fc"
+    },
+    {
+      "country": "Cyprus",
+      "slug": "olympiakos",
+      "team_name": "Olympiakos Nicosia",
+      "matches_existing": "olympiakos-nicosia"
+    },
+    {
+      "country": "Cyprus",
+      "slug": "pafos",
+      "team_name": "Pafos",
+      "matches_existing": "pafos-fc"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "czech-republic-national-team",
+      "team_name": "Czech Republic National Team",
+      "matches_existing": "as-far"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "hradec-kralove",
+      "team_name": "Hradec Kr\u00e1lov\u00e9",
+      "matches_existing": "fc-hradec-kralove"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "jablonec",
+      "team_name": "Jablonec",
+      "matches_existing": "fk-jablonec"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "liberec",
+      "team_name": "Slovan Liberec",
+      "matches_existing": "fc-slovan-liberec"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "mlada-boleslav",
+      "team_name": "Mlad\u00e1 Boleslav",
+      "matches_existing": "fk-mlada-boleslav"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "olomouc",
+      "team_name": "Sigma Olomouc",
+      "matches_existing": "sk-sigma-olomouc"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "pardubice",
+      "team_name": "Pardubice",
+      "matches_existing": "fk-pardubice"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "teplice",
+      "team_name": "Teplice",
+      "matches_existing": "fk-teplice"
+    },
+    {
+      "country": "Czech Republic",
+      "slug": "zlin",
+      "team_name": "Zl\u00edn",
+      "matches_existing": "fc-zlin"
+    },
+    {
+      "country": "Denmark",
+      "slug": "copenhagen",
+      "team_name": "F.C. Copenhagen",
+      "matches_existing": "fc-copenhagen"
+    },
+    {
+      "country": "Denmark",
+      "slug": "randers",
+      "team_name": "Randers FC",
+      "matches_existing": "randers-fc"
+    },
+    {
+      "country": "Denmark",
+      "slug": "viborg",
+      "team_name": "Viborg FF",
+      "matches_existing": "viborg-ff"
+    },
+    {
+      "country": "Denmark",
+      "slug": "midtjylland",
+      "team_name": "FC Midtjylland",
+      "matches_existing": "fc-midtjylland"
+    },
+    {
+      "country": "Denmark",
+      "slug": "agf",
+      "team_name": "AGF",
+      "matches_existing": "agf-aarhus"
+    },
+    {
+      "country": "Denmark",
+      "slug": "nordsjaelland",
+      "team_name": "FC Nordsj\u00e6lland",
+      "matches_existing": "fc-nordsjaelland"
+    },
+    {
+      "country": "Denmark",
+      "slug": "fredericia",
+      "team_name": "FC Fredericia",
+      "matches_existing": "fc-fredericia"
+    },
+    {
+      "country": "Denmark",
+      "slug": "silkeborg",
+      "team_name": "Silkeborg IF",
+      "matches_existing": "silkeborg-if"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "barcelona-sc",
+      "team_name": "Barcelona SC",
+      "matches_existing": "fc-barcelona"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "liga-de-quito",
+      "team_name": "Liga de Quito",
+      "matches_existing": "ldu-quito"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "orense",
+      "team_name": "Orense",
+      "matches_existing": "orense-sc"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "emelec",
+      "team_name": "Emelec",
+      "matches_existing": "cs-emelec"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "el-nacional",
+      "team_name": "El Nacional",
+      "matches_existing": "cd-el-nacional"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "macara",
+      "team_name": "Macar\u00e1",
+      "matches_existing": "cd-macara"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "delfin",
+      "team_name": "Delf\u00edn",
+      "matches_existing": "delfin-sc"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "vinotinto",
+      "team_name": "Vinotinto",
+      "matches_existing": "vinotinto-fc"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "libertad",
+      "team_name": "Libertad F\u00fatbol Club",
+      "matches_existing": "libertad-fc"
+    },
+    {
+      "country": "Ecuador",
+      "slug": "mushuc-runa",
+      "team_name": "Mushuc Runa Sporting Club",
+      "matches_existing": "mushuc-runa-sc"
+    },
+    {
+      "country": "England",
+      "slug": "liverpool",
+      "team_name": "Liverpool FC",
+      "matches_existing": "liverpool-fc"
+    },
+    {
+      "country": "England",
+      "slug": "newcastle",
+      "team_name": "Newcastle",
+      "matches_existing": "newcastle-united"
+    },
+    {
+      "country": "England",
+      "slug": "tottenham",
+      "team_name": "Tottenham",
+      "matches_existing": "tottenham-hotspur"
+    },
+    {
+      "country": "England",
+      "slug": "west-ham",
+      "team_name": "West Ham",
+      "matches_existing": "west-ham-united"
+    },
+    {
+      "country": "England",
+      "slug": "accrington",
+      "team_name": "Accrington Stanley",
+      "matches_existing": "accrington-stanley"
+    },
+    {
+      "country": "England",
+      "slug": "barrow",
+      "team_name": "Barrow AFC",
+      "matches_existing": "barrow-afc"
+    },
+    {
+      "country": "England",
+      "slug": "birmingham",
+      "team_name": "Birmingham City",
+      "matches_existing": "birmingham-city"
+    },
+    {
+      "country": "England",
+      "slug": "bolton",
+      "team_name": "Bolton Wanderers",
+      "matches_existing": "bolton-wanderers"
+    },
+    {
+      "country": "England",
+      "slug": "bournemouth",
+      "team_name": "Bournemouth",
+      "matches_existing": "afc-bournemouth"
+    },
+    {
+      "country": "England",
+      "slug": "bradford",
+      "team_name": "Bradford City",
+      "matches_existing": "bradford-city"
+    },
+    {
+      "country": "England",
+      "slug": "burton",
+      "team_name": "Burton Albion",
+      "matches_existing": "burton-albion"
+    },
+    {
+      "country": "England",
+      "slug": "charlton",
+      "team_name": "Charlton Athletic",
+      "matches_existing": "charlton-athletic"
+    },
+    {
+      "country": "England",
+      "slug": "cheltenham",
+      "team_name": "Cheltenham Town",
+      "matches_existing": "cheltenham-town"
+    },
+    {
+      "country": "England",
+      "slug": "colchester",
+      "team_name": "Colchester United",
+      "matches_existing": "colchester-united"
+    },
+    {
+      "country": "England",
+      "slug": "crewe",
+      "team_name": "Crewe Alexandra",
+      "matches_existing": "crewe-alexandra"
+    },
+    {
+      "country": "England",
+      "slug": "exeter",
+      "team_name": "Exeter City",
+      "matches_existing": "exeter-city"
+    },
+    {
+      "country": "England",
+      "slug": "grimsby",
+      "team_name": "Grimsby Town",
+      "matches_existing": "grimsby-town"
+    },
+    {
+      "country": "England",
+      "slug": "huddersfield",
+      "team_name": "Huddersfield Town",
+      "matches_existing": "huddersfield-town"
+    },
+    {
+      "country": "England",
+      "slug": "ipswich",
+      "team_name": "Ipswich",
+      "matches_existing": "ipswich-town"
+    },
+    {
+      "country": "England",
+      "slug": "leicester",
+      "team_name": "Leicester",
+      "matches_existing": "leicester-city"
+    },
+    {
+      "country": "England",
+      "slug": "mansfield",
+      "team_name": "Mansfield Town",
+      "matches_existing": "mansfield-town"
+    },
+    {
+      "country": "England",
+      "slug": "mk-dons",
+      "team_name": "Milton Keynes Dons",
+      "matches_existing": "milton-keynes-dons"
+    },
+    {
+      "country": "England",
+      "slug": "newport",
+      "team_name": "Newport County",
+      "matches_existing": "newport-county"
+    },
+    {
+      "country": "England",
+      "slug": "northampton",
+      "team_name": "Northampton Town",
+      "matches_existing": "northampton-town"
+    },
+    {
+      "country": "England",
+      "slug": "oldham",
+      "team_name": "Oldham Athletic",
+      "matches_existing": "oldham-athletic"
+    },
+    {
+      "country": "England",
+      "slug": "peterborough",
+      "team_name": "Peterborough United",
+      "matches_existing": "peterborough-united"
+    },
+    {
+      "country": "England",
+      "slug": "port-vale",
+      "team_name": "Port Vale FC",
+      "matches_existing": "port-vale-fc"
+    },
+    {
+      "country": "England",
+      "slug": "reading",
+      "team_name": "Reading",
+      "matches_existing": "reading-fc"
+    },
+    {
+      "country": "England",
+      "slug": "rotherham",
+      "team_name": "Rotherham United",
+      "matches_existing": "rotherham-united"
+    },
+    {
+      "country": "England",
+      "slug": "shrewsbury",
+      "team_name": "Shrewsbury Town",
+      "matches_existing": "shrewsbury-town"
+    },
+    {
+      "country": "England",
+      "slug": "tranmere",
+      "team_name": "Tranmere Rovers",
+      "matches_existing": "tranmere-rovers"
+    },
+    {
+      "country": "England",
+      "slug": "wigan",
+      "team_name": "Wigan Athletic",
+      "matches_existing": "wigan-athletic"
+    },
+    {
+      "country": "England",
+      "slug": "wolves",
+      "team_name": "Wolverhampton Wanderers",
+      "matches_existing": "wolverhampton-wanderers"
+    },
+    {
+      "country": "England",
+      "slug": "wrexham",
+      "team_name": "Wrexham AFC",
+      "matches_existing": "wrexham-afc"
+    },
+    {
+      "country": "England",
+      "slug": "wycombe",
+      "team_name": "Wycombe Wanderers",
+      "matches_existing": "wycombe-wanderers"
+    },
+    {
+      "country": "Egypt",
+      "slug": "zamalek",
+      "team_name": "Zamalek SC",
+      "matches_existing": "zamalek-sc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "al-masry",
+      "team_name": "Al-Masry SC",
+      "matches_existing": "al-masry-sc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "pyramids",
+      "team_name": "Pyramids FC",
+      "matches_existing": "pyramids-fc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "wadi-degla",
+      "team_name": "Wadi Degla SC",
+      "matches_existing": "wadi-degla-sc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "petrojet",
+      "team_name": "Petrojet FC",
+      "matches_existing": "petrojet-fc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "enppi",
+      "team_name": "ENPPI SC",
+      "matches_existing": "enppi-sc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "al-ahly",
+      "team_name": "Al Ahly SC",
+      "matches_existing": "al-ahly-sc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "el-gouna",
+      "team_name": "El Gouna FC",
+      "matches_existing": "el-gouna-fc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "ismaily",
+      "team_name": "Ismaily SC",
+      "matches_existing": "ismaily-sc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "ceramica-cleopatra",
+      "team_name": "Ceramica Cleopatra FC",
+      "matches_existing": "ceramica-cleopatra-fc"
+    },
+    {
+      "country": "Egypt",
+      "slug": "pharco",
+      "team_name": "Pharco FC",
+      "matches_existing": "pharco-fc"
+    },
+    {
+      "country": "Finland",
+      "slug": "haka",
+      "team_name": "FC Haka Valkeakoski",
+      "matches_existing": "fc-haka"
+    },
+    {
+      "country": "Finland",
+      "slug": "hjk",
+      "team_name": "HJK Helsinki",
+      "matches_existing": "hjk-helsinki"
+    },
+    {
+      "country": "Finland",
+      "slug": "gnistan",
+      "team_name": "IF Gnistan",
+      "matches_existing": "if-gnistan"
+    },
+    {
+      "country": "Finland",
+      "slug": "jaro",
+      "team_name": "FF Jaro",
+      "matches_existing": "ff-jaro"
+    },
+    {
+      "country": "Finland",
+      "slug": "mariehamn",
+      "team_name": "IFK Mariehamn",
+      "matches_existing": "ifk-mariehamn"
+    },
+    {
+      "country": "Finland",
+      "slug": "oulu",
+      "team_name": "AC Oulu",
+      "matches_existing": "ac-oulu"
+    },
+    {
+      "country": "Finland",
+      "slug": "vps",
+      "team_name": "VPS",
+      "matches_existing": "vps-vaasa"
+    },
+    {
+      "country": "France",
+      "slug": "paris-saint-germain",
+      "team_name": "Paris Saint-Germain (PSG)",
+      "matches_existing": "paris-saint-germain-psg"
+    },
+    {
+      "country": "France",
+      "slug": "amiens",
+      "team_name": "Amiens SC",
+      "matches_existing": "amiens-sc"
+    },
+    {
+      "country": "France",
+      "slug": "angers",
+      "team_name": "Angers",
+      "matches_existing": "angers-sco"
+    },
+    {
+      "country": "France",
+      "slug": "annecy",
+      "team_name": "Annecy",
+      "matches_existing": "fc-annecy"
+    },
+    {
+      "country": "France",
+      "slug": "auxerre",
+      "team_name": "Auxerre",
+      "matches_existing": "aj-auxerre"
+    },
+    {
+      "country": "France",
+      "slug": "bastia",
+      "team_name": "SC Bastia",
+      "matches_existing": "sc-bastia"
+    },
+    {
+      "country": "France",
+      "slug": "guingamp",
+      "team_name": "EA Guingamp",
+      "matches_existing": "ea-guingamp"
+    },
+    {
+      "country": "France",
+      "slug": "le-mans",
+      "team_name": "Le Mans FC",
+      "matches_existing": "le-mans-fc"
+    },
+    {
+      "country": "France",
+      "slug": "lille",
+      "team_name": "Lille",
+      "matches_existing": "losc-lille"
+    },
+    {
+      "country": "France",
+      "slug": "lorient",
+      "team_name": "Lorient FC",
+      "matches_existing": "fc-lorient"
+    },
+    {
+      "country": "France",
+      "slug": "lyon",
+      "team_name": "Olympique Lyonnais",
+      "matches_existing": "olympique-lyonnais"
+    },
+    {
+      "country": "France",
+      "slug": "nancy",
+      "team_name": "Nancy Lorraine",
+      "matches_existing": "nancy-lorraine"
+    },
+    {
+      "country": "France",
+      "slug": "nantes",
+      "team_name": "Nantes",
+      "matches_existing": "fc-nantes"
+    },
+    {
+      "country": "France",
+      "slug": "nice",
+      "team_name": "Nice",
+      "matches_existing": "ogc-nice"
+    },
+    {
+      "country": "France",
+      "slug": "pau",
+      "team_name": "Pau FC",
+      "matches_existing": "pau-fc"
+    },
+    {
+      "country": "France",
+      "slug": "toulouse",
+      "team_name": "Toulouse",
+      "matches_existing": "toulouse-fc"
+    },
+    {
+      "country": "Germany",
+      "slug": "bayern-munchen",
+      "team_name": "Bayern M\u00fcnchen",
+      "matches_existing": "bayern-munich"
+    },
+    {
+      "country": "Germany",
+      "slug": "augsburg",
+      "team_name": "Augsburg",
+      "matches_existing": "fc-augsburg"
+    },
+    {
+      "country": "Germany",
+      "slug": "darmstadt",
+      "team_name": "SV Darmstadt 98",
+      "matches_existing": "sv-darmstadt-98"
+    },
+    {
+      "country": "Germany",
+      "slug": "freiburg",
+      "team_name": "Freiburg",
+      "matches_existing": "sc-freiburg"
+    },
+    {
+      "country": "Germany",
+      "slug": "ingolstadt",
+      "team_name": "Ingolstadt",
+      "matches_existing": "fc-ingolstadt"
+    },
+    {
+      "country": "Germany",
+      "slug": "karlsruher",
+      "team_name": "Karlsruher SC",
+      "matches_existing": "karlsruher-sc"
+    },
+    {
+      "country": "Germany",
+      "slug": "fc-viktoria-koln",
+      "team_name": "FC Viktoria K\u00f6ln",
+      "matches_existing": "viktoria-koln"
+    },
+    {
+      "country": "Germany",
+      "slug": "st-pauli",
+      "team_name": "St Pauli",
+      "matches_existing": "fc-st-pauli"
+    },
+    {
+      "country": "Germany",
+      "slug": "sv-waldhof-mannheim",
+      "team_name": "SV Waldhof Mannheim",
+      "matches_existing": "waldhof-mannheim"
+    },
+    {
+      "country": "Greece",
+      "slug": "asteras",
+      "team_name": "Asteras Tripolis",
+      "matches_existing": "asteras-tripolis"
+    },
+    {
+      "country": "Greece",
+      "slug": "giannina",
+      "team_name": "Giannina",
+      "matches_existing": "pas-giannina"
+    },
+    {
+      "country": "Greece",
+      "slug": "kifisia",
+      "team_name": "A.E. Kifisia",
+      "matches_existing": "ae-kifisia"
+    },
+    {
+      "country": "Greece",
+      "slug": "ofi",
+      "team_name": "OFI",
+      "matches_existing": "ofi-crete"
+    },
+    {
+      "country": "India",
+      "slug": "northeast-united-fc",
+      "team_name": "NorthEast United FC",
+      "matches_existing": "northeast-united"
+    },
+    {
+      "country": "India",
+      "slug": "mumbai-city-fc",
+      "team_name": "Mumbai City FC",
+      "matches_existing": "mumbai-city"
+    },
+    {
+      "country": "India",
+      "slug": "kerala-blasters-fc",
+      "team_name": "Kerala Blasters FC",
+      "matches_existing": "kerala-blasters"
+    },
+    {
+      "country": "Indonesia",
+      "slug": "borneo-fc",
+      "team_name": "Borneo Samarinda",
+      "matches_existing": "borneo-samarinda"
+    },
+    {
+      "country": "Israel",
+      "slug": "ashdod",
+      "team_name": "Ashdod",
+      "matches_existing": "fc-ashdod"
+    },
+    {
+      "country": "Italy",
+      "slug": "milan",
+      "team_name": "Milan",
+      "matches_existing": "ac-milan"
+    },
+    {
+      "country": "Italy",
+      "slug": "roma",
+      "team_name": "Roma",
+      "matches_existing": "as-roma"
+    },
+    {
+      "country": "Italy",
+      "slug": "carrarese",
+      "team_name": "Carrarese Calcio",
+      "matches_existing": "carrarese-calcio"
+    },
+    {
+      "country": "Italy",
+      "slug": "catanzaro",
+      "team_name": "Catanzaro",
+      "matches_existing": "us-catanzaro"
+    },
+    {
+      "country": "Italy",
+      "slug": "cesena",
+      "team_name": "Cesena FC",
+      "matches_existing": "cesena-fc"
+    },
+    {
+      "country": "Italy",
+      "slug": "empoli",
+      "team_name": "Empoli",
+      "matches_existing": "empoli-fc"
+    },
+    {
+      "country": "Italy",
+      "slug": "frosinone",
+      "team_name": "Frosinone Calcio",
+      "matches_existing": "frosinone-calcio"
+    },
+    {
+      "country": "Italy",
+      "slug": "modena",
+      "team_name": "Modena",
+      "matches_existing": "modena-fc"
+    },
+    {
+      "country": "Italy",
+      "slug": "monza",
+      "team_name": "Monza",
+      "matches_existing": "ac-monza"
+    },
+    {
+      "country": "Italy",
+      "slug": "palermo",
+      "team_name": "Palermo",
+      "matches_existing": "palermo-fc"
+    },
+    {
+      "country": "Italy",
+      "slug": "reggiana",
+      "team_name": "Reggiana",
+      "matches_existing": "ac-reggiana"
+    },
+    {
+      "country": "Italy",
+      "slug": "suditrol",
+      "team_name": "Suditrol",
+      "matches_existing": "fc-suditrol"
+    },
+    {
+      "country": "Italy",
+      "slug": "venezia",
+      "team_name": "Venezia",
+      "matches_existing": "venezia-fc"
+    },
+    {
+      "country": "Italy",
+      "slug": "verona",
+      "team_name": "Hellas Verona",
+      "matches_existing": "hellas-verona"
+    },
+    {
+      "country": "Japan",
+      "slug": "urawa-reds",
+      "team_name": "Urawa Reds",
+      "matches_existing": "urawa-red-diamonds"
+    },
+    {
+      "country": "Morocco",
+      "slug": "raja-ca",
+      "team_name": "Raja Casablanca",
+      "matches_existing": "raja-casablanca"
+    },
+    {
+      "country": "Morocco",
+      "slug": "uts-rabat",
+      "team_name": "Union Touarga Sport Rabat",
+      "matches_existing": "union-touarga-sport-rabat"
+    },
+    {
+      "country": "Morocco",
+      "slug": "fus-rabat",
+      "team_name": "Fath Union Sports Rabat",
+      "matches_existing": "fath-union-sports-rabat"
+    },
+    {
+      "country": "Morocco",
+      "slug": "kac-marrakech",
+      "team_name": "Kawkab of Marrakech",
+      "matches_existing": "kawkab-of-marrakech"
+    },
+    {
+      "country": "Netherlands",
+      "slug": "dutch-national-team",
+      "team_name": "Dutch National Team",
+      "matches_existing": "netherlands"
+    },
+    {
+      "country": "Netherlands",
+      "slug": "psv",
+      "team_name": "PSV Eindhoven",
+      "matches_existing": "psv-eindhoven"
+    },
+    {
+      "country": "Netherlands",
+      "slug": "twente",
+      "team_name": "Twente",
+      "matches_existing": "fc-twente"
+    },
+    {
+      "country": "Netherlands",
+      "slug": "almere-city-fc",
+      "team_name": "Almere City FC",
+      "matches_existing": "almere-city"
+    },
+    {
+      "country": "Netherlands",
+      "slug": "volendam",
+      "team_name": "Volendam",
+      "matches_existing": "fc-volendam"
+    },
+    {
+      "country": "Norway",
+      "slug": "bodo-glimt",
+      "team_name": "Bod\u00f8/Glimt",
+      "matches_existing": "fk-bodo-glimt"
+    },
+    {
+      "country": "Norway",
+      "slug": "brann",
+      "team_name": "Brann",
+      "matches_existing": "sk-brann"
+    },
+    {
+      "country": "Norway",
+      "slug": "fredrikstad",
+      "team_name": "Fredrikstad",
+      "matches_existing": "fredrikstad-fk"
+    },
+    {
+      "country": "Norway",
+      "slug": "haugesund",
+      "team_name": "Haugesund",
+      "matches_existing": "fk-haugesund"
+    },
+    {
+      "country": "Norway",
+      "slug": "kristiansund",
+      "team_name": "Kristiansund",
+      "matches_existing": "kristiansund-bk"
+    },
+    {
+      "country": "Norway",
+      "slug": "lillestrom",
+      "team_name": "Lillestr\u00f8m",
+      "matches_existing": "lillestrom-sk"
+    },
+    {
+      "country": "Norway",
+      "slug": "molde",
+      "team_name": "Molde",
+      "matches_existing": "molde-fk"
+    },
+    {
+      "country": "Norway",
+      "slug": "rosenborg",
+      "team_name": "Rosenborg",
+      "matches_existing": "rosenborg-bk"
+    },
+    {
+      "country": "Norway",
+      "slug": "sarpsborg",
+      "team_name": "Sarpsborg 08",
+      "matches_existing": "sarpsborg-08"
+    },
+    {
+      "country": "Norway",
+      "slug": "viking",
+      "team_name": "Viking FK",
+      "matches_existing": "viking-fk"
+    },
+    {
+      "country": "Poland",
+      "slug": "katowice",
+      "team_name": "GKS Katowice",
+      "matches_existing": "gks-katowice"
+    },
+    {
+      "country": "Poland",
+      "slug": "piast",
+      "team_name": "Piast Gliwice",
+      "matches_existing": "piast-gliwice"
+    },
+    {
+      "country": "Poland",
+      "slug": "radomiak",
+      "team_name": "Radomiak Radom",
+      "matches_existing": "radomiak-radom"
+    },
+    {
+      "country": "Poland",
+      "slug": "widzew",
+      "team_name": "Widzew Lodz",
+      "matches_existing": "widzew-lodz"
+    },
+    {
+      "country": "Paraguay",
+      "slug": "libertad",
+      "team_name": "Libertad",
+      "matches_existing": "libertad-fc"
+    },
+    {
+      "country": "Portugal",
+      "slug": "benfica",
+      "team_name": "Benfica",
+      "matches_existing": "sl-benfica"
+    },
+    {
+      "country": "Portugal",
+      "slug": "arouca",
+      "team_name": "Arouca",
+      "matches_existing": "fc-arouca"
+    },
+    {
+      "country": "Portugal",
+      "slug": "casa-pia-ac",
+      "team_name": "Casa Pia AC",
+      "matches_existing": "casa-pia"
+    },
+    {
+      "country": "Portugal",
+      "slug": "famalicao",
+      "team_name": "Famalicao",
+      "matches_existing": "fc-famalicao"
+    },
+    {
+      "country": "Portugal",
+      "slug": "farense",
+      "team_name": "Farense",
+      "matches_existing": "sc-farense"
+    },
+    {
+      "country": "Portugal",
+      "slug": "vizela",
+      "team_name": "Vizela",
+      "matches_existing": "fc-vizela"
+    },
+    {
+      "country": "Republic of Ireland",
+      "slug": "shelbourne",
+      "team_name": "Shelbourne",
+      "matches_existing": "shelbourne-fc"
+    },
+    {
+      "country": "Republic of Ireland",
+      "slug": "st-patricks-athletic",
+      "team_name": "St Patrick's Athletic",
+      "matches_existing": "st-patrick-s-athletic"
+    },
+    {
+      "country": "Republic of Ireland",
+      "slug": "galway-united",
+      "team_name": "Galway United FC",
+      "matches_existing": "galway-united-fc"
+    },
+    {
+      "country": "russia",
+      "slug": "lokomotiv-moskva",
+      "team_name": "Lokomotiv Moscow",
+      "matches_existing": "lokomotiv-moscow"
+    },
+    {
+      "country": "russia",
+      "slug": "rubin",
+      "team_name": "Rubin Kazan",
+      "matches_existing": "rubin-kazan"
+    },
+    {
+      "country": "russia",
+      "slug": "spartak-moskva",
+      "team_name": "Spartak Moscow",
+      "matches_existing": "spartak-moscow"
+    },
+    {
+      "country": "russia",
+      "slug": "baltika",
+      "team_name": "Baltika",
+      "matches_existing": "baltika-kaliningrad"
+    },
+    {
+      "country": "russia",
+      "slug": "cska-moskva",
+      "team_name": "CSKA Moscow",
+      "matches_existing": "cska-moscow"
+    },
+    {
+      "country": "russia",
+      "slug": "akhmat",
+      "team_name": "Akhmat",
+      "matches_existing": "akhmat-grozny"
+    },
+    {
+      "country": "Saudi Arabia",
+      "slug": "neom",
+      "team_name": "Neom SC",
+      "matches_existing": "neom-sc"
+    },
+    {
+      "country": "Scotland",
+      "slug": "aberdeen",
+      "team_name": "Aberdeen",
+      "matches_existing": "aberdeen-fc"
+    },
+    {
+      "country": "Scotland",
+      "slug": "kilmarnock",
+      "team_name": "Kilmarnock",
+      "matches_existing": "kilmarnock-fc"
+    },
+    {
+      "country": "Scotland",
+      "slug": "dundee",
+      "team_name": "Dundee",
+      "matches_existing": "dundee-fc"
+    },
+    {
+      "country": "Scotland",
+      "slug": "livingston",
+      "team_name": "Livingston",
+      "matches_existing": "livingston-fc"
+    },
+    {
+      "country": "Serbia",
+      "slug": "crvena-zvezda",
+      "team_name": "Crvena Zvezda",
+      "matches_existing": "red-star-belgrade"
+    },
+    {
+      "country": "Slovenia",
+      "slug": "gorica",
+      "team_name": "Gorica",
+      "matches_existing": "hnk-gorica"
+    },
+    {
+      "country": "South Korea",
+      "slug": "gimcheon-sangmu-fc",
+      "team_name": "Gimcheon Sangmu FC",
+      "matches_existing": "gimcheon-sangmu"
+    },
+    {
+      "country": "South Korea",
+      "slug": "ulsan-hd-fc",
+      "team_name": "Ulsan HD FC",
+      "matches_existing": "ulsan-hd"
+    },
+    {
+      "country": "Spain",
+      "slug": "barcelona",
+      "team_name": "Barcelona",
+      "matches_existing": "fc-barcelona"
+    },
+    {
+      "country": "Spain",
+      "slug": "sevilla",
+      "team_name": "Sevilla",
+      "matches_existing": "sevilla-fc"
+    },
+    {
+      "country": "Spain",
+      "slug": "valencia",
+      "team_name": "Valencia",
+      "matches_existing": "valencia-cf"
+    },
+    {
+      "country": "Spain",
+      "slug": "villarreal",
+      "team_name": "Villarreal",
+      "matches_existing": "villarreal-cf"
+    },
+    {
+      "country": "Spain",
+      "slug": "athletic-club",
+      "team_name": "Athletic Club Bilbao",
+      "matches_existing": "athletic-club-bilbao"
+    },
+    {
+      "country": "Spain",
+      "slug": "burgos",
+      "team_name": "Burgos CF",
+      "matches_existing": "burgos-cf"
+    },
+    {
+      "country": "Spain",
+      "slug": "castellon",
+      "team_name": "Castell\u00f3n",
+      "matches_existing": "cd-castellon"
+    },
+    {
+      "country": "Spain",
+      "slug": "celta",
+      "team_name": "Celta",
+      "matches_existing": "celta-vigo"
+    },
+    {
+      "country": "Spain",
+      "slug": "deportivo",
+      "team_name": "Deportivo Alav\u00e9s",
+      "matches_existing": "deportivo-alaves"
+    },
+    {
+      "country": "Spain",
+      "slug": "eibar",
+      "team_name": "Eibar",
+      "matches_existing": "sd-eibar"
+    },
+    {
+      "country": "Spain",
+      "slug": "elche",
+      "team_name": "Elche",
+      "matches_existing": "elche-cf"
+    },
+    {
+      "country": "Spain",
+      "slug": "getafe",
+      "team_name": "Getafe",
+      "matches_existing": "getafe-cf"
+    },
+    {
+      "country": "Spain",
+      "slug": "girona",
+      "team_name": "Girona",
+      "matches_existing": "girona-fc"
+    },
+    {
+      "country": "Spain",
+      "slug": "huesca",
+      "team_name": "Huesca",
+      "matches_existing": "sd-huesca"
+    },
+    {
+      "country": "Spain",
+      "slug": "leganes",
+      "team_name": "Legan\u00e9s",
+      "matches_existing": "cd-leganes"
+    },
+    {
+      "country": "Spain",
+      "slug": "levante",
+      "team_name": "Levante",
+      "matches_existing": "levante-ud"
+    },
+    {
+      "country": "Spain",
+      "slug": "lugo",
+      "team_name": "Lugo",
+      "matches_existing": "cd-lugo"
+    },
+    {
+      "country": "Spain",
+      "slug": "mallorca",
+      "team_name": "Mallorca",
+      "matches_existing": "rcd-mallorca"
+    },
+    {
+      "country": "Spain",
+      "slug": "mirandes",
+      "team_name": "Mirand\u00e9s",
+      "matches_existing": "cd-mirandes"
+    },
+    {
+      "country": "Spain",
+      "slug": "oviedo",
+      "team_name": "Oviedo",
+      "matches_existing": "real-oviedo"
+    },
+    {
+      "country": "Spain",
+      "slug": "racing",
+      "team_name": "Racing Santander",
+      "matches_existing": "racing-santander"
+    },
+    {
+      "country": "Spain",
+      "slug": "tenerife",
+      "team_name": "Tenerife",
+      "matches_existing": "cd-tenerife"
+    },
+    {
+      "country": "Spain",
+      "slug": "valladolid",
+      "team_name": "Real Valladolid",
+      "matches_existing": "real-valladolid"
+    },
+    {
+      "country": "Spain",
+      "slug": "zaragoza",
+      "team_name": "Real Zaragoza",
+      "matches_existing": "real-zaragoza"
+    },
+    {
+      "country": "Spain",
+      "slug": "eldense",
+      "team_name": "CD Eldense",
+      "matches_existing": "cd-eldense"
+    },
+    {
+      "country": "Sweden",
+      "slug": "hacken",
+      "team_name": "H\u00e4cken",
+      "matches_existing": "bk-hacken"
+    },
+    {
+      "country": "Sweden",
+      "slug": "sirius",
+      "team_name": "Sirius",
+      "matches_existing": "ik-sirius"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "basel",
+      "team_name": "Basel",
+      "matches_existing": "fc-basel"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "lugano",
+      "team_name": "Lugano",
+      "matches_existing": "fc-lugano"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "luzern",
+      "team_name": "Luzern",
+      "matches_existing": "fc-luzern"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "servette",
+      "team_name": "Servette",
+      "matches_existing": "servette-fc"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "sion",
+      "team_name": "Sion",
+      "matches_existing": "fc-sion"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "st-gallen",
+      "team_name": "St. Gallen",
+      "matches_existing": "fc-st-gallen"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "thun",
+      "team_name": "Thun",
+      "matches_existing": "fc-thun"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "winterthur",
+      "team_name": "Winterthur",
+      "matches_existing": "fc-winterthur"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "young-boys",
+      "team_name": "Young Boys",
+      "matches_existing": "bsc-young-boys"
+    },
+    {
+      "country": "Switzerland",
+      "slug": "zurich",
+      "team_name": "Z\u00fcrich",
+      "matches_existing": "fc-zurich"
+    },
+    {
+      "country": "Turkey",
+      "slug": "gaziantep",
+      "team_name": "Gaziantep",
+      "matches_existing": "gaziantep-fk"
+    },
+    {
+      "country": "Ukraine",
+      "slug": "shakhtar",
+      "team_name": "Shakhtar",
+      "matches_existing": "shakhtar-donetsk"
+    },
+    {
+      "country": "Ukraine",
+      "slug": "polissya",
+      "team_name": "Polissya Zhytomyr",
+      "matches_existing": "polissya-zhytomyr"
+    },
+    {
+      "country": "Ukraine",
+      "slug": "fc-metalist-1925-kharkiv",
+      "team_name": "FC Metalist 1925 Kharkiv",
+      "matches_existing": "metalist-1925-kharkiv"
+    },
+    {
+      "country": "Ukraine",
+      "slug": "kudrivka",
+      "team_name": "Kudrivka",
+      "matches_existing": "fc-kudrivka"
+    },
+    {
+      "country": "Ukraine",
+      "slug": "sk-poltava",
+      "team_name": "SK Poltava",
+      "matches_existing": "sc-poltava"
+    },
+    {
+      "country": "Uruguay",
+      "slug": "liverpool",
+      "team_name": "Liverpool",
+      "matches_existing": "liverpool-fc"
+    },
+    {
+      "country": "Uruguay",
+      "slug": "cerro",
+      "team_name": "Cerro",
+      "matches_existing": "ca-cerro"
+    },
+    {
+      "country": "USA",
+      "slug": "austins-fc",
+      "team_name": "Austin FC",
+      "matches_existing": "austin-fc"
+    },
+    {
+      "country": "USA",
+      "slug": "chicago-fire-fc",
+      "team_name": "Chicago Fire FC",
+      "matches_existing": "chicago-fire"
+    },
+    {
+      "country": "USA",
+      "slug": "inter-miami-cf",
+      "team_name": "Inter Miami CF",
+      "matches_existing": "inter-miami"
+    },
+    {
+      "country": "USA",
+      "slug": "minnesota-united-fc",
+      "team_name": "Minnesota United FC",
+      "matches_existing": "minnesota-united"
+    },
+    {
+      "country": "USA",
+      "slug": "seattle-sounders-fc",
+      "team_name": "Seattle Sounders FC",
+      "matches_existing": "seattle-sounders"
+    },
+    {
+      "country": "USA",
+      "slug": "vancouver-whitecaps-fc",
+      "team_name": "Vancouver Whitecaps FC",
+      "matches_existing": "vancouver-whitecaps"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-04-16T11:29:13.117Z",
+  "success": 19,
+  "failed": 2,
+  "skipped": 0,
+  "failures": [
+    {
+      "slug": "volos",
+      "country": "Greece",
+      "error": "Hard timeout (90s)"
+    },
+    {
+      "slug": "panargiakos",
+      "country": "Greece",
+      "error": "Hard timeout (90s)"
+    }
+  ]
+}
