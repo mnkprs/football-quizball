@@ -46,10 +46,17 @@ export interface SoRatingTier {
       border-radius: var(--radius-lg, 12px);
       padding: 0.75rem 0.875rem;
       text-decoration: none; color: inherit;
-      transition: background 120ms;
+      transition: background 120ms, transform 80ms;
     }
     a.so-rating-card:hover { background: rgba(255,255,255,0.03); }
-    a.so-rating-card:active { background: rgba(255,255,255,0.05); }
+    a.so-rating-card:active {
+      background: rgba(255,255,255,0.05);
+      transform: scale(0.98);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .so-rating-card { transition: background 120ms; }
+      a.so-rating-card:active { transform: none; }
+    }
     .so-rating-card__head {
       display: flex; align-items: center; gap: 0.375rem;
       font-family: var(--font-headline);
