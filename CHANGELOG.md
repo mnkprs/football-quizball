@@ -2,6 +2,20 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.1.2] - 2026-04-24
+
+### Fixed — Redis outage no longer takes down every API route
+
+On 2026-04-23 at 23:29 UTC, Upstash Redis hit its 500,000 request/day cap. Every API route that went through the global `UserThrottlerGuard` (which is all of them) started returning HTTP 500, including anonymous routes like `/api/config/ads`, `/api/config/feature-flags`, and `/api/onboarding/questions`. First-time users opening the app saw the onboarding screen hang until the daily quota reset at midnight UTC.
+
+**Root cause:** The `ThrottlerStorageRedisService` does not fail open. When Redis's `INCR` throws, the exception propagates out of the guard and `AllExceptionsFilter` turns it into a generic 500 for every route. The handler never executes — which is why even trivially-defensive endpoints (`getSetting` wrapped in try/catch, defaults for missing keys) still 500'd.
+
+**Fix:** New `FailOpenThrottlerStorage` decorator in `backend/src/common/throttler/fail-open-throttler-storage.ts` wraps `ThrottlerStorageRedisService`. When the delegate throws, the decorator logs a warn, increments an observable failure counter, and returns a synthetic `ThrottlerStorageRecord` that reads as "under the limit, not blocked". The guard then lets the request through. Rate limiting degrades to **disabled** while Redis is unhealthy; the API stays up.
+
+**Security tradeoff:** During a Redis outage, rate limits are not enforced. A determined attacker could burst during the outage window. Given the alternative is a total API outage for every user, this is the right call — and the first failure is logged at `warn` per request (plus the Redis client's own error handler logs at error level), so the outage is visible in monitoring rather than silent. The synthetic "under-limit" record never marks a request as blocked, so legitimate 429s (from successful-but-over-limit Redis calls) still fire normally.
+
+**Test coverage:** 8 regression tests in `fail-open-throttler-storage.spec.ts` cover: healthy delegation, blocked-record pass-through (ensures legitimate 429s still fire), synthetic response shape, ttl echo, failure counter, warn logging, and the exact outage stack trace from 2026-04-23.
+
 ## [0.9.1.1] - 2026-04-24
 
 ### Fixed — Duel-timeout cron frequency dropped from 30s to 2min to cut Upstash Redis load

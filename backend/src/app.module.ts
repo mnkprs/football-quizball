@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { UserThrottlerGuard } from './common/throttler/user-throttler.guard';
+import { FailOpenThrottlerStorage } from './common/throttler/fail-open-throttler-storage';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from './redis/redis.module';
 import { RedisService } from './redis/redis.service';
@@ -63,7 +64,15 @@ import { PushModule } from './push/push.module';
           // questions looking for easy ones.
           { name: 'fetch', ttl: 60_000, limit: 40 },
         ],
-        storage: new ThrottlerStorageRedisService(redisService.client),
+        // Wrap the Redis-backed storage in a fail-open decorator. If Redis
+        // throws (Upstash quota exhausted, network blip, regional outage),
+        // the decorator logs + allows the request through instead of letting
+        // the exception propagate out of the guard as a 500.
+        // Regression: 2026-04-23 23:29Z Upstash quota exhaustion took down
+        // every API route until midnight UTC. See FailOpenThrottlerStorage.
+        storage: new FailOpenThrottlerStorage(
+          new ThrottlerStorageRedisService(redisService.client),
+        ),
       }),
     }),
     LoggerModule.forRoot({
