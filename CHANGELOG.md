@@ -2,6 +2,12 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.1] - 2026-04-25
+
+### Fixed — Phantom scrollbar on shell-nested lobbies
+
+Feature pages rendered inside the shell were forcing `min-height: 100dvh` on their root, which overran the shell's scroll area by the ~88px the shell reserves for the fixed bottom-nav (`padding-bottom: calc(5.5rem + env(safe-area-inset-bottom))` on `.shell-main`). Result: lobbies whose content fit above the fold still scrolled, with an empty band of nothing beneath the CTA. Switched the shared `<app-screen mode="bleed">` primitive and six feature roots (`logo-quiz`, `daily`, `news`, `mayhem`, `notifications`, `battle-royale` lobby) from `min-height: 100dvh` to `min-height: 100%` so they inherit the shell's usable area. In-game phases still render correctly because those components toggle `shellUi.hideBottomNav` on enter, which removes the shell padding and lets the flex parent claim the full viewport. `/solo` and `/blitz` inherit the fix automatically through the shared primitive. Top-level routes outside the shell (`/game`, `/online-game`, `/duel/:id`, `/battle-royale/:id`, `/match/:id`, `/login`, `/admin`, `/onboarding`, `/legal`) are unchanged — they have no bottom-nav reserve so `100dvh` is correct there.
+
 ## [0.10.0.0] - 2026-04-24
 
 ### Changed — Profile screen recomposition
