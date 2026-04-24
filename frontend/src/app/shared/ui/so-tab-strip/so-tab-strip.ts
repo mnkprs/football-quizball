@@ -70,7 +70,7 @@ export interface SoTab {
     }
     .so-tab-strip__label {
       display: block;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 700; font-size: 0.75rem;
       letter-spacing: 0.08em;
       color: var(--color-fg-muted);
@@ -78,7 +78,7 @@ export interface SoTab {
     .so-tab-strip__tab--active .so-tab-strip__label { color: var(--tab-color, var(--color-accent)); }
     .so-tab-strip__sub {
       display: block; margin-top: 0.125rem;
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-size: 0.5625rem; letter-spacing: 0.02em;
       color: var(--color-fg-muted);
     }

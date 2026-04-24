@@ -110,7 +110,7 @@ const STORAGE_KEY = 'admin-active-tab';
       min-height: 100vh;
       background: var(--color-bg, #131313);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
     }
 
     /* ── Key gate ─────────────────────────────────────────── */
@@ -132,7 +132,7 @@ const STORAGE_KEY = 'admin-active-tab';
     }
 
     .dash-key-label {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 600;
       font-size: 1rem;
       color: var(--color-fg, #e5e2e1);
@@ -166,7 +166,7 @@ const STORAGE_KEY = 'admin-active-tab';
       border: none;
       background: var(--color-accent, #007AFF);
       color: var(--color-accent-fg, #ffffff);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-weight: 600;
       font-size: 0.875rem;
       cursor: pointer;
@@ -222,7 +222,7 @@ const STORAGE_KEY = 'admin-active-tab';
     }
 
     .dash-title {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 600;
       font-size: 1rem;
       color: var(--color-fg, #e5e2e1);
@@ -272,7 +272,7 @@ const STORAGE_KEY = 'admin-active-tab';
       background: none;
       border: none;
       color: var(--color-fg-muted, #6b7a8d);
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-weight: 500;
       font-size: 0.875rem;
       cursor: pointer;

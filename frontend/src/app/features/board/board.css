@@ -193,7 +193,7 @@
 /* ─── Score — the hero numeral. Slab-serif, massive, tabular. ─── */
 
 .board-score {
-  font-family: var(--font-brand), 'Alfa Slab One', serif;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-weight: 400;        /* Alfa Slab is single-weight display */
   font-size: 4rem;         /* 64px baseline */
@@ -355,7 +355,7 @@
   width: 2.5rem;
   height: 2.5rem;
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
-  font-family: var(--font-brand), serif;
+  font-family: var(--font-display);
   font-weight: 400;
   font-size: var(--text-md);
   color: #0a0a0a;

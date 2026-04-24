@@ -3,9 +3,9 @@
   background: var(--color-surface-low); border-radius: 12px; padding: 14px;
   display: flex; flex-direction: column; gap: 4px;
 }
-.so-label { font-family: 'Lexend'; font-size: 10px; text-transform: uppercase;
+.so-label { font-family: var(--font-headline); font-size: 10px; text-transform: uppercase;
             letter-spacing: 0.14em; color: var(--color-muted-foreground); }
 .so-main  { display: flex; align-items: baseline; gap: 4px; }
 .so-value { font-weight: 700; font-size: 24px; letter-spacing: -0.01em; }
-.so-unit  { font-family: 'Lexend'; font-size: 11px; color: var(--color-muted-foreground); }
-.so-delta { font-family: 'Lexend'; font-size: 11px; }
+.so-unit  { font-family: var(--font-headline); font-size: 11px; color: var(--color-muted-foreground); }
+.so-delta { font-family: var(--font-headline); font-size: 11px; }

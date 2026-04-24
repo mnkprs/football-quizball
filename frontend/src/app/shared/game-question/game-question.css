@@ -491,7 +491,7 @@
 .gq__logo-reveal-tag {
   position: absolute;
   top: .75rem; right: .75rem;
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: .5625rem;
   font-weight: 700;
   letter-spacing: .14em;

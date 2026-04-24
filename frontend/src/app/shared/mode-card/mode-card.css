@@ -26,7 +26,7 @@
   border-radius: var(--radius-full);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.5625rem;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -86,7 +86,7 @@
   background: linear-gradient(135deg, rgba(156, 39, 176, 0.25), rgba(206, 147, 216, 0.12));
   border: 1px solid rgba(206, 147, 216, 0.3);
   color: var(--color-purple-light);
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.5625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -118,7 +118,7 @@
   border-radius: var(--radius-full);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.5625rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
@@ -164,7 +164,7 @@
 
 /* Title */
 .mode-card__title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 1.875rem;
   font-weight: 700;
   line-height: 1.05;
@@ -178,7 +178,7 @@
 
 /* Hint / description */
 .mode-card__hint {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.875rem;
   font-weight: 400;
   margin: 0.25rem 0 0 0;
@@ -289,7 +289,7 @@
 }
 
 .mode-card__rate-limit-hint {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.625rem;
   font-weight: 400;
   color: var(--color-accent);

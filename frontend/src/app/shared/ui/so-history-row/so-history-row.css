@@ -19,7 +19,7 @@
   border-radius: 0.625rem;
   background: var(--color-surface-high) center/cover;
   display: grid; place-items: center;
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.6875rem; font-weight: 600;
   color: var(--color-fg-muted);
 }
@@ -29,7 +29,7 @@
   display: flex; align-items: center; gap: 0.5rem;
 }
 .so-history-row__mode {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 600; font-size: 0.875rem;
   color: var(--color-fg);
   letter-spacing: -0.01em;
@@ -42,7 +42,7 @@
 
 .so-history-row__elo { text-align: right; flex-shrink: 0; }
 .so-history-row__delta {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 700; font-size: 1rem;
   line-height: 1;
 }
@@ -50,7 +50,7 @@
 .so-history-row--loss .so-history-row__delta { color: var(--color-error, #ef4444); }
 .so-history-row--draw .so-history-row__delta { color: var(--color-fg-muted); }
 .so-history-row__unit {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.625rem; letter-spacing: 0.1em;
   color: var(--color-fg-muted);
   margin-top: 0.25rem;

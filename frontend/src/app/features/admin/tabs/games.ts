@@ -194,7 +194,7 @@ function shortId(id: string): string {
     }
 
     .panel-title {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 600;
       font-size: 1rem;
       color: var(--color-fg, #e5e2e1);
@@ -226,14 +226,14 @@ function shortId(id: string): string {
     }
 
     .mode-badge-count {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 700;
       font-size: 1.5rem;
       line-height: 1;
     }
 
     .mode-badge-label {
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-weight: 500;
       font-size: 0.6875rem;
       text-transform: uppercase;
@@ -260,7 +260,7 @@ function shortId(id: string): string {
     }
 
     .game-section-heading {
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-weight: 500;
       font-size: 0.6875rem;
       color: var(--color-fg-muted, #6b7a8d);
@@ -276,7 +276,7 @@ function shortId(id: string): string {
       align-items: center;
       padding: 0.375rem 0;
       border-bottom: 1px solid var(--color-surface, #201f1f);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
     }
 
@@ -287,7 +287,7 @@ function shortId(id: string): string {
     .game-id {
       color: var(--color-fg-muted, #6b7a8d);
       font-size: 0.75rem;
-      font-family: 'Space Mono', monospace, sans-serif;
+      font-family: var(--font-mono);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -315,14 +315,14 @@ function shortId(id: string): string {
 
     /* ── States ───────────────────────────────────────────── */
     .empty-state {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
     .loading-state {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
@@ -330,7 +330,7 @@ function shortId(id: string): string {
 
     .error-state {
       margin-top: 0.5rem;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-error, #ff5c5c);
     }
@@ -342,7 +342,7 @@ function shortId(id: string): string {
       border: 1px solid var(--color-surface-highest, #3a3a3a);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg-muted, #6b7a8d);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
@@ -366,14 +366,14 @@ function shortId(id: string): string {
     .recent-table {
       width: 100%;
       border-collapse: collapse;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
     }
 
     .recent-table th {
       text-align: left;
       padding: 0.375rem 0.5rem;
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-weight: 500;
       font-size: 0.6875rem;
       color: var(--color-fg-muted, #6b7a8d);
@@ -402,7 +402,7 @@ function shortId(id: string): string {
     }
 
     .score-cell {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 600;
       white-space: nowrap;
     }
@@ -418,7 +418,7 @@ function shortId(id: string): string {
       display: inline-block;
       padding: 0.125rem 0.4rem;
       border-radius: 4px;
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-weight: 500;
       font-size: 0.6875rem;
       text-transform: uppercase;

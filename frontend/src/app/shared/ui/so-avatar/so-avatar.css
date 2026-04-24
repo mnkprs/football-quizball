@@ -3,6 +3,6 @@
   border-radius: 50%;
   background: var(--color-surface-highest); color: var(--color-foreground);
   display: grid; place-items: center;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+  font-family: var(--font-numeric); font-weight: 700;
   background-size: cover; background-position: center;
 }

@@ -34,14 +34,14 @@
   min-width: 0;
 }
 .phist-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 700; font-style: italic;
   font-size: 1.125rem; letter-spacing: -0.02em; text-transform: uppercase;
   margin: 0;
   color: var(--color-fg);
 }
 .phist-cap-hint {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.625rem; letter-spacing: 0.08em;
   color: var(--color-fg-muted);
   margin-top: 0.125rem;
@@ -74,7 +74,7 @@
   color: var(--color-fg-muted);
 }
 .phist-state__text {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 600;
   font-size: 0.9375rem;
   color: var(--color-fg);
@@ -94,7 +94,7 @@
   color: #fff;
   border: 0;
   border-radius: var(--radius-full, 999px);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 600; font-size: 0.875rem;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;

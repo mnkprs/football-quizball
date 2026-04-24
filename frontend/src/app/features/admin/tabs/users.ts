@@ -260,7 +260,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface, #201f1f);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       outline: none;
       box-sizing: border-box;
@@ -298,7 +298,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-weight: 500;
       font-size: 0.875rem;
       cursor: pointer;
@@ -327,7 +327,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     .user-table {
       width: 100%;
       border-collapse: collapse;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
     }
 
@@ -380,7 +380,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
 
     .elo-val {
       font-weight: 700;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
     }
 
     .elo-val--high {
@@ -416,7 +416,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.75rem;
       font-weight: 500;
       cursor: pointer;
@@ -449,7 +449,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       cursor: pointer;
       transition: background 0.12s, opacity 0.12s;
@@ -465,14 +465,14 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     }
 
     .page-info {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-fg-muted, #6b7a8d);
     }
 
     /* ── Empty / error states ─────────────────────────────── */
     .empty-state {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       color: var(--color-fg-muted, #6b7a8d);
       padding: 1.5rem;
@@ -483,7 +483,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     }
 
     .error-state {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-error, #ff5c5c);
       padding: 0.5rem 0;
@@ -521,7 +521,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     }
 
     .detail-username {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 700;
       font-size: 1.125rem;
       color: var(--color-fg, #e5e2e1);
@@ -568,7 +568,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     }
 
     .stat-label {
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-weight: 500;
       font-size: 0.6875rem;
       color: var(--color-fg-muted, #6b7a8d);
@@ -577,7 +577,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     }
 
     .stat-value {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 700;
       font-size: 1.5rem;
       color: var(--color-fg, #e5e2e1);
@@ -592,7 +592,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     }
 
     .sparkline-label {
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-size: 0.6875rem;
       font-weight: 500;
       color: var(--color-fg-muted, #6b7a8d);
@@ -618,7 +618,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     .action-btn {
       padding: 0.5rem 1.125rem;
       border-radius: 8px;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-weight: 500;
       font-size: 0.8125rem;
       cursor: pointer;
@@ -664,7 +664,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     .action-toast {
       padding: 0.625rem 0.875rem;
       border-radius: 8px;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       background: rgba(74, 222, 128, 0.1);
       color: var(--color-success, #4ade80);
@@ -685,7 +685,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
     }
 
     .section-title {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 600;
       font-size: 0.875rem;
       color: var(--color-fg, #e5e2e1);
@@ -699,7 +699,7 @@ import { AdminUser, AdminUserDetail } from '../../../core/admin-api.types';
       padding: 0.375rem 0.5rem;
       border-radius: 6px;
       background: var(--color-surface, #201f1f);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
     }
 
