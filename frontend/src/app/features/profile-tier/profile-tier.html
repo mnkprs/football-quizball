@@ -1,0 +1,77 @@
+<main class="ptier-page">
+  <header class="ptier-header">
+    <button type="button" class="ptier-back" (click)="goBack()" aria-label="Back to profile">
+      <span class="material-icons">chevron_left</span>
+    </button>
+    <h1 class="ptier-title">Rank Ladder</h1>
+    <span class="ptier-header__spacer" aria-hidden="true"></span>
+  </header>
+
+  <!-- Current-tier hero -->
+  <section class="ptier-current"
+           [style.--tier-color]="currentTier().color"
+           [style.--tier-glow]="currentTier().glow">
+    <div class="ptier-current__badge">{{ currentTier().label }}</div>
+    <div class="ptier-current__elo">{{ elo() }} <span class="ptier-current__elo-unit">ELO</span></div>
+    @if (rank() != null) {
+      <div class="ptier-current__rank">Rank #{{ rank() }}</div>
+    }
+  </section>
+
+  <!-- Path to next tier (hidden when user is at top tier — no next to progress to) -->
+  @if (!atTopTier()) {
+    <section class="ptier-section">
+      <so-tier-progress
+        [tier]="currentTier().label"
+        [nextTier]="nextTierName()"
+        [elo]="elo()"
+        [nextElo]="nextTierElo()"
+        [tierStart]="currentTierStart()"
+        [color]="currentTier().color" />
+    </section>
+  } @else {
+    <section class="ptier-section">
+      <div class="ptier-top-note">
+        <span class="material-icons ptier-top-note__icon">emoji_events</span>
+        <div class="ptier-top-note__body">
+          <div class="ptier-top-note__title">Top of the ladder</div>
+          <div class="ptier-top-note__sub">No tier above GOAT. Keep defending your rank.</div>
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- All tiers (descending) -->
+  <section class="ptier-section">
+    <h2 class="ptier-eyebrow">All Tiers</h2>
+    <div class="ptier-list">
+      @for (row of tiers(); track row.tier.tier) {
+        <div class="ptier-row"
+             [class.ptier-row--current]="row.isCurrent"
+             [style.--row-tier-color]="row.tier.color">
+          <div class="ptier-row__badge">
+            <span class="ptier-row__dot" aria-hidden="true"></span>
+            <span class="ptier-row__label">{{ row.tier.label }}</span>
+          </div>
+          <div class="ptier-row__range">{{ formatRange(row) }}</div>
+          @if (row.isCurrent) {
+            <span class="ptier-row__you">YOU</span>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- ELO explainer -->
+  <section class="ptier-section">
+    <h2 class="ptier-eyebrow">How ELO works</h2>
+    <p class="ptier-explainer">
+      Every ranked match adjusts your ELO based on your opponent's rating and the result.
+      Beat a higher-rated player and you gain more; lose to a lower-rated one and you lose more.
+      Climb through the tiers by playing consistently and answering quickly.
+    </p>
+    <p class="ptier-explainer">
+      Solo, Duel, and Logo Quiz each track separate ELO. The rank shown here is your overall solo ELO.
+    </p>
+  </section>
+</main>

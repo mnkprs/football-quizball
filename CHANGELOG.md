@@ -2,6 +2,32 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.3.0] - 2026-04-24
+
+### Added — Two new profile drilldown routes: `/profile/tier` and `/profile/history`
+
+Ships the two low-risk, display-only drilldown routes from the 2026-04-24 profile-flow design bundle as new standalone feature folders. The main profile screen is untouched apart from two surgical CTAs that reach the new routes. The product-sensitive routes (`/profile/edit`, `/profile/share`) are explicitly deferred.
+
+**`/profile/tier` — Rank Ladder.** New `ProfileTierComponent` at `frontend/src/app/features/profile-tier/`. Shows the user's current tier as a hero (badge + ELO + rank #, background tinted with tier colour + glow), the "path to next tier" strip via the new `so-tier-progress` primitive, all 7 tiers in descending order with current highlighted, and a short ELO explainer. Reads tier boundaries from the single source of truth (`core/elo-tier.ts#getEloTier`) — no hardcoded duplicates. Entry point: tap the tier-progress strip on the main profile hero.
+
+**`/profile/history` — Full Match History.** New `ProfileHistoryComponent` at `frontend/src/app/features/profile-history/`. Fetches the server-side match list via `MatchHistoryApiService.getHistory()` (backend caps: 10 for free / 100 for Pro — exposed as a cap hint in the header). Client-side filter chips via `so-tab-strip` (ALL / WINS / LOSSES / DRAWS), each row rendered via the new `so-history-row` primitive. Battle-royale and team-logo-battle matches are flagged as "draw" for the stripe colour since those modes don't have a W/L/D notion per viewer. Tapping a row navigates to `/match/:id` (existing match-detail route). Loading, error-with-retry, empty, and filter-yields-no-results states all covered. Auth-guarded. Entry point: "See all matches ›" link in the Last 10 games section header on the main profile (shown only on own profile).
+
+**Route ordering.** `profile/tier` and `profile/history` registered BEFORE `profile/:userId` in `app.routes.ts`, otherwise the `:userId` wildcard would swallow the word "tier"/"history" and the new routes would never match. Inline comment documents the gotcha.
+
+**Current profile touched in exactly two places.**
+- The `tier-progress` div → `<a>` with `routerLink="/profile/tier"` (same layout; adds hover/active affordance via new `.tier-progress--link` variant). No other behavioral change.
+- New `.section__see-all` link "See all matches ›" added to the Last 10 games section header, only when `isOwnProfile()` is true. No other rows or sections changed.
+
+**Shared primitive extensions (both land with this PR; both backwards-compatible).**
+- `so-history-row` gains a `[hideElo]` input. MatchHistoryEntry (from the backend) doesn't carry per-match ELO deltas — only `elo_history` does. Setting `hideElo=true` on `/profile/history` hides the right-side "+0 ELO" column entirely rather than showing a misleading zero on every row. Default stays `false` so the existing (future) consumers see no change. When a backend join with `elo_history` lands, flip to `false` and pass real deltas.
+- `so-tier-progress` gains an optional `[color]` input (defaults to `--color-accent`). `/profile/tier` passes `currentTier().color` so the progress bar fill and the "next-tier" highlight match the tier-tinted hero above (green for Pro, gold for Ballon d'Or, etc.) instead of always being blue.
+
+**GOAT edge case.** At the top tier, `nextTierThreshold()` returns null. `/profile/tier` now renders a "Top of the ladder" note instead of a nonsensical "Path to GOAT / GOAT · GOAT · +0" strip.
+
+**Pro cap hint accuracy.** `/profile/history` now calls `ProService.ensureLoaded()` on load, so deep-links (push notifications, bookmarks) don't briefly show "upgrade to Pro for 100" to actual Pro users.
+
+**What's NOT in this PR.** The main `profile.html` rewrite from the bundle remains deferred — it would delete achievements, XP progress, ELO sparkline, avatar upload, inline edit sheet, delete-account flow, guest state, per-match-mode badges, and all `lang.t()` i18n. Those are product decisions. The bundle's `/profile/edit` route is also deferred pending a product call on whether to replace the existing inline edit sheet, and `/profile/share` needs image generation + Capacitor share-plugin wiring. And the backend join to surface real per-match ELO deltas (which would let us un-hide the ELO column on history rows) is a separate task.
+
 ## [0.9.2.0] - 2026-04-24
 
 ### Added — Three new design-system primitives from the profile-flow design brief

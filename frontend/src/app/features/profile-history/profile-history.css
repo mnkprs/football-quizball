@@ -1,0 +1,121 @@
+/* ProfileHistoryComponent — full match history layout.
+   List items are so-history-row; filter chips are so-tab-strip.
+   This file is layout + states (loading, error, empty) only. */
+
+.phist-page {
+  min-height: 100%;
+  display: flex; flex-direction: column;
+  padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem 6rem;
+  max-width: var(--content-narrow-width, 28rem);
+  margin: 0 auto;
+  gap: 1rem;
+}
+
+/* ── Header ──────────────────────────────────────── */
+.phist-header {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+.phist-back {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.5rem; height: 2.5rem;
+  background: var(--glass-bg-subtle, rgba(255,255,255,0.06));
+  border: 1px solid var(--glass-border-strong, rgba(255,255,255,0.1));
+  border-radius: 50%;
+  color: var(--color-fg);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.phist-back:active { transform: scale(0.95); }
+.phist-title-block {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 0;
+}
+.phist-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-style: italic;
+  font-size: 1.125rem; letter-spacing: -0.02em; text-transform: uppercase;
+  margin: 0;
+  color: var(--color-fg);
+}
+.phist-cap-hint {
+  font-family: 'Lexend', sans-serif;
+  font-size: 0.625rem; letter-spacing: 0.08em;
+  color: var(--color-fg-muted);
+  margin-top: 0.125rem;
+}
+
+/* ── Filter strip ──────────────────────────────── */
+.phist-filter {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+/* ── List ──────────────────────────────────────── */
+.phist-list {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  margin-top: 0.25rem;
+}
+
+/* ── State panels ──────────────────────────────── */
+.phist-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-fg-variant);
+}
+.phist-state__icon {
+  font-size: 2.5rem !important;
+  opacity: 0.55;
+  color: var(--color-fg-muted);
+}
+.phist-state__text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--color-fg);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.phist-state__sub {
+  font-size: 0.8125rem;
+  color: var(--color-fg-muted);
+  margin: 0;
+}
+.phist-state--error .phist-state__icon { color: var(--color-error, #ef4444); }
+.phist-retry {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  background: var(--color-accent);
+  color: #fff;
+  border: 0;
+  border-radius: var(--radius-full, 999px);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600; font-size: 0.875rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.phist-retry:active { transform: scale(0.96); }
+
+/* ── Spinner (lightweight) ──────────────────── */
+.phist-spinner {
+  width: 2rem; height: 2rem;
+  border: 2.5px solid rgba(255,255,255,0.12);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: phist-spin 0.8s linear infinite;
+}
+@keyframes phist-spin { to { transform: rotate(360deg); } }
+
+/* ── Tablet + reduced motion ──────────────────── */
+@media (min-width: 768px) {
+  .phist-page { max-width: 36rem; padding-top: 2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phist-back, .phist-retry { transition: none; }
+  .phist-spinner { animation: none; border-top-color: var(--color-accent); }
+}
