@@ -2,6 +2,15 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.7.0] - 2026-04-24
+
+### Fixed
+- Username modal no longer pops up at random for users who already have a username. The auth profile lookup now surfaces transient Supabase errors (network blips, mid-flight token refresh, RLS hiccups) instead of silently treating them as "no username," and the root component only re-checks username setup when the signed-in user id actually changes — not on every token refresh or metadata write.
+- Top-nav settings panel now respects the mobile safe area on iOS. The slide-out panel pads against `env(safe-area-inset-right)` and `env(safe-area-inset-bottom)`, and the panel header clears the notch via `env(safe-area-inset-top)`.
+
+### Changed
+- Edit Profile is now a centered modal instead of a slide-in sub-panel. The settings sheet stays mounted underneath; the edit dialog renders as a sibling overlay with its own backdrop, fade/scale animation, and dynamic-viewport-aware sizing. Escape now closes the edit modal first, then the settings sheet. The settings sheet's focus trap is fully disabled (both `cdkTrapFocusEnabled` and `cdkTrapFocusAutoCapture`) while the edit modal is open, preventing two concurrent traps from fighting over focus.
+
 ## [0.9.6.0] - 2026-04-24
 
 ### Changed — Role-based typography tokens + codebase-wide migration
