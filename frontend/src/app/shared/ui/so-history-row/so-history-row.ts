@@ -69,18 +69,27 @@ export interface SoHistoryRowData {
           · {{ row().score }} · {{ row().time }}
         </div>
       </div>
-      <div class="so-history-row__elo">
-        <div class="so-history-row__delta">
-          {{ row().elo > 0 ? '+' : '' }}{{ row().elo }}
+      @if (!hideElo()) {
+        <div class="so-history-row__elo">
+          <div class="so-history-row__delta">
+            {{ row().elo > 0 ? '+' : '' }}{{ row().elo }}
+          </div>
+          <div class="so-history-row__unit">ELO</div>
         </div>
-        <div class="so-history-row__unit">ELO</div>
-      </div>
+      }
     </button>
   `,
   styleUrl: './so-history-row.css',
 })
 export class SoHistoryRowComponent {
   row = input.required<SoHistoryRowData>();
+  /**
+   * Hide the right-side ELO delta column entirely. Use when the caller's data
+   * source doesn't carry per-match ELO deltas and a zero would be misleading
+   * (e.g. the current `/profile/history` fetches from MatchHistoryEntry which
+   * lacks deltas — see backend join with elo_history for the real fix).
+   */
+  hideElo = input<boolean>(false);
   rowClicked = output<SoHistoryRowData>();
 
   chipVariant(): SoChipVariant {

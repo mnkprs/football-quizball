@@ -18,15 +18,28 @@
     }
   </section>
 
-  <!-- Path to next tier -->
-  <section class="ptier-section">
-    <so-tier-progress
-      [tier]="currentTier().label"
-      [nextTier]="nextTierName()"
-      [elo]="elo()"
-      [nextElo]="nextTierElo()"
-      [tierStart]="currentTierStart()" />
-  </section>
+  <!-- Path to next tier (hidden when user is at top tier — no next to progress to) -->
+  @if (!atTopTier()) {
+    <section class="ptier-section">
+      <so-tier-progress
+        [tier]="currentTier().label"
+        [nextTier]="nextTierName()"
+        [elo]="elo()"
+        [nextElo]="nextTierElo()"
+        [tierStart]="currentTierStart()"
+        [color]="currentTier().color" />
+    </section>
+  } @else {
+    <section class="ptier-section">
+      <div class="ptier-top-note">
+        <span class="material-icons ptier-top-note__icon">emoji_events</span>
+        <div class="ptier-top-note__body">
+          <div class="ptier-top-note__title">Top of the ladder</div>
+          <div class="ptier-top-note__sub">No tier above GOAT. Keep defending your rank.</div>
+        </div>
+      </div>
+    </section>
+  }
 
   <!-- All tiers (descending) -->
   <section class="ptier-section">

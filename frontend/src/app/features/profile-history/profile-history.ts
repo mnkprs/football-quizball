@@ -100,6 +100,10 @@ export class ProfileHistoryComponent implements OnInit {
     }
     this.loading.set(true);
     this.error.set(null);
+    // Ensure Pro status is loaded so the "Last 10 / 100" cap hint is accurate on
+    // deep-links (push notifications, bookmarks). Fire-and-forget — the cap hint
+    // is a display nicety, not a gate on the actual data fetch.
+    this.pro.ensureLoaded();
     this.api.getHistory(uid).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (list) => {
         this.matches.set(list);
