@@ -49,8 +49,8 @@ export class AchievementsService {
       this.supabaseService.getAchievements(userId),
       this.supabaseService.getProfile(userId),
       this.supabaseService.getCorrectStreak(userId),
-      this.supabaseService.getDuelWinCount(userId),
-      this.supabaseService.getDuelGameCount(userId),
+      this.supabaseService.getDuelWinCount(userId, 'standard'),
+      this.supabaseService.getDuelGameCount(userId, 'standard'),
       this.supabaseService.getBrGameCount(userId),
       this.supabaseService.getModesPlayed(userId),
     ]);
