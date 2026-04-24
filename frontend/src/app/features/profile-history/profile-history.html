@@ -1,0 +1,50 @@
+<main class="phist-page">
+  <header class="phist-header">
+    <button type="button" class="phist-back" (click)="goBack()" aria-label="Back to profile">
+      <span class="material-icons">chevron_left</span>
+    </button>
+    <div class="phist-title-block">
+      <h1 class="phist-title">Match History</h1>
+      <span class="phist-cap-hint">{{ capHint() }}</span>
+    </div>
+    <span class="phist-header__spacer" aria-hidden="true"></span>
+  </header>
+
+  <section class="phist-filter">
+    <so-tab-strip
+      [tabs]="filterTabs"
+      [active]="activeFilter()"
+      (activeChange)="onFilterChange($event)" />
+  </section>
+
+  @if (loading()) {
+    <section class="phist-state">
+      <div class="phist-spinner" aria-hidden="true"></div>
+      <p class="phist-state__text">Loading matches…</p>
+    </section>
+  } @else if (error()) {
+    <section class="phist-state phist-state--error">
+      <span class="material-icons phist-state__icon">error_outline</span>
+      <p class="phist-state__text">{{ error() }}</p>
+      <button type="button" class="phist-retry" (click)="retry()">Try again</button>
+    </section>
+  } @else if (totalCount() === 0) {
+    <section class="phist-state">
+      <span class="material-icons phist-state__icon">history</span>
+      <p class="phist-state__text">No matches played yet.</p>
+      <p class="phist-state__sub">Your game results will appear here.</p>
+    </section>
+  } @else if (filteredCount() === 0) {
+    <section class="phist-state">
+      <span class="material-icons phist-state__icon">filter_list_off</span>
+      <p class="phist-state__text">No matches match this filter.</p>
+      <p class="phist-state__sub">{{ totalCount() }} matches total — try the ALL tab.</p>
+    </section>
+  } @else {
+    <section class="phist-list" [id]="'ph-' + activeFilter()">
+      @for (row of rows(); track row.matchId) {
+        <so-history-row [row]="row" (rowClicked)="onRowClicked(row)" />
+      }
+    </section>
+  }
+</main>
