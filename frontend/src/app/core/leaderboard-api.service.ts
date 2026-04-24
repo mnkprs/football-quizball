@@ -36,6 +36,7 @@ export interface LeaderboardResponse {
   logoQuiz: LogoQuizLeaderboardEntry[];
   logoQuizHardcore: LogoQuizHardcoreLeaderboardEntry[];
   duel: DuelLeaderboardEntry[];
+  logoDuel: DuelLeaderboardEntry[];
 }
 
 export interface MyLeaderboardEntriesResponse {
@@ -44,6 +45,7 @@ export interface MyLeaderboardEntriesResponse {
   logoQuizMe: (LogoQuizLeaderboardEntry & { rank: number }) | null;
   logoQuizHardcoreMe: (LogoQuizHardcoreLeaderboardEntry & { rank: number }) | null;
   duelMe: (DuelLeaderboardEntry & { rank: number }) | null;
+  logoDuelMe: (DuelLeaderboardEntry & { rank: number }) | null;
 }
 
 @Injectable({ providedIn: 'root' })

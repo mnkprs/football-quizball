@@ -9,7 +9,7 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
-import { getEloTier, nextTierThreshold, tierProgress, xpForLevel, xpProgressPct, xpToNextLevel } from '../../core/elo-tier';
+import { getEloTier, nextTierThreshold, xpForLevel, xpProgressPct, xpToNextLevel } from '../../core/elo-tier';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { environment } from '../../../environments/environment';
@@ -18,10 +18,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import {
   SoAvatarComponent,
-  SoStatCardComponent,
   SoSectionHeaderComponent,
   SoHistoryRowComponent,
   SoButtonComponent,
+  SoTierProgressComponent,
+  SoRatingCardComponent,
+  SoXpCardComponent,
   type SoHistoryRowData,
 } from '../../shared/ui';
 
@@ -32,8 +34,9 @@ import {
     RouterLink, FormsModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     ConfirmModalComponent, EmptyStateComponent,
-    SoAvatarComponent, SoStatCardComponent, SoSectionHeaderComponent,
-    SoHistoryRowComponent, SoButtonComponent,
+    SoAvatarComponent, SoSectionHeaderComponent,
+    SoHistoryRowComponent, SoButtonComponent, SoTierProgressComponent,
+    SoRatingCardComponent, SoXpCardComponent,
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
@@ -53,8 +56,8 @@ export class ProfileComponent implements OnInit {
   private matchHistoryApi = inject(MatchHistoryApiService);
 
   profile = signal<LeaderboardEntry | null>(null);
-  blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
-  mayhemStats = signal<{ best_session_score: number; games_played: number; questions_answered: number; correct_answers: number; } | null>(null);
+  duelStats     = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
+  logoDuelStats = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
   eloHistory = signal<any[]>([]);
   achievements = signal<Achievement[]>([]);
   matchHistory = signal<MatchHistoryEntry[]>([]);
@@ -68,9 +71,6 @@ export class ProfileComponent implements OnInit {
   editCountryCode = '';
   editSaving = signal(false);
   editError = signal<string | null>(null);
-
-  // Achievement detail popup
-  selectedAchievement = signal<Achievement | null>(null);
 
   // Delete account state
   showDeleteConfirm = signal(false);
@@ -101,23 +101,11 @@ export class ProfileComponent implements OnInit {
     return name.slice(0, 2).toUpperCase();
   });
 
-  accuracy = computed(() => {
-    const p = this.profile();
-    if (!p?.questions_answered) return 0;
-    return Math.round((p.correct_answers / p.questions_answered) * 100);
-  });
-
   xp = computed(() => this.profile()?.xp ?? 0);
   level = computed(() => this.profile()?.level ?? 1);
   xpPct = computed(() => xpProgressPct(this.xp(), this.level()));
   xpRemaining = computed(() => xpToNextLevel(this.xp(), this.level()));
   xpNextLevel = computed(() => xpForLevel(this.level() + 1));
-
-  mayhemAccuracy = computed(() => {
-    const s = this.mayhemStats();
-    if (!s?.questions_answered) return 0;
-    return Math.round((s.correct_answers / s.questions_answered) * 100);
-  });
 
   /**
    * Shape MatchHistoryEntry rows for the so-history-row component.
@@ -138,6 +126,7 @@ export class ProfileComponent implements OnInit {
       const modeLabel =
         m.match_mode === 'online' ? 'Online' :
         m.match_mode === 'duel' ? 'Duel' :
+        m.match_mode === 'logo_duel' ? 'Logo Duel' :
         m.match_mode === 'local' ? '2-Player' :
         m.match_mode === 'battle_royale' ? 'Battle Royale' :
         m.match_mode === 'team_logo_battle' ? 'Team Logo' :
@@ -194,41 +183,14 @@ export class ProfileComponent implements OnInit {
 
   achievementsEarned = computed(() => this.achievements().filter(a => a.earned_at).length);
 
-  readonly categoryMeta: Record<string, { label: string; icon: string; order: number }> = {
-    progression: { label: 'Progression', icon: '📈', order: 1 },
-    milestone:   { label: 'Milestones',  icon: '🎯', order: 2 },
-    consistency: { label: 'Consistency', icon: '📅', order: 3 },
-    performance: { label: 'Performance', icon: '🔥', order: 4 },
-    mode:        { label: 'Modes',       icon: '🎮', order: 5 },
-    rank:        { label: 'Rank',        icon: '👑', order: 6 },
-  };
-
-  categorizedAchievements = computed(() => {
-    const groups = new Map<string, Achievement[]>();
-    for (const a of this.achievements()) {
-      const key = a.category ?? 'other';
-      const list = groups.get(key) ?? [];
-      list.push(a);
-      groups.set(key, list);
-    }
-    return Array.from(groups.entries())
-      .map(([key, items]) => ({
-        key,
-        label: this.categoryMeta[key]?.label ?? key,
-        icon: this.categoryMeta[key]?.icon ?? '🏅',
-        order: this.categoryMeta[key]?.order ?? 99,
-        items,
-        earned: items.filter(a => a.earned_at).length,
-        total: items.length,
-      }))
-      .sort((a, b) => a.order - b.order);
+  recentAchievements = computed(() => {
+    // filter() guarantees earned_at is non-null, so the sort comparator
+    // can use the non-null assertion directly.
+    return this.achievements()
+      .filter(a => !!a.earned_at)
+      .sort((a, b) => b.earned_at!.localeCompare(a.earned_at!))
+      .slice(0, 5);
   });
-
-  progressPercent(a: Achievement): number {
-    if (a.earned_at) return 100;
-    if (a.target <= 0) return 0;
-    return Math.round((a.current / a.target) * 100);
-  }
 
   memberSince = computed(() => {
     const p = this.profile();
@@ -257,7 +219,20 @@ export class ProfileComponent implements OnInit {
 
   rankTier = computed(() => getEloTier(this.profile()?.elo ?? 1000));
 
-  tierProgressPct = computed(() => tierProgress(this.profile()?.elo ?? 1000));
+  soloTier = computed(() => {
+    const t = this.rankTier();
+    return { label: t.label, color: t.color };
+  });
+
+  logoQuizTier = computed(() => {
+    const t = getEloTier(this.profile()?.logo_quiz_elo ?? 1000);
+    return { label: t.label, color: t.color };
+  });
+
+  logoHardcoreTier = computed(() => {
+    const t = getEloTier(this.profile()?.logo_quiz_hardcore_elo ?? 1000);
+    return { label: t.label, color: t.color };
+  });
 
   nextTierLabel = computed(() => {
     const elo = this.profile()?.elo ?? 1000;
@@ -265,6 +240,21 @@ export class ProfileComponent implements OnInit {
     if (next === null) return null;
     return getEloTier(next).label;
   });
+
+  currentTierStart = computed(() => {
+    // Mirrors profile-tier.ts — the floor of the user's current tier,
+    // needed by so-tier-progress for fill math.
+    const elo = this.profile()?.elo ?? 1000;
+    const TIER_BOUNDARIES: Array<[number, number | null]> = [
+      [2400, null], [2000, 2399], [1650, 1999], [1300, 1649],
+      [1000, 1299], [750, 999], [500, 749],
+    ];
+    const currentKey = getEloTier(elo).tier;
+    const row = TIER_BOUNDARIES.find(([min]) => getEloTier(min).tier === currentKey);
+    return row?.[0] ?? 500;
+  });
+
+  nextTierElo = computed(() => nextTierThreshold(this.profile()?.elo ?? 1000) ?? (this.profile()?.elo ?? 1000));
 
   ngOnInit(): void {
     this.userId.set(this.route.snapshot.paramMap.get('userId'));
@@ -284,14 +274,14 @@ export class ProfileComponent implements OnInit {
     this.loading.set(true);
     try {
       const [profileRes, achievementsRes, matchHistoryRes, avatarUrl] = await Promise.all([
-        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null, mayhem_stats: null, history: [] })),
+        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null, mayhem_stats: null, duel_stats: null, logo_duel_stats: null, history: [] })),
         firstValueFrom(this.achievementsApi.getForUser(userId)).catch(() => [] as Achievement[]),
         firstValueFrom(this.matchHistoryApi.getHistory(userId)).catch(() => [] as MatchHistoryEntry[]),
         this.auth.fetchAvatarUrl(userId).catch(() => null),
       ]);
       this.profile.set(profileRes?.profile ?? null);
-      this.blitzStats.set(profileRes?.blitz_stats ?? { bestScore: 0, totalGames: 0, rank: null });
-      this.mayhemStats.set(profileRes?.mayhem_stats ?? null);
+      this.duelStats.set(profileRes?.duel_stats ?? { wins: 0, losses: 0, rank: null });
+      this.logoDuelStats.set(profileRes?.logo_duel_stats ?? { wins: 0, losses: 0, rank: null });
       this.eloHistory.set(profileRes?.history ?? []);
       this.achievements.set(achievementsRes);
       this.matchHistory.set(matchHistoryRes);
@@ -324,10 +314,6 @@ export class ProfileComponent implements OnInit {
       this.avatarUploading.set(false);
       input.value = '';
     }
-  }
-
-  formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   openMatchDetail(match: MatchHistoryEntry): void {

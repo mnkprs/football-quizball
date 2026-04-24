@@ -1,5 +1,6 @@
 <div class="track" [style.height.px]="height()">
   <div class="fill" [style.width.%]="value()"
+       [style.min-width.px]="value() > 0 ? 10 : 0"
        [style.background]="color()"
        [style.box-shadow]="glow() ? '0 0 8px ' + color() : null"></div>
 </div>

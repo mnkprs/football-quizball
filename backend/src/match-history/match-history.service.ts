@@ -26,7 +26,7 @@ export class MatchHistoryService {
       winner_id: string | null;
       player1_score: number;
       player2_score: number;
-      match_mode: 'local' | 'online' | 'duel' | 'battle_royale' | 'team_logo_battle';
+      match_mode: 'local' | 'online' | 'duel' | 'logo_duel' | 'battle_royale' | 'team_logo_battle';
       game_ref_id?: string;
       game_ref_type?: string;
     },

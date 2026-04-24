@@ -1,0 +1,164 @@
+.achievements-page {
+  padding: 1rem 1.25rem 5rem;
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--color-fg);
+}
+.achievements-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.achievements-back {
+  background: rgba(255,255,255,0.06);
+  border: none; color: var(--color-fg);
+  width: 2.25rem; height: 2.25rem;
+  border-radius: 0.5rem;
+  display: grid; place-items: center;
+  cursor: pointer;
+}
+.achievements-title {
+  font-family: var(--font-headline);
+  font-size: 1.25rem; font-weight: 700;
+  margin: 0; flex: 1;
+}
+.achievements-count {
+  font-family: var(--font-numeric);
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+}
+.achievements-loading {
+  text-align: center; padding: 2rem; color: var(--color-fg-muted);
+}
+
+.achievements-group { margin-bottom: 1.5rem; }
+.achievements-group__head {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+.achievements-group__icon { font-size: 1.125rem; }
+.achievements-group__title {
+  font-family: var(--font-headline);
+  font-size: 0.75rem; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg); margin: 0; flex: 1;
+}
+.achievements-group__count {
+  font-family: var(--font-numeric);
+  font-size: 0.6875rem;
+  color: var(--color-fg-muted);
+}
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.achievement-tile {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 0.75rem 0.5rem;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 0.375rem;
+  color: inherit;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.achievement-tile:hover { background: rgba(255,255,255,0.07); }
+.achievement-tile--locked { opacity: 0.45; }
+.achievement-tile__icon { font-size: 1.5rem; }
+.achievement-tile__name {
+  font-size: 0.625rem;
+  text-align: center;
+  color: var(--color-fg-muted);
+  letter-spacing: 0.04em;
+}
+.achievement-tile__progress {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 0.125rem;
+  margin-top: 0.125rem;
+}
+.achievement-tile__progress-bar {
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.achievement-tile__progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+}
+.achievement-tile__progress-text {
+  font-size: 0.5rem;
+  color: var(--color-fg-dim);
+  text-align: center;
+}
+
+.achv-popup-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: grid; place-items: center;
+  padding: 1rem;
+  z-index: 100;
+}
+.achv-popup {
+  background: var(--color-surface);
+  border-radius: 16px;
+  padding: 1.5rem;
+  max-width: 320px; width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.75rem;
+}
+.achv-popup__icon { font-size: 3rem; }
+.achv-popup__name {
+  font-family: var(--font-headline);
+  font-size: 1.125rem; font-weight: 700;
+  margin: 0; text-align: center;
+}
+.achv-popup__desc {
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+  text-align: center; margin: 0;
+}
+.achv-popup__badge {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(34,197,94,0.15);
+  color: #22c55e;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+.achv-popup__progress-section {
+  width: 100%;
+  display: flex; flex-direction: column; gap: 0.25rem; align-items: center;
+}
+.achv-popup__progress-bar {
+  width: 100%; height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px; overflow: hidden;
+}
+.achv-popup__progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+}
+.achv-popup__progress-text {
+  font-family: var(--font-numeric);
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+}
+.achv-popup__category {
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-dim);
+}
+.achv-popup__close {
+  width: 100%;
+  padding: 0.625rem;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
