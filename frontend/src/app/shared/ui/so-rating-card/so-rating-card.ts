@@ -67,7 +67,8 @@ export interface SoRatingTier {
     .so-rating-card__label { flex: 1; }
     .so-rating-card__value {
       font-family: var(--font-numeric);
-      font-size: 1.25rem; font-weight: 700;
+      font-size: var(--so-rating-card-value-size, 1.25rem);
+      font-weight: 700;
       color: var(--color-fg);
     }
     .so-rating-card__tier {
