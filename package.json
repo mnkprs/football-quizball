@@ -1,6 +1,6 @@
 {
   "name": "football-quizball",
-  "version": "1.0.0",
+  "version": "0.9.7.0",
   "scripts": {
     "pool:seed": "cd backend && npm run pool:seed --",
     "pool:verify-integrity": "cd backend && npm run pool:verify-integrity --",

@@ -476,6 +476,11 @@
   flex-direction: column;
   overflow-y: auto;
   animation: tn-slide 0.25s ease;
+  /* Respect device safe areas: status-bar/notch on top, home indicator on
+     bottom, and the right-edge inset in landscape. The header gets its own
+     extra top padding below so the title clears the notch as well. */
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @keyframes tn-fade {
@@ -489,7 +494,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.5rem;
+  padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1.5rem 1.25rem;
   border-bottom: 1px solid var(--glass-border);
 }
 
@@ -556,6 +561,49 @@
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
+}
+
+/* ============================================
+   Edit Profile modal — centered dialog layered
+   above the settings sheet (.top-nav__settings-panel).
+   ============================================ */
+.tsp-edit__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: calc(var(--z-modal) + 1);
+  animation: tn-fade 0.2s ease;
+}
+
+.tsp-edit {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(26rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  z-index: calc(var(--z-modal) + 2);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: tsp-edit-in 0.2s ease;
+}
+
+@keyframes tsp-edit-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Override the sheet header's notch padding — the modal is centered, not
+   anchored to the top edge, so it doesn't need the safe-area inset. */
+.tsp-edit__header {
+  padding-top: 1.25rem;
 }
 
 .tsp__profile-name {

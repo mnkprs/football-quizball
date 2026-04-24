@@ -260,5 +260,11 @@ export class TopNavComponent implements OnInit {
   }
 
   @HostListener('document:keydown.escape')
-  onEscape(): void { this.closeSettings(); }
+  onEscape(): void {
+    if (this.editPanelOpen()) {
+      this.closeEditPanel();
+      return;
+    }
+    this.closeSettings();
+  }
 }

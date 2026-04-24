@@ -75,80 +75,8 @@
 <!-- Settings panel overlay -->
 @if (settingsOpen()) {
   <div class="top-nav__overlay" (click)="closeSettings()" role="presentation"></div>
-  <div class="top-nav__settings-panel" role="dialog" aria-label="Settings" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
-
-    <!-- ── Edit Profile sub-panel ── -->
-    @if (editPanelOpen()) {
-      <div class="tsp__header">
-        <button class="tsp__back" (click)="closeEditPanel()" aria-label="Back">
-          <span class="material-icons" style="font-size:1.25rem">arrow_back</span>
-        </button>
-        <h2 class="tsp__title">Edit Profile</h2>
-        <button class="tsp__close" (click)="closeSettings()" aria-label="Close">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-
-      @if (editError()) {
-        <div class="tsp__error" role="alert">{{ editError() }}</div>
-      }
-      @if (editSuccess()) {
-        <div class="tsp__success" aria-live="polite">{{ editSuccess() }}</div>
-      }
-
-      <div class="tsp__form">
-        <label class="tsp__field">
-          <span class="tsp__field-label">Username</span>
-          <input
-            class="tsp__field-input"
-            type="text"
-            [value]="editUsername"
-            (input)="editUsername = $any($event.target).value"
-            placeholder="Username"
-            maxlength="20"
-          />
-        </label>
-
-        <label class="tsp__field">
-          <span class="tsp__field-label">Email</span>
-          <input
-            class="tsp__field-input"
-            type="email"
-            [value]="editEmail"
-            (input)="editEmail = $any($event.target).value"
-            placeholder="Email"
-          />
-        </label>
-
-        <label class="tsp__field">
-          <span class="tsp__field-label">Country</span>
-          <input
-            class="tsp__field-input tsp__field-input--short"
-            type="text"
-            [value]="editCountryCode"
-            (input)="editCountryCode = $any($event.target).value"
-            placeholder="e.g. GR"
-            maxlength="2"
-            style="text-transform: uppercase;"
-          />
-          <span class="tsp__field-hint">2-letter code (ISO 3166-1)</span>
-        </label>
-
-        <button class="tsp__save-btn" (click)="saveProfile()" [disabled]="editSaving()">
-          @if (editSaving()) { Saving... } @else { Save Changes }
-        </button>
-
-        <div class="tsp__divider"></div>
-
-        <button class="tsp__reset-pw-btn" (click)="resetPassword()" [disabled]="resetSending()">
-          <span class="material-icons" style="font-size:1rem">lock_reset</span>
-          @if (resetSending()) { Sending... } @else { Reset Password }
-        </button>
-        <span class="tsp__field-hint" style="text-align:center">Sends a password reset link to your email</span>
-      </div>
-
-    <!-- ── Main settings panel ── -->
-    } @else {
+  <div class="top-nav__settings-panel" role="dialog" aria-label="Settings"
+       [cdkTrapFocus]="!editPanelOpen()" [cdkTrapFocusAutoCapture]="!editPanelOpen()">
       <div class="tsp__header">
         <h2 class="tsp__title">{{ lang.t().settingsTitle }}</h2>
         <button class="tsp__close" (click)="closeSettings()" aria-label="Close">
@@ -220,6 +148,77 @@
           (cancel)="showDeleteConfirm.set(false)"
         />
       }
+  </div>
+}
+
+<!-- Edit Profile modal (centered, layered above the settings sheet) -->
+@if (settingsOpen() && editPanelOpen()) {
+  <div class="tsp-edit__backdrop" (click)="closeEditPanel()" role="presentation"></div>
+  <div class="tsp-edit" role="dialog" aria-modal="true" aria-label="Edit Profile"
+       cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+    <div class="tsp__header tsp-edit__header">
+      <h2 class="tsp__title">Edit Profile</h2>
+      <button class="tsp__close" (click)="closeEditPanel()" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    @if (editError()) {
+      <div class="tsp__error" role="alert">{{ editError() }}</div>
     }
+    @if (editSuccess()) {
+      <div class="tsp__success" aria-live="polite">{{ editSuccess() }}</div>
+    }
+
+    <div class="tsp__form">
+      <label class="tsp__field">
+        <span class="tsp__field-label">Username</span>
+        <input
+          class="tsp__field-input"
+          type="text"
+          [value]="editUsername"
+          (input)="editUsername = $any($event.target).value"
+          placeholder="Username"
+          maxlength="20"
+        />
+      </label>
+
+      <label class="tsp__field">
+        <span class="tsp__field-label">Email</span>
+        <input
+          class="tsp__field-input"
+          type="email"
+          [value]="editEmail"
+          (input)="editEmail = $any($event.target).value"
+          placeholder="Email"
+        />
+      </label>
+
+      <label class="tsp__field">
+        <span class="tsp__field-label">Country</span>
+        <input
+          class="tsp__field-input tsp__field-input--short"
+          type="text"
+          [value]="editCountryCode"
+          (input)="editCountryCode = $any($event.target).value"
+          placeholder="e.g. GR"
+          maxlength="2"
+          style="text-transform: uppercase;"
+        />
+        <span class="tsp__field-hint">2-letter code (ISO 3166-1)</span>
+      </label>
+
+      <button class="tsp__save-btn" (click)="saveProfile()" [disabled]="editSaving()">
+        @if (editSaving()) { Saving... } @else { Save Changes }
+      </button>
+
+      <div class="tsp__divider"></div>
+
+      <button class="tsp__reset-pw-btn" (click)="resetPassword()" [disabled]="resetSending()">
+        <span class="material-icons" style="font-size:1rem">lock_reset</span>
+        @if (resetSending()) { Sending... } @else { Reset Password }
+      </button>
+      <span class="tsp__field-hint" style="text-align:center">Sends a password reset link to your email</span>
+    </div>
   </div>
 }
