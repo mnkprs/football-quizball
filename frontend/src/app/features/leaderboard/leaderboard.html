@@ -75,6 +75,19 @@
               </div>
             </a>
           }
+          @if (logoDuelMeRow(); as me) {
+            <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--logo-duel">
+              <div class="your-rank-icon"><mat-icon>swords</mat-icon></div>
+              <div class="your-rank-info">
+                <span class="your-rank-mode">Logo Duel</span>
+                <span class="your-rank-value">#{{ me.rank }}</span>
+              </div>
+              <div class="your-rank-score">
+                <span class="your-rank-score-value">{{ me.score }}</span>
+                <span class="your-rank-score-label">{{ me.scoreLabel }}</span>
+              </div>
+            </a>
+          }
         </div>
       </section>
     }
@@ -126,13 +139,29 @@
         </section>
       }
       @case ('duel') {
+        <div class="logo-sub-tabs-wrap">
+          <so-tab-strip
+            [tabs]="duelSubTabs"
+            [active]="duelSubTab()"
+            tabIdPrefix="lb-duel-sub-"
+            (activeChange)="setDuelSubTab($event)" />
+        </div>
         <section class="leaderboard-section">
-          <lb-section
-            [rows]="duelRows()"
-            [meRow]="duelMeRow()"
-            emptyIcon="sports_mma"
-            [emptyMessage]="lang.t().lbNoDuel"
-            [yourRankLabel]="lang.t().lbYourRank" />
+          @if (duelSubTab() === 'standard') {
+            <lb-section
+              [rows]="duelRows()"
+              [meRow]="duelMeRow()"
+              emptyIcon="sports_mma"
+              [emptyMessage]="lang.t().lbNoDuel"
+              [yourRankLabel]="lang.t().lbYourRank" />
+          } @else {
+            <lb-section
+              [rows]="logoDuelRows()"
+              [meRow]="logoDuelMeRow()"
+              emptyIcon="swords"
+              emptyMessage="No logo duel players yet. Be the first!"
+              [yourRankLabel]="lang.t().lbYourRank" />
+          }
         </section>
       }
     }

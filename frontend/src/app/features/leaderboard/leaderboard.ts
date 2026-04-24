@@ -26,6 +26,7 @@ interface LegendTier {
 
 type LeaderboardTab = 'solo' | 'logoQuiz' | 'duel';
 type LogoSubTab = 'normal' | 'hardcore';
+type DuelSubTab = 'standard' | 'logo';
 
 const LEGEND_SEEN_KEY = 'leaderboard_legend_seen';
 
@@ -49,6 +50,11 @@ const MODE_TABS: SoTab[] = [
 const LOGO_SUB_TABS: SoTab[] = [
   { id: 'normal',   label: 'Normal',   color: '#a855f7' },
   { id: 'hardcore', label: 'Hardcore', color: '#ef4444' },
+];
+
+const DUEL_SUB_TABS: SoTab[] = [
+  { id: 'standard', label: 'Standard', color: '#f59e0b' },
+  { id: 'logo',     label: 'Logo',     color: '#a855f7' },
 ];
 
 @Component({
@@ -75,11 +81,13 @@ export class LeaderboardComponent implements OnInit {
   private logoQuizEntries          = signal<LogoQuizLeaderboardEntry[]>([]);
   private logoQuizHardcoreEntries  = signal<LogoQuizHardcoreLeaderboardEntry[]>([]);
   private duelEntries              = signal<DuelLeaderboardEntry[]>([]);
+  private logoDuelEntries          = signal<DuelLeaderboardEntry[]>([]);
 
   private soloMeEntry              = signal<(LeaderboardEntry & { rank: number }) | null>(null);
   private logoQuizMeEntry          = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
   private logoQuizHardcoreMeEntry  = signal<(LogoQuizHardcoreLeaderboardEntry & { rank: number }) | null>(null);
   private duelMeEntry              = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
+  private logoDuelMeEntry          = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
 
   private currentUserId = computed(() => this.auth.user()?.id ?? null);
 
@@ -88,26 +96,30 @@ export class LeaderboardComponent implements OnInit {
   logoQuizRows         = computed<LeaderboardRow[]>(() => toRows.logoQuiz(this.logoQuizEntries(), this.currentUserId()));
   logoQuizHardcoreRows = computed<LeaderboardRow[]>(() => toRows.logoQuizHardcore(this.logoQuizHardcoreEntries(), this.currentUserId()));
   duelRows             = computed<LeaderboardRow[]>(() => toRows.duel(this.duelEntries(), this.currentUserId()));
+  logoDuelRows         = computed<LeaderboardRow[]>(() => toRows.duel(this.logoDuelEntries(), this.currentUserId()));
 
   soloMeRow             = computed<LeaderboardRow | null>(() => meToRow.solo(this.soloMeEntry(), this.currentUserId()));
   logoQuizMeRow         = computed<LeaderboardRow | null>(() => meToRow.logoQuiz(this.logoQuizMeEntry(), this.currentUserId()));
   logoQuizHardcoreMeRow = computed<LeaderboardRow | null>(() => meToRow.logoQuizHardcore(this.logoQuizHardcoreMeEntry(), this.currentUserId()));
   duelMeRow             = computed<LeaderboardRow | null>(() => meToRow.duel(this.duelMeEntry(), this.currentUserId()));
+  logoDuelMeRow         = computed<LeaderboardRow | null>(() => meToRow.duel(this.logoDuelMeEntry(), this.currentUserId()));
 
   // Your-ranks strip visibility (any mode ranked).
   hasAnyMyRank = computed(() =>
-    !!(this.soloMeRow() || this.logoQuizMeRow() || this.logoQuizHardcoreMeRow() || this.duelMeRow())
+    !!(this.soloMeRow() || this.logoQuizMeRow() || this.logoQuizHardcoreMeRow() || this.duelMeRow() || this.logoDuelMeRow())
   );
 
   loading = signal(false);
   error = signal<string | null>(null);
   activeTab = signal<LeaderboardTab>('solo');
   logoQuizSubTab = signal<LogoSubTab>('normal');
+  duelSubTab = signal<DuelSubTab>('standard');
   showLegend = signal(false);
 
   readonly legendTiers = LEGEND_TIERS;
   readonly modeTabs = MODE_TABS;
   readonly logoSubTabs = LOGO_SUB_TABS;
+  readonly duelSubTabs = DUEL_SUB_TABS;
 
   openLegend(): void {
     this.showLegend.set(true);
@@ -146,13 +158,17 @@ export class LeaderboardComponent implements OnInit {
     this.logoQuizSubTab.set(sub as LogoSubTab);
   }
 
+  setDuelSubTab(sub: string): void {
+    this.duelSubTab.set(sub as DuelSubTab);
+  }
+
   async load(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
     try {
       await this.auth.sessionReady;
       const isLoggedIn = this.auth.isLoggedIn();
-      const emptyMe = { soloMe: null, blitzMe: null, logoQuizMe: null, logoQuizHardcoreMe: null, duelMe: null };
+      const emptyMe = { soloMe: null, blitzMe: null, logoQuizMe: null, logoQuizHardcoreMe: null, duelMe: null, logoDuelMe: null };
       const [leaderboardRes, meRes] = await Promise.all([
         firstValueFrom(this.leaderboardApi.getLeaderboard()),
         isLoggedIn
@@ -163,10 +179,12 @@ export class LeaderboardComponent implements OnInit {
       this.logoQuizEntries.set(leaderboardRes.logoQuiz ?? []);
       this.logoQuizHardcoreEntries.set(leaderboardRes.logoQuizHardcore ?? []);
       this.duelEntries.set(leaderboardRes.duel ?? []);
+      this.logoDuelEntries.set(leaderboardRes.logoDuel ?? []);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
       this.logoQuizHardcoreMeEntry.set(meRes.logoQuizHardcoreMe ?? null);
       this.duelMeEntry.set(meRes.duelMe ?? null);
+      this.logoDuelMeEntry.set(meRes.logoDuelMe ?? null);
     } catch {
       this.error.set(this.lang.t().lbLoadFailed);
     } finally {
