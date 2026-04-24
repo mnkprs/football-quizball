@@ -22,6 +22,7 @@ import {
   SoSectionHeaderComponent,
   SoHistoryRowComponent,
   SoButtonComponent,
+  SoTierProgressComponent,
   type SoHistoryRowData,
 } from '../../shared/ui';
 
@@ -33,7 +34,7 @@ import {
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     ConfirmModalComponent, EmptyStateComponent,
     SoAvatarComponent, SoStatCardComponent, SoSectionHeaderComponent,
-    SoHistoryRowComponent, SoButtonComponent,
+    SoHistoryRowComponent, SoButtonComponent, SoTierProgressComponent,
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
@@ -265,6 +266,21 @@ export class ProfileComponent implements OnInit {
     if (next === null) return null;
     return getEloTier(next).label;
   });
+
+  currentTierStart = computed(() => {
+    // Mirrors profile-tier.ts — the floor of the user's current tier,
+    // needed by so-tier-progress for fill math.
+    const elo = this.profile()?.elo ?? 1000;
+    const TIER_BOUNDARIES: Array<[number, number | null]> = [
+      [2400, null], [2000, 2399], [1650, 1999], [1300, 1649],
+      [1000, 1299], [750, 999], [500, 749],
+    ];
+    const currentKey = getEloTier(elo).tier;
+    const row = TIER_BOUNDARIES.find(([min]) => getEloTier(min).tier === currentKey);
+    return row?.[0] ?? 500;
+  });
+
+  nextTierElo = computed(() => nextTierThreshold(this.profile()?.elo ?? 1000) ?? (this.profile()?.elo ?? 1000));
 
   ngOnInit(): void {
     this.userId.set(this.route.snapshot.paramMap.get('userId'));

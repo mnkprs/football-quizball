@@ -106,17 +106,15 @@
       </div>
 
       <!-- Tier Progress — tap to view all tiers -->
-      @if (nextTierLabel()) {
-        <a class="tier-progress tier-progress--link"
-           routerLink="/profile/tier"
-           aria-label="View all tiers">
-          <div class="tier-progress__labels">
-            <span class="tier-progress__current">{{ rankTier().label }}</span>
-            <span class="tier-progress__next">{{ nextTierLabel() }}</span>
-          </div>
-          <div class="tier-progress__track" role="progressbar" aria-label="Tier progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="tierProgressPct()">
-            <div class="tier-progress__fill" [style.--progress]="tierProgressPct() / 100"></div>
-          </div>
+      @if (nextTierLabel(); as nextLabel) {
+        <a routerLink="/profile/tier" class="tier-progress-link" aria-label="View all tiers">
+          <so-tier-progress
+            [tier]="rankTier().label"
+            [nextTier]="nextLabel"
+            [elo]="profile()?.elo ?? 1000"
+            [nextElo]="nextTierElo()"
+            [tierStart]="currentTierStart()"
+            [color]="rankTier().color" />
         </a>
       }
     </div>
