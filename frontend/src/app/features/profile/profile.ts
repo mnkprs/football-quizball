@@ -184,9 +184,11 @@ export class ProfileComponent implements OnInit {
   achievementsEarned = computed(() => this.achievements().filter(a => a.earned_at).length);
 
   recentAchievements = computed(() => {
+    // filter() guarantees earned_at is non-null, so the sort comparator
+    // can use the non-null assertion directly.
     return this.achievements()
       .filter(a => !!a.earned_at)
-      .sort((a, b) => (b.earned_at ?? '').localeCompare(a.earned_at ?? ''))
+      .sort((a, b) => b.earned_at!.localeCompare(a.earned_at!))
       .slice(0, 5);
   });
 
