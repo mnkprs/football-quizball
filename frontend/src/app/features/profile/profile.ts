@@ -9,7 +9,7 @@ import { LanguageService } from '../../core/language.service';
 import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
-import { getEloTier, nextTierThreshold, tierProgress, xpForLevel, xpProgressPct, xpToNextLevel } from '../../core/elo-tier';
+import { getEloTier, nextTierThreshold, xpForLevel, xpProgressPct, xpToNextLevel } from '../../core/elo-tier';
 import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { environment } from '../../../environments/environment';
@@ -18,11 +18,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import {
   SoAvatarComponent,
-  SoStatCardComponent,
   SoSectionHeaderComponent,
   SoHistoryRowComponent,
   SoButtonComponent,
   SoTierProgressComponent,
+  SoRatingCardComponent,
+  SoXpCardComponent,
   type SoHistoryRowData,
 } from '../../shared/ui';
 
@@ -33,8 +34,9 @@ import {
     RouterLink, FormsModule,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     ConfirmModalComponent, EmptyStateComponent,
-    SoAvatarComponent, SoStatCardComponent, SoSectionHeaderComponent,
+    SoAvatarComponent, SoSectionHeaderComponent,
     SoHistoryRowComponent, SoButtonComponent, SoTierProgressComponent,
+    SoRatingCardComponent, SoXpCardComponent,
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
@@ -56,6 +58,8 @@ export class ProfileComponent implements OnInit {
   profile = signal<LeaderboardEntry | null>(null);
   blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
   mayhemStats = signal<{ best_session_score: number; games_played: number; questions_answered: number; correct_answers: number; } | null>(null);
+  duelStats     = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
+  logoDuelStats = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
   eloHistory = signal<any[]>([]);
   achievements = signal<Achievement[]>([]);
   matchHistory = signal<MatchHistoryEntry[]>([]);
@@ -258,7 +262,20 @@ export class ProfileComponent implements OnInit {
 
   rankTier = computed(() => getEloTier(this.profile()?.elo ?? 1000));
 
-  tierProgressPct = computed(() => tierProgress(this.profile()?.elo ?? 1000));
+  soloTier = computed(() => {
+    const t = this.rankTier();
+    return { label: t.label, color: t.color };
+  });
+
+  logoQuizTier = computed(() => {
+    const t = getEloTier(this.profile()?.logo_quiz_elo ?? 1000);
+    return { label: t.label, color: t.color };
+  });
+
+  logoHardcoreTier = computed(() => {
+    const t = getEloTier(this.profile()?.logo_quiz_hardcore_elo ?? 1000);
+    return { label: t.label, color: t.color };
+  });
 
   nextTierLabel = computed(() => {
     const elo = this.profile()?.elo ?? 1000;
@@ -306,6 +323,8 @@ export class ProfileComponent implements OnInit {
         this.auth.fetchAvatarUrl(userId).catch(() => null),
       ]);
       this.profile.set(profileRes?.profile ?? null);
+      this.duelStats.set(profileRes?.duel_stats ?? { wins: 0, losses: 0, rank: null });
+      this.logoDuelStats.set(profileRes?.logo_duel_stats ?? { wins: 0, losses: 0, rank: null });
       this.blitzStats.set(profileRes?.blitz_stats ?? { bestScore: 0, totalGames: 0, rank: null });
       this.mayhemStats.set(profileRes?.mayhem_stats ?? null);
       this.eloHistory.set(profileRes?.history ?? []);

@@ -119,38 +119,50 @@
       }
     </div>
 
-    <!-- ─── XP / LEVEL ────────────────────────────── -->
-    <section class="section">
-      <div class="xp-card">
-        <div class="xp-card__head">
-          <span class="xp-card__level">Level {{ level() }}</span>
-          <span class="xp-card__total">{{ xp() }} XP</span>
-        </div>
-        <div class="xp-card__track" role="progressbar" aria-label="XP progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="xpPct()">
-          <div class="xp-card__fill" [style.--progress]="xpPct() / 100"></div>
-        </div>
-        <div class="xp-card__foot">{{ xpRemaining() }} XP to Level {{ level() + 1 }}</div>
+    <!-- ─── RATINGS + XP (stuck pair) ─────────────── -->
+    <section class="section ratings-section">
+      <so-section-header label="Ratings" />
+      <div class="ratings-grid">
+        <so-rating-card
+          label="Solo Ranked"
+          type="elo"
+          [value]="profile()?.elo ?? 1000"
+          [tier]="soloTier()"
+          icon="military_tech"
+          routerLink="/profile/tier" />
+        <so-rating-card
+          label="Logo Quiz"
+          type="elo"
+          [value]="profile()?.logo_quiz_elo ?? 1000"
+          [tier]="logoQuizTier()"
+          icon="extension" />
+        <so-rating-card
+          label="Logo Hardcore"
+          type="elo"
+          [value]="profile()?.logo_quiz_hardcore_elo ?? 1000"
+          [tier]="logoHardcoreTier()"
+          icon="local_fire_department" />
+        <so-rating-card
+          label="Duel"
+          type="record"
+          [value]="duelStats()?.wins ?? 0"
+          [secondaryValue]="duelStats()?.losses ?? 0"
+          icon="sports_mma" />
+        <so-rating-card
+          label="Logo Duel"
+          type="record"
+          [value]="logoDuelStats()?.wins ?? 0"
+          [secondaryValue]="logoDuelStats()?.losses ?? 0"
+          icon="swords" />
       </div>
     </section>
 
-    <!-- ─── THIS SEASON ────────────────────────────── -->
-    <section class="section">
-      <so-section-header label="This Season" />
-      <div class="stat-grid">
-        <so-stat-card
-          label="Peak ELO"
-          [value]="profile()?.max_elo ?? profile()?.elo ?? 1000" />
-        <so-stat-card
-          label="Accuracy"
-          [value]="accuracy()"
-          unit="%" />
-        <so-stat-card
-          label="Questions"
-          [value]="profile()?.questions_answered ?? 0" />
-        <so-stat-card
-          label="Achievements"
-          [value]="achievementsEarned() + ' / ' + achievements().length" />
-      </div>
+    <section class="section xp-section">
+      <so-xp-card
+        [level]="level()"
+        [xp]="xp()"
+        [pct]="xpPct()"
+        [remaining]="xpRemaining()" />
     </section>
 
     <!-- ─── ELO PROGRESSION ────────────────────────── -->

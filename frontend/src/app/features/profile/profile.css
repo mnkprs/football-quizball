@@ -260,47 +260,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ── XP Card — renamed from .xp-progress* ── */
-.xp-card {
-  padding: 0.75rem 0.875rem;
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  border-radius: 10px;
-}
-.xp-card__head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-bottom: 0.4rem;
-}
-.xp-card__level {
-  font-size: 0.95rem; font-weight: 700;
-  color: #a78bfa;
-  letter-spacing: 0.02em;
-}
-.xp-card__total {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-}
-.xp-card__track {
-  height: 6px;
-  background: rgba(139, 92, 246, 0.15);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.xp-card__fill {
-  height: 100%;
-  width: calc(var(--progress, 0) * 100%);
-  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
-  border-radius: 3px;
-  transition: width 0.5s ease;
-  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
-}
-.xp-card__foot {
-  margin-top: 0.35rem;
-  text-align: right;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
-}
-
 /* ── Section scaffolding ───────────────── */
 .section {
   display: flex;
@@ -331,13 +290,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 .section__see-all:active { opacity: 0.65; }
-
-/* ── Stat grid (so-stat-card x 4) ────────── */
-.stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-}
 
 /* ── ELO Sparkline ─────────────────────── */
 .sparkline-card {
@@ -762,7 +714,6 @@
 /* ── Tablet adaptations ───────────────── */
 @media (min-width: 768px) {
   .section { padding: 1.25rem 1.5rem 0; }
-  .stat-grid { grid-template-columns: repeat(4, 1fr); }
   .mode-grid { grid-template-columns: repeat(4, 1fr); }
   .achievements-grid { grid-template-columns: repeat(6, 1fr); }
   .sparkline-card svg { height: 64px; }
@@ -773,7 +724,18 @@
 @media (prefers-reduced-motion: reduce) {
   .hero::before { animation: none; }
   .hero__top-btn, .hero__avatar-zone so-avatar,
-  .xp-card__fill,
   .achievement-tile { transition: none; }
   .spin { animation: none; }
 }
+
+/* ── Ratings + XP stuck pair ─────────────── */
+.ratings-section { padding-bottom: 0.5rem; }
+.ratings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.625rem;
+}
+.ratings-grid > so-rating-card:nth-child(5) {
+  grid-column: 1 / -1;
+}
+.xp-section { padding-top: 0; }
