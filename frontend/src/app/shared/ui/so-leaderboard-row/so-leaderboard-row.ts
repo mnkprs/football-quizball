@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SoAvatarComponent, SoTier } from '../so-avatar/so-avatar';
+import { SoAvatarComponent, SoTier, getTierMeta } from '../so-avatar/so-avatar';
 
 @Component({
   selector: 'so-leaderboard-row',
@@ -18,17 +18,19 @@ export class SoLeaderboardRowComponent {
   delta           = input<number>();
   avatarInitials  = input<string>('');
   me              = input<boolean>(false);
+  /** Secondary stat line (e.g. "120 questions · 85% accuracy"). Overrides the tier label when provided. */
+  meta            = input<string>('');
+  /** Optional score label shown under the score (defaults to "ELO"). */
+  scoreLabel      = input<string>('ELO');
+
+  tierMeta = computed(() => getTierMeta(this.tier()));
+  tierLabel() { return this.tierMeta().label; }
+  tierColor() { return this.tierMeta().color; }
+  tierIcon()  { return this.tierMeta().icon; }
 
   rankDisplay() {
     const r = this.rank();
     return r <= 3 ? ['🥇','🥈','🥉'][r - 1] : r;
-  }
-  tierColor() {
-    const map: Record<SoTier, string> = {
-      Legend: '#007AFF', Elite: '#C0C0C0',
-      Challenger: '#CD7F32', Contender: '#4A90D9', Grassroots: '#6b7a8d',
-    };
-    return map[this.tier()];
   }
   deltaStr()   { const d = this.delta() ?? 0; return (d > 0 ? '+' : '') + d; }
   deltaColor() {

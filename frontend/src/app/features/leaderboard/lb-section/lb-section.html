@@ -1,0 +1,86 @@
+@if (rows().length > 0) {
+  @if (hasPodium()) {
+    <div class="podium">
+      @if (second(); as r) {
+        <a [routerLink]="['/profile', r.id]" class="podium__spot podium__spot--silver">
+          <div class="podium__medal podium__medal--silver">2</div>
+          <div class="podium__avatar" [class.podium__avatar--you]="r.isMe">{{ initial(r.username) }}</div>
+          <div class="podium__name">
+            {{ r.username }}
+            @if (r.isMe) { <span class="podium__you-badge">YOU</span> }
+          </div>
+          <div class="podium__score">{{ r.score }}</div>
+          <div class="podium__score-label">{{ r.scoreLabel }}</div>
+          <div class="podium__pedestal podium__pedestal--silver"></div>
+        </a>
+      }
+      @if (first(); as r) {
+        <a [routerLink]="['/profile', r.id]" class="podium__spot podium__spot--gold">
+          <div class="podium__crown"><mat-icon>emoji_events</mat-icon></div>
+          <div class="podium__medal podium__medal--gold">1</div>
+          <div class="podium__avatar" [class.podium__avatar--you]="r.isMe">{{ initial(r.username) }}</div>
+          <div class="podium__name">
+            {{ r.username }}
+            @if (r.isMe) { <span class="podium__you-badge">YOU</span> }
+          </div>
+          <div class="podium__score">{{ r.score }}</div>
+          <div class="podium__score-label">{{ r.scoreLabel }}</div>
+          <div class="podium__pedestal podium__pedestal--gold"></div>
+        </a>
+      }
+      @if (third(); as r) {
+        <a [routerLink]="['/profile', r.id]" class="podium__spot podium__spot--bronze">
+          <div class="podium__medal podium__medal--bronze">3</div>
+          <div class="podium__avatar" [class.podium__avatar--you]="r.isMe">{{ initial(r.username) }}</div>
+          <div class="podium__name">
+            {{ r.username }}
+            @if (r.isMe) { <span class="podium__you-badge">YOU</span> }
+          </div>
+          <div class="podium__score">{{ r.score }}</div>
+          <div class="podium__score-label">{{ r.scoreLabel }}</div>
+          <div class="podium__pedestal podium__pedestal--bronze"></div>
+        </a>
+      }
+    </div>
+  }
+
+  <div class="lb-list">
+    @for (row of listRows(); track row.id) {
+      <a [routerLink]="['/profile', row.id]" class="lb-list__link">
+        <so-leaderboard-row
+          [rank]="row.rank"
+          [name]="row.username"
+          [tier]="row.tier ?? 'substitute'"
+          [elo]="row.score"
+          [scoreLabel]="row.scoreLabel"
+          [meta]="row.meta"
+          [avatarInitials]="initial(row.username)"
+          [me]="row.isMe" />
+      </a>
+    }
+  </div>
+
+  @if (showMeBelow() && meRow(); as me) {
+    <div class="lb-separator">
+      <span class="lb-separator__line"></span>
+      <span class="lb-separator__text">{{ yourRankLabel() }}</span>
+      <span class="lb-separator__line"></span>
+    </div>
+    <a [routerLink]="['/profile', me.id]" class="lb-list__link">
+      <so-leaderboard-row
+        [rank]="me.rank"
+        [name]="me.username"
+        [tier]="me.tier ?? 'substitute'"
+        [elo]="me.score"
+        [scoreLabel]="me.scoreLabel"
+        [meta]="me.meta"
+        [avatarInitials]="initial(me.username)"
+        [me]="true" />
+    </a>
+  }
+} @else {
+  <div class="lb-empty">
+    <mat-icon>{{ emptyIcon() }}</mat-icon>
+    <p>{{ emptyMessage() }}</p>
+  </div>
+}

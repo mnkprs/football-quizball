@@ -1,7 +1,11 @@
 import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { getTierMeta, type EloTierId } from '../../../core/elo-tier';
 
-export type SoTier = 'Legend' | 'Elite' | 'Challenger' | 'Contender' | 'Grassroots';
+/** Visual tier identity — aligned with the game's 7-tier ELO system. */
+export type SoTier = EloTierId;
+
+export { getTierMeta };
 
 @Component({
   selector: 'so-avatar',
@@ -20,14 +24,8 @@ export class SoAvatarComponent {
 
   ringShadow = computed(() => {
     if (!this.ring()) return null;
-    const map: Record<SoTier, string> = {
-      Legend:     '#007AFF',
-      Elite:      '#C0C0C0',
-      Challenger: '#CD7F32',
-      Contender:  '#4A90D9',
-      Grassroots: '#6b7a8d',
-    };
-    const c = (this.tier() && map[this.tier()!]) || '#007AFF';
+    const t = this.tier();
+    const c = t ? getTierMeta(t).color : '#007AFF';
     return `0 0 0 2px var(--color-bg), 0 0 0 4px ${c}`;
   });
 }

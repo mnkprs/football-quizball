@@ -14,7 +14,10 @@
 .so-info       { flex: 1; min-width: 0; }
 .so-name       { font-weight: 600; font-size: 14px; color: #fff; }
 .so-you        { color: var(--color-accent); margin-left: 6px; font-size: 11px; }
-.so-tier       { font-size: 11px; color: var(--color-muted-foreground); }
+.so-tier       { font-size: 11px; color: var(--color-muted-foreground); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.so-tier__label { font-weight: 500; }
+.so-tier__sep   { opacity: 0.5; }
 .so-right      { text-align: right; }
 .so-elo        { font-weight: 700; font-size: 15px; color: #fff; }
 .so-delta      { font-family: 'Lexend'; font-size: 11px; }
+.so-elo-label  { font-size: 10px; color: var(--color-muted-foreground); letter-spacing: 0.04em; text-transform: uppercase; }

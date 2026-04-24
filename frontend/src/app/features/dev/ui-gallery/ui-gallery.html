@@ -113,11 +113,13 @@
     </div>
     <h3>Tier rings (size 48)</h3>
     <div class="ug-row">
-      <so-avatar [size]="48" initials="L" [ring]="true" tier="Legend" />
-      <so-avatar [size]="48" initials="E" [ring]="true" tier="Elite" />
-      <so-avatar [size]="48" initials="C" [ring]="true" tier="Challenger" />
-      <so-avatar [size]="48" initials="N" [ring]="true" tier="Contender" />
-      <so-avatar [size]="48" initials="G" [ring]="true" tier="Grassroots" />
+      <so-avatar [size]="48" initials="G" [ring]="true" tier="goat" />
+      <so-avatar [size]="48" initials="B" [ring]="true" tier="ballon_dor" />
+      <so-avatar [size]="48" initials="X" [ring]="true" tier="starting_xi" />
+      <so-avatar [size]="48" initials="P" [ring]="true" tier="pro" />
+      <so-avatar [size]="48" initials="S" [ring]="true" tier="substitute" />
+      <so-avatar [size]="48" initials="A" [ring]="true" tier="academy" />
+      <so-avatar [size]="48" initials="SL" [ring]="true" tier="sunday_league" />
     </div>
   </section>
 
@@ -125,15 +127,17 @@
   <section class="ug-section">
     <h2>so-rank-badge</h2>
     <div class="ug-row">
-      <so-rank-badge tier="Legend" [elo]="2450" />
-      <so-rank-badge tier="Elite" [elo]="2050" />
-      <so-rank-badge tier="Challenger" [elo]="1750" />
-      <so-rank-badge tier="Contender" [elo]="1150" />
-      <so-rank-badge tier="Grassroots" [elo]="800" />
+      <so-rank-badge tier="goat" [elo]="2450" />
+      <so-rank-badge tier="ballon_dor" [elo]="2050" />
+      <so-rank-badge tier="starting_xi" [elo]="1750" />
+      <so-rank-badge tier="pro" [elo]="1450" />
+      <so-rank-badge tier="substitute" [elo]="1150" />
+      <so-rank-badge tier="academy" [elo]="800" />
+      <so-rank-badge tier="sunday_league" [elo]="600" />
     </div>
     <h3>Without elo</h3>
     <div class="ug-row">
-      <so-rank-badge tier="Legend" />
+      <so-rank-badge tier="goat" />
     </div>
   </section>
 
@@ -141,11 +145,11 @@
   <section class="ug-section">
     <h2>so-leaderboard-row</h2>
     <div class="ug-stack">
-      <so-leaderboard-row [rank]="1" name="Alex Stepover" tier="Legend" [elo]="2450" [delta]="12" avatarInitials="AS" />
-      <so-leaderboard-row [rank]="2" name="Maria Pele" tier="Elite" [elo]="2100" [delta]="-4" avatarInitials="MP" />
-      <so-leaderboard-row [rank]="3" name="Juan Messi" tier="Elite" [elo]="2050" [delta]="0" avatarInitials="JM" />
-      <so-leaderboard-row [rank]="4" name="You" tier="Challenger" [elo]="1700" [delta]="24" avatarInitials="Y" [me]="true" />
-      <so-leaderboard-row [rank]="12" name="Sam Fan" tier="Contender" [elo]="1200" avatarInitials="SF" />
+      <so-leaderboard-row [rank]="1" name="Alex Stepover" tier="goat" [elo]="2450" [delta]="12" avatarInitials="AS" />
+      <so-leaderboard-row [rank]="2" name="Maria Pele" tier="ballon_dor" [elo]="2100" [delta]="-4" avatarInitials="MP" />
+      <so-leaderboard-row [rank]="3" name="Juan Messi" tier="ballon_dor" [elo]="2050" [delta]="0" avatarInitials="JM" />
+      <so-leaderboard-row [rank]="4" name="You" tier="starting_xi" [elo]="1700" [delta]="24" avatarInitials="Y" [me]="true" />
+      <so-leaderboard-row [rank]="12" name="Sam Fan" tier="substitute" [elo]="1200" avatarInitials="SF" meta="48 duels · 62% win rate" scoreLabel="Wins" />
     </div>
   </section>
 

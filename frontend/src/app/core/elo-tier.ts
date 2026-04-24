@@ -1,21 +1,59 @@
+export type EloTierId =
+  | 'sunday_league'
+  | 'academy'
+  | 'substitute'
+  | 'pro'
+  | 'starting_xi'
+  | 'ballon_dor'
+  | 'goat';
+
 export interface EloTier {
-  tier: 'sunday_league' | 'academy' | 'substitute' | 'pro' | 'starting_xi' | 'ballon_dor' | 'goat';
+  tier: EloTierId;
   label: string;
   color: string;
   /** Hex color used for glow/shadow */
   glow: string;
   /** Border width in px — increases with rank */
   borderWidth: number;
+  /** Emoji mascot (🐐 / 🥇 / 🎽 / ⚽ / 🪑 / 🎒 / 🥾). Matches the ranking legend. */
+  icon: string;
+}
+
+interface TierRow {
+  tier: EloTierId;
+  minElo: number;
+  label: string;
+  color: string;
+  borderWidth: number;
+  icon: string;
+}
+
+// Ordered high → low. minElo is inclusive; sunday_league catches everything else (floor 500).
+const TIER_TABLE: readonly TierRow[] = [
+  { tier: 'goat',          minElo: 2400, label: 'GOAT',          color: '#e8ff7a', borderWidth: 5, icon: '🐐' },
+  { tier: 'ballon_dor',    minElo: 2000, label: "Ballon d'Or",   color: '#eab308', borderWidth: 4, icon: '🥇' },
+  { tier: 'starting_xi',   minElo: 1650, label: 'Starting XI',   color: '#2563eb', borderWidth: 4, icon: '🎽' },
+  { tier: 'pro',           minElo: 1300, label: 'Pro',           color: '#10b981', borderWidth: 3, icon: '⚽' },
+  { tier: 'substitute',    minElo: 1000, label: 'Substitute',    color: '#94a3b8', borderWidth: 2, icon: '🪑' },
+  { tier: 'academy',       minElo: 750,  label: 'Academy',       color: '#b45309', borderWidth: 2, icon: '🎒' },
+  { tier: 'sunday_league', minElo: 0,    label: 'Sunday League', color: '#6b7280', borderWidth: 2, icon: '🥾' },
+];
+
+function rowToTier(row: TierRow): EloTier {
+  return { tier: row.tier, label: row.label, color: row.color, glow: row.color, borderWidth: row.borderWidth, icon: row.icon };
 }
 
 export function getEloTier(elo: number): EloTier {
-  if (elo >= 2400) return { tier: 'goat',         label: 'GOAT',          color: '#e8ff7a', glow: '#e8ff7a', borderWidth: 5 };
-  if (elo >= 2000) return { tier: 'ballon_dor',   label: "Ballon d'Or",   color: '#eab308', glow: '#eab308', borderWidth: 4 };
-  if (elo >= 1650) return { tier: 'starting_xi',  label: 'Starting XI',   color: '#2563eb', glow: '#2563eb', borderWidth: 4 };
-  if (elo >= 1300) return { tier: 'pro',          label: 'Pro',           color: '#10b981', glow: '#10b981', borderWidth: 3 };
-  if (elo >= 1000) return { tier: 'substitute',   label: 'Substitute',    color: '#94a3b8', glow: '#94a3b8', borderWidth: 2 };
-  if (elo >= 750)  return { tier: 'academy',      label: 'Academy',       color: '#b45309', glow: '#b45309', borderWidth: 2 };
-  return               { tier: 'sunday_league', label: 'Sunday League', color: '#6b7280', glow: '#6b7280', borderWidth: 2 };
+  for (const row of TIER_TABLE) {
+    if (elo >= row.minElo) return rowToTier(row);
+  }
+  return rowToTier(TIER_TABLE[TIER_TABLE.length - 1]);
+}
+
+/** Lookup tier visual metadata by id. Single source of truth for DS primitives. */
+export function getTierMeta(tier: EloTierId): EloTier {
+  const row = TIER_TABLE.find(r => r.tier === tier) ?? TIER_TABLE[TIER_TABLE.length - 1];
+  return rowToTier(row);
 }
 
 const TIER_THRESHOLDS = [500, 750, 1000, 1300, 1650, 2000, 2400];

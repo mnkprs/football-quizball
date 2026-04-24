@@ -1,15 +1,20 @@
 <div class="so-lbrow" [class.me]="me()"
      [style.border-left-color]="me() ? 'transparent' : tierColor()">
   <div class="so-rank" [class.top]="rank() <= 3">{{ rankDisplay() }}</div>
-  <so-avatar [size]="36" [initials]="avatarInitials()" />
+  <so-avatar [size]="36" [initials]="avatarInitials()" [tier]="tier()" [ring]="me()" />
   <div class="so-info">
     <div class="so-name">{{ name() }} @if (me()) { <span class="so-you">(YOU)</span> }</div>
-    <div class="so-tier">{{ tier() }}</div>
+    <div class="so-tier">
+      <span class="so-tier__label" [style.color]="tierColor()">{{ tierIcon() }} {{ tierLabel() }}</span>
+      @if (meta()) { <span class="so-tier__sep">·</span><span class="so-tier__meta">{{ meta() }}</span> }
+    </div>
   </div>
   <div class="so-right">
     <div class="so-elo font-headline">{{ elo() }}</div>
     @if (delta() != null) {
       <div class="so-delta" [style.color]="deltaColor()">{{ deltaStr() }}</div>
+    } @else {
+      <div class="so-elo-label">{{ scoreLabel() }}</div>
     }
   </div>
 </div>
