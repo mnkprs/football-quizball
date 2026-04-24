@@ -61,6 +61,8 @@ export class SoloController {
       this.supabaseService.getMayhemStats(userId),
       this.supabaseService.getSessionEloDelta(userId),
       this.supabaseService.getCorrectStreak(userId),
+      this.supabaseService.getDuelLeaderboardEntryForUser(userId),
+      this.supabaseService.getLogoDuelLeaderboardEntryForUser(userId),
     ]);
     const val = <T>(r: PromiseSettledResult<T>, fallback: T) => r.status === 'fulfilled' ? r.value : fallback;
     const profile = val(results[0], null);
@@ -70,11 +72,19 @@ export class SoloController {
     const mayhemStats = val(results[4], null);
     const sessionDelta = val(results[5], 0);
     const correctStreak = val(results[6], 0);
+    const duelStats = val(results[7], null);
+    const logoDuelStats = val(results[8], null);
     const history = profile ? await this.supabaseService.getEloHistory(userId, 20) : [];
     return {
       profile: profile ? { ...profile, rank, max_elo: maxElo ?? profile.elo } : null,
       blitz_stats: blitzStats ?? { bestScore: 0, totalGames: 0, rank: null },
       mayhem_stats: mayhemStats ?? null,
+      duel_stats: duelStats
+        ? { wins: duelStats.wins, losses: duelStats.losses, rank: duelStats.rank }
+        : { wins: 0, losses: 0, rank: null },
+      logo_duel_stats: logoDuelStats
+        ? { wins: logoDuelStats.wins, losses: logoDuelStats.losses, rank: logoDuelStats.rank }
+        : { wins: 0, losses: 0, rank: null },
       history,
       session_elo_delta: sessionDelta,
       correct_streak: correctStreak,
