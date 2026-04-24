@@ -490,12 +490,12 @@ export class DuelService {
           try {
             const isWinner = playerId === winnerId;
             if (isWinner) {
-              await this.supabaseService.incrementDuelWins(playerId);
+              await this.supabaseService.incrementDuelWins(playerId, row.game_type as 'standard' | 'logo');
               // Award DUEL_WIN XP bonus
               await this.xpService.award(playerId, 'duel_win', XP_VALUES.DUEL_WIN, { mode: 'duel' });
             }
-            const duelWins = isWinner ? (await this.supabaseService.getDuelWinCount(playerId)) : undefined;
-            const duelGames = await this.supabaseService.getDuelGameCount(playerId);
+            const duelWins = isWinner ? (await this.supabaseService.getDuelWinCount(playerId, 'standard')) : undefined;
+            const duelGames = await this.supabaseService.getDuelGameCount(playerId, 'standard');
             const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(playerId);
             const modesPlayed = await this.supabaseService.addModePlayed(playerId, 'duel');
 
