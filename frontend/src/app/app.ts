@@ -52,6 +52,7 @@ export class App implements OnInit, OnDestroy {
   private crashlytics = inject(CrashlyticsService);
   private pushNotifications = inject(PushNotificationService);
   isAdminRoute = signal(false);
+  private lastUsernameCheckUserId: string | null = null;
 
   showSplash = signal(true);
   splashFading = signal(false);
@@ -63,8 +64,17 @@ export class App implements OnInit, OnDestroy {
         this.analytics.identify(user.id);
         void this.crashlytics.setUserId(user.id);
         void this.pushNotifications.initialize(user.id);
-        this.checkUsernameSetup(user.id);
+        // Only check username setup once per user id. Without this guard the
+        // effect re-fires on every Supabase token auto-refresh (~hourly) and
+        // on any local user-metadata patch, which can spuriously re-open the
+        // username modal if a transient profile fetch fails or races with the
+        // server-side username write.
+        if (this.lastUsernameCheckUserId !== user.id) {
+          this.lastUsernameCheckUserId = user.id;
+          this.checkUsernameSetup(user.id);
+        }
       } else {
+        this.lastUsernameCheckUserId = null;
         this.analytics.reset();
         this.usernameModal.close();
       }
