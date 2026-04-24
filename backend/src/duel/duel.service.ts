@@ -455,76 +455,9 @@ export class DuelService {
 
     const gameWinner: 'host' | 'guest' | 'draw' | undefined = gameFinished ? role : undefined;
 
-    // Award achievements when game finishes
     if (gameFinished) {
       const winnerId = newScores.host > newScores.guest ? row.host_id : newScores.guest > newScores.host ? row.guest_id : null;
-
-      // Fire-and-forget: save to match_history with game reference
-      void (async () => {
-        const [hostName, guestName] = await Promise.all([
-          this.getUsername(row.host_id),
-          this.getUsername(row.guest_id!),
-        ]);
-        await this.supabaseService.saveMatchResult({
-          player1_id: row.host_id,
-          player2_id: row.guest_id!,
-          player1_username: hostName,
-          player2_username: guestName,
-          winner_id: winnerId,
-          player1_score: newScores.host,
-          player2_score: newScores.guest,
-          match_mode: row.game_type === 'logo' ? 'logo_duel' : 'duel',
-          game_ref_id: gameId,
-          game_ref_type: 'duel',
-        });
-      })().catch((e) => this.logger.warn(`[duel] match history save failed: ${e?.message}`));
-
-      // Fire-and-forget: send duel result notifications
-      void this.sendDuelResultNotifications(row, newScores, winnerId).catch((err) =>
-        this.logger.warn(`[submitAnswer] duel result notification failed: ${err?.message}`),
-      );
-
-      // Award achievements to both players
-      for (const playerId of ([row.host_id, row.guest_id].filter(Boolean) as string[])) {
-        void (async () => {
-          try {
-            const isWinner = playerId === winnerId;
-            if (isWinner) {
-              await this.supabaseService.incrementDuelWins(playerId, row.game_type as 'standard' | 'logo');
-              // Award DUEL_WIN XP bonus
-              await this.xpService.award(playerId, 'duel_win', XP_VALUES.DUEL_WIN, { mode: 'duel' });
-            }
-            const duelWins = isWinner ? (await this.supabaseService.getDuelWinCount(playerId, 'standard')) : undefined;
-            const duelGames = await this.supabaseService.getDuelGameCount(playerId, 'standard');
-            const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(playerId);
-            const modesPlayed = await this.supabaseService.addModePlayed(playerId, 'duel');
-
-            const awardedIds = await this.achievementsService.checkAndAward(playerId, {
-              duelWins,
-              duelGamesPlayed: duelGames,
-              dailyStreak,
-              modesPlayed,
-            });
-            // Send achievement notifications
-            if (awardedIds.length > 0) {
-              const awarded = await this.achievementsService.getByIds(awardedIds);
-              for (const ach of awarded) {
-                await this.notificationsService.create({
-                  userId: playerId,
-                  type: 'achievement_unlocked',
-                  title: 'Achievement unlocked!',
-                  body: `${ach.name} — ${ach.description}`,
-                  icon: ach.icon || '🏅',
-                  route: '/profile',
-                  metadata: { achievementId: ach.id, achievementName: ach.name },
-                });
-              }
-            }
-          } catch (e) {
-            this.logger.warn(`[submitAnswer] Achievement check failed for ${playerId}: ${(e as Error)?.message}`);
-          }
-        })();
-      }
+      this.finalizeDuelGame(row, newScores, winnerId, 'submit');
     }
 
     return {
@@ -613,27 +546,98 @@ export class DuelService {
       return;
     }
 
-    // Fire-and-forget: save to match_history when game ends via timeout
     if (gameFinished && row.guest_id) {
       const winnerId = row.scores.host > row.scores.guest ? row.host_id : row.scores.guest > row.scores.host ? row.guest_id : null;
+      this.finalizeDuelGame(row, row.scores, winnerId, 'timeout');
+    }
+  }
+
+  /**
+   * Shared finalize pipeline for duels that end via submit OR timeout. Runs
+   * fire-and-forget:
+   *   1. Save match_history with game reference + correct match_mode
+   *   2. Send result notifications
+   *   3. Per-player: increment wins (if winner), award DUEL_WIN XP (if winner),
+   *      update daily streak, add mode played, check+award achievements,
+   *      send achievement notifications
+   *
+   * Before this refactor the timeout path skipped steps 2-3 entirely, so
+   * timeout-finalized duels did not increment duel_wins/logo_duel_wins nor
+   * trigger duel_5/50/100_wins achievements — visible inconsistency once the
+   * profile Ratings card started surfacing duel_wins.
+   */
+  private finalizeDuelGame(
+    row: DuelGameRow,
+    scores: { host: number; guest: number },
+    winnerId: string | null,
+    source: 'submit' | 'timeout',
+  ): void {
+    if (!row.guest_id) return;
+    const guestId = row.guest_id;
+
+    // Fire-and-forget: save match_history with correct match_mode
+    void (async () => {
+      const [hostName, guestName] = await Promise.all([
+        this.getUsername(row.host_id),
+        this.getUsername(guestId),
+      ]);
+      await this.supabaseService.saveMatchResult({
+        player1_id: row.host_id,
+        player2_id: guestId,
+        player1_username: hostName,
+        player2_username: guestName,
+        winner_id: winnerId,
+        player1_score: scores.host,
+        player2_score: scores.guest,
+        match_mode: row.game_type === 'logo' ? 'logo_duel' : 'duel',
+        game_ref_id: row.id,
+        game_ref_type: 'duel',
+      });
+    })().catch((e) => this.logger.warn(`[duel:${source}] match history save failed: ${e?.message}`));
+
+    // Fire-and-forget: send duel result notifications
+    void this.sendDuelResultNotifications(row, scores, winnerId).catch((err) =>
+      this.logger.warn(`[duel:${source}] duel result notification failed: ${err?.message}`),
+    );
+
+    // Per-player: increment wins, award XP, check achievements
+    for (const playerId of ([row.host_id, guestId].filter(Boolean) as string[])) {
       void (async () => {
-        const [hostName, guestName] = await Promise.all([
-          this.getUsername(row.host_id),
-          this.getUsername(row.guest_id!),
-        ]);
-        await this.supabaseService.saveMatchResult({
-          player1_id: row.host_id,
-          player2_id: row.guest_id!,
-          player1_username: hostName,
-          player2_username: guestName,
-          winner_id: winnerId,
-          player1_score: row.scores.host,
-          player2_score: row.scores.guest,
-          match_mode: row.game_type === 'logo' ? 'logo_duel' : 'duel',
-          game_ref_id: row.id,
-          game_ref_type: 'duel',
-        });
-      })().catch((e) => this.logger.warn(`[duel] match history save (timeout) failed: ${e?.message}`));
+        try {
+          const isWinner = playerId === winnerId;
+          if (isWinner) {
+            await this.supabaseService.incrementDuelWins(playerId, row.game_type as 'standard' | 'logo');
+            await this.xpService.award(playerId, 'duel_win', XP_VALUES.DUEL_WIN, { mode: 'duel' });
+          }
+          const duelWins = isWinner ? (await this.supabaseService.getDuelWinCount(playerId, 'standard')) : undefined;
+          const duelGames = await this.supabaseService.getDuelGameCount(playerId, 'standard');
+          const { current_daily_streak: dailyStreak } = await this.supabaseService.updateDailyStreak(playerId);
+          const modesPlayed = await this.supabaseService.addModePlayed(playerId, 'duel');
+
+          const awardedIds = await this.achievementsService.checkAndAward(playerId, {
+            duelWins,
+            duelGamesPlayed: duelGames,
+            dailyStreak,
+            modesPlayed,
+          });
+          if (awardedIds.length > 0) {
+            const awarded = await this.achievementsService.getByIds(awardedIds);
+            for (const ach of awarded) {
+              await this.notificationsService.create({
+                userId: playerId,
+                type: 'achievement_unlocked',
+                title: 'Achievement unlocked!',
+                body: `${ach.name} — ${ach.description}`,
+                icon: ach.icon || '🏅',
+                route: '/profile',
+                metadata: { achievementId: ach.id, achievementName: ach.name },
+              });
+            }
+          }
+        } catch (e) {
+          this.logger.warn(`[duel:${source}] Achievement check failed for ${playerId}: ${(e as Error)?.message}`);
+        }
+      })();
     }
   }
 
