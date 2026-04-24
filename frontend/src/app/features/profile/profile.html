@@ -261,51 +261,31 @@
       </section>
     }
 
-    <!-- ─── ACHIEVEMENTS ──────────────────────────── -->
-    @if (achievements().length > 0) {
-      <section class="section">
-        <so-section-header [label]="lang.t().achievements" />
-        <div class="section__head-extras">
-          <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
-        </div>
-        @for (group of categorizedAchievements(); track group.key) {
-          <div class="achievements-group">
-            <div class="achievements-group__head">
-              <span class="achievements-group__icon">{{ group.icon }}</span>
-              <h3 class="achievements-group__title">{{ group.label }}</h3>
-              <span class="achievements-group__count">{{ group.earned }} / {{ group.total }}</span>
-            </div>
-            <div class="achievements-grid">
-              @for (a of group.items; track a.id) {
-                <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" (click)="selectedAchievement.set(a)">
-                  <span class="achievement-tile__icon">{{ a.icon }}</span>
-                  <span class="achievement-tile__name">{{ a.name }}</span>
-                  @if (!a.earned_at && a.target > 1) {
-                    <div class="achievement-tile__progress">
-                      <div class="achievement-tile__progress-bar">
-                        <div class="achievement-tile__progress-fill" [style.width.%]="progressPercent(a)"></div>
-                      </div>
-                      <span class="achievement-tile__progress-text">{{ a.current }} / {{ a.target }}</span>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </div>
+    <!-- ─── ACHIEVEMENTS (compact preview) ────────── -->
+    <section class="section">
+      <so-section-header [label]="lang.t().achievements" />
+      <div class="section__head-extras">
+        <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
+        @if (isOwnProfile()) {
+          <a class="section__see-all" routerLink="/profile/achievements">View all ›</a>
         }
-      </section>
-    } @else {
-      <section class="section">
-        <so-section-header [label]="lang.t().achievements" />
+      </div>
+      @if (recentAchievements().length > 0) {
+        <div class="achievements-preview">
+          @for (a of recentAchievements(); track a.id) {
+            <span class="achievements-preview__tile" [attr.title]="a.name">{{ a.icon }}</span>
+          }
+        </div>
+      } @else if (isOwnProfile()) {
         <app-empty-state
           icon="emoji_events"
           title="No achievements yet"
           subtitle="Play some games to start earning badges"
-          ctaLabel="Play Solo"
-          ctaRoute="/solo"
+          ctaLabel="View all achievements"
+          ctaRoute="/profile/achievements"
         />
-      </section>
-    }
+      }
+    </section>
 
     <!-- ─── ACCOUNT ACTIONS ─────────────────────────── -->
     @if (isOwnProfile()) {
@@ -367,35 +347,6 @@
             Save Changes
           }
         </button>
-      </div>
-    }
-
-    <!-- ─── ACHIEVEMENT DETAIL POPUP ──────────────────── -->
-    @if (selectedAchievement(); as a) {
-      <div class="achv-popup-backdrop" (click)="selectedAchievement.set(null)">
-        <div class="achv-popup" (click)="$event.stopPropagation()">
-          <span class="achv-popup__icon">{{ a.icon }}</span>
-          <h3 class="achv-popup__name">{{ a.name }}</h3>
-          <p class="achv-popup__desc">{{ a.description }}</p>
-
-          @if (a.earned_at) {
-            <div class="achv-popup__badge achv-popup__badge--earned">
-              <span class="material-icons" style="font-size:1rem">check_circle</span>
-              Earned {{ formatDate(a.earned_at) }}
-            </div>
-          } @else {
-            <div class="achv-popup__progress-section">
-              <div class="achv-popup__progress-bar">
-                <div class="achv-popup__progress-fill" [style.width.%]="progressPercent(a)"></div>
-              </div>
-              <span class="achv-popup__progress-text">{{ a.current }} / {{ a.target }}</span>
-            </div>
-          }
-
-          <span class="achv-popup__category">{{ a.category }}</span>
-
-          <button class="achv-popup__close" (click)="selectedAchievement.set(null)">Got it</button>
-        </div>
       </div>
     }
 
