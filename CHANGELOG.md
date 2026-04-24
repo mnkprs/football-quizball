@@ -2,6 +2,60 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.4.0] - 2026-04-24
+
+### Changed — Leaderboard-flow refactor + shared tier-promotion overlay
+
+Two coordinated pieces from the 2026-04-24 leaderboard-flow design bundle land together. The leaderboard screen is overhauled onto the shared DS (−1,149 lines net), and a new app-shell celebration overlay replaces three inconsistent per-mode tier-up signals with one. Profile-tier/profile-history routes that landed in v0.9.3.0 are unaffected.
+
+---
+
+**1. Leaderboard screen refactor.** `LeaderboardComponent` collapsed from 729 HTML lines + 989 CSS lines down to 176 + 373 by extracting a single `<lb-section>` subcomponent that renders podium + ranked list + "me below" + empty state from a normalized `LeaderboardRow[]`. The four near-identical blocks (Solo / Logo Quiz / Logo Hardcore / Duel) — each with its own podium markup, list markup, and me-below markup — all now route through the same template.
+
+New `features/leaderboard/leaderboard-row.ts` adapter. Introduces a `LeaderboardRow` shape (`id / rank / username / score / scoreLabel / meta / tier / isMe`) plus `toRows.*` and `meToRow.*` adapters that flatten the four backend entry shapes. Each adapter owns its meta-line format: solo shows `"N questions · X% accuracy"`, logo shows `"N games played"`, duel shows `"NW · ML · X% win rate"`. Duel deliberately leaves `tier` undefined because `DuelLeaderboardEntry` has no ELO field — the DS row falls back to a neutral accent and the avatar ring skips the tier color.
+
+`so-tab-strip` replaces the hand-rolled mode/sub-mode tab buttons. The old `.mode-tabs` + `.mode-tab--active` CSS and the two `<button role="tab">` blocks for Solo/Logo/Duel (and Normal/Hardcore) are gone — one `<so-tab-strip>` each, keyed off `activeTab()` and `logoQuizSubTab()`. WAI-ARIA tablist + arrow-key roving focus come for free from the primitive.
+
+`SoTier` aligned with the game's real 7-tier ELO system. The DS primitives (`so-avatar`, `so-rank-badge`, `so-leaderboard-row`) previously used a speculative 5-tier union (`Legend / Elite / Challenger / Contender / Grassroots`) that didn't exist anywhere in the game — only in the dev UI gallery. `SoTier` now aliases `EloTierId` from `core/elo-tier.ts` (`sunday_league / academy / substitute / pro / starting_xi / ballon_dor / goat`), and `elo-tier.ts` exports a new `getTierMeta(tier)` helper that is the single source of truth for tier label + color + icon. DS primitives import the helper instead of hardcoding their own 5-color map. Ring color on the avatar, stripe color on the rank badge, and border-left + label on the leaderboard row all now render the correct seven colors.
+
+`so-leaderboard-row` gained `meta` and `scoreLabel` inputs. Now renders `{tier icon} {tier label} · {meta}` inline (matching the design's inline format), with `scoreLabel` defaulting to "ELO" and switching to "Wins" for the duel leaderboard. Ring also lights up when `me` is true, so the "you" row gets a visually anchored accent without relying on a separate avatar-you treatment.
+
+`ui-gallery` updated to exercise all seven tiers instead of the phantom five, plus one example of the new `meta`/`scoreLabel` inputs on `so-leaderboard-row`.
+
+---
+
+**2. Shared tier-promotion overlay.** New `TierPromotionService` + `TierPromotionOverlayComponent` mounted at the app shell alongside the existing `LevelUpOverlayComponent`. Consumers call `tierPromotion.show(newTier, eloGained)`; the overlay renders the tier-colored ring, tier icon (pulled from the new `EloTier.icon` field), "You reached *Ballon d'Or*" headline, `+ELO` pill, and a 24-piece confetti burst tinted from `tier.color`/`tier.glow`. Auto-dismisses after 3.5s or on tap; respects `prefers-reduced-motion` by dropping confetti and the ring pulse but keeping the scale-in so the moment still registers.
+
+Replaces three inconsistent in-mode signals with one:
+
+- `solo.ts` — deleted the `tierUpMessage` signal, the 3-second `tierUpTimeout` toast, the `.solo-tier-toast*` CSS (28 lines), and the `<div class="solo-tier-toast">` in `solo.html`. The existing tier-up detection at line 253 now calls `this.tierPromotion.show(newTier, result.elo_change)` and nothing else.
+- `logo-quiz.ts` — deleted the `tierPromoted` signal, the `[class.lq-session-elo__tier--promoted]` binding in `logo-quiz.html`, and the `.lq-session-elo__tier--promoted` animation rule (+ its reduced-motion sibling) in `logo-quiz.css`. The promotion branch now fires the overlay while still setting `borderGlow = 'glow-strong'` so the session header also reacts. Non-promotion ELO ticks keep the subtle `glow` border — unchanged. `previousTier` storage shape unchanged (still a tier-id string); the call site now passes the full `EloTier` object to the service instead of just the id.
+- `mayhem-mode.ts` — **net-new**. Mayhem had no tier-crossing signal at all. Added detection at the ELO-update site in `submitSessionAnswer`: computes `getEloTier(currentElo - eloChange)` vs `getEloTier(currentElo)` and fires the overlay when they differ and `elo_change > 0`. Stateless-answer path is unaffected (no ELO = no promotion to celebrate).
+
+Why a shell-mounted overlay. Tier promotion is a *player* event, not a *game-mode* event — every mode that touches ELO should celebrate identically. Living in `app.html` means the celebration survives route changes (a player who crosses Starting XI on the final duel question still sees the moment even if they navigate home before it fires). Mirrors `LevelUpService` 1:1 so the pattern is already familiar in the codebase.
+
+`EloTier.icon` added. The seven emoji mascots (🐐 / 🥇 / 🎽 / ⚽ / 🪑 / 🎒 / 🥾) live on `EloTier` now, so every surface that shows a tier — overlay hero, leaderboard row, ranking-legend modal — reads from the same field instead of each re-defining its own lookup. The legend modal in `leaderboard.ts` still carries its own literal table because the ranges/gradient-from colors live there and aren't on `EloTier`; worth unifying in a later pass.
+
+Left as follow-ups (intentional): No demotion celebration — different visual language (sober, not confetti). No promotion queue — if a player somehow gains two tiers in one answer, the service shows the final tier only. The orphaned `@keyframes tier-promote` in `styles/base/_animations.css` is harmless and kept for a future dead-CSS sweep. Screen G (`LBJumpCelebration` post-match results screen) from the design bundle is deferred — needs a routing + data-flow decision before shipping.
+
+**Net diff: +330 insertions / −1,465 deletions** across 22 files. Production build clean; only pre-existing NG8107/NG8102 warnings in unrelated daily/mayhem templates remain. No unit tests for `TierPromotionService`/`TierPromotionOverlayComponent` or the new `lb-section`/`leaderboard-row` adapters — project has no Angular component test infrastructure; acceptable coverage gap for a display-layer refactor.
+
+---
+
+`LeaderboardComponent` collapsed from 729 HTML lines + 989 CSS lines down to 176 + 373 by extracting a single `<lb-section>` subcomponent that renders podium + ranked list + "me below" + empty state from a normalized `LeaderboardRow[]`. The four near-identical blocks (Solo / Logo Quiz / Logo Hardcore / Duel) — each with its own podium markup, list markup, and me-below markup — all now route through the same template.
+
+**New `features/leaderboard/leaderboard-row.ts` adapter.** Introduces a `LeaderboardRow` shape (`id / rank / username / score / scoreLabel / meta / tier / isMe`) plus `toRows.*` and `meToRow.*` adapters that flatten the four backend entry shapes. Each adapter owns its meta-line format: solo shows `"N questions · X% accuracy"`, logo shows `"N games played"`, duel shows `"NW · ML · X% win rate"`. Duel deliberately leaves `tier` undefined because `DuelLeaderboardEntry` has no ELO field — the DS row falls back to a neutral accent and the avatar ring skips the tier color.
+
+**`so-tab-strip` replaces the hand-rolled mode/sub-mode tab buttons.** The old `.mode-tabs` + `.mode-tab--active` CSS and the two `<button role="tab">` blocks for Solo/Logo/Duel (and Normal/Hardcore) are gone — one `<so-tab-strip>` each, keyed off `activeTab()` and `logoQuizSubTab()`. WAI-ARIA tablist + arrow-key roving focus come for free from the primitive.
+
+**`SoTier` aligned with the game's real 7-tier ELO system.** The DS primitives (`so-avatar`, `so-rank-badge`, `so-leaderboard-row`) previously used a speculative 5-tier union (`Legend / Elite / Challenger / Contender / Grassroots`) that didn't exist anywhere in the game — only in the dev UI gallery. `SoTier` now aliases `EloTierId` from `core/elo-tier.ts` (`sunday_league / academy / substitute / pro / starting_xi / ballon_dor / goat`), and `elo-tier.ts` exports a new `getTierMeta(tier)` helper that is the single source of truth for tier label + color. DS primitives import the helper instead of hardcoding their own 5-color map. Ring color on the avatar, stripe color on the rank badge, and border-left + label on the leaderboard row all now render the correct seven colors.
+
+**`so-leaderboard-row` gained `meta` and `scoreLabel` inputs.** Previously only rendered the tier label under the name and hardcoded "ELO" under the score. Now renders `{tier icon} {tier label} · {meta}` inline (matching the design's inline format), with `scoreLabel` defaulting to "ELO" and switching to "Wins" for the duel leaderboard. Ring now also lights up when `me` is true, so the "you" row gets a visually anchored accent without relying on a separate avatar-you treatment.
+
+**`ui-gallery` updated** to exercise all seven tiers instead of the phantom five, plus one example of the new `meta`/`scoreLabel` inputs on `so-leaderboard-row`.
+
+**Net diff: −1,149 lines** across `leaderboard.{ts,html,css}`, `so-avatar.ts`, `so-leaderboard-row.{ts,html,css}`, `so-rank-badge.{ts,html}`, `elo-tier.ts`, and `ui-gallery.html`. Production build clean; only pre-existing NG8107/NG8102 warnings in unrelated daily/mayhem templates remain.
+
 ## [0.9.3.0] - 2026-04-24
 
 ### Added — Two new profile drilldown routes: `/profile/tier` and `/profile/history`

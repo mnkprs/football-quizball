@@ -7,6 +7,7 @@ import { MayhemApiService, MayhemQuestion, MayhemAnswerResponse, MayhemSessionRe
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { AuthService } from '../../core/auth.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
+import { TierPromotionService } from '../../core/tier-promotion.service';
 import { AnalyticsService } from '../../core/analytics.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 
@@ -29,6 +30,7 @@ export class MayhemModeComponent implements OnDestroy {
   private auth = inject(AuthService);
   private analytics = inject(AnalyticsService);
   private shellUi = inject(ShellUiService);
+  private tierPromotion = inject(TierPromotionService);
 
   phase = signal<MayhemPhase>('idle');
 
@@ -100,6 +102,13 @@ export class MayhemModeComponent implements OnDestroy {
         // Session-based: submit through ELO system
         const result = await firstValueFrom(this.mayhemApi.submitSessionAnswer(sid, q.id, option));
         if (result.correct) this.correctCount.update(v => v + 1);
+        // Tier-up detection — fires the shared TierPromotionOverlay.
+        const priorElo = result.current_elo - result.elo_change;
+        const oldTier = getEloTier(priorElo);
+        const newTier = getEloTier(result.current_elo);
+        if (newTier.tier !== oldTier.tier && result.elo_change > 0) {
+          this.tierPromotion.show(newTier, result.elo_change);
+        }
         this.currentElo.set(result.current_elo);
         this.eloChange.update(v => v + result.elo_change);
         this.lastResult.set({ correct: result.correct, correct_answer: result.correct_answer, explanation: result.explanation });

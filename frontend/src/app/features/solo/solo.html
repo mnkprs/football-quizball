@@ -70,13 +70,7 @@
     </div>
 
     <ng-container ngProjectAs="[screen-body]">
-    <!-- Tier-up toast -->
-    @if (tierUpMessage()) {
-      <div class="solo-tier-toast">
-        <span class="solo-tier-toast__icon">⬆</span>
-        <span class="solo-tier-toast__text">{{ tierUpMessage() }}</span>
-      </div>
-    }
+    <!-- Tier-up now fires the global TierPromotionOverlay (see app.html). -->
 
     <!-- XP gain float -->
     @if (lastXpGain(); as xp) {

@@ -19,6 +19,7 @@ import { ToastComponent } from './shared/toast/toast';
 import { UpdateService } from './core/update.service';
 import { ForceUpdateBannerComponent } from './shared/force-update-banner/force-update-banner';
 import { LevelUpOverlayComponent } from './shared/level-up-overlay/level-up-overlay';
+import { TierPromotionOverlayComponent } from './shared/tier-promotion-overlay/tier-promotion-overlay';
 import { OfflineBannerComponent } from './shared/offline-banner/offline-banner';
 import { App as CapacitorApp } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -29,7 +30,7 @@ import { PushNotificationService } from './core/push-notification.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, NgOptimizedImage, ForceUpdateBannerComponent, LevelUpOverlayComponent, OfflineBannerComponent],
+  imports: [RouterOutlet, DonateModalComponent, AuthModalComponent, UsernameModalComponent, AchievementUnlockModalComponent, ToastComponent, NgOptimizedImage, ForceUpdateBannerComponent, LevelUpOverlayComponent, TierPromotionOverlayComponent, OfflineBannerComponent],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

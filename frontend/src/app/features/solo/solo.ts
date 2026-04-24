@@ -21,6 +21,7 @@ import { createReportCooldown } from '../../core/report-cooldown';
 import { ProfileStore } from '../../core/profile-store.service';
 import { AdService } from '../../core/ad.service';
 import { LevelUpService } from '../../core/level-up.service';
+import { TierPromotionService } from '../../core/tier-promotion.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 
 type SoloPhase = 'idle' | 'loading-question' | 'question' | 'result' | 'finished';
@@ -46,6 +47,7 @@ export class SoloComponent implements OnDestroy {
   private profileStore = inject(ProfileStore);
   private adService = inject(AdService);
   private levelUpService = inject(LevelUpService);
+  private tierPromotion = inject(TierPromotionService);
   private shellUi = inject(ShellUiService);
   lang = inject(LanguageService);
 
@@ -101,7 +103,6 @@ export class SoloComponent implements OnDestroy {
   correctAnswers = signal(0);
   currentStreak = signal(0);
   bestStreak = signal(0);
-  tierUpMessage = signal<string | null>(null);
   lastXpGain = signal<{ amount: number; streak?: number } | null>(null);
   private xpGainTimeout?: ReturnType<typeof setTimeout>;
 
@@ -113,7 +114,6 @@ export class SoloComponent implements OnDestroy {
   private reportCooldown = createReportCooldown();
   reportDisabled = this.reportCooldown.disabled;
   problemReported = this.reportCooldown.reported;
-  private tierUpTimeout: ReturnType<typeof setTimeout> | null = null;
   private timer = createGameTimer();
   timeLeft = this.timer.timeLeft;
   totalTimeLimit = signal(35);
@@ -250,13 +250,11 @@ export class SoloComponent implements OnDestroy {
         this.currentStreak.set(0);
       }
 
-      // Tier-up detection
+      // Tier-up detection — fires the app-shell TierPromotionOverlay.
       const oldTier = getEloTier(result.elo_after - result.elo_change);
       const newTier = getEloTier(result.elo_after);
       if (newTier.tier !== oldTier.tier && result.elo_change > 0) {
-        this.tierUpMessage.set(`${newTier.label} Tier Reached!`);
-        if (this.tierUpTimeout) clearTimeout(this.tierUpTimeout);
-        this.tierUpTimeout = setTimeout(() => this.tierUpMessage.set(null), 3000);
+        this.tierPromotion.show(newTier, result.elo_change);
       }
 
       this.currentElo.set(result.elo_after);
@@ -337,7 +335,6 @@ export class SoloComponent implements OnDestroy {
     this.correctAnswers.set(0);
     this.currentStreak.set(0);
     this.bestStreak.set(0);
-    this.tierUpMessage.set(null);
     this.lastResult.set(null);
     this.currentQuestion.set(null);
     this.phase.set('idle');
@@ -375,7 +372,6 @@ export class SoloComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.timer.destroy();
     this.reportCooldown.destroy();
-    if (this.tierUpTimeout) clearTimeout(this.tierUpTimeout);
     this.shellUi.hideBottomNav.set(false);
   }
 }

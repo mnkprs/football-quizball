@@ -30,6 +30,7 @@ import { GameApiService } from '../../core/game-api.service';
 import { LanguageService } from '../../core/language.service';
 import { ProfileStore } from '../../core/profile-store.service';
 import { getEloTier, type EloTier } from '../../core/elo-tier';
+import { TierPromotionService } from '../../core/tier-promotion.service';
 import { createGameTimer } from '../../core/game-timer';
 import { createReportCooldown } from '../../core/report-cooldown';
 import { AdService } from '../../core/ad.service';
@@ -71,6 +72,7 @@ export class LogoQuizComponent implements OnDestroy {
   protected proService = inject(ProService);
   private analytics = inject(AnalyticsService);
   private shellUi = inject(ShellUiService);
+  private tierPromotion = inject(TierPromotionService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   lang = inject(LanguageService);
@@ -204,7 +206,6 @@ export class LogoQuizComponent implements OnDestroy {
   scoreTicked = signal(false);
   deltaRefreshed = signal(false);
   borderGlow = signal<'' | 'glow' | 'glow-strong'>('');
-  tierPromoted = signal(false);
   private previousTier = signal<string>('');
 
   // Timer
@@ -461,21 +462,20 @@ export class LogoQuizComponent implements OnDestroy {
       setTimeout(() => this.scoreTicked.set(false), 300);
     }
 
-    // Tier promotion check — rare, special celebration
-    const newTier = this.eloTier().tier;
+    // Tier promotion check — fires the shared TierPromotionOverlay (see app.html).
+    const newTier = this.eloTier();
     const prev = this.previousTier();
-    if (prev && newTier !== prev) {
-      // Tier changed! Strong glow + tier label promotion
+    if (prev && newTier.tier !== prev) {
+      const eloGained = this.currentElo() - this.startElo();
       this.borderGlow.set('glow-strong');
-      this.tierPromoted.set(true);
       setTimeout(() => this.borderGlow.set(''), 750);
-      setTimeout(() => this.tierPromoted.set(false), 550);
+      this.tierPromotion.show(newTier, Math.max(1, eloGained));
     } else {
       // Normal ELO change — subtle border glow
       this.borderGlow.set('glow');
       setTimeout(() => this.borderGlow.set(''), 550);
     }
-    this.previousTier.set(newTier);
+    this.previousTier.set(newTier.tier);
   }
 
   resetToIdle(): void {

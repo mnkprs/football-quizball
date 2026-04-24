@@ -57,35 +57,6 @@
   min-height: 2.25rem;
 }
 
-/* ── Tier-up toast ──────────────────────────── */
-.solo-tier-toast {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: rgba(0, 122, 255, 0.12);
-  border: 1px solid rgba(0, 122, 255, 0.25);
-  border-radius: var(--radius-full);
-  margin-bottom: 1rem;
-  animation: anim-scale-in 400ms var(--ease-out-quart);
-}
-
-.solo-tier-toast__icon {
-  font-size: 1rem;
-  color: var(--color-accent);
-}
-
-.solo-tier-toast__text {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  text-shadow: 0 0 12px rgba(0, 122, 255, 0.3);
-}
-
 /* ── Session verdict ────────────────────────── */
 .solo-verdict {
   font-family: 'Inter', sans-serif;

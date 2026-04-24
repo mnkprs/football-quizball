@@ -1,0 +1,57 @@
+@if (tierPromotion.active(); as evt) {
+  <div
+    class="tier-promotion-overlay"
+    role="status"
+    aria-live="polite"
+    [attr.aria-label]="'Tier promoted to ' + evt.tier.label"
+    (click)="tierPromotion.dismiss()"
+    (keydown.enter)="tierPromotion.dismiss()"
+    (keydown.escape)="tierPromotion.dismiss()"
+    tabindex="0"
+  >
+    <!-- Radial glow in the tier's color, sits behind everything -->
+    <div
+      class="tier-promotion-overlay__glow"
+      [style.background]="'radial-gradient(circle at 50% 50%, ' + evt.tier.glow + '55 0%, transparent 55%)'"
+    ></div>
+
+    <!-- Confetti burst — 24 plain divs, CSS handles the rest.
+         (Kept inline so it all animates off one keyframe clock; external
+         confetti libs bring 10kb+ for this one moment.) -->
+    <div class="tier-promotion-overlay__confetti" aria-hidden="true">
+      @for (i of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]; track i) {
+        <span
+          class="tier-promotion-overlay__piece"
+          [style.--i]="i"
+          [style.background]="i % 3 === 0 ? evt.tier.color : (i % 3 === 1 ? '#fff' : evt.tier.glow)"
+        ></span>
+      }
+    </div>
+
+    <div class="tier-promotion-overlay__content">
+      <div class="tier-promotion-overlay__label">PROMOTED</div>
+
+      <!-- Big tier icon ring -->
+      <div
+        class="tier-promotion-overlay__ring"
+        [style.border-color]="evt.tier.color"
+        [style.box-shadow]="'0 0 48px ' + evt.tier.glow + '77, inset 0 0 24px ' + evt.tier.glow + '22'"
+      >
+        <span class="tier-promotion-overlay__icon">{{ icon(evt.tier.tier) }}</span>
+      </div>
+
+      <div class="tier-promotion-overlay__headline">
+        You reached
+        <span class="tier-promotion-overlay__tier" [style.color]="evt.tier.color">
+          {{ evt.tier.label }}
+        </span>
+      </div>
+
+      <div class="tier-promotion-overlay__delta">
+        +{{ evt.eloGained }} ELO
+      </div>
+
+      <div class="tier-promotion-overlay__hint">Tap to continue</div>
+    </div>
+  </div>
+}
