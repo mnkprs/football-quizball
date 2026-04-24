@@ -285,7 +285,7 @@ export class ProfileComponent implements OnInit {
     this.loading.set(true);
     try {
       const [profileRes, achievementsRes, matchHistoryRes, avatarUrl] = await Promise.all([
-        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null, mayhem_stats: null, history: [] })),
+        firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null, mayhem_stats: null, duel_stats: null, logo_duel_stats: null, history: [] })),
         firstValueFrom(this.achievementsApi.getForUser(userId)).catch(() => [] as Achievement[]),
         firstValueFrom(this.matchHistoryApi.getHistory(userId)).catch(() => [] as MatchHistoryEntry[]),
         this.auth.fetchAvatarUrl(userId).catch(() => null),
