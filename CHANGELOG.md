@@ -2,6 +2,12 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.5.1] - 2026-04-24
+
+### Fixed — Profile "Last 10 games" now actually caps at 10
+
+The `historyRows` computed in `ProfileComponent` was mapping the full `matchHistory()` signal, so the section labeled "Last 10 games" was rendering every match the user had ever played. Sliced to the first 10 entries inside the computed; the full list remains available via "See all matches ›" on `/profile/history`. Total-games and W/L/D chips are unaffected — they read `matchHistory()` directly, not the paged view.
+
 ## [0.9.5.0] - 2026-04-24
 
 ### Changed — Profile main screen now uses the so-* design system

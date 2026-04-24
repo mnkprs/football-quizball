@@ -129,7 +129,7 @@ export class ProfileComponent implements OnInit {
   historyRows = computed<Array<SoHistoryRowData & { matchId: string }>>(() => {
     const uid = this.currentUserId();
     if (!uid) return [];
-    return this.matchHistory().map(m => {
+    return this.matchHistory().slice(0, 10).map(m => {
       const isBr = m.match_mode === 'battle_royale' || m.match_mode === 'team_logo_battle';
       const result: SoHistoryRowData['result'] =
         isBr ? 'draw'
