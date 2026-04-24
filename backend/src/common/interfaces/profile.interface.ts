@@ -13,6 +13,7 @@ export interface Profile {
   max_correct_streak: number;
   logo_quiz_correct: number;
   duel_wins: number;
+  logo_duel_wins: number;
   br_wins: number;
   last_active_date: string | null;
   current_daily_streak: number;

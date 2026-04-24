@@ -30,13 +30,15 @@ export class LbSectionComponent {
   third  = computed(() => this.rows()[2] ?? null);
   listRows = computed(() => {
     const rows = this.rows();
-    return rows.length >= 3 ? rows.slice(3) : rows;
+    if (rows.length >= 3) return rows.slice(3, 10);
+    return rows.slice(0, 10);
   });
 
   showMeBelow = computed(() => {
     const me = this.meRow();
     if (!me) return false;
-    return !this.rows().some(r => r.id === me.id);
+    const visibleIds = new Set(this.rows().slice(0, 10).map(r => r.id));
+    return !visibleIds.has(me.id);
   });
 
   initial(username: string): string {

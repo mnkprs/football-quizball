@@ -106,53 +106,63 @@
       </div>
 
       <!-- Tier Progress — tap to view all tiers -->
-      @if (nextTierLabel()) {
-        <a class="tier-progress tier-progress--link"
-           routerLink="/profile/tier"
-           aria-label="View all tiers">
-          <div class="tier-progress__labels">
-            <span class="tier-progress__current">{{ rankTier().label }}</span>
-            <span class="tier-progress__next">{{ nextTierLabel() }}</span>
-          </div>
-          <div class="tier-progress__track" role="progressbar" aria-label="Tier progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="tierProgressPct()">
-            <div class="tier-progress__fill" [style.--progress]="tierProgressPct() / 100"></div>
-          </div>
+      @if (nextTierLabel(); as nextLabel) {
+        <a routerLink="/profile/tier" class="tier-progress-link" aria-label="View all tiers">
+          <so-tier-progress
+            [tier]="rankTier().label"
+            [nextTier]="nextLabel"
+            [elo]="profile()?.elo ?? 1000"
+            [nextElo]="nextTierElo()"
+            [tierStart]="currentTierStart()"
+            [color]="rankTier().color" />
         </a>
       }
     </div>
 
-    <!-- ─── XP / LEVEL ────────────────────────────── -->
-    <section class="section">
-      <div class="xp-card">
-        <div class="xp-card__head">
-          <span class="xp-card__level">Level {{ level() }}</span>
-          <span class="xp-card__total">{{ xp() }} XP</span>
-        </div>
-        <div class="xp-card__track" role="progressbar" aria-label="XP progress" aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="xpPct()">
-          <div class="xp-card__fill" [style.--progress]="xpPct() / 100"></div>
-        </div>
-        <div class="xp-card__foot">{{ xpRemaining() }} XP to Level {{ level() + 1 }}</div>
+    <!-- ─── RATINGS + XP (stuck pair) ─────────────── -->
+    <section class="section ratings-section">
+      <so-section-header label="Ratings" />
+      <div class="ratings-grid">
+        <so-rating-card
+          label="Solo Ranked"
+          type="elo"
+          [value]="profile()?.elo ?? 1000"
+          [tier]="soloTier()"
+          icon="military_tech"
+          routerLink="/profile/tier" />
+        <so-rating-card
+          label="Logo Quiz"
+          type="elo"
+          [value]="profile()?.logo_quiz_elo ?? 1000"
+          [tier]="logoQuizTier()"
+          icon="extension" />
+        <so-rating-card
+          label="Logo Hardcore"
+          type="elo"
+          [value]="profile()?.logo_quiz_hardcore_elo ?? 1000"
+          [tier]="logoHardcoreTier()"
+          icon="local_fire_department" />
+        <so-rating-card
+          label="Duel"
+          type="record"
+          [value]="duelStats()?.wins ?? 0"
+          [secondaryValue]="duelStats()?.losses ?? 0"
+          icon="sports_mma" />
+        <so-rating-card
+          label="Logo Duel"
+          type="record"
+          [value]="logoDuelStats()?.wins ?? 0"
+          [secondaryValue]="logoDuelStats()?.losses ?? 0"
+          icon="swords" />
       </div>
     </section>
 
-    <!-- ─── THIS SEASON ────────────────────────────── -->
-    <section class="section">
-      <so-section-header label="This Season" />
-      <div class="stat-grid">
-        <so-stat-card
-          label="Peak ELO"
-          [value]="profile()?.max_elo ?? profile()?.elo ?? 1000" />
-        <so-stat-card
-          label="Accuracy"
-          [value]="accuracy()"
-          unit="%" />
-        <so-stat-card
-          label="Questions"
-          [value]="profile()?.questions_answered ?? 0" />
-        <so-stat-card
-          label="Achievements"
-          [value]="achievementsEarned() + ' / ' + achievements().length" />
-      </div>
+    <section class="section xp-section">
+      <so-xp-card
+        [level]="level()"
+        [xp]="xp()"
+        [pct]="xpPct()"
+        [remaining]="xpRemaining()" />
     </section>
 
     <!-- ─── ELO PROGRESSION ────────────────────────── -->
@@ -186,32 +196,10 @@
       </a>
     }
 
-    <!-- ─── MODE STATS ─────────────────────────────── -->
-    <section class="section">
-      <so-section-header label="Mode Stats" />
-      <div class="mode-grid">
-        <div class="mode-card mode-card--solo">
-          <div class="mode-card__head">
-            <span class="material-icons mode-card__icon">military_tech</span>
-            <span class="mode-card__name">Solo</span>
-          </div>
-          <div class="mode-card__rows">
-            <div class="mode-card__row">
-              <span class="mode-card__val">{{ profile()?.elo ?? 1000 }}</span>
-              <span class="mode-card__key">ELO</span>
-            </div>
-            <div class="mode-card__row">
-              <span class="mode-card__val">{{ accuracy() }}%</span>
-              <span class="mode-card__key">Acc</span>
-            </div>
-            <div class="mode-card__row">
-              <span class="mode-card__val">{{ profile()?.games_played ?? 0 }}</span>
-              <span class="mode-card__key">Games</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- Mode Stats section removed — Ratings grid already surfaces each
+         mode's primary number. Games/accuracy/etc. belong on /profile/tier
+         or per-mode drill-downs. -->
+
 
     <!-- ─── RECENT MATCHES ─────────────────────────── -->
     @if (matchHistory().length > 0) {
@@ -251,51 +239,31 @@
       </section>
     }
 
-    <!-- ─── ACHIEVEMENTS ──────────────────────────── -->
-    @if (achievements().length > 0) {
-      <section class="section">
-        <so-section-header [label]="lang.t().achievements" />
-        <div class="section__head-extras">
-          <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
-        </div>
-        @for (group of categorizedAchievements(); track group.key) {
-          <div class="achievements-group">
-            <div class="achievements-group__head">
-              <span class="achievements-group__icon">{{ group.icon }}</span>
-              <h3 class="achievements-group__title">{{ group.label }}</h3>
-              <span class="achievements-group__count">{{ group.earned }} / {{ group.total }}</span>
-            </div>
-            <div class="achievements-grid">
-              @for (a of group.items; track a.id) {
-                <div class="achievement-tile" [class.achievement-tile--locked]="!a.earned_at" (click)="selectedAchievement.set(a)">
-                  <span class="achievement-tile__icon">{{ a.icon }}</span>
-                  <span class="achievement-tile__name">{{ a.name }}</span>
-                  @if (!a.earned_at && a.target > 1) {
-                    <div class="achievement-tile__progress">
-                      <div class="achievement-tile__progress-bar">
-                        <div class="achievement-tile__progress-fill" [style.width.%]="progressPercent(a)"></div>
-                      </div>
-                      <span class="achievement-tile__progress-text">{{ a.current }} / {{ a.target }}</span>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          </div>
+    <!-- ─── ACHIEVEMENTS (compact preview) ────────── -->
+    <section class="section">
+      <so-section-header [label]="lang.t().achievements" />
+      <div class="section__head-extras">
+        <span class="achievements-counter">{{ achievementsEarned() }} / {{ achievements().length }}</span>
+        @if (isOwnProfile()) {
+          <a class="section__see-all" routerLink="/profile/achievements">View all ›</a>
         }
-      </section>
-    } @else {
-      <section class="section">
-        <so-section-header [label]="lang.t().achievements" />
+      </div>
+      @if (recentAchievements().length > 0) {
+        <div class="achievements-preview">
+          @for (a of recentAchievements(); track a.id) {
+            <span class="achievements-preview__tile" [attr.title]="a.name">{{ a.icon }}</span>
+          }
+        </div>
+      } @else if (isOwnProfile()) {
         <app-empty-state
           icon="emoji_events"
           title="No achievements yet"
           subtitle="Play some games to start earning badges"
-          ctaLabel="Play Solo"
-          ctaRoute="/solo"
+          ctaLabel="View all achievements"
+          ctaRoute="/profile/achievements"
         />
-      </section>
-    }
+      }
+    </section>
 
     <!-- ─── ACCOUNT ACTIONS ─────────────────────────── -->
     @if (isOwnProfile()) {
@@ -357,35 +325,6 @@
             Save Changes
           }
         </button>
-      </div>
-    }
-
-    <!-- ─── ACHIEVEMENT DETAIL POPUP ──────────────────── -->
-    @if (selectedAchievement(); as a) {
-      <div class="achv-popup-backdrop" (click)="selectedAchievement.set(null)">
-        <div class="achv-popup" (click)="$event.stopPropagation()">
-          <span class="achv-popup__icon">{{ a.icon }}</span>
-          <h3 class="achv-popup__name">{{ a.name }}</h3>
-          <p class="achv-popup__desc">{{ a.description }}</p>
-
-          @if (a.earned_at) {
-            <div class="achv-popup__badge achv-popup__badge--earned">
-              <span class="material-icons" style="font-size:1rem">check_circle</span>
-              Earned {{ formatDate(a.earned_at) }}
-            </div>
-          } @else {
-            <div class="achv-popup__progress-section">
-              <div class="achv-popup__progress-bar">
-                <div class="achv-popup__progress-fill" [style.width.%]="progressPercent(a)"></div>
-              </div>
-              <span class="achv-popup__progress-text">{{ a.current }} / {{ a.target }}</span>
-            </div>
-          }
-
-          <span class="achv-popup__category">{{ a.category }}</span>
-
-          <button class="achv-popup__close" (click)="selectedAchievement.set(null)">Got it</button>
-        </div>
       </div>
     }
 

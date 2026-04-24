@@ -2,7 +2,7 @@
 
 All notable changes to StepOvr will be documented in this file.
 
-## [0.9.7.0] - 2026-04-24
+## [0.10.0.2] - 2026-04-25
 
 ### Fixed
 - Username modal no longer pops up at random for users who already have a username. The auth profile lookup now surfaces transient Supabase errors (network blips, mid-flight token refresh, RLS hiccups) instead of silently treating them as "no username," and the root component only re-checks username setup when the signed-in user id actually changes — not on every token refresh or metadata write.
@@ -10,6 +10,54 @@ All notable changes to StepOvr will be documented in this file.
 
 ### Changed
 - Edit Profile is now a centered modal instead of a slide-in sub-panel. The settings sheet stays mounted underneath; the edit dialog renders as a sibling overlay with its own backdrop, fade/scale animation, and dynamic-viewport-aware sizing. Escape now closes the edit modal first, then the settings sheet. The settings sheet's focus trap is fully disabled (both `cdkTrapFocusEnabled` and `cdkTrapFocusAutoCapture`) while the edit modal is open, preventing two concurrent traps from fighting over focus.
+
+## [0.10.0.1] - 2026-04-25
+
+### Fixed — Phantom scrollbar on shell-nested lobbies
+
+Feature pages rendered inside the shell were forcing `min-height: 100dvh` on their root, which overran the shell's scroll area by the ~88px the shell reserves for the fixed bottom-nav (`padding-bottom: calc(5.5rem + env(safe-area-inset-bottom))` on `.shell-main`). Result: lobbies whose content fit above the fold still scrolled, with an empty band of nothing beneath the CTA. Switched the shared `<app-screen mode="bleed">` primitive and six feature roots (`logo-quiz`, `daily`, `news`, `mayhem`, `notifications`, `battle-royale` lobby) from `min-height: 100dvh` to `min-height: 100%` so they inherit the shell's usable area. In-game phases still render correctly because those components toggle `shellUi.hideBottomNav` on enter, which removes the shell padding and lets the flex parent claim the full viewport. `/solo` and `/blitz` inherit the fix automatically through the shared primitive. Top-level routes outside the shell (`/game`, `/online-game`, `/duel/:id`, `/battle-royale/:id`, `/match/:id`, `/login`, `/admin`, `/onboarding`, `/legal`) are unchanged — they have no bottom-nav reserve so `100dvh` is correct there.
+
+## [0.10.0.0] - 2026-04-24
+
+### Changed — Profile screen recomposition
+
+**Tier-progress swap.** The hand-rolled `.tier-progress--link` strip inside the profile hero is replaced by the DS `so-tier-progress` primitive wrapped in the same tap-to-`/profile/tier` `<a>`. Tier color is passed through so the fill matches the hero tint. Dead `tierProgressPct` computed and `tierProgress` import removed from profile.ts.
+
+**Ratings card + XP.** The previous "This Season" 4-stat grid is replaced by a Ratings grid that surfaces every rating the user has — Solo Ranked, Logo Quiz, Logo Quiz Hardcore (ELO variants) and Duel, Logo Duel (record variants). XP card is factored into a new `so-xp-card` primitive and stuck directly below the Ratings grid. New `so-rating-card` primitive supports both `elo` (value + tier pill) and `record` (wins — losses) variants. Solo Ranked card links to `/profile/tier`; the other four are static tiles. Material Symbols icon subset extended with `extension`, `local_fire_department`, `sports_mma` so the new icons ship.
+
+**Achievements → `/profile/achievements`.** The bulky categorized grid is lifted off the main profile screen onto its own route (guarded by `authGuard`, mirrors the `/profile/tier` drilldown pattern). Profile page keeps a compact preview of the 5 most-recently-earned icons plus a "View all ›" link and an empty-state CTA for new users. All `.achievements-group*`, `.achievement-tile*`, and `.achv-popup*` CSS rulesets removed from profile.css.
+
+### Added — Pinch zoom everywhere
+
+Viewport meta now declares `user-scalable=yes, maximum-scale=5`; iOS WKWebView picks this up automatically. Android `MainActivity.onCreate` is overridden to call `setSupportZoom(true)` + `setBuiltInZoomControls(true)` + `setDisplayZoomControls(false)` on the Capacitor bridge WebView. `npx cap sync android` ran clean.
+
+### Changed — Leaderboard top-10 cap
+
+`lb-section.listRows` is capped at 7 post-podium rows (10 total visible). `showMeBelow` now checks against the visible subset instead of the raw backend payload, so users at rank 11+ correctly get a pinned "me" row below the separator. Backend `LIMIT` bumped from 5 to 10. New Karma/Jasmine spec file exercises both edge cases.
+
+### Changed — Duel / Logo Duel stat separation
+
+`profiles.logo_duel_wins` column added, backfilled from `duel_games` where `game_type = 'logo'`. Existing `profiles.duel_wins` also recomputed from `game_type = 'standard'` — users whose counts were previously conflated see their displayed number reset to the true standard-only count. `SupabaseService.incrementDuelWins` now takes a `'standard' | 'logo'` argument; `DuelService` passes `row.game_type` through. `getDuelWinCount` / `getDuelGameCount` accept an optional `gameType` filter, and both the achievement award path (DuelService) and the progress display path (AchievementsService) now scope to standard duels. Existing duel achievements (`duel_5/50/100_wins`) continue to trigger on standard duels only.
+
+### Added — Logo duel leaderboard
+
+New `get_logo_duel_{leaderboard,rank,user_stats}` RPCs (mirror the standard duel ones with `game_type = 'logo'`). Leaderboard controller exposes `logoDuel` + `logoDuelMe` alongside existing duel channels. Frontend adds a Standard / Logo sub-tab under the Duel mode tab and a Logo Duel card in the "Your Rankings" strip.
+
+### Fixed — Profile `.catch()` fallback shape
+
+`ProfileComponent.loadProfile`'s `.catch()` fallback was missing the newly added `duel_stats` / `logo_duel_stats` fields, which silently narrowed the happy-path type through destructuring. Patched as a follow-up to keep the Ratings card rendering correctly when the profile fetch fails.
+
+### Changed — Design polish (post-audit)
+
+Six targeted polish fixes from the post-implementation `/design-review` audit. **Tap scale on `so-rating-card`** — adds `transform: scale(0.98)` on `:active` with a `prefers-reduced-motion` fallback so native mobile taps feel tactile. **Tier-progress min-fill** — `so-progress-track` fill now has a 10px minimum width when value > 0, so early-tier users see a visible "Path to Pro" bar instead of a 1-2px sliver. **Featured Logo Duel card** — exposed `--so-rating-card-value-size` CSS custom property; the full-width 5th tile on the profile Ratings grid reads as a headline (1.5rem) instead of an orphan. **Record-card win-rate line** — record variants now render "40% WIN RATE" under the W—L value, matching the visual density of ELO cards and showing "No games yet" for empty states. **Mode Stats removed** — the redundant Solo-only "Mode Stats" section (duplicated the Solo Ranked rating card) is gone; dead `.mode-card*` / `.mode-grid` CSS and unused `blitzStats` / `mayhemStats` / `accuracy` / `mayhemAccuracy` signals deleted. **Last 10 games now differentiates Duel vs Logo Duel** — F6 migration (`20260424130000_match_history_logo_duel_backfill.sql`) retags 16 historical rows where `match_history.game_ref_id` matches a logo `duel_games` row; DuelService now saves new matches with `match_mode = 'logo_duel'` when `row.game_type === 'logo'`; frontend mappers render "Logo Duel" label.
+
+### Fixed — Pre-landing review hardening
+
+Six additional fixes from the pre-landing `/review` pass. **Losses visible for 0W users** — `getDuelLeaderboardEntryForUser` / `getLogoDuelLeaderboardEntryForUser` stopped short-circuiting on `wins === 0`; a losses-only player now sees "0W — 5L · 0% WIN RATE" on their profile Ratings card instead of a null-masked zero. The leaderboard "Your Rankings" strip still hides unranked users via a frontend `meToRow.duel` `wins > 0` gate. **Duel lobby H2H reflects current mode** — `loadWinStats` + `loadRank` branch on `isLogoMode()`; `/duel?mode=logo` shows logo-duel W/L and logo-duel rank. **Atomic `incrementDuelWins`** — replaced read-modify-write with a `SECURITY DEFINER` `increment_duel_wins(user_id, game_type)` RPC (migration `20260424140000`) so concurrent duel finalizes can't lose a win to a race. **SECURITY DEFINER hardening** — pinned `SET search_path = public, pg_temp` on the 3 logo-duel RPCs (migration `20260424150000`). **Timeout-finalize pipeline** — extracted `finalizeDuelGame(row, scores, winnerId, source)` helper called from both `submitAnswer` and `advanceTimedOutQuestion`; timeout-won duels now correctly increment wins + award XP + trigger achievements + send notifications (pre-existing bug, surfaced by the new Ratings card prominently showing `duel_wins`).
+
+### Added — Test coverage
+
+38 new test cases across 4 new spec files locking in the behaviors above. **`so-rating-card.spec.ts`** (8) — displayValue variants + winRateLabel edge cases. **`duel-lobby.spec.ts`** (5) — mode-aware H2H filter + rank entry selection. **`supabase.service.spec.ts`** (12) — first spec for this service; covers `getDuelLeaderboardEntryForUser` null-vs-0W semantics, `getLogoDuelLeaderboardEntryForUser` symmetry, and the atomic `incrementDuelWins` RPC dispatch. **`duel.service.spec.ts`** (13) — `finalizeDuelGame` asserts the pipeline fires identically from both `submit` and `timeout` sources (match_history save, win increment, XP, achievements, game_type routing).
 
 ## [0.9.6.0] - 2026-04-24
 

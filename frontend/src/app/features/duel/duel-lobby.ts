@@ -65,7 +65,10 @@ export class DuelLobbyComponent implements OnInit {
 
   private loadRank(): void {
     this.leaderboardApi.getMyLeaderboardEntries().subscribe({
-      next: (res) => this.myRank.set(res.duelMe?.rank ?? null),
+      next: (res) => {
+        const entry = this.isLogoMode() ? res.logoDuelMe : res.duelMe;
+        this.myRank.set(entry?.rank ?? null);
+      },
     });
   }
 
@@ -83,13 +86,15 @@ export class DuelLobbyComponent implements OnInit {
     if (!userId) return;
     try {
       const history = await firstValueFrom(this.matchHistory.getHistory(userId));
-      // Duel lobby H2H is for online 1v1 Duels only. `match_mode` values that
-      // sneak in from other modes (`local` = local 2-player, `online` = online
-      // 2-player board game, `battle_royale`, `team_logo_battle`) inflate the
-      // win/draw/loss counts for a card that should describe *this* mode.
+      // Duel lobby H2H reflects the CURRENT mode's record. When the user is
+      // in the logo-duel lobby (?mode=logo), the card shows their logo-duel
+      // W/D/L; in the standard-duel lobby it shows standard-duel W/D/L.
+      // Other match_mode values (local, online, battle_royale, team_logo_battle)
+      // are always excluded — they belong to different modes entirely.
+      const targetMode = this.isLogoMode() ? 'logo_duel' : 'duel';
       const record = history.reduce(
         (acc, m) => {
-          if (m.match_mode !== 'duel') return acc;
+          if (m.match_mode !== targetMode) return acc;
           if (m.winner_id === null) acc.draws++;
           else if (m.winner_id === userId) acc.wins++;
           else acc.losses++;

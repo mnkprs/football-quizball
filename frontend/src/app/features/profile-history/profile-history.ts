@@ -166,6 +166,7 @@ export class ProfileHistoryComponent implements OnInit {
     switch (mode) {
       case 'online':              return 'Online';
       case 'duel':                return 'Duel';
+      case 'logo_duel':           return 'Logo Duel';
       case 'local':               return '2-Player';
       case 'battle_royale':       return 'Battle Royale';
       case 'team_logo_battle':    return 'Team Logo';

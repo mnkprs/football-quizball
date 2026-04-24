@@ -96,11 +96,15 @@
 }
 
 /* ── Bleed mode — full-viewport lobby / idle ─────────────── */
+/* min-height: 100% (not 100dvh) so the bleed fills the shell's usable
+   scroll area — shell-main reserves ~88px for the fixed bottom-nav via
+   padding-bottom. 100dvh would overflow that reserve and trigger a
+   phantom scrollbar on lobbies whose content already fits above fold. */
 .screen__bleed {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 100dvh;
+  min-height: 100%;
   position: relative;
   overflow: hidden;
 }
