@@ -149,6 +149,30 @@
   justify-self: end;
 }
 
+/* ── Top-tier note (shown in place of progress strip at GOAT) ── */
+.ptier-top-note {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--color-surface-low);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid color-mix(in srgb, var(--color-gold, #e6a800) 30%, transparent);
+}
+.ptier-top-note__icon {
+  color: var(--color-gold, #e6a800);
+  font-size: 1.5rem !important;
+}
+.ptier-top-note__body { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+.ptier-top-note__title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 0.9375rem;
+  color: var(--color-fg);
+  letter-spacing: -0.01em;
+}
+.ptier-top-note__sub {
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+}
+
 /* ── Explainer ──────────────────────────────────────── */
 .ptier-explainer {
   font-size: 0.8125rem;

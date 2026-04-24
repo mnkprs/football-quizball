@@ -43,7 +43,10 @@
   } @else {
     <section class="phist-list" [id]="'ph-' + activeFilter()">
       @for (row of rows(); track row.matchId) {
-        <so-history-row [row]="row" (rowClicked)="onRowClicked(row)" />
+        <!-- hideElo: MatchHistoryEntry doesn't carry per-match ELO deltas
+             (only elo_history does). Showing "+0 ELO" on every row would be
+             misleading — hide the column until we wire the real data source. -->
+        <so-history-row [row]="row" [hideElo]="true" (rowClicked)="onRowClicked(row)" />
       }
     </section>
   }

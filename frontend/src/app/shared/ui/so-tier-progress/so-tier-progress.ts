@@ -23,10 +23,10 @@ import { SoProgressTrackComponent } from '../so-progress-track/so-progress-track
         <span class="so-tier-progress__label">Path to {{ nextTier() }}</span>
         <span class="so-tier-progress__values">{{ elo() }} / {{ nextElo() }}</span>
       </div>
-      <so-progress-track [value]="pct()" [height]="6" />
+      <so-progress-track [value]="pct()" [height]="6" [color]="color()" />
       <div class="so-tier-progress__foot">
         <span>{{ tierUpper() }}</span>
-        <span class="so-tier-progress__next">
+        <span class="so-tier-progress__next" [style.color]="color()">
           {{ nextTierUpper() }} · +{{ remaining() }}
         </span>
       </div>
@@ -60,7 +60,8 @@ import { SoProgressTrackComponent } from '../so-progress-track/so-progress-track
       font-size: 0.625rem; letter-spacing: 0.08em;
       color: var(--color-fg-muted);
     }
-    .so-tier-progress__next { color: var(--color-accent); }
+    /* .so-tier-progress__next colour is driven by the [color] input via inline
+       style so callers can tint it with the user's current tier colour. */
   `],
 })
 export class SoTierProgressComponent {
@@ -69,6 +70,13 @@ export class SoTierProgressComponent {
   elo       = input.required<number>();   // 1642
   nextElo   = input.required<number>();   // 1800
   tierStart = input.required<number>();   // 1400
+  /**
+   * Fill + next-tier-label colour. Defaults to --color-accent for parity with
+   * pre-input callers. Pass a tier-specific colour on screens where the hero
+   * or surrounding context is tinted (e.g. /profile/tier passes the current
+   * tier's hex so the progress bar matches the tier-tinted hero above it).
+   */
+  color     = input<string>('var(--color-accent)');
 
   tierUpper     = computed(() => this.tier().toUpperCase());
   nextTierUpper = computed(() => this.nextTier().toUpperCase());

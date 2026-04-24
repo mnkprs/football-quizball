@@ -18,7 +18,15 @@ Ships the two low-risk, display-only drilldown routes from the 2026-04-24 profil
 - The `tier-progress` div → `<a>` with `routerLink="/profile/tier"` (same layout; adds hover/active affordance via new `.tier-progress--link` variant). No other behavioral change.
 - New `.section__see-all` link "See all matches ›" added to the Last 10 games section header, only when `isOwnProfile()` is true. No other rows or sections changed.
 
-**What's NOT in this PR.** The main `profile.html` rewrite from the bundle remains deferred — it would delete achievements, XP progress, ELO sparkline, avatar upload, inline edit sheet, delete-account flow, guest state, per-match-mode badges, and all `lang.t()` i18n. Those are product decisions. The bundle's `/profile/edit` route is also deferred pending a product call on whether to replace the existing inline edit sheet, and `/profile/share` needs image generation + Capacitor share-plugin wiring.
+**Shared primitive extensions (both land with this PR; both backwards-compatible).**
+- `so-history-row` gains a `[hideElo]` input. MatchHistoryEntry (from the backend) doesn't carry per-match ELO deltas — only `elo_history` does. Setting `hideElo=true` on `/profile/history` hides the right-side "+0 ELO" column entirely rather than showing a misleading zero on every row. Default stays `false` so the existing (future) consumers see no change. When a backend join with `elo_history` lands, flip to `false` and pass real deltas.
+- `so-tier-progress` gains an optional `[color]` input (defaults to `--color-accent`). `/profile/tier` passes `currentTier().color` so the progress bar fill and the "next-tier" highlight match the tier-tinted hero above (green for Pro, gold for Ballon d'Or, etc.) instead of always being blue.
+
+**GOAT edge case.** At the top tier, `nextTierThreshold()` returns null. `/profile/tier` now renders a "Top of the ladder" note instead of a nonsensical "Path to GOAT / GOAT · GOAT · +0" strip.
+
+**Pro cap hint accuracy.** `/profile/history` now calls `ProService.ensureLoaded()` on load, so deep-links (push notifications, bookmarks) don't briefly show "upgrade to Pro for 100" to actual Pro users.
+
+**What's NOT in this PR.** The main `profile.html` rewrite from the bundle remains deferred — it would delete achievements, XP progress, ELO sparkline, avatar upload, inline edit sheet, delete-account flow, guest state, per-match-mode badges, and all `lang.t()` i18n. Those are product decisions. The bundle's `/profile/edit` route is also deferred pending a product call on whether to replace the existing inline edit sheet, and `/profile/share` needs image generation + Capacitor share-plugin wiring. And the backend join to surface real per-match ELO deltas (which would let us un-hide the ELO column on history rows) is a separate task.
 
 ## [0.9.2.0] - 2026-04-24
 

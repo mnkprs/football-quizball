@@ -63,7 +63,10 @@ export class ProfileTierComponent {
     });
   });
 
-  /** Next-tier name for so-tier-progress; falls back to current at the top. */
+  /** True when the user is at the top tier (GOAT) — no next tier to progress to. */
+  atTopTier = computed(() => nextTierThreshold(this.elo()) === null);
+
+  /** Next-tier name for so-tier-progress (only meaningful when !atTopTier). */
   nextTierName = computed(() => {
     const nextElo = nextTierThreshold(this.elo());
     if (nextElo === null) return this.currentTier().label;
