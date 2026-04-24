@@ -15,3 +15,6 @@ export * from './so-tab-strip/so-tab-strip';
 export * from './so-toggle/so-toggle';
 export * from './so-multiplayer-card/so-multiplayer-card';
 export * from './so-section-header/so-section-header';
+export * from './so-history-row/so-history-row';
+export * from './so-tier-progress/so-tier-progress';
+export * from './so-toggle-row/so-toggle-row';
