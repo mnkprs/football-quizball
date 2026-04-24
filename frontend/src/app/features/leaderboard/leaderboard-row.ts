@@ -107,6 +107,10 @@ export const meToRow = {
     e ? logoQuizRow(e, e.rank, uid) : null,
   logoQuizHardcore: (e: WithRank<LogoQuizHardcoreLeaderboardEntry> | null, uid: string | null): LeaderboardRow | null =>
     e ? logoQuizHardcoreRow(e, e.rank, uid) : null,
+  // For the leaderboard "Your Rankings" strip: hide users with 0 wins so
+  // unranked players (all losses or never played) don't see "#0" cards.
+  // The profile Ratings card uses a different code path that surfaces the
+  // full record including losses-only history.
   duel: (e: WithRank<DuelLeaderboardEntry> | null, uid: string | null): LeaderboardRow | null =>
-    e ? duelRow(e, e.rank, uid) : null,
+    e && e.wins > 0 ? duelRow(e, e.rank, uid) : null,
 };

@@ -360,7 +360,11 @@ export class SupabaseService {
 
     const { data: stats } = await this.client.rpc('get_duel_user_stats', { p_user_id: userId });
     const row = (stats as Array<{ wins: number; losses: number; games_played: number }> | null)?.[0];
-    if (!row || row.wins === 0) return null;
+    // Null only when the user has literally never played a duel. A player with
+    // 0 wins / 5 losses still returns their record — callers that want to
+    // hide unranked users should check `rank == null`, not short-circuit
+    // here (which would hide losses on the profile Ratings card).
+    if (!row || row.games_played === 0) return null;
 
     const { data: rank } = await this.client.rpc('get_duel_rank', { p_user_id: userId });
     return {
@@ -369,7 +373,7 @@ export class SupabaseService {
       wins: row.wins,
       losses: row.losses,
       games_played: row.games_played,
-      rank: (rank as number) ?? 0,
+      rank: row.wins > 0 ? ((rank as number) ?? 0) : 0,
     };
   }
 
@@ -388,7 +392,8 @@ export class SupabaseService {
     if (!profile) return null;
     const { data: stats } = await this.client.rpc('get_logo_duel_user_stats', { p_user_id: userId });
     const row = (stats as Array<{ wins: number; losses: number; games_played: number }> | null)?.[0];
-    if (!row || row.wins === 0) return null;
+    // See comment on getDuelLeaderboardEntryForUser — null only when never played.
+    if (!row || row.games_played === 0) return null;
     const { data: rank } = await this.client.rpc('get_logo_duel_rank', { p_user_id: userId });
     return {
       user_id: userId,
@@ -396,7 +401,7 @@ export class SupabaseService {
       wins: row.wins,
       losses: row.losses,
       games_played: row.games_played,
-      rank: (rank as number) ?? 0,
+      rank: row.wins > 0 ? ((rank as number) ?? 0) : 0,
     };
   }
 
