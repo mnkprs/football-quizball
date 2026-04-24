@@ -56,8 +56,6 @@ export class ProfileComponent implements OnInit {
   private matchHistoryApi = inject(MatchHistoryApiService);
 
   profile = signal<LeaderboardEntry | null>(null);
-  blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
-  mayhemStats = signal<{ best_session_score: number; games_played: number; questions_answered: number; correct_answers: number; } | null>(null);
   duelStats     = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
   logoDuelStats = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
   eloHistory = signal<any[]>([]);
@@ -103,23 +101,11 @@ export class ProfileComponent implements OnInit {
     return name.slice(0, 2).toUpperCase();
   });
 
-  accuracy = computed(() => {
-    const p = this.profile();
-    if (!p?.questions_answered) return 0;
-    return Math.round((p.correct_answers / p.questions_answered) * 100);
-  });
-
   xp = computed(() => this.profile()?.xp ?? 0);
   level = computed(() => this.profile()?.level ?? 1);
   xpPct = computed(() => xpProgressPct(this.xp(), this.level()));
   xpRemaining = computed(() => xpToNextLevel(this.xp(), this.level()));
   xpNextLevel = computed(() => xpForLevel(this.level() + 1));
-
-  mayhemAccuracy = computed(() => {
-    const s = this.mayhemStats();
-    if (!s?.questions_answered) return 0;
-    return Math.round((s.correct_answers / s.questions_answered) * 100);
-  });
 
   /**
    * Shape MatchHistoryEntry rows for the so-history-row component.
@@ -293,8 +279,6 @@ export class ProfileComponent implements OnInit {
       this.profile.set(profileRes?.profile ?? null);
       this.duelStats.set(profileRes?.duel_stats ?? { wins: 0, losses: 0, rank: null });
       this.logoDuelStats.set(profileRes?.logo_duel_stats ?? { wins: 0, losses: 0, rank: null });
-      this.blitzStats.set(profileRes?.blitz_stats ?? { bestScore: 0, totalGames: 0, rank: null });
-      this.mayhemStats.set(profileRes?.mayhem_stats ?? null);
       this.eloHistory.set(profileRes?.history ?? []);
       this.achievements.set(achievementsRes);
       this.matchHistory.set(matchHistoryRes);

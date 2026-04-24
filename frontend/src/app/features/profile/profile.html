@@ -196,32 +196,10 @@
       </a>
     }
 
-    <!-- ─── MODE STATS ─────────────────────────────── -->
-    <section class="section">
-      <so-section-header label="Mode Stats" />
-      <div class="mode-grid">
-        <div class="mode-card mode-card--solo">
-          <div class="mode-card__head">
-            <span class="material-icons mode-card__icon">military_tech</span>
-            <span class="mode-card__name">Solo</span>
-          </div>
-          <div class="mode-card__rows">
-            <div class="mode-card__row">
-              <span class="mode-card__val">{{ profile()?.elo ?? 1000 }}</span>
-              <span class="mode-card__key">ELO</span>
-            </div>
-            <div class="mode-card__row">
-              <span class="mode-card__val">{{ accuracy() }}%</span>
-              <span class="mode-card__key">Acc</span>
-            </div>
-            <div class="mode-card__row">
-              <span class="mode-card__val">{{ profile()?.games_played ?? 0 }}</span>
-              <span class="mode-card__key">Games</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- Mode Stats section removed — Ratings grid already surfaces each
+         mode's primary number. Games/accuracy/etc. belong on /profile/tier
+         or per-mode drill-downs. -->
+
 
     <!-- ─── RECENT MATCHES ─────────────────────────── -->
     @if (matchHistory().length > 0) {

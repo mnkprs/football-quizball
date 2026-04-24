@@ -334,79 +334,6 @@
   width: fit-content;
 }
 
-/* ── Mode Stat Cards ───────────────────── */
-.mode-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-.mode-card {
-  background: var(--glass-bg-subtle);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: 0.75rem 0.5rem;
-  display: flex; flex-direction: column;
-  gap: 0.5rem;
-  position: relative;
-  overflow: hidden;
-}
-.mode-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0.75rem; right: 0.75rem;
-  height: 2px;
-  border-radius: 0 0 2px 2px;
-  background: var(--mode-color);
-  opacity: 0.5;
-}
-.mode-card__head {
-  display: flex; align-items: center; gap: 0.375rem;
-  padding-bottom: 0.375rem;
-  border-bottom: 1px solid var(--glass-border);
-}
-.mode-card__icon {
-  font-size: var(--text-base);
-  width: 0.875rem; height: 0.875rem;
-  line-height: 1;
-  color: var(--mode-color);
-}
-.mode-card__name {
-  font-family: var(--font-numeric);
-  font-size: 0.5rem; font-weight: 800;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--mode-color);
-}
-.mode-card--solo   { --mode-color: var(--color-accent); }
-.mode-card--logo   { --mode-color: #a855f7; }
-.mode-card--mayhem { --mode-color: #f97316; }
-.mode-card--blitz  { --mode-color: var(--color-blue); }
-.mode-card--duel   { --mode-color: #14b8a6; }
-.mode-card__rows {
-  display: flex; flex-direction: column; gap: 0.3rem;
-}
-.mode-card__row {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 0.25rem;
-}
-.mode-card__val {
-  font-family: var(--font-headline);
-  font-size: var(--text-base); font-weight: 800;
-  color: var(--color-fg); line-height: 1;
-}
-.mode-card__key {
-  font-family: var(--font-numeric);
-  font-size: 0.4375rem; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--color-fg-muted);
-}
-.mode-card__empty {
-  font-size: var(--text-2xs);
-  color: var(--color-fg-dim);
-  margin: 0; text-align: center;
-  padding: 0.5rem 0;
-  font-style: italic;
-}
-
 /* ── Match list container — child so-history-rows supply their own styles ── */
 .match-list {
   display: flex; flex-direction: column;
@@ -556,7 +483,6 @@
 /* ── Tablet adaptations ───────────────── */
 @media (min-width: 768px) {
   .section { padding: 1.25rem 1.5rem 0; }
-  .mode-grid { grid-template-columns: repeat(4, 1fr); }
   .sparkline-card svg { height: 64px; }
   .edit-sheet { max-width: var(--content-narrow-width); }
 }
