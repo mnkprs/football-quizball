@@ -36,6 +36,9 @@ export interface SoRatingTier {
       <span *ngIf="type() === 'elo' && tier()" class="so-rating-card__tier" [style.color]="tier()!.color">
         {{ tier()!.label }}
       </span>
+      <span *ngIf="type() === 'record' && winRateLabel()" class="so-rating-card__tier so-rating-card__winrate">
+        {{ winRateLabel() }}
+      </span>
     </ng-template>
   `,
   styles: [`
@@ -76,6 +79,9 @@ export interface SoRatingTier {
       font-size: 0.625rem; letter-spacing: 0.12em;
       text-transform: uppercase;
     }
+    .so-rating-card__winrate {
+      color: var(--color-fg-muted);
+    }
   `],
 })
 export class SoRatingCardComponent {
@@ -94,5 +100,14 @@ export class SoRatingCardComponent {
       return `${wins}W — ${losses}L`;
     }
     return String(this.value());
+  });
+
+  winRateLabel = computed(() => {
+    if (this.type() !== 'record') return null;
+    const wins = this.value();
+    const losses = this.secondaryValue() ?? 0;
+    const total = wins + losses;
+    if (total === 0) return 'No games yet';
+    return `${Math.round((wins / total) * 100)}% WIN RATE`;
   });
 }
