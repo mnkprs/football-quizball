@@ -72,11 +72,15 @@ export class AuthService {
    * username is still an Apple Hide-My-Email relay id from a legacy signup.
    */
   async fetchProfileMeta(userId: string): Promise<{ usernameSet: boolean; username: string | null }> {
-    const { data } = await this.supabase
+    const { data, error } = await this.supabase
       .from('profiles')
       .select('username_set, username')
       .eq('id', userId)
       .single();
+    // Throw on transient errors (network blip, JWT mid-refresh, RLS hiccup) so
+    // callers can ignore them instead of mistaking a missing row for
+    // "username not set" and re-opening the username modal.
+    if (error) throw error;
     const row = data as { username_set?: boolean; username?: string | null } | null;
     return {
       usernameSet: row?.username_set ?? false,
