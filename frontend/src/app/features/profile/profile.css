@@ -362,7 +362,7 @@
 
 /* "See all ›" affordance — routes to /profile/history. */
 .section__see-all {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 600;
   font-size: 0.8125rem;
   color: var(--color-accent);

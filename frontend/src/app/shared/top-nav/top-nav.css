@@ -307,7 +307,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.625rem;
   font-weight: 700;
   color: var(--color-accent-foreground);
@@ -332,7 +332,7 @@
 }
 
 .top-nav__brand {
-  font-family: var(--font-brand);
+  font-family: var(--font-display);
   font-size: 2em;
   font-weight: 700;
   text-transform: uppercase;

@@ -1,5 +1,5 @@
 .admin-root {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-numeric), var(--font-body);
   background: #0f0f12;
   color: #e4e4e7;
   min-height: 100vh;
@@ -33,7 +33,7 @@
 }
 
 .admin-subtitle {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   color: #71717a;
 }
@@ -67,7 +67,7 @@
   border: 1px solid #27272a;
   background: #0f0f12;
   color: #e4e4e7;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.875rem;
 }
 
@@ -118,7 +118,7 @@
 .admin-meta {
   font-size: 0.8rem;
   color: #71717a;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .admin-bot-control {
@@ -280,7 +280,7 @@
 .admin-filter-active {
   font-size: 0.8rem;
   color: #71717a;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .admin-error {
@@ -313,7 +313,7 @@
 }
 
 .admin-card-value {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -370,7 +370,7 @@
 }
 
 .cell-avg {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 
@@ -386,7 +386,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   font-weight: 600;
   color: #fff;
@@ -473,7 +473,7 @@
 .hist-labels {
   display: flex;
   justify-content: space-between;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   color: #71717a;
   margin-top: 0.5rem;
@@ -539,7 +539,7 @@
 }
 
 .threshold-value {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
   min-width: 3.5rem;
 }
@@ -644,7 +644,7 @@
 
 .session-version {
   font-size: 0.7rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   color: #a1a1aa;
 }
 
@@ -657,7 +657,7 @@
 
 .version-tag {
   font-size: 0.65rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   color: #71717a;
   background: #27272a;
   padding: 0.1rem 0.3rem;
@@ -666,7 +666,7 @@
 
 .cell-version {
   font-size: 0.8rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   color: #a1a1aa;
 }
 
@@ -703,7 +703,7 @@
 }
 
 .admin-empty-hint code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   background: #27272a;
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
@@ -744,7 +744,7 @@
   border: 1px solid #27272a;
   background: #0f0f12;
   color: #e4e4e7;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.8rem;
   cursor: pointer;
 }
@@ -793,7 +793,7 @@
 }
 
 .script-pre {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.75rem;
   color: #e4e4e7;
   overflow-x: auto;

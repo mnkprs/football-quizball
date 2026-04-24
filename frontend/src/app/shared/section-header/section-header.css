@@ -6,7 +6,7 @@
 }
 
 .section-header__title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 1.25rem;
   font-weight: 800;
   margin: 0;

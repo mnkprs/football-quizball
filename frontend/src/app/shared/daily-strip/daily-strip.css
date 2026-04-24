@@ -31,7 +31,7 @@
 }
 
 .daily-strip__title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--color-fg);
@@ -46,7 +46,7 @@
 
 .daily-strip__meta,
 .daily-strip__timer {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.6875rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.5);
@@ -60,7 +60,7 @@
   background: var(--color-accent);
   color: var(--color-accent-fg);
   border-radius: 0.625rem;
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.1em;

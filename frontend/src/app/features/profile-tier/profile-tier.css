@@ -30,7 +30,7 @@
 }
 .ptier-back:active { transform: scale(0.95); }
 .ptier-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 700; font-style: italic;
   font-size: 1.125rem; letter-spacing: -0.02em; text-transform: uppercase;
   text-align: center;
@@ -53,14 +53,14 @@
   isolation: isolate;
 }
 .ptier-current__badge {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 800; font-style: italic;
   font-size: 1.875rem; letter-spacing: -0.02em; text-transform: uppercase;
   color: var(--tier-color);
   text-shadow: 0 0 18px color-mix(in srgb, var(--tier-glow) 45%, transparent);
 }
 .ptier-current__elo {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-weight: 600; font-size: 2.25rem;
   color: var(--color-fg);
   line-height: 1;
@@ -74,7 +74,7 @@
   margin-left: 0.25rem;
 }
 .ptier-current__rank {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.8125rem;
   color: var(--color-fg-variant);
   letter-spacing: 0.02em;
@@ -83,7 +83,7 @@
 /* ── Section ──────────────────────────────────────── */
 .ptier-section { display: flex; flex-direction: column; gap: 0.5rem; }
 .ptier-eyebrow {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.625rem; font-weight: 500;
   letter-spacing: 0.18em; text-transform: uppercase;
   color: var(--color-fg-muted);
@@ -125,7 +125,7 @@
   box-shadow: 0 0 6px color-mix(in srgb, var(--row-tier-color) 50%, transparent);
 }
 .ptier-row__label {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 600;
   font-size: 0.9375rem;
   color: var(--color-fg);
@@ -133,13 +133,13 @@
 }
 .ptier-row--current .ptier-row__label { color: var(--row-tier-color); }
 .ptier-row__range {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.75rem;
   color: var(--color-fg-variant);
   letter-spacing: 0.02em;
 }
 .ptier-row__you {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.625rem; font-weight: 700;
   letter-spacing: 0.14em;
   padding: 0.1875rem 0.5rem;
@@ -163,7 +163,7 @@
 }
 .ptier-top-note__body { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
 .ptier-top-note__title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 700; font-size: 0.9375rem;
   color: var(--color-fg);
   letter-spacing: -0.01em;

@@ -136,12 +136,9 @@
   --space-12: 3rem;         /* 48px */
   --space-16: 4rem;         /* 64px */
 
-  /* ---- Font families ---- */
-  --font-headline: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-numeric: 'Lexend', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-brand: 'Alfa Slab One', serif;
+  /* ---- Font families ----
+     Canonical definitions live in src/styles/tokens.css.
+     --font-brand removed — use --font-display instead. */
 
   /* ---- Font sizes ---- */
   --text-2xs: 0.5625rem;    /* 9px - tiny badges */

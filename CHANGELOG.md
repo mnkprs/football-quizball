@@ -2,6 +2,22 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.6.0] - 2026-04-24
+
+### Changed — Role-based typography tokens + codebase-wide migration
+
+Added 5 role-based font-family CSS custom properties to `frontend/src/styles/tokens.css` (`--font-display`, `--font-headline`, `--font-numeric`, `--font-body`, `--font-mono`) and migrated every hardcoded font-family string in the app to reference them. 55 files swept via sed; 4 edge cases (Alfa Slab usage in `styles.scss`, unquoted `monospace` in admin `error-logs.ts`, dead text-treatment mixins in `mixins.css`, and an SVG presentation attribute in `logo-quiz.html`) handled with targeted edits. Zero hardcoded font-family strings remain outside the `@font-face` declaration.
+
+**Role mapping.** `display` = Alfa Slab One (hero / brand), `headline` = Lexend (titles / labels), `numeric` = Space Grotesk (scores / counters / ELO), `body` = Inter (copy), `mono` = JetBrains Mono (debug / code). Each role's fallback chain uses real platform fonts (`Georgia`, `ui-sans-serif`, `system-ui`, `ui-monospace`) rather than the generic `sans-serif` / `serif` so degraded states look intentional, not broken.
+
+**Dead tokens file consolidated.** `frontend/src/styles/abstracts/_tokens.css` had duplicate font defs with `--font-headline` and `--font-numeric` mapped to the **opposite** fonts (headline = Space Grotesk, numeric = Lexend) — these were silently overridden at runtime only because `tokens.css` loaded after `index.css` in `angular.json`. A future reshuffle of the style load order would have flipped every screen's typography. Duplicates removed; `--font-brand` (3 call sites, mapped to Alfa Slab) migrated to the canonical `--font-display`.
+
+**SVG crest monogram.** The "FC" text inside the `logo-quiz.html` hero shield used `font-family="Space Grotesk, sans-serif"` as an SVG presentation attribute, which doesn't resolve CSS custom properties. Replaced with a `.lq-crest-monogram` class in `logo-quiz.css` — class-based CSS wins the cascade over the presentation attribute. While tokenizing, also corrected `font-weight="900"` → `font-weight: 700`: Space Grotesk on Google Fonts only loads up to weight 700, so the old value was browser-synthesized fake bold (doubled strokes, poor letter-fit at display size).
+
+**Dead mixins aligned.** `mixins.css` defined `.so-text-display`, `.so-text-numeric`, `.so-text-label` utility classes that are unused anywhere in the codebase but referenced old hardcoded font strings. Re-pointed to the new tokens; `.so-text-display` weight corrected to 400 to match what Alfa Slab One actually loads.
+
+**Claude-design handoff.** `tokens.css` is now the single source of truth for font tokens. The next feature generation round should reference `var(--font-*)` directly — a short preamble pointing to the file prevents the shadow-tokens problem this commit cleaned up.
+
 ## [0.9.5.1] - 2026-04-24
 
 ### Fixed — Profile "Last 10 games" now actually caps at 10

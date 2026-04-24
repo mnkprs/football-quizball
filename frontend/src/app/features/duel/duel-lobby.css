@@ -51,7 +51,7 @@
 .duel-stat-card__record {
   display: flex;
   gap: 0.5rem;
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -70,7 +70,7 @@
 }
 
 .duel-active-games__title {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.6875rem;
   font-weight: 500;
   color: var(--color-fg-label);
@@ -118,7 +118,7 @@
 }
 
 .duel-active-game__code {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -170,7 +170,7 @@
 }
 
 .duel-sheet__title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 1.5rem;
   font-weight: 700;
   color: #ffffff;
@@ -252,7 +252,7 @@
 }
 
 .duel-sheet__option-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 1.125rem;
   font-weight: 700;
   color: #ffffff;
@@ -279,7 +279,7 @@
   border: none;
   border-bottom: 2px solid rgba(72, 72, 72, 1);
   color: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -302,7 +302,7 @@
   border-radius: 0.75rem;
   background: var(--color-accent-dim);
   color: #ffffff;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-weight: 700;
   font-size: 0.9375rem;
   border: none;

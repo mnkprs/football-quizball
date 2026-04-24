@@ -51,7 +51,7 @@
 }
 
 .today-header__date {
-  font-family: 'Lexend', sans-serif;
+  font-family: var(--font-headline);
   font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -61,7 +61,7 @@
 }
 
 .today-header__title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 2rem;
   font-weight: 800;
   color: var(--color-fg);
@@ -72,7 +72,7 @@
 }
 
 .today-header__subtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.8125rem;
   font-weight: 400;
   color: var(--color-fg-muted);
