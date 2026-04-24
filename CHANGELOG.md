@@ -2,6 +2,22 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.9.2.0] - 2026-04-24
+
+### Added — Three new design-system primitives from the profile-flow design brief
+
+Ported the reusable components from the 2026-04-24 profile-flow design bundle (`uHEs6HsVQL_7mqTbRPDWxQ`) into `frontend/src/app/shared/ui/`. Zero consumer changes this release — the existing `profile.html` is untouched. These primitives unblock the upcoming `/profile/tier`, `/profile/history`, `/profile/edit`, and `/profile/share` routes, and will also be consumed by the planned Leaderboards refactor.
+
+**`so-history-row`** — match history list row. Left-stripe color-coded outcome (win=success, loss=error, draw=muted), optional thumbnail (team crest or opponent avatar) with initials fallback, mode label + result chip, opponent/score/time meta line, signed ELO delta on the right. Takes a typed `SoHistoryRowData` object and emits `rowClicked` with the whole row. Deliberately presentation-only — mode-specific rendering (BR score vs 1v1 score, match-mode badges) is the caller's responsibility. Reuses the existing `so-chip` component.
+
+**`so-tier-progress`** — ELO-to-next-tier progression strip. Inputs are plain primitives (`tier`, `nextTier`, `elo`, `nextElo`, `tierStart`) so callers can derive them from any ranking source — ProfileStore, EloService, the new profile-tier route's own data layer. Calculates fill percent and remaining-ELO-to-next-tier internally. Reuses the existing `so-progress-track` component.
+
+**`so-toggle-row`** — settings-list toggle variant. Label + switch, tight vertical padding suitable for stacked settings rows. Uses Angular's `model()` for two-way `[(checked)]` binding. Intentionally distinct from the existing `so-toggle`, which is the richer card variant (supports `label` + `description` + four variants + disabled state) used for high-prominence toggles like the Hardcore mode switch in the Logo Quiz lobby. Both components have a place; the README for each makes the choice obvious.
+
+**Import-path corrections vs the bundle.** The design bundle referenced `ChipComponent` from `'../chip/chip.component'` and `ProgressComponent` from `'../progress/progress.component'` — neither exists in this project. Rewired to `SoChipComponent` from `'../so-chip/so-chip'` and `SoProgressTrackComponent` from `'../so-progress-track/so-progress-track'` (with updated selector `<so-progress-track>` and matching input names). Same final visual, same behavior.
+
+**Not in this release.** The bundle's `profile.html.new` drop-in was a product-level simplification (removes achievements, XP progress, ELO sparkline, avatar upload, inline edit sheet, delete-account, guest state, per-match-mode badges, and all `lang.t()` i18n), not a faithful refactor — and its patch assumed a `ProfileService` surface that doesn't match the real `ProfileComponent`. Keeping the existing `profile.html` untouched until those trade-offs are product-reviewed; the 3 primitives land first so subsequent routes (`/profile/tier` etc.) can compose them when they're scaffolded.
+
 ## [0.9.1.2] - 2026-04-24
 
 ### Fixed — Redis outage no longer takes down every API route
