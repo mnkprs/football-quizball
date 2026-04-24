@@ -826,19 +826,15 @@ export class SupabaseService {
   }
 
   async incrementDuelWins(userId: string, gameType: 'standard' | 'logo' = 'standard'): Promise<number> {
-    const column = gameType === 'logo' ? 'logo_duel_wins' : 'duel_wins';
-    const { data: profile } = await this.client
-      .from('profiles')
-      .select(column)
-      .eq('id', userId)
-      .maybeSingle();
-    const current = (profile as Record<string, number> | null)?.[column] ?? 0;
-    const newCount = current + 1;
-    await this.client
-      .from('profiles')
-      .update({ [column]: newCount })
-      .eq('id', userId);
-    return newCount;
+    // Atomic UPDATE via RPC. Earlier read-modify-write was vulnerable to a
+    // lost-update race when two duels for the same user finalized concurrently.
+    // See migration 20260424140000_atomic_increment_duel_wins.sql.
+    const { data, error } = await this.client.rpc('increment_duel_wins', {
+      p_user_id: userId,
+      p_game_type: gameType,
+    });
+    if (error) throw error;
+    return (data as number) ?? 0;
   }
 
   async incrementBrWins(userId: string): Promise<number> {
