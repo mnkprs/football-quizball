@@ -2,6 +2,36 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.0] - 2026-04-24
+
+### Changed — Profile screen recomposition
+
+**Tier-progress swap.** The hand-rolled `.tier-progress--link` strip inside the profile hero is replaced by the DS `so-tier-progress` primitive wrapped in the same tap-to-`/profile/tier` `<a>`. Tier color is passed through so the fill matches the hero tint. Dead `tierProgressPct` computed and `tierProgress` import removed from profile.ts.
+
+**Ratings card + XP.** The previous "This Season" 4-stat grid is replaced by a Ratings grid that surfaces every rating the user has — Solo Ranked, Logo Quiz, Logo Quiz Hardcore (ELO variants) and Duel, Logo Duel (record variants). XP card is factored into a new `so-xp-card` primitive and stuck directly below the Ratings grid. New `so-rating-card` primitive supports both `elo` (value + tier pill) and `record` (wins — losses) variants. Solo Ranked card links to `/profile/tier`; the other four are static tiles. Material Symbols icon subset extended with `extension`, `local_fire_department`, `sports_mma` so the new icons ship.
+
+**Achievements → `/profile/achievements`.** The bulky categorized grid is lifted off the main profile screen onto its own route (guarded by `authGuard`, mirrors the `/profile/tier` drilldown pattern). Profile page keeps a compact preview of the 5 most-recently-earned icons plus a "View all ›" link and an empty-state CTA for new users. All `.achievements-group*`, `.achievement-tile*`, and `.achv-popup*` CSS rulesets removed from profile.css.
+
+### Added — Pinch zoom everywhere
+
+Viewport meta now declares `user-scalable=yes, maximum-scale=5`; iOS WKWebView picks this up automatically. Android `MainActivity.onCreate` is overridden to call `setSupportZoom(true)` + `setBuiltInZoomControls(true)` + `setDisplayZoomControls(false)` on the Capacitor bridge WebView. `npx cap sync android` ran clean.
+
+### Changed — Leaderboard top-10 cap
+
+`lb-section.listRows` is capped at 7 post-podium rows (10 total visible). `showMeBelow` now checks against the visible subset instead of the raw backend payload, so users at rank 11+ correctly get a pinned "me" row below the separator. Backend `LIMIT` bumped from 5 to 10. New Karma/Jasmine spec file exercises both edge cases.
+
+### Changed — Duel / Logo Duel stat separation
+
+`profiles.logo_duel_wins` column added, backfilled from `duel_games` where `game_type = 'logo'`. Existing `profiles.duel_wins` also recomputed from `game_type = 'standard'` — users whose counts were previously conflated see their displayed number reset to the true standard-only count. `SupabaseService.incrementDuelWins` now takes a `'standard' | 'logo'` argument; `DuelService` passes `row.game_type` through. `getDuelWinCount` / `getDuelGameCount` accept an optional `gameType` filter, and both the achievement award path (DuelService) and the progress display path (AchievementsService) now scope to standard duels. Existing duel achievements (`duel_5/50/100_wins`) continue to trigger on standard duels only.
+
+### Added — Logo duel leaderboard
+
+New `get_logo_duel_{leaderboard,rank,user_stats}` RPCs (mirror the standard duel ones with `game_type = 'logo'`). Leaderboard controller exposes `logoDuel` + `logoDuelMe` alongside existing duel channels. Frontend adds a Standard / Logo sub-tab under the Duel mode tab and a Logo Duel card in the "Your Rankings" strip.
+
+### Fixed — Profile `.catch()` fallback shape
+
+`ProfileComponent.loadProfile`'s `.catch()` fallback was missing the newly added `duel_stats` / `logo_duel_stats` fields, which silently narrowed the happy-path type through destructuring. Patched as a follow-up to keep the Ratings card rendering correctly when the profile fetch fails.
+
 ## [0.9.6.0] - 2026-04-24
 
 ### Changed — Role-based typography tokens + codebase-wide migration
