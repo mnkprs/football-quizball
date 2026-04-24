@@ -1,5 +1,4 @@
 import { Component, inject, signal, OnInit, computed, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -17,11 +16,25 @@ import { environment } from '../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import {
+  SoAvatarComponent,
+  SoStatCardComponent,
+  SoSectionHeaderComponent,
+  SoHistoryRowComponent,
+  SoButtonComponent,
+  type SoHistoryRowData,
+} from '../../shared/ui';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink, FormsModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, ConfirmModalComponent, NgOptimizedImage, EmptyStateComponent],
+  imports: [
+    RouterLink, FormsModule,
+    MatButtonModule, MatIconModule, MatProgressSpinnerModule,
+    ConfirmModalComponent, EmptyStateComponent,
+    SoAvatarComponent, SoStatCardComponent, SoSectionHeaderComponent,
+    SoHistoryRowComponent, SoButtonComponent,
+  ],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -105,6 +118,65 @@ export class ProfileComponent implements OnInit {
     if (!s?.questions_answered) return 0;
     return Math.round((s.correct_answers / s.questions_answered) * 100);
   });
+
+  /**
+   * Shape MatchHistoryEntry rows for the so-history-row component.
+   * Mirrors the mapper in ProfileHistoryComponent — see features/profile-history/
+   * for the full version with filter chips. The profile's main-screen list
+   * intentionally hides the ELO delta column (MatchHistoryEntry doesn't carry
+   * per-match deltas; a backend join with elo_history would light this up later).
+   */
+  historyRows = computed<Array<SoHistoryRowData & { matchId: string }>>(() => {
+    const uid = this.currentUserId();
+    if (!uid) return [];
+    return this.matchHistory().map(m => {
+      const isBr = m.match_mode === 'battle_royale' || m.match_mode === 'team_logo_battle';
+      const result: SoHistoryRowData['result'] =
+        isBr ? 'draw'
+        : m.winner_id === null ? 'draw'
+        : m.winner_id === uid ? 'win' : 'loss';
+      const modeLabel =
+        m.match_mode === 'online' ? 'Online' :
+        m.match_mode === 'duel' ? 'Duel' :
+        m.match_mode === 'local' ? '2-Player' :
+        m.match_mode === 'battle_royale' ? 'Battle Royale' :
+        m.match_mode === 'team_logo_battle' ? 'Team Logo' :
+        m.match_mode;
+      const opponent = isBr
+        ? undefined
+        : (m.player1_id === uid ? m.player2_username : m.player1_username);
+      const score = isBr
+        ? `${m.player1_id === uid ? m.player1_score : m.player2_score} pts`
+        : (m.player1_id === uid
+            ? `${m.player1_score} - ${m.player2_score}`
+            : `${m.player2_score} - ${m.player1_score}`);
+      return {
+        matchId: m.id,
+        mode: modeLabel,
+        result,
+        elo: 0, // Unknown — column is hidden via so-history-row's [hideElo].
+        score,
+        opponent,
+        time: this.relativeTime(m.played_at),
+        initials: modeLabel.slice(0, 2).toUpperCase(),
+      };
+    });
+  });
+
+  /** "2h ago" style relative formatting; beyond a week falls back to Mon D. */
+  private relativeTime(iso: string): string {
+    const then = new Date(iso).getTime();
+    const diffSec = Math.max(0, Math.floor((Date.now() - then) / 1000));
+    if (diffSec < 60) return 'just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    if (diffSec < 86_400) return `${Math.floor(diffSec / 3600)}h ago`;
+    if (diffSec < 604_800) return `${Math.floor(diffSec / 86_400)}d ago`;
+    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  onHistoryRowClicked(row: SoHistoryRowData & { matchId: string }): void {
+    this.router.navigate(['/match', row.matchId]);
+  }
 
   winRecord = computed(() => {
     const userId = this.currentUserId();
