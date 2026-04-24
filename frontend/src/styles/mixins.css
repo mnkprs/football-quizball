@@ -62,7 +62,7 @@
 }
 .so-pulse-accent { animation: so-pulse-accent 1.8s ease-in-out infinite; }
 
-/* Text treatments */
-.so-text-display  { font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
-.so-text-numeric  { font-family: 'Lexend', sans-serif; font-variant-numeric: tabular-nums; }
-.so-text-label    { font-family: 'Lexend', sans-serif; text-transform: uppercase; letter-spacing: 0.14em; font-size: 10px; color: var(--color-muted-foreground); }
+/* Text treatments — aligned to role tokens in tokens.css */
+.so-text-display  { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; }
+.so-text-numeric  { font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+.so-text-label    { font-family: var(--font-headline); text-transform: uppercase; letter-spacing: 0.14em; font-size: 10px; color: var(--color-muted-foreground); }

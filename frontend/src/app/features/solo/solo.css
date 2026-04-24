@@ -45,7 +45,7 @@
 
 /* ── Streak badge ───────────────────────────── */
 .solo-streak-badge {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-numeric);
   font-size: 1.125rem;
   font-weight: 800;
   color: var(--color-warning);
@@ -59,7 +59,7 @@
 
 /* ── Session verdict ────────────────────────── */
 .solo-verdict {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--color-fg-variant, #a8b3c4);

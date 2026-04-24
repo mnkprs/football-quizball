@@ -278,7 +278,7 @@ function toMb(bytes: number): string {
     }
 
     .panel-title {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 600;
       font-size: 1rem;
       color: var(--color-fg, #e5e2e1);
@@ -290,7 +290,7 @@ function toMb(bytes: number): string {
     }
 
     .panel-desc {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-fg-muted, #6b7a8d);
       margin: -0.5rem 0 1rem;
@@ -298,14 +298,14 @@ function toMb(bytes: number): string {
 
     /* ── States ───────────────────────────────────────────── */
     .loading-state {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
     }
 
     .empty-state {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       color: var(--color-fg-muted, #6b7a8d);
       padding: 0.5rem 0;
@@ -313,14 +313,14 @@ function toMb(bytes: number): string {
 
     .error-state {
       margin-top: 0.5rem;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-error, #ff5c5c);
     }
 
     .action-result {
       margin-top: 0.625rem;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-success, #4ade80);
     }
@@ -352,7 +352,7 @@ function toMb(bytes: number): string {
     }
 
     .status-label {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       font-weight: 500;
       color: var(--color-fg-variant, #a8b3c4);
@@ -365,7 +365,7 @@ function toMb(bytes: number): string {
       border: 1px solid var(--color-surface-highest, #3a3a3a);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-weight: 500;
       font-size: 0.875rem;
       cursor: pointer;
@@ -398,7 +398,7 @@ function toMb(bytes: number): string {
       border: 1px solid var(--color-surface-highest, #3a3a3a);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg-muted, #6b7a8d);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
@@ -443,7 +443,7 @@ function toMb(bytes: number): string {
     .threshold-viz-labels {
       display: flex;
       justify-content: space-between;
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-size: 0.625rem;
       font-weight: 500;
       color: var(--color-fg-muted, #6b7a8d);
@@ -469,7 +469,7 @@ function toMb(bytes: number): string {
     }
 
     .slider-label {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-fg-variant, #a8b3c4);
       white-space: nowrap;
@@ -516,7 +516,7 @@ function toMb(bytes: number): string {
     }
 
     .slider-value {
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: var(--font-numeric);
       font-weight: 600;
       font-size: 0.8125rem;
       color: var(--color-fg, #e5e2e1);
@@ -551,7 +551,7 @@ function toMb(bytes: number): string {
     }
 
     .info-key {
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-weight: 500;
       font-size: 0.75rem;
       color: var(--color-fg-muted, #6b7a8d);
@@ -560,13 +560,13 @@ function toMb(bytes: number): string {
     }
 
     .info-val {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       color: var(--color-fg-variant, #a8b3c4);
     }
 
     .info-val--mono {
-      font-family: 'Space Mono', monospace, sans-serif;
+      font-family: var(--font-mono);
       font-size: 0.8125rem;
     }
 

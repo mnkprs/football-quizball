@@ -27,7 +27,7 @@
 }
 
 .so-toggle__label {
-  font-family: var(--font-headline, 'Space Grotesk', sans-serif);
+  font-family: var(--font-headline, var(--font-numeric));
   font-size: var(--text-base, 1rem);
   font-weight: 700;
   color: rgba(255, 255, 255, 0.85);

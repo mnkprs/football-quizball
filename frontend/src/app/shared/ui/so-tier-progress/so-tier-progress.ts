@@ -43,20 +43,20 @@ import { SoProgressTrackComponent } from '../so-progress-track/so-progress-track
       margin-bottom: 0.625rem;
     }
     .so-tier-progress__label {
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-size: 0.625rem; letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--color-fg-muted);
     }
     .so-tier-progress__values {
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-size: 0.6875rem;
       color: var(--color-fg-variant);
     }
     .so-tier-progress__foot {
       display: flex; justify-content: space-between;
       margin-top: 0.5rem;
-      font-family: 'Lexend', sans-serif;
+      font-family: var(--font-headline);
       font-size: 0.625rem; letter-spacing: 0.08em;
       color: var(--color-fg-muted);
     }

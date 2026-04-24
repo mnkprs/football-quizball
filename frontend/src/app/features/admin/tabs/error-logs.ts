@@ -204,7 +204,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg-muted, #6b7a8d);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-weight: 600;
       font-size: 0.6875rem;
       letter-spacing: 0.04em;
@@ -242,7 +242,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       cursor: pointer;
       outline: none;
@@ -266,7 +266,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface, #201f1f);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       outline: none;
       box-sizing: border-box;
@@ -288,7 +288,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       border: 1px solid var(--color-error, #ff5c5c);
       background: transparent;
       color: var(--color-error, #ff5c5c);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-weight: 500;
       font-size: 0.8125rem;
       cursor: pointer;
@@ -358,7 +358,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       align-items: baseline;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       line-height: 1.4;
       overflow: hidden;
@@ -432,7 +432,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     .stack-trace {
       margin: 0;
       padding: 0.75rem;
-      font-family: monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       line-height: 1.6;
       color: var(--color-fg-variant, #a8b3c4);
@@ -449,7 +449,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .no-detail {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.75rem;
       color: var(--color-fg-muted, #6b7a8d);
       font-style: italic;
@@ -460,7 +460,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.875rem;
       color: var(--color-fg-muted, #6b7a8d);
       padding: 2rem;
@@ -476,7 +476,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .error-state {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-error, #ff5c5c);
       padding: 0.5rem 0;
@@ -498,7 +498,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: var(--color-surface-high, #2a2a2a);
       color: var(--color-fg, #e5e2e1);
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       cursor: pointer;
       transition: background 0.12s, opacity 0.12s;
@@ -514,7 +514,7 @@ const TIME_RANGES: { label: string; value: string }[] = [
     }
 
     .page-info {
-      font-family: 'Inter', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.8125rem;
       color: var(--color-fg-muted, #6b7a8d);
     }
