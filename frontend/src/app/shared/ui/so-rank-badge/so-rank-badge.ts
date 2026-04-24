@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SoTier } from '../so-avatar/so-avatar';
+import { SoTier, getTierMeta } from '../so-avatar/so-avatar';
 
 @Component({
   selector: 'so-rank-badge',
@@ -13,11 +13,7 @@ import { SoTier } from '../so-avatar/so-avatar';
 export class SoRankBadgeComponent {
   tier = input.required<SoTier>();
   elo  = input<string | number>();
-  tierColor() {
-    const map: Record<SoTier, string> = {
-      Legend:     '#007AFF', Elite: '#C0C0C0',
-      Challenger: '#CD7F32', Contender: '#4A90D9', Grassroots: '#6b7a8d',
-    };
-    return map[this.tier()];
-  }
+  meta = computed(() => getTierMeta(this.tier()));
+  tierColor() { return this.meta().color; }
+  tierLabel() { return this.meta().label; }
 }

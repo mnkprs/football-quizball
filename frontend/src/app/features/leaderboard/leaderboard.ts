@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
@@ -6,16 +6,15 @@ import { LanguageService } from '../../core/language.service';
 import {
   LeaderboardApiService,
   LeaderboardEntry,
-  BlitzLeaderboardEntry,
   LogoQuizLeaderboardEntry,
   LogoQuizHardcoreLeaderboardEntry,
   DuelLeaderboardEntry,
 } from '../../core/leaderboard-api.service';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { ErrorStateComponent } from '../../shared/error-state/error-state';
+import { SoTabStripComponent, SoTab } from '../../shared/ui/so-tab-strip/so-tab-strip';
+import { LbSectionComponent } from './lb-section/lb-section';
+import { toRows, meToRow, type LeaderboardRow } from './leaderboard-row';
 
 interface LegendTier {
   readonly label: string;
@@ -24,6 +23,9 @@ interface LegendTier {
   readonly gradientFrom: string;
   readonly icon: string;
 }
+
+type LeaderboardTab = 'solo' | 'logoQuiz' | 'duel';
+type LogoSubTab = 'normal' | 'hardcore';
 
 const LEGEND_SEEN_KEY = 'leaderboard_legend_seen';
 
@@ -38,16 +40,26 @@ const LEGEND_TIERS: readonly LegendTier[] = [
   { label: 'Sunday League', range: '500 – 749',   color: '#6b7280', gradientFrom: '#4b5563', icon: '🥾' },
 ] as const;
 
+const MODE_TABS: SoTab[] = [
+  { id: 'solo',     label: 'Solo',  color: '#10b981' },
+  { id: 'logoQuiz', label: 'Logo',  color: '#a855f7' },
+  { id: 'duel',     label: 'Duel',  color: '#f59e0b' },
+];
+
+const LOGO_SUB_TABS: SoTab[] = [
+  { id: 'normal',   label: 'Normal',   color: '#a855f7' },
+  { id: 'hardcore', label: 'Hardcore', color: '#ef4444' },
+];
+
 @Component({
   selector: 'app-leaderboard',
   standalone: true,
   imports: [
     RouterLink,
-    MatCardModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
     MatIconModule,
     ErrorStateComponent,
+    SoTabStripComponent,
+    LbSectionComponent,
   ],
   templateUrl: './leaderboard.html',
   styleUrl: './leaderboard.css',
@@ -58,22 +70,44 @@ export class LeaderboardComponent implements OnInit {
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
-  entries = signal<LeaderboardEntry[]>([]);
-  blitzEntries = signal<BlitzLeaderboardEntry[]>([]);
-  logoQuizEntries = signal<LogoQuizLeaderboardEntry[]>([]);
-  logoQuizHardcoreEntries = signal<LogoQuizHardcoreLeaderboardEntry[]>([]);
-  duelEntries = signal<DuelLeaderboardEntry[]>([]);
-  soloMeEntry = signal<(LeaderboardEntry & { rank: number }) | null>(null);
-  blitzMeEntry = signal<(BlitzLeaderboardEntry & { rank: number }) | null>(null);
-  logoQuizMeEntry = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
-  logoQuizHardcoreMeEntry = signal<(LogoQuizHardcoreLeaderboardEntry & { rank: number }) | null>(null);
-  duelMeEntry = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
+  // Raw API data (stays as signals because the API returns tagged entries and we need per-tab "me" rows).
+  private soloEntries              = signal<LeaderboardEntry[]>([]);
+  private logoQuizEntries          = signal<LogoQuizLeaderboardEntry[]>([]);
+  private logoQuizHardcoreEntries  = signal<LogoQuizHardcoreLeaderboardEntry[]>([]);
+  private duelEntries              = signal<DuelLeaderboardEntry[]>([]);
+
+  private soloMeEntry              = signal<(LeaderboardEntry & { rank: number }) | null>(null);
+  private logoQuizMeEntry          = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
+  private logoQuizHardcoreMeEntry  = signal<(LogoQuizHardcoreLeaderboardEntry & { rank: number }) | null>(null);
+  private duelMeEntry              = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
+
+  private currentUserId = computed(() => this.auth.user()?.id ?? null);
+
+  // Normalized rows, derived once per entries update.
+  soloRows             = computed<LeaderboardRow[]>(() => toRows.solo(this.soloEntries(), this.currentUserId()));
+  logoQuizRows         = computed<LeaderboardRow[]>(() => toRows.logoQuiz(this.logoQuizEntries(), this.currentUserId()));
+  logoQuizHardcoreRows = computed<LeaderboardRow[]>(() => toRows.logoQuizHardcore(this.logoQuizHardcoreEntries(), this.currentUserId()));
+  duelRows             = computed<LeaderboardRow[]>(() => toRows.duel(this.duelEntries(), this.currentUserId()));
+
+  soloMeRow             = computed<LeaderboardRow | null>(() => meToRow.solo(this.soloMeEntry(), this.currentUserId()));
+  logoQuizMeRow         = computed<LeaderboardRow | null>(() => meToRow.logoQuiz(this.logoQuizMeEntry(), this.currentUserId()));
+  logoQuizHardcoreMeRow = computed<LeaderboardRow | null>(() => meToRow.logoQuizHardcore(this.logoQuizHardcoreMeEntry(), this.currentUserId()));
+  duelMeRow             = computed<LeaderboardRow | null>(() => meToRow.duel(this.duelMeEntry(), this.currentUserId()));
+
+  // Your-ranks strip visibility (any mode ranked).
+  hasAnyMyRank = computed(() =>
+    !!(this.soloMeRow() || this.logoQuizMeRow() || this.logoQuizHardcoreMeRow() || this.duelMeRow())
+  );
+
   loading = signal(false);
   error = signal<string | null>(null);
-  activeTab = signal<'solo' | 'blitz' | 'logoQuiz' | 'duel'>('solo');
-  logoQuizSubTab = signal<'normal' | 'hardcore'>('normal');
+  activeTab = signal<LeaderboardTab>('solo');
+  logoQuizSubTab = signal<LogoSubTab>('normal');
   showLegend = signal(false);
+
   readonly legendTiers = LEGEND_TIERS;
+  readonly modeTabs = MODE_TABS;
+  readonly logoSubTabs = LOGO_SUB_TABS;
 
   openLegend(): void {
     this.showLegend.set(true);
@@ -104,12 +138,12 @@ export class LeaderboardComponent implements OnInit {
     });
   }
 
-  setActiveTab(tab: 'solo' | 'blitz' | 'logoQuiz' | 'duel'): void {
-    this.activeTab.set(tab);
+  setActiveTab(tab: string): void {
+    this.activeTab.set(tab as LeaderboardTab);
   }
 
-  setLogoQuizSubTab(sub: 'normal' | 'hardcore'): void {
-    this.logoQuizSubTab.set(sub);
+  setLogoQuizSubTab(sub: string): void {
+    this.logoQuizSubTab.set(sub as LogoSubTab);
   }
 
   async load(): Promise<void> {
@@ -118,76 +152,25 @@ export class LeaderboardComponent implements OnInit {
     try {
       await this.auth.sessionReady;
       const isLoggedIn = this.auth.isLoggedIn();
+      const emptyMe = { soloMe: null, blitzMe: null, logoQuizMe: null, logoQuizHardcoreMe: null, duelMe: null };
       const [leaderboardRes, meRes] = await Promise.all([
         firstValueFrom(this.leaderboardApi.getLeaderboard()),
         isLoggedIn
-          ? firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries()).catch(() => ({
-              soloMe: null,
-              blitzMe: null,
-              logoQuizMe: null,
-              logoQuizHardcoreMe: null,
-              duelMe: null,
-            }))
-          : Promise.resolve({ soloMe: null, blitzMe: null, logoQuizMe: null, logoQuizHardcoreMe: null, duelMe: null }),
+          ? firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries()).catch(() => emptyMe)
+          : Promise.resolve(emptyMe),
       ]);
-      this.entries.set(leaderboardRes.solo ?? []);
-      this.blitzEntries.set(leaderboardRes.blitz ?? []);
+      this.soloEntries.set(leaderboardRes.solo ?? []);
       this.logoQuizEntries.set(leaderboardRes.logoQuiz ?? []);
       this.logoQuizHardcoreEntries.set(leaderboardRes.logoQuizHardcore ?? []);
       this.duelEntries.set(leaderboardRes.duel ?? []);
       this.soloMeEntry.set(meRes.soloMe ?? null);
-      this.blitzMeEntry.set(meRes.blitzMe ?? null);
       this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
       this.logoQuizHardcoreMeEntry.set(meRes.logoQuizHardcoreMe ?? null);
       this.duelMeEntry.set(meRes.duelMe ?? null);
-    } catch (err: any) {
+    } catch {
       this.error.set(this.lang.t().lbLoadFailed);
     } finally {
       this.loading.set(false);
     }
-  }
-
-  isCurrentUser(userId: string): boolean {
-    return this.auth.user()?.id === userId;
-  }
-
-  showSoloMeBelow(): boolean {
-    const me = this.soloMeEntry();
-    if (!me) return false;
-    return !this.entries().some((entry) => entry.id === me.id);
-  }
-
-  showBlitzMeBelow(): boolean {
-    const me = this.blitzMeEntry();
-    if (!me) return false;
-    return !this.blitzEntries().some((entry) => entry.user_id === me.user_id);
-  }
-
-  showLogoQuizMeBelow(): boolean {
-    const me = this.logoQuizMeEntry();
-    if (!me) return false;
-    return !this.logoQuizEntries().some((entry) => entry.id === me.id);
-  }
-
-  showLogoQuizHardcoreMeBelow(): boolean {
-    const me = this.logoQuizHardcoreMeEntry();
-    if (!me) return false;
-    return !this.logoQuizHardcoreEntries().some((entry) => entry.id === me.id);
-  }
-
-  showDuelMeBelow(): boolean {
-    const me = this.duelMeEntry();
-    if (!me) return false;
-    return !this.duelEntries().some((entry) => entry.user_id === me.user_id);
-  }
-
-  accuracy(entry: LeaderboardEntry): number {
-    if (!entry.questions_answered) return 0;
-    return Math.round((entry.correct_answers / entry.questions_answered) * 100);
-  }
-
-  winRate(entry: DuelLeaderboardEntry): number {
-    if (!entry.games_played) return 0;
-    return Math.round((entry.wins / entry.games_played) * 100);
   }
 }

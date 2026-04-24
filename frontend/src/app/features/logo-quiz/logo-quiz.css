@@ -305,7 +305,6 @@
 }
 .lq-session-header--glow        { animation: border-glow 500ms var(--ease-out-quart); }
 .lq-session-header--glow-strong { animation: border-glow-strong 700ms var(--ease-out-quart); }
-.lq-session-elo__tier--promoted { animation: tier-promote 500ms var(--ease-out-quart); }
 
 /* ── Loading ──────────────────────────────────── */
 .lq-loading {
@@ -567,7 +566,6 @@
   .lq-session-header--glow-strong,
   .lq-session-elo__delta,
   .lq-session-elo__value--bumped,
-  .lq-session-elo__tier--promoted,
   .lq-session-score__correct--ticked,
   .lq-session-elo__delta--refreshed,
   .lq-tab-panel,

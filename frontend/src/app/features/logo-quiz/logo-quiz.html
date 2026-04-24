@@ -222,7 +222,6 @@
             {{ currentElo() | number }}
           </span>
           <span class="lq-session-elo__tier"
-                [class.lq-session-elo__tier--promoted]="tierPromoted()"
                 [style.color]="eloTier().color">
             {{ eloTier().label }}
           </span>
