@@ -1,8 +1,10 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
+import { ShellUiService } from '../../core/shell-ui.service';
+import { RefreshService } from '../../core/refresh.service';
 import {
   LeaderboardApiService,
   LeaderboardEntry,
@@ -71,8 +73,10 @@ const DUEL_SUB_TABS: SoTab[] = [
   styleUrl: './leaderboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LeaderboardComponent implements OnInit {
+export class LeaderboardComponent implements OnInit, OnDestroy {
   private leaderboardApi = inject(LeaderboardApiService);
+  private shellUi = inject(ShellUiService);
+  private refreshSvc = inject(RefreshService);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
@@ -139,6 +143,11 @@ export class LeaderboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.shellUi.showTopNavBar.set(true);
+    // Silent refresh — re-fetch in the background without re-rendering the
+    // skeleton state. PTR is for "freshen the data," not "show me the
+    // initial-load experience again."
+    this.refreshSvc.register(() => this.load(true));
     this.load().then(() => {
       if (this.error() === null) {
         try {
@@ -148,6 +157,11 @@ export class LeaderboardComponent implements OnInit {
         } catch { /* localStorage unavailable */ }
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.shellUi.showTopNavBar.set(false);
+    this.refreshSvc.unregister();
   }
 
   setActiveTab(tab: string): void {
@@ -162,8 +176,8 @@ export class LeaderboardComponent implements OnInit {
     this.duelSubTab.set(sub as DuelSubTab);
   }
 
-  async load(): Promise<void> {
-    this.loading.set(true);
+  async load(silent = false): Promise<void> {
+    if (!silent) this.loading.set(true);
     this.error.set(null);
     try {
       await this.auth.sessionReady;
@@ -188,7 +202,7 @@ export class LeaderboardComponent implements OnInit {
     } catch {
       this.error.set(this.lang.t().lbLoadFailed);
     } finally {
-      this.loading.set(false);
+      if (!silent) this.loading.set(false);
     }
   }
 }

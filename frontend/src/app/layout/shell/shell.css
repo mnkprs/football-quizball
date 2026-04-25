@@ -32,6 +32,59 @@
   animation: anim-stagger-in 350ms var(--ease-out-quart);
 }
 
+/* Pull-to-refresh indicator. Lives OUTSIDE .shell-main so iOS native
+   rubber-band on the scroll container can't double-translate it.
+   Rest position: bottom edge tucked at the top-nav's bottom edge so the
+   indicator hides behind the nav glass at idle and emerges through it
+   on pull. z-index 49 sits just below the nav (z-index 50) so the glass
+   blur smears the indicator as it slides into view. */
+.shell-ptr {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 1.25rem);
+  /* Centering via margin-left (not transform) so the inline transform
+     binding can own the translateY without fighting a CSS translateX. */
+  left: 50%;
+  margin-left: -1.25rem;
+  z-index: 49;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg-subtle, rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(var(--glass-blur-lg, 16px));
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg, 16px));
+  border: 1px solid var(--glass-border-strong, rgba(255, 255, 255, 0.16));
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.shell-ptr__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: block;
+  transition: transform 200ms var(--ease-out-quart);
+}
+
+.shell-ptr--ready {
+  color: var(--color-accent, #007aff);
+  border-color: var(--color-accent, #007aff);
+}
+
+.shell-ptr--ready .shell-ptr__icon {
+  transform: rotate(180deg);
+}
+
+.shell-ptr--loading .shell-ptr__icon {
+  animation: shell-ptr-spin 800ms linear infinite;
+}
+
+@keyframes shell-ptr-spin {
+  to { transform: rotate(360deg); }
+}
+
 .bottom-nav {
   position: fixed;
   bottom: 0;

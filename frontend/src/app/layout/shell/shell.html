@@ -1,11 +1,33 @@
 <div class="shell-layout">
   <app-top-nav [showBar]="isHome() || shellUi.showTopNavBar()" />
   <app-upgrade-modal />
+  @if (refresh.hasHandler()) {
+    <div
+      class="shell-ptr"
+      [class.shell-ptr--ready]="refresh.isReady()"
+      [class.shell-ptr--loading]="refresh.isLoading()"
+      [style.transform]="pullTransform()"
+      [style.transition]="pullTransition()"
+      aria-hidden="true"
+    >
+      @if (refresh.isLoading()) {
+        <svg class="shell-ptr__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/>
+          <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+        </svg>
+      } @else {
+        <svg class="shell-ptr__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M6 13l6 6 6-6"/>
+        </svg>
+      }
+    </div>
+  }
   <main
     #scrollContainer
     class="shell-main"
     [class.shell-main--no-top-pad]="isHome()"
     [class.shell-main--no-bottom-pad]="shellUi.hideBottomNav()"
+    soPullToRefresh
   >
     <router-outlet />
   </main>

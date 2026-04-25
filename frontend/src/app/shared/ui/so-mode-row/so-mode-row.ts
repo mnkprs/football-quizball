@@ -19,5 +19,14 @@ export class SoModeRowComponent {
   materialIcon = input<string>();
   iconBg       = input<string>();
   iconColor    = input<string>();
+  /** Locks the row visually + semantically. Used for "coming soon" modes that
+      are visible in the lobby but not yet shippable. Suppresses press events,
+      sets aria-disabled, and pulls in the .is-coming-soon visual treatment. */
+  disabled     = input<boolean>(false);
   pressed      = output<void>();
+
+  onClick(): void {
+    if (this.disabled()) return;
+    this.pressed.emit();
+  }
 }

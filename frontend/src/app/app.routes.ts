@@ -28,9 +28,12 @@ const fullRoutes: Routes = [
       { path: 'duel', loadComponent: () => import('./features/duel/duel-lobby').then(m => m.DuelLobbyComponent), canActivate: [authGuard] },
       { path: 'battle-royale', canActivate: [authGuard], loadComponent: () => import('./features/battle-royale/battle-royale-lobby').then(m => m.BattleRoyaleLobbyComponent) },
       { path: 'analytics', canActivate: [authGuard], loadComponent: () => import('./features/analytics/analytics').then(m => m.AnalyticsComponent) },
+      // /game lives inside the shell so the lobby (setup phase) gets bottom-nav.
+      // GameComponent's own effect() toggles hideBottomNav + showTopNavBar based
+      // on phase — chrome shows during setup, hides during loading/board/question/result/finished.
+      { path: 'game', loadComponent: () => import('./features/game/game').then(m => m.GameComponent) },
     ],
   },
-  { path: 'game', loadComponent: () => import('./features/game/game').then(m => m.GameComponent) },
   { path: 'online-game', canActivate: [authGuard], loadComponent: () => import('./features/online-game/online-lobby').then(m => m.OnlineLobbyComponent) },
   { path: 'online-game/:id', canActivate: [authGuard], loadComponent: () => import('./features/online-game/online-play').then(m => m.OnlinePlayComponent) },
   { path: 'join/:code', loadComponent: () => import('./features/online-game/join-invite').then(m => m.JoinInviteComponent) },

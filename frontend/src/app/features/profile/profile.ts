@@ -1,5 +1,6 @@
-import { Component, inject, signal, OnInit, computed, effect, ViewChild, ElementRef, Injector, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, computed, effect, ViewChild, ElementRef, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { ProService } from '../../core/pro.service';
@@ -9,6 +10,8 @@ import { AchievementsApiService, Achievement } from '../../core/achievements-api
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
 import { getEloTier, nextTierThreshold, xpForLevel } from '../../core/elo-tier';
 import { ProfileEditService } from '../../core/profile-edit.service';
+import { ShellUiService } from '../../core/shell-ui.service';
+import { RefreshService } from '../../core/refresh.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,6 +30,7 @@ import {
   standalone: true,
   imports: [
     RouterLink,
+    DecimalPipe,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     EmptyStateComponent,
     SoAvatarComponent, SoSectionHeaderComponent,
@@ -37,7 +41,7 @@ import {
   styleUrl: './profile.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
   @ViewChild('avatarInput') avatarInput?: ElementRef<HTMLInputElement>;
 
   auth = inject(AuthService);
@@ -49,12 +53,13 @@ export class ProfileComponent implements OnInit {
   private achievementsApi = inject(AchievementsApiService);
   private matchHistoryApi = inject(MatchHistoryApiService);
   private profileEdit = inject(ProfileEditService);
+  private shellUi = inject(ShellUiService);
+  private refreshSvc = inject(RefreshService);
   private injector = inject(Injector);
 
   profile = signal<LeaderboardEntry | null>(null);
   duelStats     = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
   logoDuelStats = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
-  eloHistory = signal<any[]>([]);
   achievements = signal<Achievement[]>([]);
   matchHistory = signal<MatchHistoryEntry[]>([]);
   loading = signal(true);
@@ -167,6 +172,19 @@ export class ProfileComponent implements OnInit {
 
   achievementsEarned = computed(() => this.achievements().filter(a => a.earned_at).length);
 
+  /** Whole-percent accuracy from lifetime question counts. 0 when no questions answered. */
+  accuracy = computed(() => {
+    const q = this.profile()?.questions_answered ?? 0;
+    const c = this.profile()?.correct_answers ?? 0;
+    return q > 0 ? Math.round((c / q) * 100) : 0;
+  });
+
+  /** Open the global upgrade modal from the analytics preview's non-Pro CTA. */
+  openUpgrade(): void {
+    this.pro.triggerContext.set('general');
+    this.pro.showUpgradeModal.set(true);
+  }
+
   recentAchievements = computed(() => {
     // filter() guarantees earned_at is non-null, so the sort comparator
     // can use the non-null assertion directly.
@@ -180,25 +198,6 @@ export class ProfileComponent implements OnInit {
     const p = this.profile();
     if (!p?.created_at) return null;
     return new Date(p.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-  });
-
-  sparklineData = computed(() => {
-    const raw = this.eloHistory();
-    if (raw.length < 2) return null;
-    const elos: number[] = [...raw].reverse().map((h: any) => h.elo_after);
-    const min = Math.min(...elos);
-    const max = Math.max(...elos);
-    const range = max - min || 1;
-    const W = 100, H = 40, pad = 3;
-    const points = elos.map((elo, i) => {
-      const x = (i / (elos.length - 1)) * (W - pad * 2) + pad;
-      const y = H - pad - ((elo - min) / range) * (H - pad * 2);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(' ');
-    const lastElo = elos[elos.length - 1];
-    const lastX = ((W - pad * 2) + pad).toFixed(1);
-    const lastY = (H - pad - ((lastElo - min) / range) * (H - pad * 2)).toFixed(1);
-    return { points, lastX, lastY, minElo: min, maxElo: max };
   });
 
   rankTier = computed(() => getEloTier(this.profile()?.elo ?? 1000));
@@ -241,6 +240,9 @@ export class ProfileComponent implements OnInit {
   nextTierElo = computed(() => nextTierThreshold(this.profile()?.elo ?? 1000) ?? (this.profile()?.elo ?? 1000));
 
   ngOnInit(): void {
+    this.shellUi.showTopNavBar.set(true);
+    // Silent refresh — re-fetch without flashing the page-level spinner.
+    this.refreshSvc.register(() => this.loadProfile(true));
     this.userId.set(this.route.snapshot.paramMap.get('userId'));
     this.auth.sessionReady.then(() => {
       if (this.auth.isLoggedIn()) {
@@ -262,11 +264,16 @@ export class ProfileComponent implements OnInit {
     }, { injector: this.injector });
   }
 
-  async loadProfile(): Promise<void> {
+  ngOnDestroy(): void {
+    this.shellUi.showTopNavBar.set(false);
+    this.refreshSvc.unregister();
+  }
+
+  async loadProfile(silent = false): Promise<void> {
     const paramUserId = this.route.snapshot.paramMap.get('userId');
     const userId = paramUserId ?? this.auth.user()?.id ?? null;
     if (!userId) { this.loading.set(false); return; }
-    this.loading.set(true);
+    if (!silent) this.loading.set(true);
     try {
       const [profileRes, achievementsRes, matchHistoryRes, avatarUrl] = await Promise.all([
         firstValueFrom(this.soloApi.getProfile(userId)).catch(() => ({ profile: null, blitz_stats: null, mayhem_stats: null, duel_stats: null, logo_duel_stats: null, history: [] })),
@@ -277,14 +284,13 @@ export class ProfileComponent implements OnInit {
       this.profile.set(profileRes?.profile ?? null);
       this.duelStats.set(profileRes?.duel_stats ?? { wins: 0, losses: 0, rank: null });
       this.logoDuelStats.set(profileRes?.logo_duel_stats ?? { wins: 0, losses: 0, rank: null });
-      this.eloHistory.set(profileRes?.history ?? []);
       this.achievements.set(achievementsRes);
       this.matchHistory.set(matchHistoryRes);
       this.avatarUrl.set(avatarUrl);
     } catch {
       this.profile.set(null);
     } finally {
-      this.loading.set(false);
+      if (!silent) this.loading.set(false);
     }
   }
 

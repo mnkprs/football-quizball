@@ -62,6 +62,18 @@
   --color-fg-subtitle: rgba(255, 255, 255, 0.55);
   --color-fg-label: rgba(255, 255, 255, 0.45);
 
+  /* ---- Disabled / "coming soon" lockup ----
+     Used by .is-coming-soon utility and component-level disabled modifiers
+     (so-mode-row, so-button, etc). Keeps the dim/desaturate values consistent
+     across the app so a disabled row matches a disabled button matches a
+     disabled tab panel. Tune the *-strong variants when the surface already
+     sits on a busy background image and needs more dimming to read as locked. */
+  --state-disabled-opacity:        0.55;
+  --state-disabled-opacity-strong: 0.4;
+  --state-disabled-saturate:       0.35;   /* drains color so it reads "off" */
+  --state-disabled-tint:           rgba(19, 19, 19, 0.45);  /* matches --color-bg @ 45% */
+  --state-disabled-stripe:         rgba(255, 255, 255, 0.04);  /* diagonal hatch */
+
   /* ---- Ultra-subtle glass (stat cards) ---- */
   --glass-bg-ultra-subtle: rgba(255, 255, 255, 0.04);
 

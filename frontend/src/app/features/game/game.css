@@ -4,6 +4,17 @@
      ::after  = a vignette gradient that protects UI contrast
    ───────────────────────────────────────────────────────── */
 
+/* Host fills the shell-main flex column so .game-shell's flex-1 has a parent
+   that actually flexes. Mirrors :host on solo / blitz / logo-quiz components.
+   Without this, the lobby content shrinks to its intrinsic height and the
+   background ends mid-screen above the bottom-nav. */
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
 .game-shell {
   /* NOTE: No `isolation: isolate` here. An earlier version used it to confine the
      ::before/::after BG layers below z:0 content, but that created a stacking

@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, viewChild, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { LanguageService } from '../../core/language.service';
@@ -7,6 +7,8 @@ import { TopNavComponent } from '../../shared/top-nav/top-nav';
 import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
 import { ShellUiService } from '../../core/shell-ui.service';
+import { RefreshService } from '../../core/refresh.service';
+import { SoPullToRefreshDirective } from '../../shared/directives/so-pull-to-refresh.directive';
 
 export interface NavTab {
   labelKey: 'navHome' | 'navCasual' | 'navInvite' | 'navLeaderboard' | 'navRank' | 'navProfile';
@@ -24,6 +26,7 @@ export interface NavTab {
     RouterLinkActive,
     UpgradeModalComponent,
     TopNavComponent,
+    SoPullToRefreshDirective,
   ],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
@@ -35,10 +38,20 @@ export class ShellComponent implements OnInit, OnDestroy {
   lang = inject(LanguageService);
   pro = inject(ProService);
   shellUi = inject(ShellUiService);
+  refresh = inject(RefreshService);
   upgrading = signal(false);
   isHome = signal(true);
   scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
   private routeSub?: Subscription;
+
+  pullTransform = computed(() => {
+    const px = this.refresh.pullPx();
+    return px > 0 ? `translateY(${px}px)` : '';
+  });
+
+  pullTransition = computed(() => {
+    return this.refresh.isPulling() ? 'none' : 'transform 240ms var(--ease-out-quart)';
+  });
 
   ngOnInit(): void {
     this.auth.sessionReady.then(() => this.pro.ensureLoaded());

@@ -53,10 +53,7 @@ export class GameService {
     const poolQuestionIds = result.poolQuestionIds;
     questions = questions.map((question) => this.ensureQuestionLocaleState(question));
 
-    // Refill pool in background after drawing
-    void this.questionPoolService.refillIfNeeded().catch((err) =>
-      this.logger.error(`[createGame] Pool refill failed: ${(err as Error).message}`),
-    );
+    // Pool refill is operator-driven (manual seed script), not request-triggered.
 
     const players: [Player, Player] = [
       { name: dto.player1Name, score: 0, lifelineUsed: false, doubleUsed: false },

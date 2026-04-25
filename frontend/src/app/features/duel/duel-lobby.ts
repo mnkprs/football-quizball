@@ -9,6 +9,7 @@ import { LanguageService } from '../../core/language.service';
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
 import { ShellUiService } from '../../core/shell-ui.service';
+import { RefreshService } from '../../core/refresh.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 
@@ -29,6 +30,7 @@ export class DuelLobbyComponent implements OnInit, OnDestroy {
   private matchHistory = inject(MatchHistoryApiService);
   private leaderboardApi = inject(LeaderboardApiService);
   private shellUi = inject(ShellUiService);
+  private refreshSvc = inject(RefreshService);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
@@ -61,13 +63,17 @@ export class DuelLobbyComponent implements OnInit, OnDestroy {
       this.isLogoMode.set(true);
     }
     this.shellUi.showTopNavBar.set(true);
-    this.loadGames();
-    this.loadWinStats();
-    this.loadRank();
+    this.refreshSvc.register(() => this.refreshAll());
+    this.refreshAll();
   }
 
   ngOnDestroy(): void {
     this.shellUi.showTopNavBar.set(false);
+    this.refreshSvc.unregister();
+  }
+
+  private async refreshAll(): Promise<void> {
+    await Promise.all([this.loadGames(), this.loadWinStats(), Promise.resolve(this.loadRank())]);
   }
 
   private loadRank(): void {

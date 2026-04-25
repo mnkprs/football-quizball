@@ -1,5 +1,5 @@
-<div class="game-shell relative min-h-screen max-w-md mx-auto flex flex-col pt-safe pb-safe">
-  @if (store.phase() !== 'loading' && store.phase() !== 'finished' && store.phase() !== 'question') {
+<div class="game-shell relative flex-1 min-h-0 max-w-md mx-auto flex flex-col pt-safe pb-safe">
+  @if (store.phase() !== 'loading' && store.phase() !== 'finished' && store.phase() !== 'question' && store.phase() !== 'setup') {
     <button
       (click)="goBack()"
       class="game-back-btn absolute left-4 top-4 z-20 inline-flex items-center min-h-[44px] min-w-[44px] py-2 px-3 rounded-xl text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent transition text-sm font-medium"

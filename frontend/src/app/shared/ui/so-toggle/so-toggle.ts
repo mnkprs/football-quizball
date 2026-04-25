@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type SoToggleVariant = 'default' | 'danger' | 'success' | 'pro';
+export type SoToggleVariant = 'default' | 'danger' | 'hardcore' | 'success' | 'pro';
 
 @Component({
   selector: 'so-toggle',

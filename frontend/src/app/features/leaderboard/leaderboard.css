@@ -1,5 +1,9 @@
+/* Top-nav reserve — leaderboard opts into showTopNavBar(true), so the
+   fixed top-nav header (3.75rem + safe-area) overlays this page.
+   Reserve via --top-nav-reserve token (single source of truth) plus the
+   1rem internal gutter we already wanted above the title. */
 .leaderboard-page {
-  padding: 1rem;
+  padding: calc(var(--top-nav-reserve) + 1rem) 1rem 1rem;
   max-width: var(--app-max-width);
   margin: 0 auto;
 }
@@ -136,7 +140,8 @@
 .your-rank-card--logo-duel .your-rank-icon { color: #a855f7; }
 
 .your-rank-icon { display: flex; align-items: center; flex-shrink: 0; }
-.your-rank-icon mat-icon { font-size: var(--text-xl); width: 1.25rem; height: 1.25rem; }
+.your-rank-icon mat-icon,
+.your-rank-icon .material-symbols-outlined { font-size: var(--text-xl); width: 1.25rem; height: 1.25rem; }
 
 .your-rank-info {
   display: flex;

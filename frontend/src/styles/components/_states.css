@@ -1,7 +1,7 @@
 /* ==========================================================
    Interactive States — answer feedback + selection states
    Available: .state-correct, .state-wrong, .state-selected,
-              .state-dimmed, .state-loading
+              .state-dimmed, .state-loading, .is-coming-soon
    ========================================================== */
 
 .state-correct {
@@ -22,6 +22,56 @@
 .state-dimmed {
   opacity: 0.5;
   pointer-events: none;
+}
+
+/* ── Coming-soon lockup — composable utility ─────────────────
+   Apply to any card / row / panel that holds an unshipped feature.
+   Reads as "intentionally locked" rather than "broken/loading":
+     • desaturated → drains color so it's obviously inert
+     • dimmed     → reduces visual weight without disappearing
+     • diagonal hatch overlay → universally legible "do not enter"
+     • inputs/buttons inside still respect their own :disabled state
+   Pair with a SOON / LOCKED chip for explicit messaging.
+   Pointer-events stay enabled so a wrapping click handler can still
+   route to a "notify me" sheet if you want one — the visual is the
+   contract, not the JS.                                              */
+.is-coming-soon {
+  position: relative;
+  opacity: var(--state-disabled-opacity);
+  filter: saturate(var(--state-disabled-saturate));
+  cursor: not-allowed;
+  -webkit-user-select: none;
+          user-select: none;
+}
+
+/* Hatch overlay rendered via ::before (NOT ::after) so it composes safely
+   with .so-overlay-horizontal::after (mixins.css) which loads later in
+   angular.json's styles array and would otherwise win by source order
+   since both selectors share the same single-class specificity. Using
+   ::before sidesteps that collision entirely. */
+.is-coming-soon::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 8px,
+    var(--state-disabled-stripe) 8px,
+    var(--state-disabled-stripe) 9px
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Heavier variant for cards sitting over busy backgrounds (hero images,
+   gradient-rich glass). Uses a tint instead of pure opacity drop so the
+   background image doesn't bleed through and undo the "locked" read.
+   Tint goes on the host's background-color via box-shadow inset so it
+   doesn't need a third pseudo (we're already using ::before for hatch). */
+.is-coming-soon--strong {
+  opacity: var(--state-disabled-opacity-strong);
+  box-shadow: inset 0 0 0 9999px var(--state-disabled-tint);
 }
 
 .state-loading {

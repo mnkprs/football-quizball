@@ -59,12 +59,16 @@ export interface SoHistoryRowData {
       </div>
       <div class="so-history-row__body">
         <div class="so-history-row__header">
-          <span class="so-history-row__mode">{{ row().mode }}</span>
-          <so-chip [variant]="chipVariant()" size="xs">
+          <!-- <span class="so-history-row__mode">{{ row().mode }}</span> -->
+          <!-- <so-chip [variant]="chipVariant()" size="xs">
+            {{ row().result === 'win' ? 'WIN' : row().result === 'loss' ? 'LOSS' : 'DRAW' }}
+          </so-chip> -->
+        </div>
+        
+        <div class="so-history-row__meta">
+                <so-chip [variant]="chipVariant()" size="xs">
             {{ row().result === 'win' ? 'WIN' : row().result === 'loss' ? 'LOSS' : 'DRAW' }}
           </so-chip>
-        </div>
-        <div class="so-history-row__meta">
           {{ row().opponent ? 'vs ' + row().opponent : 'Solo' }}
           · {{ row().score }} · {{ row().time }}
         </div>

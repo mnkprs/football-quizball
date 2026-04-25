@@ -5,9 +5,9 @@
       <button class="leaderboard-info-btn" (click)="openLegend()" aria-label="View ranking tiers">
         <mat-icon>info_outline</mat-icon>
       </button>
-      <button class="leaderboard-refresh-btn" (click)="load()" [disabled]="loading()" aria-label="Refresh leaderboard">
+      <!-- <button class="leaderboard-refresh-btn" (click)="load()" [disabled]="loading()" aria-label="Refresh leaderboard">
         <mat-icon>refresh</mat-icon>
-      </button>
+      </button> -->
     </div>
   </header>
 
@@ -77,7 +77,9 @@
           }
           @if (logoDuelMeRow(); as me) {
             <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--logo-duel">
-              <div class="your-rank-icon"><mat-icon>swords</mat-icon></div>
+              <!-- 'swords' is Material Symbols-only (not in legacy Material Icons font
+                   that <mat-icon> uses). Use the span form so the registered icon ships. -->
+              <div class="your-rank-icon"><span class="material-symbols-outlined">swords</span></div>
               <div class="your-rank-info">
                 <span class="your-rank-mode">Logo Duel</span>
                 <span class="your-rank-value">#{{ me.rank }}</span>

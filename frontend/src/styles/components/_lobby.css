@@ -4,22 +4,32 @@
    ========================================================== */
 
 /* ── Full-page container ──────────────────────── */
+/* flex: 1 + min-height: 100% (NOT 100dvh) — mirrors screen.css .screen__bleed.
+   `flex: 1` is the load-bearing piece: without it, min-height: 100% can resolve
+   to content-height when the parent's height isn't strictly definite, the box
+   collapses, and `justify-content: flex-end` on .lobby-content has nothing to
+   push against — content stacks from the top, gets clipped by the fixed
+   top-nav, and a dead band appears below the CTA above the bottom-nav. */
 .lobby-screen {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  flex: 1;
+  min-height: 100%;
   position: relative;
   overflow: hidden;
   background: var(--color-bg);
 }
 
 /* ── Bottom-anchored content area ─────────────── */
+/* No bottom padding — .shell-main owns nav-reserve via --bottom-nav-reserve
+   (single source of truth). Lobby content pins to flex-end and the shell's
+   reserve gives natural ~24px breath above the nav pill. */
 .lobby-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0 var(--space-6);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 7.5rem);
+  padding-bottom: 0;
   position: relative;
   z-index: 3;
   gap: var(--space-4);

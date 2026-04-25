@@ -105,6 +105,12 @@
      Screens rendered inside .shell-main MUST NOT re-apply this — adding their
      own bottom padding doubles the dead zone (see home/logo-quiz, fixed v0.10.0.6). */
   --bottom-nav-reserve: calc(5.5rem + env(safe-area-inset-bottom));
+
+  /* Vertical space the fixed top-nav header occupies (visible chrome 3.75rem +
+     safe-area inset for the notch). Top-anchored screens that opt into
+     showTopNavBar(true) should clear it via padding-top: var(--top-nav-reserve).
+     Lobbies bottom-anchor with flex-end so they don't need this. */
+  --top-nav-reserve: calc(3.75rem + env(safe-area-inset-top));
 }
 
 /* =========================================================

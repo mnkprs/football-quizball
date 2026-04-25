@@ -49,31 +49,31 @@ import { PushModule } from './push/push.module';
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
       inject: [RedisService],
-      useFactory: (redisService: RedisService) => ({
-        // Multiple named throttlers — routes opt into stricter ones via @Throttle.
-        // All limits are per authenticated user (see UserThrottlerGuard); anon
-        // traffic is tracked per IP as a fallback.
-        throttlers: [
-          // Baseline for every authenticated request across the API.
+      useFactory: (redisService: RedisService) => {
+        // Single throttler — every named throttler fires on every request and
+        // doubles Redis writes, so we keep just the baseline. Stricter caps for
+        // /answer and /next can be re-added as named throttlers + @Throttle
+        // decorators if/when bot grinding becomes a real problem; until a route
+        // actually opts in, extra throttlers are pure write amplification.
+        const throttlers = [
           { name: 'default', ttl: 60_000, limit: 120 },
-          // Submit endpoints (/answer). One-per-second is already well above a
-          // human cap — anything faster is a bot grinding the pool.
-          { name: 'answer', ttl: 60_000, limit: 60 },
-          // Question-fetch endpoints (/next, /question). Lower than answer to
-          // prevent skip-the-pool grinds where a cheater fetches + discards
-          // questions looking for easy ones.
-          { name: 'fetch', ttl: 60_000, limit: 40 },
-        ],
-        // Wrap the Redis-backed storage in a fail-open decorator. If Redis
-        // throws (Upstash quota exhausted, network blip, regional outage),
-        // the decorator logs + allows the request through instead of letting
-        // the exception propagate out of the guard as a 500.
+        ];
+        // Only use Redis-backed storage in production. Dev runs a single
+        // backend instance, so the in-memory default is correct (and avoids
+        // hammering Upstash with INCR + PEXPIRE per request — the dominant
+        // command source on the free tier).
         // Regression: 2026-04-23 23:29Z Upstash quota exhaustion took down
         // every API route until midnight UTC. See FailOpenThrottlerStorage.
-        storage: new FailOpenThrottlerStorage(
-          new ThrottlerStorageRedisService(redisService.client),
-        ),
-      }),
+        if (process.env['NODE_ENV'] !== 'production') {
+          return { throttlers };
+        }
+        return {
+          throttlers,
+          storage: new FailOpenThrottlerStorage(
+            new ThrottlerStorageRedisService(redisService.client),
+          ),
+        };
+      },
     }),
     LoggerModule.forRoot({
       pinoHttp: {

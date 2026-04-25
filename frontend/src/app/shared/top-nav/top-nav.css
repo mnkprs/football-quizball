@@ -1,4 +1,7 @@
-.top-nav--hidden { display: none; }
+/* Specificity bumped to .top-nav.top-nav--hidden (0,2,0) so it wins
+   over .top-nav { display: flex } regardless of source order. Without
+   this, the hidden class was applied but display:flex still won. */
+.top-nav.top-nav--hidden { display: none; }
 
 .top-nav {
   position: fixed;

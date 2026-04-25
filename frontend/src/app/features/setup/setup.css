@@ -3,6 +3,16 @@
    DESIGN.md. Bold brand moment at top, card centered below.
    ────────────────────────────────────────────────────── */
 
+/* Host fills the parent (game-shell) flex column so .setup-page's flex:1
+   has a flexing parent. Without this, setup-page collapses to intrinsic
+   height and the bg gradient ends mid-screen. */
+:host {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+
 .setup-page {
   /* DESIGN.md atmospheric bg: image + dark gradient overlay.
      Darker top-and-bottom, midtone middle so content reads
@@ -15,13 +25,31 @@
       rgba(0, 0, 0, 0.88) 100%
     ),
     url('/header-banner-bg.jpg') center / cover no-repeat;
-  min-height: calc(100dvh - 4rem);
+  /* Fill the shell-main content area; shell already reserves space for the
+     fixed top-nav (--top-nav-reserve) and bottom-nav (--bottom-nav-reserve). */
+  flex: 1;
+  min-height: 100%;
+  /* Clear the fixed top-nav (3.75rem + safe area) — matches the logo-quiz
+     lobby pattern. Hero block adds its own additional margin-top. */
+  padding-top: var(--top-nav-reserve);
+  /* Full-bleed background trick: the shell adds padding-bottom: var(--bottom-nav-reserve)
+     to .shell-main, which would normally end the gradient mid-screen with a dead
+     gap above the nav. Negative margin-bottom pulls the painted box down into
+     that reserved zone (so the gradient extends behind the floating bottom-nav
+     pill); matching padding-bottom keeps inner content (Kick Off button) above
+     the nav so nothing gets hidden. The shell is the global host, so this
+     compensation has to live here, not there. */
+  margin-bottom: calc(var(--bottom-nav-reserve) * -1);
+  padding-bottom: var(--bottom-nav-reserve);
 }
 
 /* ─── Hero / brand poster moment ─── */
 
 .setup-hero-block {
-  margin-top: 3.5rem;
+  /* Was 3.5rem to clear the absolute back-button. Inside the shell the
+     back-button is hidden in setup phase (top-nav handles navigation),
+     so the hero now only needs breathing room below --top-nav-reserve. */
+  margin-top: 0.5rem;
   margin-bottom: 1.5rem;
   padding-left: 0.5rem;
   text-align: left;

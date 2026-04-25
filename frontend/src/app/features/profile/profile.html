@@ -169,35 +169,35 @@
         color="#a78bfa" />
     </section>
 
-    <!-- ─── ELO PROGRESSION ────────────────────────── -->
-    @if (sparklineData(); as spark) {
+    <!-- ─── ANALYTICS (compact preview; Pro = view link, Free = upgrade CTA) ────── -->
+    @if (isOwnProfile()) {
       <section class="section">
-        <so-section-header label="ELO Progression" />
-        <div class="sparkline-card">
-          <div class="sparkline__labels">
-            <span>{{ spark.minElo }}</span>
-            <span>{{ spark.maxElo }}</span>
+        <so-section-header label="Analytics" />
+        <div class="section__head-extras">
+          <span class="analytics-preview__pill">All-time</span>
+          @if (pro.isPro()) {
+            <a class="section__see-all" routerLink="/analytics">View full analytics ›</a>
+          } @else {
+            <button type="button" class="analytics-preview__upgrade" (click)="openUpgrade()">
+              Unlock with Pro →
+            </button>
+          }
+        </div>
+        <div class="analytics-preview">
+          <div class="analytics-preview__tile">
+            <span class="analytics-preview__value">{{ (profile()?.questions_answered ?? 0) | number:'1.0-0' }}</span>
+            <span class="analytics-preview__label">Questions</span>
           </div>
-          <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="sparkline__svg">
-            <defs>
-              <linearGradient id="sparkGrad" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="var(--color-accent)" stop-opacity="0.18"/>
-                <stop offset="100%" stop-color="var(--color-accent)" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <polygon [attr.points]="spark.points + ' ' + spark.lastX + ',40 3,40'" fill="url(#sparkGrad)"/>
-            <polyline [attr.points]="spark.points" fill="none" stroke="var(--color-accent)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-            <circle [attr.cx]="spark.lastX" [attr.cy]="spark.lastY" r="2.5" fill="var(--color-accent)"/>
-          </svg>
+          <div class="analytics-preview__tile">
+            <span class="analytics-preview__value">{{ accuracy() }}%</span>
+            <span class="analytics-preview__label">Accuracy</span>
+          </div>
+          <div class="analytics-preview__tile">
+            <span class="analytics-preview__value">{{ (profile()?.games_played ?? 0) | number:'1.0-0' }}</span>
+            <span class="analytics-preview__label">Games</span>
+          </div>
         </div>
       </section>
-    }
-
-    <!-- ─── FULL ANALYTICS (Pro, own profile) ────── -->
-    @if (isOwnProfile() && pro.isPro()) {
-      <a class="analytics-link analytics-link--standalone" routerLink="/analytics">
-        View full analytics →
-      </a>
     }
 
     <!-- Mode Stats section removed — Ratings grid already surfaces each

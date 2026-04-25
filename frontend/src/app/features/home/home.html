@@ -42,17 +42,7 @@
     <so-section-header [label]="lang.t().proArena" />
 
     <div class="section-modes pro-arena-tier">
-      <so-mode-row
-        title="Battle Royale"
-        subtitle="Up to 20 players, elimination"
-        image="/royale.png"
-        materialIcon="military_tech"
-        [iconBg]="'rgba(230,168,0,0.15)'"
-        [iconColor]="'var(--color-pro)'"
-        [badge]="battleRoyaleBadge()"
-        accent="var(--color-pro)"
-        (pressed)="goBattleRoyale()"
-      />
+
       <so-mode-row
         title="Duel"
         [subtitle]="duelHint()"
@@ -74,6 +64,18 @@
         (pressed)="goSolo()"
       />
       <so-mode-row
+        title="Battle Royale"
+        subtitle="Coming soon"
+        image="/royale.png"
+        materialIcon="military_tech"
+        [iconBg]="'rgba(230,168,0,0.15)'"
+        [iconColor]="'var(--color-pro)'"
+        badge="SOON"
+        accent="var(--color-pro)"
+        [disabled]="true"
+        (pressed)="goBattleRoyale()"
+      />
+      <so-mode-row
         title="Blitz"
         subtitle="Coming soon"
         image="/blitz-mode.png"
@@ -82,6 +84,7 @@
         [iconColor]="'var(--color-warning)'"
         accent="var(--color-warning)"
         badge="SOON"
+        [disabled]="true"
         (pressed)="goBlitz()"
       />
     </div>

@@ -23,3 +23,27 @@
 }
 .so-sub   { font-size: 11px; color: var(--color-fg-muted); margin-top: 2px; }
 .so-chev  { font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: rgba(255,255,255,0.5); }
+
+/* ── Disabled / coming-soon row ─────────────────────────────
+   Composes with .is-coming-soon utility (dim + saturate + hatch).
+   Row-specific overrides:
+     • neutralise the accent border-left so it doesn't read as "active"
+     • soften the icon tile so the lock glyph doesn't shout
+     • kill the chevron + interactive press affordances
+     • disable the background image so the locked card doesn't show off
+       the very thing the user can't access yet                     */
+.so-row--disabled,
+.so-row--disabled:active {
+  background-image: none !important;
+  background-color: var(--color-surface-low);
+  border-left-color: var(--color-border-ghost-strong) !important;
+  cursor: not-allowed;
+  transform: none !important;
+}
+.so-row--disabled .so-icon {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--color-fg-muted) !important;
+}
+.so-row--disabled .so-title { color: var(--color-fg-variant); }
+.so-row--disabled .so-sub   { color: var(--color-fg-muted); }
+.so-row--disabled .so-chev  { display: none; }

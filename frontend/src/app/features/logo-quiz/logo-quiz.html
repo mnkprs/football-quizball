@@ -9,33 +9,11 @@
 
       <div class="lq-start lobby-screen spotlight">
 
-        <!-- Hero — SVG crest + radial glow + tinted bg; all swap with active sub-mode.
-             Color palette set via CSS vars in logo-quiz.css based on data-mode + data-hardcore. -->
-        <div class="hero-bg"
-             [attr.data-mode]="subMode"
-             [attr.data-hardcore]="subMode === 'solo' && hardcoreMode() ? '' : null">
-          <div class="hero-bg__solid"></div>
-          <div class="hero-bg__radial"></div>
-          <svg class="hero-bg__crest" viewBox="0 0 100 100" aria-hidden="true">
-            <defs>
-              <linearGradient id="lq-crest-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="var(--crest-a)" />
-                <stop offset="100%" stop-color="var(--crest-b)" />
-              </linearGradient>
-            </defs>
-            <!-- shield -->
-            <path d="M50 8 L86 20 Q86 56 50 92 Q14 56 14 20 Z"
-                  fill="url(#lq-crest-gradient)" stroke="#fff" stroke-width="2" opacity="0.95" />
-            <!-- horizontal band -->
-            <rect x="14" y="42" width="72" height="14" fill="#fff" opacity="0.18" />
-            <!-- star -->
-            <polygon points="50,32 54,44 66,44 56,51 60,63 50,56 40,63 44,51 34,44 46,44"
-                     fill="#ffd700" opacity="0.9" />
-            <!-- FC monogram -->
-            <text x="50" y="78" text-anchor="middle"
-                  class="lq-crest-monogram"
-                  font-size="14" fill="#fff" letter-spacing="-0.5">FC</text>
-          </svg>
+        <!-- Hero — color-coded emblem PNG per sub-mode. Stadium lights + atmosphere
+             baked into each asset, so the older solid+radial+SVG layering is gone.
+             emblemSrc() resolves to /emblem_blue|red|gold.png or /emblem-hardcore.png. -->
+        <div class="hero-bg" [attr.data-mode]="subMode">
+          <img class="hero-bg__img" [src]="emblemSrc()" alt="" aria-hidden="true" />
           <div class="hero-bg__overlay"></div>
         </div>
 
@@ -48,8 +26,20 @@
               {{ subMode === 'solo' ? 'SOLO CLIMB' : subMode === 'duel' ? '1V1 RANKED' : '20 PLAYERS' }}
             </so-chip>
             <h1 class="lq-title type-hero-title">LOGO<br/>QUIZ.</h1>
+            <!-- Subtitle is tab-aware: each mode's "what is this" copy lives here so the
+                 inner cards can focus on actionable info (your stats, rules, room actions). -->
             <p class="lq-subtitle type-body-md">
-              Identify football clubs from their modified crests. Difficulty scales to your ELO.
+              @switch (subMode) {
+                @case ('duel') {
+                  10 rounds, 20s each. You and your opponent see the same logos. Fastest correct wins the round.
+                }
+                @case ('royale') {
+                  20 players split into two teams. 10 logos each. Team with the highest average score wins.
+                }
+                @default {
+                  Identify football clubs from their modified crests. Difficulty scales to your ELO.
+                }
+              }
             </p>
           </div>
 
@@ -67,27 +57,36 @@
             <div class="lq-tab-panel" role="tabpanel" id="lq-panel-solo" aria-labelledby="lq-tab-solo">
               <div class="lq-stats-row lobby-stats-row">
                 <div class="lq-elo-card lobby-stat-card lobby-stat-card--elo"
-                     [style.border-color]="eloTier().color"
-                     [style.box-shadow]="'0 0 16px ' + eloTier().glow + '40'">
+                     [style.border-color]="profileLoading() ? null : eloTier().color"
+                     [style.box-shadow]="profileLoading() ? null : '0 0 16px ' + eloTier().glow + '40'">
                   <span class="lobby-stat-card__label">ELO RATING</span>
-                  <span class="lobby-stat-card__value">{{ currentElo() | number }}</span>
-                  <span class="lobby-stat-card__tier" [style.color]="eloTier().color">
-                    {{ eloTier().label | uppercase }}
-                  </span>
+                  @if (profileLoading()) {
+                    <span class="lq-skeleton lq-skeleton--value" aria-label="Loading ELO"></span>
+                    <span class="lq-skeleton lq-skeleton--tier" aria-hidden="true"></span>
+                  } @else {
+                    <span class="lobby-stat-card__value">{{ currentElo() | number }}</span>
+                    <span class="lobby-stat-card__tier" [style.color]="eloTier().color">
+                      {{ eloTier().label | uppercase }}
+                    </span>
+                  }
                 </div>
                 <div class="lq-rank-card lobby-stat-card">
                   <span class="lobby-stat-card__label">RANK</span>
-                  @if (myRank() !== null) {
+                  @if (leaderboardLoading()) {
+                    <span class="lq-skeleton lq-skeleton--value" aria-label="Loading rank"></span>
+                    <span class="lq-skeleton lq-skeleton--tier" aria-hidden="true"></span>
+                  } @else if (myRank() !== null) {
                     <span class="lobby-stat-card__value">#{{ myRank() }}</span>
+                    <span class="lobby-stat-card__tier">LADDER</span>
                   } @else {
                     <span class="lobby-stat-card__value lobby-stat-card__value--unranked">—</span>
+                    <span class="lobby-stat-card__tier">UNRANKED</span>
                   }
-                  <span class="lobby-stat-card__tier">{{ myRank() !== null ? 'LADDER' : 'UNRANKED' }}</span>
                 </div>
               </div>
 
               <so-toggle
-                variant="danger"
+                variant="hardcore"
                 label="💀 HARDCORE"
                 description="Logos are inverted and desaturated. Separate leaderboard."
                 [checked]="hardcoreMode()"
@@ -123,7 +122,11 @@
                     <span class="lq-versus-avatar__initials">?</span>
                   </div>
                   <div class="lq-versus-card__me">
-                    @if (duelStats(); as d) {
+                    @if (leaderboardLoading()) {
+                      <span class="lq-skeleton lq-skeleton--versus-label" aria-label="Loading duel stats"></span>
+                      <span class="lq-skeleton lq-skeleton--versus-value" aria-hidden="true"></span>
+                      <span class="lq-skeleton lq-skeleton--versus-sub" aria-hidden="true"></span>
+                    } @else if (duelStats(); as d) {
                       <span class="lq-versus-card__me-label">WIN · RANK</span>
                       <span class="lq-versus-card__me-value">
                         {{ duelWinRate() | percent:'1.0-0' }} · #{{ d.rank }}
@@ -136,10 +139,13 @@
                     }
                   </div>
                 </div>
-                <p class="lq-versus-card__desc">
-                  10 rounds, 20s each. You and your opponent see the same logos.
-                  Fastest correct wins the round.
-                </p>
+                <!-- Queue-status row: live indicator that matchmaking is active. Static
+                     copy for now; wire to a real /api/duel/queue-count signal when the
+                     backend exposes one. -->
+                <div class="lq-versus-card__queue" role="status" aria-live="polite">
+                  <span class="lq-versus-card__queue-dot" aria-hidden="true"></span>
+                  <span class="lq-versus-card__queue-text">Players matching now · usually paired in under 10s</span>
+                </div>
               </div>
 
               <so-button
@@ -153,19 +159,22 @@
             </div>
           }
 
-          <!-- ─── ROYALE ───────────────────────────── -->
+          <!-- ─── ROYALE — coming soon ──────────────
+               Tab stays clickable so users can preview the mode they're
+               about to get. Rules card gets the .is-coming-soon lockup
+               (dim + desaturate + diagonal hatch) and the CTA becomes a
+               disabled "COMING SOON" so the contract is unmistakable.
+               When royale ships, drop both .is-coming-soon classes,
+               restore the original button label + click handler, and
+               re-enable the free-entry hint.                          -->
           @if (subMode === 'royale') {
             <div class="lq-tab-panel" role="tabpanel" id="lq-panel-royale" aria-labelledby="lq-tab-royale">
-              <div class="lq-royale-card">
+              <div class="lq-royale-card is-coming-soon">
                 <div class="lq-royale-card__head">
                   <span class="lq-royale-card__head-title">Team Logo Royale</span>
-                  <so-chip variant="gold" size="xs">INVITE-ONLY</so-chip>
+                  <so-chip variant="gold" size="xs">SOON</so-chip>
                 </div>
                 <div class="lq-royale-card__body">
-                  <p class="lq-royale-card__desc">
-                    20 players split into two teams. 10 logos each. Team with the
-                    highest average score wins.
-                  </p>
                   <ul class="lq-royale-rules">
                     <li>● Split into 2 teams automatically</li>
                     <li>● 10 logos each · +100 per correct + speed bonus</li>
@@ -178,16 +187,10 @@
                 variant="gold"
                 size="lg"
                 [fullWidth]="true"
-                [disabled]="royaleLoading()"
-                (click)="openRoyaleSheet()">
-                {{ royaleLoading() ? 'Loading…' : 'Enter Royale' }}
+                [disabled]="true">
+                <span leading class="material-symbols-outlined" aria-hidden="true">lock</span>
+                COMING SOON
               </so-button>
-
-              @if (!proService.isPro()) {
-                <button type="button" class="lq-free-hint lq-free-hint--centered" (click)="openProUpgrade()">
-                  1 free entry today · <span class="lq-free-hint__link">Pro unlocks unlimited</span>
-                </button>
-              }
             </div>
           }
 

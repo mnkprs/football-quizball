@@ -1,6 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Cron } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { LlmService } from '../llm/llm.service';
 import { QuestionsService } from './questions.service';
@@ -15,7 +13,6 @@ import {
   loadCanonicalEntities,
 } from './classifiers/canonical-entities';
 import { SteeringService, type BatchSteeringPlan } from './steering';
-import { RedisService } from '../redis/redis.service';
 import {
   BoardCategory,
   GeneratedQuestion,
@@ -60,8 +57,6 @@ export class PoolSeedService {
     private questionIntegrity: QuestionIntegrityService,
     private questionClassifier: QuestionClassifierService,
     private steeringService: SteeringService,
-    private redisService: RedisService,
-    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -220,21 +215,10 @@ export class PoolSeedService {
     return force ? runSeedPool() : this.withRefillLock(runSeedPool);
   }
 
-  @Cron('0 */2 * * *')
-  async scheduledRefill(): Promise<void> {
-    if (this.configService.get<string>('DISABLE_POOL_CRON') === '1') return;
-    const acquired = await this.redisService.acquireLock('lock:cron:pool-refill', 600);
-    if (!acquired) return;
-    try {
-      this.logger.debug('[cron] Proactive pool refill check');
-      await this.refillIfNeeded();
-    } finally {
-      await this.redisService.releaseLock('lock:cron:pool-refill');
-    }
-  }
-
   /**
    * Refills pool slots that are below target. Runs in background, no-op if already refilling.
+   * Triggered organically on game creation (game.service / online-game.service) — the periodic
+   * cron was removed to cut Upstash command volume; pool stays warm via gameplay traffic.
    */
   async refillIfNeeded(): Promise<void> {
     const counts = await this.getPoolCounts();

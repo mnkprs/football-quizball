@@ -220,10 +220,7 @@ export class OnlineGameService {
     // Draw board
     const { questions, poolQuestionIds } = await this.questionPoolService.drawBoard([], true, [userId]);
 
-    // Fire-and-forget refill
-    void this.questionPoolService.refillIfNeeded().catch((err: Error) =>
-      this.logger.warn(`[createGame] refillIfNeeded failed: ${err.message}`),
-    );
+    // Pool refill is operator-driven (manual seed script), not request-triggered.
 
     // Get username
     const profile = await this.supabaseService.getProfile(userId);

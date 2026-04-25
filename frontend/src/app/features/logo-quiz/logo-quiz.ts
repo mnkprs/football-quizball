@@ -37,6 +37,7 @@ import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
 import { AnalyticsService } from '../../core/analytics.service';
 import { ShellUiService } from '../../core/shell-ui.service';
+import { RefreshService } from '../../core/refresh.service';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 type SubMode = 'solo' | 'duel' | 'royale';
@@ -72,6 +73,7 @@ export class LogoQuizComponent implements OnDestroy {
   protected proService = inject(ProService);
   private analytics = inject(AnalyticsService);
   private shellUi = inject(ShellUiService);
+  private refreshSvc = inject(RefreshService);
   private tierPromotion = inject(TierPromotionService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -101,6 +103,14 @@ export class LogoQuizComponent implements OnDestroy {
   private normalRank = signal<number | null>(null);
   private hardcoreRank = signal<number | null>(null);
 
+  // Load-completion flags. These flip to true on success OR error so the UI
+  // never shows a perpetual skeleton when a request fails. Gated by auth
+  // because anonymous visitors never fire either request.
+  private profileLoaded = signal(false);
+  private leaderboardLoaded = signal(false);
+  profileLoading = computed(() => !!this.auth.user() && !this.profileLoaded());
+  leaderboardLoading = computed(() => !!this.auth.user() && !this.leaderboardLoaded());
+
   // Duel-specific stats for the Duel sub-mode versus-card
   // NOTE: backend's duelMe aggregates all duel game_types. A future backend split
   // (game_type='logo') would give logo-duel-only stats; for now this is combined.
@@ -121,6 +131,16 @@ export class LogoQuizComponent implements OnDestroy {
 
   // Hardcore mode
   hardcoreMode = signal(false);
+
+  // Hero emblem PNG per sub-mode. Hardcore solo gets the desaturated variant.
+  // (Filenames: emblem_blue/red/gold use underscore; emblem-hardcore uses dash —
+  // matches the actual files in /public.)
+  emblemSrc = computed(() => {
+    if (this.activeSubMode() === 'solo' && this.hardcoreMode()) return '/emblem-hardcore.png';
+    if (this.activeSubMode() === 'duel') return '/emblem_red.png';
+    if (this.activeSubMode() === 'royale') return '/emblem_gold.png';
+    return '/emblem_blue.png';
+  });
 
   // Royale drawer — replaces the old "route to /battle-royale" redirect so users pick
   // Create Private / Join Code right here. Team Logo Royale is invite-only (no Quick Join).
@@ -253,23 +273,48 @@ export class LogoQuizComponent implements OnDestroy {
 
     // Preload team names
     this.api.getTeamNames().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(names => this.teamNames.set(names));
-    // Load logo quiz ELO from profile store (separate from solo ELO)
-    this.profileStore.loadProfile().then(() => {
-      const elo = this.profileStore.logoQuizElo();
-      this.currentElo.set(elo);
-      this.startElo.set(elo);
+    // Initial idle load — same data path the PTR refresh re-uses.
+    this.reloadIdleData();
+
+    // PTR is meaningful only on the lobby/idle screen. Mid-quiz the gesture
+    // would be a footgun (could swap data while a question is on screen).
+    effect(() => {
+      if (this.phase() === 'idle') {
+        this.refreshSvc.register(() => this.reloadIdleData());
+      } else {
+        this.refreshSvc.unregister();
+      }
     });
-    // Load logo quiz ranks (normal + hardcore) + duel stats
-    this.leaderboardApi.getMyLeaderboardEntries().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res) => {
-        this.normalRank.set(res.logoQuizMe?.rank ?? null);
-        this.hardcoreRank.set(res.logoQuizHardcoreMe?.rank ?? null);
-        this.myRank.set(this.hardcoreMode() ? this.hardcoreRank() : this.normalRank());
-        this.duelStats.set(res.duelMe
-          ? { rank: res.duelMe.rank, wins: res.duelMe.wins, games_played: res.duelMe.games_played }
-          : null);
-      },
-    });
+  }
+
+  private async reloadIdleData(): Promise<void> {
+    await Promise.allSettled([this.loadIdleProfile(), this.loadIdleLeaderboard()]);
+  }
+
+  private async loadIdleProfile(): Promise<void> {
+    try { await this.profileStore.loadProfile(); } catch { /* anon or network */ }
+    const elo = this.hardcoreMode()
+      ? this.profileStore.logoQuizHardcoreElo()
+      : this.profileStore.logoQuizElo();
+    this.currentElo.set(elo);
+    this.startElo.set(elo);
+    this.profileLoaded.set(true);
+  }
+
+  private async loadIdleLeaderboard(): Promise<void> {
+    try {
+      const res = await firstValueFrom(this.leaderboardApi.getMyLeaderboardEntries());
+      this.normalRank.set(res.logoQuizMe?.rank ?? null);
+      this.hardcoreRank.set(res.logoQuizHardcoreMe?.rank ?? null);
+      this.myRank.set(this.hardcoreMode() ? this.hardcoreRank() : this.normalRank());
+      this.duelStats.set(res.duelMe
+        ? { rank: res.duelMe.rank, wins: res.duelMe.wins, games_played: res.duelMe.games_played }
+        : null);
+    } catch {
+      /* ignore — skeleton clears in finally */
+    } finally {
+      this.leaderboardLoaded.set(true);
+    }
   }
 
   toggleHardcore(): void {
@@ -314,6 +359,7 @@ export class LogoQuizComponent implements OnDestroy {
     this.reportCooldown.destroy();
     this.shellUi.hideBottomNav.set(false);
     this.shellUi.showTopNavBar.set(false);
+    this.refreshSvc.unregister();
   }
 
   async startPlaying(): Promise<void> {
