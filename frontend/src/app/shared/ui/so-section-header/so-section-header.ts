@@ -30,10 +30,10 @@ import { CommonModule } from '@angular/common';
     }
     .so-section-header--tight { margin-top: 0; }
     .so-section-header__label {
-      font-family: var(--font-headline);
+      font-family: var(--font-numeric);
       font-size: 0.625rem;
-      font-weight: 500;
-      letter-spacing: 0.18em;
+      font-weight: 700;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--color-muted-foreground, var(--color-fg-muted));
     }

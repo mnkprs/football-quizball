@@ -229,10 +229,11 @@
 }
 
 .lb-separator__text {
-  font-size: var(--text-sm);
+  font-family: var(--font-numeric);
+  font-size: 0.5625rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.2em;
   color: var(--color-accent);
   text-shadow: 0 0 16px rgba(0, 122, 255, 0.35);
 }

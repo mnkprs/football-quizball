@@ -82,13 +82,10 @@
   margin-bottom: 1.25rem;
   width: 100%;
 }
-/* Override shared .lobby-title / .lobby-subtitle center-align — logo-quiz mockup is left-aligned. */
+/* Typography comes from .type-hero-title (styles/tokens.css). Layout-only here:
+   override shared .lobby-title center-align — logo-quiz mockup is left-aligned. */
 .lq-title.lobby-title {
-  font-family: var(--font-numeric);
-  font-weight: 700; font-style: italic;
-  font-size: clamp(2.25rem, 9vw, 2.75rem);
-  line-height: 0.95; letter-spacing: -0.03em;
-  color: var(--color-fg); text-transform: uppercase;
+  color: var(--color-fg);
   text-align: left;
   margin: 0;
 }
@@ -185,7 +182,7 @@
 .lq-versus-card__me { margin-left: auto; text-align: right; }
 .lq-versus-card__me-label {
   display: block;
-  font-family: var(--font-headline);
+  font-family: var(--font-numeric);
   font-size: 0.625rem; letter-spacing: 0.12em;
   color: var(--color-fg-muted);
   text-transform: uppercase;
@@ -346,7 +343,7 @@
 }
 .lq-finished__flag { font-size: 3rem; margin-bottom: 0.25rem; }
 .lq-finished__title {
-  font-family: var(--font-numeric);
+  font-family: var(--font-headline);
   font-size: 1.5rem; font-weight: 700;
   color: var(--color-fg); margin: 0;
 }

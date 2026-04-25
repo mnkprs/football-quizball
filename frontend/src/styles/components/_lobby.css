@@ -88,7 +88,7 @@
 }
 
 .lobby-stat-card__value {
-  font-family: var(--font-headline);
+  font-family: var(--font-numeric);
   font-size: var(--text-5xl);
   font-weight: 700;
   color: var(--color-white);
