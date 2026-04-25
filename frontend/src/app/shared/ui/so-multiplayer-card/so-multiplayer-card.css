@@ -50,11 +50,11 @@
 
 .so-mp-card__title {
   position: relative; z-index: 1;
-  font-family: var(--font-numeric);
+  font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(1.375rem, 2.5vw, 1.75rem);
-  font-weight: 700;
+  font-weight: 800;
   font-style: italic;
-  line-height: 1.05;
+  line-height: 0.95;
   letter-spacing: -0.03em;
   text-transform: uppercase;
   color: var(--color-foreground, var(--color-fg));
@@ -104,7 +104,7 @@
 
 .so-mp-card__btn-icon  { font-size: 1.125rem; color: var(--mp-accent, var(--color-accent)); }
 .so-mp-card__btn-label { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em; }
-.so-mp-card__btn-sub   { font-size: 0.625rem; font-weight: 500; opacity: 0.5; }
+.so-mp-card__btn-sub   { font-size: 0.625rem; font-weight: 400; opacity: 0.5; }
 
 /* Tablet */
 @media (min-width: 768px) {

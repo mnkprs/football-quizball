@@ -59,12 +59,33 @@
 
   /* ---- Typography (role-based) ----
      Reference these in components instead of hardcoding font-family strings.
-     Families are loaded in src/index.html (Google Fonts) + styles.scss (Alfa Slab One). */
+     Families are loaded in src/index.html (Google Fonts) + styles.scss (Alfa Slab One).
+
+     NOTE: --font-headline / --font-numeric currently still resolve to the
+     pre-design-system fonts (Lexend / Space Grotesk respectively). Refactored
+     screens (home, profile, leaderboard, logo-quiz) compose typography via the
+     .type-* utility classes below, which use direct font names so they render
+     correctly without flipping the global tokens. The token semantics will be
+     fixed app-wide once all remaining screens are refactored to .type-*. */
   --font-display:  'Alfa Slab One', Georgia, serif;          /* hero / brand moments */
   --font-headline: 'Lexend', ui-sans-serif, system-ui, sans-serif;         /* titles, labels */
   --font-numeric:  'Space Grotesk', ui-sans-serif, system-ui, sans-serif;  /* scores, ELO, counters */
   --font-body:     'Inter', ui-sans-serif, system-ui, sans-serif;          /* body copy */
   --font-mono:     'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; /* debug / code */
+
+  /* ---- Typography — role-based scale (mirrors design system) ----
+     Use these via .type-* utility classes below, not directly. */
+  --text-display-lg:  3.5rem;     /* 56px — hero results */
+  --text-display-md:  2.8rem;     /* 45px — hero headlines */
+  --text-headline-lg: 2rem;       /* 32px — mode titles */
+  --text-headline-md: 1.75rem;    /* 28px — card titles */
+  --text-title-lg:    1.375rem;   /* 22px — question text */
+  --text-title-md:    1rem;       /* 16px — sub-headings */
+  --text-body-lg:     1rem;       /* 16px — body */
+  --text-body-md:     0.875rem;   /* 14px — secondary */
+  --text-label-lg:    0.875rem;   /* 14px — UPPERCASE buttons */
+  --text-label-md:    0.75rem;    /* 12px — chips / timer */
+  --text-label-sm:    0.6875rem;  /* 11px — timestamps */
 
   /* ---- Glass / shadows ---- */
   --glass-bg:            rgba(58, 57, 57, 0.40);
@@ -106,4 +127,106 @@ html, body { background: var(--color-bg); color: var(--color-foreground); }
 body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+}
+
+/* =========================================================
+   Typography utility classes — design-system roles.
+   Apply via class composition (HTML) instead of duplicating
+   font-family / size / weight / line-height across components.
+
+   Direct font-family declarations (not var() refs) so the four
+   refactored flows (home / profile / leaderboard / logo-quiz)
+   can adopt these without flipping the global font tokens —
+   non-refactored screens keep rendering against the legacy
+   tokens until they get their own refactor.
+
+   Tier semantics:
+     • display  — hero results, big numbers, stadium moments
+     • headline — mode titles, card titles
+     • title    — question text, sub-headings
+     • body     — paragraph copy
+     • label    — chips, badges, button text, captions
+   ========================================================= */
+.type-display-lg {
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: var(--text-display-lg);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+.type-display-md {
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: var(--text-display-md);
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+.type-headline-lg {
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--text-headline-lg);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.type-headline-md {
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--text-headline-md);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+.type-title-lg {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--text-title-lg);
+  line-height: 1.25;
+}
+.type-title-md {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  font-size: var(--text-title-md);
+  line-height: 1.4;
+}
+.type-body-lg {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: var(--text-body-lg);
+  line-height: 1.5;
+}
+.type-body-md {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: var(--text-body-md);
+  line-height: 1.5;
+}
+.type-label-lg {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: var(--text-label-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.type-label-md {
+  font-family: 'Lexend', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  font-size: var(--text-label-md);
+  letter-spacing: 0.04em;
+}
+.type-label-sm {
+  font-family: 'Lexend', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: var(--text-label-sm);
+  letter-spacing: 0.04em;
+}
+
+/* Project-specific composite: hero-style italic uppercase title
+   shared by so-mode-card, .lobby-title (logo-quiz), and similar. */
+.type-hero-title {
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(2.25rem, 9vw, 2.75rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }

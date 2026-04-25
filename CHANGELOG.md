@@ -2,6 +2,20 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.5] - 2026-04-25
+
+### Changed — Design typography system: font-token flip + `.type-*` utility classes
+
+Brought the implementation in line with the design system's typography spec. The fonts assigned to `--font-display` / `--font-headline` / `--font-numeric` were inverted relative to the design — every component pulling `var(--font-headline)` was rendering Lexend instead of the intended Space Grotesk, and numeric stat values were rendering Space Grotesk instead of Lexend. Multiple components also duplicated the same italic-uppercase hero-title CSS in their own files instead of composing a shared utility.
+
+- **`tokens.css`** — flipped: `--font-display`/`--font-headline` → Space Grotesk, `--font-numeric` → Lexend. Added the design's role-based size tokens (`--text-display-lg/md`, `--text-headline-lg/md`, `--text-title-lg/md`, `--text-body-lg/md`, `--text-label-lg/md/sm`) and matching `.type-*` utility class system. Added `.type-hero-title` composite for shared italic-uppercase hero treatment.
+- **`index.html`** — Space Grotesk import now includes weight 800 + italic axis (was 400-700 only) so `.type-hero-title`'s `weight: 700; font-style: italic` and `.so-mp-card__title`'s `weight: 800` render with the real face instead of synthesized italic / faux-bold.
+- **`styles.scss`** — dropped orphaned Alfa Slab One `@font-face` block (no token referenced it after the flip).
+- **Shared components** — `so-mode-card.html` swapped dead `.font-headline` Tailwind class for `.type-hero-title`; `so-mode-card.css` dropped duplicated typography. `so-mode-row.css` got correct title size 14px / weight 700 + explicit family + sub 11px + row padding 12/14. `so-multiplayer-card.css` family fixed to `--font-headline`, weight bumped to 800, line-height 0.95. `so-section-header.ts` label now Lexend / weight 700 / 0.14em (was Space Grotesk / 500 / 0.18em). `so-leaderboard-row.css` rank/elo-label/delta now use `--font-numeric`, elo-label trimmed to 9px / 0.1em.
+- **Per-flow** — `_lobby.css` `.lobby-stat-card__value` now uses `--font-numeric` (Lexend) for ELO digits. `profile.css` `.hero__name` reset to 1.75rem / weight 700 / -0.02em / line-height 1.15 per design; `.hero__subtitle` got `--font-numeric` family + 0.7813rem + 0.04em. `leaderboard.css` `.your-rank-value` got explicit `--font-headline`; `.your-rank-score-value` shrunk to 9px Lexend uppercase. `lb-section.css` `.lb-separator__text` shrunk to 9px Lexend / 0.2em. `logo-quiz.html` lq-title now composes `.type-hero-title`; `logo-quiz.css` dropped duplicated typography in `.lq-title.lobby-title`, fixed `.lq-versus-card__me-label` family to `--font-numeric`, fixed `.lq-finished__title` family to `--font-headline`.
+
+Net effect: home hero "Logo Quiz" title and lobby "LOGO QUIZ." title now render identically (Space Grotesk italic uppercase 36–44px) and pull from one source of truth. All 61 specs pass.
+
 ## [0.10.0.4] - 2026-04-25
 
 ### Changed — Collapsed `so-tier-progress` + `so-xp-card` into `so-progress-card`
