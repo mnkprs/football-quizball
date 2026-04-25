@@ -1,7 +1,5 @@
-import { Component, inject, signal, OnInit, computed, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, computed, effect, ViewChild, ElementRef, Injector, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { ProService } from '../../core/pro.service';
@@ -10,9 +8,8 @@ import { SoloApiService, LeaderboardEntry } from '../../core/solo-api.service';
 import { AchievementsApiService, Achievement } from '../../core/achievements-api.service';
 import { MatchHistoryApiService, MatchHistoryEntry } from '../../core/match-history-api.service';
 import { getEloTier, nextTierThreshold, xpForLevel } from '../../core/elo-tier';
-import { ConfirmModalComponent } from '../../shared/confirm-modal/confirm-modal';
+import { ProfileEditService } from '../../core/profile-edit.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
-import { environment } from '../../../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -20,7 +17,6 @@ import {
   SoAvatarComponent,
   SoSectionHeaderComponent,
   SoHistoryRowComponent,
-  SoButtonComponent,
   SoProgressCardComponent,
   SoRatingCardComponent,
   type SoHistoryRowData,
@@ -30,11 +26,11 @@ import {
   selector: 'app-profile',
   standalone: true,
   imports: [
-    RouterLink, FormsModule,
+    RouterLink,
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
-    ConfirmModalComponent, EmptyStateComponent,
+    EmptyStateComponent,
     SoAvatarComponent, SoSectionHeaderComponent,
-    SoHistoryRowComponent, SoButtonComponent, SoProgressCardComponent,
+    SoHistoryRowComponent, SoProgressCardComponent,
     SoRatingCardComponent,
   ],
   templateUrl: './profile.html',
@@ -49,10 +45,11 @@ export class ProfileComponent implements OnInit {
   lang = inject(LanguageService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private http = inject(HttpClient);
   private soloApi = inject(SoloApiService);
   private achievementsApi = inject(AchievementsApiService);
   private matchHistoryApi = inject(MatchHistoryApiService);
+  private profileEdit = inject(ProfileEditService);
+  private injector = inject(Injector);
 
   profile = signal<LeaderboardEntry | null>(null);
   duelStats     = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
@@ -63,17 +60,6 @@ export class ProfileComponent implements OnInit {
   loading = signal(true);
   avatarUrl = signal<string | null>(null);
   avatarUploading = signal(false);
-
-  // Edit profile state
-  showEditSheet = signal(false);
-  editUsername = '';
-  editCountryCode = '';
-  editSaving = signal(false);
-  editError = signal<string | null>(null);
-
-  // Delete account state
-  showDeleteConfirm = signal(false);
-  deleting = signal(false);
 
   userId = signal<string | null>(null);
 
@@ -263,6 +249,17 @@ export class ProfileComponent implements OnInit {
         this.loading.set(false);
       }
     });
+
+    // Refresh profile data when the user saves edits via top-nav's edit panel.
+    // Counter starts at 0; ignore the initial run.
+    let lastSaved = this.profileEdit.savedTrigger();
+    effect(() => {
+      const t = this.profileEdit.savedTrigger();
+      if (t !== lastSaved) {
+        lastSaved = t;
+        if (this.isOwnProfile()) this.loadProfile();
+      }
+    }, { injector: this.injector });
   }
 
   async loadProfile(): Promise<void> {
@@ -342,64 +339,9 @@ export class ProfileComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  openEditSheet(): void {
-    this.editUsername = this.profile()?.username ?? '';
-    this.editCountryCode = (this.profile() as any)?.country_code ?? '';
-    this.editError.set(null);
-    this.showEditSheet.set(true);
+  /** Hero pencil entry point. Top-nav owns the actual edit panel UI. */
+  openEdit(): void {
+    this.profileEdit.open();
   }
 
-  closeEditSheet(): void {
-    this.showEditSheet.set(false);
-  }
-
-  async saveProfile(): Promise<void> {
-    this.editSaving.set(true);
-    this.editError.set(null);
-    const token = this.auth.accessToken();
-    const headers = { Authorization: `Bearer ${token}` };
-
-    try {
-      const trimmedUsername = this.editUsername.trim();
-      if (trimmedUsername && trimmedUsername !== this.profile()?.username) {
-        await firstValueFrom(
-          this.http.patch(`${environment.apiUrl}/api/profile/username`, { username: trimmedUsername }, { headers }),
-        );
-      }
-
-      const trimmedCountry = this.editCountryCode.trim().toUpperCase();
-      if (trimmedCountry !== ((this.profile() as any)?.country_code ?? '')) {
-        await firstValueFrom(
-          this.http.patch(`${environment.apiUrl}/api/profile/country`, { country_code: trimmedCountry }, { headers }),
-        );
-      }
-
-      this.closeEditSheet();
-      await this.loadProfile();
-    } catch (err: any) {
-      const msg = err?.error?.message ?? err?.message ?? 'Failed to save';
-      this.editError.set(msg);
-    } finally {
-      this.editSaving.set(false);
-    }
-  }
-
-  async confirmDeleteAccount(): Promise<void> {
-    this.deleting.set(true);
-    try {
-      const token = this.auth.accessToken();
-      await firstValueFrom(
-        this.http.delete(`${environment.apiUrl}/api/profile/account`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      );
-      await this.auth.signOut();
-      this.router.navigate(['/']);
-    } catch {
-      this.editError.set('Failed to delete account');
-    } finally {
-      this.deleting.set(false);
-      this.showDeleteConfirm.set(false);
-    }
-  }
 }

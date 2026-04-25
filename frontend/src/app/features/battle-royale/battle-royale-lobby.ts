@@ -9,6 +9,7 @@ import { AuthService } from '../../core/auth.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { ErrorStateComponent } from '../../shared/error-state/error-state';
 import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
+import { ShellUiService } from '../../core/shell-ui.service';
 
 export interface BRPublicRoom {
   id: string;
@@ -33,6 +34,7 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private location = inject(Location);
   private api = inject(BattleRoyaleApiService);
+  private shellUi = inject(ShellUiService);
   auth = inject(AuthService);
   isTeamLogoMode = signal(false);
 
@@ -50,6 +52,8 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
       this.isTeamLogoMode.set(true);
     }
 
+    this.shellUi.showTopNavBar.set(true);
+
     // Team Logo mode is invite-only (private rooms), so no public rooms to browse
     if (!this.isTeamLogoMode()) {
       this.fetchRooms();
@@ -63,6 +67,7 @@ export class BattleRoyaleLobbyComponent implements OnInit, OnDestroy {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
+    this.shellUi.showTopNavBar.set(false);
   }
 
   private async fetchRooms(): Promise<void> {

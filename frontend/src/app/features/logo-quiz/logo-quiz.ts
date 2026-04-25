@@ -236,9 +236,11 @@ export class LogoQuizComponent implements OnDestroy {
   });
 
   constructor() {
-    // Hide bottom nav when not in lobby
+    // Lobby = bottom nav visible + top nav bar visible. Other phases = hide both.
     effect(() => {
-      this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
+      const inLobby = this.phase() === 'idle';
+      this.shellUi.hideBottomNav.set(!inLobby);
+      this.shellUi.showTopNavBar.set(inLobby);
     });
 
     // URL → activeSubMode (single direction; setSubMode writes URL, this effect syncs state).
@@ -311,6 +313,7 @@ export class LogoQuizComponent implements OnDestroy {
     this.timer.destroy();
     this.reportCooldown.destroy();
     this.shellUi.hideBottomNav.set(false);
+    this.shellUi.showTopNavBar.set(false);
   }
 
   async startPlaying(): Promise<void> {

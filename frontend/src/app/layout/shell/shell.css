@@ -14,9 +14,9 @@
   flex-direction: column;
   overflow-y: auto;
   padding-top: env(safe-area-inset-top, 0px);
-  /* Reserve space so fixed bottom-nav never covers page content.
-     ~64px pill + 8px top padding + 8px bottom padding + safe area. */
-  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  /* Bottom-nav reservation lives in --bottom-nav-reserve (tokens.css).
+     Single source of truth — feature screens must NOT add their own. */
+  padding-bottom: var(--bottom-nav-reserve);
 }
 
 .shell-main--no-top-pad {

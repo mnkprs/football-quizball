@@ -1,7 +1,5 @@
 <div class="shell-layout">
-  @if (isHome()) {
-    <app-top-nav />
-  }
+  <app-top-nav [showBar]="isHome() || shellUi.showTopNavBar()" />
   <app-upgrade-modal />
   <main
     #scrollContainer

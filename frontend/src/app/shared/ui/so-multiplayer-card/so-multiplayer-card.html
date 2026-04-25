@@ -14,7 +14,6 @@
     primaryPressed, secondaryPressed
 -->
 <div class="so-mp-card"
-     [style.--mp-accent]="accent()"
      role="group"
      [attr.aria-label]="title()">
 
@@ -31,33 +30,37 @@
 
   <h3 class="so-mp-card__title">{{ title() }}</h3>
   @if (subtitle()) {
-    <p class="so-mp-card__sub">{{ subtitle() }}</p>
+    <p class="so-mp-card__sub type-body-md">{{ subtitle() }}</p>
   }
 
   <div class="so-mp-card__actions">
-    <button type="button"
-            class="so-mp-card__btn"
-            (click)="primaryPressed.emit()"
-            [attr.aria-label]="primary().label">
+    <so-button
+      class="so-mp-card__cta"
+      variant="secondary"
+      [accent]="accent()"
+      [fullWidth]="true"
+      (pressed)="primaryPressed.emit()">
       @if (primary().icon) {
-        <span class="material-icons so-mp-card__btn-icon">{{ primary().icon }}</span>
+        <span leading class="material-icons">{{ primary().icon }}</span>
       }
-      <span class="so-mp-card__btn-label">{{ primary().label }}</span>
+      {{ primary().label }}
       @if (primary().sub) {
-        <span class="so-mp-card__btn-sub">{{ primary().sub }}</span>
+        <span sub>{{ primary().sub }}</span>
       }
-    </button>
-    <button type="button"
-            class="so-mp-card__btn"
-            (click)="secondaryPressed.emit()"
-            [attr.aria-label]="secondary().label">
+    </so-button>
+    <so-button
+      class="so-mp-card__cta"
+      variant="secondary"
+      [accent]="accent()"
+      [fullWidth]="true"
+      (pressed)="secondaryPressed.emit()">
       @if (secondary().icon) {
-        <span class="material-icons so-mp-card__btn-icon">{{ secondary().icon }}</span>
+        <span leading class="material-icons">{{ secondary().icon }}</span>
       }
-      <span class="so-mp-card__btn-label">{{ secondary().label }}</span>
+      {{ secondary().label }}
       @if (secondary().sub) {
-        <span class="so-mp-card__btn-sub">{{ secondary().sub }}</span>
+        <span sub>{{ secondary().sub }}</span>
       }
-    </button>
+    </so-button>
   </div>
 </div>

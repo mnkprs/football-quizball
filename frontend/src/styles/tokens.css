@@ -99,6 +99,12 @@
 
   /* ---- Layout ---- */
   --app-max-width: 480px;
+
+  /* Vertical space reserved by <app-shell> so the fixed bottom-nav pill
+     never covers page content. ~64px pill + 8px top + 8px bottom + safe area.
+     Screens rendered inside .shell-main MUST NOT re-apply this — adding their
+     own bottom padding doubles the dead zone (see home/logo-quiz, fixed v0.10.0.6). */
+  --bottom-nav-reserve: calc(5.5rem + env(safe-area-inset-bottom));
 }
 
 /* =========================================================

@@ -24,6 +24,20 @@
       <so-button [disabled]="true">Disabled</so-button>
       <so-button [fullWidth]="true">Full width</so-button>
     </div>
+    <h3>Compact split-CTA (icon + label + sub)</h3>
+    <p class="ug-note">Project a <code>[sub]</code> child to enable the two-line compact layout. Add <code>accent</code> for a per-instance press-glow color.</p>
+    <div class="ug-row" style="display:flex; gap:0.5rem; max-width:32rem;">
+      <so-button variant="secondary" accent="var(--color-accent)" [fullWidth]="true" style="flex:1;">
+        <span leading class="material-icons">smartphone</span>
+        Local
+        <span sub>Same device</span>
+      </so-button>
+      <so-button variant="secondary" accent="var(--color-accent)" [fullWidth]="true" style="flex:1;">
+        <span leading class="material-icons">public</span>
+        Online
+        <span sub>Play ranked</span>
+      </so-button>
+    </div>
   </section>
 
   <!-- so-icon-button -->

@@ -2,6 +2,136 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.9] - 2026-04-25
+
+### Changed — Shell chrome architecture: tokenized bottom-nav reservation, top-nav always-mounted, edit-profile single source of truth
+
+Tackled three structural drift issues that surfaced while reviewing the refactored screens. Each one had a specific symptom (extra dead-zone above the bottom-nav, two competing Edit Profile flows, top-nav unable to render outside `/`), but the root cause in each was the same: a piece of shell chrome had been re-implemented per-feature instead of treated as global.
+
+**Bottom-nav reservation tokenized**
+
+`shell.css` reserves the floating-nav-pill space via `padding-bottom: calc(5.5rem + safe-area)` on `.shell-main`. But `home.css` was adding *another* `7.5rem` and `logo-quiz.css` was adding *another* `calc(safe-area + 7rem)` — doubling the dead zone below content on those screens. The fix is one token of truth.
+
+- **`tokens.css`** — added `--bottom-nav-reserve: calc(5.5rem + env(safe-area-inset-bottom))` with a comment warning future authors not to re-apply it.
+- **`shell.css`** — `.shell-main` consumes `var(--bottom-nav-reserve)`.
+- **`home.css`** — removed redundant `7.5rem` bottom from `.home-page` (mobile + tablet media query).
+- **`logo-quiz.css`** — removed redundant `calc(safe-area + 7rem)` from `.lq-container` and the now-dead `:has(.lobby-screen)` workaround.
+
+Profile (intentional `2rem`) and leaderboard (already clean) unchanged.
+
+**Edit Profile + Delete Account deduplicated**
+
+`/profile` had `Edit Profile` in two places (hero pencil + big button at the bottom) and `Delete Account` reachable from both `/profile` AND the top-nav settings panel. Two surfaces for one action; destructive admin reachable from a high-traffic screen. Convention from every modern mobile app says: profile = read-only identity surface, settings = admin actions.
+
+- **`profile.html`** — removed the entire bottom `account-actions` section (Edit + Delete buttons) and the orphaned delete-confirm modal block. Hero pencil is now the only Edit entry on this screen.
+- **`profile.ts`** — removed `showDeleteConfirm` / `deleting` signals, `confirmDeleteAccount` method, and unused `ConfirmModalComponent` / `SoButtonComponent` / `HttpClient` / `FormsModule` / `firstValueFrom` / `environment` imports.
+- **`profile.css`** — removed `.account-actions` block.
+
+Delete Account now lives only in the top-nav settings panel (where Sign Out already lives), reached intentionally rather than accidentally.
+
+**Top-nav lifted from home-only to always-mounted**
+
+`shell.html` previously rendered `<app-top-nav>` only when `isHome()` was true. Two consequences: (a) settings/edit modals defined inside top-nav were unreachable from any non-home screen, blocking the dedup work above; (b) the component was destroyed/recreated on every route change, re-running every initializer (avatar fetch, XP signals, focus) and flickering visibly.
+
+- **`top-nav.ts`** — added `@Input() showBar = true` to control just the visual `<header>` bar visibility while keeping the component mounted.
+- **`top-nav.html`** — wrapped the `<header>` in a `[class.top-nav--hidden]="!showBar"` toggle (CSS-only, no `@if` re-mount). Settings panel + edit modal live outside the `<header>`, so they render whenever their own state opens regardless of bar visibility. Edit panel `@if` no longer requires `settingsOpen()` so it can be triggered standalone.
+- **`top-nav.css`** — added `.top-nav--hidden { display: none }`.
+- **`shell.html`** — `<app-top-nav [showBar]="isHome() || shellUi.showTopNavBar()" />`.
+
+**Single edit-profile component, two entry points**
+
+Two separate Edit Profile implementations existed: profile's hero pencil opened a slim sheet (username + country) and top-nav's settings panel opened a richer panel (username + email + country + password reset). Same logical action, different field sets, two parallel save paths. Now there's one component (top-nav owns the UI) and one service routing entry points to it.
+
+- **`core/profile-edit.service.ts`** (new) — counter-signal pattern with `open()` and `notifySaved()`. Increments-only — fires effect *on change*, never re-fires when other tracked signals re-emit (initial implementation used `if (t > 0)` and reopened the modal on every `auth.isLoggedIn()` re-emit during navigation; fixed to `if (t !== lastSeen)`).
+- **`top-nav.ts`** — injects the service. Effect on `openTrigger` opens the existing edit panel; `saveProfile()` calls `notifySaved()` so other screens can refresh.
+- **`profile.ts`** — pencil click delegates to `profileEdit.open()`. Effect on `savedTrigger` reloads the profile data after a save elsewhere triggers it. Removed the bespoke edit-sheet state, methods, and ~95 LOC of `.edit-sheet*` / `.edit-field*` styles from `profile.css`.
+
+**Top-nav now visible on Pro Arena lobbies**
+
+Mode lobbies need the avatar/XP/level header for context but currently lose it on navigation. Mirrored the existing `hideBottomNav` opt-in pattern.
+
+- **`shell-ui.service.ts`** — added `showTopNavBar = signal(false)` alongside the existing `hideBottomNav`.
+- **`logo-quiz.ts`, `solo.ts`, `blitz.ts`** — extended the existing `phase`-based effect to set both `hideBottomNav(!inLobby)` and `showTopNavBar(inLobby)`. `ngOnDestroy` resets both.
+- **`duel-lobby.ts`, `battle-royale-lobby.ts`** — set `showTopNavBar(true)` in `ngOnInit`, reset in `ngOnDestroy`. (Lobby and play are split components for these modes; play screens leave the flag at default `false`.)
+
+Net behavior: top-nav visible on `/`, all five lobby screens, and the in-route lobby state of single-component modes. Hidden during active gameplay and on `/profile`/`/leaderboard`/etc.
+
+**Cleanup**
+
+- **`shared/settings-menu/`** — deleted. Orphan dead code (~22KB across `.ts`/`.html`/`.css`); the component was never rendered anywhere. The active settings panel is the inline `tsp-*` block in `top-nav.html`. The orphan was a misleading parallel implementation that confused an audit.
+
+**Polish on `so-multiplayer-card`**
+
+The Local/Online split CTAs on the home page had bare-metal styling on the projected `[sub]` slot and uncolored leading icons.
+
+- **`so-multiplayer-card.html`** — subtitle `<p>` composes `.type-body-md`.
+- **`so-multiplayer-card.css`** — stripped redundant font-size/line-height from `.so-mp-card__sub` (now owned by the type utility); added `.so-mp-card__actions [sub]` typography (Lexend, 11px, 0.04em, opacity 0.55) to match `.type-label-sm`; added `.so-mp-card__actions .material-icons { color: var(--color-accent) }`.
+- **`so-button.css`** — replaced the (silently-non-applying) `.so-btn:has([sub]) [sub]` rule with a comment explaining why projected-content typography lives in the consumer's stylesheet (Angular emulated view encapsulation tags projected nodes with the parent component's `_ngcontent` attribute, so child-component selectors miss them).
+
+## [0.10.0.8] - 2026-04-25
+
+### Changed — Typography migration: home / profile / leaderboard / logo-quiz now compose `.type-*` utilities
+
+Followup to the v0.10.0.5 design-system typography work. The `.type-*` utilities have existed since 0.10.0.5 but most call sites were never refactored to use them, so the same semantic role (subtitle / hero title / hero name) was reimplemented per-feature with subtly different font sizes, weights, and families. The user spotted the worst case — `.lq-subtitle.lobby-subtitle` overriding `.lobby-subtitle` via specificity to win the cascade, which is *always* the smell of a missing modifier on the base class.
+
+Audit found 6 categories of inconsistency across the codebase. This commit migrates the 4 currently-active screens (home, profile, leaderboard, logo-quiz) and the shared component used by home; the remaining screens (mayhem, battle-royale, today, online-lobby, duel-lobby, solo, blitz) are left untouched and will be addressed when refactored.
+
+**Migrations applied** (pattern: HTML composes bespoke + `.type-*` utility, CSS strips duplicated typography from bespoke layer, leaving only color/margin/layout):
+
+- **logo-quiz** — Title: dropped redundant `lobby-title` class (already had `.type-hero-title`); subtitle: replaced `lobby-subtitle` with `.type-body-md`. Deleted both `.lq-title.lobby-title` and `.lq-subtitle.lobby-subtitle` chained-selector overrides; replaced with plain `.lq-title` and `.lq-subtitle` rules carrying only color + max-width. The `text-align: left` override is no longer needed because `.lq-hero-head` is already `align-items: flex-start` and `<h1>`/`<p>` default to left.
+- **leaderboard** — `.leaderboard-title` + `.type-headline-md` (font-weight 700→600 per design system); `.legend-subtitle` + `.type-body-md` (also tokenized hardcoded `#6b7a8d` to `var(--color-fg-muted)`). Bespoke CSS now contains only color and margin.
+- **profile** — `.hero__name` + `.type-headline-md` (drops hardcoded `'Space Grotesk'` family declaration; weight 700→600 per design system); `.hero__subtitle` + `.type-label-md` (drops hardcoded `'Lexend'` family + 0.7813rem font-size; ~0.5px size delta). Bespoke CSS keeps color + flex layout only.
+- **home (via shared component)** — `so-mode-card` `.so-sub` + `.type-body-md`; bespoke CSS keeps color + margin-top only. (The other shared component used by home, `so-mode-row`, was *not* migrated — its 11px subtitle and 14px title don't have clean `.type-*` matches; design system is missing a `body-sm` token.)
+
+**Override smell eliminated**: `.lq-title.lobby-title` and `.lq-subtitle.lobby-subtitle` were the only chained-selector specificity overrides in the audited files. Both deleted.
+
+**Skipped intentionally** (no clean type-* match — would require adding new tokens):
+- `so-mode-row` `.so-title` (14px Space Grotesk wt 700 — no 14px sans heading in scale)
+- `so-mode-row` `.so-sub` (11px Inter — no body-sm token; closest is type-label-sm at 11px Lexend, but that's a label-feel not a body-feel)
+- `.legend-title` (18.4px), `.profile-guest-title` (22px Space Grotesk wt 800)
+
+**Visual deltas to verify in browser** (all small, all in the direction of design-system alignment):
+- Logo quiz subtitle: 13px → 14px (+1px)
+- Leaderboard title weight: 700 → 600
+- Leaderboard legend subtitle: 12.8px → 14px (+1.2px), color from `#6b7a8d` to `--color-fg-muted`
+- Profile hero name weight: 700 → 600
+- Profile hero subtitle: 12.5px → 12px (-0.5px)
+- Home mode-card subtitle: 13px → 14px (+1px)
+
+## [0.10.0.7] - 2026-04-25
+
+### Changed — `so-button` extended with `[sub]` slot + `accent` input; `so-multiplayer-card` migrated
+
+Followed up on the v0.10.0.6 token alignment with the structural fix: the bespoke `<button class="so-mp-card__btn">` inside `so-multiplayer-card` was deleted entirely and replaced with `<so-button variant="secondary">`, and `so-button` itself was extended to support the previously-bespoke pattern (icon + label + sub-label) so any future card or sheet can use it without redeclaring.
+
+**`so-button` additions** (backward compatible — all 31 existing call sites unaffected):
+
+- **`[sub]` content slot** — when present, the button auto-switches via CSS `:has([sub])` to a compact two-line layout: leading icon on the left, label and sub-label stacked on the right. Replaces the previous vertical icon→label→sub stack which read as a tall pillar (the user's complaint: "now icon and label and sub are vertically aligned and take much space"). Min-height bumped to 56px to accommodate the second line while staying within touch-target spec.
+- **`accent` input** — optional CSS color string (e.g. `'var(--color-purple)'`). Drives a per-instance press-glow via the new `--so-btn-accent` CSS custom property; layered on top of the variant's existing shadow on `:active` so the variant's inset border survives. Also drives the `[leading]` icon color when `[sub]` is in use, giving each card its own identity (purple Logo Quiz vs accent Multiplayer).
+
+**`so-multiplayer-card` migration**:
+
+- Imports `SoButtonComponent`. The two `<button class="so-mp-card__btn">` elements deleted from the template, replaced with `<so-button>` projecting `[leading]`, label, and `[sub]`.
+- `.so-mp-card__btn`, `.so-mp-card__btn-icon`, `.so-mp-card__btn-label`, `.so-mp-card__btn-sub`, `.so-mp-card__btn:hover`, `.so-mp-card__btn:active`, `.so-mp-card__btn:focus-visible` rules deleted from `so-multiplayer-card.css`. Net delete: ~30 LOC of bespoke button styling.
+- New `.so-mp-card__cta { flex: 1; min-width: 0 }` rule lets the two `<so-button>` hosts split the action row evenly inside the existing flex container.
+
+**Discoverability**: `ui-gallery.html` got a new "Compact split-CTA (icon + label + sub)" example under the so-button section so other devs find the pattern.
+
+Net: one less custom button family in the codebase. Any future component needing a "two-action card" (Pro Arena promo, settings sheet, mode picker) gets the same compact CTA for free.
+
+## [0.10.0.6] - 2026-04-25
+
+### Changed — `so-multiplayer-card` buttons now share `so-button` design tokens
+
+The split-CTA buttons inside `so-multiplayer-card` were styled bespoke and drifted from the new design system: `--glass-bg-subtle` instead of `--glass-bg`, hardcoded `#fff` text instead of `--color-foreground`, no `backdrop-filter`, a real 1px `border` instead of an inset shadow, and a `scale(0.95)` press vs `so-button`'s `scale(0.98)`. They also carried a hover-background lift that `so-button` (touch-first, no hover) doesn't.
+
+Replacing them outright with `<so-button variant="secondary">` would have either bloated the button API (it has no stacked icon/label/sub layout) or stripped the "Same device / Play ranked" sub-label copy. So instead — Option B from the design discussion — kept the bespoke `.so-mp-card__btn` composition but rebuilt it on the same tokens `so-button` consumes:
+
+- **`so-multiplayer-card.css`** — `background` → `var(--glass-bg)`, `color` → `var(--color-foreground)`, added `backdrop-filter: blur(10px)`, swapped `border` for `box-shadow: inset 0 0 0 1px`, dropped the hover state, aligned press to `scale(0.98)` and transition to `transform/box-shadow 150ms ease-out`. Label now `uppercase` with `0.08em` tracking to match `so-button`'s `font-bold uppercase tracking-[0.08em]`. Sub-label stays sentence-case (it's prose, not a label).
+- **Preserved** — the per-card `--mp-accent` press-glow stays, since it's the only thing making each card visually distinct (purple Logo Quiz vs accent Multiplayer) and `so-button` has no equivalent.
+
+Net effect: visually, the multiplayer card buttons now read as the same family as every other secondary button in the app, without losing their stacked-with-sub-label affordance or per-card accent identity.
+
 ## [0.10.0.5] - 2026-04-25
 
 ### Changed — Design typography system: font-token flip + `.type-*` utility classes

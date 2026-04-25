@@ -16,10 +16,8 @@
 }
 
 .leaderboard-title {
-  font-size: 1.75rem;
-  font-weight: 700;
+  /* Typography from .type-headline-md (tokens.css). */
   margin: 0;
-  letter-spacing: -0.02em;
   color: var(--mat-sys-on-surface);
 }
 
@@ -288,7 +286,11 @@
   font-family: var(--font-headline);
 }
 
-.legend-subtitle { color: #6b7a8d; font-size: 0.8rem; margin: 0; }
+.legend-subtitle {
+  /* Typography from .type-body-md (tokens.css). */
+  color: var(--color-fg-muted);
+  margin: 0;
+}
 
 .legend-tiers {
   display: flex;

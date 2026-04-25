@@ -16,7 +16,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(5.5rem + env(safe-area-inset-top, 0px)) 1rem 7.5rem;
+  padding: calc(5.5rem + env(safe-area-inset-top, 0px)) 1rem 0;
   position: relative;
   overflow: hidden;
 }
@@ -95,7 +95,7 @@
 
 /* Tablet / desktop */
 @media (min-width: 768px) {
-  .home-page { padding: 5.5rem 1.5rem 7.5rem; }
+  .home-page { padding: 5.5rem 1.5rem 0; }
   .home-content { max-width: 44rem; }
 }
 @media (min-width: 1024px) {

@@ -1,6 +1,7 @@
-/* so-multiplayer-card.css — lifted from old home.css .two-player-card rules,
- * parameterized via --mp-accent for the press-glow color.
- */
+/* so-multiplayer-card.css — card chrome only.
+ * Split-CTA buttons are now <so-button variant="secondary"> with the
+ * [sub] slot (defined in so-button.css), so all bespoke button styling
+ * has been removed. The card just lays them out side-by-side. */
 
 .so-mp-card {
   position: relative;
@@ -63,8 +64,7 @@
 
 .so-mp-card__sub {
   position: relative; z-index: 1;
-  font-size: 0.875rem;
-  line-height: 1.4;
+  /* Font-size, line-height, font-family come from .type-body-md (tokens.css). */
   color: rgba(255,255,255,0.7);
   margin: 0.25rem 0 0;
 }
@@ -76,35 +76,24 @@
   margin-top: 0.75rem;
 }
 
-.so-mp-card__btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.125rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--glass-bg-subtle, rgba(255,255,255,0.08));
-  border: 1px solid var(--glass-border-strong, rgba(255,255,255,0.12));
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  color: #fff;
-  font-family: inherit;
-  transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+/* Both [leading] icons and [sub] sub-labels are projected into <so-button>
+ * but originate from this template, so styles apply via emulated encapsulation
+ * without ::ng-deep. So-button can't style these itself — see so-button.css. */
+.so-mp-card__actions .material-icons {
+  color: var(--color-accent);
 }
-.so-mp-card__btn:hover  { background: rgba(255,255,255,0.14); }
-.so-mp-card__btn:active {
-  background: rgba(255,255,255,0.18);
-  transform: scale(0.95);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--mp-accent, var(--color-accent)) 35%, transparent);
-}
-.so-mp-card__btn:focus-visible {
-  outline: 2px solid var(--mp-accent, var(--color-accent));
-  outline-offset: 2px;
+.so-mp-card__actions [sub] {
+  font-family: 'Lexend', ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--text-label-sm);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  opacity: 0.55;
 }
 
-.so-mp-card__btn-icon  { font-size: 1.125rem; color: var(--mp-accent, var(--color-accent)); }
-.so-mp-card__btn-label { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em; }
-.so-mp-card__btn-sub   { font-size: 0.625rem; font-weight: 400; opacity: 0.5; }
+/* Each <so-button> is :host { display: inline-block }; flexing them
+ * inside .so-mp-card__actions makes them split the row evenly. */
+.so-mp-card__cta { flex: 1; min-width: 0; }
 
 /* Tablet */
 @media (min-width: 768px) {
@@ -116,6 +105,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .so-mp-card,
-  .so-mp-card__bg,
-  .so-mp-card__btn { transition: none; }
+  .so-mp-card__bg { transition: none; }
 }

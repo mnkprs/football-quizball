@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal, effect, HostListener, OnInit, Injector, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, signal, effect, HostListener, OnInit, Injector, ElementRef, ViewChild, AfterViewInit, Input } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -11,6 +11,7 @@ import { LanguageService } from '../../core/language.service';
 import { ThemeService } from '../../core/theme.service';
 import { ProService } from '../../core/pro.service';
 import { ProfileStore } from '../../core/profile-store.service';
+import { ProfileEditService } from '../../core/profile-edit.service';
 import { ConfirmModalComponent } from '../confirm-modal/confirm-modal';
 import { environment } from '../../../environments/environment';
 
@@ -23,12 +24,17 @@ import { environment } from '../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TopNavComponent implements OnInit {
+  /** When false, the visual bar hides but settings/edit modals still render
+   *  so other surfaces (e.g. /profile pencil → ProfileEditService) work. */
+  @Input() showBar = true;
+
   auth = inject(AuthService);
   lang = inject(LanguageService);
   theme = inject(ThemeService);
   pro = inject(ProService);
   store = inject(ProfileStore);
   readonly notificationsApi = inject(NotificationsApiService);
+  private profileEdit = inject(ProfileEditService);
   private authModal = inject(AuthModalService);
   private router = inject(Router);
   private injector = inject(Injector);
@@ -132,6 +138,21 @@ export class TopNavComponent implements OnInit {
     }, { injector: this.injector });
 
     this.notificationsApi.refreshUnreadCount();
+
+    // Other surfaces (profile page hero pencil) request edit via the service.
+    // Fire on every *increment*, not when t > 0 — otherwise once t > 0 the modal
+    // would reopen on every effect re-run (e.g. when auth.isLoggedIn() re-emits
+    // during navigation/session-restore). lastSeen captures the value at setup.
+    let lastSeen = this.profileEdit.openTrigger();
+    effect(() => {
+      const t = this.profileEdit.openTrigger();
+      if (t !== lastSeen) {
+        lastSeen = t;
+        if (this.auth.isLoggedIn()) {
+          this.openEditPanel();
+        }
+      }
+    }, { injector: this.injector });
   }
 
   openAuth(): void { this.authModal.open(); }
@@ -213,6 +234,7 @@ export class TopNavComponent implements OnInit {
 
       this.editSuccess.set('Profile updated');
       this.store.loadProfile();
+      this.profileEdit.notifySaved();
     } catch (err: any) {
       const msg = err?.error?.message ?? err?.message ?? 'Failed to save';
       this.editError.set(msg);

@@ -5,9 +5,13 @@
   [class.cursor-not-allowed]="disabled()"
   [class.w-full]="fullWidth()"
   [ngClass]="[sizeClass(), variantClass()]"
+  [ngStyle]="accentStyle()"
   [disabled]="disabled()"
   (click)="pressed.emit()">
   <ng-content select="[leading]" />
-  <ng-content />
+  <span class="so-btn__text">
+    <span class="so-btn__label"><ng-content /></span>
+    <ng-content select="[sub]" />
+  </span>
   <ng-content select="[trailing]" />
 </button>

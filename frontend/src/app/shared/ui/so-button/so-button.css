@@ -1,6 +1,9 @@
 :host { display: inline-block; }
 :host([full-width]) { display: block; }
+
 .so-btn:active:not(:disabled) { transform: scale(0.98); }
+
+/* Variants */
 .variant-primary   { background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dim) 100%); color: var(--color-accent-foreground); box-shadow: 0 6px 20px rgba(0,122,255,0.35); }
 .variant-secondary { background: var(--glass-bg); color: var(--color-foreground); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08); }
 .variant-ghost     { background: transparent; color: var(--color-foreground); box-shadow: inset 0 0 0 1px rgba(107,122,141,0.3); }
@@ -8,6 +11,60 @@
 .variant-danger    { background: #93000a; color: #ffb4ab; }
 .variant-error     { background: #ef4444; color: #fff; box-shadow: 0 6px 20px rgba(239,68,68,0.35); }
 .variant-gold      { background: var(--color-pro); color: #0a0a0a; box-shadow: 0 6px 20px rgba(230,168,0,0.35); }
+
+/* Sizes */
 .size-sm { height: 36px; padding: 0 14px; font-size: 12px; }
 .size-md { height: 48px; padding: 0 22px; font-size: 13px; }
 .size-lg { height: 60px; padding: 0 24px; font-size: 14px; }
+
+/* Default text wrapper renders inline so single-label buttons behave as before. */
+.so-btn__text { display: inline-flex; align-items: center; }
+
+/* ── Sub-label support ────────────────────────────────────────────────
+ * When a caller projects content into the `[sub]` slot, the button
+ * becomes a two-line compact CTA: leading icon on the left, label and
+ * sub-label stacked on the right. Detection is CSS-only via :has().
+ * Caller responsibility: provide [leading] icon + main label + [sub] copy.
+ * Used by so-multiplayer-card; reusable for any compact split-CTA. */
+.so-btn:has([sub]) {
+  height: auto;
+  min-height: 56px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  justify-content: flex-start;
+  gap: 10px;
+}
+.so-btn:has([sub]) .so-btn__text {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.15;
+}
+/* NOTE: [sub] typography (font-size, font-family, opacity) lives in the
+ * CONSUMER's stylesheet (e.g. so-multiplayer-card.css). Angular's emulated
+ * view encapsulation prevents this component's CSS from reaching projected
+ * nodes — they keep the parent component's _ngcontent attribute. The rules
+ * below only handle layout because they target the .so-btn host scope. */
+.so-btn:has([sub]) [leading] {
+  font-size: 1.125rem;
+  /* Icon picks up the per-instance accent if provided, else the variant's text color. */
+  color: var(--so-btn-accent, currentColor);
+}
+
+/* ── Accent press-glow ────────────────────────────────────────────────
+ * When `accent` input is set, `:active` adds a colored glow on top of
+ * the variant's existing shadow. Layered (variant shadow first, accent
+ * glow second) so the variant's inset border / drop shadow survives. */
+.so-btn[style*="--so-btn-accent"]:active:not(:disabled) {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 16px color-mix(in srgb, var(--so-btn-accent) 35%, transparent);
+}
+.so-btn[style*="--so-btn-accent"]:focus-visible {
+  outline: 2px solid var(--so-btn-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .so-btn { transition: none; }
+}

@@ -4,6 +4,7 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { SoChipComponent, SoChipVariant } from '../so-chip/so-chip';
+import { SoButtonComponent } from '../so-button/so-button';
 
 export interface SoMpCta {
   label: string;
@@ -15,7 +16,7 @@ export interface SoMpCta {
 @Component({
   selector: 'so-multiplayer-card',
   standalone: true,
-  imports: [CommonModule, NgOptimizedImage, SoChipComponent],
+  imports: [CommonModule, NgOptimizedImage, SoChipComponent, SoButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './so-multiplayer-card.html',
   styleUrl: './so-multiplayer-card.css',

@@ -45,7 +45,7 @@
             <div class="hero__pro-chip">PRO</div>
           }
           @if (isOwnProfile()) {
-            <button type="button" class="hero__top-btn" (click)="openEditSheet()" aria-label="Edit profile">
+            <button type="button" class="hero__top-btn" (click)="openEdit()" aria-label="Edit profile">
               <span class="material-icons">edit</span>
             </button>
           }
@@ -94,8 +94,8 @@
 
       <!-- Name + meta -->
       <div class="hero__identity">
-        <h1 class="hero__name">{{ displayName() }}</h1>
-        <div class="hero__subtitle">
+        <h1 class="hero__name type-headline-md">{{ displayName() }}</h1>
+        <div class="hero__subtitle type-label-md">
           <span class="hero__elo-badge">{{ profile()?.elo ?? 1000 }} ELO</span>
           <span class="hero__sep">&middot;</span>
           <span class="hero__rank">Rank #{{ profile()?.rank ?? '—' }}</span>
@@ -268,80 +268,6 @@
         />
       }
     </section>
-
-    <!-- ─── ACCOUNT ACTIONS ─────────────────────────── -->
-    @if (isOwnProfile()) {
-      <section class="section account-actions">
-        <so-button variant="secondary" [fullWidth]="true" (pressed)="openEditSheet()">
-          <span class="material-icons" style="font-size:1.125rem;vertical-align:middle;margin-right:0.5rem">edit</span>
-          Edit Profile
-        </so-button>
-        <so-button variant="danger" [fullWidth]="true" (pressed)="showDeleteConfirm.set(true)">
-          <span class="material-icons" style="font-size:1.125rem;vertical-align:middle;margin-right:0.5rem">delete_forever</span>
-          Delete Account
-        </so-button>
-      </section>
-    }
-
-    <!-- ─── EDIT PROFILE SHEET ──────────────────────── -->
-    @if (showEditSheet()) {
-      <div class="edit-backdrop" (click)="closeEditSheet()"></div>
-      <div class="edit-sheet" role="dialog" aria-modal="true" aria-label="Edit profile">
-        <div class="edit-sheet__handle"></div>
-        <h3 class="edit-sheet__title">Edit Profile</h3>
-
-        @if (editError()) {
-          <div class="edit-sheet__error">{{ editError() }}</div>
-        }
-
-        <label class="edit-field">
-          <span class="edit-field__label">Username</span>
-          <input
-            class="edit-field__input"
-            type="text"
-            [(ngModel)]="editUsername"
-            placeholder="Username"
-            maxlength="20"
-          />
-        </label>
-
-        <label class="edit-field">
-          <span class="edit-field__label">Country</span>
-          <input
-            class="edit-field__input edit-field__input--short"
-            type="text"
-            [(ngModel)]="editCountryCode"
-            placeholder="e.g. GR"
-            maxlength="2"
-            style="text-transform: uppercase;"
-          />
-          <span class="edit-field__hint">2-letter country code (ISO 3166-1)</span>
-        </label>
-
-        <button
-          class="edit-sheet__save"
-          (click)="saveProfile()"
-          [disabled]="editSaving()"
-        >
-          @if (editSaving()) {
-            Saving...
-          } @else {
-            Save Changes
-          }
-        </button>
-      </div>
-    }
-
-    <!-- ─── DELETE CONFIRM ──────────────────────────── -->
-    @if (showDeleteConfirm()) {
-      <app-confirm-modal
-        message="This will permanently delete your account and all data. This action cannot be undone."
-        confirmLabel="Delete My Account"
-        cancelLabel="Cancel"
-        (confirm)="confirmDeleteAccount()"
-        (cancel)="showDeleteConfirm.set(false)"
-      />
-    }
 
   }
 </div>

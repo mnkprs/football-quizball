@@ -42,7 +42,9 @@ export class BlitzComponent implements OnDestroy {
 
   constructor() {
     effect(() => {
-      this.shellUi.hideBottomNav.set(this.phase() !== 'idle');
+      const inLobby = this.phase() === 'idle';
+      this.shellUi.hideBottomNav.set(!inLobby);
+      this.shellUi.showTopNavBar.set(inLobby);
     });
     effect(() => {
       if (this.phase() === 'finished' && !this.achievementUnlock.showModal()) {
@@ -240,5 +242,6 @@ export class BlitzComponent implements OnDestroy {
     this.clearFlash();
     this.reportCooldown.destroy();
     this.shellUi.hideBottomNav.set(false);
+    this.shellUi.showTopNavBar.set(false);
   }
 }

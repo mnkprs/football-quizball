@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, Location, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
+import { ShellUiService } from '../../core/shell-ui.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
 import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
 
@@ -20,13 +21,14 @@ import { LobbyHeaderComponent } from '../../shared/lobby-header/lobby-header';
   styleUrl: './duel-lobby.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DuelLobbyComponent implements OnInit {
+export class DuelLobbyComponent implements OnInit, OnDestroy {
   private api = inject(DuelApiService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private location = inject(Location);
   private matchHistory = inject(MatchHistoryApiService);
   private leaderboardApi = inject(LeaderboardApiService);
+  private shellUi = inject(ShellUiService);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
@@ -58,9 +60,14 @@ export class DuelLobbyComponent implements OnInit {
       this.gameType.set('logo');
       this.isLogoMode.set(true);
     }
+    this.shellUi.showTopNavBar.set(true);
     this.loadGames();
     this.loadWinStats();
     this.loadRank();
+  }
+
+  ngOnDestroy(): void {
+    this.shellUi.showTopNavBar.set(false);
   }
 
   private loadRank(): void {

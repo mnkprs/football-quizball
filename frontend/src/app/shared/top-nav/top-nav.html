@@ -1,4 +1,8 @@
-<header class="top-nav" [style.--tier-color]="tierColor()">
+<!-- Header stays mounted across navigation; CSS toggles visibility. Avoids
+     re-mount flicker (avatar/XP fades, focus loss) on every route change. -->
+<header class="top-nav"
+        [class.top-nav--hidden]="!showBar"
+        [style.--tier-color]="tierColor()">
   @if (auth.isLoggedIn()) {
     <!-- Logged in: Avatar + XP bar + utilities -->
     <div class="top-nav__left">
@@ -151,8 +155,9 @@
   </div>
 }
 
-<!-- Edit Profile modal (centered, layered above the settings sheet) -->
-@if (settingsOpen() && editPanelOpen()) {
+<!-- Edit Profile modal — standalone overlay so it can be triggered from any
+     surface (settings panel "Edit Profile" button OR /profile hero pencil). -->
+@if (editPanelOpen()) {
   <div class="tsp-edit__backdrop" (click)="closeEditPanel()" role="presentation"></div>
   <div class="tsp-edit" role="dialog" aria-modal="true" aria-label="Edit Profile"
        cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
