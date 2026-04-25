@@ -108,12 +108,13 @@
       <!-- Tier Progress — tap to view all tiers -->
       @if (nextTierLabel(); as nextLabel) {
         <a routerLink="/profile/tier" class="tier-progress-link" aria-label="View all tiers">
-          <so-tier-progress
-            [tier]="rankTier().label"
-            [nextTier]="nextLabel"
-            [elo]="profile()?.elo ?? 1000"
-            [nextElo]="nextTierElo()"
-            [tierStart]="currentTierStart()"
+          <so-progress-card
+            mode="tier"
+            [currentName]="rankTier().label"
+            [nextName]="nextLabel"
+            [current]="profile()?.elo ?? 1000"
+            [next]="nextTierElo()"
+            [start]="currentTierStart()"
             [color]="rankTier().color" />
         </a>
       }
@@ -158,11 +159,13 @@
     </section>
 
     <section class="section xp-section">
-      <so-xp-card
-        [level]="level()"
-        [xp]="xp()"
-        [nextLevelXp]="xpNextLevel()"
-        [levelStart]="xpLevelStart()"
+      <so-progress-card
+        mode="level"
+        [currentName]="level().toString()"
+        [nextName]="(level() + 1).toString()"
+        [current]="xp()"
+        [next]="xpNextLevel()"
+        [start]="xpLevelStart()"
         color="#a78bfa" />
     </section>
 
