@@ -21,9 +21,8 @@ import {
   SoSectionHeaderComponent,
   SoHistoryRowComponent,
   SoButtonComponent,
-  SoTierProgressComponent,
+  SoProgressCardComponent,
   SoRatingCardComponent,
-  SoXpCardComponent,
   type SoHistoryRowData,
 } from '../../shared/ui';
 
@@ -35,8 +34,8 @@ import {
     MatButtonModule, MatIconModule, MatProgressSpinnerModule,
     ConfirmModalComponent, EmptyStateComponent,
     SoAvatarComponent, SoSectionHeaderComponent,
-    SoHistoryRowComponent, SoButtonComponent, SoTierProgressComponent,
-    SoRatingCardComponent, SoXpCardComponent,
+    SoHistoryRowComponent, SoButtonComponent, SoProgressCardComponent,
+    SoRatingCardComponent,
   ],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
@@ -242,7 +241,7 @@ export class ProfileComponent implements OnInit {
 
   currentTierStart = computed(() => {
     // Mirrors profile-tier.ts — the floor of the user's current tier,
-    // needed by so-tier-progress for fill math.
+    // needed by so-progress-card for fill math.
     const elo = this.profile()?.elo ?? 1000;
     const TIER_BOUNDARIES: Array<[number, number | null]> = [
       [2400, null], [2000, 2399], [1650, 1999], [1300, 1649],

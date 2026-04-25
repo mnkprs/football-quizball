@@ -21,12 +21,13 @@
   <!-- Path to next tier (hidden when user is at top tier — no next to progress to) -->
   @if (!atTopTier()) {
     <section class="ptier-section">
-      <so-tier-progress
-        [tier]="currentTier().label"
-        [nextTier]="nextTierName()"
-        [elo]="elo()"
-        [nextElo]="nextTierElo()"
-        [tierStart]="currentTierStart()"
+      <so-progress-card
+        mode="tier"
+        [currentName]="currentTier().label"
+        [nextName]="nextTierName()"
+        [current]="elo()"
+        [next]="nextTierElo()"
+        [start]="currentTierStart()"
         [color]="currentTier().color" />
     </section>
   } @else {

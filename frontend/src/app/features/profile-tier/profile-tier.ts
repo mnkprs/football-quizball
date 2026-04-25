@@ -1,8 +1,8 @@
 // ProfileTierComponent — rank ladder screen.
 //
 // Shows all 7 tiers with their ELO ranges, highlights the user's current tier,
-// and displays the "path to next tier" strip using the so-tier-progress
-// primitive. Reached via the "View all tiers" CTA on the main profile.
+// and displays the "path to next tier" strip using the so-progress-card
+// primitive (mode='tier'). Reached via the "View all tiers" CTA on the main profile.
 //
 // Pure display — no mutations. Reads from ProfileStore (loaded by profile
 // screen or wherever the user arrived from).
@@ -16,7 +16,7 @@ import {
   nextTierThreshold,
   type EloTier,
 } from '../../core/elo-tier';
-import { SoTierProgressComponent } from '../../shared/ui/so-tier-progress/so-tier-progress';
+import { SoProgressCardComponent } from '../../shared/ui/so-progress-card/so-progress-card';
 
 interface TierRow {
   tier: EloTier;
@@ -41,7 +41,7 @@ const TIER_BOUNDARIES: Array<[number, number | null]> = [
   selector: 'app-profile-tier',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, SoTierProgressComponent],
+  imports: [CommonModule, SoProgressCardComponent],
   templateUrl: './profile-tier.html',
   styleUrl: './profile-tier.css',
 })
@@ -66,7 +66,7 @@ export class ProfileTierComponent {
   /** True when the user is at the top tier (GOAT) — no next tier to progress to. */
   atTopTier = computed(() => nextTierThreshold(this.elo()) === null);
 
-  /** Next-tier name for so-tier-progress (only meaningful when !atTopTier). */
+  /** Next-tier name for so-progress-card (only meaningful when !atTopTier). */
   nextTierName = computed(() => {
     const nextElo = nextTierThreshold(this.elo());
     if (nextElo === null) return this.currentTier().label;
@@ -75,7 +75,7 @@ export class ProfileTierComponent {
 
   nextTierElo = computed(() => nextTierThreshold(this.elo()) ?? this.elo());
 
-  /** Floor of the user's current tier — needed by so-tier-progress for fill math. */
+  /** Floor of the user's current tier — needed by so-progress-card for fill math. */
   currentTierStart = computed(() => {
     const currentKey = this.currentTier().tier;
     const row = TIER_BOUNDARIES.find(([min]) => getEloTier(min).tier === currentKey);
