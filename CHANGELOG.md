@@ -2,6 +2,20 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.3] - 2026-04-25
+
+### Changed — `so-xp-card` now mirrors `so-tier-progress`
+
+The XP card on the profile screen was a stylistic outlier: hardcoded purple bg + border + radius, hand-rolled gradient track with baked-in glow, single-line right-aligned foot copy. Refactored to share the exact structure of `so-tier-progress`:
+
+- **Container**: `var(--color-surface-low)` + `var(--radius-lg, 12px)` + `0.875rem` padding (was hardcoded purple `rgba(139,92,246,0.08)` / `10px`).
+- **Head**: uppercase letterspaced micro-caps label ("Path to Level N+1") + headline-font numeric values ("X / Y XP"), matching the tier-progress treatment exactly.
+- **Track**: now uses the shared `<so-progress-track>` primitive instead of a hand-rolled `.so-xp-card__fill`. Drops 12 lines of duplicated track CSS.
+- **Foot**: two-span layout with current level on the left and next level on the right, `+remaining` colored by the `color` input — same shape as `LEVEL X · +Δ` on the tier strip.
+- **Inputs aligned**: `level / xp / nextLevelXp / levelStart / color` — 1:1 mapping to `tier / elo / nextElo / tierStart / color`. `pct` and `remaining` are now computed inside the component (was passed in pre-computed). `color` defaults to `var(--color-accent)` so future callers integrate with the design system; profile.html passes `#a78bfa` to keep the XP-purple identity.
+
+`profile.ts`: replaced `xpPct` / `xpRemaining` with `xpLevelStart`. Dropped now-unused `xpProgressPct` / `xpToNextLevel` imports. `profile.html` updated to the new input shape.
+
 ## [0.10.0.2] - 2026-04-25
 
 ### Fixed
