@@ -2,6 +2,17 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.4] - 2026-04-25
+
+### Changed — Collapsed `so-tier-progress` + `so-xp-card` into `so-progress-card`
+
+The two components were structurally identical: same container, same head/foot layout, same embedded `<so-progress-track>`, same `pct`/`remaining` math. The only differences were label strings ("Path to {tier}" vs "Path to Level {N}") and the trailing " XP" suffix on values. Collapsed into a single `so-progress-card` driven by a `mode: 'tier' | 'level'` input that owns the formatting rules.
+
+- **API**: `mode`, `currentName` (string: "Elite" or "7"), `nextName`, `current`, `next`, `start`, `color`. Component derives `headLabel`, `currentLabel`, `nextLabel`, and `valueSuffix` from `mode` so call sites no longer pre-format.
+- **Migrated call sites**: `profile.html` (tier strip + XP card), `profile-tier.html` (rank ladder strip).
+- **Deleted**: `shared/ui/so-tier-progress/`, `shared/ui/so-xp-card/`. Barrel updated.
+- **Net**: ~165 LOC across two files → ~115 LOC in one. Adding a third progression domain (e.g. mastery, season pass) is now a single `mode` branch.
+
 ## [0.10.0.3] - 2026-04-25
 
 ### Changed — `so-xp-card` now mirrors `so-tier-progress`
