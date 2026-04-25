@@ -17,9 +17,9 @@
 .so-text { flex: 1; min-width: 0; }
 .so-title {
   display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-headline);
+  font-family: 'Space Grotesk', sans-serif;
   font-weight: 700; font-size: 14px; letter-spacing: -0.01em;
   line-height: 1.2;
 }
 .so-sub   { font-size: 11px; color: var(--color-fg-muted); margin-top: 2px; }
-.so-chev  { font-family: var(--font-headline); font-size: 18px; color: rgba(255,255,255,0.5); }
+.so-chev  { font-family: 'Space Grotesk', sans-serif; font-size: 18px; color: rgba(255,255,255,0.5); }

@@ -182,7 +182,7 @@
 .lq-versus-card__me { margin-left: auto; text-align: right; }
 .lq-versus-card__me-label {
   display: block;
-  font-family: var(--font-numeric);
+  font-family: 'Lexend', sans-serif;
   font-size: 0.625rem; letter-spacing: 0.12em;
   color: var(--color-fg-muted);
   text-transform: uppercase;
@@ -343,7 +343,7 @@
 }
 .lq-finished__flag { font-size: 3rem; margin-bottom: 0.25rem; }
 .lq-finished__title {
-  font-family: var(--font-headline);
+  font-family: 'Space Grotesk', sans-serif;
   font-size: 1.5rem; font-weight: 700;
   color: var(--color-fg); margin: 0;
 }

@@ -229,7 +229,7 @@
 }
 
 .lb-separator__text {
-  font-family: var(--font-numeric);
+  font-family: 'Lexend', sans-serif;
   font-size: 0.5625rem;
   font-weight: 800;
   text-transform: uppercase;

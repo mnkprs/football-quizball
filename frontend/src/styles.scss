@@ -1,6 +1,14 @@
 // Angular Material theming — kickup-inspired green palette
 @use '@angular/material' as mat;
 
+@font-face {
+  font-family: 'Alfa Slab One';
+  src: url('/Alfa_Slab_One/AlfaSlabOne-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
   color-scheme: light;
   @include mat.theme((
