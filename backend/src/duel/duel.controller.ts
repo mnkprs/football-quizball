@@ -89,6 +89,22 @@ export class DuelController {
   }
 
   /**
+   * POST /api/duel/:id/accept — Accept a match-found reservation (10s window).
+   * Plan decisions: 1A (per-player accept tracking), OV2 (symmetric — both must tap).
+   * Idempotent for the calling user. Throttled to prevent rapid double-tap from
+   * generating two writes (the second is a no-op anyway, but throttle saves the round-trip).
+   */
+  @UseGuards(AuthGuard)
+  @Throttle({ default: { limit: 3, ttl: 1000 } })
+  @Post(':id/accept')
+  acceptGame(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    return this.service.acceptGame(req.user.id, id);
+  }
+
+  /**
    * POST /api/duel/:id/answer — Submit a free-form answer
    * Rate-limited to 2 req/s per user to prevent spam submissions.
    */

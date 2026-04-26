@@ -70,7 +70,7 @@ export interface DuelPublicQuestion {
 
 export interface DuelPublicView {
   id: string;
-  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  status: 'waiting' | 'reserved' | 'active' | 'finished' | 'abandoned';
   inviteCode: string | null;
   myRole: 'host' | 'guest';
   myUserId: string;
@@ -83,6 +83,9 @@ export interface DuelPublicView {
   hostReady: boolean;
   guestReady: boolean;
   gameType: DuelGameType;
+  /** Present when status === 'reserved' — drives the floating queue widget's
+   *  match-found state on the client. Absent for any other status. */
+  reservation?: DuelReservationInfo;
 }
 
 export interface DuelAnswerResult {
@@ -105,7 +108,7 @@ export interface DuelAnswerResult {
 
 export interface DuelGameSummary {
   id: string;
-  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  status: 'waiting' | 'reserved' | 'active' | 'finished' | 'abandoned';
   inviteCode: string | null;
   scores: { host: number; guest: number };
   opponentUsername: string | null;
@@ -125,7 +128,7 @@ export interface DuelGameRow {
   invite_code: string | null;
   host_id: string;
   guest_id: string | null;
-  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  status: 'waiting' | 'reserved' | 'active' | 'finished' | 'abandoned';
   questions: GeneratedQuestion[];
   current_question_index: number;
   current_question_answered_by: 'host' | 'guest' | null;
@@ -136,6 +139,25 @@ export interface DuelGameRow {
   pool_question_ids: string[];
   question_started_at: string | null;
   game_type: DuelGameType;
+  /** Set when matchmaker transitions waiting → reserved. NULL otherwise. */
+  reserved_at: string | null;
+  /** Acceptance timestamps for the 10s tap-to-enter window. NULL = not yet accepted. */
+  host_accepted_at: string | null;
+  guest_accepted_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Public view extension for the floating queue widget.
+ * Surfaces only what the client needs to render the reserved-state UI:
+ * remaining seconds and which side has accepted (informational; the server
+ * always enforces the deadline).
+ */
+export interface DuelReservationInfo {
+  reservedAt: string;
+  /** Seconds left in the 10s window, server-clamped to [0, 10]. */
+  secondsRemaining: number;
+  hostAccepted: boolean;
+  guestAccepted: boolean;
 }

@@ -44,6 +44,12 @@ function derivePhase(view: DuelPublicView): DuelPhase {
     if (view.guestUsername) return 'ready-up';
     return 'waiting';
   }
+  // 'reserved' is a transient queue-widget state. Hard-refresh on /duel/:id
+  // during the 10s tap-to-enter window can land here. Render the same
+  // 'waiting' UI (invite-code style) until the next poll flips to 'active'
+  // or 'abandoned' — better than falling through to 'active' and showing
+  // "Loading question..." for a question that doesn't exist yet.
+  if (view.status === 'reserved') return 'waiting';
   // active
   return 'active';
 }

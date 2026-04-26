@@ -49,7 +49,7 @@ describe('NotificationsService', () => {
     it('inserts notification row with correct shape', async () => {
       const chain = buildChain();
       chain.insert.mockResolvedValueOnce({ error: null });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
 
       const dto: CreateNotificationDto = {
         userId: 'user-1',
@@ -77,7 +77,7 @@ describe('NotificationsService', () => {
     it('defaults icon and route to null when not provided', async () => {
       const chain = buildChain();
       chain.insert.mockResolvedValueOnce({ error: null });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
 
       await service.create({ userId: 'u1', type: 't', title: 'T', body: 'B' });
 
@@ -89,7 +89,7 @@ describe('NotificationsService', () => {
     it('defaults metadata to empty object when not provided', async () => {
       const chain = buildChain();
       chain.insert.mockResolvedValueOnce({ error: null });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
 
       await service.create({ userId: 'u1', type: 't', title: 'T', body: 'B' });
 
@@ -101,7 +101,7 @@ describe('NotificationsService', () => {
     it('logs error when insert fails', async () => {
       const chain = buildChain();
       chain.insert.mockResolvedValueOnce({ error: { message: 'DB error' } });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
       const logSpy = jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
 
       await service.create({ userId: 'u1', type: 't', title: 'T', body: 'B' });
@@ -114,7 +114,7 @@ describe('NotificationsService', () => {
     it('returns notifications for a user', async () => {
       const chain = buildChain();
       chain.range.mockResolvedValueOnce({ data: MOCK_NOTIFICATIONS, error: null });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
 
       const result = await service.getForUser('user-1');
 
@@ -126,7 +126,7 @@ describe('NotificationsService', () => {
     it('applies default limit=50 and offset=0 as range(0, 49)', async () => {
       const chain = buildChain();
       chain.range.mockResolvedValueOnce({ data: [], error: null });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
 
       await service.getForUser('user-1');
 
@@ -136,7 +136,7 @@ describe('NotificationsService', () => {
     it('applies custom limit and offset', async () => {
       const chain = buildChain();
       chain.range.mockResolvedValueOnce({ data: [], error: null });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
 
       await service.getForUser('user-1', 10, 20);
 
@@ -146,7 +146,7 @@ describe('NotificationsService', () => {
     it('returns empty array when data is null', async () => {
       const chain = buildChain();
       chain.range.mockResolvedValueOnce({ data: null, error: null });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
 
       const result = await service.getForUser('user-1');
 
@@ -156,7 +156,7 @@ describe('NotificationsService', () => {
     it('returns empty array and logs error on DB failure', async () => {
       const chain = buildChain();
       chain.range.mockResolvedValueOnce({ data: null, error: { message: 'fetch error' } });
-      const service = new NotificationsService(buildMockSupabase(chain) as any);
+      const service = new NotificationsService(buildMockSupabase(chain) as any, { sendPush: jest.fn() } as any);
       const logSpy = jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
 
       const result = await service.getForUser('user-1');
@@ -182,7 +182,7 @@ describe('NotificationsService', () => {
       const fromChain = { update: jest.fn().mockReturnValue(updateChain) };
       const mockSupabase = { client: { from: jest.fn().mockReturnValue(fromChain) } };
 
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
 
       await service.markAsRead('user-1', 'notif-1');
 
@@ -197,7 +197,7 @@ describe('NotificationsService', () => {
       const fromChain = { update: jest.fn().mockReturnValue({ eq: eqMock }) };
       const mockSupabase = { client: { from: jest.fn().mockReturnValue(fromChain) } };
 
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
       const logSpy = jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
 
       await service.markAsRead('user-1', 'notif-1');
@@ -215,7 +215,7 @@ describe('NotificationsService', () => {
       const fromChain = { update: jest.fn().mockReturnValue({ eq: eqMock }) };
       const mockSupabase = { client: { from: jest.fn().mockReturnValue(fromChain) } };
 
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
 
       await service.markAllAsRead('user-1');
 
@@ -230,7 +230,7 @@ describe('NotificationsService', () => {
       const fromChain = { update: jest.fn().mockReturnValue({ eq: eqMock }) };
       const mockSupabase = { client: { from: jest.fn().mockReturnValue(fromChain) } };
 
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
       const logSpy = jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
 
       await service.markAllAsRead('user-1');
@@ -243,7 +243,7 @@ describe('NotificationsService', () => {
     it('returns true when the insert succeeds (this replica won the claim)', async () => {
       const insertMock = jest.fn().mockResolvedValueOnce({ error: null });
       const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
 
       const result = await service.claimJobRun('daily_challenge', '2026-04-14');
 
@@ -254,7 +254,7 @@ describe('NotificationsService', () => {
     it('returns false on unique_violation (another replica already claimed)', async () => {
       const insertMock = jest.fn().mockResolvedValueOnce({ error: { code: '23505', message: 'duplicate key' } });
       const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
 
       const result = await service.claimJobRun('daily_challenge', '2026-04-14');
 
@@ -264,7 +264,7 @@ describe('NotificationsService', () => {
     it('fails closed (returns false) on unexpected DB error', async () => {
       const insertMock = jest.fn().mockResolvedValueOnce({ error: { code: '08000', message: 'connection lost' } });
       const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
       const logSpy = jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
 
       const result = await service.claimJobRun('daily_challenge', '2026-04-14');
@@ -280,7 +280,7 @@ describe('NotificationsService', () => {
         .mockResolvedValueOnce({ error: { code: '23505', message: 'dup' } })
         .mockResolvedValueOnce({ error: { code: '23505', message: 'dup' } });
       const mockSupabase = { client: { from: jest.fn().mockReturnValue({ insert: insertMock }) } };
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
 
       const results = await Promise.all([
         service.claimJobRun('daily_challenge', '2026-04-14'),
@@ -302,7 +302,7 @@ describe('NotificationsService', () => {
       };
       const mockSupabase = { client: { from: jest.fn().mockReturnValue(fromChain) } };
 
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
 
       const result = await service.getUnreadCount('user-1');
 
@@ -317,7 +317,7 @@ describe('NotificationsService', () => {
       const fromChain = { select: jest.fn().mockReturnValue({ eq: eqMock }) };
       const mockSupabase = { client: { from: jest.fn().mockReturnValue(fromChain) } };
 
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
 
       expect(await service.getUnreadCount('user-1')).toBe(0);
     });
@@ -329,7 +329,7 @@ describe('NotificationsService', () => {
       const fromChain = { select: jest.fn().mockReturnValue({ eq: eqMock }) };
       const mockSupabase = { client: { from: jest.fn().mockReturnValue(fromChain) } };
 
-      const service = new NotificationsService(mockSupabase as any);
+      const service = new NotificationsService(mockSupabase as any, { sendPush: jest.fn() } as any);
       const logSpy = jest.spyOn((service as any).logger, 'error').mockImplementation(() => {});
 
       const result = await service.getUnreadCount('user-1');

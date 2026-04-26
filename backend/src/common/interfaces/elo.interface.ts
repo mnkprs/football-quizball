@@ -1,4 +1,4 @@
-export type EloMode = 'solo' | 'logo_quiz' | 'logo_quiz_hardcore';
+export type EloMode = 'solo' | 'logo_quiz' | 'logo_quiz_hardcore' | 'duel_forfeit';
 
 export interface EloHistoryEntry {
   user_id: string;

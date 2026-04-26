@@ -63,6 +63,114 @@ Forfeit detection is a server-side concern — the cron sweep already counts for
 
 ---
 
+## [PENDING] Configure Firebase service account for production push delivery
+
+**Source:** `/review` 2026-04-26 (R1=A on the queue widget branch)
+**Trigger:** Before merging `feat/queue-widget` to main, OR before the first user reports missing reservation pushes after merge.
+
+### What
+1. In Firebase Console → Project Settings → Service accounts → Generate new private key. Downloads a JSON.
+2. Set `FIREBASE_SERVICE_ACCOUNT_JSON` env var in Railway production environment to the entire JSON contents (single-line, no surrounding quotes).
+3. Verify after deploy: `curl https://football-quizball-production.up.railway.app/api/health` then check Railway logs for `[PushService] Firebase Admin SDK initialized` (success) or the warning about missing env var (failure).
+4. iOS-side: ensure Push Notifications capability is enabled in Xcode (`frontend/ios/App/App.xcodeproj` → Signing & Capabilities → +Capability → Push Notifications). Verify `aps-environment` entitlement is set to `production` for App Store builds (`development` for TestFlight is fine).
+5. Android-side: confirm `google-services.json` is present in `frontend/android/app/` and Firebase Cloud Messaging is enabled in Firebase Console for the Android app.
+
+### Why
+The push code is fully wired and fail-open — backend logs a warning if `FIREBASE_SERVICE_ACCOUNT_JSON` is missing and quietly skips push delivery. So the queue widget will ship and work, but backgrounded users won't get the reservation push until this env var is set. The longer that stays unconfigured, the more support tickets we'll get from "I lost ELO without seeing a match-found prompt."
+
+### Pros
+- Honors plan decision OV3=A — backgrounded players get the experience the design promised
+- Unlocks every future push notification feature in the app (achievements, daily challenges, friend invites)
+
+### Cons
+- Manual step — credential rotation needs care; service account JSON is sensitive
+- iOS APNs setup has historically been fiddly (provisioning profiles, entitlements)
+
+### Context
+- Backend code: `backend/src/push/push.service.ts` (`onModuleInit` reads env, `sendPush` uses Firebase Admin SDK)
+- Frontend code: `frontend/src/app/core/push-notifications.service.ts` (Capacitor PushNotifications + @capacitor-firebase/messaging)
+- Wired into shell at `frontend/src/app/layout/shell/shell.ts:ngOnInit`
+- Notifications fan out automatically via `NotificationsService.create` → `PushService.sendPush`
+- Failure mode without env: backend logs warn-once on boot, every `sendPush` call is silent no-op, in-app notifications still work normally
+
+### Depends on
+- Access to the StepOver Firebase Console (project owner permissions)
+- Railway env var update permissions
+
+---
+
+## [PENDING] Action-button toasts (extend ToastService)
+
+**Source:** `/plan-design-review` 2026-04-26 (D4 design spec) + Day 4 queue widget polish
+**Trigger:** Next time a feature needs an actionable toast (queue widget would benefit, but didn't block v1).
+
+### What
+Extend `frontend/src/app/core/toast.service.ts` to support an optional action button per toast: `show(message, type, durationMs, action?: { label: string, handler: () => void })`. Update `app-toast` template to render the action button when present.
+
+### Why
+The queue widget design spec called for action buttons on three toasts:
+- Match expired → [Queue again] (re-trigger `QueueStateService.startQueue('logo')`)
+- Lonely-hours hint → [Try Solo] (navigate to `/logo-quiz?tab=solo`)
+- Standard-duel rejection → already explain-only per D3=A, no button needed
+
+Day 4 shipped these as text-only toasts (the copy explains the action; user navigates manually). Action buttons would close the loop in one tap.
+
+### Pros
+- Better UX for the queue widget toasts AND any future actionable notification
+- Single shared component, used everywhere
+
+### Cons
+- Touches a global component (every existing caller still works, but the API expands)
+- Need to handle accessibility (action button should be focusable, keyboard-activatable)
+
+### Context
+Look at `frontend/src/app/shared/toast/toast.html` for current rendering. Action buttons should appear inline with the message, distinguishable from the dismiss affordance.
+
+### Depends on
+- Nothing — pure design system enhancement.
+
+---
+
+## [PENDING] Playwright multi-player E2E fixtures
+
+**Source:** `/plan-eng-review` 2026-04-26 (decision 3A=A) + Day 5 ship prep
+**Trigger:** First production bug related to multi-player matchmaking that the visual-contract tests didn't catch.
+
+### What
+Build the test infrastructure to enable the 7 skipped multi-player E2E flows in `frontend/e2e/queue-widget.spec.ts`:
+- Two seeded test users in Supabase (e.g., `qa-host@stepover.test` and `qa-guest@stepover.test`)
+- `frontend/e2e/fixtures/auth.ts` helper that logs in a context as a specific test user
+- `frontend/e2e/fixtures/duel.ts` helper that resets a user's duel queue state between tests
+- `frontend/e2e/fixtures/two-player.ts` helper that spins up two contexts and authenticates each
+
+Then flip the 7 `test.skip` cases to `test` and flesh out the bodies.
+
+### Why
+The 4 visual-contract tests shipped today cover what regresses on design-system refactors. They don't cover:
+- Two-tab state divergence (queue widget on tab A vs tab B)
+- Match-found ELO penalty actually being -5
+- Boot probe rehydrating a real reserved game
+- Cross-mode exclusivity rejection
+- Hard-refresh restore
+
+These are exactly the bugs that escape unit tests. Fixtures unlock them.
+
+### Pros
+- Locks in the most consequential matchmaking behaviors against regression
+- Same fixture pattern unlocks future E2E coverage for any duel feature
+
+### Cons
+- Test users in production-shape Supabase need careful cleanup (or use a seeded preview branch)
+- ~1-2 days to build the fixture layer + flesh out 7 tests
+
+### Context
+The skeletons in `frontend/e2e/queue-widget.spec.ts` (under `test.describe.skip`) document exactly what each test should assert. Pick them up one at a time.
+
+### Depends on
+- Decision on test-data isolation: dedicated Supabase preview branch (cleanest) vs prod-DB test-user prefix (cheaper)
+
+---
+
 ## [PENDING] Reopen bot fallback decision
 
 **Source:** `/plan-eng-review` 2026-04-26 (decision S0=B, T3)

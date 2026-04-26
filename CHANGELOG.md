@@ -2,6 +2,204 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.24] - 2026-04-26
+
+### Docs — Pre-production push notification setup steps
+
+Added items 36-38 to `pre-production.md`:
+- **#36** Switch `aps-environment` entitlement from `development` to `production` before App Store submission. Notes the dependency on having a non-Sandbox-only APNs Auth Key in Firebase.
+- **#37** Verify `FIREBASE_SERVICE_ACCOUNT_JSON` Railway env var's `project_id` matches `gen-lang-client-0272230126` (where iOS/Android apps are registered, NOT `stepovr-cb448`).
+- **#38** Confirm Firebase Cloud Messaging API (V1) is enabled in the `gen-lang-client-0272230126` project.
+
+Captures the production-readiness state from the `/review` push reconcile session so we don't lose it before App Store submission.
+
+## [0.10.0.23] - 2026-04-26
+
+### Added — Real FCM push delivery + queue widget review fixes
+
+`/review` pre-landing pass on `feat/queue-widget` found three issues. Two auto-fixed, one (P0) prompted real infrastructure work per user decision R1=A.
+
+**P0 — Push notifications were non-functional:** Pre-review, `NotificationsService.create()` only wrote to a DB table. There was no FCM/APNs sending mechanism in the codebase — no `firebase-admin`, no edge function, no DB trigger. The reservation push code from v0.10.0.19 created an in-app notification record but did not push to backgrounded devices. With the -5 ELO forfeit penalty (OV1=B) in place, this would have unfairly punished every backgrounded player.
+
+**Backend — Firebase Admin SDK push delivery** (`backend/src/push/push.service.ts`):
+- Installed `firebase-admin` v13.8.0
+- `PushService` lazy-initializes Firebase Admin from `FIREBASE_SERVICE_ACCOUNT_JSON` env var. Fail-open: if env is missing, logs warn-once on boot and `sendPush` becomes a silent no-op (DB notifications still work; only background delivery degrades).
+- `sendPush(userId, payload)` reads tokens via `getTokensForUser`, builds an FCM `MulticastMessage` with iOS APNs `contentAvailable=true` for background delivery + Android `priority=high`, sends via `admin.messaging().sendEachForMulticast()`.
+- Invalid token cleanup: parses per-token failures from the response. Tokens with `messaging/registration-token-not-registered` or `messaging/invalid-registration-token` errors are deleted from `device_tokens` so the next send doesn't waste quota.
+- `NotificationsService.create()` (`backend/src/notifications/notifications.service.ts`) now calls `pushService.sendPush()` after the DB insert succeeds. Fire-and-forget — push failures don't roll back the in-app notification.
+- `NotificationsModule` imports `PushModule`. `notifications.service.spec.ts` updated to mock `PushService` (20 instantiations patched).
+
+**Frontend — Capacitor + FCM token registration** (`frontend/src/app/core/push-notifications.service.ts`):
+- New `PushNotificationsService`. On app boot (after `auth.sessionReady`):
+  1. Skip on web (`Capacitor.isNativePlatform() === false`)
+  2. Request permissions via `@capacitor-firebase/messaging`
+  3. Get FCM token, POST to `/api/push/register`
+  4. Subscribe to `tokenReceived` for token rotation (Firebase rotates periodically; re-register on each)
+  5. Subscribe to `notificationActionPerformed` for tap deep-linking — reads `data.route` from the push payload and navigates via Angular Router. Reservation pushes carry `route: /duel/{gameId}`, so the user lands directly on the duel page ready to accept.
+- Idempotent `init()` — safe to call multiple times. `unregister()` for logout flow.
+- Wired into `ShellComponent.ngOnInit` alongside `queueState.init()`.
+
+**P1 — `derivePhase` missing 'reserved'** (`frontend/src/app/features/duel/duel.store.ts:41-49`): Function fell through to `'active'`, so a hard-refresh on `/duel/:reservedGameId` during the 10s window rendered "Loading question..." indefinitely. Auto-fixed: added `if (view.status === 'reserved') return 'waiting';` so users see the existing waiting UI until status flips to `'active'` or `'abandoned'`.
+
+**P3 — `applyForfeitPenalty` invariant comment** (`backend/src/duel/duel.service.ts`): Added documentation block explaining that the read-modify-write on `profiles.elo` is safe because S0b global queue exclusivity guarantees one forfeit per user at a time. If S0b is ever relaxed, wrap in `BEGIN; SELECT FOR UPDATE; UPDATE; COMMIT;`.
+
+**Setup required before push works in production**: `FIREBASE_SERVICE_ACCOUNT_JSON` env var must be set in Railway. Download from Firebase Console → Project Settings → Service accounts → Generate new private key. iOS Xcode capability + Android `google-services.json` setup also required. Tracked in `TODOS.md` → "Configure Firebase service account for production push delivery."
+
+**Verification**: backend `tsc --noEmit` clean. Backend `jest --testPathPatterns="notifications|duel.reservation|push"` passes 30/30. Frontend `tsc --noEmit -p tsconfig.app.json` clean. Frontend `ng build --configuration development` succeeds.
+
+## [0.10.0.22] - 2026-04-26
+
+### Added — Queue widget Day 5: Playwright + visual-contract E2E tests + smoke checklist
+
+Day 5 closes the queue widget feature (`feat/queue-widget`). Branch is now ship-ready.
+
+**Playwright** (per eng review decision 3A=A):
+- Installed `@playwright/test` v1.59.1 + Chromium browser.
+- `frontend/playwright.config.ts` — iPhone 14 mobile viewport (the app is mobile-first; most edge cases only manifest at small widths). Auto-spins up `npm run start` for local runs; CI defers to a separate build step.
+- `frontend/e2e/queue-widget.spec.ts` — 4 visual-contract tests using the dev `window.__queueDebug` API. They cover the part most likely to regress on design-system refactors:
+  1. **Searching state** — glass background, pulse dot, label format, Leave button, ARIA polite
+  2. **Reserved state** — red-tinted background, opponent username "vs X", countdown format, Tap to Play CTA, ARIA assertive
+  3. **Hidden state** — widget removed from DOM
+  4. **Cycle** — searching → reserved → hidden via `__queueDebug.cycle()`
+- 7 multi-player flows are documented as `test.skip` skeletons in the same file. Each skeleton lists what it would assert. Enabling them needs Supabase test users + auth/duel fixtures (see TODOS.md → "Playwright multi-player E2E fixtures").
+
+**npm scripts** (`frontend/package.json`):
+- `npm run test:e2e` — runs the full Playwright suite
+- `npm run test:e2e:ui` — opens the Playwright UI for interactive debugging
+
+**Manual smoke checklist artifact** (`~/.gstack/projects/mnkprs-football-quizball/instashop-feat-queue-widget-smoke-checklist-20260426-135237.md`):
+- Covers the 7 multi-player flows that aren't yet automated
+- Plus reservation cleanup cron, CAS guard, build verification, migration apply step
+- Run before `/ship`. Each item is a checkbox; document fails inline.
+
+**TODOS.md** — added "Playwright multi-player E2E fixtures" item with the fixture pattern needed to flip the 7 `test.skip` cases to live tests.
+
+**Build verification**: `tsc --noEmit -p tsconfig.app.json` clean. `ng build --configuration development` succeeds (pre-existing warnings only). 4 Playwright tests structurally complete; runnable via `npm run test:e2e` once `npm start` is up.
+
+**Branch state**: `feat/queue-widget` is ship-ready pending the manual smoke checklist + Supabase migration apply (`supabase db push`). Run `/ship` next.
+
+## [0.10.0.21] - 2026-04-26
+
+### Added — Queue widget Day 4: route-aware hide + 3 toasts + lonely-hours hint
+
+Day 4 polish layer on the queue widget. Closes the four explicit Day 4 plan items.
+
+**Route-aware hide**:
+- `QueueStateService` now subscribes to `Router` `NavigationEnd` and tracks the current URL path. New `displayState()` computed signal returns `'hidden'` when the current route equals `/duel/{activeQueue.gameId}` — the widget gracefully disappears when the player arrives at the duel they just accepted, instead of stacking on top of the duel screen.
+- `<so-queue-widget>` template + ARIA wiring now read `displayState()` instead of `widgetState()` so the route hide takes effect everywhere.
+
+**Three toast variants** (using existing `ToastService.show()` — text-only for v1):
+- **Match expired** (8s, error) — fires when widget transitions from `reserved` → server `abandoned`. Tells the user about the -5 ELO penalty and prompts to re-queue. Also fires on accept-race (409) where the forfeit cron beat us to the row.
+- **Standard-duel rejection** — already shipped Day 3 via the backend ConflictException → toast in `logo-quiz.onFindDuel()`. No new code needed.
+- **Lonely-hours hint** (6s, info) — fires once per queue session at 60s elapsed if widget is still in `searching` state. Copy: "Quiet hours? Try Solo Logo Quiz while you wait." Plan decision D4=A.
+
+**User-initiated leave is silent**: tapping Leave during reserved state still applies the -5 ELO penalty server-side (per OV1=B), but the client doesn't surface a toast — the user explicitly chose to leave, so reminding them feels hostile.
+
+**TODOS.md** — added "Action-button toasts" item. The design spec called for `[Queue again]` and `[Try Solo]` action buttons inside the toasts; shipping text-only for v1 since extending `ToastService` to support actions touches a global component used app-wide. Deferred to a dedicated follow-up.
+
+**Build verification**: `tsc --noEmit` clean. `ng build --configuration development` succeeds (pre-existing warnings only).
+
+**Day 5 next**: install Playwright, write the 8 E2E flows from the test plan, run /qa, prep merge.
+
+## [0.10.0.20] - 2026-04-26
+
+### Added — Queue widget Day 3: real backend wiring + boot probe
+
+Day 3 of the floating duel queue widget. Replaces the Day 1 mock with real `DuelApiService` calls. The widget now responds to actual server state.
+
+**`DuelApiService`** (`frontend/src/app/features/duel/duel-api.service.ts`):
+- `acceptGame(gameId)` — POST /api/duel/:id/accept (Day 2 endpoint).
+- `DuelPublicView.status` extended with `'reserved'`.
+- `DuelReservationInfo` interface + optional `reservation` field on `DuelPublicView`.
+
+**`QueueStateService`** (`frontend/src/app/core/queue-state.service.ts`) rewritten end-to-end:
+- `init()` — boot probe. Awaits `auth.sessionReady`, queries `listMyGames()`, finds any open `waiting`/`reserved` game without an invite code, hydrates the widget. Filters out reservations with `secondsRemaining <= 0` so widget doesn't rehydrate into a doomed state if cron sweep is briefly behind. Plan decision 1C=A.
+- `startQueue(gameType)` — calls real `joinQueue()`, applies returned state, kicks off poll loop. If matchmaking returns instantly (status='reserved'), widget jumps straight to match-found state.
+- `acceptMatch()` — calls real `acceptGame()`. If both players have accepted server-side, returned status='active' triggers `applyServerState` → navigate to `/duel/:gameId`.
+- `leaveQueue()` — calls real `abandonGame()`. Clears state regardless of server response (defensive — backend may have already abandoned via timeout).
+- Poll loop — `setInterval(2s)` while `activeQueue !== null`. Each tick calls `getGame(id)` and threads through `applyServerState`. Network blips don't kill the loop; only an unrecoverable response clears state.
+- Elapsed ticker — separate 1s interval drives the searching-state countdown. Reserved-state countdown sourced from server `reservation.secondsRemaining` to avoid clock drift.
+- `applyServerState(game)` — single transition function. Status routing: `waiting` → searching widget; `reserved` → reserved widget with countdown; `active` → navigate + clear; `finished`/`abandoned` → clear.
+
+**Shell** (`frontend/src/app/layout/shell/shell.ts`):
+- Injects `QueueStateService`. `ngOnInit` calls `queueState.init()` once at app boot. Method internally awaits `sessionReady`, so safe to call early.
+
+**Logo Quiz** (`frontend/src/app/features/logo-quiz/logo-quiz.{ts,html}`):
+- Find Duel button replaced with `(pressed)="onFindDuel()"` handler. No more direct `routerLink="/duel"` — the widget owns the matchmaking experience.
+- `onFindDuel()` calls `queueState.startQueue('logo')`. On error (cross-mode rejection, cooldown, etc.), surfaces the backend message via `ToastService.show(msg, 'error')`. Local `findingDuel` signal disables the button + swaps label to "Finding…" while in flight.
+- Widget takes over visible state from there — user stays on `/logo-quiz?tab=duel` while queueing, can browse anywhere, sees match-found via the floating widget.
+
+**Build verification**: `tsc --noEmit -p tsconfig.app.json` clean. `ng build --configuration development` succeeds (pre-existing warnings only).
+
+**Day 4 next**: hide-on-duel route logic, three toast variants (Match expired / Std-duel rejection / Lonely-hours hint at 60s), polish.
+
+## [0.10.0.19] - 2026-04-26
+
+### Added — Queue widget Day 2: backend reservation state + ELO forfeit
+
+Day 2 of the floating duel queue widget. Pure backend — no frontend changes. Adds the `reserved` state to `duel_games` so the matchmaker can hold a 10s tap-to-enter window between matchmaking and active gameplay. Day 3 wires the frontend.
+
+**Migration** (`supabase/migrations/20260426133304_duel_reservation_state.sql`):
+- `status` CHECK extended with `'reserved'`
+- `host_accepted_at`, `guest_accepted_at`, `reserved_at` TIMESTAMPTZ columns
+- `idx_duel_games_queue` partial index broadened from `WHERE status='waiting'` to `WHERE status IN ('waiting','reserved')` (plan 4A=B) so the cron sweep doesn't seq-scan
+- Two partial UNIQUE indexes (`idx_duel_games_host_one_active`, `idx_duel_games_guest_one_active`) enforce S0b global queue exclusivity at the DB layer (defense-in-depth beyond the app-level singleton guard). Invite-code games excluded.
+
+**Backend (`backend/src/duel/duel.service.ts`)**:
+- `joinQueue()`: tightened singleton guard from per-game-type to global (S0b=A). Cross-mode join requests get a clear `ConflictException` with a "Leave that first to switch modes" message that the Day 4 standard-duel rejection toast will surface. Match path now transitions to `reserved` (not directly setting guest_id), stamps `reserved_at`, schedules the in-memory forfeit timer, and fires push notifications to both players.
+- `acceptGame(userId, gameId)` — POST /api/duel/:id/accept handler. CAS-guarded on `status='reserved'` so concurrent accept/forfeit can't race. Idempotent for the calling user. When BOTH players accept, flips `status='active'` AND sets `host_ready=true`/`guest_ready=true`/`question_started_at=NOW()` in one update — acceptance acts as the ready-up for queue-matched games (no separate markReady call needed).
+- `forfeitOnReservationTimeout(gameId)` — fired by both `setTimeout(10s)` (in-memory, fast path) and `@Cron('*/30 * * * * *')` (durable, survives Railway redeploys). CAS-idempotent on `status='reserved'` — only the first invocation flips state. Applies `-5 ELO` to whichever player(s) didn't accept (plan OV1=B), returns drawn questions to the pool.
+- `cleanupStaleReservations()` — cron sweep, hard-cap 50 stale reservations per pass.
+- `applyForfeitPenalty(userId)` — writes `elo_history` row with `mode='duel_forfeit'`, decrements `profiles.elo` (floor 500). Mirrors solo timeout extra -5 pattern conceptually but keeps duel forfeits distinguishable in analytics.
+- `sendReservationPush(row)` — push to both players via existing `NotificationsService` so backgrounded users get the 10s window prompt (plan OV3=A).
+- `abandonGame()` extended: if status is `'reserved'`, the abandoning player gets the `-5 ELO` penalty and the in-memory timer is cancelled.
+- `toPublicView()`: includes optional `reservation` block (secondsRemaining, hostAccepted, guestAccepted) when status is `'reserved'`. Frontend reads this to render the match-found state countdown.
+
+**Backend (`backend/src/duel/duel.controller.ts`)**:
+- `POST /api/duel/:id/accept` — throttled 3 req/s per user.
+
+**Schema types (`backend/src/duel/duel.types.ts`)**:
+- `DuelPublicView.status` and `DuelGameRow.status` extended with `'reserved'`.
+- `DuelGameRow` adds `reserved_at`, `host_accepted_at`, `guest_accepted_at` (all nullable).
+- `DuelReservationInfo` interface and optional `reservation` field on `DuelPublicView`.
+
+**ELO interface (`backend/src/common/interfaces/elo.interface.ts`)**:
+- `EloMode` extended with `'duel_forfeit'`.
+
+**Tests (`backend/src/duel/duel.reservation.spec.ts`)** — 10 new tests covering acceptGame status guard / idempotency / first-vs-second-accept, forfeitOnReservationTimeout no-op cases, applyForfeitPenalty -5 + ELO floor + missing profile fallback, joinQueue cross-mode rejection regression. All passing. Existing 13 finalizeDuelGame tests still passing — no regressions.
+
+**Build verification**: `tsc --noEmit` clean (only pre-existing unrelated errors in scripts/ and one match-history test). `jest --testPathPatterns="duel"` passes 23/23.
+
+## [0.10.0.18] - 2026-04-26
+
+### Changed — Queue widget Day 1 polish: design system primitives
+
+Refactored `<so-queue-widget>` to use design-system primitives instead of hardcoded values. Functional behavior unchanged — same three states, same animations, same ARIA — but the implementation now leans on shared tokens and utility classes the rest of the codebase already uses.
+
+- **`.so-glass` mixin** replaces hardcoded `rgba(58, 57, 57, 0.4) + backdrop-filter: blur(20px)`. The widget container composes the glassmorphism mixin (`var(--glass-bg)` + `var(--glass-blur)` + `var(--glass-border)`).
+- **`.type-label-md` utility class** on the searching label replaces the hand-rolled font-family + font-size + letter-spacing block. `--text-label-md` (12px Lexend 500/0.04em) comes through the canonical typography scale.
+- **`.type-title-md` utility class** on the opponent name (16px Inter 500). Same canonical scale.
+- **`.so-text-numeric` utility class** on the countdown gives tabular-nums + Space Grotesk in one class. Avoids width-jitter as 9s → 8s → 7s tick down.
+- **Reserved-state red glass** now overrides `--glass-bg` locally (instead of replacing the entire background rule), so `.so-glass` keeps providing blur + border consistently — only the tint changes.
+
+Build: tsc clean, ng build clean.
+
+## [0.10.0.17] - 2026-04-26
+
+### Added — Floating duel queue widget (Day 1 scaffold, mocked)
+
+Day 1 of the queue widget feature (`feat/queue-widget` branch, NOT merging to main yet — bundled merge after Day 5 per eng review decision OV4=B). Pure frontend scaffold with mocked state. No backend changes.
+
+**`QueueStateService`** (`frontend/src/app/core/queue-state.service.ts`) — singleton signal-driven service for the floating queue widget. Three widget states: `searching` (counts up elapsed time), `reserved` (counts down 10s match-found window), `hidden`. Public API `startQueue()` / `acceptMatch()` / `leaveQueue()` is mocked Day 1; Day 3 wires real `DuelApiService.joinQueue()` / `acceptGame()` / `abandonGame()`. Dev-only debug controls exposed on `window.__queueDebug` for visual review (`showSearching()`, `showReserved('Sarah_K')`, `hide()`, `cycle()`).
+
+**`<so-queue-widget>`** (`frontend/src/app/shared/ui/so-queue-widget/`) — three-state widget per design spec. Searching: glassmorphism background (--color-surface-bright @ 40% + backdrop-blur), pulsing iOS-Blue dot, label-md typography ("In queue · Logo Duel · 0:23"), `<so-button variant="ghost">Leave</so-button>`. Reserved: red-glass background (rgba(239,68,68,0.18) @ blur), opponent username + countdown (urgent red when ≤5s), `<so-button variant="primary">TAP TO PLAY</so-button>`. Hidden: not rendered. ARIA: `role="status"` with assertive live region during reserved (interrupts), polite during searching. Notch-safe top inset. `prefers-reduced-motion` respected (animations stripped).
+
+**Shell mount** — widget mounted in `frontend/src/app/layout/shell/shell.html` between `<app-top-nav>` and `<main>`, sibling to the existing pull-to-refresh chrome. `SoQueueWidgetComponent` added to ShellComponent imports.
+
+**Build verified green** — `tsc --noEmit -p tsconfig.app.json` passes. `ng build --configuration development` succeeds. Only pre-existing warnings remain (mayhem-mode template, profile-achievements unused import — both unrelated to this feature).
+
+**Plan source of truth:** `~/.gstack/projects/mnkprs-football-quizball/instashop-main-design-20260426-114852.md` (eng + design reviews CLEARED, 16 decisions locked).
+
 ## [0.10.0.16] - 2026-04-25
 
 ### Changed — Profile analytics preview, hardcore visual identity, and 2-player lobby chrome

@@ -1,5 +1,6 @@
 <div class="shell-layout">
   <app-top-nav [showBar]="isHome() || shellUi.showTopNavBar()" />
+  <so-queue-widget />
   <app-upgrade-modal />
   @if (refresh.hasHandler()) {
     <div

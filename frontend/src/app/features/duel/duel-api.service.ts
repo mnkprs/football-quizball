@@ -26,9 +26,17 @@ export interface DuelQuestionResult {
   is_pro_logo?: boolean;
 }
 
+export interface DuelReservationInfo {
+  reservedAt: string;
+  /** Server-clamped to [0, 10]. Used by the floating queue widget countdown. */
+  secondsRemaining: number;
+  hostAccepted: boolean;
+  guestAccepted: boolean;
+}
+
 export interface DuelPublicView {
   id: string;
-  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  status: 'waiting' | 'reserved' | 'active' | 'finished' | 'abandoned';
   inviteCode: string | null;
   myRole: 'host' | 'guest';
   myUserId: string;
@@ -41,6 +49,8 @@ export interface DuelPublicView {
   hostReady: boolean;
   guestReady: boolean;
   gameType: DuelGameType;
+  /** Present only when status === 'reserved' — drives the queue widget. */
+  reservation?: DuelReservationInfo;
 }
 
 export interface DuelAnswerResult {
@@ -56,7 +66,7 @@ export interface DuelAnswerResult {
 
 export interface DuelGameSummary {
   id: string;
-  status: 'waiting' | 'active' | 'finished' | 'abandoned';
+  status: 'waiting' | 'reserved' | 'active' | 'finished' | 'abandoned';
   inviteCode: string | null;
   scores: { host: number; guest: number };
   opponentUsername: string | null;
@@ -101,6 +111,11 @@ export class DuelApiService {
 
   markReady(gameId: string): Observable<DuelPublicView> {
     return this.http.post<DuelPublicView>(`${this.base}/${gameId}/ready`, {}, { headers: this.headers() });
+  }
+
+  /** Accept a match-found reservation within the 10s window. */
+  acceptGame(gameId: string): Observable<DuelPublicView> {
+    return this.http.post<DuelPublicView>(`${this.base}/${gameId}/accept`, {}, { headers: this.headers() });
   }
 
   submitAnswer(gameId: string, answer: string, questionIndex: number): Observable<DuelAnswerResult> {

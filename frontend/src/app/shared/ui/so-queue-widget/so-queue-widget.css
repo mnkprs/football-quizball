@@ -1,0 +1,102 @@
+/* Floating duel queue widget — sticky chrome below <app-top-nav>.
+ *
+ * Design system usage:
+ *   .so-glass          — base glassmorphism (composes --glass-bg/blur/border)
+ *   .type-label-md     — Lexend 12px/500/0.04em (searching label)
+ *   .type-title-md     — Inter 16px/500 (opponent name)
+ *   .so-text-numeric   — tabular-nums Space Grotesk (countdown)
+ *
+ * Reserved state overrides --glass-bg locally to swap the neutral glass for
+ * red-tinted glass. Background and border tokens scope to this element only.
+ *
+ * Mounts in shell.html as a sibling between <app-top-nav> and <main>,
+ * mirroring the .shell-ptr (pull-to-refresh) chrome pattern.
+ */
+
+.so-queue-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  min-height: 56px;
+
+  /* .so-glass provides background, blur, border. Override border-radius (the
+   * mixin doesn't set one, but keeping explicit so the widget reads as a
+   * full-width strip not a rounded card). */
+  border-radius: 0;
+  border-bottom: 1px solid var(--glass-border);
+
+  /* Notch-safe — push below the iOS status bar. */
+  padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+
+  animation: so-queue-widget-slide-in 300ms var(--ease-out-quart);
+  transition:
+    background 200ms var(--ease-out-quart),
+    border-color 200ms var(--ease-out-quart);
+
+  color: var(--color-foreground);
+}
+
+/* ── Match-found (reserved) state — red-tinted glass override ────────────── */
+
+.so-queue-widget--reserved {
+  /* Override --glass-bg locally so .so-glass renders red. Stays inside the
+   * design system's glassmorphism approach — same blur, same border concept,
+   * just a danger-tinted base. */
+  --glass-bg: rgba(239, 68, 68, 0.18); /* --color-destructive @ 18% */
+  border-bottom-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ── Searching state ─────────────────────────────────────────────────────── */
+
+.so-queue-widget__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: so-queue-widget-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.so-queue-widget__label {
+  flex: 1;
+  /* Typography: .type-label-md utility on the element provides font/size/letter-spacing.
+   * Color stays inherited (--color-foreground). */
+}
+
+/* ── Reserved state ──────────────────────────────────────────────────────── */
+
+.so-queue-widget__opponent {
+  flex: 1;
+  /* Typography: .type-title-md utility provides font/size/weight/line-height. */
+}
+
+.so-queue-widget__countdown {
+  /* .so-text-numeric provides tabular-nums + Space Grotesk family. */
+  font-size: var(--text-label-md);
+  font-weight: 500;
+  margin-right: var(--space-2);
+}
+
+.so-queue-widget__countdown--urgent {
+  color: var(--color-destructive);
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes so-queue-widget-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(1.2); }
+}
+
+@keyframes so-queue-widget-slide-in {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .so-queue-widget,
+  .so-queue-widget__dot {
+    animation: none;
+  }
+}

@@ -38,6 +38,8 @@ import { ProService } from '../../core/pro.service';
 import { AnalyticsService } from '../../core/analytics.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 import { RefreshService } from '../../core/refresh.service';
+import { QueueStateService } from '../../core/queue-state.service';
+import { ToastService } from '../../core/toast.service';
 
 type Phase = 'idle' | 'loading' | 'question' | 'finished';
 type SubMode = 'solo' | 'duel' | 'royale';
@@ -77,7 +79,32 @@ export class LogoQuizComponent implements OnDestroy {
   private tierPromotion = inject(TierPromotionService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private queueState = inject(QueueStateService);
+  private toast = inject(ToastService);
   lang = inject(LanguageService);
+
+  /** Local Find-Duel button state — true while waiting for joinQueue to return. */
+  findingDuel = signal(false);
+
+  /**
+   * Find Duel button handler. Starts a logo-mode queue via QueueStateService;
+   * the floating widget then takes over the visible state. On error, surface
+   * the backend message via toast (covers the standard-duel-rejection case
+   * baked into duel.service ConflictException).
+   */
+  async onFindDuel(): Promise<void> {
+    if (this.findingDuel()) return;
+    this.findingDuel.set(true);
+    try {
+      await this.queueState.startQueue('logo');
+    } catch (err: unknown) {
+      const msg = (err as { error?: { message?: string } })?.error?.message
+        ?? 'Could not start the duel queue. Try again.';
+      this.toast.show(msg, 'error');
+    } finally {
+      this.findingDuel.set(false);
+    }
+  }
 
   // State
   phase = signal<Phase>('idle');

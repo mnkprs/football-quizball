@@ -6,6 +6,7 @@ import {
   ForbiddenException,
   ConflictException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
 import { QuestionPoolService } from '../questions/question-pool.service';
 import { AnswerValidator } from '../questions/validators/answer.validator';
@@ -35,6 +36,10 @@ const WIN_TARGET = 5;
 const PREFETCH_COUNT = 30;
 /** Game ends after this many questions regardless of score (AFK safety valve) */
 export const MAX_QUESTIONS = 10;
+/** Match-found tap-to-enter window. Plan decision 1B/OV2. */
+const RESERVATION_WINDOW_MS = 10_000;
+/** ELO penalty for a reservation no-show (plan decision OV1=B). */
+const FORFEIT_ELO_PENALTY = 5;
 
 function generateInviteCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -43,6 +48,14 @@ function generateInviteCode(): string {
 @Injectable()
 export class DuelService {
   private readonly logger = new Logger(DuelService.name);
+
+  /**
+   * In-memory reservation timers — fast-path forfeit at exactly 10s.
+   * Lives alongside the @Cron sweep (cleanupStaleReservations) which is the
+   * durable belt-and-suspenders path that survives Railway redeploys.
+   * Plan decision 1B=B.
+   */
+  private readonly reservationTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -165,24 +178,33 @@ export class DuelService {
   async joinQueue(userId: string, dto?: JoinQueueDto): Promise<DuelPublicView> {
     const gameType: DuelGameType = dto?.gameType ?? 'standard';
 
-    // Singleton guard: if the user is already in a queue game (no invite code) or active duel
-    // OF THIS TYPE, return that game instead of creating a second one.
-    // Excludes invite-code waiting games — those are a separate flow.
+    // Global singleton guard (S0b=A): one queue per user across ALL game_types.
+    // Tightened from per-game-type to global so the floating queue widget can
+    // safely show one badge at a time. Invite-code waiting games are still
+    // excluded — they're a separate flow that allows coexistence.
     const { data: existing } = await this.supabaseService.client
       .from('duel_games')
       .select('*')
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
-      .eq('game_type', gameType)
-      .in('status', ['waiting', 'active'])
+      .in('status', ['waiting', 'reserved', 'active'])
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
 
     if (existing) {
       const row = existing as DuelGameRow;
-      // Skip invite-code waiting games — user should be able to queue separately
+      // Skip invite-code waiting games — user should be able to queue separately.
       const isInviteWaiting = row.status === 'waiting' && row.invite_code && !row.guest_id;
       if (!isInviteWaiting) {
+        // Cross-mode rejection (e.g., user is in logo queue, requests standard)
+        // surfaces a clear error so the standard-duel rejection toast (Day 4)
+        // can show a helpful message instead of a generic 409.
+        if (row.game_type !== gameType) {
+          const currentMode = row.game_type === 'logo' ? 'Logo Duel' : 'Duel';
+          throw new ConflictException(
+            `You're already in a ${currentMode} queue. Leave that first to switch modes.`,
+          );
+        }
         const [hostUsername, guestUsername] = await Promise.all([
           this.getUsername(row.host_id),
           row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
@@ -206,9 +228,19 @@ export class DuelService {
 
     if (candidates && candidates.length > 0) {
       const candidate = candidates[0] as DuelGameRow;
+      // CAS update: transition waiting → reserved AND set guest_id atomically.
+      // Old behavior just set guest_id; new behavior also flips status and
+      // stamps reserved_at so the 10s tap-to-enter window starts now.
+      const reservedAt = new Date().toISOString();
       const { data: joined, error } = await this.supabaseService.client
         .from('duel_games')
-        .update({ guest_id: userId })
+        .update({
+          guest_id: userId,
+          status: 'reserved',
+          reserved_at: reservedAt,
+          host_accepted_at: null,
+          guest_accepted_at: null,
+        })
         .eq('id', candidate.id)
         .eq('status', 'waiting')
         .is('guest_id', null)
@@ -216,6 +248,7 @@ export class DuelService {
         .single();
 
       if (!error && joined) {
+        const joinedRow = joined as DuelGameRow;
         // Record questions in guest's history (board was drawn by host)
         if (gameType === 'standard') {
           const joinedPoolIds = (candidate.pool_question_ids ?? []);
@@ -223,12 +256,20 @@ export class DuelService {
             this.logger.warn(`[joinQueue] recordBoardHistory failed: ${err?.message}`),
           );
         }
+        // Schedule the in-memory forfeit timer. Cron sweep is the durable
+        // backup if this process dies before firing.
+        this.scheduleReservationTimeout(joinedRow.id);
+        // Fire push notifications to BOTH players so backgrounded users see
+        // the match-found prompt before the 10s window closes (plan OV3).
+        void this.sendReservationPush(joinedRow).catch((err) =>
+          this.logger.warn(`[joinQueue] reservation push failed: ${err?.message}`),
+        );
         const [hostUsername, guestUsername] = await Promise.all([
-          this.getUsername(candidate.host_id),
+          this.getUsername(joinedRow.host_id),
           this.getUsername(userId),
         ]);
-        const freePoolCutoff = (joined as DuelGameRow).game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
-        return this.toPublicView(joined as DuelGameRow, userId, hostUsername, guestUsername, freePoolCutoff);
+        const freePoolCutoff = joinedRow.game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+        return this.toPublicView(joinedRow, userId, hostUsername, guestUsername, freePoolCutoff);
       }
       // Race condition — someone else grabbed it; fall through to create own
     }
@@ -262,6 +303,251 @@ export class DuelService {
     return this.toPublicView(data as DuelGameRow, userId, hostUsername, null, freePoolCutoff);
   }
 
+  // ── Reservation acceptance (10s tap-to-enter window) ──────────────────────
+
+  /**
+   * Player explicitly accepts a match-found reservation.
+   *
+   * Flow:
+   *   - 404 if game doesn't exist or user not a participant
+   *   - 409 if game is not in 'reserved' status (already accepted/expired)
+   *   - 200 idempotent if user already accepted (no-op)
+   *   - On the FIRST acceptance: stamp host_accepted_at OR guest_accepted_at
+   *   - On the SECOND acceptance: BOTH timestamps set → flip to 'active' AND
+   *     mark both ready (acceptance IS the ready-up for queue-matched games),
+   *     stamp question_started_at, cancel the in-memory forfeit timer
+   *
+   * Plan decisions: 1A (two timestamp columns), 1B (CAS guard), OV2 (symmetric).
+   */
+  async acceptGame(userId: string, gameId: string): Promise<DuelPublicView> {
+    const row = await this.fetchGame(gameId, userId);
+
+    if (row.status !== 'reserved') {
+      throw new ConflictException('Match is no longer reserved.');
+    }
+
+    const role: 'host' | 'guest' = row.host_id === userId ? 'host' : 'guest';
+    const myAcceptedAt = role === 'host' ? row.host_accepted_at : row.guest_accepted_at;
+    const otherAcceptedAt = role === 'host' ? row.guest_accepted_at : row.host_accepted_at;
+
+    // Idempotent: already accepted, return current view.
+    if (myAcceptedAt) {
+      const [hostUsername, guestUsername] = await Promise.all([
+        this.getUsername(row.host_id),
+        row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
+      ]);
+      const freePoolCutoff = row.game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+      return this.toPublicView(row, userId, hostUsername, guestUsername, freePoolCutoff);
+    }
+
+    const now = new Date().toISOString();
+    const bothAcceptingNow = !!otherAcceptedAt;
+    const updates: Partial<DuelGameRow> = role === 'host'
+      ? { host_accepted_at: now }
+      : { guest_accepted_at: now };
+
+    if (bothAcceptingNow) {
+      // Second player accepting flips the game live. Acceptance acts as the
+      // ready-up for queue-matched games — no separate markReady call needed.
+      Object.assign(updates, {
+        status: 'active' as const,
+        host_ready: true,
+        guest_ready: true,
+        question_started_at: now,
+      });
+    }
+
+    // CAS guard on status='reserved' — concurrent forfeit timer can't beat us
+    // to the row because both targets check the same status precondition.
+    const { data: updated, error } = await this.supabaseService.client
+      .from('duel_games')
+      .update({ ...updates, updated_at: now })
+      .eq('id', gameId)
+      .eq('status', 'reserved')
+      .select('*')
+      .single();
+
+    if (error || !updated) {
+      // Lost the race — likely the forfeit timer fired between fetch and update.
+      throw new ConflictException('Match is no longer reserved.');
+    }
+
+    if (bothAcceptingNow) {
+      this.cancelReservationTimeout(gameId);
+    }
+
+    const updatedRow = updated as DuelGameRow;
+    const [hostUsername, guestUsername] = await Promise.all([
+      this.getUsername(updatedRow.host_id),
+      updatedRow.guest_id ? this.getUsername(updatedRow.guest_id) : Promise.resolve(null),
+    ]);
+    const freePoolCutoff = updatedRow.game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+    return this.toPublicView(updatedRow, userId, hostUsername, guestUsername, freePoolCutoff);
+  }
+
+  // ── Reservation expiry / cleanup (in-memory timer + cron sweep) ───────────
+
+  /** Schedule the in-memory forfeit timer. Idempotent — replaces any prior timer. */
+  private scheduleReservationTimeout(gameId: string): void {
+    this.cancelReservationTimeout(gameId);
+    const timer = setTimeout(() => {
+      this.reservationTimers.delete(gameId);
+      void this.forfeitOnReservationTimeout(gameId).catch((err) =>
+        this.logger.warn(`[reservation:timeout] ${gameId} forfeit failed: ${err?.message}`),
+      );
+    }, RESERVATION_WINDOW_MS);
+    this.reservationTimers.set(gameId, timer);
+  }
+
+  /** Cancel the in-memory timer (called when both players accept). */
+  private cancelReservationTimeout(gameId: string): void {
+    const existing = this.reservationTimers.get(gameId);
+    if (existing) {
+      clearTimeout(existing);
+      this.reservationTimers.delete(gameId);
+    }
+  }
+
+  /**
+   * Forfeit the no-show party (or both if neither accepted). CAS-idempotent on
+   * status='reserved' so concurrent invocation (setTimeout + cron + accept
+   * race) is safe — only the first to flip status wins.
+   */
+  async forfeitOnReservationTimeout(gameId: string): Promise<void> {
+    const { data: rowData } = await this.supabaseService.client
+      .from('duel_games')
+      .select('*')
+      .eq('id', gameId)
+      .single();
+
+    if (!rowData) return; // gone
+    const row = rowData as DuelGameRow;
+    if (row.status !== 'reserved') return; // already accepted, abandoned, or finished
+
+    const now = new Date().toISOString();
+    const { data: updated, error } = await this.supabaseService.client
+      .from('duel_games')
+      .update({ status: 'abandoned', updated_at: now })
+      .eq('id', gameId)
+      .eq('status', 'reserved') // CAS — only succeed if still reserved
+      .select('*')
+      .single();
+
+    if (error || !updated) return; // someone else got there first
+
+    // Apply -5 ELO to whichever player(s) failed to accept.
+    // Plan decision OV1=B: flat -5, no opponent gain, write to elo_history only
+    // (no match_history, no achievements — forfeit is not a real game outcome).
+    const noShowIds: string[] = [];
+    if (!row.host_accepted_at) noShowIds.push(row.host_id);
+    if (row.guest_id && !row.guest_accepted_at) noShowIds.push(row.guest_id);
+
+    for (const userId of noShowIds) {
+      void this.applyForfeitPenalty(userId).catch((err) =>
+        this.logger.warn(`[reservation:forfeit] elo penalty failed for ${userId}: ${err?.message}`),
+      );
+    }
+
+    // Return drawn questions to the pool so they can be reused.
+    const poolIds = (row.pool_question_ids ?? []).filter(Boolean);
+    if (poolIds.length > 0) {
+      void this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
+        this.logger.warn(`[reservation:forfeit] returnUnansweredToPool failed: ${err.message}`),
+      );
+    }
+  }
+
+  /**
+   * Belt-and-suspenders cron sweep — durable across Railway redeploys that
+   * kill in-memory setTimeout. Runs every 30s; idempotent with the timer path.
+   * Plan decision 1B=B.
+   */
+  @Cron(CronExpression.EVERY_30_SECONDS)
+  async cleanupStaleReservations(): Promise<void> {
+    const cutoff = new Date(Date.now() - RESERVATION_WINDOW_MS).toISOString();
+    const { data, error } = await this.supabaseService.client
+      .from('duel_games')
+      .select('id')
+      .eq('status', 'reserved')
+      .lt('reserved_at', cutoff)
+      .limit(50); // hard cap per sweep so a flood doesn't tie up a worker
+
+    if (error) {
+      this.logger.warn(`[reservation:cleanup] query failed: ${error.message}`);
+      return;
+    }
+    if (!data || data.length === 0) return;
+
+    this.logger.log(`[reservation:cleanup] sweeping ${data.length} stale reservations`);
+    for (const row of data) {
+      await this.forfeitOnReservationTimeout(row.id);
+    }
+  }
+
+  /**
+   * Write a -5 ELO history row + decrement profile.elo for the no-show party.
+   * Mirrors the existing solo "timeout extra -5" pattern conceptually but uses
+   * the reservation_forfeit difficulty value so analytics can distinguish them.
+   *
+   * Concurrency note: this is read-modify-write without a transaction. Safe
+   * because S0b global queue exclusivity (enforced by both the app-level
+   * singleton guard and the DB-level partial UNIQUE indexes) means a single
+   * user can only have one active queue/reservation at a time. Therefore at
+   * most one forfeit can fire for a given user concurrently. If S0b is ever
+   * relaxed, wrap this in `BEGIN; SELECT FOR UPDATE; UPDATE; COMMIT;`.
+   */
+  private async applyForfeitPenalty(userId: string): Promise<void> {
+    const profile = await this.supabaseService.getProfile(userId);
+    const eloBefore = profile?.elo ?? 1000;
+    const eloAfter = Math.max(500, eloBefore - FORFEIT_ELO_PENALTY); // ELO floor 500
+    const eloChange = eloAfter - eloBefore;
+
+    await this.supabaseService.updateElo(userId, eloAfter);
+    await this.supabaseService.insertEloHistory({
+      user_id: userId,
+      elo_before: eloBefore,
+      elo_after: eloAfter,
+      elo_change: eloChange,
+      question_difficulty: 'reservation_forfeit',
+      correct: false,
+      timed_out: true,
+      mode: 'duel_forfeit',
+    });
+  }
+
+  /** Push notifications to both players when their match is reserved. Plan OV3=A. */
+  private async sendReservationPush(row: DuelGameRow): Promise<void> {
+    if (!row.guest_id) return;
+    const [hostName, guestName] = await Promise.all([
+      this.getUsername(row.host_id),
+      this.getUsername(row.guest_id),
+    ]);
+    const route = `/duel/${row.id}`;
+    const body = (opponentName: string) =>
+      `You're matched against ${opponentName}. Tap to play (10s).`;
+
+    await Promise.allSettled([
+      this.notificationsService.create({
+        userId: row.host_id,
+        type: 'duel_reservation',
+        title: 'Match Found',
+        body: body(guestName),
+        icon: '⚡',
+        route,
+        metadata: { gameId: row.id, gameType: row.game_type },
+      }),
+      this.notificationsService.create({
+        userId: row.guest_id,
+        type: 'duel_reservation',
+        title: 'Match Found',
+        body: body(hostName),
+        icon: '⚡',
+        route,
+        metadata: { gameId: row.id, gameType: row.game_type },
+      }),
+    ]);
+  }
+
   // ── Read ──────────────────────────────────────────────────────────────────
 
   async getGame(userId: string, gameId: string): Promise<DuelPublicView> {
@@ -279,7 +565,7 @@ export class DuelService {
       .from('duel_games')
       .select('id, invite_code, status, scores, host_id, guest_id, game_type, updated_at')
       .or(`host_id.eq.${userId},guest_id.eq.${userId}`)
-      .in('status', ['waiting', 'active'])
+      .in('status', ['waiting', 'reserved', 'active'])
       .order('updated_at', { ascending: false })
       .limit(20);
 
@@ -490,6 +776,16 @@ export class DuelService {
     if (poolIds.length > 0) {
       void this.questionPoolService.returnUnansweredToPool(poolIds).catch((err: Error) =>
         this.logger.warn(`[abandonGame] Failed to return questions to pool: ${err.message}`),
+      );
+    }
+
+    // Reserved-state abandonment IS a forfeit — the abandoning player gets the
+    // -5 ELO penalty (plan decision OV1=B). Cancel the in-memory timer too,
+    // since we're handling the abandon explicitly.
+    if (row.status === 'reserved') {
+      this.cancelReservationTimeout(gameId);
+      void this.applyForfeitPenalty(userId).catch((err) =>
+        this.logger.warn(`[abandonGame:reserved] elo penalty failed: ${err?.message}`),
       );
     }
 
@@ -757,6 +1053,22 @@ export class DuelService {
         })
       : row.question_results;
 
+    // Build the optional reservation block for the floating queue widget.
+    // Only present when the game is currently in the 10s tap-to-enter window.
+    const reservation = row.status === 'reserved' && row.reserved_at
+      ? (() => {
+          const reservedAtMs = new Date(row.reserved_at).getTime();
+          const elapsed = Date.now() - reservedAtMs;
+          const remaining = Math.max(0, RESERVATION_WINDOW_MS - elapsed);
+          return {
+            reservedAt: row.reserved_at,
+            secondsRemaining: Math.ceil(remaining / 1000),
+            hostAccepted: !!row.host_accepted_at,
+            guestAccepted: !!row.guest_accepted_at,
+          };
+        })()
+      : undefined;
+
     return {
       id: row.id,
       status: row.status,
@@ -772,6 +1084,7 @@ export class DuelService {
       hostReady: row.host_ready,
       guestReady: row.guest_ready,
       gameType: row.game_type,
+      ...(reservation ? { reservation } : {}),
     };
   }
 
