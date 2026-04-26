@@ -2,6 +2,12 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.33] - 2026-04-26
+
+### Fixed — Backend CI: sync `package-lock.json` with new Apple IAP deps
+
+`v0.10.0.32` added `@apple/app-store-server-library` to `backend/package.json` but the lockfile wasn't regenerated, so `npm ci` on GitHub Actions failed with "Missing: @apple/app-store-server-library@3.0.0 from lock file" (and the chain of transitives: `jsrsasign`, `base64url`, `node-fetch`, `@types/jsrsasign`, etc.). Backend build job stayed red and PR #133 couldn't merge. Ran `npm install --package-lock-only` in `backend/` to record the resolved tree without touching `node_modules`.
+
 ## [0.10.0.32] - 2026-04-26
 
 ### Fixed — B2/B3: Apple IAP JWS verification was using the wrong JWKS (App Store reject blocker)
