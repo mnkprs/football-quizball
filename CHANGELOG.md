@@ -2,6 +2,38 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.20] - 2026-04-26
+
+### Added — Queue widget Day 3: real backend wiring + boot probe
+
+Day 3 of the floating duel queue widget. Replaces the Day 1 mock with real `DuelApiService` calls. The widget now responds to actual server state.
+
+**`DuelApiService`** (`frontend/src/app/features/duel/duel-api.service.ts`):
+- `acceptGame(gameId)` — POST /api/duel/:id/accept (Day 2 endpoint).
+- `DuelPublicView.status` extended with `'reserved'`.
+- `DuelReservationInfo` interface + optional `reservation` field on `DuelPublicView`.
+
+**`QueueStateService`** (`frontend/src/app/core/queue-state.service.ts`) rewritten end-to-end:
+- `init()` — boot probe. Awaits `auth.sessionReady`, queries `listMyGames()`, finds any open `waiting`/`reserved` game without an invite code, hydrates the widget. Filters out reservations with `secondsRemaining <= 0` so widget doesn't rehydrate into a doomed state if cron sweep is briefly behind. Plan decision 1C=A.
+- `startQueue(gameType)` — calls real `joinQueue()`, applies returned state, kicks off poll loop. If matchmaking returns instantly (status='reserved'), widget jumps straight to match-found state.
+- `acceptMatch()` — calls real `acceptGame()`. If both players have accepted server-side, returned status='active' triggers `applyServerState` → navigate to `/duel/:gameId`.
+- `leaveQueue()` — calls real `abandonGame()`. Clears state regardless of server response (defensive — backend may have already abandoned via timeout).
+- Poll loop — `setInterval(2s)` while `activeQueue !== null`. Each tick calls `getGame(id)` and threads through `applyServerState`. Network blips don't kill the loop; only an unrecoverable response clears state.
+- Elapsed ticker — separate 1s interval drives the searching-state countdown. Reserved-state countdown sourced from server `reservation.secondsRemaining` to avoid clock drift.
+- `applyServerState(game)` — single transition function. Status routing: `waiting` → searching widget; `reserved` → reserved widget with countdown; `active` → navigate + clear; `finished`/`abandoned` → clear.
+
+**Shell** (`frontend/src/app/layout/shell/shell.ts`):
+- Injects `QueueStateService`. `ngOnInit` calls `queueState.init()` once at app boot. Method internally awaits `sessionReady`, so safe to call early.
+
+**Logo Quiz** (`frontend/src/app/features/logo-quiz/logo-quiz.{ts,html}`):
+- Find Duel button replaced with `(pressed)="onFindDuel()"` handler. No more direct `routerLink="/duel"` — the widget owns the matchmaking experience.
+- `onFindDuel()` calls `queueState.startQueue('logo')`. On error (cross-mode rejection, cooldown, etc.), surfaces the backend message via `ToastService.show(msg, 'error')`. Local `findingDuel` signal disables the button + swaps label to "Finding…" while in flight.
+- Widget takes over visible state from there — user stays on `/logo-quiz?tab=duel` while queueing, can browse anywhere, sees match-found via the floating widget.
+
+**Build verification**: `tsc --noEmit -p tsconfig.app.json` clean. `ng build --configuration development` succeeds (pre-existing warnings only).
+
+**Day 4 next**: hide-on-duel route logic, three toast variants (Match expired / Std-duel rejection / Lonely-hours hint at 60s), polish.
+
 ## [0.10.0.19] - 2026-04-26
 
 ### Added — Queue widget Day 2: backend reservation state + ELO forfeit

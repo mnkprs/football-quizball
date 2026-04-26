@@ -152,9 +152,9 @@
                 variant="error"
                 size="lg"
                 [fullWidth]="true"
-                routerLink="/duel"
-                [queryParams]="{ mode: 'logo' }">
-                Find Duel
+                [disabled]="findingDuel()"
+                (pressed)="onFindDuel()">
+                {{ findingDuel() ? 'Finding…' : 'Find Duel' }}
               </so-button>
             </div>
           }

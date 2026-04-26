@@ -9,6 +9,7 @@ import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 import { RefreshService } from '../../core/refresh.service';
+import { QueueStateService } from '../../core/queue-state.service';
 import { SoPullToRefreshDirective } from '../../shared/directives/so-pull-to-refresh.directive';
 
 export interface NavTab {
@@ -41,6 +42,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   pro = inject(ProService);
   shellUi = inject(ShellUiService);
   refresh = inject(RefreshService);
+  private queueState = inject(QueueStateService);
   upgrading = signal(false);
   isHome = signal(true);
   scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
@@ -57,6 +59,10 @@ export class ShellComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.auth.sessionReady.then(() => this.pro.ensureLoaded());
+    // Boot probe — rehydrates the floating queue widget if user has any open
+    // waiting/reserved game from a previous session (hard refresh, mobile
+    // resume after kill). Internally awaits sessionReady; safe to call early.
+    void this.queueState.init();
     this.isHome.set(this.router.url.split('?')[0] === '/');
     this.routeSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
