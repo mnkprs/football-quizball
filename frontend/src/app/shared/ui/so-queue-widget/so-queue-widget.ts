@@ -1,32 +1,48 @@
-import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed, signal } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
+import { CdkDrag, CdkDragEnd } from '@angular/cdk/drag-drop';
 import { QueueStateService } from '../../../core/queue-state.service';
 import { ShellUiService } from '../../../core/shell-ui.service';
 import { SoButtonComponent } from '../so-button/so-button';
 
+const DRAG_POSITION_KEY = 'so-queue-widget:position';
+
+interface DragPosition {
+  x: number;
+  y: number;
+}
+
 /**
- * Floating duel queue widget. Sticky below the top-nav (or below the safe-area
- * inset on routes where the top-nav is hidden).
+ * Floating duel queue widget. Draggable, sits above all app chrome.
  *
  * Three visual states driven by QueueStateService.displayState():
  *   searching → glass background, pulse dot, elapsed counter, Leave
- *   reserved  → red-glass background, opponent + countdown, Tap to Play
+ *   reserved  → red-glass background, opponent + countdown
+ *               • iAccepted=false → "TAP TO PLAY" CTA
+ *               • iAccepted=true  → "WAITING FOR OPPONENT" disabled CTA
  *   hidden    → not rendered
  *
- * Day 1 = mocked. Day 3 wires real backend (DuelApiService.acceptGame).
+ * Positioning:
+ *   - Default: position: fixed, anchored under the top-nav (or under the
+ *     safe-area inset on routes where top-nav is hidden).
+ *   - Once user drags, position persists in localStorage (per device) and
+ *     survives state transitions and reloads. cdkDrag's freeDragPosition
+ *     binding keeps the rendered position in sync with the saved value.
+ *   - z-index 9999 so the widget tops top-nav (50), bottom-nav (40), modals,
+ *     and toasts. The user can park it anywhere on screen including over
+ *     other chrome.
  *
- * Positioning: position: fixed below top-nav. Top offset is bound dynamically
- * to var(--top-nav-reserve) when the top-nav is shown, else env(safe-area-inset-top).
- * Anchoring inline keeps the widget glued under whatever chrome is actually
- * rendered on the current route, instead of leaving a gap when top-nav hides.
+ * Drag handle: the entire glass strip is the handle EXCEPT for buttons
+ * (so-button absorbs pointer events first). cdkDrag's built-in click vs
+ * drag threshold (5px) prevents accidental drags from a normal tap.
  */
 @Component({
   selector: 'so-queue-widget',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SoButtonComponent],
+  imports: [SoButtonComponent, CdkDrag],
   templateUrl: './so-queue-widget.html',
   styleUrl: './so-queue-widget.css',
 })
@@ -51,9 +67,8 @@ export class SoQueueWidgetComponent {
   );
 
   /**
-   * Inline top offset for the fixed widget.
-   * - Top-nav visible: anchor at var(--top-nav-reserve) (3.75rem + safe-area-inset-top)
-   * - Top-nav hidden: anchor at env(safe-area-inset-top) only
+   * Inline top offset for the fixed widget (pre-drag default position).
+   * Once dragged, cdkDragFreeDragPosition takes over via transform.
    */
   readonly topOffset = computed(() =>
     this.topNavVisible()
@@ -72,11 +87,39 @@ export class SoQueueWidgetComponent {
     this.queue.displayState() === 'reserved' ? 'assertive' : 'polite',
   );
 
+  /** Persisted drag position (px offsets from the default fixed top/center). */
+  readonly dragPosition = signal<DragPosition>(this.loadDragPosition());
+
   onLeave(): void {
     this.queue.leaveQueue();
   }
 
   onAccept(): void {
     this.queue.acceptMatch();
+  }
+
+  /** Persist new position to localStorage on drag release. */
+  onDragEnd(event: CdkDragEnd): void {
+    const pos = event.source.getFreeDragPosition();
+    this.dragPosition.set(pos);
+    try {
+      localStorage.setItem(DRAG_POSITION_KEY, JSON.stringify(pos));
+    } catch {
+      // localStorage can throw in private mode / quota exceeded — non-fatal.
+    }
+  }
+
+  private loadDragPosition(): DragPosition {
+    try {
+      const raw = localStorage.getItem(DRAG_POSITION_KEY);
+      if (!raw) return { x: 0, y: 0 };
+      const parsed = JSON.parse(raw) as DragPosition;
+      if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') {
+        return parsed;
+      }
+    } catch {
+      // Invalid JSON or unavailable storage — fall through to default.
+    }
+    return { x: 0, y: 0 };
   }
 }

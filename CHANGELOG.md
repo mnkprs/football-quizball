@@ -2,6 +2,30 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.26] - 2026-04-26
+
+### Added — Queue widget: draggable + max z-index + symmetric-accept CTA swap
+
+Three improvements to the floating duel queue widget driven by user feedback after the v0.10.0.25 overlap fix.
+
+**Draggable (Angular CDK `cdkDrag`)**:
+- Widget is now draggable anywhere within the viewport via `@angular/cdk/drag-drop`'s `cdkDrag` directive (boundary: `body`).
+- Position persists in `localStorage` per device under key `so-queue-widget:position`. Survives state transitions, route changes, and reloads.
+- `cdkDragFreeDragPosition` binds to the persisted position so re-mounts respect it.
+- Built-in click-vs-drag threshold (5px) prevents accidental drags from a tap on Leave / Tap to Play.
+- Drag UX: `cursor: grab` idle, `cursor: grabbing` while dragging, lifted `box-shadow` for tactile feedback, slide-in animation suppressed during drag so re-mounts mid-drag don't snap.
+
+**Max z-index**:
+- `z-index: 9999` (was 49). Widget now sits above top-nav (50), bottom-nav (40), modals, toasts, splash overlay. The user can park it anywhere on screen including over other chrome — it stays the most important transient state in the app while a queue is active.
+
+**Symmetric-accept CTA swap (matches plan decision OV2=A)**:
+- `QueueStateService.iAccepted` signal — tracks whether THIS player has tapped Accept on the current reservation. Set optimistically on `acceptMatch()` for zero-latency UI swap; cleared on accept failure (race with forfeit) and on widget state transitions.
+- Server-state sync: `applyServerState` derives `iAccepted` from `game.reservation.hostAccepted` / `guestAccepted` based on `myRole`, so a hard-refresh during the reserved state lands on the correct CTA.
+- Template: when `iAccepted=true`, the "TAP TO PLAY" primary button swaps to a disabled "WAITING FOR OPPONENT" ghost button. Countdown still ticks (the server still enforces the 10s window).
+- Visual: new `.so-queue-widget--accepted` class softens the red-glass tint from `rgba(239,68,68,0.18)` to `rgba(239,68,68,0.10)` — signals "the urgency is now on the opponent, your job is done."
+
+**Build verified**: tsc clean, ng build clean (only pre-existing warnings).
+
 ## [0.10.0.25] - 2026-04-26
 
 ### Fixed — Queue widget overlapped by top-nav

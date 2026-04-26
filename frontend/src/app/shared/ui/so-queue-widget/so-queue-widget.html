@@ -2,7 +2,12 @@
   <div
     class="so-queue-widget so-glass"
     [class.so-queue-widget--reserved]="queue.displayState() === 'reserved'"
+    [class.so-queue-widget--accepted]="queue.iAccepted()"
     [style.top]="topOffset()"
+    cdkDrag
+    cdkDragBoundary="body"
+    [cdkDragFreeDragPosition]="dragPosition()"
+    (cdkDragEnded)="onDragEnd($event)"
     role="status"
     [attr.aria-live]="ariaLive()"
     [attr.aria-label]="
@@ -27,7 +32,11 @@
       >
         {{ queue.countdownSeconds() }}s
       </span>
-      <so-button variant="primary" size="sm" (pressed)="onAccept()">TAP TO PLAY</so-button>
+      @if (queue.iAccepted()) {
+        <so-button variant="ghost" size="sm" [disabled]="true">WAITING FOR OPPONENT</so-button>
+      } @else {
+        <so-button variant="primary" size="sm" (pressed)="onAccept()">TAP TO PLAY</so-button>
+      }
     }
   </div>
 }

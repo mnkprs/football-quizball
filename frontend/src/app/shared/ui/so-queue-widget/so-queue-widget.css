@@ -1,5 +1,4 @@
-/* Floating duel queue widget — fixed-position chrome anchored under the
- * top-nav (or under the safe-area inset on routes where top-nav is hidden).
+/* Floating duel queue widget — fixed-position, draggable, top-of-stack chrome.
  *
  * Design system usage:
  *   .so-glass          — base glassmorphism (composes --glass-bg/blur/border)
@@ -7,25 +6,33 @@
  *   .type-title-md     — Inter 16px/500 (opponent name)
  *   .so-text-numeric   — tabular-nums Space Grotesk (countdown)
  *
- * Positioning: position: fixed, full-width within the app shell's max-width.
- * z-index 49 sits one under the top-nav (50), so glass blur smears the
- * widget edge into the nav above when both are visible. The `top` offset
- * is set inline by the component (var(--top-nav-reserve) or safe-area inset)
- * because it depends on shellUi.showTopNavBar() per route.
+ * Positioning + stacking:
+ *   - position: fixed; left: 50%; transform: translateX(-50%) so default
+ *     anchor is centered under the top-nav. Top offset bound inline by the
+ *     component (var(--top-nav-reserve) or safe-area inset).
+ *   - z-index 9999 — sits above top-nav (50), bottom-nav (40), modals, toasts.
+ *     The widget is the most important transient state in the app while a
+ *     match is being found.
+ *   - cdkDrag transforms the element via inline transform once dragged. The
+ *     CSS centering transform is REMOVED while dragging (see below) to prevent
+ *     a fight between cdkDrag's translate and our translateX(-50%).
  *
- * The widget overlays the page content (does not reserve flow space). The
- * widget is transient — only shown while a queue is active — so a brief
- * 56px occlusion at the top is acceptable. Page content scrolls under it.
+ * Drag UX:
+ *   - cursor: grab on idle, grabbing during drag (CDK adds .cdk-drag-dragging)
+ *   - Buttons override touch-action so taps don't get intercepted as drags
  */
 
 .so-queue-widget {
   position: fixed;
   /* top is bound inline via [style.top] in the template — see component. */
   left: 50%;
+  /* Centering transform — overridden by cdkDrag inline transform once dragged. */
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--app-max-width);
-  z-index: 49;
+  /* Stack on top of everything: top-nav (50), bottom-nav (40), modals, toasts.
+   * The widget is the most important transient chrome while a queue is active. */
+  z-index: 9999;
 
   display: flex;
   align-items: center;
@@ -33,9 +40,6 @@
   padding: var(--space-3) var(--space-4);
   min-height: 56px;
 
-  /* .so-glass provides background, blur, border. Override border-radius (the
-   * mixin doesn't set one, but keeping explicit so the widget reads as a
-   * full-width strip not a rounded card). */
   border-radius: 0;
   border-bottom: 1px solid var(--glass-border);
 
@@ -45,16 +49,51 @@
     border-color 200ms var(--ease-out-quart);
 
   color: var(--color-foreground);
+
+  cursor: grab;
+  /* Allow vertical scroll on the underlying page even when widget is over
+   * scrollable content — only horizontal/none would block taps. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* While being dragged: switch cursor + suppress entrance animation so a re-mount
+ * mid-drag (state change) doesn't snap the widget back to the slide-in keyframe. */
+.so-queue-widget.cdk-drag-dragging {
+  cursor: grabbing;
+  animation: none;
+  /* Pop the widget visually during drag for tactile feedback. */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* When the widget has been dragged, cdkDrag sets an inline transform that
+ * REPLACES our centering translateX(-50%). That's the desired behavior — once
+ * the user has placed the widget, we don't fight them on positioning. The
+ * default centering only matters before any drag. */
+
+/* Buttons inside the widget MUST handle their own pointer events even though
+ * the parent listens for drag. cdkDrag's built-in click-vs-drag threshold (5px)
+ * means a tap-and-release fires the click event normally. Setting
+ * touch-action:auto on buttons restores native button feel. */
+.so-queue-widget so-button {
+  touch-action: auto;
 }
 
 /* ── Match-found (reserved) state — red-tinted glass override ────────────── */
 
 .so-queue-widget--reserved {
-  /* Override --glass-bg locally so .so-glass renders red. Stays inside the
-   * design system's glassmorphism approach — same blur, same border concept,
-   * just a danger-tinted base. */
   --glass-bg: rgba(239, 68, 68, 0.18); /* --color-destructive @ 18% */
   border-bottom-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ── Accepted-but-waiting state — calmer, signals "your job is done" ──────── */
+
+.so-queue-widget--accepted {
+  /* Soften the red so the player doesn't keep feeling urgency — it's now on
+   * the opponent. Same hue, lower opacity. */
+  --glass-bg: rgba(239, 68, 68, 0.10);
+  border-bottom-color: rgba(239, 68, 68, 0.25);
 }
 
 /* ── Searching state ─────────────────────────────────────────────────────── */
@@ -70,19 +109,15 @@
 
 .so-queue-widget__label {
   flex: 1;
-  /* Typography: .type-label-md utility on the element provides font/size/letter-spacing.
-   * Color stays inherited (--color-foreground). */
 }
 
 /* ── Reserved state ──────────────────────────────────────────────────────── */
 
 .so-queue-widget__opponent {
   flex: 1;
-  /* Typography: .type-title-md utility provides font/size/weight/line-height. */
 }
 
 .so-queue-widget__countdown {
-  /* .so-text-numeric provides tabular-nums + Space Grotesk family. */
   font-size: var(--text-label-md);
   font-weight: 500;
   margin-right: var(--space-2);

@@ -51,6 +51,11 @@ export class QueueStateService {
   readonly elapsedSeconds = signal(0);
   readonly countdownSeconds = signal(RESERVATION_WINDOW_S);
 
+  /** True when THIS player has tapped Accept on the reservation but the other
+   *  player hasn't yet. Drives the "WAITING FOR OPPONENT" CTA swap. Cleared
+   *  whenever the widget transitions to a new state (searching/hidden). */
+  readonly iAccepted = signal(false);
+
   /** Current route's URL path (sans query/hash), kept fresh by NavigationEnd. */
   private currentUrlPath = signal<string>('');
 
@@ -146,11 +151,19 @@ export class QueueStateService {
   async acceptMatch(): Promise<void> {
     const queue = this.activeQueue();
     if (!queue) return;
+    // Optimistic: flip the local "I tapped" signal immediately so the CTA
+    // swaps to "WAITING FOR OPPONENT" without a network roundtrip lag.
+    // applyServerState below will navigate away if the other player has also
+    // already accepted (status flips to 'active'); otherwise iAccepted stays
+    // true and the widget keeps showing the waiting copy until they accept
+    // or the reservation expires.
+    this.iAccepted.set(true);
     try {
       const game = await firstValueFrom(this.api.acceptGame(queue.gameId));
       await this.applyServerState(game);
     } catch {
       // Lost the race to forfeit — surface the same Match expired toast.
+      this.iAccepted.set(false);
       this.fireMatchExpiredToast();
       this.clearAll();
     }
@@ -215,9 +228,18 @@ export class QueueStateService {
       this.widgetState.set('reserved');
       const remaining = game.reservation?.secondsRemaining ?? RESERVATION_WINDOW_S;
       this.countdownSeconds.set(Math.max(0, Math.min(RESERVATION_WINDOW_S, remaining)));
+      // Sync iAccepted from server-side reservation flags so a hard-refresh
+      // restore lands on the right CTA (Tap to Play vs Waiting for Opponent).
+      if (game.reservation) {
+        const myAccepted = game.myRole === 'host'
+          ? game.reservation.hostAccepted
+          : game.reservation.guestAccepted;
+        this.iAccepted.set(myAccepted);
+      }
       this.startElapsedTicker();
     } else if (game.status === 'waiting') {
       this.widgetState.set('searching');
+      this.iAccepted.set(false);
       this.startElapsedTicker();
     } else if (game.status === 'active') {
       const gameId = game.id;
@@ -286,6 +308,7 @@ export class QueueStateService {
     this.opponentUsername.set(null);
     this.elapsedSeconds.set(0);
     this.countdownSeconds.set(RESERVATION_WINDOW_S);
+    this.iAccepted.set(false);
     this.widgetState.set('hidden');
   }
 
