@@ -61,6 +61,23 @@ body {
 /* .pressable and button/link tap styles moved to styles/base/_reset.css */
 
 /* =============================================
+   Prevent iOS Safari from auto-zooming into form
+   controls when they receive focus. iOS triggers
+   the zoom whenever the effective font-size is
+   below 16px. We force a 16px minimum on all
+   text-entry controls only on iOS-sized viewports
+   so desktop typography is unaffected. The
+   viewport meta still allows pinch-to-zoom.
+   ============================================= */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
+  }
+}
+
+/* =============================================
    Global brand text — mirrors .top-nav__brand.
    Use this class wherever "STEPOVR." appears
    outside of the top nav.

@@ -32,7 +32,7 @@ export class DuelController {
     @Request() req: DuelRequest,
     @Body() dto: CreateDuelDto,
   ) {
-    // Daily duel increment is handled atomically by DuelProGuard
+    // Quota check happens in DuelProGuard; trial consumed when match starts.
     return this.service.createGame(req.user.id, dto);
   }
 
@@ -53,7 +53,7 @@ export class DuelController {
     @Request() req: DuelRequest,
     @Body() dto: JoinQueueDto,
   ) {
-    // Daily duel increment is handled atomically by DuelProGuard
+    // Quota + cooldown checks happen in DuelProGuard; trial consumed when match starts.
     return this.service.joinQueue(req.user.id, dto);
   }
 
@@ -64,7 +64,7 @@ export class DuelController {
     @Request() req: DuelRequest,
     @Body() dto: JoinDuelByCodeDto,
   ) {
-    // Daily duel increment is handled atomically by DuelProGuard
+    // Quota check happens in DuelProGuard; trial consumed when match starts.
     return this.service.joinByCode(req.user.id, dto);
   }
 

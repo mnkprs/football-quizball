@@ -21,11 +21,13 @@ export class SubscriptionController {
   async getStatus(@Req() req: any) {
     const status = await this.supabaseService.getProStatus(req.user.id);
     const dailyDuelsRemaining = await this.supabaseService.getDailyDuelsRemaining(req.user.id);
+    const duelQueueBlockedUntil = await this.supabaseService.getDuelQueueBlockedUntil(req.user.id);
 
     return {
       is_pro: status?.is_pro ?? false,
       purchase_type: status?.purchase_type ?? null,
       daily_duels_remaining: dailyDuelsRemaining,
+      duel_queue_blocked_until: duelQueueBlockedUntil,
       trial_battle_royale_remaining: Math.max(0, 1 - (status?.trial_battle_royale_used ?? 0)),
     };
   }

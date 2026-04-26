@@ -1,6 +1,7 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AchievementUnlockService } from '../../core/achievement-unlock.service';
 import { LanguageService } from '../../core/language.service';
+import { ScrollLockService } from '../../core/scroll-lock.service';
 
 @Component({
   selector: 'app-achievement-unlock-modal',
@@ -13,6 +14,10 @@ import { LanguageService } from '../../core/language.service';
 export class AchievementUnlockModalComponent {
   unlockService = inject(AchievementUnlockService);
   lang = inject(LanguageService);
+
+  constructor() {
+    inject(ScrollLockService).acquireForLifetime();
+  }
 
   onDismiss(): void {
     this.unlockService.dismiss();

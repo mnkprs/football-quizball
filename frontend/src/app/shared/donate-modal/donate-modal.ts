@@ -1,6 +1,7 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { DonateModalService } from '../../core/donate-modal.service';
 import { LanguageService } from '../../core/language.service';
+import { ScrollLockService } from '../../core/scroll-lock.service';
 
 @Component({
   selector: 'app-donate-modal',
@@ -13,6 +14,10 @@ import { LanguageService } from '../../core/language.service';
 export class DonateModalComponent {
   donateService = inject(DonateModalService);
   lang = inject(LanguageService);
+
+  constructor() {
+    inject(ScrollLockService).acquireForLifetime();
+  }
 
   onSupport(): void {
     this.donateService.dismiss();

@@ -152,9 +152,14 @@
                 variant="error"
                 size="lg"
                 [fullWidth]="true"
-                [disabled]="findingDuel()"
+                [disabled]="findingDuel() || proService.isDuelQueueBlocked()"
                 (pressed)="onFindDuel()">
-                {{ findingDuel() ? 'Finding…' : 'Find Duel' }}
+                @if (proService.isDuelQueueBlocked()) {
+                  <span leading class="material-symbols-outlined" aria-hidden="true">lock_clock</span>
+                  RETRY IN {{ proService.duelQueueRetryLabel() }}
+                } @else {
+                  {{ findingDuel() ? 'Finding…' : 'Find Duel' }}
+                }
               </so-button>
             </div>
           }

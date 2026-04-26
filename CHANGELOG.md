@@ -2,6 +2,31 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.29] - 2026-04-26
+
+### Added — No-show cooldown surface, modal scroll-lock, duel-lobby polish
+
+**Backend — no-show cooldown system wiring**
+- `DuelProGuard` (`backend/src/auth/duel-pro.guard.ts`) — daily duel quota probe + 24h queue-block check via `check_duel_quota` RPC. Free users get 1 duel/day; 3 consecutive reservation no-shows trigger a 24h block. Pro users bypass.
+- `SubscriptionController.getStatus` returns `duel_queue_blocked_until` so the frontend can render the cooldown banner and disable the queue CTA.
+- `SupabaseService` gains `getDuelQueueBlockedUntil`, `consumeDuelTrial`, `recordDuelNoShow` helpers wrapping the SQL functions added in `20260617000000_duel_no_show_cooldown.sql`.
+
+**Frontend — pro service + queue-state cooldown awareness**
+- `pro.service.ts` — `applyDuelQueueBlockFromError(err)` parses 429 responses from the queue endpoints, surfaces a typed `DuelQueueBlock` signal so any consumer can render the cooldown badge consistently.
+- `queue-state.service.ts` — wires the 429 handler so a server-side block cleanly unwinds the optimistic queue state and shows the user the unblock time.
+- `duel-lobby.{ts,html,spec}` — surfaces the cooldown banner with countdown, disables the queue CTA while blocked, regression tests for the gated state.
+- `duel-api.service.ts` — typed error path for 429 cooldown responses.
+
+**Frontend — global modal scroll-lock**
+- New `core/scroll-lock.service.ts` — body scroll-lock with refcount so nested modals nest cleanly. Used by `auth-modal`, `username-modal`, `donate-modal`, `achievement-unlock-modal`.
+- `styles.scss` — `.modal-scroll-lock` utility + safe-area padding. Fixes background scroll bleed on iOS Safari + Capacitor WebView.
+
+**Native config**
+- `frontend/ios/App/App.xcodeproj/project.pbxproj` + `frontend/android/app/build.gradle` + `AndroidManifest.xml` — version code bump + permission tweaks for FCM background delivery.
+
+**Misc**
+- `logo-quiz.{ts,html}` — minor copy/style tweaks.
+
 ## [0.10.0.28] - 2026-04-26
 
 ### Fixed — 5 ship-blockers from /review (B1, B4, B5, C4, C5, C6)

@@ -1,12 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { signal, computed } from '@angular/core';
 import { DuelLobbyComponent } from './duel-lobby';
 import { DuelApiService } from './duel-api.service';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
+import { ProService } from '../../core/pro.service';
 import type { MatchHistoryEntry } from '../../core/match-history-api.service';
 
 const USER_ID = 'user-1';
@@ -39,6 +41,15 @@ function setupLobby(opts: { modeParam: 'logo' | null; history: MatchHistoryEntry
       { provide: LanguageService, useValue: { t: () => ({}) } },
       { provide: LeaderboardApiService, useValue: { getMyLeaderboardEntries: () => of({ soloMe: null, blitzMe: null, logoQuizMe: null, logoQuizHardcoreMe: null, duelMe: opts.duelMe, logoDuelMe: opts.logoDuelMe }) } },
       { provide: MatchHistoryApiService, useValue: { getHistory: () => of(opts.history) } },
+      {
+        provide: ProService,
+        useValue: {
+          ensureLoaded: () => Promise.resolve(),
+          isDuelQueueBlocked: signal(false),
+          duelQueueRetryLabel: computed(() => null),
+          applyDuelQueueBlockFromError: () => false,
+        },
+      },
     ],
   });
   const fixture: ComponentFixture<DuelLobbyComponent> = TestBed.createComponent(DuelLobbyComponent);

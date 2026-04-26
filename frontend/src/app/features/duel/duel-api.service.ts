@@ -49,6 +49,17 @@ export interface DuelPublicView {
   hostReady: boolean;
   guestReady: boolean;
   gameType: DuelGameType;
+  /** Server timestamp marking the start of the current question (ISO 8601);
+   *  null when no question is active. The client computes
+   *  `deadline = questionStartedAt + questionTimeMs` and renders the timer
+   *  from that — so backgrounding/disconnect doesn't pause the deadline. */
+  questionStartedAt: string | null;
+  /** Per-question deadline window in ms (server constant — currently 30000). */
+  questionTimeMs: number;
+  /** Server clock at the moment this view was produced. Used to compute
+   *  `serverClockOffsetMs = serverNow - clientNow` so device clock skew
+   *  doesn't drift the displayed countdown. */
+  serverNow: string;
   /** Present only when status === 'reserved' — drives the queue widget. */
   reservation?: DuelReservationInfo;
 }

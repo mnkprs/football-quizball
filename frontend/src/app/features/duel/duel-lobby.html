@@ -103,13 +103,23 @@
       </button>
 
       <!-- Random Opponent -->
-      <button class="duel-sheet__option" (click)="joinQueue()" [disabled]="loading()">
+      <button class="duel-sheet__option" (click)="joinQueue()" [disabled]="loading() || pro.isDuelQueueBlocked()">
         <div class="duel-sheet__option-icon-box">
-          <span class="material-symbols-outlined">casino</span>
+          <span class="material-symbols-outlined">{{ pro.isDuelQueueBlocked() ? 'lock_clock' : 'casino' }}</span>
         </div>
         <div class="duel-sheet__option-text">
-          <span class="duel-sheet__option-title">Random Opponent</span>
-          <span class="duel-sheet__option-desc">Match instantly</span>
+          <span class="duel-sheet__option-title">
+            @if (pro.isDuelQueueBlocked()) {
+              Retry in {{ pro.duelQueueRetryLabel() }}
+            } @else {
+              Random Opponent
+            }
+          </span>
+          <span class="duel-sheet__option-desc">
+            {{ pro.isDuelQueueBlocked()
+              ? 'Queue paused after 3 missed match-found prompts'
+              : 'Match instantly' }}
+          </span>
         </div>
       </button>
 

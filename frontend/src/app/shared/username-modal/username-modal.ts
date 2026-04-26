@@ -5,6 +5,7 @@ import { ProfileApiService } from '../../core/profile-api.service';
 import { ProfileStore } from '../../core/profile-store.service';
 import { AuthService } from '../../core/auth.service';
 import { AnalyticsService } from '../../core/analytics.service';
+import { ScrollLockService } from '../../core/scroll-lock.service';
 
 @Component({
   selector: 'app-username-modal',
@@ -27,6 +28,10 @@ export class UsernameModalComponent {
   serverError = signal<string | null>(null);
 
   private readonly PATTERN = /^[a-zA-Z0-9_]+$/;
+
+  constructor() {
+    inject(ScrollLockService).acquireForLifetime();
+  }
 
   onInput(): void {
     this.serverError.set(null);

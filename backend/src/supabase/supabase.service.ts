@@ -473,6 +473,8 @@ export class SupabaseService {
   /**
    * Atomically increments the daily duel counter (auto-resets at midnight UTC).
    * Returns the new count after increment.
+   * @deprecated Trial economy now consumes on match-start (consume_duel_trial)
+   *             rather than on queue-join. Kept for backwards compatibility.
    */
   async incrementDailyDuel(userId: string): Promise<number> {
     const { data, error } = await this.client.rpc('increment_daily_duel', { p_user_id: userId });
@@ -482,6 +484,68 @@ export class SupabaseService {
       return 999;
     }
     return data as number;
+  }
+
+  /**
+   * Read-only quota probe. Returns remaining duels for today + the active
+   * queue cooldown (NULL if not blocked). Auto-resets the daily counter when
+   * the stored reset date is stale.
+   */
+  async checkDuelQuota(userId: string): Promise<{ remaining: number; blockedUntil: string | null }> {
+    const { data, error } = await this.client.rpc('check_duel_quota', { p_user_id: userId });
+    if (error) {
+      this.logger.error(`checkDuelQuota RPC failed: ${error.message}`);
+      // Fail closed: report no remaining quota so the guard denies entry.
+      return { remaining: 0, blockedUntil: null };
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    return {
+      remaining: (row?.remaining as number | undefined) ?? 0,
+      blockedUntil: (row?.blocked_until as string | null | undefined) ?? null,
+    };
+  }
+
+  /**
+   * Authoritative consume — called when a duel transitions to 'active'. Also
+   * resets consecutive_no_show_duels (the user showed up). Returns -1 if the
+   * user was already at their daily limit (fire-and-forget caller logs it).
+   */
+  async consumeDuelTrial(userId: string): Promise<number> {
+    const { data, error } = await this.client.rpc('consume_duel_trial', { p_user_id: userId });
+    if (error) {
+      this.logger.error(`consumeDuelTrial RPC failed: ${error.message}`);
+      return -1;
+    }
+    return data as number;
+  }
+
+  /**
+   * Record a reservation no-show. Returns the blocked-until timestamp when
+   * the third strike trips the 24h cooldown, NULL otherwise.
+   */
+  async recordDuelNoShow(userId: string): Promise<string | null> {
+    const { data, error } = await this.client.rpc('record_duel_no_show', { p_user_id: userId });
+    if (error) {
+      this.logger.error(`recordDuelNoShow RPC failed: ${error.message}`);
+      return null;
+    }
+    return (data as string | null) ?? null;
+  }
+
+  /**
+   * Returns the active duel-queue cooldown timestamp (NULL if not blocked or
+   * already elapsed). Surfaced via /api/subscription/status so the Find Duel
+   * button can render its retry-in countdown.
+   */
+  async getDuelQueueBlockedUntil(userId: string): Promise<string | null> {
+    const { data } = await this.client
+      .from('profiles')
+      .select('duel_queue_blocked_until')
+      .eq('id', userId)
+      .maybeSingle();
+    const value = (data?.duel_queue_blocked_until as string | null) ?? null;
+    if (!value) return null;
+    return new Date(value).getTime() > Date.now() ? value : null;
   }
 
   /**

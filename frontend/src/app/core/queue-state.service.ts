@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { firstValueFrom, Subscription, filter } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { ProService } from './pro.service';
 import { ToastService } from './toast.service';
 import { DuelApiService, DuelGameType, DuelPublicView } from '../features/duel/duel-api.service';
 
@@ -43,6 +44,7 @@ export class QueueStateService {
   private auth = inject(AuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
+  private pro = inject(ProService);
 
   readonly activeQueue = signal<ActiveQueue | null>(null);
   readonly widgetState = signal<QueueWidgetState>('hidden');
@@ -144,6 +146,10 @@ export class QueueStateService {
       this.startPolling();
     } catch (err) {
       this.clearAll();
+      // 429 with retry_after = queue cooldown — sync ProService so the Find
+      // Duel button countdown rehydrates immediately without waiting for the
+      // next /status fetch.
+      this.pro.applyDuelQueueBlockFromError(err);
       throw err;
     }
   }
@@ -172,6 +178,7 @@ export class QueueStateService {
   async leaveQueue(): Promise<void> {
     const queue = this.activeQueue();
     if (!queue) return;
+    const wasReserved = this.widgetState() === 'reserved';
     try {
       await firstValueFrom(this.api.abandonGame(queue.gameId));
     } catch {
@@ -181,6 +188,12 @@ export class QueueStateService {
     // (-5 ELO during reserved-state leaves is server-applied per OV1=B but
     // the user explicitly chose to leave; surfacing it would feel hostile.)
     this.clearAll();
+    // A leave from 'reserved' (before accepting) IS a no-show on the server,
+    // so refresh /status to pick up any newly-applied 24h cooldown.
+    if (wasReserved) {
+      this.pro.resetLoaded();
+      void this.pro.loadStatus();
+    }
   }
 
   // ── Internals ──────────────────────────────────────────────────────────────
@@ -323,6 +336,11 @@ export class QueueStateService {
       'error',
       8000,
     );
+    // The no-show may have just tripped the 3-strike cooldown. Refresh the
+    // pro/status payload so the Find Duel button picks up duel_queue_blocked_until
+    // without waiting for the user to attempt another join (and eat a 429).
+    this.pro.resetLoaded();
+    void this.pro.loadStatus();
   }
 
   private fireLonelyHoursToast(): void {

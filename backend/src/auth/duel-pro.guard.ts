@@ -2,8 +2,12 @@ import { Injectable, CanActivate, ExecutionContext, HttpException, HttpStatus } 
 import { AuthService } from './auth.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
-const DAILY_DUEL_LIMIT = 1;
-
+/**
+ * Read-only quota gate for duel entry. The trial is **consumed** by
+ * DuelService.acceptGame / markReady when the match actually starts — see
+ * SupabaseService.consumeDuelTrial. This guard only verifies that the user
+ * still has quota AND isn't currently inside a no-show cooldown.
+ */
 @Injectable()
 export class DuelProGuard implements CanActivate {
   constructor(
@@ -26,36 +30,50 @@ export class DuelProGuard implements CanActivate {
     const status = await this.supabaseService.getProStatus(request.user.id);
     const isPro = status?.is_pro ?? false;
 
-    // Pro users get unlimited duels
+    // Pro users get unlimited duels and bypass the cooldown.
     if (isPro) {
       request.proStatus = { is_pro: true, dailyDuelCount: 0 };
       return true;
     }
 
-    // Free users: try to increment daily duel counter (auto-resets at midnight UTC)
-    // Returns -1 if already at limit (no increment applied), or new count 1-3 if allowed
-    const count = await this.supabaseService.incrementDailyDuel(request.user.id);
+    const { remaining, blockedUntil } = await this.supabaseService.checkDuelQuota(request.user.id);
 
-    if (count > 0) {
-      request.proStatus = { is_pro: false, dailyDuelCount: count };
-      return true;
+    // Cooldown takes precedence — surface its retry_after so the frontend
+    // countdown rehydrates against the same wall-clock the server used.
+    // Cooldown only applies to /queue (random matchmaking); invite-code
+    // create/join paths are intentionally exempt per the design decision.
+    const isQueueRoute = request.route?.path?.endsWith('/queue')
+      || (typeof request.url === 'string' && request.url.includes('/duel/queue'));
+    if (isQueueRoute && blockedUntil) {
+      throw new HttpException(
+        {
+          message: 'Duel queue temporarily unavailable',
+          retry_after: blockedUntil,
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
-    // At limit (count === -1) — compute next midnight UTC for retry_after
-    const now = new Date();
-    const nextMidnight = new Date(Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() + 1,
-      0, 0, 0, 0,
-    ));
+    if (remaining <= 0) {
+      // At limit — compute next midnight UTC for retry_after
+      const now = new Date();
+      const nextMidnight = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0, 0, 0, 0,
+      ));
 
-    throw new HttpException(
-      {
-        message: 'Daily duel limit reached',
-        retry_after: nextMidnight.toISOString(),
-      },
-      HttpStatus.TOO_MANY_REQUESTS, // 429
-    );
+      throw new HttpException(
+        {
+          message: 'Daily duel limit reached',
+          retry_after: nextMidnight.toISOString(),
+        },
+        HttpStatus.TOO_MANY_REQUESTS, // 429
+      );
+    }
+
+    request.proStatus = { is_pro: false, dailyDuelCount: 1 - remaining };
+    return true;
   }
 }

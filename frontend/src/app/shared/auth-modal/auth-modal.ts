@@ -6,6 +6,7 @@ import { AuthModalService } from '../../core/auth-modal.service';
 import { PlatformService } from '../../core/platform.service';
 import { AnalyticsService } from '../../core/analytics.service';
 import { CrashlyticsService } from '../../core/crashlytics.service';
+import { ScrollLockService } from '../../core/scroll-lock.service';
 
 @Component({
   selector: 'app-auth-modal',
@@ -32,6 +33,10 @@ export class AuthModalComponent {
 
   email = '';
   password = '';
+
+  constructor() {
+    inject(ScrollLockService).acquireForLifetime();
+  }
 
   setMode(m: 'signin' | 'signup'): void {
     this.mode.set(m);

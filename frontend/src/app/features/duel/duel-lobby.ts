@@ -8,6 +8,7 @@ import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/language.service';
 import { LeaderboardApiService } from '../../core/leaderboard-api.service';
 import { MatchHistoryApiService } from '../../core/match-history-api.service';
+import { ProService } from '../../core/pro.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 import { RefreshService } from '../../core/refresh.service';
 import { EmptyStateComponent } from '../../shared/empty-state/empty-state';
@@ -31,6 +32,7 @@ export class DuelLobbyComponent implements OnInit, OnDestroy {
   private leaderboardApi = inject(LeaderboardApiService);
   private shellUi = inject(ShellUiService);
   private refreshSvc = inject(RefreshService);
+  protected pro = inject(ProService);
   auth = inject(AuthService);
   lang = inject(LanguageService);
 
@@ -65,6 +67,9 @@ export class DuelLobbyComponent implements OnInit, OnDestroy {
     this.shellUi.showTopNavBar.set(true);
     this.refreshSvc.register(() => this.refreshAll());
     this.refreshAll();
+    // Keep the cooldown badge / disabled button accurate. Cheap call — the
+    // service de-dupes via its inflight guard.
+    void this.pro.ensureLoaded();
   }
 
   ngOnDestroy(): void {
@@ -146,13 +151,20 @@ export class DuelLobbyComponent implements OnInit, OnDestroy {
   }
 
   async joinQueue(): Promise<void> {
+    if (this.pro.isDuelQueueBlocked()) return;
     this.loading.set(true);
     this.error.set(null);
     try {
       const game = await firstValueFrom(this.api.joinQueue(this.gameType()));
       this.router.navigate(['/duel', game.id]);
-    } catch {
-      this.error.set('Failed to join queue. Please try again.');
+    } catch (err) {
+      // 429 with the queue cooldown — surface a contextual message and let
+      // ProService rehydrate the countdown so the button label updates.
+      if (this.pro.applyDuelQueueBlockFromError(err)) {
+        this.error.set('Duel queue temporarily unavailable. Please wait for the cooldown to elapse.');
+      } else {
+        this.error.set('Failed to join queue. Please try again.');
+      }
     } finally {
       this.loading.set(false);
     }

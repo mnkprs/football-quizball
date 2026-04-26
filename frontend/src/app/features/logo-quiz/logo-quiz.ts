@@ -94,6 +94,7 @@ export class LogoQuizComponent implements OnDestroy {
    */
   async onFindDuel(): Promise<void> {
     if (this.findingDuel()) return;
+    if (this.proService.isDuelQueueBlocked()) return;
     this.findingDuel.set(true);
     try {
       await this.queueState.startQueue('logo');
