@@ -1,6 +1,13 @@
 /* Floating duel queue widget — sticky chrome below <app-top-nav>.
- * Design spec: glassmorphism container; red-glass tint for the match-found
- * (reserved) state; subtle pulse on the searching dot; entrance slide.
+ *
+ * Design system usage:
+ *   .so-glass          — base glassmorphism (composes --glass-bg/blur/border)
+ *   .type-label-md     — Lexend 12px/500/0.04em (searching label)
+ *   .type-title-md     — Inter 16px/500 (opponent name)
+ *   .so-text-numeric   — tabular-nums Space Grotesk (countdown)
+ *
+ * Reserved state overrides --glass-bg locally to swap the neutral glass for
+ * red-tinted glass. Background and border tokens scope to this element only.
  *
  * Mounts in shell.html as a sibling between <app-top-nav> and <main>,
  * mirroring the .shell-ptr (pull-to-refresh) chrome pattern.
@@ -13,10 +20,11 @@
   padding: var(--space-3) var(--space-4);
   min-height: 56px;
 
-  background: rgba(58, 57, 57, 0.4); /* --color-surface-bright @ 40% */
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--color-border);
+  /* .so-glass provides background, blur, border. Override border-radius (the
+   * mixin doesn't set one, but keeping explicit so the widget reads as a
+   * full-width strip not a rounded card). */
+  border-radius: 0;
+  border-bottom: 1px solid var(--glass-border);
 
   /* Notch-safe — push below the iOS status bar. */
   padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
@@ -25,12 +33,17 @@
   transition:
     background 200ms var(--ease-out-quart),
     border-color 200ms var(--ease-out-quart);
+
+  color: var(--color-foreground);
 }
 
-/* ── Match-found (reserved) state — red-tinted glass ─────────────────────── */
+/* ── Match-found (reserved) state — red-tinted glass override ────────────── */
 
 .so-queue-widget--reserved {
-  background: rgba(239, 68, 68, 0.18); /* --color-destructive @ 18% over blur */
+  /* Override --glass-bg locally so .so-glass renders red. Stays inside the
+   * design system's glassmorphism approach — same blur, same border concept,
+   * just a danger-tinted base. */
+  --glass-bg: rgba(239, 68, 68, 0.18); /* --color-destructive @ 18% */
   border-bottom-color: rgba(239, 68, 68, 0.4);
 }
 
@@ -47,30 +60,21 @@
 
 .so-queue-widget__label {
   flex: 1;
-  /* type-label-md equivalent — Lexend 12px 500 */
-  font-family: var(--font-headline);
-  font-size: var(--text-label-md);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--color-foreground);
+  /* Typography: .type-label-md utility on the element provides font/size/letter-spacing.
+   * Color stays inherited (--color-foreground). */
 }
 
 /* ── Reserved state ──────────────────────────────────────────────────────── */
 
 .so-queue-widget__opponent {
   flex: 1;
-  font-family: var(--font-body);
-  font-size: var(--text-title-md);
-  font-weight: 500;
-  color: var(--color-foreground);
+  /* Typography: .type-title-md utility provides font/size/weight/line-height. */
 }
 
 .so-queue-widget__countdown {
-  font-family: var(--font-numeric);
+  /* .so-text-numeric provides tabular-nums + Space Grotesk family. */
   font-size: var(--text-label-md);
   font-weight: 500;
-  color: var(--color-foreground);
-  font-variant-numeric: tabular-nums;
   margin-right: var(--space-2);
 }
 

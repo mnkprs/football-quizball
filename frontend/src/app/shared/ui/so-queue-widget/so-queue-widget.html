@@ -1,6 +1,6 @@
 @if (queue.widgetState() !== 'hidden') {
   <div
-    class="so-queue-widget"
+    class="so-queue-widget so-glass"
     [class.so-queue-widget--reserved]="queue.widgetState() === 'reserved'"
     role="status"
     [attr.aria-live]="ariaLive()"
@@ -12,16 +12,16 @@
   >
     @if (queue.widgetState() === 'searching') {
       <span class="so-queue-widget__dot" aria-hidden="true"></span>
-      <span class="so-queue-widget__label">
+      <span class="so-queue-widget__label type-label-md">
         In queue · {{ modeLabel() }} · {{ queue.elapsedLabel() }}
       </span>
       <so-button variant="ghost" size="sm" (pressed)="onLeave()">Leave</so-button>
     } @else if (queue.widgetState() === 'reserved') {
-      <span class="so-queue-widget__opponent">
+      <span class="so-queue-widget__opponent type-title-md">
         vs {{ queue.opponentUsername() }}
       </span>
       <span
-        class="so-queue-widget__countdown"
+        class="so-queue-widget__countdown so-text-numeric"
         [class.so-queue-widget__countdown--urgent]="queue.countdownSeconds() <= 5"
       >
         {{ queue.countdownSeconds() }}s

@@ -2,6 +2,20 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.18] - 2026-04-26
+
+### Changed — Queue widget Day 1 polish: design system primitives
+
+Refactored `<so-queue-widget>` to use design-system primitives instead of hardcoded values. Functional behavior unchanged — same three states, same animations, same ARIA — but the implementation now leans on shared tokens and utility classes the rest of the codebase already uses.
+
+- **`.so-glass` mixin** replaces hardcoded `rgba(58, 57, 57, 0.4) + backdrop-filter: blur(20px)`. The widget container composes the glassmorphism mixin (`var(--glass-bg)` + `var(--glass-blur)` + `var(--glass-border)`).
+- **`.type-label-md` utility class** on the searching label replaces the hand-rolled font-family + font-size + letter-spacing block. `--text-label-md` (12px Lexend 500/0.04em) comes through the canonical typography scale.
+- **`.type-title-md` utility class** on the opponent name (16px Inter 500). Same canonical scale.
+- **`.so-text-numeric` utility class** on the countdown gives tabular-nums + Space Grotesk in one class. Avoids width-jitter as 9s → 8s → 7s tick down.
+- **Reserved-state red glass** now overrides `--glass-bg` locally (instead of replacing the entire background rule), so `.so-glass` keeps providing blur + border consistently — only the tint changes.
+
+Build: tsc clean, ng build clean.
+
 ## [0.10.0.17] - 2026-04-26
 
 ### Added — Floating duel queue widget (Day 1 scaffold, mocked)
