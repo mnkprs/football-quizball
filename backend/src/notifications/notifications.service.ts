@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { SupabaseService } from '../supabase/supabase.service';
+import { PushService } from '../push/push.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 
 export interface NotificationRow {
@@ -20,7 +21,10 @@ export interface NotificationRow {
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  constructor(private readonly supabaseService: SupabaseService) {}
+  constructor(
+    private readonly supabaseService: SupabaseService,
+    private readonly pushService: PushService,
+  ) {}
 
   async create(dto: CreateNotificationDto): Promise<void> {
     const { error } = await this.supabaseService.client
@@ -37,7 +41,20 @@ export class NotificationsService {
 
     if (error) {
       this.logger.error(`Failed to create notification: ${error.message}`);
+      // Don't dispatch push if the DB write itself failed — keeps the two
+      // delivery layers in sync (in-app feed + push device).
+      return;
     }
+
+    // Fire-and-forget push delivery. PushService is fail-open: if FCM isn't
+    // configured (FIREBASE_SERVICE_ACCOUNT_JSON missing), this is a silent
+    // no-op and the in-app notification still works.
+    void this.pushService.sendPush(dto.userId, {
+      title: dto.title,
+      body: dto.body,
+      route: dto.route,
+      metadata: dto.metadata as Record<string, string | number | boolean> | undefined,
+    });
   }
 
   async getForUser(userId: string, limit = 50, offset = 0): Promise<NotificationRow[]> {

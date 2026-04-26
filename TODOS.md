@@ -63,6 +63,42 @@ Forfeit detection is a server-side concern — the cron sweep already counts for
 
 ---
 
+## [PENDING] Configure Firebase service account for production push delivery
+
+**Source:** `/review` 2026-04-26 (R1=A on the queue widget branch)
+**Trigger:** Before merging `feat/queue-widget` to main, OR before the first user reports missing reservation pushes after merge.
+
+### What
+1. In Firebase Console → Project Settings → Service accounts → Generate new private key. Downloads a JSON.
+2. Set `FIREBASE_SERVICE_ACCOUNT_JSON` env var in Railway production environment to the entire JSON contents (single-line, no surrounding quotes).
+3. Verify after deploy: `curl https://football-quizball-production.up.railway.app/api/health` then check Railway logs for `[PushService] Firebase Admin SDK initialized` (success) or the warning about missing env var (failure).
+4. iOS-side: ensure Push Notifications capability is enabled in Xcode (`frontend/ios/App/App.xcodeproj` → Signing & Capabilities → +Capability → Push Notifications). Verify `aps-environment` entitlement is set to `production` for App Store builds (`development` for TestFlight is fine).
+5. Android-side: confirm `google-services.json` is present in `frontend/android/app/` and Firebase Cloud Messaging is enabled in Firebase Console for the Android app.
+
+### Why
+The push code is fully wired and fail-open — backend logs a warning if `FIREBASE_SERVICE_ACCOUNT_JSON` is missing and quietly skips push delivery. So the queue widget will ship and work, but backgrounded users won't get the reservation push until this env var is set. The longer that stays unconfigured, the more support tickets we'll get from "I lost ELO without seeing a match-found prompt."
+
+### Pros
+- Honors plan decision OV3=A — backgrounded players get the experience the design promised
+- Unlocks every future push notification feature in the app (achievements, daily challenges, friend invites)
+
+### Cons
+- Manual step — credential rotation needs care; service account JSON is sensitive
+- iOS APNs setup has historically been fiddly (provisioning profiles, entitlements)
+
+### Context
+- Backend code: `backend/src/push/push.service.ts` (`onModuleInit` reads env, `sendPush` uses Firebase Admin SDK)
+- Frontend code: `frontend/src/app/core/push-notifications.service.ts` (Capacitor PushNotifications + @capacitor-firebase/messaging)
+- Wired into shell at `frontend/src/app/layout/shell/shell.ts:ngOnInit`
+- Notifications fan out automatically via `NotificationsService.create` → `PushService.sendPush`
+- Failure mode without env: backend logs warn-once on boot, every `sendPush` call is silent no-op, in-app notifications still work normally
+
+### Depends on
+- Access to the StepOver Firebase Console (project owner permissions)
+- Railway env var update permissions
+
+---
+
 ## [PENDING] Action-button toasts (extend ToastService)
 
 **Source:** `/plan-design-review` 2026-04-26 (D4 design spec) + Day 4 queue widget polish

@@ -2,6 +2,40 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.23] - 2026-04-26
+
+### Added — Real FCM push delivery + queue widget review fixes
+
+`/review` pre-landing pass on `feat/queue-widget` found three issues. Two auto-fixed, one (P0) prompted real infrastructure work per user decision R1=A.
+
+**P0 — Push notifications were non-functional:** Pre-review, `NotificationsService.create()` only wrote to a DB table. There was no FCM/APNs sending mechanism in the codebase — no `firebase-admin`, no edge function, no DB trigger. The reservation push code from v0.10.0.19 created an in-app notification record but did not push to backgrounded devices. With the -5 ELO forfeit penalty (OV1=B) in place, this would have unfairly punished every backgrounded player.
+
+**Backend — Firebase Admin SDK push delivery** (`backend/src/push/push.service.ts`):
+- Installed `firebase-admin` v13.8.0
+- `PushService` lazy-initializes Firebase Admin from `FIREBASE_SERVICE_ACCOUNT_JSON` env var. Fail-open: if env is missing, logs warn-once on boot and `sendPush` becomes a silent no-op (DB notifications still work; only background delivery degrades).
+- `sendPush(userId, payload)` reads tokens via `getTokensForUser`, builds an FCM `MulticastMessage` with iOS APNs `contentAvailable=true` for background delivery + Android `priority=high`, sends via `admin.messaging().sendEachForMulticast()`.
+- Invalid token cleanup: parses per-token failures from the response. Tokens with `messaging/registration-token-not-registered` or `messaging/invalid-registration-token` errors are deleted from `device_tokens` so the next send doesn't waste quota.
+- `NotificationsService.create()` (`backend/src/notifications/notifications.service.ts`) now calls `pushService.sendPush()` after the DB insert succeeds. Fire-and-forget — push failures don't roll back the in-app notification.
+- `NotificationsModule` imports `PushModule`. `notifications.service.spec.ts` updated to mock `PushService` (20 instantiations patched).
+
+**Frontend — Capacitor + FCM token registration** (`frontend/src/app/core/push-notifications.service.ts`):
+- New `PushNotificationsService`. On app boot (after `auth.sessionReady`):
+  1. Skip on web (`Capacitor.isNativePlatform() === false`)
+  2. Request permissions via `@capacitor-firebase/messaging`
+  3. Get FCM token, POST to `/api/push/register`
+  4. Subscribe to `tokenReceived` for token rotation (Firebase rotates periodically; re-register on each)
+  5. Subscribe to `notificationActionPerformed` for tap deep-linking — reads `data.route` from the push payload and navigates via Angular Router. Reservation pushes carry `route: /duel/{gameId}`, so the user lands directly on the duel page ready to accept.
+- Idempotent `init()` — safe to call multiple times. `unregister()` for logout flow.
+- Wired into `ShellComponent.ngOnInit` alongside `queueState.init()`.
+
+**P1 — `derivePhase` missing 'reserved'** (`frontend/src/app/features/duel/duel.store.ts:41-49`): Function fell through to `'active'`, so a hard-refresh on `/duel/:reservedGameId` during the 10s window rendered "Loading question..." indefinitely. Auto-fixed: added `if (view.status === 'reserved') return 'waiting';` so users see the existing waiting UI until status flips to `'active'` or `'abandoned'`.
+
+**P3 — `applyForfeitPenalty` invariant comment** (`backend/src/duel/duel.service.ts`): Added documentation block explaining that the read-modify-write on `profiles.elo` is safe because S0b global queue exclusivity guarantees one forfeit per user at a time. If S0b is ever relaxed, wrap in `BEGIN; SELECT FOR UPDATE; UPDATE; COMMIT;`.
+
+**Setup required before push works in production**: `FIREBASE_SERVICE_ACCOUNT_JSON` env var must be set in Railway. Download from Firebase Console → Project Settings → Service accounts → Generate new private key. iOS Xcode capability + Android `google-services.json` setup also required. Tracked in `TODOS.md` → "Configure Firebase service account for production push delivery."
+
+**Verification**: backend `tsc --noEmit` clean. Backend `jest --testPathPatterns="notifications|duel.reservation|push"` passes 30/30. Frontend `tsc --noEmit -p tsconfig.app.json` clean. Frontend `ng build --configuration development` succeeds.
+
 ## [0.10.0.22] - 2026-04-26
 
 ### Added — Queue widget Day 5: Playwright + visual-contract E2E tests + smoke checklist

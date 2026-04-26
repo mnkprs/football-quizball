@@ -10,6 +10,7 @@ import { AuthService } from '../../core/auth.service';
 import { ShellUiService } from '../../core/shell-ui.service';
 import { RefreshService } from '../../core/refresh.service';
 import { QueueStateService } from '../../core/queue-state.service';
+import { PushNotificationsService } from '../../core/push-notifications.service';
 import { SoPullToRefreshDirective } from '../../shared/directives/so-pull-to-refresh.directive';
 
 export interface NavTab {
@@ -43,6 +44,7 @@ export class ShellComponent implements OnInit, OnDestroy {
   shellUi = inject(ShellUiService);
   refresh = inject(RefreshService);
   private queueState = inject(QueueStateService);
+  private pushNotifications = inject(PushNotificationsService);
   upgrading = signal(false);
   isHome = signal(true);
   scrollContainer = viewChild<ElementRef<HTMLElement>>('scrollContainer');
@@ -63,6 +65,11 @@ export class ShellComponent implements OnInit, OnDestroy {
     // waiting/reserved game from a previous session (hard refresh, mobile
     // resume after kill). Internally awaits sessionReady; safe to call early.
     void this.queueState.init();
+    // Register the device with FCM for backgrounded push delivery (iOS/Android
+    // only; web is a silent no-op). Internally awaits sessionReady. The
+    // reservation push triggers in DuelService.joinQueue → NotificationsService
+    // → PushService.sendPush → device tap deep-links to /duel/:gameId.
+    void this.pushNotifications.init();
     this.isHome.set(this.router.url.split('?')[0] === '/');
     this.routeSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))

@@ -488,6 +488,13 @@ export class DuelService {
    * Write a -5 ELO history row + decrement profile.elo for the no-show party.
    * Mirrors the existing solo "timeout extra -5" pattern conceptually but uses
    * the reservation_forfeit difficulty value so analytics can distinguish them.
+   *
+   * Concurrency note: this is read-modify-write without a transaction. Safe
+   * because S0b global queue exclusivity (enforced by both the app-level
+   * singleton guard and the DB-level partial UNIQUE indexes) means a single
+   * user can only have one active queue/reservation at a time. Therefore at
+   * most one forfeit can fire for a given user concurrently. If S0b is ever
+   * relaxed, wrap this in `BEGIN; SELECT FOR UPDATE; UPDATE; COMMIT;`.
    */
   private async applyForfeitPenalty(userId: string): Promise<void> {
     const profile = await this.supabaseService.getProfile(userId);
