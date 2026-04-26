@@ -31,7 +31,7 @@
             <p class="lq-subtitle type-body-md">
               @switch (subMode) {
                 @case ('duel') {
-                  10 rounds, 20s each. You and your opponent see the same logos. Fastest correct wins the round.
+                  PvP. 10 rounds, 20 seconds each. Race to identify the club. First correct answer scores the point. 
                 }
                 @case ('royale') {
                   20 players split into two teams. 10 logos each. Team with the highest average score wins.
@@ -47,7 +47,7 @@
           <so-tab-strip
             class="lq-submode-tabs"
             tabIdPrefix="lq-tab-"
-            [tabs]="submodeTabs"
+            [tabs]="submodeTabs"`
             [active]="subMode"
             (activeChange)="setSubMode($event)"
           />

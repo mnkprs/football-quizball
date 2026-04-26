@@ -27,8 +27,6 @@ interface LegendTier {
 }
 
 type LeaderboardTab = 'solo' | 'logoQuiz' | 'duel';
-type LogoSubTab = 'normal' | 'hardcore';
-type DuelSubTab = 'standard' | 'logo';
 
 const LEGEND_SEEN_KEY = 'leaderboard_legend_seen';
 
@@ -43,20 +41,13 @@ const LEGEND_TIERS: readonly LegendTier[] = [
   { label: 'Sunday League', range: '500 – 749',   color: '#6b7280', gradientFrom: '#4b5563', icon: '🥾' },
 ] as const;
 
+// Duel parent tab now exclusively shows Logo Duel (standard duel only stores
+// W-L and isn't ranked — its leaderboard was removed). The id stays 'duel' to
+// avoid churning the LeaderboardTab type, only the user-facing label changes.
 const MODE_TABS: SoTab[] = [
-  { id: 'solo',     label: 'Solo',  color: '#10b981' },
-  { id: 'logoQuiz', label: 'Logo',  color: '#a855f7' },
-  { id: 'duel',     label: 'Duel',  color: '#f59e0b' },
-];
-
-const LOGO_SUB_TABS: SoTab[] = [
-  { id: 'normal',   label: 'Normal',   color: '#a855f7' },
-  { id: 'hardcore', label: 'Hardcore', color: '#ef4444' },
-];
-
-const DUEL_SUB_TABS: SoTab[] = [
-  { id: 'standard', label: 'Standard', color: '#f59e0b' },
-  { id: 'logo',     label: 'Logo',     color: '#a855f7' },
+  { id: 'solo',     label: 'Solo',      color: '#10b981' },
+  { id: 'logoQuiz', label: 'Logo',      color: '#a855f7' },
+  { id: 'duel',     label: 'Logo Duel', color: '#a855f7' },
 ];
 
 @Component({
@@ -81,16 +72,18 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   lang = inject(LanguageService);
 
   // Raw API data (stays as signals because the API returns tagged entries and we need per-tab "me" rows).
+  // Hardcore Logo Quiz signals are kept dormant — the UI doesn't bind them
+  // anymore (mode is unranked/casual), but the load() call still hydrates them
+  // so re-enabling the leaderboard is a template-only change. The backend
+  // continues to compute hardcore ELO regardless.
   private soloEntries              = signal<LeaderboardEntry[]>([]);
   private logoQuizEntries          = signal<LogoQuizLeaderboardEntry[]>([]);
   private logoQuizHardcoreEntries  = signal<LogoQuizHardcoreLeaderboardEntry[]>([]);
-  private duelEntries              = signal<DuelLeaderboardEntry[]>([]);
   private logoDuelEntries          = signal<DuelLeaderboardEntry[]>([]);
 
   private soloMeEntry              = signal<(LeaderboardEntry & { rank: number }) | null>(null);
   private logoQuizMeEntry          = signal<(LogoQuizLeaderboardEntry & { rank: number }) | null>(null);
   private logoQuizHardcoreMeEntry  = signal<(LogoQuizHardcoreLeaderboardEntry & { rank: number }) | null>(null);
-  private duelMeEntry              = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
   private logoDuelMeEntry          = signal<(DuelLeaderboardEntry & { rank: number }) | null>(null);
 
   private currentUserId = computed(() => this.auth.user()?.id ?? null);
@@ -99,31 +92,25 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   soloRows             = computed<LeaderboardRow[]>(() => toRows.solo(this.soloEntries(), this.currentUserId()));
   logoQuizRows         = computed<LeaderboardRow[]>(() => toRows.logoQuiz(this.logoQuizEntries(), this.currentUserId()));
   logoQuizHardcoreRows = computed<LeaderboardRow[]>(() => toRows.logoQuizHardcore(this.logoQuizHardcoreEntries(), this.currentUserId()));
-  duelRows             = computed<LeaderboardRow[]>(() => toRows.duel(this.duelEntries(), this.currentUserId()));
   logoDuelRows         = computed<LeaderboardRow[]>(() => toRows.duel(this.logoDuelEntries(), this.currentUserId()));
 
   soloMeRow             = computed<LeaderboardRow | null>(() => meToRow.solo(this.soloMeEntry(), this.currentUserId()));
   logoQuizMeRow         = computed<LeaderboardRow | null>(() => meToRow.logoQuiz(this.logoQuizMeEntry(), this.currentUserId()));
   logoQuizHardcoreMeRow = computed<LeaderboardRow | null>(() => meToRow.logoQuizHardcore(this.logoQuizHardcoreMeEntry(), this.currentUserId()));
-  duelMeRow             = computed<LeaderboardRow | null>(() => meToRow.duel(this.duelMeEntry(), this.currentUserId()));
   logoDuelMeRow         = computed<LeaderboardRow | null>(() => meToRow.duel(this.logoDuelMeEntry(), this.currentUserId()));
 
-  // Your-ranks strip visibility (any mode ranked).
+  // Your-ranks strip visibility (any displayed mode ranked).
   hasAnyMyRank = computed(() =>
-    !!(this.soloMeRow() || this.logoQuizMeRow() || this.logoQuizHardcoreMeRow() || this.duelMeRow() || this.logoDuelMeRow())
+    !!(this.soloMeRow() || this.logoQuizMeRow() || this.logoDuelMeRow())
   );
 
   loading = signal(false);
   error = signal<string | null>(null);
   activeTab = signal<LeaderboardTab>('solo');
-  logoQuizSubTab = signal<LogoSubTab>('normal');
-  duelSubTab = signal<DuelSubTab>('standard');
   showLegend = signal(false);
 
   readonly legendTiers = LEGEND_TIERS;
   readonly modeTabs = MODE_TABS;
-  readonly logoSubTabs = LOGO_SUB_TABS;
-  readonly duelSubTabs = DUEL_SUB_TABS;
 
   openLegend(): void {
     this.showLegend.set(true);
@@ -168,14 +155,6 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     this.activeTab.set(tab as LeaderboardTab);
   }
 
-  setLogoQuizSubTab(sub: string): void {
-    this.logoQuizSubTab.set(sub as LogoSubTab);
-  }
-
-  setDuelSubTab(sub: string): void {
-    this.duelSubTab.set(sub as DuelSubTab);
-  }
-
   async load(silent = false): Promise<void> {
     if (!silent) this.loading.set(true);
     this.error.set(null);
@@ -191,13 +170,12 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       ]);
       this.soloEntries.set(leaderboardRes.solo ?? []);
       this.logoQuizEntries.set(leaderboardRes.logoQuiz ?? []);
+      // Hardcore entries hydrated but not displayed — see signal comment above.
       this.logoQuizHardcoreEntries.set(leaderboardRes.logoQuizHardcore ?? []);
-      this.duelEntries.set(leaderboardRes.duel ?? []);
       this.logoDuelEntries.set(leaderboardRes.logoDuel ?? []);
       this.soloMeEntry.set(meRes.soloMe ?? null);
       this.logoQuizMeEntry.set(meRes.logoQuizMe ?? null);
       this.logoQuizHardcoreMeEntry.set(meRes.logoQuizHardcoreMe ?? null);
-      this.duelMeEntry.set(meRes.duelMe ?? null);
       this.logoDuelMeEntry.set(meRes.logoDuelMe ?? null);
     } catch {
       this.error.set(this.lang.t().lbLoadFailed);

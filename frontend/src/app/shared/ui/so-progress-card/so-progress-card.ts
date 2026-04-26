@@ -9,6 +9,10 @@
 // Why a mode flag (not pre-formatted strings): keeps the formatting rules in
 // one place. Adding a third domain (e.g. mastery) means a new mode branch,
 // not new prose at every call site.
+//
+// Pure display surface — never tappable. The leaderboard's tier legend modal
+// owns the "explain ELO" affordance for the whole app, so each per-mode card
+// here can stay quiet.
 
 import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';

@@ -49,7 +49,6 @@ export class TopNavComponent implements OnInit {
   deleteError = signal<string | null>(null);
 
   private settingsTriggerEl: HTMLElement | null = null;
-  private lastSeenLevel: number | null = null;
 
   // Edit profile panel
   editPanelOpen = signal(false);
@@ -65,9 +64,6 @@ export class TopNavComponent implements OnInit {
   tierColor = computed(() => this.store.tier().color);
   tierGlow = computed(() => this.store.tier().glow);
   level = computed(() => this.store.level());
-  xpProgressPct = computed(() => this.store.xpProgressPct());
-  xpToNextLevel = computed(() => this.store.xpToNextLevel());
-  levelingUp = signal(false);
   statsLoading = computed(() => this.store.loading());
   username = computed(() => this.store.profile()?.username ?? '');
 
@@ -119,22 +115,6 @@ export class TopNavComponent implements OnInit {
         this.store.loadProfile();
         this.pro.ensureLoaded();
       }
-    }, { injector: this.injector });
-
-    // Level-up flash trigger: fire only on real increments during a session,
-    // never on the first-load transition from signal default (1) to real value.
-    effect(() => {
-      if (this.statsLoading()) return;
-      const current = this.level();
-      if (this.lastSeenLevel === null) {
-        this.lastSeenLevel = current;
-        return;
-      }
-      if (current > this.lastSeenLevel) {
-        this.levelingUp.set(true);
-        window.setTimeout(() => this.levelingUp.set(false), 600);
-      }
-      this.lastSeenLevel = current;
     }, { injector: this.injector });
 
     this.notificationsApi.refreshUnreadCount();

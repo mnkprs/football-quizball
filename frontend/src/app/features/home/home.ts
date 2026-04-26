@@ -56,9 +56,17 @@ export class HomeComponent implements OnInit {
     return left > 0 ? `1v1 · ${left} free today` : '1v1 · Come back tomorrow';
   });
 
-  duelBadge = computed(() => {
+  soloBadge = computed(() => {
     if (!this.auth.isLoggedIn() || !this.store.profile()) return undefined;
     return `ELO ${this.userElo()}`;
+  });
+
+  duelBadge = computed(() => {
+    if (!this.auth.isLoggedIn()) return undefined;
+    const ds = this.store.duelStats();
+    if (!ds) return undefined;
+    if (ds.wins === 0 && ds.losses === 0) return undefined;
+    return `${ds.wins}W · ${ds.losses}L`;
   });
 
   battleRoyaleBadge = computed(() => {

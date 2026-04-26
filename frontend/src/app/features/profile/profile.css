@@ -66,7 +66,7 @@
 */
 .hero {
   position: relative;
-  padding: 1.25rem 1.25rem 0;
+  padding: 1.25rem 1.25rem 1.5rem;
   overflow: hidden;
   background: var(--color-surface-lowest);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -252,14 +252,15 @@
   box-shadow: 0 0 10px rgba(230, 168, 0, 0.3);
 }
 
-/* ── Tier Progress (tap to /profile/tier) ── */
-.tier-progress-link {
-  display: block;
-  color: inherit;
-  text-decoration: none;
-  margin: 0 -1.25rem;
-  padding: 0 1.25rem 0.75rem;
-  -webkit-tap-highlight-color: transparent;
+/* ── Progression section (Tier + XP cards, grouped) ──
+   Both cards are pure progress displays, never tappable. The single
+   canonical "explain ELO/tiers" surface lives on the leaderboard info
+   button — duplicating it here would force every per-mode ELO card on
+   this page to also be tappable, which is overkill. */
+.progression-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 /* ── Section scaffolding ───────────────── */
@@ -419,17 +420,9 @@
   .spin { animation: none; }
 }
 
-/* ── Ratings + XP stuck pair ─────────────── */
-.ratings-section { padding-bottom: 0.5rem; }
+/* ── Ratings ─────────────────────────────── */
 .ratings-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.625rem;
 }
-.ratings-grid > so-rating-card:nth-child(5) {
-  grid-column: 1 / -1;
-  /* F1: 5th card (Logo Duel) spans full width — bump value text via
-     exposed custom property so it reads as featured, not orphaned. */
-  --so-rating-card-value-size: 1.5rem;
-}
-.xp-section { padding-top: 0; }

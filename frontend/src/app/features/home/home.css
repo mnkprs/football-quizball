@@ -63,13 +63,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 12px;
-  border-radius: 20px;
-  background: linear-gradient(160deg,
-    rgba(230,168,0,0.08) 0%,
-    rgba(230,168,0,0.02) 40%,
-    transparent 60%);
-  border: 1px solid rgba(230,168,0,0.1);
   animation: pro-arena-breathe 4s ease-in-out infinite;
 }
 .pro-arena-tier > so-mode-row {

@@ -20,7 +20,7 @@
     <div class="so-title">
       <span class="font-headline">{{ title() }}</span>
       @if (badge()) {
-        <so-chip [variant]="disabled() ? 'default' : 'accent'" size="xs">{{ badge() }}</so-chip>
+        <so-chip [variant]="disabled() ? 'default' : chipVariant()" size="xs">{{ badge() }}</so-chip>
       }
     </div>
     @if (subtitle()) { <div class="so-sub">{{ subtitle() }}</div> }

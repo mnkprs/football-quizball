@@ -20,7 +20,7 @@
       badge="FEATURED"
       image="/gemini-logo.png"
       [height]="220"
-      accent="var(--color-purple)"
+      accent=""
       (pressed)="goLogoQuiz()"
     />
 
@@ -49,8 +49,10 @@
         image="/duel-mode.png"
         materialIcon="swords"
         [iconBg]="'rgba(239,68,68,0.15)'"
-        [iconColor]="'#ef4444'"
+        [iconColor]="'var(--color-destructive)'"
         [badge]="duelBadge()"
+        chipVariant="error"
+        accent="var(--color-destructive)"
         (pressed)="goDuel()"
       />
       <so-mode-row
@@ -60,6 +62,8 @@
         materialIcon="emoji_events"
         [iconBg]="'rgba(230,168,0,0.15)'"
         [iconColor]="'var(--color-pro)'"
+        [badge]="soloBadge()"
+        chipVariant="gold"
         accent="var(--color-pro)"
         (pressed)="goSolo()"
       />

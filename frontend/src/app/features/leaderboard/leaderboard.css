@@ -121,17 +121,14 @@
 }
 .your-rank-card--logo-quiz .your-rank-icon { color: #a855f7; }
 
+/* Hardcore Logo Quiz styles preserved — UI is hidden while the mode is
+   casual/unranked, but kept here so re-enabling the leaderboard is purely a
+   template change. */
 .your-rank-card--logo-hardcore {
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
 .your-rank-card--logo-hardcore .your-rank-icon { color: var(--color-red); }
-
-.your-rank-card--duel {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04));
-  border: 1px solid rgba(239, 68, 68, 0.25);
-}
-.your-rank-card--duel .your-rank-icon { color: var(--color-red); }
 
 .your-rank-card--logo-duel {
   background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(168, 85, 247, 0.04));
@@ -193,8 +190,7 @@
 /* ============================================
    Tab strip wrappers (so-tab-strip owns its own styles)
    ============================================ */
-.mode-tabs-wrap     { margin-bottom: 1rem; }
-.logo-sub-tabs-wrap { margin: 0.5rem 0 0.875rem; }
+.mode-tabs-wrap { margin-bottom: 1rem; }
 
 .leaderboard-section {
   /* Animations now live inside <lb-section>. Container stays minimal. */
@@ -297,10 +293,37 @@
   margin: 0;
 }
 
+/* Section grouping inside the legend modal — each section gets its own
+   eyebrow so "All Tiers" and "How ELO works" read as distinct chapters. */
+.legend-section + .legend-section {
+  margin-top: 1.25rem;
+}
+.legend-section__eyebrow {
+  font-family: var(--font-headline);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-fg-muted);
+  margin: 0 0 0.625rem;
+}
+
 .legend-tiers {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+/* "How ELO works" body copy — relaxed leading + variant fg so the prose
+   doesn't compete with the colored tier rows above it. */
+.legend-explainer {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-fg-variant, var(--color-fg-muted));
+  margin: 0;
+}
+.legend-explainer + .legend-explainer {
+  margin-top: 0.625rem;
 }
 
 .legend-tier-row {

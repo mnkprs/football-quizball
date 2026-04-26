@@ -212,6 +212,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     return { label: t.label, color: t.color };
   });
 
+  // Dormant — Hardcore Logo Quiz is currently casual/unranked so the rating
+  // card was removed from the template. Backend still tracks the ELO; this
+  // computed stays so re-enabling the card is a one-line template change.
   logoHardcoreTier = computed(() => {
     const t = getEloTier(this.profile()?.logo_quiz_hardcore_elo ?? 1000);
     return { label: t.label, color: t.color };
@@ -225,8 +228,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   });
 
   currentTierStart = computed(() => {
-    // Mirrors profile-tier.ts — the floor of the user's current tier,
-    // needed by so-progress-card for fill math.
+    // Floor of the user's current tier — needed by so-progress-card for fill math.
     const elo = this.profile()?.elo ?? 1000;
     const TIER_BOUNDARIES: Array<[number, number | null]> = [
       [2400, null], [2000, 2399], [1650, 1999], [1300, 1649],

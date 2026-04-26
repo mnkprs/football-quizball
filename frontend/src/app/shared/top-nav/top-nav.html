@@ -4,7 +4,7 @@
         [class.top-nav--hidden]="!showBar"
         [style.--tier-color]="tierColor()">
   @if (auth.isLoggedIn()) {
-    <!-- Logged in: Avatar + XP bar + utilities -->
+    <!-- Logged in: Avatar + identity (name / level) + utilities -->
     <div class="top-nav__left">
       <a routerLink="/profile" class="top-nav__avatar pressable" aria-label="Profile"
          [style.border-color]="tierColor()"
@@ -20,29 +20,17 @@
           </span>
         }
       </a>
-      @if (username()) {
-        <a routerLink="/profile" class="top-nav__username">{{ username() }}</a>
-      }
-    </div>
-
-    <div class="top-nav__center">
-      @if (statsLoading()) {
-        <span class="top-nav__skeleton" style="width:8rem"></span>
-      } @else {
-        <a routerLink="/profile"
-           class="top-nav__xp-progress"
-           [class.top-nav__xp-progress--leveling]="levelingUp()"
-           [attr.aria-label]="'Level ' + level() + ', ' + xpToNextLevel() + ' XP to level ' + (level() + 1)">
-          <span class="top-nav__xp-level">Lv {{ level() }}</span>
-          <span class="top-nav__xp-track" role="progressbar"
-                [attr.aria-valuenow]="xpProgressPct()"
-                aria-valuemin="0"
-                aria-valuemax="100">
-            <span class="top-nav__xp-fill" [style.--xp-pct]="xpProgressPct() / 100"></span>
-          </span>
-          <span class="top-nav__xp-suffix">{{ xpToNextLevel() }} XP</span>
-        </a>
-      }
+      <div class="top-nav__identity">
+        @if (username()) {
+          <a routerLink="/profile" class="top-nav__username">{{ username() }}</a>
+        }
+        @if (statsLoading()) {
+          <span class="top-nav__skeleton top-nav__level-skeleton"></span>
+        } @else {
+          <a routerLink="/profile" class="top-nav__level"
+             [attr.aria-label]="'Level ' + level()">Lv {{ level() }}</a>
+        }
+      </div>
     </div>
 
     <div class="top-nav__right">

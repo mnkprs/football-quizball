@@ -2,6 +2,139 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.16] - 2026-04-25
+
+### Changed — Profile analytics preview, hardcore visual identity, and 2-player lobby chrome
+
+Six related design/UX moves on top of the v0.10.0.9 chrome refactor. Theme: replace bespoke per-feature implementations with shared design-system patterns, and give Hardcore mode its own visual identity instead of borrowing the destructive-action red.
+
+**Profile — Analytics preview replaces orphan "View full analytics" link**
+
+The standalone purple link below the Ratings grid read as a stranded boomer button. Wrapped it in a proper section that mirrors the achievements pattern: `so-section-header` + head-extras row + 3 stat tiles in a CSS grid (Questions / Accuracy / Games). Pro users see the existing "View full analytics ›" navigation link; free users see "Unlock with Pro →" that fires the global upgrade modal via `pro.showUpgradeModal.set(true)`. The same lifetime stats are visible to both gates — the difference is what the CTA does.
+
+- **`profile.ts`** — added `accuracy = computed(...)` (whole-percent from `correct_answers / questions_answered`, 0 when no questions). Added `openUpgrade()` that sets `triggerContext: 'general'` and shows the modal. Imported `DecimalPipe` from `@angular/common` for the `| number:'1.0-0'` thousands separator on Questions/Games (CommonModule wholesale would have pulled in 10+ unused directives).
+- **`profile.html`** — section now gated by `isOwnProfile()` only (was `isOwnProfile() && pro.isPro()`); the Pro/non-Pro split lives inside the head-extras row.
+- **`profile.css`** — `.analytics-preview` (3-col grid), `.analytics-preview__tile` (purple-tinted cards), `.analytics-preview__pill` ("All-time"), `.analytics-preview__upgrade` (purple link-style CTA). Deleted `.analytics-link*` rules. Tile values use `font-variant-numeric: tabular-nums` so digit-width changes don't cause layout shift as the counter ticks.
+
+**Profile — ELO Progression sparkline removed**
+
+Redundant + misleading. Current ELO already showed in 5 surfaces above (hero badge, tier progress card, 3 ratings grid cards). The "Progression" label framed a metric that *can decrease* as if it only goes up — a loss streak rendered as a downward line under that label reads as "the app is showing me my failure."
+
+- **`profile.{html,ts,css}`** — deleted `<!-- ELO PROGRESSION -->` section, `eloHistory` signal, `sparklineData` computed, `eloHistory.set(profileRes?.history ?? [])` line, and `.sparkline-card / .sparkline__labels / .sparkline__svg` rules + tablet media query line. Net delete: ~66 lines. The backend's `history` field still travels over the wire but lands nowhere on this page now (other consumers untouched).
+
+**so-toggle — New `'hardcore'` variant (white spotlight pulse)**
+
+The Hardcore toggle on `/logo-quiz` was using `variant="danger"` (pulsing red border + red label). After the emblem PNG swap landed (see below), the visual language for hardcore became "desaturated dark backdrop with bright white stadium lights cutting through" — but the toggle was still screaming red, breaking the section's visual consistency.
+
+- **`so-toggle.ts`** — added `'hardcore'` to `SoToggleVariant` union.
+- **`so-toggle.css`** — new `.variant-hardcore.so-toggle--checked` block: white background tint (rgba(255,255,255,0.06)), white label (#fff), white switch when on, white pulse animation (`so-toggle-pulse-hardcore` at 2.4s — slower than the 2s danger pulse, max box-shadow 28px white-55% — softer than danger's 20px red-60% so it reads as ambient stadium-light wash rather than alarm). Reduced-motion guard updated to cover both pulsing variants.
+- **`logo-quiz.html`** — toggle changed from `variant="danger"` to `variant="hardcore"`. `'danger'` reserved for actually destructive actions (delete account, sign out).
+
+**logo-quiz — Hero swapped from inline SVG to color-coded PNG emblems**
+
+The geometric SVG crest (shield + band + star + "FC" text) was a placeholder that didn't match the rich pre-rendered emblems sitting in `/public`. Switched to the four full-bleed PNG assets the user already had: `emblem_blue.png` (solo), `emblem_red.png` (duel), `emblem_gold.png` (royale), `emblem-hardcore.png` (solo + hardcore — desaturated B&W variant of the blue shield). Stadium lights, leather texture, beveled metallic edges, and the dark backdrop are all baked into each PNG, so the older `solid + radial + crest` layered approach became unnecessary.
+
+- **`logo-quiz.ts`** — added `emblemSrc = computed(...)` that returns the appropriate PNG path based on `activeSubMode()` + `hardcoreMode()`.
+- **`logo-quiz.html`** — replaced `<svg class="hero-bg__crest">` (~28 lines of inline shield path + gradient + star + text) with `<img class="hero-bg__img" [src]="emblemSrc()" alt="" aria-hidden="true">`. Dropped `.hero-bg__solid` and `.hero-bg__radial` divs (the PNGs include their own atmosphere). Dropped `[attr.data-hardcore]` since hardcore is now just a different image source.
+- **`logo-quiz.css`** — deleted ~55 lines: per-mode CSS variable palettes (`--crest-a` / `--crest-b` / `--hero-solid` / `--hero-radial`), all 4 mode-specific `[data-mode]` blocks, `.hero-bg__solid / .hero-bg__radial / .hero-bg__crest` rules, dead `.lq-crest-monogram`, and several iterations of CSS `filter` experimentation (grayscale → high-contrast → giallo) that's now obsolete because the desaturation lives in the PNG itself. Kept a 5-line `.hero-bg__img { opacity: 1 }` override since the shared `_hero.css` defaults to opacity 0.5 (designed for *background* photos, not focal-point emblems).
+
+**Emblem PNG compression (pngquant in place)**
+
+The new color-coded emblems shipped at 2048×2048 / 6 MB each — 17 MB across the 4 active assets. Ran `pngquant --quality=80-95 --speed=1` in place (resolution preserved per user direction): emblem_blue 6.0 MB → 2.0 MB, emblem_red 5.6 MB → 1.8 MB, emblem_gold 5.5 MB → 1.7 MB, emblem-hardcore 215 KB → 82 KB. Active bundle: 17.3 MB → 5.6 MB (~67% reduction). Resolution stays at 2048×2048 for crispness on iPhone Pro 3× DPR; further wins available later via resize + WebP.
+
+**game (2-player) — Lobby joins shell-chrome opt-in pattern**
+
+`/game` is a single-component phase-based mode (setup → loading → board → question → result → finished) but never wired into the v0.10.0.9 shell-chrome pattern that logo-quiz / solo / blitz use. Same fix as those: phase-based effect that toggles both nav bars based on whether we're in the `setup` lobby or active gameplay.
+
+- **`game.ts`** — injects `ShellUiService`. Constructor adds an `effect()` that reads `this.store.phase()`, computes `inLobby = phase === 'setup'`, then calls `hideBottomNav.set(!inLobby)` and `showTopNavBar.set(inLobby)`. `ngOnDestroy` resets both signals to `false` so navigating away to `/leaderboard` doesn't leak gameplay-mode chrome. `effect()` lives in the constructor (Angular requires injection context for `effect()` outside of `runInInjectionContext`).
+
+Net behavior: top-nav + bottom-nav visible on the 2-player setup screen, both hidden once `loading` fires and the board takes over.
+
+## [0.10.0.15] - 2026-04-25
+
+### Changed — Cut Upstash Redis command volume (dev throttler + cron purge + throttler collapse)
+
+Mitigation for the 2026-04-23 Upstash quota exhaustion incident. Four changes to bring monthly write volume back under the free-tier ceiling:
+
+- **Throttler storage is in-memory in dev.** `app.module.ts` now only wires `ThrottlerStorageRedisService` when `NODE_ENV === 'production'`. Dev runs a single backend instance, so the in-memory default is correct and avoids an `INCR + PEXPIRE` per request — the dominant Redis write source on the free tier.
+- **Collapsed to a single named throttler.** Removed `answer` and `fetch` from the throttler config. Every named throttler fires on every request (each one is `INCR + PEXPIRE`), so 3 throttlers meant 6 Redis writes per request. No route in the codebase had a `@Throttle({ answer })` or `@Throttle({ fetch })` decorator — the stricter caps were dead config. Cuts prod Redis writes by ~66%; the 120 req/min `default` throttler still protects every endpoint.
+- **Removed `lock:cron:pool-refill` cron.** `pool-seed.service.ts` no longer schedules `scheduledRefill` every 2 hours. `refillIfNeeded()` is still triggered organically on game creation (`game.service.ts`, `online-game.service.ts`), so the pool stays warm via gameplay traffic instead of a background timer. Also dropped the `ConfigService` + `RedisService` injections (no other callers in the file) and the `DISABLE_POOL_CRON` env hatch.
+- **Removed `DuelTimeoutService` entirely.** The 2-minute cron that auto-advanced AFK duel questions is gone. `duel-timeout.service.ts` deleted; `duel.module.ts` no longer imports `ScheduleModule`. Trade-off: stuck duels won't auto-advance if both clients fail to call the timeout endpoint — acceptable in the current dev phase.
+
+Combined effect: in dev, throttler writes go to zero (~250K/day saved). In prod, the throttler collapse alone removes ~2/3 of throttler writes; cron lock removal drops another ~2K/day. `FailOpenThrottlerStorage` is intentionally retained for prod — it protects against all Upstash failure modes, not just quota.
+
+## [0.10.0.14] - 2026-04-25
+
+### Changed — Top-nav consistent across all bottom-nav tabs
+
+Followup to v0.10.0.13. Extended the leaderboard pattern (showTopNavBar opt-in + `--top-nav-reserve` token) to the remaining bottom-nav destinations so the four primary tabs share the same chrome:
+
+| Tab | Route | Top-nav |
+|-----|-------|---------|
+| Home | `/` | Visible (shell — `isHome()`) |
+| Casual | `/today` | Visible ← **new** |
+| Rank | `/leaderboard` | Visible (v0.10.0.13) |
+| Profile | `/profile` | Visible ← **new** |
+
+- **`today.ts`** — injects `ShellUiService`, `ngOnInit` sets `showTopNavBar(true)`, `ngOnDestroy` resets.
+- **`today.css`** — `.today-page` `padding-top: calc(var(--top-nav-reserve) + 1rem)` (+ tablet+ media query mirror).
+- **`profile.ts`** — implements `OnDestroy`, injects `ShellUiService`, same opt-in pattern.
+- **`profile.css`** — `.profile-page` `padding-top: var(--top-nav-reserve)` (existing `padding-bottom` preserved).
+
+In-game and detail screens (game/duel/play, profile sub-routes) still hide the top-nav as before. The `.top-nav.top-nav--hidden` specificity bump from v0.10.0.13 is what makes the hide path actually work for them.
+
+## [0.10.0.13] - 2026-04-25
+
+### Fixed — Top-nav source-order bug + leaderboard top-nav respect
+
+Two bugs uncovered while fixing the leaderboard layout:
+
+**1. `.top-nav--hidden` never actually hid anything.**
+
+In `top-nav.css` the rule order was:
+```
+.top-nav--hidden { display: none; }   /* line 1 */
+.top-nav { display: flex; ... }       /* line 3 */
+```
+Same specificity (single class), source order wins → `display: flex` always won. Every screen that set `showTopNavBar(false)` (game, solo play, blitz play, profile, today, etc.) was silently still rendering the top-nav header. Fix: bumped the hide rule's specificity to `.top-nav.top-nav--hidden` (0,2,0) so it wins regardless of source order.
+
+**2. `/leaderboard` now opts into the top-nav and reserves space for it.**
+
+User reported "leaderboard doesn't respect the top-nav header." With bug #1 the top-nav was visibly there but leaderboard content (title + refresh/info buttons) hid behind it. Made the visibility intentional via the existing `showTopNavBar` opt-in pattern, and added a dedicated reserve token mirroring `--bottom-nav-reserve`.
+
+- **`tokens.css`** — added `--top-nav-reserve: calc(3.75rem + env(safe-area-inset-top))`. Top-anchored screens that opt into `showTopNavBar(true)` clear the fixed nav via this token. Lobbies bottom-anchor with flex-end so they don't need it.
+- **`top-nav.css`** — `.top-nav.top-nav--hidden` (specificity bump). Restores the hide path for non-lobby/non-home screens.
+- **`leaderboard.ts`** — implements `OnDestroy`; `ngOnInit` sets `shellUi.showTopNavBar(true)`, `ngOnDestroy` resets to false. Matches the lobby pattern.
+- **`leaderboard.css`** — `.leaderboard-page` `padding-top: calc(var(--top-nav-reserve) + 1rem)` so the title clears the fixed nav.
+
+## [0.10.0.12] - 2026-04-25
+
+### Fixed — Logo-quiz lobby flex chain break (the real fix)
+
+v0.10.0.10/11 attempted to fix lobby phantom-scroll + dead-band by tweaking `_lobby.css`, but missed the actual chain break. Verified live in browser: `.lq-container` was rendering at 609px while its parent `.logo-quiz-root` was 756px (full available height). Root cause: `.logo-quiz-root` had `flex: 1` and `min-height: 100%` but **no `display: flex`**, so children's `flex: 1` didn't apply and the box collapsed to content-height. Title clipped by top-nav, dead band below CTA — both symptoms of the same chain break. The other 4 lobbies (solo, blitz, online-lobby, duel-lobby) all had `display: flex; flex-direction: column;` on their roots; logo-quiz was the odd one out.
+
+- **`logo-quiz.css`** — added `display: flex; flex-direction: column;` to `.logo-quiz-root`. Lobby chain now fills the full 756px shell-main content area, `justify-content: flex-end` correctly bottom-anchors the content stack, title clears the top-nav, no dead band below the CTA.
+
+The `_lobby.css` defensive `flex: 1` from v0.10.0.11 is kept (matches proven `.screen__bleed` pattern, harmless in working chains).
+
+## [0.10.0.11] - 2026-04-25
+
+### Fixed — Lobby content stacking from top instead of bottom
+
+v0.10.0.10 swapped `.lobby-screen` from `min-height: 100dvh` → `100%` to kill phantom scroll, but didn't add `flex: 1`. With viewport-relative `100dvh` removed, the percentage `min-height` could resolve to content-height when the parent's height wasn't strictly definite — the box collapsed, `justify-content: flex-end` on `.lobby-content` had nothing to push against, and content stacked from the top. Symptoms: title clipped by the fixed top-nav; large dead band below the CTA above the bottom-nav.
+
+- **`_lobby.css`** — added `flex: 1` to `.lobby-screen`. Now mirrors the proven `screen.css .screen__bleed` pattern (`flex: 1` + `min-height: 100%` together). `flex: 1` is the load-bearing piece; the `min-height: 100%` is a fallback for non-flex contexts.
+
+## [0.10.0.10] - 2026-04-25
+
+### Fixed — Phantom scroll + redundant nav-reserve padding on shared lobbies
+
+The v0.10.0.1 phantom-scroll fix only patched the outer feature roots (`.logo-quiz-root`, `.daily`, etc). The shared `.lobby-screen` class in `_lobby.css` still declared `min-height: 100dvh` — so blitz, logo-quiz, online-lobby, solo, and duel-lobby kept overflowing `.shell-main` by ~88px (the nav reserve), forcing scroll. Additionally, `.lobby-content` was reserving `calc(safe-area + 7.5rem)` of bottom padding on top of `--bottom-nav-reserve` already applied by `shell.css` — double-reservation that created an extra dead band below the CTA.
+
+- **`_lobby.css`** — `.lobby-screen` now uses `min-height: 100%` (matches `screen.css .screen__bleed` pattern). `.lobby-content` `padding-bottom` set to `0`; the shell owns nav-reserve via `--bottom-nav-reserve` (single source of truth, per `shell.css:18`). Lobby content pins to `flex-end` and the shell's 5.5rem reserve gives natural ~24px breath above the nav pill.
+
+Affects 5 shared lobbies in one fix.
+
 ## [0.10.0.9] - 2026-04-25
 
 ### Changed — Shell chrome architecture: tokenized bottom-nav reservation, top-nav always-mounted, edit-profile single source of truth

@@ -104,10 +104,17 @@
           <div class="hero__member-since">Member since {{ memberSince() }}</div>
         }
       </div>
+    </div>
 
-      <!-- Tier Progress — tap to view all tiers -->
-      @if (nextTierLabel(); as nextLabel) {
-        <a routerLink="/profile/tier" class="tier-progress-link" aria-label="View all tiers">
+    <!-- ─── PROGRESSION (Tier + XP, grouped) ──────────
+         Both cards are the same component, used the same way: pure progress
+         display, no navigation. The "explain ELO/tiers" affordance lives on
+         the leaderboard's info button (single canonical surface for the whole
+         app), so these cards stay quiet here. -->
+    <section class="section progression-section">
+      <so-section-header label="Progression" />
+      <div class="progression-stack">
+        @if (nextTierLabel(); as nextLabel) {
           <so-progress-card
             mode="tier"
             [currentName]="rankTier().label"
@@ -116,11 +123,19 @@
             [next]="nextTierElo()"
             [start]="currentTierStart()"
             [color]="rankTier().color" />
-        </a>
-      }
-    </div>
+        }
+        <so-progress-card
+          mode="level"
+          [currentName]="level().toString()"
+          [nextName]="(level() + 1).toString()"
+          [current]="xp()"
+          [next]="xpNextLevel()"
+          [start]="xpLevelStart()"
+          color="#a78bfa" />
+      </div>
+    </section>
 
-    <!-- ─── RATINGS + XP (stuck pair) ─────────────── -->
+    <!-- ─── RATINGS ─────────────────────────────────── -->
     <section class="section ratings-section">
       <so-section-header label="Ratings" />
       <div class="ratings-grid">
@@ -129,20 +144,13 @@
           type="elo"
           [value]="profile()?.elo ?? 1000"
           [tier]="soloTier()"
-          icon="military_tech"
-          routerLink="/profile/tier" />
+          icon="military_tech" />
         <so-rating-card
           label="Logo Quiz"
           type="elo"
           [value]="profile()?.logo_quiz_elo ?? 1000"
           [tier]="logoQuizTier()"
           icon="extension" />
-        <so-rating-card
-          label="Logo Hardcore"
-          type="elo"
-          [value]="profile()?.logo_quiz_hardcore_elo ?? 1000"
-          [tier]="logoHardcoreTier()"
-          icon="local_fire_department" />
         <so-rating-card
           label="Duel"
           type="record"
@@ -156,17 +164,6 @@
           [secondaryValue]="logoDuelStats()?.losses ?? 0"
           icon="swords" />
       </div>
-    </section>
-
-    <section class="section xp-section">
-      <so-progress-card
-        mode="level"
-        [currentName]="level().toString()"
-        [nextName]="(level() + 1).toString()"
-        [current]="xp()"
-        [next]="xpNextLevel()"
-        [start]="xpLevelStart()"
-        color="#a78bfa" />
     </section>
 
     <!-- ─── ANALYTICS (compact preview; Pro = view link, Free = upgrade CTA) ────── -->
@@ -201,8 +198,8 @@
     }
 
     <!-- Mode Stats section removed — Ratings grid already surfaces each
-         mode's primary number. Games/accuracy/etc. belong on /profile/tier
-         or per-mode drill-downs. -->
+         mode's primary number. Games/accuracy/etc. belong on per-mode
+         drill-downs (future). -->
 
 
     <!-- ─── RECENT MATCHES ─────────────────────────── -->

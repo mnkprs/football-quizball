@@ -20,8 +20,7 @@ const fullRoutes: Routes = [
       { path: 'notifications', loadComponent: () => import('./features/notifications/notifications').then(m => m.NotificationsComponent), canActivate: [authGuard] },
       { path: 'profile', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent) },
       // Drilldown routes — MUST precede `profile/:userId`, otherwise the :userId
-      // wildcard swallows "tier" and "history" and they never match.
-      { path: 'profile/tier', loadComponent: () => import('./features/profile-tier/profile-tier').then(m => m.ProfileTierComponent) },
+      // wildcard swallows "achievements" and "history" and they never match.
       { path: 'profile/achievements', loadComponent: () => import('./features/profile-achievements/profile-achievements').then(m => m.ProfileAchievementsComponent), canActivate: [authGuard] },
       { path: 'profile/history', loadComponent: () => import('./features/profile-history/profile-history').then(m => m.ProfileHistoryComponent), canActivate: [authGuard] },
       { path: 'profile/:userId', loadComponent: () => import('./features/profile/profile').then(m => m.ProfileComponent), canActivate: [authGuard] },

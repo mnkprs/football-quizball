@@ -49,32 +49,6 @@
               </div>
             </a>
           }
-          @if (logoQuizHardcoreMeRow(); as me) {
-            <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--logo-hardcore">
-              <div class="your-rank-icon"><mat-icon>local_fire_department</mat-icon></div>
-              <div class="your-rank-info">
-                <span class="your-rank-mode">HC Logo</span>
-                <span class="your-rank-value">#{{ me.rank }}</span>
-              </div>
-              <div class="your-rank-score">
-                <span class="your-rank-score-value">{{ me.score }}</span>
-                <span class="your-rank-score-label">{{ me.scoreLabel }}</span>
-              </div>
-            </a>
-          }
-          @if (duelMeRow(); as me) {
-            <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--duel">
-              <div class="your-rank-icon"><mat-icon>sports_mma</mat-icon></div>
-              <div class="your-rank-info">
-                <span class="your-rank-mode">Duel</span>
-                <span class="your-rank-value">#{{ me.rank }}</span>
-              </div>
-              <div class="your-rank-score">
-                <span class="your-rank-score-value">{{ me.score }}</span>
-                <span class="your-rank-score-label">{{ me.scoreLabel }}</span>
-              </div>
-            </a>
-          }
           @if (logoDuelMeRow(); as me) {
             <a [routerLink]="['/profile', me.id]" class="your-rank-card your-rank-card--logo-duel">
               <!-- 'swords' is Material Symbols-only (not in legacy Material Icons font
@@ -115,55 +89,23 @@
         </section>
       }
       @case ('logoQuiz') {
-        <div class="logo-sub-tabs-wrap">
-          <so-tab-strip
-            [tabs]="logoSubTabs"
-            [active]="logoQuizSubTab()"
-            tabIdPrefix="lb-logo-sub-"
-            (activeChange)="setLogoQuizSubTab($event)" />
-        </div>
         <section class="leaderboard-section">
-          @if (logoQuizSubTab() === 'normal') {
-            <lb-section
-              [rows]="logoQuizRows()"
-              [meRow]="logoQuizMeRow()"
-              emptyIcon="extension"
-              [emptyMessage]="lang.t().lbNoLogoQuiz"
-              [yourRankLabel]="lang.t().lbYourRank" />
-          } @else {
-            <lb-section
-              [rows]="logoQuizHardcoreRows()"
-              [meRow]="logoQuizHardcoreMeRow()"
-              emptyIcon="local_fire_department"
-              emptyMessage="No hardcore logo quiz players yet. Be the first!"
-              [yourRankLabel]="lang.t().lbYourRank" />
-          }
+          <lb-section
+            [rows]="logoQuizRows()"
+            [meRow]="logoQuizMeRow()"
+            emptyIcon="extension"
+            [emptyMessage]="lang.t().lbNoLogoQuiz"
+            [yourRankLabel]="lang.t().lbYourRank" />
         </section>
       }
       @case ('duel') {
-        <div class="logo-sub-tabs-wrap">
-          <so-tab-strip
-            [tabs]="duelSubTabs"
-            [active]="duelSubTab()"
-            tabIdPrefix="lb-duel-sub-"
-            (activeChange)="setDuelSubTab($event)" />
-        </div>
         <section class="leaderboard-section">
-          @if (duelSubTab() === 'standard') {
-            <lb-section
-              [rows]="duelRows()"
-              [meRow]="duelMeRow()"
-              emptyIcon="sports_mma"
-              [emptyMessage]="lang.t().lbNoDuel"
-              [yourRankLabel]="lang.t().lbYourRank" />
-          } @else {
-            <lb-section
-              [rows]="logoDuelRows()"
-              [meRow]="logoDuelMeRow()"
-              emptyIcon="swords"
-              emptyMessage="No logo duel players yet. Be the first!"
-              [yourRankLabel]="lang.t().lbYourRank" />
-          }
+          <lb-section
+            [rows]="logoDuelRows()"
+            [meRow]="logoDuelMeRow()"
+            emptyIcon="swords"
+            emptyMessage="No logo duel players yet. Be the first!"
+            [yourRankLabel]="lang.t().lbYourRank" />
         </section>
       }
     }
@@ -183,18 +125,33 @@
           <p class="legend-subtitle type-body-md">Climb the ladder by answering correctly</p>
         </div>
 
-        <div class="legend-tiers">
-          @for (tier of legendTiers; track tier.label; let i = $index) {
-            <div
-              class="legend-tier-row"
-              [style.--tier-color]="tier.color"
-              [style.--tier-gradient-from]="tier.gradientFrom"
-              [style.animation-delay]="(i * 50) + 'ms'">
-              <div class="legend-tier-icon">{{ tier.icon }}</div>
-              <span class="legend-tier-name">{{ tier.label }}</span>
-              <span class="legend-tier-range">{{ tier.range }}</span>
-            </div>
-          }
+        <div class="legend-section">
+          <h3 class="legend-section__eyebrow">All Tiers</h3>
+          <div class="legend-tiers">
+            @for (tier of legendTiers; track tier.label; let i = $index) {
+              <div
+                class="legend-tier-row"
+                [style.--tier-color]="tier.color"
+                [style.--tier-gradient-from]="tier.gradientFrom"
+                [style.animation-delay]="(i * 50) + 'ms'">
+                <div class="legend-tier-icon">{{ tier.icon }}</div>
+                <span class="legend-tier-name">{{ tier.label }}</span>
+                <span class="legend-tier-range">{{ tier.range }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="legend-section legend-section--explainer">
+          <h3 class="legend-section__eyebrow">How ELO works</h3>
+          <p class="legend-explainer">
+            Every ranked match adjusts your ELO based on your opponent's rating and the result.
+            Beat a higher-rated player and you gain more; lose to a lower-rated one and you lose more.
+            Climb through the tiers by playing consistently and answering quickly.
+          </p>
+          <p class="legend-explainer">
+            Solo, Logo Quiz, and Logo Duel each track separate ELO. Switch tabs above to see your standing in each.
+          </p>
         </div>
 
         <div class="legend-footer">

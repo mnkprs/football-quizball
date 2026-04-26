@@ -15,6 +15,7 @@ export class ProfileStore {
 
   readonly profile = signal<LeaderboardEntry | null>(null);
   readonly blitzStats = signal<{ bestScore: number; totalGames: number; rank: number | null } | null>(null);
+  readonly duelStats = signal<{ wins: number; losses: number; rank: number | null } | null>(null);
   readonly sessionDelta = signal<number>(0);
   readonly correctStreak = signal<number>(0);
   readonly loading = signal(false);
@@ -70,6 +71,7 @@ export class ProfileStore {
         this.sessionDelta.set((profileRes as any).session_elo_delta ?? 0);
         this.correctStreak.set((profileRes as any).correct_streak ?? 0);
       }
+      this.duelStats.set(profileRes?.duel_stats ?? null);
       this.blitzStats.set(blitzRes);
       this.loaded = true;
     } catch {

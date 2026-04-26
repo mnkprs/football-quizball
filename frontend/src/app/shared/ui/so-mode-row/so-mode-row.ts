@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SoChipComponent } from '../so-chip/so-chip';
+import { SoChipComponent, type SoChipVariant } from '../so-chip/so-chip';
 
 @Component({
   selector: 'so-mode-row',
@@ -15,6 +15,9 @@ export class SoModeRowComponent {
   subtitle     = input<string>();
   image        = input<string>();
   badge        = input<string>();
+  /** Visual variant for the chip when `badge` is set. Defaults to 'accent'.
+      Disabled rows force 'default' regardless. */
+  chipVariant  = input<SoChipVariant>('accent');
   accent       = input<string>('var(--color-accent)');
   materialIcon = input<string>();
   iconBg       = input<string>();
