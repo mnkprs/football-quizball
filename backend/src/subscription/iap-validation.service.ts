@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jose from 'jose';
 import { google } from 'googleapis';
+import { AppleJwsVerifierService } from './apple-jws-verifier.service';
+import type { JWSTransactionDecodedPayload } from '@apple/app-store-server-library';
 
 export interface IapValidationResult {
   valid: boolean;
@@ -33,7 +35,10 @@ export class IapValidationService {
   private readonly googleServiceAccountKey: string;
   private readonly isProduction: boolean;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly appleJws: AppleJwsVerifierService,
+  ) {
     this.appleKeyId = this.configService.get<string>('APPLE_IAP_KEY_ID') ?? '';
     this.appleIssuerId = this.configService.get<string>('APPLE_IAP_ISSUER_ID') ?? '';
     this.applePrivateKey = this.configService.get<string>('APPLE_IAP_PRIVATE_KEY') ?? '';
@@ -47,74 +52,65 @@ export class IapValidationService {
   /**
    * Validate an Apple IAP receipt (JWS signed transaction).
    * Decodes the JWS, verifies bundleId/productId/environment.
+   *
+   * B2 fix: signature verification routes through AppleJwsVerifierService
+   * which validates the cert chain against Apple's root CAs (G2/G3/classic),
+   * NOT the Apple ID OIDC JWKS the previous code used. The wrong-JWKS bug
+   * meant every real production receipt failed signature verification and
+   * landed in the invalid branch. The library also enforces bundleId and
+   * environment internally — duplicate checks here kept as defense-in-depth.
    */
   async validateAppleReceipt(signedTransaction: string, expectedProductId: string): Promise<IapValidationResult> {
+    let decoded: JWSTransactionDecodedPayload;
     try {
-      // Verify the JWS signature using Apple's JWKS endpoint
-      let decoded: jose.JWTPayload;
-      try {
-        decoded = await this.verifyAppleJWS(signedTransaction);
-      } catch (verifyErr: any) {
-        this.logger.warn(`Apple JWS signature verification failed: ${verifyErr.message}`);
-        return this.invalidResult(expectedProductId);
-      }
-
-      const bundleId = decoded['bundleId'] as string | undefined;
-      const productId = decoded['productId'] as string | undefined;
-      const environment = decoded['environment'] as string | undefined;
-      const transactionId = decoded['transactionId'] as string | undefined;
-      const originalTransactionId = decoded['originalTransactionId'] as string | undefined;
-      const expiresDate = decoded['expiresDate'] as number | undefined;
-      const type = decoded['type'] as string | undefined;
-
-      // Verify bundle ID
-      if (bundleId !== this.appleBundleId) {
-        this.logger.warn(`Apple receipt bundleId mismatch: expected ${this.appleBundleId}, got ${bundleId}`);
-        return this.invalidResult(expectedProductId);
-      }
-
-      // Verify product ID
-      if (productId !== expectedProductId) {
-        this.logger.warn(`Apple receipt productId mismatch: expected ${expectedProductId}, got ${productId}`);
-        return this.invalidResult(expectedProductId);
-      }
-
-      // Verify environment
-      const expectedEnv = this.isProduction ? 'Production' : 'Sandbox';
-      if (environment !== expectedEnv) {
-        this.logger.warn(`Apple receipt environment mismatch: expected ${expectedEnv}, got ${environment}`);
-        // In development, allow sandbox receipts regardless
-        if (this.isProduction) {
-          return this.invalidResult(expectedProductId);
-        }
-      }
-
-      // Determine purchase type
-      const purchaseType = this.getApplePurchaseType(productId);
-
-      return {
-        valid: true,
-        productId: productId!,
-        purchaseType,
-        transactionId: transactionId ?? '',
-        originalTransactionId,
-        expiresAt: expiresDate ? new Date(expiresDate).toISOString() : undefined,
-      };
-    } catch (err: any) {
-      this.logger.error(`Apple receipt validation failed: ${err.message}`);
+      decoded = await this.appleJws.verifyTransaction(signedTransaction);
+    } catch (verifyErr) {
+      const msg = verifyErr instanceof Error ? verifyErr.message : String(verifyErr);
+      this.logger.warn(`Apple JWS signature verification failed: ${msg}`);
       return this.invalidResult(expectedProductId);
     }
-  }
 
-  /**
-   * Verify Apple JWS signed transaction using Apple's JWKS endpoint.
-   * Call this for full cryptographic verification in production.
-   */
-  async verifyAppleJWS(signedTransaction: string): Promise<jose.JWTPayload> {
-    const APPLE_JWKS_URL = 'https://appleid.apple.com/auth/keys';
-    const JWKS = jose.createRemoteJWKSet(new URL(APPLE_JWKS_URL));
-    const { payload } = await jose.jwtVerify(signedTransaction, JWKS);
-    return payload;
+    const bundleId = decoded.bundleId;
+    const productId = decoded.productId;
+    const environment = decoded.environment;
+    const transactionId = decoded.transactionId;
+    const originalTransactionId = decoded.originalTransactionId;
+    const expiresDate = decoded.expiresDate;
+
+    // Verify bundle ID (defense-in-depth — the library also checks this).
+    if (bundleId !== this.appleBundleId) {
+      this.logger.warn(`Apple receipt bundleId mismatch: expected ${this.appleBundleId}, got ${bundleId}`);
+      return this.invalidResult(expectedProductId);
+    }
+
+    // Verify product ID — caller is asking about a specific product.
+    if (productId !== expectedProductId) {
+      this.logger.warn(`Apple receipt productId mismatch: expected ${expectedProductId}, got ${productId}`);
+      return this.invalidResult(expectedProductId);
+    }
+
+    // Verify environment. The library binds itself to one Environment at
+    // construction time, but a sandbox token shouldn't grant prod access
+    // even if our env config drifts.
+    const expectedEnv = this.isProduction ? 'Production' : 'Sandbox';
+    if (environment !== expectedEnv) {
+      this.logger.warn(`Apple receipt environment mismatch: expected ${expectedEnv}, got ${environment}`);
+      // In development, allow sandbox receipts regardless.
+      if (this.isProduction) {
+        return this.invalidResult(expectedProductId);
+      }
+    }
+
+    const purchaseType = this.getApplePurchaseType(productId!);
+
+    return {
+      valid: true,
+      productId: productId!,
+      purchaseType,
+      transactionId: transactionId ?? '',
+      originalTransactionId,
+      expiresAt: expiresDate ? new Date(expiresDate).toISOString() : undefined,
+    };
   }
 
   /**

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { RedisService } from '../redis/redis.service';
-import * as jose from 'jose';
+import { AppleJwsVerifierService } from './apple-jws-verifier.service';
 
 
 @Injectable()
@@ -11,6 +11,7 @@ export class SubscriptionService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly redisService: RedisService,
+    private readonly appleJws: AppleJwsVerifierService,
   ) {}
 
   // ─── Apple Server Notifications v2 ──────────────────────────────────
@@ -27,28 +28,41 @@ export class SubscriptionService {
       return;
     }
 
-    // Verify and decode the outer JWS using Apple's JWKS endpoint
-    const APPLE_JWKS_URL = 'https://appleid.apple.com/auth/keys';
-    const JWKS = jose.createRemoteJWKSet(new URL(APPLE_JWKS_URL));
+    // B3 fix: verify the outer ASN v2 JWS via the Apple cert chain
+    // (AppleJwsVerifierService) instead of the wrong appleid.apple.com OIDC
+    // JWKS. The previous code rejected EVERY real Apple notification at the
+    // verify step — refunds never revoked Pro, expirations never cleared
+    // status, renewals never extended subscriptions. The user-visible
+    // symptom: refunded users kept Pro forever (App Store reject blocker).
     let notificationData: any;
     try {
-      const { payload } = await jose.jwtVerify(signedPayload, JWKS);
-      notificationData = payload;
-    } catch (err: any) {
-      this.logger.warn(`Apple notification JWS verification failed: ${err.message}`);
+      notificationData = await this.appleJws.verifyNotification(signedPayload);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Apple notification JWS verification failed: ${msg}`);
       return;
     }
     const notificationType = notificationData.notificationType as string;
     const subtype = notificationData.subtype as string | undefined;
 
-    // Decode the signed transaction info from the notification
+    // Decode the signed transaction info from the notification. The inner
+    // JWS uses the same Apple cert chain — verify, don't blindly decode.
+    // Without this verify call, a tampered notification could spoof an
+    // originalTransactionId and revoke a different user's Pro.
     const signedTransactionInfo = notificationData.data?.signedTransactionInfo;
     if (!signedTransactionInfo) {
       this.logger.warn(`Apple notification ${notificationType} missing signedTransactionInfo`);
       return;
     }
 
-    const transactionInfo = jose.decodeJwt(signedTransactionInfo) as any;
+    let transactionInfo: any;
+    try {
+      transactionInfo = await this.appleJws.verifyTransaction(signedTransactionInfo);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Apple notification inner transaction verify failed: ${msg}`);
+      return;
+    }
     const originalTransactionId = transactionInfo.originalTransactionId as string;
 
     // Idempotency: skip if already processed
