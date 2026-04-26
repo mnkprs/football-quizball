@@ -861,7 +861,25 @@ export class SupabaseService {
       .lt('max_correct_streak', currentStreak);
   }
 
+  /**
+   * C10: atomic increment via RPC. Replaces a JS read-modify-write that lost
+   * increments under concurrent submits (two correct answers in flight both
+   * read N, both write N+1, losing one). RPC runs a single
+   * `UPDATE ... = col + 1 RETURNING col`. Falls back to the old read-modify-
+   * write only if the RPC genuinely errors (e.g. RPC missing during a partial
+   * deploy) — this is the same defensive pattern as incrementQuestionStats.
+   */
   async incrementLogoQuizCorrect(userId: string): Promise<number> {
+    const { data, error } = await this.client.rpc('increment_logo_quiz_correct', {
+      p_user_id: userId,
+    });
+    if (!error && typeof data === 'number') return data;
+
+    // Fallback path — only hit if the RPC is missing or threw. Logged so we
+    // notice if every call is going through the slow racy path.
+    if (error) {
+      this.logger.warn(`increment_logo_quiz_correct RPC failed (${error.message}) — falling back to read-modify-write`);
+    }
     const { data: profile } = await this.client
       .from('profiles')
       .select('logo_quiz_correct')
@@ -1042,7 +1060,17 @@ export class SupabaseService {
     return { room: roomRes.data, players: playersRes.data ?? [] };
   }
 
-  /** Atomically updates ELO and inserts history in a single DB transaction. */
+  /**
+   * Atomically updates ELO and inserts history in a single DB transaction.
+   *
+   * C8: pre-20260617000002 the underlying RPC silently swallowed CAS losses
+   * (concurrent solo writes for the same user) — the UPDATE affected 0 rows
+   * but the INSERT into elo_history still ran, leaving orphan history rows
+   * claiming an ELO change that never happened. The migration now raises on
+   * CAS conflict; this layer logs structured WARN with the conflict details
+   * so we have observability + bubbles the error so the controller returns
+   * an actionable 5xx instead of pretending everything was fine.
+   */
   async commitSoloAnswer(params: CommitSoloAnswerParams): Promise<void> {
     const { error } = await this.client.rpc('commit_solo_answer', {
       p_user_id: params.user_id,
@@ -1055,7 +1083,20 @@ export class SupabaseService {
       p_question_id: params.question_id ?? null,
       p_mode: 'solo',
     });
-    if (error) throw new Error(`commitSoloAnswer RPC failed: ${error.message}`);
+    if (error) {
+      const isCasConflict = /ELO conflict/i.test(error.message ?? '');
+      if (isCasConflict) {
+        this.logger.warn(JSON.stringify({
+          event: 'solo_cas_conflict',
+          user_id: params.user_id,
+          elo_before: params.elo_before,
+          elo_after: params.elo_after,
+          difficulty: params.difficulty,
+          correct: params.correct,
+        }));
+      }
+      throw new Error(`commitSoloAnswer RPC failed: ${error.message}`);
+    }
   }
 
   /** Atomically claims the current online turn via DB-level WHERE guard. Returns false if turn was stolen. */

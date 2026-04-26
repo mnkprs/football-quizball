@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { EloService } from '../solo/elo.service';
@@ -206,20 +207,30 @@ export class LogoQuizService {
     //   • Key present → record servedAt for the speed check below.
     //   • Key absent (Redis responsive) → user never legitimately played
     //     this question. REJECT with 400.
-    //   • Redis unreachable (throws) → fail-open to keep gameplay working
-    //     during a Redis outage, log the degradation for ops visibility.
+    //   • Redis unreachable (throws) → C2 fix (was fail-open):
+    //     fail-CLOSED with 503 so the client retries once Redis recovers.
+    //     The previous fail-open posture let any attacker forge question_ids
+    //     during Redis instability (or DoS Redis themselves) and read the
+    //     correct_answer + original_image_url off the reveal path. Logo-quiz
+    //     downtime during a Redis outage is acceptable; answer-reveal forgery
+    //     is not.
     let servedAt: number | null = null;
-    let redisAvailable = true;
     try {
       const raw = await this.redisService.get<number>(this.servedKey(userId, questionId));
       servedAt = raw ?? null;
     } catch (err: unknown) {
-      redisAvailable = false;
       const msg = err instanceof Error ? err.message : String(err);
-      this.logger.warn(`[logo] Redis unreachable, skipping binding check: ${msg}`);
+      this.logger.warn(JSON.stringify({
+        event: 'logo_binding_check_unavailable',
+        userId,
+        questionId,
+        reason: msg,
+      }));
+      // Body must not leak the correct answer or image URL on this path.
+      throw new ServiceUnavailableException('Logo quiz temporarily unavailable. Please retry.');
     }
 
-    if (redisAvailable && servedAt === null) {
+    if (servedAt === null) {
       this.logger.warn(JSON.stringify({
         event: 'logo_answer_unbound_question',
         userId,

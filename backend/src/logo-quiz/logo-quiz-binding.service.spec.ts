@@ -10,7 +10,10 @@
  * Rules tested:
  *   1. Redis responsive, key present → submission proceeds.
  *   2. Redis responsive, key missing → BadRequestException.
- *   3. Redis unreachable (throws) → submission proceeds (graceful degrade).
+ *   3. Redis unreachable (throws) → ServiceUnavailableException (C2 fix —
+ *      previously fail-open). Logo-quiz downtime during a Redis outage is
+ *      preferable to letting attackers forge question_ids and read the
+ *      reveal payload.
  *   4. The warn-log carries the user and question for forensic auditing.
  *   5. After success, the served-at key is deleted so the question can't
  *      be replayed.
@@ -21,7 +24,7 @@
  * Redis contract is mocked.
  */
 
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { LogoQuizService } from './logo-quiz.service';
 
 type AnyFn = (...args: unknown[]) => unknown;
@@ -118,14 +121,18 @@ describe('LogoQuizService.submitAnswer — binding check (v0.8.12.2)', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('allows submission when Redis is unreachable (graceful degradation)', async () => {
+  it('rejects submission when Redis is unreachable (C2 fix — fail closed)', async () => {
     const { service } = buildService({
       redisGet: async () => { throw new Error('ECONNREFUSED'); },
     });
-    // Should NOT throw — Redis outage must not block gameplay.
-    const result = await service.submitAnswer('user-1', 'q-abc', 'Arsenal', false, false);
-    expect(result).toBeDefined();
-    expect(result.rejected_too_fast).toBeUndefined();
+    // Was fail-open in v0.8.12.2. C2 review identified this as exploitable —
+    // any attacker could DoS Redis (or wait for natural outage) and submit
+    // forged question_ids to read correct_answer + original_image_url off
+    // the reveal path. Fail-closed with 503 so the client retries once
+    // Redis recovers.
+    await expect(
+      service.submitAnswer('user-1', 'q-abc', 'Arsenal', false, false),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
 
   it('allows submission when the served-at key is present', async () => {

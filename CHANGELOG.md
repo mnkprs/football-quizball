@@ -2,6 +2,34 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.30] - 2026-04-26
+
+### Fixed — Tier 1 ship-blockers from /review (C1, C2, C8, C10)
+
+**C1 — bot duel matches bypassed daily quota + no-show streak reset**
+- `BotMatchmakerService.matchBotForDuel` flipped the row to `status='active'` directly without ever calling `consumeDuelTrial`. A free user could play unlimited bot duels (their `daily_duels_played` counter never advanced) and a user mid-cooldown-streak (2 consecutive no-shows) never had it reset by a bot match. Both gates were bypassable.
+- After a successful bot fill, fire-and-forget `supabaseService.consumeDuelTrial(hostId)` — same contract as `DuelService.consumeTrialFor` for human-vs-human accepts.
+
+**C2 — logo-quiz binding check fail-open on Redis outage (security)**
+- `LogoQuizService.submitAnswer` had a try/catch around the Redis served-key lookup that set `redisAvailable = false` on throw, then conditioned the binding rejection on `if (redisAvailable && servedAt === null)`. Net effect: any Redis instability (or attacker-induced outage) opened a window where any authenticated user could submit any `question_id` and read `correct_answer + original_image_url + team_metadata` off the reveal path — defeating the v0.8.12.0 leak-strip hardening.
+- Switched to fail-CLOSED: Redis throw → `ServiceUnavailableException` (HTTP 503), client retries once Redis recovers. Logo-quiz downtime during a Redis outage is acceptable; answer-reveal forgery is not.
+- Updated `logo-quiz-binding.service.spec.ts` to pin the new fail-closed contract.
+
+**C8 — `commit_solo_answer` silent CAS losses corrupted elo_history**
+- The RPC did `UPDATE profiles SET elo = ? WHERE id = ? AND elo = p_elo_before` then `INSERT INTO elo_history (...)`. When the CAS predicate failed (concurrent solo writes for the same user), the UPDATE silently affected 0 rows BUT the INSERT still ran — leaving orphan `elo_history` rows claiming an ELO change that never happened. The caller saw `error: null` and had no signal anything was wrong.
+- New migration `20260617000002_commit_solo_answer_cas_raise.sql` adds `IF NOT FOUND THEN RAISE EXCEPTION 'ELO conflict — retry'` between the UPDATE and INSERT — matches the pattern already used by `commit_logo_quiz_answer`. Skips the orphan insert AND surfaces the conflict.
+- `SupabaseService.commitSoloAnswer` now detects the `ELO conflict` error message and emits a structured WARN (`event: 'solo_cas_conflict'` with user_id, elo_before/after, difficulty, correct) so we have observability on how often this fires in production.
+
+**C10 — `incrementLogoQuizCorrect` read-modify-write race**
+- Two correct answers from the same user landing close together both read `logo_quiz_correct = N` and both wrote `N + 1` — losing one of the increments. Counter slowly drifted below truth, breaking achievement triggers and profile stats.
+- New migration `20260617000003_increment_logo_quiz_correct_atomic.sql` adds a `increment_logo_quiz_correct(uuid)` PL/pgSQL function: single atomic `UPDATE ... = COALESCE(col, 0) + 1 WHERE id = ? RETURNING col`. Pattern mirrors `increment_question_stats`.
+- `SupabaseService.incrementLogoQuizCorrect` now calls the RPC; falls back to the old read-modify-write only if the RPC errors (defensive — same shape as `incrementQuestionStats`). Logs a warn if the fallback path is hit so we can spot a partial-deploy regression.
+
+**Skipped this round**
+- C9 (logo-quiz TS fallback discriminated-union return) — couldn't reproduce. `tsc --strict` is clean across `logo-quiz/*`. Will re-check on next /review run.
+
+**Tests**: 75/75 pass across `duel | logo | solo`. Backend tsc clean on touched dirs.
+
 ## [0.10.0.29] - 2026-04-26
 
 ### Added — No-show cooldown surface, modal scroll-lock, duel-lobby polish

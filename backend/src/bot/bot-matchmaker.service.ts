@@ -245,6 +245,22 @@ export class BotMatchmakerService implements OnModuleInit {
       return;
     }
 
+    // C1: bot fill IS a real match start for the human side. Consume their daily
+    // trial and reset their no-show streak — same contract as
+    // DuelService.consumeTrialFor on a human-vs-human accept. Without this, a
+    // free user could play unlimited bot duels (quota never decremented) and a
+    // user with 2 no-shows in their streak would never have it reset.
+    // Fire-and-forget; logger.warn on failure for ops visibility.
+    this.supabaseService.consumeDuelTrial(hostId)
+      .then((remaining) => {
+        if (remaining < 0) {
+          this.logger.warn(`Bot match for ${hostId} flagged over-quota (continuing)`);
+        }
+      })
+      .catch((err: Error) => {
+        this.logger.warn(`consumeDuelTrial failed for ${hostId}: ${err?.message}`);
+      });
+
     this.logger.debug(`Bot "${bot.username}" matched into ${gameType} duel ${gameId}`);
     this.duelRunner.runDuelBot(gameId, bot.id, bot.bot_skill);
   }
