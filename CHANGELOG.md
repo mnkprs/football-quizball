@@ -2,6 +2,37 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.22] - 2026-04-26
+
+### Added — Queue widget Day 5: Playwright + visual-contract E2E tests + smoke checklist
+
+Day 5 closes the queue widget feature (`feat/queue-widget`). Branch is now ship-ready.
+
+**Playwright** (per eng review decision 3A=A):
+- Installed `@playwright/test` v1.59.1 + Chromium browser.
+- `frontend/playwright.config.ts` — iPhone 14 mobile viewport (the app is mobile-first; most edge cases only manifest at small widths). Auto-spins up `npm run start` for local runs; CI defers to a separate build step.
+- `frontend/e2e/queue-widget.spec.ts` — 4 visual-contract tests using the dev `window.__queueDebug` API. They cover the part most likely to regress on design-system refactors:
+  1. **Searching state** — glass background, pulse dot, label format, Leave button, ARIA polite
+  2. **Reserved state** — red-tinted background, opponent username "vs X", countdown format, Tap to Play CTA, ARIA assertive
+  3. **Hidden state** — widget removed from DOM
+  4. **Cycle** — searching → reserved → hidden via `__queueDebug.cycle()`
+- 7 multi-player flows are documented as `test.skip` skeletons in the same file. Each skeleton lists what it would assert. Enabling them needs Supabase test users + auth/duel fixtures (see TODOS.md → "Playwright multi-player E2E fixtures").
+
+**npm scripts** (`frontend/package.json`):
+- `npm run test:e2e` — runs the full Playwright suite
+- `npm run test:e2e:ui` — opens the Playwright UI for interactive debugging
+
+**Manual smoke checklist artifact** (`~/.gstack/projects/mnkprs-football-quizball/instashop-feat-queue-widget-smoke-checklist-20260426-135237.md`):
+- Covers the 7 multi-player flows that aren't yet automated
+- Plus reservation cleanup cron, CAS guard, build verification, migration apply step
+- Run before `/ship`. Each item is a checkbox; document fails inline.
+
+**TODOS.md** — added "Playwright multi-player E2E fixtures" item with the fixture pattern needed to flip the 7 `test.skip` cases to live tests.
+
+**Build verification**: `tsc --noEmit -p tsconfig.app.json` clean. `ng build --configuration development` succeeds (pre-existing warnings only). 4 Playwright tests structurally complete; runnable via `npm run test:e2e` once `npm start` is up.
+
+**Branch state**: `feat/queue-widget` is ship-ready pending the manual smoke checklist + Supabase migration apply (`supabase db push`). Run `/ship` next.
+
 ## [0.10.0.21] - 2026-04-26
 
 ### Added — Queue widget Day 4: route-aware hide + 3 toasts + lonely-hours hint

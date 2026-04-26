@@ -95,6 +95,46 @@ Look at `frontend/src/app/shared/toast/toast.html` for current rendering. Action
 
 ---
 
+## [PENDING] Playwright multi-player E2E fixtures
+
+**Source:** `/plan-eng-review` 2026-04-26 (decision 3A=A) + Day 5 ship prep
+**Trigger:** First production bug related to multi-player matchmaking that the visual-contract tests didn't catch.
+
+### What
+Build the test infrastructure to enable the 7 skipped multi-player E2E flows in `frontend/e2e/queue-widget.spec.ts`:
+- Two seeded test users in Supabase (e.g., `qa-host@stepover.test` and `qa-guest@stepover.test`)
+- `frontend/e2e/fixtures/auth.ts` helper that logs in a context as a specific test user
+- `frontend/e2e/fixtures/duel.ts` helper that resets a user's duel queue state between tests
+- `frontend/e2e/fixtures/two-player.ts` helper that spins up two contexts and authenticates each
+
+Then flip the 7 `test.skip` cases to `test` and flesh out the bodies.
+
+### Why
+The 4 visual-contract tests shipped today cover what regresses on design-system refactors. They don't cover:
+- Two-tab state divergence (queue widget on tab A vs tab B)
+- Match-found ELO penalty actually being -5
+- Boot probe rehydrating a real reserved game
+- Cross-mode exclusivity rejection
+- Hard-refresh restore
+
+These are exactly the bugs that escape unit tests. Fixtures unlock them.
+
+### Pros
+- Locks in the most consequential matchmaking behaviors against regression
+- Same fixture pattern unlocks future E2E coverage for any duel feature
+
+### Cons
+- Test users in production-shape Supabase need careful cleanup (or use a seeded preview branch)
+- ~1-2 days to build the fixture layer + flesh out 7 tests
+
+### Context
+The skeletons in `frontend/e2e/queue-widget.spec.ts` (under `test.describe.skip`) document exactly what each test should assert. Pick them up one at a time.
+
+### Depends on
+- Decision on test-data isolation: dedicated Supabase preview branch (cleanest) vs prod-DB test-user prefix (cheaper)
+
+---
+
 ## [PENDING] Reopen bot fallback decision
 
 **Source:** `/plan-eng-review` 2026-04-26 (decision S0=B, T3)
