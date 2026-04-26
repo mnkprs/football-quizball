@@ -2,6 +2,30 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.31] - 2026-04-26
+
+### Fixed — C3: server-side per-question timeout for logo-quiz (security)
+
+A tampered client could win every logo-quiz question forever. The 30s timer lived only in the browser. Open devtools, `Promise.race` the timer against your `submit` call, send `timed_out=false` whenever you wanted, and the server happily scored your answer as correct. With every correct answer worth +ELO, that's an unlimited-ELO exploit on a free-to-play mode.
+
+**The fix**
+- New `LogoQuizService.MAX_THINK_MS = 32_000` constant (30s client UX + 2s network slack).
+- After the binding check passes, the server computes `elapsedMs = Date.now() - servedAt` from the Redis served-at timestamp the binding check already reads. If `elapsedMs > MAX_THINK_MS` AND the client claimed `timed_out=false`, the server sets `effectiveTimedOut = true` — overriding the client's lie.
+- `effectiveTimedOut` is threaded through ELO calculation, the `commit_logo_quiz_answer` / `commit_logo_quiz_hardcore_answer` RPC, the `recordAnswerOutcome` analytics row, and the response payload. Every downstream consumer sees the truth.
+- A structured warn log (`event: 'logo_answer_server_timeout'`, includes elapsedMs + maxMs + clientClaimedTimedOut) fires whenever the server overrides a client lie, so we have observability on how often this is exploited in the wild.
+- Trust kept where it should be: when the client says `timed_out=true`, we honor it without second-guessing (network drop / user gave up — they already lost the round).
+
+**Why 2s of slack**
+Client UX shows a 30s timer (`logo-quiz.ts:415`). A legitimate user submitting at t=29.5s with 600ms RTT arrives on the server at t=30.1s. We don't want to incorrectly force-timeout a real user. 32s is unambiguously late.
+
+**Tests** — 4 new spec cases in `logo-quiz-binding.service.spec.ts`:
+- `forces timed_out=true when client says false but elapsed > MAX_THINK_MS`
+- `honors client timed_out=true regardless of elapsed time`
+- `accepts a normal in-window submission (elapsed < MAX_THINK_MS)`
+- `grants 2s slack past the 30s client timer (submission at 31s still scores)`
+
+15/15 logo-quiz jest specs green. No DB migrations. No frontend changes.
+
 ## [0.10.0.30] - 2026-04-26
 
 ### Fixed — Tier 1 ship-blockers from /review (C1, C2, C8, C10)

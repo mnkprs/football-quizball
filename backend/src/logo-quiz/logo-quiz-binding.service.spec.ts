@@ -160,3 +160,55 @@ describe('LogoQuizService.submitAnswer — binding check (v0.8.12.2)', () => {
     expect(firstCallArg).toContain('q-abc');
   });
 });
+
+describe('LogoQuizService.submitAnswer — server-side timeout (C3)', () => {
+  it('forces timed_out=true when client says false but elapsed > MAX_THINK_MS', async () => {
+    // 35s ago — past the 32s server deadline. Client claims timed_out=false.
+    const servedAt = Date.now() - 35_000;
+    const { service } = buildService({ redisGet: async () => servedAt });
+
+    const result = await service.submitAnswer('user-1', 'q-abc', 'Arsenal', false, false);
+
+    // Server overrides client lie: even though "Arsenal" matches, the answer
+    // is forced to incorrect because timed_out is now true server-side.
+    expect(result.timed_out).toBe(true);
+    expect(result.correct).toBe(false);
+  });
+
+  it('honors client timed_out=true regardless of elapsed time', async () => {
+    // Even if the user submitted at t=2s but claimed timeout (e.g. lost
+    // network and the client gave up), trust the client when timed_out=true.
+    // No need to second-guess — they already lost the round.
+    const servedAt = Date.now() - 2_000;
+    const { service } = buildService({ redisGet: async () => servedAt });
+
+    const result = await service.submitAnswer('user-1', 'q-abc', 'Arsenal', true, false);
+
+    expect(result.timed_out).toBe(true);
+    expect(result.correct).toBe(false);
+  });
+
+  it('accepts a normal in-window submission (elapsed < MAX_THINK_MS)', async () => {
+    // 5s elapsed — comfortably inside the 32s window. Should score normally.
+    const servedAt = Date.now() - 5_000;
+    const { service } = buildService({ redisGet: async () => servedAt });
+
+    const result = await service.submitAnswer('user-1', 'q-abc', 'Arsenal', false, false);
+
+    expect(result.timed_out).toBe(false);
+    expect(result.correct).toBe(true);
+  });
+
+  it('grants 2s slack past the 30s client timer (submission at 31s still scores)', async () => {
+    // 31s elapsed. Client UX shows 30s timer; server allows 32s for network
+    // round-trip slack. A legitimate user submitting at t=30.5s on the wire
+    // arriving at t=31s on the server must still be honored.
+    const servedAt = Date.now() - 31_000;
+    const { service } = buildService({ redisGet: async () => servedAt });
+
+    const result = await service.submitAnswer('user-1', 'q-abc', 'Arsenal', false, false);
+
+    expect(result.timed_out).toBe(false);
+    expect(result.correct).toBe(true);
+  });
+});

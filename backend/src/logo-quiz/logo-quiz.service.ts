@@ -44,6 +44,20 @@ export class LogoQuizService {
     EASY: 400,
     HARD: 600,
   };
+  /**
+   * Server-side per-question deadline (ms). C3 fix: the client used to be the
+   * sole authority on whether a question timed out — a tampered client could
+   * Promise.race against its local timer and submit an answer well after the
+   * 30s wall-clock with `timed_out=false`, scoring a correct answer that should
+   * have been a forced timeout. The server now enforces the deadline using
+   * Redis's served-at timestamp.
+   *
+   * Window math: client UX shows a 30s timer (logo-quiz.ts:415). We allow an
+   * extra 2s of network/scheduling slack so a legitimate user submitting at
+   * t=29.5s with 600ms RTT (received at t=30.1s on the server) doesn't get
+   * incorrectly forced into timeout. Anything past 32s is unambiguously late.
+   */
+  private static readonly MAX_THINK_MS = 32_000;
   /** Redis key TTL for question-served tracking. 2× longest timer is enough. */
   private static readonly SERVED_KEY_TTL_SEC = 120;
 
@@ -267,7 +281,31 @@ export class LogoQuizService {
       }
     }
 
-    const correct = !timedOut && this.fuzzyMatch(answer, correctAnswer);
+    // C3: server-side timeout enforcement. If the user took longer than the
+    // 30s client deadline + 2s slack but the client submitted with
+    // timed_out=false (tampered timer, bot sleeping past the wall-clock,
+    // etc.), force timed_out=true so the answer cannot be scored as correct
+    // and the timeout ELO penalty applies. Skip when servedAt is null (we
+    // already failed-closed above on Redis errors, so this branch is only
+    // reached when the binding check passed).
+    let effectiveTimedOut = timedOut;
+    if (!timedOut && servedAt !== null) {
+      const elapsedMs = Date.now() - Number(servedAt);
+      if (elapsedMs > LogoQuizService.MAX_THINK_MS) {
+        this.logger.warn(JSON.stringify({
+          event: 'logo_answer_server_timeout',
+          userId,
+          questionId,
+          difficulty,
+          elapsedMs,
+          maxMs: LogoQuizService.MAX_THINK_MS,
+          clientClaimedTimedOut: false,
+        }));
+        effectiveTimedOut = true;
+      }
+    }
+
+    const correct = !effectiveTimedOut && this.fuzzyMatch(answer, correctAnswer);
 
     // Invalidate the served-at key now so a replay of the same question_id
     // fails the binding check above. Fire-and-forget; replay protection
@@ -275,11 +313,14 @@ export class LogoQuizService {
     // is acceptable.
     void this.redisService.del(this.servedKey(userId, questionId)).catch(() => {});
 
-    // Calculate ELO change — use composite question_elo when available
+    // Calculate ELO change — use composite question_elo when available.
+    // C3: pass effectiveTimedOut (not the raw client-claimed timedOut) so the
+    // server-enforced timeout penalty actually applies when the client tried
+    // to lie about its wall-clock.
     const gamesPlayed = hardcore ? profile.logo_quiz_hardcore_games_played : profile.logo_quiz_games_played;
     const eloChange = data.question_elo
-      ? this.eloService.calculateWithQuestionElo(logoElo, data.question_elo, correct, timedOut, gamesPlayed)
-      : this.eloService.calculate(logoElo, difficulty, correct, timedOut, gamesPlayed);
+      ? this.eloService.calculateWithQuestionElo(logoElo, data.question_elo, correct, effectiveTimedOut, gamesPlayed)
+      : this.eloService.calculate(logoElo, difficulty, correct, effectiveTimedOut, gamesPlayed);
     let newElo = this.eloService.applyChange(logoElo, eloChange);
 
     // Clamp ELO at free pool cutoff for non-pro users
@@ -296,7 +337,7 @@ export class LogoQuizService {
 
     // Fire-and-forget per-question outcome counter bump. Logo Quiz doesn't
     // time individual answers at this layer, so response_ms=null.
-    void this.supabaseService.recordAnswerOutcome(data.id, correct, timedOut, null).catch(() => {});
+    void this.supabaseService.recordAnswerOutcome(data.id, correct, effectiveTimedOut, null).catch(() => {});
 
     // Atomic DB update — use the correct RPC for normal vs hardcore
     const rpcName = hardcore ? 'commit_logo_quiz_hardcore_answer' : 'commit_logo_quiz_answer';
@@ -308,7 +349,7 @@ export class LogoQuizService {
       p_elo_change: newElo - logoElo,
       p_difficulty: difficulty,
       p_correct: correct,
-      p_timed_out: timedOut,
+      p_timed_out: effectiveTimedOut,
       p_question_id: data.id,
       p_mode: rpcMode,
     });
@@ -344,7 +385,7 @@ export class LogoQuizService {
 
     return {
       correct,
-      timed_out: timedOut,
+      timed_out: effectiveTimedOut,
       correct_answer: correctAnswer,
       // Revealed only after submission so cheaters can't intercept the
       // unobscured logo from the pre-answer GET /question payload.
