@@ -374,6 +374,13 @@ export class DuelService {
 
     if (bothAcceptingNow) {
       this.cancelReservationTimeout(gameId);
+      // Both players accepted — match flips to 'active' here. Consume the
+      // daily duel trial for each free player. Fire-and-forget; the row state
+      // is already authoritative. Pro users are no-ops in the RPC.
+      void this.consumeTrialFor(row.host_id, 'acceptGame');
+      if (row.guest_id) {
+        void this.consumeTrialFor(row.guest_id, 'acceptGame');
+      }
     }
 
     const updatedRow = updated as DuelGameRow;
@@ -446,6 +453,9 @@ export class DuelService {
       void this.applyForfeitPenalty(userId).catch((err) =>
         this.logger.warn(`[reservation:forfeit] elo penalty failed for ${userId}: ${err?.message}`),
       );
+      // Cooldown counter — also fire-and-forget. Trips a 24h queue block at
+      // 3 consecutive no-shows. Independent of the ELO penalty.
+      void this.recordNoShowFor(userId, 'reservation:timeout');
     }
 
     // Return drawn questions to the pool so they can be reused.
@@ -482,6 +492,41 @@ export class DuelService {
     for (const row of data) {
       await this.forfeitOnReservationTimeout(row.id);
     }
+  }
+
+  /**
+   * Fire-and-forget wrapper around SupabaseService.consumeDuelTrial. Called
+   * when a duel transitions to 'active' (acceptGame for queue games,
+   * markReady for invite-code games). Resets the user's consecutive no-show
+   * streak as a side effect.
+   */
+  private consumeTrialFor(userId: string, source: 'acceptGame' | 'markReady'): Promise<void> {
+    return this.supabaseService.consumeDuelTrial(userId).then((remaining) => {
+      if (remaining < 0) {
+        // Quota was already exhausted at consume time. Match still proceeds —
+        // the trial was reserved when the user passed the guard. Logged for
+        // ops visibility.
+        this.logger.warn(`[duel:consume:${source}] user ${userId} over daily limit; match continues`);
+      }
+    }).catch((err: Error) =>
+      this.logger.warn(`[duel:consume:${source}] failed for ${userId}: ${err?.message}`),
+    );
+  }
+
+  /**
+   * Fire-and-forget wrapper around SupabaseService.recordDuelNoShow. Called
+   * when a user fails to accept a reservation (timer expiry) or explicitly
+   * abandons a reserved match without accepting. 3 consecutive no-shows
+   * trigger a 24h queue cooldown.
+   */
+  private recordNoShowFor(userId: string, source: 'reservation:timeout' | 'abandon:reserved'): Promise<void> {
+    return this.supabaseService.recordDuelNoShow(userId).then((blockedUntil) => {
+      if (blockedUntil) {
+        this.logger.log(`[duel:no-show:${source}] user ${userId} blocked from queue until ${blockedUntil}`);
+      }
+    }).catch((err: Error) =>
+      this.logger.warn(`[duel:no-show:${source}] failed for ${userId}: ${err?.message}`),
+    );
   }
 
   /**
@@ -611,25 +656,66 @@ export class DuelService {
 
     const shouldActivate = hostReady && guestReady && row.status === 'waiting';
 
-    const { data: updated, error } = await this.supabaseService.client
-      .from('duel_games')
-      .update({
-        ...patch,
-        ...(shouldActivate ? { status: 'active', question_started_at: new Date().toISOString() } : {}),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', gameId)
-      .select('*')
-      .single();
+    // When activating, gate the UPDATE with a CAS on status='waiting' so two
+    // concurrent markReady calls (host + guest both flipping ready in parallel)
+    // can't both win the activation and double-consume the daily trial. The
+    // loser of the CAS race retries with a non-activating ready-only patch so
+    // their ready flag is still recorded.
+    let updated: DuelGameRow | null = null;
+    let activatedByThisCall = false;
 
-    if (error || !updated) throw new BadRequestException('Failed to mark ready.');
+    if (shouldActivate) {
+      const activateUpdate = await this.supabaseService.client
+        .from('duel_games')
+        .update({
+          ...patch,
+          status: 'active',
+          question_started_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', gameId)
+        .eq('status', 'waiting') // CAS — only one caller flips waiting→active
+        .select('*')
+        .maybeSingle();
+
+      if (activateUpdate.data) {
+        updated = activateUpdate.data as DuelGameRow;
+        activatedByThisCall = true;
+      } else if (activateUpdate.error) {
+        throw new BadRequestException('Failed to mark ready.');
+      }
+    }
+
+    if (!updated) {
+      // Non-activating path (either shouldActivate was false from the start,
+      // or the activation CAS lost the race to a concurrent caller).
+      const readyUpdate = await this.supabaseService.client
+        .from('duel_games')
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq('id', gameId)
+        .select('*')
+        .single();
+
+      if (readyUpdate.error || !readyUpdate.data) {
+        throw new BadRequestException('Failed to mark ready.');
+      }
+      updated = readyUpdate.data as DuelGameRow;
+    }
+
+    const updatedRow = updated;
+    if (activatedByThisCall && updatedRow.guest_id) {
+      // CAS-confirmed activation — consume the daily trial for each free
+      // player exactly once across both concurrent markReady calls.
+      void this.consumeTrialFor(updatedRow.host_id, 'markReady');
+      void this.consumeTrialFor(updatedRow.guest_id, 'markReady');
+    }
 
     const [hostUsername, guestUsername] = await Promise.all([
       this.getUsername(row.host_id),
       row.guest_id ? this.getUsername(row.guest_id) : Promise.resolve(null),
     ]);
-    const freePoolCutoff = (updated as DuelGameRow).game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
-    return this.toPublicView(updated as DuelGameRow, userId, hostUsername, guestUsername, freePoolCutoff);
+    const freePoolCutoff = updatedRow.game_type === 'logo' ? await this.getLogoPoolCutoff() : null;
+    return this.toPublicView(updatedRow, userId, hostUsername, guestUsername, freePoolCutoff);
   }
 
   // ── Answer submission ─────────────────────────────────────────────────────
@@ -787,8 +873,41 @@ export class DuelService {
       void this.applyForfeitPenalty(userId).catch((err) =>
         this.logger.warn(`[abandonGame:reserved] elo penalty failed: ${err?.message}`),
       );
+      // Cooldown counter — only when the user hadn't already accepted. An
+      // accepted-then-left case is already penalized by ELO; counting it as
+      // a no-show would be double punishment.
+      const role: 'host' | 'guest' = row.host_id === userId ? 'host' : 'guest';
+      const userAcceptedReservation = role === 'host'
+        ? !!row.host_accepted_at
+        : !!row.guest_accepted_at;
+      if (!userAcceptedReservation) {
+        void this.recordNoShowFor(userId, 'abandon:reserved');
+      }
     }
 
+    // Active-state abandonment IS a forfeit — opponent wins. CAS-guarded:
+    // only fire the finalize pipeline if WE successfully flipped status from
+    // 'active' to 'abandoned'. A concurrent submit/timeout may have already
+    // moved the row to 'finished' and run finalize itself; double-firing
+    // would create duplicate match_history rows, double-count wins, etc.
+    if (row.status === 'active' && row.guest_id) {
+      const { data: updated } = await this.supabaseService.client
+        .from('duel_games')
+        .update({ status: 'abandoned', updated_at: new Date().toISOString() })
+        .eq('id', gameId)
+        .eq('status', 'active') // CAS — null result = lost the race
+        .select('id')
+        .single();
+
+      if (updated) {
+        const winnerId = row.host_id === userId ? row.guest_id : row.host_id;
+        this.finalizeDuelGame(row, row.scores, winnerId, 'abandon');
+      }
+      return { ok: true };
+    }
+
+    // Non-active states (waiting / reserved / pre-active invite-code): no
+    // scores counted, no winner declared, just clean up the row.
     await this.supabaseService.client
       .from('duel_games')
       .update({ status: 'abandoned', updated_at: new Date().toISOString() })
@@ -866,7 +985,7 @@ export class DuelService {
     row: DuelGameRow,
     scores: { host: number; guest: number },
     winnerId: string | null,
-    source: 'submit' | 'timeout',
+    source: 'submit' | 'timeout' | 'abandon',
   ): void {
     if (!row.guest_id) return;
     const guestId = row.guest_id;

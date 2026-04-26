@@ -11,7 +11,6 @@ import {
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { createGameTimer } from '../../core/game-timer';
 import { DuelStore } from './duel.store';
 import { AdService } from '../../core/ad.service';
 import { ProService } from '../../core/pro.service';
@@ -19,7 +18,6 @@ import { AnalyticsService } from '../../core/analytics.service';
 import { ShareService } from '../../core/share.service';
 import { AnswerFlashComponent } from '../../shared/answer-flash/answer-flash';
 
-const QUESTION_TIME = 30;
 /** Seconds to wait before a bot is guaranteed to be matched. */
 const BOT_MATCH_THRESHOLD = 30;
 
@@ -46,8 +44,28 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   opponentFlash = signal(false);
   myFlash = signal(false);
 
-  private timer = createGameTimer();
-  timeLeft = this.timer.timeLeft;
+  // ── Server-authoritative countdown ─────────────────────────────────────────
+  // The displayed timer is DERIVED from `questionStartedAt + questionTimeMs`
+  // exposed by the server, NOT a local counter. Backgrounding the app or
+  // losing connectivity cannot pause this — the moment the tick fires (or the
+  // user returns), the displayed value reflects the true remaining server
+  // time. The server also enforces the deadline via an in-memory setTimeout
+  // and a 10s cron sweep, so the question advances even if both clients are
+  // offline.
+  private nowTick = signal(Date.now());
+  private serverClockOffsetMs = 0;
+  private tickInterval: ReturnType<typeof setInterval> | null = null;
+
+  timeLeft = computed<number>(() => {
+    this.nowTick(); // re-evaluate on tick
+    const view = this.store.gameView();
+    if (!view?.questionStartedAt || !view.questionTimeMs) return 0;
+    if (view.status !== 'active') return 0;
+    const startedMs = new Date(view.questionStartedAt).getTime();
+    const deadlineMs = startedMs + view.questionTimeMs;
+    const nowOnServer = Date.now() + this.serverClockOffsetMs;
+    return Math.max(0, Math.ceil((deadlineMs - nowOnServer) / 1000));
+  });
 
   queueSeconds = signal(0);
   queueBotPhase = computed(() => this.queueSeconds() >= BOT_MATCH_THRESHOLD);
@@ -74,7 +92,13 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   private myFlashTimer: ReturnType<typeof setTimeout> | null = null;
   private queueTimer: ReturnType<typeof setInterval> | null = null;
   private lastQIndex: number | null = null;
+  private timeoutFiredForQIndex: number | null = null;
   private endGameAdTriggered = false;
+  private readonly visibilityHandler = (): void => {
+    if (document.visibilityState === 'visible') this.refreshOnResume();
+  };
+  private readonly focusHandler = (): void => this.refreshOnResume();
+  private readonly onlineHandler = (): void => this.refreshOnResume();
 
   constructor() {
     effect(() => {
@@ -105,7 +129,18 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       if (phase !== 'waiting') this.stopQueueTimer();
     });
 
-    // Start/reset timer when question changes, stop when not active
+    // Recompute server clock offset whenever a fresh view arrives (handles
+    // sleep/wake clock drift across long sessions).
+    effect(() => {
+      const view = this.store.gameView();
+      if (view?.serverNow) {
+        this.serverClockOffsetMs = new Date(view.serverNow).getTime() - Date.now();
+      }
+    });
+
+    // Manage the tick interval and per-question fast-path timeout call.
+    // Note: timeLeft is a derived computed signal — the tick only forces
+    // re-evaluation; it does not "drive" the countdown.
     effect(() => {
       const phase = this.store.phase();
       const qIndex = this.store.currentQuestionIndex();
@@ -113,10 +148,29 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       if (phase === 'active') {
         if (this.lastQIndex !== qIndex) {
           this.lastQIndex = qIndex;
-          this.resetTimer();
+          this.timeoutFiredForQIndex = null;
         }
+        this.startTick();
       } else {
-        this.timer.stop();
+        this.stopTick();
+      }
+    });
+
+    // Fast-path: when our derived timeLeft hits 0, fire the timeout endpoint
+    // once for this question. The server cron + in-memory timer will also
+    // fire — this just minimizes the lag for foreground users. Once-per-qIndex
+    // guard prevents duplicate fires from re-renders.
+    effect(() => {
+      const left = this.timeLeft();
+      const phase = this.store.phase();
+      const qIndex = this.store.currentQuestionIndex();
+      if (
+        left === 0 &&
+        phase === 'active' &&
+        this.timeoutFiredForQIndex !== qIndex
+      ) {
+        this.timeoutFiredForQIndex = qIndex;
+        void this.store.timeoutQuestion(qIndex);
       }
     });
   }
@@ -127,14 +181,44 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
       this.store.subscribeRealtime(gameId);
       if (this.inQueueMode()) this.startQueueTimer();
     });
+    // Refresh state when the user returns to the app — backgrounded clients
+    // may have missed Realtime events while suspended.
+    document.addEventListener('visibilitychange', this.visibilityHandler);
+    window.addEventListener('focus', this.focusHandler);
+    window.addEventListener('online', this.onlineHandler);
   }
 
   ngOnDestroy(): void {
     this.store.unsubscribeRealtime();
     if (this.opponentFlashTimer) clearTimeout(this.opponentFlashTimer);
     if (this.myFlashTimer) clearTimeout(this.myFlashTimer);
-    this.timer.destroy();
+    this.stopTick();
     this.stopQueueTimer();
+    document.removeEventListener('visibilitychange', this.visibilityHandler);
+    window.removeEventListener('focus', this.focusHandler);
+    window.removeEventListener('online', this.onlineHandler);
+  }
+
+  private startTick(): void {
+    if (this.tickInterval) return;
+    this.nowTick.set(Date.now());
+    this.tickInterval = setInterval(() => this.nowTick.set(Date.now()), 250);
+  }
+
+  private stopTick(): void {
+    if (this.tickInterval) {
+      clearInterval(this.tickInterval);
+      this.tickInterval = null;
+    }
+  }
+
+  private refreshOnResume(): void {
+    // Force a tick + re-fetch to immediately reconcile any missed updates.
+    this.nowTick.set(Date.now());
+    const gameId = this.store.gameId();
+    if (gameId && this.store.phase() === 'active') {
+      void this.store.loadGame(gameId);
+    }
   }
 
   private startQueueTimer(): void {
@@ -178,18 +262,47 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
     }
   }
 
-  async abandon(): Promise<void> {
+  /**
+   * Pre-game abandon (waiting / ready-up): cleanup the game, return to lobby.
+   * No scores counted, no winner declared — just queue cleanup.
+   */
+  async abandonAndLeave(): Promise<void> {
     this.analytics.track('duel_abandoned');
     await this.store.abandonGame();
     this.navigateToLobby();
   }
 
+  /**
+   * Active-game abandon = forfeit. Backend declares opponent winner via the
+   * normal finalize pipeline (match_history, win counter, XP). Stay on the
+   * page so the user sees the "Duel Over — You Lost" finished screen.
+   * From there they tap "Play Again" to navigate.
+   */
+  async forfeitAndStay(): Promise<void> {
+    this.analytics.track('duel_abandoned');
+    await this.store.abandonGame();
+    // No navigation — abandonGame sets phase='finished' and the finished
+    // template renders the loss banner with current scores.
+  }
+
   goBack(): void {
-    // If in queue mode (waiting, no invite code), abandon the game to clean up
-    if (this.inQueueMode()) {
-      void this.abandon();
+    const phase = this.store.phase();
+
+    // Active gameplay: leaving = forfeit. Opponent wins. Stay on the duel
+    // page so the user sees the loss result before they navigate away.
+    if (phase === 'active' || phase === 'answered' || phase === 'opponent-answered') {
+      void this.forfeitAndStay();
       return;
     }
+
+    // Pre-game (waiting / ready-up): clean up + return to lobby. No scores
+    // counted yet, so no forfeit applies.
+    if (phase === 'waiting' || phase === 'ready-up') {
+      void this.abandonAndLeave();
+      return;
+    }
+
+    // Finished / lobby / loading: just navigate.
     this.navigateToLobby();
   }
 
@@ -230,13 +343,6 @@ export class DuelPlayComponent implements OnInit, OnDestroy {
   openProUpgrade(): void {
     this.proService.triggerContext.set('duel');
     this.proService.showUpgradeModal.set(true);
-  }
-
-  private resetTimer(): void {
-    const qIndex = this.store.currentQuestionIndex();
-    this.timer.start(QUESTION_TIME, () => {
-      void this.store.timeoutQuestion(qIndex);
-    });
   }
 
   private showOpponentFlash(): void {

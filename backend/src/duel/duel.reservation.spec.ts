@@ -58,6 +58,8 @@ describe('DuelService — reservation system', () => {
       getProfile: jest.fn().mockResolvedValue({ id: 'u1', username: 'u1', elo: 1000 }),
       updateElo: jest.fn().mockResolvedValue(undefined),
       insertEloHistory: jest.fn().mockResolvedValue(undefined),
+      consumeDuelTrial: jest.fn().mockResolvedValue(0),
+      recordDuelNoShow: jest.fn().mockResolvedValue(null),
     };
     notifications = { create: jest.fn().mockResolvedValue(undefined) };
     questionPool = {
@@ -205,6 +207,114 @@ describe('DuelService — reservation system', () => {
       supabase.getProfile.mockResolvedValue(null);
       await (service as any).applyForfeitPenalty('u1');
       expect(supabase.updateElo).toHaveBeenCalledWith('u1', 995);
+    });
+  });
+
+  describe('abandonGame — active state forfeit', () => {
+    it('finalizes with opponent as winner when host abandons during active duel', async () => {
+      const row = {
+        id: 'g1',
+        status: 'active',
+        host_id: 'host',
+        guest_id: 'guest',
+        scores: { host: 2, guest: 3 },
+        pool_question_ids: [],
+        game_type: 'logo',
+        questions: [],
+        question_results: [],
+        current_question_index: 0,
+        host_ready: true,
+        guest_ready: true,
+        invite_code: null,
+      };
+      (service as any).fetchGame = jest.fn().mockResolvedValue(row);
+      const finalizeSpy = jest.spyOn(service as any, 'finalizeDuelGame').mockImplementation(() => undefined);
+      const updateChain = makeChainable({ data: { id: 'g1' }, error: null });
+      supabase.client.from = jest.fn().mockReturnValue(updateChain);
+
+      await service.abandonGame('host', 'g1');
+
+      expect(finalizeSpy).toHaveBeenCalledWith(row, row.scores, 'guest', 'abandon');
+      expect(updateChain.update).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'abandoned' }),
+      );
+    });
+
+    it('finalizes with HOST as winner when guest abandons during active duel', async () => {
+      const row = {
+        id: 'g1', status: 'active', host_id: 'host', guest_id: 'guest',
+        scores: { host: 4, guest: 1 }, pool_question_ids: [], game_type: 'standard',
+        questions: [], question_results: [], current_question_index: 0,
+        host_ready: true, guest_ready: true, invite_code: null,
+      };
+      (service as any).fetchGame = jest.fn().mockResolvedValue(row);
+      const finalizeSpy = jest.spyOn(service as any, 'finalizeDuelGame').mockImplementation(() => undefined);
+      supabase.client.from = jest.fn().mockReturnValue(makeChainable({ data: { id: 'g1' }, error: null }));
+
+      await service.abandonGame('guest', 'g1');
+
+      expect(finalizeSpy).toHaveBeenCalledWith(row, row.scores, 'host', 'abandon');
+    });
+
+    it('does NOT finalize when waiting state has no guest (queue cleanup, no winner)', async () => {
+      const row = {
+        id: 'g1', status: 'waiting', host_id: 'host', guest_id: null,
+        scores: { host: 0, guest: 0 }, pool_question_ids: [], game_type: 'logo',
+        questions: [], question_results: [], current_question_index: 0,
+        host_ready: false, guest_ready: false, invite_code: null,
+      };
+      (service as any).fetchGame = jest.fn().mockResolvedValue(row);
+      const finalizeSpy = jest.spyOn(service as any, 'finalizeDuelGame').mockImplementation(() => undefined);
+      supabase.client.from = jest.fn().mockReturnValue(makeChainable({ data: null, error: null }));
+
+      await service.abandonGame('host', 'g1');
+
+      expect(finalizeSpy).not.toHaveBeenCalled();
+    });
+
+    it('does NOT finalize when ready-up phase (waiting + guest, pre-active, no scores yet)', async () => {
+      const row = {
+        id: 'g1', status: 'waiting', host_id: 'host', guest_id: 'guest',
+        scores: { host: 0, guest: 0 }, pool_question_ids: [], game_type: 'standard',
+        questions: [], question_results: [], current_question_index: 0,
+        host_ready: false, guest_ready: false, invite_code: 'ABC123',
+      };
+      (service as any).fetchGame = jest.fn().mockResolvedValue(row);
+      const finalizeSpy = jest.spyOn(service as any, 'finalizeDuelGame').mockImplementation(() => undefined);
+      supabase.client.from = jest.fn().mockReturnValue(makeChainable({ data: null, error: null }));
+
+      await service.abandonGame('host', 'g1');
+
+      expect(finalizeSpy).not.toHaveBeenCalled();
+    });
+
+    it('throws when game already finished', async () => {
+      (service as any).fetchGame = jest.fn().mockResolvedValue({
+        id: 'g1', status: 'finished', host_id: 'host', guest_id: 'guest',
+      });
+      await expect(service.abandonGame('host', 'g1')).rejects.toThrow('Game is already over.');
+    });
+
+    it('does NOT finalize when CAS loses (concurrent timeout/submit already finalized)', async () => {
+      // Race scenario: fetchGame sees status='active', but between fetch and
+      // the CAS update another caller (advanceTimedOutQuestion or submitAnswer)
+      // already transitioned the row to 'finished'. The CAS .eq('status','active')
+      // returns null, so finalize must NOT fire — preventing double match_history /
+      // double XP / double achievements.
+      const row = {
+        id: 'g1', status: 'active', host_id: 'host', guest_id: 'guest',
+        scores: { host: 2, guest: 3 }, pool_question_ids: [], game_type: 'logo',
+        questions: [], question_results: [], current_question_index: 0,
+        host_ready: true, guest_ready: true, invite_code: null,
+      };
+      (service as any).fetchGame = jest.fn().mockResolvedValue(row);
+      const finalizeSpy = jest.spyOn(service as any, 'finalizeDuelGame').mockImplementation(() => undefined);
+      // CAS update returns null => lost the race
+      supabase.client.from = jest.fn().mockReturnValue(makeChainable({ data: null, error: null }));
+
+      await service.abandonGame('host', 'g1');
+
+      expect(finalizeSpy).not.toHaveBeenCalled();
     });
   });
 

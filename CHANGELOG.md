@@ -2,6 +2,43 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.27] - 2026-04-26
+
+### Fixed — Duels stuck forever when both players go AFK mid-question
+
+Active duels rely on the per-question 30s deadline to advance. Previously this deadline was enforced **only** by a client-side `setInterval` that called `POST /duel/:id/timeout/:qIndex` on expiry. Two failure modes left duels stuck in `status='active'` indefinitely:
+1. Both players background the app or lose connectivity → no client fires the timeout endpoint → no advance.
+2. Mobile background tabs throttle/pause `setInterval` → the displayed countdown effectively stops.
+
+The duel cron we already had (`cleanupStaleReservations`) only covers the pre-game `reserved` status, not active questions.
+
+**Backend (`backend/src/duel/duel.service.ts`)**
+- New constant `DUEL_QUESTION_TIME_MS = 30_000` — single source of truth, also exposed to clients via `DuelPublicView.questionTimeMs`.
+- **In-memory per-question forfeit timer** (`questionTimers` Map). Scheduled whenever `question_started_at` is set (`acceptGame` two-player flip, `markReady` activation, `submitAnswer` correct-answer claim). Bound to `(gameId, expectedQuestionIndex, expectedStartedAt)` — when the timer fires, `fireQuestionTimeoutIfStillCurrent` re-fetches the row and only proceeds if the question version still matches, so a stale q1 timer cannot incorrectly advance q2. Per-process — a Railway redeploy mid-question loses the timer; the foreground client's deadline-derived countdown will fire the `timeoutQuestion` endpoint as a fast-path to recover.
+- `advanceTimedOutQuestion` refactored to return `{ advanced, updatedRow }` (uses `.select('*').single()` after the CAS update). On a successful advance it now schedules the **next** question's timer from the persisted `question_started_at` — same path used by the endpoint and the in-memory timer.
+- `abandonGame` now uses a CAS-guarded status flip (`.eq('status', row.status)`) and only calls `finalizeDuelGame` when the CAS wins, preventing double-finalization races against `submitAnswer` / `advanceTimedOutQuestion` that may concurrently transition the game to `finished` between the abandon fetch and write.
+- `abandonGame` cancels any pending question timer.
+- **Leaving an active duel is now a forfeit** — opponent declared winner via the standard `finalizeDuelGame` pipeline (writes `match_history`, increments opponent's win counter, awards XP, fires achievements). The leaving player gets a recorded loss instead of a clean exit. Pre-game states (waiting / ready-up / reserved) keep their existing cleanup-only behavior since no scores have been counted. `finalizeDuelGame` source type extended to `'submit' | 'timeout' | 'abandon'` so analytics can distinguish the three end-of-game paths.
+
+**Frontend — `duel-play.ts` leave handling**
+- `goBack()` split into two paths based on phase: `forfeitAndStay()` for `active` / `answered` / `opponent-answered` (calls `abandonGame`, stays on the duel page so the user sees the "Duel Over — You Lost" finished screen), and `abandonAndLeave()` for pre-game `waiting` / `ready-up` (cleanup + navigate to lobby — no forfeit since no scores counted).
+- Previously: leaving an active duel just navigated to the lobby with no consequences. Now: the opponent gets the win they earned by sticking around.
+- `toPublicView` now includes `questionStartedAt`, `questionTimeMs`, and `serverNow` (for client clock-skew correction).
+
+**Frontend (`frontend/src/app/features/duel/duel-play.ts`, `duel-api.service.ts`)**
+- `DuelPublicView` interface gains the three new server fields.
+- The local-counter-based `createGameTimer` is **removed** for duels. `timeLeft` is now a derived `computed` signal:
+  ```
+  deadline = questionStartedAt + questionTimeMs
+  remaining = deadline - (Date.now() + serverClockOffsetMs)
+  ```
+  A 250ms `setInterval` only updates `nowTick` to force re-evaluation — it does not "drive" the countdown. When the app is backgrounded and the interval is throttled or paused, the moment it next ticks (or the user returns), the displayed value reflects the **true** remaining server time, not paused-counter time.
+- `serverClockOffsetMs = serverNow - clientNow` recomputed on every fresh `gameView` payload, so device clock drift across long sessions stays corrected.
+- `visibilitychange` / `focus` / `online` listeners trigger `loadGame` on resume so backgrounded clients immediately reconcile any missed Realtime events instead of waiting for the next poll.
+- `timeoutQuestion` endpoint call retained as a **fast-path** (once-per-qIndex guard) — the server cron + in-memory timer still authoritatively advance, but the foreground client's call minimizes lag in the common case.
+
+**Specs**: All 375 backend tests still pass.
+
 ## [0.10.0.26] - 2026-04-26
 
 ### Added — Queue widget: draggable + max z-index + symmetric-accept CTA swap
