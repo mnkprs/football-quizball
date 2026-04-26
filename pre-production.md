@@ -474,3 +474,31 @@
   3. Remove `stripe` from `package.json` dependencies
   4. Create migration to drop `stripe_customer_id` and `stripe_subscription_id` columns
   5. Remove `STRIPE_*` environment variables from Railway
+
+---
+
+## Push Notifications (blocks queue widget UX in production)
+
+### 36. Switch `aps-environment` entitlement to production
+- **Why:** iOS uses different APNs servers for sandbox (debug builds, TestFlight) vs production (App Store). Current setting is `development` which routes to sandbox APNs. App Store **rejects** apps with the `development` value.
+- **How:** Edit `frontend/ios/App/App/App.entitlements`:
+  ```xml
+  <key>aps-environment</key>
+  <string>production</string>
+  ```
+- **Then:** `cd frontend && npm run cap:sync` to push the change to the iOS project.
+- **Pre-requisite:** APNs Auth Key in Firebase Cloud Messaging (`gen-lang-client-0272230126` project) must be configured WITHOUT the Sandbox-only restriction. The original key (`8JG6L89P2Q`) is sandbox-only — if you're still using that, push will silently fail in production. Use a key created without the Sandbox checkbox in Apple Developer.
+- **Verify after deploy:**
+  1. TestFlight build → push works (TestFlight uses production APNs)
+  2. Real device → trigger a duel match-found event → background the app → expect push within ~1s
+  3. Check Railway logs for `[PushService] sendPush failed` — sender ID mismatch or invalid token errors mean the chain isn't fully wired
+
+### 37. Verify FIREBASE_SERVICE_ACCOUNT_JSON env var matches the right project
+- **Why:** Backend Firebase Admin SDK initializes from this env. If the JSON's `project_id` field doesn't match the project where iOS/Android apps are registered (`gen-lang-client-0272230126`), every push send returns `messaging/sender-id-mismatch` and zero pushes deliver.
+- **How:** Railway Dashboard → Backend service → Variables → open `FIREBASE_SERVICE_ACCOUNT_JSON` → confirm `"project_id": "gen-lang-client-0272230126"` is in the JSON.
+- **If wrong:** Firebase Console → switch to `gen-lang-client-0272230126` → ⚙️ Project Settings → Service accounts → Generate new private key → paste full JSON contents into Railway env var.
+
+### 38. Confirm Firebase Cloud Messaging API (V1) is enabled
+- **Why:** Some older Firebase projects have the legacy "Cloud Messaging API" instead of V1. Firebase Admin SDK in `firebase-admin` v13+ uses V1.
+- **How:** Firebase Console → `gen-lang-client-0272230126` → ⚙️ Project Settings → **Cloud Messaging** tab → confirm "Firebase Cloud Messaging API (V1)" status is **Enabled**.
+- **If disabled:** click the 3-dot menu → "Manage API in Google Cloud Console" → Enable.

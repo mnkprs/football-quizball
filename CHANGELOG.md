@@ -2,6 +2,17 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.24] - 2026-04-26
+
+### Docs — Pre-production push notification setup steps
+
+Added items 36-38 to `pre-production.md`:
+- **#36** Switch `aps-environment` entitlement from `development` to `production` before App Store submission. Notes the dependency on having a non-Sandbox-only APNs Auth Key in Firebase.
+- **#37** Verify `FIREBASE_SERVICE_ACCOUNT_JSON` Railway env var's `project_id` matches `gen-lang-client-0272230126` (where iOS/Android apps are registered, NOT `stepovr-cb448`).
+- **#38** Confirm Firebase Cloud Messaging API (V1) is enabled in the `gen-lang-client-0272230126` project.
+
+Captures the production-readiness state from the `/review` push reconcile session so we don't lose it before App Store submission.
+
 ## [0.10.0.23] - 2026-04-26
 
 ### Added — Real FCM push delivery + queue widget review fixes
