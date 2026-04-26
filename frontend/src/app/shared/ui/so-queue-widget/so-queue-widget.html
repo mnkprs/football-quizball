@@ -2,6 +2,7 @@
   <div
     class="so-queue-widget so-glass"
     [class.so-queue-widget--reserved]="queue.displayState() === 'reserved'"
+    [style.top]="topOffset()"
     role="status"
     [attr.aria-live]="ariaLive()"
     [attr.aria-label]="

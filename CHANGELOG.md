@@ -2,6 +2,20 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.25] - 2026-04-26
+
+### Fixed — Queue widget overlapped by top-nav
+
+The floating queue widget was rendering at viewport top in normal flow, but `<app-top-nav>` is `position: fixed; top: 0; z-index: 50` so it floated over the widget — the widget's "In queue" label and Leave button were partially or fully obscured by the nav glass.
+
+- **`so-queue-widget.{ts,html,css}`** — widget switched to `position: fixed; left: 50%; transform: translateX(-50%); z-index: 49` (sits one z-index below the top-nav so glass blur smears the widget edge into the nav above when both are visible).
+- Top offset bound dynamically via `[style.top]` in template:
+  - When top-nav is visible (home + any route that opts into `shellUi.showTopNavBar()`): widget anchors at `var(--top-nav-reserve)` (3.75rem + safe-area inset)
+  - When top-nav is hidden (active gameplay screens): widget anchors at `env(safe-area-inset-top, 0px)` directly
+- Dynamic offset uses the same `isHome() || shellUi.showTopNavBar()` logic as `shell.html`, so widget placement always tracks whatever chrome is actually rendered.
+- Slide-in animation updated to combine the centering `translateX(-50%)` with the entrance `translateY` so the widget doesn't drift off-center during the 300ms reveal.
+- Page content scrolls underneath the widget (transient overlay; ~56px occlusion at top is acceptable since widget only shows while a queue is active).
+
 ## [0.10.0.24] - 2026-04-26
 
 ### Docs — Pre-production push notification setup steps

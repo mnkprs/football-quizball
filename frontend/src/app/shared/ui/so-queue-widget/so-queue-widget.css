@@ -1,4 +1,5 @@
-/* Floating duel queue widget — sticky chrome below <app-top-nav>.
+/* Floating duel queue widget — fixed-position chrome anchored under the
+ * top-nav (or under the safe-area inset on routes where top-nav is hidden).
  *
  * Design system usage:
  *   .so-glass          — base glassmorphism (composes --glass-bg/blur/border)
@@ -6,14 +7,26 @@
  *   .type-title-md     — Inter 16px/500 (opponent name)
  *   .so-text-numeric   — tabular-nums Space Grotesk (countdown)
  *
- * Reserved state overrides --glass-bg locally to swap the neutral glass for
- * red-tinted glass. Background and border tokens scope to this element only.
+ * Positioning: position: fixed, full-width within the app shell's max-width.
+ * z-index 49 sits one under the top-nav (50), so glass blur smears the
+ * widget edge into the nav above when both are visible. The `top` offset
+ * is set inline by the component (var(--top-nav-reserve) or safe-area inset)
+ * because it depends on shellUi.showTopNavBar() per route.
  *
- * Mounts in shell.html as a sibling between <app-top-nav> and <main>,
- * mirroring the .shell-ptr (pull-to-refresh) chrome pattern.
+ * The widget overlays the page content (does not reserve flow space). The
+ * widget is transient — only shown while a queue is active — so a brief
+ * 56px occlusion at the top is acceptable. Page content scrolls under it.
  */
 
 .so-queue-widget {
+  position: fixed;
+  /* top is bound inline via [style.top] in the template — see component. */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  z-index: 49;
+
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -25,9 +38,6 @@
    * full-width strip not a rounded card). */
   border-radius: 0;
   border-bottom: 1px solid var(--glass-border);
-
-  /* Notch-safe — push below the iOS status bar. */
-  padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
 
   animation: so-queue-widget-slide-in 300ms var(--ease-out-quart);
   transition:
@@ -89,9 +99,10 @@
   50%      { opacity: 0.4; transform: scale(1.2); }
 }
 
+/* Slide-in: combine the centering transform with the entrance translateY. */
 @keyframes so-queue-widget-slide-in {
-  from { transform: translateY(-100%); opacity: 0; }
-  to   { transform: translateY(0);     opacity: 1; }
+  from { transform: translate(-50%, -100%); opacity: 0; }
+  to   { transform: translate(-50%, 0);     opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
