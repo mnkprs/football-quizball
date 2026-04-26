@@ -2,6 +2,46 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.34] - 2026-04-26
+
+### Fixed — Push notifications: duplicate services + opaque error logging (UNIMPLEMENTED on TestFlight/Android)
+
+User report: every TestFlight install + Android release build logged `{"code":"UNIMPLEMENTED"}` twice at boot. Xcode-direct dev installs were fine.
+
+**Root cause**
+
+Two parallel push notification services existed and both fired at boot:
+- `PushNotificationService` (singular, `push-notification.service.ts`, wired in `app.ts:53` via `effect(() => user)`)
+- `PushNotificationsService` (plural, `push-notifications.service.ts`, wired in `shell.ts:47` via `ngOnInit`)
+
+Both called `FirebaseMessaging.requestPermissions()`, `getToken()`, and `addListener()` — exactly the duplicated UNIMPLEMENTED log lines the user observed. The catch-all `try/catch` swallowed everything as a single "init failed" line, so we couldn't tell WHICH FirebaseMessaging method was actually throwing.
+
+**The fix**
+- Deleted `frontend/src/app/core/push-notification.service.ts` (the older, redundant copy).
+- Removed its import + injection + `effect`-driven init from `app.ts`.
+- Kept the newer `PushNotificationsService` as the single source of truth (already wired in `shell.ts`).
+- Wrapped each `FirebaseMessaging.*` call in `push-notifications.service.ts` in its own try/catch with structured method-name logging via `logCapacitorError(method, err)`. The next failure will tell us exactly which call broke (e.g. `[PushNotifications] {"method":"getToken","code":"UNIMPLEMENTED",...}`) instead of an opaque "init failed".
+
+**The deeper issue (user must address)**
+
+The Xcode-dev-works / TestFlight-+-Android-release-broken pattern is the classic symptom of a native bridge that's out-of-sync with the JS bundle. The new `@capacitor-firebase/messaging` calls landed in JS but the native shell shipped to TestFlight is from an older `npx cap sync` run that doesn't have the corresponding plugin registrations. Required local steps before the next TestFlight upload:
+
+```bash
+cd frontend
+npx cap sync
+cd ios/App && pod install && cd ../..
+# Then re-archive in Xcode and re-upload
+```
+
+For Android:
+```bash
+cd frontend/android && ./gradlew clean && ./gradlew assembleRelease
+```
+
+After running these, the `{"code":"UNIMPLEMENTED"}` should disappear in the next build.
+
+**Not the cause**: the in-flight telemetry feature (`backend/src/telemetry/`, `frontend/src/app/core/telemetry.service.ts`, modifications to `global-error-handler.ts`) is stashed locally on the dev machine and is NOT in any deployed build. Verified via `git show HEAD:frontend/src/app/core/telemetry.service.ts` → does not exist in HEAD.
+
 ## [0.10.0.33] - 2026-04-26
 
 ### Fixed — Backend CI: sync `package-lock.json` with new Apple IAP deps

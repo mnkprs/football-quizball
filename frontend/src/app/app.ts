@@ -25,7 +25,6 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { PlatformService } from './core/platform.service';
 import { CrashlyticsService } from './core/crashlytics.service';
-import { PushNotificationService } from './core/push-notification.service';
 
 @Component({
   selector: 'app-root',
@@ -50,7 +49,6 @@ export class App implements OnInit, OnDestroy {
   private updateService = inject(UpdateService);
   private platform = inject(PlatformService);
   private crashlytics = inject(CrashlyticsService);
-  private pushNotifications = inject(PushNotificationService);
   isAdminRoute = signal(false);
   private lastUsernameCheckUserId: string | null = null;
 
@@ -63,7 +61,12 @@ export class App implements OnInit, OnDestroy {
       if (user) {
         this.analytics.identify(user.id);
         void this.crashlytics.setUserId(user.id);
-        void this.pushNotifications.initialize(user.id);
+        // Push notifications are initialized in shell.ts via PushNotificationsService
+        // (the plural service). The previous singular PushNotificationService
+        // was a duplicate that called the same FirebaseMessaging methods at
+        // boot — both fired on every login, producing two identical
+        // {"code":"UNIMPLEMENTED"} log lines on TestFlight/Android-release
+        // builds whose native bridge wasn't re-synced after JS plugin changes.
         // Only check username setup once per user id. Without this guard the
         // effect re-fires on every Supabase token auto-refresh (~hourly) and
         // on any local user-metadata patch, which can spuriously re-open the

@@ -43,30 +43,48 @@ export class PushNotificationsService {
 
     this.initialized = true;
 
+    // Each Capacitor call is wrapped individually so a UNIMPLEMENTED on one
+    // step (which can happen when a TestFlight/Android-release build was
+    // produced WITHOUT running `npx cap sync && pod install` after new JS
+    // plugin calls were added) doesn't mask which step failed. Previously,
+    // the catch-all swallowed everything as a single "init failed" line so
+    // we could never tell whether requestPermissions, getToken, or addListener
+    // was the culprit.
+    let perm: { receive: string } | null = null;
     try {
-      const perm = await FirebaseMessaging.requestPermissions();
-      if (perm.receive !== 'granted') {
-        // User declined — we don't keep nagging. The DB notifications still
-        // work; only background pushes are lost.
-        console.warn('[PushNotifications] permission not granted:', perm.receive);
-        return;
-      }
+      perm = await FirebaseMessaging.requestPermissions();
+    } catch (err) {
+      this.logCapacitorError('requestPermissions', err);
+      this.initialized = false;
+      return;
+    }
+    if (!perm || perm.receive !== 'granted') {
+      console.warn('[PushNotifications] permission not granted:', perm?.receive);
+      return;
+    }
 
-      const { token } = await FirebaseMessaging.getToken();
-      if (token) {
-        await this.registerToken(token);
-      }
+    let token: string | undefined;
+    try {
+      const result = await FirebaseMessaging.getToken();
+      token = result.token;
+    } catch (err) {
+      this.logCapacitorError('getToken', err);
+      this.initialized = false;
+      return;
+    }
+    if (token) {
+      await this.registerToken(token);
+    }
 
-      // Listen for token rotation (Firebase rotates periodically, or on app
-      // reinstall, or when the user clears app data).
+    try {
       await FirebaseMessaging.addListener('tokenReceived', async (event) => {
         if (event.token) await this.registerToken(event.token);
       });
+    } catch (err) {
+      this.logCapacitorError('addListener:tokenReceived', err);
+    }
 
-      // Listen for taps on push notifications (app was backgrounded or killed).
-      // The data.route field is set server-side in PushService.sendPush; we
-      // navigate to it directly. For reservation pushes, this lands the user
-      // on /duel/:gameId so they can immediately tap to play.
+    try {
       await FirebaseMessaging.addListener('notificationActionPerformed', (event) => {
         const route = (event.notification.data as { route?: string })?.route;
         if (route) {
@@ -74,10 +92,23 @@ export class PushNotificationsService {
         }
       });
     } catch (err) {
-      console.warn('[PushNotifications] init failed:', err);
-      // Allow re-init on next call (e.g., after re-login).
-      this.initialized = false;
+      this.logCapacitorError('addListener:notificationActionPerformed', err);
     }
+  }
+
+  /**
+   * Capacitor errors carry a `code` field (e.g. "UNIMPLEMENTED" when the
+   * native side isn't bundled). We log the method name AND the code so the
+   * next user-reported failure points us at the exact call that broke
+   * instead of forcing another diagnosis pass.
+   */
+  private logCapacitorError(method: string, err: unknown): void {
+    const e = err as { code?: string; message?: string };
+    console.warn('[PushNotifications]', JSON.stringify({
+      method,
+      code: e?.code ?? 'unknown',
+      message: e?.message ?? String(err),
+    }));
   }
 
   /** Unregister all tokens for this device. Call on logout. */
