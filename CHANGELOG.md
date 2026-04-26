@@ -2,6 +2,42 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.32] - 2026-04-26
+
+### Fixed — B2/B3: Apple IAP JWS verification was using the wrong JWKS (App Store reject blocker)
+
+**The bug**
+
+Both `IapValidationService.verifyAppleJWS` and `SubscriptionService.handleAppleNotification` fetched their JWKS from `https://appleid.apple.com/auth/keys`. That endpoint serves the OIDC keys for **Sign-in-with-Apple**, NOT the App Store. App Store JWS payloads are signed by per-app intermediate certs whose chain terminates at one of three Apple root CAs (G2, G3, or the legacy classic root) and the chain is delivered in the JWS `x5c` header. The wrong-JWKS lookup never matched the signing key, so:
+
+- Every real production receipt failed signature verification → `validateAppleReceipt` returned `invalidResult` → users couldn't activate Pro.
+- Every App Store Server Notification V2 (REFUND, EXPIRED, DID_RENEW, GRACE_PERIOD_EXPIRED, etc.) failed verification → the handler `return`ed early → **refunds never revoked Pro, expirations never cleared status, renewals never extended subscriptions.**
+
+This was a guaranteed App Store reject — Apple specifically tests that refunds revoke entitlement on submission.
+
+**The fix**
+
+- New dependency: `@apple/app-store-server-library@^3` — Apple's official Node.js library that handles cert-chain verification correctly via its `SignedDataVerifier`.
+- New file: `backend/src/subscription/apple-jws-verifier.service.ts` — single shared verifier reused by IAP receipt validation and the ASN v2 webhook. Lazy + cached. Fail-loud when `NODE_ENV=production` but `APPLE_APP_ID` is unset (Apple's lib requires it for prod).
+- New directory: `backend/src/subscription/apple-certs/` containing the three Apple root CA `.cer` files (G2, G3, classic) bundled into the repo. Bundled rather than fetched at runtime so a CDN outage can never silently disable IAP verification. README documents how/when to refresh.
+- `IapValidationService.validateAppleReceipt` — replaced the bad `jose.createRemoteJWKSet` call with `appleJws.verifyTransaction()`. Bundle ID + product ID + environment checks kept as defense-in-depth even though Apple's lib also enforces them.
+- `SubscriptionService.handleAppleNotification` — replaced the bad outer-JWS verify with `appleJws.verifyNotification()`. Also replaced the previous `jose.decodeJwt(signedTransactionInfo)` (decode-without-verify) with `appleJws.verifyTransaction()` so a tampered notification can no longer spoof `originalTransactionId` and revoke the wrong user's Pro.
+- OCSP online revocation checks enabled — small latency cost on each verify, but catches Apple-revoked certs.
+
+**Tests**
+
+8 new specs in `apple-jws-verifier.service.spec.ts` covering: PRODUCTION-without-APPLE_APP_ID throws fail-loud (no SignedDataVerifier built), SANDBOX without APPLE_APP_ID is allowed, PRODUCTION with APPLE_APP_ID passes the numeric ID through, lazy + cached single-construction across calls, error propagation on transaction + notification verify, decoded-payload pass-through on success.
+
+87/87 backend jest specs pass across `subscription | apple | iap | duel | logo | solo`. Backend tsc clean on touched dirs.
+
+**New env var**
+
+- `APPLE_APP_ID` — your numeric App Apple ID from App Store Connect (App Information page). REQUIRED when `NODE_ENV=production`. Apple's library enforces this so a sandbox-built verifier can't accidentally serve production.
+
+**Out of scope (filed for follow-up)**
+
+- `signedRenewalInfo` is still consumed via decode-without-verify in the original code (we did NOT introduce this; subscription auto-renew status doesn't currently drive any Pro logic). When it does, that path needs `verifyAndDecodeRenewalInfo` too.
+
 ## [0.10.0.31] - 2026-04-26
 
 ### Fixed — C3: server-side per-question timeout for logo-quiz (security)
