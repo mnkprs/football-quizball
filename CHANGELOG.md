@@ -2,6 +2,43 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.19] - 2026-04-26
+
+### Added — Queue widget Day 2: backend reservation state + ELO forfeit
+
+Day 2 of the floating duel queue widget. Pure backend — no frontend changes. Adds the `reserved` state to `duel_games` so the matchmaker can hold a 10s tap-to-enter window between matchmaking and active gameplay. Day 3 wires the frontend.
+
+**Migration** (`supabase/migrations/20260426133304_duel_reservation_state.sql`):
+- `status` CHECK extended with `'reserved'`
+- `host_accepted_at`, `guest_accepted_at`, `reserved_at` TIMESTAMPTZ columns
+- `idx_duel_games_queue` partial index broadened from `WHERE status='waiting'` to `WHERE status IN ('waiting','reserved')` (plan 4A=B) so the cron sweep doesn't seq-scan
+- Two partial UNIQUE indexes (`idx_duel_games_host_one_active`, `idx_duel_games_guest_one_active`) enforce S0b global queue exclusivity at the DB layer (defense-in-depth beyond the app-level singleton guard). Invite-code games excluded.
+
+**Backend (`backend/src/duel/duel.service.ts`)**:
+- `joinQueue()`: tightened singleton guard from per-game-type to global (S0b=A). Cross-mode join requests get a clear `ConflictException` with a "Leave that first to switch modes" message that the Day 4 standard-duel rejection toast will surface. Match path now transitions to `reserved` (not directly setting guest_id), stamps `reserved_at`, schedules the in-memory forfeit timer, and fires push notifications to both players.
+- `acceptGame(userId, gameId)` — POST /api/duel/:id/accept handler. CAS-guarded on `status='reserved'` so concurrent accept/forfeit can't race. Idempotent for the calling user. When BOTH players accept, flips `status='active'` AND sets `host_ready=true`/`guest_ready=true`/`question_started_at=NOW()` in one update — acceptance acts as the ready-up for queue-matched games (no separate markReady call needed).
+- `forfeitOnReservationTimeout(gameId)` — fired by both `setTimeout(10s)` (in-memory, fast path) and `@Cron('*/30 * * * * *')` (durable, survives Railway redeploys). CAS-idempotent on `status='reserved'` — only the first invocation flips state. Applies `-5 ELO` to whichever player(s) didn't accept (plan OV1=B), returns drawn questions to the pool.
+- `cleanupStaleReservations()` — cron sweep, hard-cap 50 stale reservations per pass.
+- `applyForfeitPenalty(userId)` — writes `elo_history` row with `mode='duel_forfeit'`, decrements `profiles.elo` (floor 500). Mirrors solo timeout extra -5 pattern conceptually but keeps duel forfeits distinguishable in analytics.
+- `sendReservationPush(row)` — push to both players via existing `NotificationsService` so backgrounded users get the 10s window prompt (plan OV3=A).
+- `abandonGame()` extended: if status is `'reserved'`, the abandoning player gets the `-5 ELO` penalty and the in-memory timer is cancelled.
+- `toPublicView()`: includes optional `reservation` block (secondsRemaining, hostAccepted, guestAccepted) when status is `'reserved'`. Frontend reads this to render the match-found state countdown.
+
+**Backend (`backend/src/duel/duel.controller.ts`)**:
+- `POST /api/duel/:id/accept` — throttled 3 req/s per user.
+
+**Schema types (`backend/src/duel/duel.types.ts`)**:
+- `DuelPublicView.status` and `DuelGameRow.status` extended with `'reserved'`.
+- `DuelGameRow` adds `reserved_at`, `host_accepted_at`, `guest_accepted_at` (all nullable).
+- `DuelReservationInfo` interface and optional `reservation` field on `DuelPublicView`.
+
+**ELO interface (`backend/src/common/interfaces/elo.interface.ts`)**:
+- `EloMode` extended with `'duel_forfeit'`.
+
+**Tests (`backend/src/duel/duel.reservation.spec.ts`)** — 10 new tests covering acceptGame status guard / idempotency / first-vs-second-accept, forfeitOnReservationTimeout no-op cases, applyForfeitPenalty -5 + ELO floor + missing profile fallback, joinQueue cross-mode rejection regression. All passing. Existing 13 finalizeDuelGame tests still passing — no regressions.
+
+**Build verification**: `tsc --noEmit` clean (only pre-existing unrelated errors in scripts/ and one match-history test). `jest --testPathPatterns="duel"` passes 23/23.
+
 ## [0.10.0.18] - 2026-04-26
 
 ### Changed — Queue widget Day 1 polish: design system primitives
