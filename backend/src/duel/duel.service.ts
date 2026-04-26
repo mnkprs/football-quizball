@@ -40,6 +40,10 @@ export const MAX_QUESTIONS = 10;
 const RESERVATION_WINDOW_MS = 10_000;
 /** ELO penalty for a reservation no-show (plan decision OV1=B). */
 const FORFEIT_ELO_PENALTY = 5;
+/** Per-question deadline window — server-authoritative timer. Frontend
+ *  derives `deadline = questionStartedAt + QUESTION_TIME_MS` and ticks
+ *  against `serverNow + serverClockOffsetMs`. */
+const QUESTION_TIME_MS = 30_000;
 
 function generateInviteCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -796,6 +800,7 @@ export class DuelService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', gameId)
+      .eq('status', 'active') // CAS — abort if a concurrent abandon flipped to 'abandoned'
       .eq('current_question_index', row.current_question_index)
       .is('current_question_answered_by', null)
       .select('id')
@@ -868,21 +873,41 @@ export class DuelService {
     // Reserved-state abandonment IS a forfeit — the abandoning player gets the
     // -5 ELO penalty (plan decision OV1=B). Cancel the in-memory timer too,
     // since we're handling the abandon explicitly.
+    //
+    // CAS-guarded: only apply ELO penalty + record no-show if WE successfully
+    // flipped status from 'reserved' to 'abandoned'. The cron sweep
+    // (forfeitOnReservationTimeout) and the in-memory setTimeout race against
+    // us; without this guard, a concurrent cron run would also call
+    // applyForfeitPenalty for the same user → -10 ELO instead of -5, plus
+    // a duplicate no-show counter increment.
     if (row.status === 'reserved') {
       this.cancelReservationTimeout(gameId);
-      void this.applyForfeitPenalty(userId).catch((err) =>
-        this.logger.warn(`[abandonGame:reserved] elo penalty failed: ${err?.message}`),
-      );
-      // Cooldown counter — only when the user hadn't already accepted. An
-      // accepted-then-left case is already penalized by ELO; counting it as
-      // a no-show would be double punishment.
-      const role: 'host' | 'guest' = row.host_id === userId ? 'host' : 'guest';
-      const userAcceptedReservation = role === 'host'
-        ? !!row.host_accepted_at
-        : !!row.guest_accepted_at;
-      if (!userAcceptedReservation) {
-        void this.recordNoShowFor(userId, 'abandon:reserved');
+      const { data: flipped } = await this.supabaseService.client
+        .from('duel_games')
+        .update({ status: 'abandoned', updated_at: new Date().toISOString() })
+        .eq('id', gameId)
+        .eq('status', 'reserved') // CAS — null result = lost the race to cron/timer
+        .select('id')
+        .single();
+
+      if (flipped) {
+        void this.applyForfeitPenalty(userId).catch((err) =>
+          this.logger.warn(`[abandonGame:reserved] elo penalty failed: ${err?.message}`),
+        );
+        // Cooldown counter — only when the user hadn't already accepted. An
+        // accepted-then-left case is already penalized by ELO; counting it as
+        // a no-show would be double punishment.
+        const role: 'host' | 'guest' = row.host_id === userId ? 'host' : 'guest';
+        const userAcceptedReservation = role === 'host'
+          ? !!row.host_accepted_at
+          : !!row.guest_accepted_at;
+        if (!userAcceptedReservation) {
+          void this.recordNoShowFor(userId, 'abandon:reserved');
+        }
       }
+      // Whether we flipped or lost the race, the row is now 'abandoned' (by us
+      // or the concurrent forfeiter). Skip the trailing non-active update.
+      return { ok: true };
     }
 
     // Active-state abandonment IS a forfeit — opponent wins. CAS-guarded:
@@ -954,6 +979,7 @@ export class DuelService {
         updated_at: new Date().toISOString(),
       })
       .eq('id', row.id)
+      .eq('status', 'active') // CAS: abort if a concurrent abandon flipped to 'abandoned'
       .eq('current_question_index', row.current_question_index); // CAS: no-op if already advanced
 
     if (error) {
@@ -1203,6 +1229,9 @@ export class DuelService {
       hostReady: row.host_ready,
       guestReady: row.guest_ready,
       gameType: row.game_type,
+      questionStartedAt: row.question_started_at,
+      questionTimeMs: QUESTION_TIME_MS,
+      serverNow: new Date().toISOString(),
       ...(reservation ? { reservation } : {}),
     };
   }

@@ -2,6 +2,34 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.28] - 2026-04-26
+
+### Fixed — 5 ship-blockers from /review (B1, B4, B5, C4, C5, C6)
+
+**B1 — every duel question auto-timed-out (CRITICAL)**
+- `DuelService.toPublicView` declared `questionStartedAt` / `questionTimeMs` / `serverNow` as required on `DuelPublicView` but never returned them. Frontend `timeLeft` computed `0` from question 1 → fired `timeoutQuestion` immediately on every question → no answer window. Every active duel was broken in production.
+- Added `QUESTION_TIME_MS = 30_000` constant; `toPublicView` now returns `questionStartedAt: row.question_started_at`, `questionTimeMs: QUESTION_TIME_MS`, `serverNow: new Date().toISOString()` so the frontend's deadline-derived countdown actually works.
+
+**B4 — `mode='duel_forfeit'` ELO inserts silently rejected**
+- `elo_history.mode` CHECK constraint whitelisted only (`solo`, `logo_quiz`, `logo_quiz_hardcore`). The duel reservation forfeit path (`applyForfeitPenalty`) writes `mode='duel_forfeit'` rows; every insert hit Postgres 23514 and was swallowed by the fire-and-forget `.catch()`. No ELO ever deducted, no analytics row written.
+- New migration `20260617000001_elo_history_mode_duel_forfeit.sql` drops the unnamed inline check and re-adds an explicitly named `elo_history_mode_check` allowing `'duel_forfeit'` (plus `NULL` for legacy rows). Applied to prod via MCP.
+
+**B5 — out-of-order migration timestamp**
+- `20260426210000_duel_no_show_cooldown.sql` had a timestamp earlier than the prod head (`20260616000001`). `supabase db push` would either skip it or apply it after newer migrations on a fresh environment, breaking ordering.
+- Renamed to `20260617000000_duel_no_show_cooldown.sql`. Applied to prod via MCP and `schema_migrations.version` updated to match the file timestamp so file ↔ DB stays in sync.
+
+**C4 — `submitAnswer` CAS race with abandon**
+- The claim-the-question CAS update only filtered on `id` + `current_question_index` + `current_question_answered_by IS NULL`. A concurrent `abandonGame` that flipped status to `'abandoned'` could still let a winning answer write through, double-finalizing the game.
+- Added `.eq('status', 'active')` to the CAS — the update aborts if status has already moved.
+
+**C5 — `advanceTimedOutQuestion` CAS race with abandon**
+- Same shape: timeout advance CAS lacked `.eq('status', 'active')`. A concurrent abandon could leave the game in `'abandoned'` AND the timeout advance could still write `status='finished'` if it was the last question.
+- Added `.eq('status', 'active')` to the CAS.
+
+**C6 — `abandonGame` reserved-state penalty doubled by cron**
+- The reserved-state branch called `applyForfeitPenalty(userId)` and `recordNoShowFor(userId, 'abandon:reserved')` BEFORE flipping the row status. The `cleanupStaleReservations` cron (every 30s) and the in-memory reservation timer also call `applyForfeitPenalty` for the same user when they win the CAS race. Result: two −5 ELO writes (−10 total) and two no-show counter increments.
+- Restructured the reserved branch to do the `status='abandoned'` flip FIRST as a CAS update (`.eq('status', 'reserved')`), and only fire `applyForfeitPenalty` + `recordNoShowFor` if WE won the CAS. Mirrors the active-state branch already in place.
+
 ## [0.10.0.27] - 2026-04-26
 
 ### Fixed — Duels stuck forever when both players go AFK mid-question
