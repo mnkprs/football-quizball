@@ -19,3 +19,4 @@ export * from './so-history-row/so-history-row';
 export * from './so-progress-card/so-progress-card';
 export * from './so-toggle-row/so-toggle-row';
 export * from './so-rating-card/so-rating-card';
+export * from './so-queue-widget/so-queue-widget';

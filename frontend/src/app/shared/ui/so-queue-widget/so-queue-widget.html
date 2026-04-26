@@ -1,0 +1,32 @@
+@if (queue.widgetState() !== 'hidden') {
+  <div
+    class="so-queue-widget"
+    [class.so-queue-widget--reserved]="queue.widgetState() === 'reserved'"
+    role="status"
+    [attr.aria-live]="ariaLive()"
+    [attr.aria-label]="
+      queue.widgetState() === 'searching'
+        ? 'In queue for ' + modeLabel() + ', ' + queue.elapsedLabel() + ' elapsed'
+        : 'Match found against ' + queue.opponentUsername() + ', ' + queue.countdownSeconds() + ' seconds to accept'
+    "
+  >
+    @if (queue.widgetState() === 'searching') {
+      <span class="so-queue-widget__dot" aria-hidden="true"></span>
+      <span class="so-queue-widget__label">
+        In queue · {{ modeLabel() }} · {{ queue.elapsedLabel() }}
+      </span>
+      <so-button variant="ghost" size="sm" (pressed)="onLeave()">Leave</so-button>
+    } @else if (queue.widgetState() === 'reserved') {
+      <span class="so-queue-widget__opponent">
+        vs {{ queue.opponentUsername() }}
+      </span>
+      <span
+        class="so-queue-widget__countdown"
+        [class.so-queue-widget__countdown--urgent]="queue.countdownSeconds() <= 5"
+      >
+        {{ queue.countdownSeconds() }}s
+      </span>
+      <so-button variant="primary" size="sm" (pressed)="onAccept()">TAP TO PLAY</so-button>
+    }
+  </div>
+}

@@ -2,6 +2,22 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.17] - 2026-04-26
+
+### Added — Floating duel queue widget (Day 1 scaffold, mocked)
+
+Day 1 of the queue widget feature (`feat/queue-widget` branch, NOT merging to main yet — bundled merge after Day 5 per eng review decision OV4=B). Pure frontend scaffold with mocked state. No backend changes.
+
+**`QueueStateService`** (`frontend/src/app/core/queue-state.service.ts`) — singleton signal-driven service for the floating queue widget. Three widget states: `searching` (counts up elapsed time), `reserved` (counts down 10s match-found window), `hidden`. Public API `startQueue()` / `acceptMatch()` / `leaveQueue()` is mocked Day 1; Day 3 wires real `DuelApiService.joinQueue()` / `acceptGame()` / `abandonGame()`. Dev-only debug controls exposed on `window.__queueDebug` for visual review (`showSearching()`, `showReserved('Sarah_K')`, `hide()`, `cycle()`).
+
+**`<so-queue-widget>`** (`frontend/src/app/shared/ui/so-queue-widget/`) — three-state widget per design spec. Searching: glassmorphism background (--color-surface-bright @ 40% + backdrop-blur), pulsing iOS-Blue dot, label-md typography ("In queue · Logo Duel · 0:23"), `<so-button variant="ghost">Leave</so-button>`. Reserved: red-glass background (rgba(239,68,68,0.18) @ blur), opponent username + countdown (urgent red when ≤5s), `<so-button variant="primary">TAP TO PLAY</so-button>`. Hidden: not rendered. ARIA: `role="status"` with assertive live region during reserved (interrupts), polite during searching. Notch-safe top inset. `prefers-reduced-motion` respected (animations stripped).
+
+**Shell mount** — widget mounted in `frontend/src/app/layout/shell/shell.html` between `<app-top-nav>` and `<main>`, sibling to the existing pull-to-refresh chrome. `SoQueueWidgetComponent` added to ShellComponent imports.
+
+**Build verified green** — `tsc --noEmit -p tsconfig.app.json` passes. `ng build --configuration development` succeeds. Only pre-existing warnings remain (mayhem-mode template, profile-achievements unused import — both unrelated to this feature).
+
+**Plan source of truth:** `~/.gstack/projects/mnkprs-football-quizball/instashop-main-design-20260426-114852.md` (eng + design reviews CLEARED, 16 decisions locked).
+
 ## [0.10.0.16] - 2026-04-25
 
 ### Changed — Profile analytics preview, hardcore visual identity, and 2-player lobby chrome

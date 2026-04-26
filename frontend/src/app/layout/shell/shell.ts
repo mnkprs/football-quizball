@@ -4,6 +4,7 @@ import { Subscription, filter } from 'rxjs';
 import { LanguageService } from '../../core/language.service';
 import { UpgradeModalComponent } from '../../shared/upgrade-modal/upgrade-modal';
 import { TopNavComponent } from '../../shared/top-nav/top-nav';
+import { SoQueueWidgetComponent } from '../../shared/ui/so-queue-widget/so-queue-widget';
 import { ProService } from '../../core/pro.service';
 import { AuthService } from '../../core/auth.service';
 import { ShellUiService } from '../../core/shell-ui.service';
@@ -26,6 +27,7 @@ export interface NavTab {
     RouterLinkActive,
     UpgradeModalComponent,
     TopNavComponent,
+    SoQueueWidgetComponent,
     SoPullToRefreshDirective,
   ],
   templateUrl: './shell.html',

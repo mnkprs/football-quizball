@@ -1,0 +1,98 @@
+/* Floating duel queue widget — sticky chrome below <app-top-nav>.
+ * Design spec: glassmorphism container; red-glass tint for the match-found
+ * (reserved) state; subtle pulse on the searching dot; entrance slide.
+ *
+ * Mounts in shell.html as a sibling between <app-top-nav> and <main>,
+ * mirroring the .shell-ptr (pull-to-refresh) chrome pattern.
+ */
+
+.so-queue-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  min-height: 56px;
+
+  background: rgba(58, 57, 57, 0.4); /* --color-surface-bright @ 40% */
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--color-border);
+
+  /* Notch-safe — push below the iOS status bar. */
+  padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+
+  animation: so-queue-widget-slide-in 300ms var(--ease-out-quart);
+  transition:
+    background 200ms var(--ease-out-quart),
+    border-color 200ms var(--ease-out-quart);
+}
+
+/* ── Match-found (reserved) state — red-tinted glass ─────────────────────── */
+
+.so-queue-widget--reserved {
+  background: rgba(239, 68, 68, 0.18); /* --color-destructive @ 18% over blur */
+  border-bottom-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ── Searching state ─────────────────────────────────────────────────────── */
+
+.so-queue-widget__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: so-queue-widget-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.so-queue-widget__label {
+  flex: 1;
+  /* type-label-md equivalent — Lexend 12px 500 */
+  font-family: var(--font-headline);
+  font-size: var(--text-label-md);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--color-foreground);
+}
+
+/* ── Reserved state ──────────────────────────────────────────────────────── */
+
+.so-queue-widget__opponent {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: var(--text-title-md);
+  font-weight: 500;
+  color: var(--color-foreground);
+}
+
+.so-queue-widget__countdown {
+  font-family: var(--font-numeric);
+  font-size: var(--text-label-md);
+  font-weight: 500;
+  color: var(--color-foreground);
+  font-variant-numeric: tabular-nums;
+  margin-right: var(--space-2);
+}
+
+.so-queue-widget__countdown--urgent {
+  color: var(--color-destructive);
+}
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+
+@keyframes so-queue-widget-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(1.2); }
+}
+
+@keyframes so-queue-widget-slide-in {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .so-queue-widget,
+  .so-queue-widget__dot {
+    animation: none;
+  }
+}
