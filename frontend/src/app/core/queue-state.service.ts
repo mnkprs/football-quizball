@@ -1,8 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { NavigationEnd, Router } from '@angular/router';
+import { firstValueFrom, Subscription, filter } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { ToastService } from './toast.service';
 import { DuelApiService, DuelGameType, DuelPublicView } from '../features/duel/duel-api.service';
 
 export type QueueWidgetState = 'searching' | 'reserved' | 'hidden';
@@ -10,45 +11,61 @@ export type QueueWidgetState = 'searching' | 'reserved' | 'hidden';
 export interface ActiveQueue {
   gameId: string;
   gameType: DuelGameType;
-  joinedAt: number; // ms epoch — set on startQueue or hydrated from server timestamp
+  joinedAt: number; // ms epoch
 }
 
 const POLL_INTERVAL_MS = 2_000;
 /** Server clamps secondsRemaining to [0, 10] for reserved state. */
 const RESERVATION_WINDOW_S = 10;
+/** When elapsed reaches this many seconds, fire the lonely-hours upsell. Plan D4=A. */
+const LONELY_HINT_AFTER_S = 60;
 
 /**
- * Floating queue widget state. Real backend wired Day 3.
+ * Floating queue widget state. Real backend wired Day 3, polish + toasts Day 4.
  *
  * Design spec:
  *   ~/.gstack/projects/mnkprs-football-quizball/instashop-main-design-20260426-114852.md
  *
- * Three widget states:
+ * Three widget states surface via `displayState()` (which composes widget logic
+ * with the route-aware hide rule):
  *   searching → glass background, pulse dot, elapsed counter, Leave button
  *   reserved  → red-glass background, opponent + countdown, Tap to Play
- *   hidden    → not rendered
+ *   hidden    → not rendered (current route is /duel/:activeGameId, OR no queue)
  *
- * Lifecycle:
- *   - init() runs on app boot once auth.sessionReady resolves; rehydrates the
- *     widget if the user has any waiting/reserved game open server-side.
- *   - startQueue() → POST /api/duel/queue, kicks off poll loop.
- *   - Poll loop reads getGame(id) every 2s; transitions widget state per
- *     server status. On 'active' → navigate to /duel/:id. On 'abandoned' →
- *     Day 4 will surface "Match expired" toast.
+ * Toast triggers (plan D4 + design spec):
+ *   • reserved → abandoned without local accept = forfeit notice (Match expired)
+ *   • elapsed === 60s during searching = lonely-hours hint (Try Solo)
+ *   • Cross-mode rejection toast handled at the call site (logo-quiz onFindDuel)
  */
 @Injectable({ providedIn: 'root' })
 export class QueueStateService {
   private api = inject(DuelApiService);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private toast = inject(ToastService);
 
   readonly activeQueue = signal<ActiveQueue | null>(null);
   readonly widgetState = signal<QueueWidgetState>('hidden');
   readonly opponentUsername = signal<string | null>(null);
 
-  // Searching: counts up from joinedAt. Reserved: server-driven secondsRemaining.
   readonly elapsedSeconds = signal(0);
   readonly countdownSeconds = signal(RESERVATION_WINDOW_S);
+
+  /** Current route's URL path (sans query/hash), kept fresh by NavigationEnd. */
+  private currentUrlPath = signal<string>('');
+
+  /**
+   * The widget should render if there is an active queue AND the current route
+   * isn't the duel page for that exact game (post-accept navigation).
+   * Composes widgetState with the route-aware hide rule per design spec.
+   */
+  readonly displayState = computed<QueueWidgetState>(() => {
+    const state = this.widgetState();
+    if (state === 'hidden') return 'hidden';
+    const queue = this.activeQueue();
+    if (queue && this.currentUrlPath() === `/duel/${queue.gameId}`) return 'hidden';
+    return state;
+  });
 
   readonly elapsedLabel = computed(() => {
     const total = this.elapsedSeconds();
@@ -59,13 +76,19 @@ export class QueueStateService {
 
   private pollInterval?: ReturnType<typeof setInterval>;
   private elapsedInterval?: ReturnType<typeof setInterval>;
+  private routeSub?: Subscription;
   private initialized = false;
+  /** Fire the lonely-hours toast once per queue session. */
+  private lonelyHintFired = false;
 
   constructor() {
+    // Track route changes for the displayState route-hide rule.
+    this.currentUrlPath.set(this.stripQuery(this.router.url));
+    this.routeSub = this.router.events
+      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+      .subscribe(e => this.currentUrlPath.set(this.stripQuery(e.urlAfterRedirects)));
+
     if (!environment.production) {
-      // Dev-only: surface debug controls on window for visual review.
-      // The methods now bypass the real backend and just set local state —
-      // useful for design QA without needing a real opponent.
       (window as unknown as { __queueDebug: object }).__queueDebug = {
         showSearching: () => this.mockSearching(),
         showReserved: (name = 'Sarah_K') => this.mockReserved(name),
@@ -75,14 +98,17 @@ export class QueueStateService {
     }
   }
 
+  private stripQuery(url: string): string {
+    const q = url.indexOf('?');
+    const h = url.indexOf('#');
+    let cut = url.length;
+    if (q !== -1) cut = Math.min(cut, q);
+    if (h !== -1) cut = Math.min(cut, h);
+    return url.slice(0, cut);
+  }
+
   // ── Boot probe ─────────────────────────────────────────────────────────────
 
-  /**
-   * Called once at app boot from the shell. Idempotent.
-   * Queries any open games (waiting/reserved) for the current user and
-   * rehydrates the widget if found. Filters out expired reservations
-   * client-side as a belt-and-suspenders against cron lag.
-   */
   async init(): Promise<void> {
     if (this.initialized) return;
     this.initialized = true;
@@ -92,8 +118,6 @@ export class QueueStateService {
 
     try {
       const games = await firstValueFrom(this.api.listMyGames());
-      // Take the most recently updated open game that isn't an invite-code
-      // duel (those are the lobby's responsibility, not the widget's).
       const open = games.find(g =>
         (g.status === 'waiting' || g.status === 'reserved') && !g.inviteCode,
       );
@@ -101,8 +125,6 @@ export class QueueStateService {
         await this.hydrateFromGameId(open.id);
       }
     } catch (err) {
-      // Boot probe failure is non-fatal — widget just stays hidden until
-      // the user explicitly starts a queue.
       console.warn('[QueueState] boot probe failed', err);
     }
   }
@@ -112,10 +134,10 @@ export class QueueStateService {
   async startQueue(gameType: DuelGameType): Promise<void> {
     try {
       const game = await firstValueFrom(this.api.joinQueue(gameType));
+      this.lonelyHintFired = false;
       await this.applyServerState(game);
       this.startPolling();
     } catch (err) {
-      // Caller (Find Duel button) handles the toast UX in Day 4.
       this.clearAll();
       throw err;
     }
@@ -127,10 +149,9 @@ export class QueueStateService {
     try {
       const game = await firstValueFrom(this.api.acceptGame(queue.gameId));
       await this.applyServerState(game);
-      // If both players accepted, status will be 'active' and applyServerState
-      // navigates. If only we accepted, stay in reserved and wait for opponent.
     } catch {
-      // 409 likely means we lost the race to forfeit — Day 4 surfaces toast.
+      // Lost the race to forfeit — surface the same Match expired toast.
+      this.fireMatchExpiredToast();
       this.clearAll();
     }
   }
@@ -141,8 +162,11 @@ export class QueueStateService {
     try {
       await firstValueFrom(this.api.abandonGame(queue.gameId));
     } catch {
-      // Ignore — backend may have already abandoned via timeout.
+      // Backend may have already abandoned — proceed regardless.
     }
+    // Treat user-initiated leave as silent: no toast, no penalty surfacing.
+    // (-5 ELO during reserved-state leaves is server-applied per OV1=B but
+    // the user explicitly chose to leave; surfacing it would feel hostile.)
     this.clearAll();
   }
 
@@ -151,8 +175,6 @@ export class QueueStateService {
   private async hydrateFromGameId(gameId: string): Promise<void> {
     try {
       const game = await firstValueFrom(this.api.getGame(gameId));
-      // Skip if reservation already expired but cron hasn't swept yet —
-      // rehydrating into a doomed match-found state would be confusing.
       if (game.status === 'reserved' && game.reservation && game.reservation.secondsRemaining <= 0) {
         return;
       }
@@ -164,7 +186,18 @@ export class QueueStateService {
   }
 
   private async applyServerState(game: DuelPublicView): Promise<void> {
-    if (game.status === 'finished' || game.status === 'abandoned') {
+    if (game.status === 'finished') {
+      this.clearAll();
+      return;
+    }
+    if (game.status === 'abandoned') {
+      // If we were in 'reserved' state and the row is now abandoned, the user
+      // (or their opponent) didn't accept in time. Surface the forfeit toast.
+      // Skip the toast if we were merely 'searching' — that path is either a
+      // user-initiated leave (handled in leaveQueue) or a server cleanup.
+      if (this.widgetState() === 'reserved') {
+        this.fireMatchExpiredToast();
+      }
       this.clearAll();
       return;
     }
@@ -182,12 +215,11 @@ export class QueueStateService {
       this.widgetState.set('reserved');
       const remaining = game.reservation?.secondsRemaining ?? RESERVATION_WINDOW_S;
       this.countdownSeconds.set(Math.max(0, Math.min(RESERVATION_WINDOW_S, remaining)));
-      this.startElapsedTicker(); // for searching elapsed; harmless during reserved
+      this.startElapsedTicker();
     } else if (game.status === 'waiting') {
       this.widgetState.set('searching');
       this.startElapsedTicker();
     } else if (game.status === 'active') {
-      // Both players accepted — navigate into the duel and hide widget.
       const gameId = game.id;
       this.clearAll();
       void this.router.navigate(['/duel', gameId]);
@@ -216,7 +248,7 @@ export class QueueStateService {
       const game = await firstValueFrom(this.api.getGame(queue.gameId));
       await this.applyServerState(game);
     } catch {
-      // Network blip — keep polling, don't kill state.
+      // Network blip — keep polling.
     }
   }
 
@@ -227,6 +259,16 @@ export class QueueStateService {
       if (!queue) return;
       const seconds = Math.floor((Date.now() - queue.joinedAt) / 1000);
       this.elapsedSeconds.set(seconds);
+
+      // Lonely-hours hint (plan D4=A): fire once at 60s while still searching.
+      if (
+        !this.lonelyHintFired &&
+        this.widgetState() === 'searching' &&
+        seconds >= LONELY_HINT_AFTER_S
+      ) {
+        this.lonelyHintFired = true;
+        this.fireLonelyHoursToast();
+      }
     }, 1000);
   }
 
@@ -247,12 +289,34 @@ export class QueueStateService {
     this.widgetState.set('hidden');
   }
 
-  // ── Mocked state cycling (debug-only — bypasses real backend) ──────────────
+  // ── Toasts (plan D4) ───────────────────────────────────────────────────────
+
+  private fireMatchExpiredToast(): void {
+    // Persistent-feel: 8s instead of the default 4s so the player has time
+    // to read the ELO consequence. Text-only for now — action buttons would
+    // require extending ToastService (deferred — see TODOS.md).
+    this.toast.show(
+      'Match expired — your opponent waited but you didn’t accept in time. -5 ELO. Tap Find Duel to queue again.',
+      'error',
+      8000,
+    );
+  }
+
+  private fireLonelyHoursToast(): void {
+    this.toast.show(
+      'Quiet hours? Try Solo Logo Quiz while you wait.',
+      'info',
+      6000,
+    );
+  }
+
+  // ── Mocked state cycling (debug-only) ──────────────────────────────────────
 
   private mockSearching(): void {
     this.activeQueue.set({ gameId: `mock-${Date.now()}`, gameType: 'logo', joinedAt: Date.now() });
     this.opponentUsername.set(null);
     this.elapsedSeconds.set(0);
+    this.lonelyHintFired = false;
     this.widgetState.set('searching');
     this.startElapsedTicker();
   }

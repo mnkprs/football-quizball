@@ -31,7 +31,7 @@ export class SoQueueWidgetComponent {
 
   /** ARIA live politeness — assertive on reserved (interrupts), polite otherwise. */
   readonly ariaLive = computed(() =>
-    this.queue.widgetState() === 'reserved' ? 'assertive' : 'polite',
+    this.queue.displayState() === 'reserved' ? 'assertive' : 'polite',
   );
 
   onLeave(): void {

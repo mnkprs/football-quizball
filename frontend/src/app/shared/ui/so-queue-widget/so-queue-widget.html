@@ -1,22 +1,22 @@
-@if (queue.widgetState() !== 'hidden') {
+@if (queue.displayState() !== 'hidden') {
   <div
     class="so-queue-widget so-glass"
-    [class.so-queue-widget--reserved]="queue.widgetState() === 'reserved'"
+    [class.so-queue-widget--reserved]="queue.displayState() === 'reserved'"
     role="status"
     [attr.aria-live]="ariaLive()"
     [attr.aria-label]="
-      queue.widgetState() === 'searching'
+      queue.displayState() === 'searching'
         ? 'In queue for ' + modeLabel() + ', ' + queue.elapsedLabel() + ' elapsed'
         : 'Match found against ' + queue.opponentUsername() + ', ' + queue.countdownSeconds() + ' seconds to accept'
     "
   >
-    @if (queue.widgetState() === 'searching') {
+    @if (queue.displayState() === 'searching') {
       <span class="so-queue-widget__dot" aria-hidden="true"></span>
       <span class="so-queue-widget__label type-label-md">
         In queue · {{ modeLabel() }} · {{ queue.elapsedLabel() }}
       </span>
       <so-button variant="ghost" size="sm" (pressed)="onLeave()">Leave</so-button>
-    } @else if (queue.widgetState() === 'reserved') {
+    } @else if (queue.displayState() === 'reserved') {
       <span class="so-queue-widget__opponent type-title-md">
         vs {{ queue.opponentUsername() }}
       </span>

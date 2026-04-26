@@ -2,6 +2,29 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.21] - 2026-04-26
+
+### Added — Queue widget Day 4: route-aware hide + 3 toasts + lonely-hours hint
+
+Day 4 polish layer on the queue widget. Closes the four explicit Day 4 plan items.
+
+**Route-aware hide**:
+- `QueueStateService` now subscribes to `Router` `NavigationEnd` and tracks the current URL path. New `displayState()` computed signal returns `'hidden'` when the current route equals `/duel/{activeQueue.gameId}` — the widget gracefully disappears when the player arrives at the duel they just accepted, instead of stacking on top of the duel screen.
+- `<so-queue-widget>` template + ARIA wiring now read `displayState()` instead of `widgetState()` so the route hide takes effect everywhere.
+
+**Three toast variants** (using existing `ToastService.show()` — text-only for v1):
+- **Match expired** (8s, error) — fires when widget transitions from `reserved` → server `abandoned`. Tells the user about the -5 ELO penalty and prompts to re-queue. Also fires on accept-race (409) where the forfeit cron beat us to the row.
+- **Standard-duel rejection** — already shipped Day 3 via the backend ConflictException → toast in `logo-quiz.onFindDuel()`. No new code needed.
+- **Lonely-hours hint** (6s, info) — fires once per queue session at 60s elapsed if widget is still in `searching` state. Copy: "Quiet hours? Try Solo Logo Quiz while you wait." Plan decision D4=A.
+
+**User-initiated leave is silent**: tapping Leave during reserved state still applies the -5 ELO penalty server-side (per OV1=B), but the client doesn't surface a toast — the user explicitly chose to leave, so reminding them feels hostile.
+
+**TODOS.md** — added "Action-button toasts" item. The design spec called for `[Queue again]` and `[Try Solo]` action buttons inside the toasts; shipping text-only for v1 since extending `ToastService` to support actions touches a global component used app-wide. Deferred to a dedicated follow-up.
+
+**Build verification**: `tsc --noEmit` clean. `ng build --configuration development` succeeds (pre-existing warnings only).
+
+**Day 5 next**: install Playwright, write the 8 E2E flows from the test plan, run /qa, prep merge.
+
 ## [0.10.0.20] - 2026-04-26
 
 ### Added — Queue widget Day 3: real backend wiring + boot probe

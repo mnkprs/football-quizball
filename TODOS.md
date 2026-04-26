@@ -63,6 +63,38 @@ Forfeit detection is a server-side concern — the cron sweep already counts for
 
 ---
 
+## [PENDING] Action-button toasts (extend ToastService)
+
+**Source:** `/plan-design-review` 2026-04-26 (D4 design spec) + Day 4 queue widget polish
+**Trigger:** Next time a feature needs an actionable toast (queue widget would benefit, but didn't block v1).
+
+### What
+Extend `frontend/src/app/core/toast.service.ts` to support an optional action button per toast: `show(message, type, durationMs, action?: { label: string, handler: () => void })`. Update `app-toast` template to render the action button when present.
+
+### Why
+The queue widget design spec called for action buttons on three toasts:
+- Match expired → [Queue again] (re-trigger `QueueStateService.startQueue('logo')`)
+- Lonely-hours hint → [Try Solo] (navigate to `/logo-quiz?tab=solo`)
+- Standard-duel rejection → already explain-only per D3=A, no button needed
+
+Day 4 shipped these as text-only toasts (the copy explains the action; user navigates manually). Action buttons would close the loop in one tap.
+
+### Pros
+- Better UX for the queue widget toasts AND any future actionable notification
+- Single shared component, used everywhere
+
+### Cons
+- Touches a global component (every existing caller still works, but the API expands)
+- Need to handle accessibility (action button should be focusable, keyboard-activatable)
+
+### Context
+Look at `frontend/src/app/shared/toast/toast.html` for current rendering. Action buttons should appear inline with the message, distinguishable from the dismiss affordance.
+
+### Depends on
+- Nothing — pure design system enhancement.
+
+---
+
 ## [PENDING] Reopen bot fallback decision
 
 **Source:** `/plan-eng-review` 2026-04-26 (decision S0=B, T3)
