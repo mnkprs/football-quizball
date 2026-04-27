@@ -3,7 +3,9 @@
     class="so-queue-widget so-glass"
     [class.so-queue-widget--reserved]="queue.displayState() === 'reserved'"
     [class.so-queue-widget--accepted]="queue.iAccepted()"
-    [style.top]="topOffset()"
+    [class.so-queue-widget--collapsed]="isCollapsed()"
+    [class.so-queue-widget--floating]="isFloating()"
+    [style.top]="isCollapsed() ? null : topOffset()"
     cdkDrag
     cdkDragBoundary="body"
     [cdkDragFreeDragPosition]="dragPosition()"
@@ -16,27 +18,77 @@
         : 'Match found against ' + queue.opponentUsername() + ', ' + queue.countdownSeconds() + ' seconds to accept'
     "
   >
-    @if (queue.displayState() === 'searching') {
-      <span class="so-queue-widget__dot" aria-hidden="true"></span>
-      <span class="so-queue-widget__label type-label-md">
-        In queue · {{ modeLabel() }} · {{ queue.elapsedLabel() }}
-      </span>
-      <so-button variant="ghost" size="sm" (pressed)="onLeave()">Leave</so-button>
-    } @else if (queue.displayState() === 'reserved') {
-      <span class="so-queue-widget__opponent type-title-md">
-        vs {{ queue.opponentUsername() }}
-      </span>
-      <span
-        class="so-queue-widget__countdown so-text-numeric"
-        [class.so-queue-widget__countdown--urgent]="queue.countdownSeconds() <= 5"
+    <!-- Drag handle (top-edge bars) — iOS sheet-style affordance. Hidden when collapsed. -->
+    @if (!isCollapsed()) {
+      <span class="so-queue-widget__handle" aria-hidden="true"></span>
+    }
+
+    @if (isCollapsed()) {
+      <!-- Collapsed mode: round badge. Whole surface is tap-to-expand. -->
+      <button
+        type="button"
+        class="so-queue-widget__badge-btn"
+        (click)="toggleCollapsed()"
+        [attr.aria-label]="
+          queue.displayState() === 'searching'
+            ? 'Expand queue widget. ' + queue.elapsedLabel() + ' in queue.'
+            : 'Expand match widget. ' + queue.countdownSeconds() + ' seconds to accept.'
+        "
       >
-        {{ queue.countdownSeconds() }}s
-      </span>
-      @if (queue.iAccepted()) {
-        <so-button variant="ghost" size="sm" [disabled]="true">WAITING FOR OPPONENT</so-button>
-      } @else {
-        <so-button variant="primary" size="sm" (pressed)="onAccept()">TAP TO PLAY</so-button>
+        @if (queue.displayState() === 'searching') {
+          <span class="so-queue-widget__dot" aria-hidden="true"></span>
+          <span class="so-queue-widget__badge-text so-text-numeric">{{ queue.elapsedLabel() }}</span>
+        } @else {
+          <span
+            class="so-queue-widget__badge-countdown so-text-numeric"
+            [class.so-queue-widget__badge-countdown--urgent]="queue.countdownSeconds() <= 5"
+          >
+            {{ queue.countdownSeconds() }}
+          </span>
+        }
+      </button>
+    } @else {
+      <!-- Expanded mode: full strip with state-driven content. -->
+      @if (queue.displayState() === 'searching') {
+        <span class="so-queue-widget__dot" aria-hidden="true"></span>
+        <span class="so-queue-widget__label type-label-md">
+          In queue · {{ modeLabel() }} · {{ queue.elapsedLabel() }}
+        </span>
+        <so-button variant="ghost" size="sm" (pressed)="onLeave()">Leave</so-button>
+      } @else if (queue.displayState() === 'reserved') {
+        <span class="so-queue-widget__opponent type-title-md">
+          vs {{ queue.opponentUsername() }}
+        </span>
+        <span
+          class="so-queue-widget__countdown so-text-numeric"
+          [class.so-queue-widget__countdown--urgent]="queue.countdownSeconds() <= 5"
+          aria-hidden="true"
+        >
+          {{ queue.countdownSeconds() }}<span class="so-queue-widget__countdown-unit">s</span>
+        </span>
+        @if (queue.iAccepted()) {
+          <span class="so-queue-widget__status" role="status">Waiting for opponent</span>
+        } @else {
+          <so-button variant="primary" size="sm" (pressed)="onAccept()">Tap to play</so-button>
+        }
       }
+
+      <!-- Collapse toggle — always present in expanded mode. -->
+      <button
+        type="button"
+        class="so-queue-widget__collapse-btn"
+        (click)="toggleCollapsed()"
+        aria-label="Collapse queue widget to badge"
+      >
+        <span class="so-queue-widget__collapse-icon" aria-hidden="true"></span>
+      </button>
+    }
+
+    <!-- First-time hint: appears once, auto-dismisses. -->
+    @if (hintVisible()) {
+      <div class="so-queue-widget__hint" role="tooltip" (click)="dismissHint()">
+        <span class="so-queue-widget__hint-text">Drag to move · Tap – to collapse</span>
+      </div>
     }
   </div>
 }
