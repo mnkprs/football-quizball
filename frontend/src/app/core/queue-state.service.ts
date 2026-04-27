@@ -125,6 +125,29 @@ export class QueueStateService {
 
     try {
       const games = await firstValueFrom(this.api.listMyGames());
+
+      // 1. Active duel from before the refresh — resume it. The backend's
+      //    singleton guard (duel.service.ts joinQueue) treats 'active' as
+      //    "already in a game", so without resuming the user gets silently
+      //    redirected to the duel page on their next Find-Duel tap (or
+      //    nothing visible happens, depending on /duel/:id state). Naving
+      //    here makes the resume explicit and lets the play page handle
+      //    finish/forfeit. Skip invite-code rooms — those are a separate
+      //    flow and never block the public queue.
+      const active = games.find(g => g.status === 'active' && !g.inviteCode);
+      if (active) {
+        if (this.currentUrlPath() !== `/duel/${active.id}`) {
+          // Surface a toast before yanking the user — auto-navigation without
+          // explanation feels hostile if they opened the app for something
+          // unrelated. The toast reads on the destination route too, so they
+          // know why they landed there.
+          this.toast.show('Resuming your active duel…', 'info', 3000);
+          void this.router.navigate(['/duel', active.id]);
+        }
+        return;
+      }
+
+      // 2. Open queue/reservation — rehydrate the floating widget.
       const open = games.find(g =>
         (g.status === 'waiting' || g.status === 'reserved') && !g.inviteCode,
       );
@@ -201,7 +224,31 @@ export class QueueStateService {
   private async hydrateFromGameId(gameId: string): Promise<void> {
     try {
       const game = await firstValueFrom(this.api.getGame(gameId));
+      // Stale reserved game — the 10s acceptance window has already burned
+      // through, but the cron sweep hasn't flipped it to 'abandoned' yet.
+      // Without proactive cleanup the row stays in the singleton-guard set
+      // (duel.service joinQueue) and BLOCKS the user's next Find-Duel tap.
+      // Force-abandon here so the user can immediately queue again. If the
+      // cron beat us to it, the abandon call no-ops (or 400s) — either way
+      // the row is now out of the singleton set.
       if (game.status === 'reserved' && game.reservation && game.reservation.secondsRemaining <= 0) {
+        try {
+          await firstValueFrom(this.api.abandonGame(gameId));
+        } catch (err) {
+          // 400 "Game is already over" means cron / opponent abandon beat us
+          // to it — the row is gone from the singleton set either way, so
+          // treat as success. Anything else (5xx, network) means the stale
+          // row may STILL block new joins; tell the user instead of failing
+          // silently. They can refresh to retry.
+          const status = (err as { status?: number })?.status;
+          if (status !== 400) {
+            this.toast.show(
+              'Couldn’t clear your previous match. Refresh and try again.',
+              'error',
+              6000,
+            );
+          }
+        }
         return;
       }
       await this.applyServerState(game);
