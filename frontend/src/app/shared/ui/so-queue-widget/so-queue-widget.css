@@ -1,33 +1,51 @@
-/* Floating duel queue widget — fixed-position, draggable, top-of-stack chrome.
+/* Floating duel queue widget — fixed-position, draggable, collapsible.
  *
  * Design system usage:
- *   .so-glass          — base glassmorphism (composes --glass-bg/blur/border)
- *   .type-label-md     — Lexend 12px/500/0.04em (searching label)
- *   .type-title-md     — Inter 16px/500 (opponent name)
- *   .so-text-numeric   — tabular-nums Space Grotesk (countdown)
+ *   .so-glass            — base glassmorphism (composes --glass-bg/blur/border)
+ *   .type-label-md       — Lexend 12px/500/0.04em (searching label)
+ *   .type-title-md       — Inter 16px/500 (opponent name)
+ *   .so-text-numeric     — tabular-nums Space Grotesk (countdown, elapsed)
+ *   --color-warning      — #FF9500, used as a tint for the "match found" state
+ *                          (replaces the old --color-destructive misuse — red
+ *                          stays reserved for actual error/loss semantics)
+ *   --color-accent       — primary blue, drives the hint pill highlight
+ *   --radius-lg / -full  — used when floating (lg) or collapsed (full)
+ *   --floodlit-glow      — replaces ad-hoc rgba shadow when floating/collapsed
+ *   --ease-out-quart     — base motion
+ *   --ease-out-spring    — spring overshoot for collapse + scale-pulse
  *
  * Positioning + stacking:
- *   - position: fixed; left: 50%; transform: translateX(-50%) so default
- *     anchor is centered under the top-nav. Top offset bound inline by the
- *     component (var(--top-nav-reserve) or safe-area inset).
+ *   - Expanded: position: fixed; centered via left:0/right:0 + margin:auto. We
+ *     deliberately avoid `transform: translateX(-50%)` because cdkDrag owns
+ *     the `transform` property — it ALWAYS sets an inline `translate3d(...)`
+ *     (even for the initial {0,0} position), which would override the
+ *     centering transform and cause the widget to render off-center on first
+ *     paint. Top offset is bound inline by the component (var(--top-nav-reserve)
+ *     or safe-area inset).
+ *   - Collapsed: position: fixed top-right with safe-area padding. The same
+ *     transform-based drag offset lets the user move the badge anywhere.
  *   - z-index 9999 — sits above top-nav (50), bottom-nav (40), modals, toasts.
- *     The widget is the most important transient state in the app while a
- *     match is being found.
- *   - cdkDrag transforms the element via inline transform once dragged. The
- *     CSS centering transform is REMOVED while dragging (see below) to prevent
- *     a fight between cdkDrag's translate and our translateX(-50%).
  *
  * Drag UX:
  *   - cursor: grab on idle, grabbing during drag (CDK adds .cdk-drag-dragging)
- *   - Buttons override touch-action so taps don't get intercepted as drags
+ *   - On touch (the actual ship target — iOS/Android), the visible top-edge
+ *     handle bar communicates draggability. cursor changes are desktop-only.
+ *   - Buttons override touch-action so taps don't get intercepted as drags.
+ *   - The entrance animation is opacity-only so it never competes with
+ *     cdkDrag's `transform`. Animating transform here would also re-trigger
+ *     on drag-release if `animation-name` was toggled (a previous version did
+ *     that, causing the widget to fly to the top of the screen on release).
  */
+
+/* ── Expanded (default) container ─────────────────────────────────────────── */
 
 .so-queue-widget {
   position: fixed;
   /* top is bound inline via [style.top] in the template — see component. */
-  left: 50%;
-  /* Centering transform — overridden by cdkDrag inline transform once dragged. */
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
   width: 100%;
   max-width: var(--app-max-width);
   /* Stack on top of everything: top-nav (50), bottom-nav (40), modals, toasts.
@@ -40,13 +58,17 @@
   padding: var(--space-3) var(--space-4);
   min-height: 56px;
 
+  /* Docked-strip default: square corners, single bottom edge. The widget
+   * morphs into a rounded card the moment the user drags it (see --floating). */
   border-radius: 0;
   border-bottom: 1px solid var(--glass-border);
 
   animation: so-queue-widget-slide-in 300ms var(--ease-out-quart);
   transition:
-    background 200ms var(--ease-out-quart),
-    border-color 200ms var(--ease-out-quart);
+    background var(--anim-reveal) var(--ease-out-quart),
+    border-color var(--anim-reveal) var(--ease-out-quart),
+    border-radius var(--anim-transition) var(--ease-out-quart),
+    box-shadow var(--anim-transition) var(--ease-out-quart);
 
   color: var(--color-foreground);
 
@@ -58,42 +80,87 @@
   -webkit-user-select: none;
 }
 
-/* While being dragged: switch cursor + suppress entrance animation so a re-mount
- * mid-drag (state change) doesn't snap the widget back to the slide-in keyframe. */
+/* While being dragged: switch cursor + amplify shadow for tactile feedback.
+ * We deliberately do NOT toggle `animation: none` here — flipping
+ * `animation-name` on/off causes the entrance animation to replay on drag-end
+ * (CSS Animations spec restarts the animation whenever animation-name changes
+ * away from `none`), which made the widget fly to the top of the screen for a
+ * frame on release. The fade-only entrance animation also can't conflict with
+ * cdkDrag's transform. */
 .so-queue-widget.cdk-drag-dragging {
   cursor: grabbing;
-  animation: none;
-  /* Pop the widget visually during drag for tactile feedback. */
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
 }
-
-/* When the widget has been dragged, cdkDrag sets an inline transform that
- * REPLACES our centering translateX(-50%). That's the desired behavior — once
- * the user has placed the widget, we don't fight them on positioning. The
- * default centering only matters before any drag. */
 
 /* Buttons inside the widget MUST handle their own pointer events even though
  * the parent listens for drag. cdkDrag's built-in click-vs-drag threshold (5px)
  * means a tap-and-release fires the click event normally. Setting
  * touch-action:auto on buttons restores native button feel. */
-.so-queue-widget so-button {
+.so-queue-widget so-button,
+.so-queue-widget__collapse-btn,
+.so-queue-widget__badge-btn {
   touch-action: auto;
 }
 
-/* ── Match-found (reserved) state — red-tinted glass override ────────────── */
-
-.so-queue-widget--reserved {
-  --glass-bg: rgba(239, 68, 68, 0.18); /* --color-destructive @ 18% */
-  border-bottom-color: rgba(239, 68, 68, 0.4);
+/* ── Floating mode — user has dragged it off the docked default ──────────── */
+/* Round the corners + add a soft glow so the widget reads as a card instead
+ * of a broken nav strip hanging in space. Uses --floodlit-glow (the same
+ * blue-tinted halo used elsewhere in the app for floating elements). */
+.so-queue-widget--floating {
+  border-radius: var(--radius-lg);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--floodlit-glow), 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 
-/* ── Accepted-but-waiting state — calmer, signals "your job is done" ──────── */
+/* ── Match-found (reserved) state — WARNING-orange tint, NOT destructive ─── */
+/* Semantic note: the previous version reused --color-destructive (#ef4444)
+ * for a positive event ("match found, act now"), conflicting with that
+ * token's meaning everywhere else in the app (errors, losses, dangerous
+ * actions). --color-warning (#FF9500) is the correct semantic — high-priority
+ * attention without overloading "error" red. */
+.so-queue-widget--reserved {
+  --glass-bg: rgba(255, 149, 0, 0.18); /* --color-warning @ 18% */
+  border-bottom-color: rgba(255, 149, 0, 0.40);
+}
+.so-queue-widget--reserved.so-queue-widget--floating {
+  border-color: rgba(255, 149, 0, 0.40);
+}
 
+/* ── Accepted-but-waiting state — calmer, signals "your job is done" ─────── */
 .so-queue-widget--accepted {
-  /* Soften the red so the player doesn't keep feeling urgency — it's now on
-   * the opponent. Same hue, lower opacity. */
-  --glass-bg: rgba(239, 68, 68, 0.10);
-  border-bottom-color: rgba(239, 68, 68, 0.25);
+  /* Soften the warning tint so the player doesn't keep feeling urgency — it's
+   * now on the opponent. Same hue, lower opacity. */
+  --glass-bg: rgba(255, 149, 0, 0.10);
+  border-bottom-color: rgba(255, 149, 0, 0.25);
+}
+.so-queue-widget--accepted.so-queue-widget--floating {
+  border-color: rgba(255, 149, 0, 0.25);
+}
+
+/* ── iOS-style drag handle (top-edge bars) ───────────────────────────────── */
+/* Communicates draggability on touch, where `cursor: grab` is invisible.
+ * Sits centered along the top edge — doesn't interfere with horizontal
+ * content layout (dot/label/buttons all flow normally). Inner padding is
+ * biased downward to give the bar breathing room. */
+.so-queue-widget__handle {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  transition: background var(--anim-feedback) var(--ease-out-quart);
+}
+.so-queue-widget.cdk-drag-dragging .so-queue-widget__handle {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+/* Bias inner padding so handle bar doesn't visually clash with content. */
+.so-queue-widget:not(.so-queue-widget--collapsed) {
+  padding-top: calc(var(--space-3) + 4px);
 }
 
 /* ── Searching state ─────────────────────────────────────────────────────── */
@@ -111,20 +178,221 @@
   flex: 1;
 }
 
-/* ── Reserved state ──────────────────────────────────────────────────────── */
+/* ── Reserved state — countdown becomes the dominant element ─────────────── */
 
 .so-queue-widget__opponent {
   flex: 1;
+  /* Truncate long usernames so the countdown never gets squeezed off-screen. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
+/* The countdown was previously 12px (--text-label-md) — too small for the
+ * single most attention-critical moment in the app. It now uses the headline
+ * size with the numeric font for tabular alignment. The `s` suffix is
+ * downsized so the digit dominates without the text running off the strip. */
 .so-queue-widget__countdown {
+  font-size: var(--text-headline-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-right: var(--space-2);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+.so-queue-widget__countdown-unit {
+  font-size: var(--text-label-lg);
+  font-weight: 500;
+  opacity: 0.7;
+  margin-left: 1px;
+}
+
+/* Urgent ≤5s: rhythmic glow + opacity pulse. NOT colour-shifted to red — the
+ * background is already orange; switching the digit to red would muddy
+ * legibility AND dilute the meaning of red elsewhere in the app. The pulsing
+ * drop-shadow is the urgency signal; it reads instantly without fighting the
+ * surface tint. */
+.so-queue-widget__countdown--urgent {
+  animation: so-queue-widget-tick 1s var(--ease-out-spring) infinite;
+}
+
+/* Status pill replacing the old disabled <so-button> for "Waiting for opponent".
+ * This isn't a button — it's a status. Marking it as one helps screen readers
+ * and stops users from poking a dead button. */
+.so-queue-widget__status {
+  font-family: var(--font-headline);
   font-size: var(--text-label-md);
   font-weight: 500;
-  margin-right: var(--space-2);
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.10);
+  color: var(--color-foreground);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
 }
 
-.so-queue-widget__countdown--urgent {
-  color: var(--color-destructive);
+/* Subtle waiting-dot pulse so the user knows the system is alive. */
+.so-queue-widget__status::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: so-queue-widget-pulse 1.4s ease-in-out infinite;
+}
+
+/* ── Collapse toggle (expanded mode) ─────────────────────────────────────── */
+
+.so-queue-widget__collapse-btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 28px;
+  height: 28px;
+  margin-left: var(--space-1);
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-foreground);
+  opacity: 0.6;
+  transition: opacity var(--anim-feedback) var(--ease-out-quart),
+              background var(--anim-feedback) var(--ease-out-quart);
+  flex-shrink: 0;
+}
+.so-queue-widget__collapse-btn:hover,
+.so-queue-widget__collapse-btn:focus-visible {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+/* Minus glyph drawn purely with CSS — no icon font dependency. */
+.so-queue-widget__collapse-icon {
+  display: block;
+  width: 12px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+/* ── Collapsed mode — round badge anchored top-right ─────────────────────── */
+
+.so-queue-widget--collapsed {
+  /* Override the centered-strip layout: dock to top-right corner with
+   * safe-area padding. cdkDragFreeDragPosition still applies on top. */
+  left: auto;
+  right: var(--space-4);
+  top: calc(env(safe-area-inset-top, 0px) + var(--space-4));
+  margin: 0;
+  width: 56px;
+  max-width: 56px;
+  min-height: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  border-bottom: none;
+  box-shadow: var(--floodlit-glow), 0 8px 24px rgba(0, 0, 0, 0.40);
+}
+
+/* Hide the strip-edge handle in collapsed mode — the whole badge is the
+ * grab surface. */
+.so-queue-widget--collapsed .so-queue-widget__handle {
+  display: none;
+}
+
+.so-queue-widget__badge-btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  color: var(--color-foreground);
+  cursor: pointer;
+  font: inherit;
+  /* Tap is the expand action; drag is handled by the parent cdkDrag.
+   * touch-action:auto means a single tap fires click normally; cdkDrag's
+   * 5px threshold prevents accidental drags from touch jitter. */
+}
+
+.so-queue-widget__badge-text {
+  font-size: var(--text-label-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.so-queue-widget__badge-countdown {
+  font-size: var(--text-headline-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.so-queue-widget__badge-countdown--urgent {
+  animation: so-queue-widget-tick 1s var(--ease-out-spring) infinite;
+}
+
+/* ── First-time hint ─────────────────────────────────────────────────────── */
+/* Anchored below the widget. Tap to dismiss; auto-dismisses after 4s.
+ * Persisted via localStorage so returning users never see it again. */
+.so-queue-widget__hint {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--color-foreground);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-headline);
+  font-size: var(--text-label-md);
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  animation: so-queue-widget-hint-in var(--anim-reveal) var(--ease-out-quart);
+  border: 1px solid var(--color-accent-glow);
+}
+.so-queue-widget__hint::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.85);
+  border-left: 1px solid var(--color-accent-glow);
+  border-top: 1px solid var(--color-accent-glow);
+}
+/* In collapsed mode the hint sits to the LEFT of the badge so it doesn't
+ * spill off the right edge of the screen. */
+.so-queue-widget--collapsed .so-queue-widget__hint {
+  top: 50%;
+  left: auto;
+  right: calc(100% + var(--space-2));
+  transform: translateY(-50%);
+}
+.so-queue-widget--collapsed .so-queue-widget__hint::before {
+  top: 50%;
+  left: auto;
+  right: -4px;
+  transform: translateY(-50%) rotate(45deg);
+  border: 0;
+  border-right: 1px solid var(--color-accent-glow);
+  border-top: 1px solid var(--color-accent-glow);
 }
 
 /* ── Animations ──────────────────────────────────────────────────────────── */
@@ -134,15 +402,35 @@
   50%      { opacity: 0.4; transform: scale(1.2); }
 }
 
-/* Slide-in: combine the centering transform with the entrance translateY. */
+/* Slide-in: opacity only. Anything animating `transform` would conflict with
+ * cdkDrag (which owns the inline transform) and could yank the widget away
+ * from its persisted drag position. */
 @keyframes so-queue-widget-slide-in {
-  from { transform: translate(-50%, -100%); opacity: 0; }
-  to   { transform: translate(-50%, 0);     opacity: 1; }
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Urgent countdown tick: pulsing drop-shadow + opacity for a heartbeat. We
+ * never animate `transform` here — cdkDrag owns the inline transform on the
+ * widget root. The dot-pulse and waiting-pulse are on inner spans which DON'T
+ * have cdkDrag's transform, so scale animations there are safe. */
+@keyframes so-queue-widget-tick {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); opacity: 1; }
+  50%      { filter: drop-shadow(0 0 6px rgba(255, 149, 0, 0.65)); opacity: 0.85; }
+}
+
+@keyframes so-queue-widget-hint-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .so-queue-widget,
-  .so-queue-widget__dot {
+  .so-queue-widget__dot,
+  .so-queue-widget__countdown--urgent,
+  .so-queue-widget__badge-countdown--urgent,
+  .so-queue-widget__status::after,
+  .so-queue-widget__hint {
     animation: none;
   }
 }
