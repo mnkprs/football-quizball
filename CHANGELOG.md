@@ -2,6 +2,37 @@
 
 All notable changes to StepOvr will be documented in this file.
 
+## [0.10.0.35] - 2026-04-27
+
+### Fixed — Queue: can't rejoin after browser refresh
+
+User report: after refreshing the page while in queue, clicking Find Duel again did nothing visible (or silently navigated to a stale duel).
+
+**Root cause**
+
+The boot probe in `QueueStateService.init()` filtered `listMyGames()` to `waiting`/`reserved` only — it skipped `active`. But the backend's singleton guard in `duel.service.joinQueue()` includes `active`. After a refresh:
+- An in-flight `active` duel would render the widget hidden, then trap the next Find-Duel tap (server returns the active row → frontend silently navigates).
+- A `reserved` row whose 10s acceptance window had expired would also block new joins until cron eventually swept it.
+
+**The fix**
+- `init()` now detects `active` games and navigates to `/duel/:id` immediately with a "Resuming your active duel…" toast (no more silent yank).
+- `hydrateFromGameId()` proactively calls `abandonGame` on stale `reserved` rows (`secondsRemaining <= 0`) so the singleton guard clears. Toasts a recoverable error if abandon fails for non-already-handled reasons.
+
+### Changed — Queue widget: collapse-to-pill, iOS-style drag handle, warning-orange match-found semantics
+
+Redesign pass on the floating queue widget:
+- **Color semantics fixed.** Match-found state no longer reuses `--color-destructive` (#ef4444 red) — that token's job is errors and losses. Now uses `--color-warning` (#FF9500 orange) so red elsewhere in the app keeps meaning what it means.
+- **Countdown is now the dominant element.** Bumped from 12px (`--text-label-md`) to 28px (`--text-headline-md`) with `Space Grotesk` tabular-nums. Urgent ≤5s state pulses via `drop-shadow` glow + opacity instead of red-on-red text (which was unreadable against the warning bg).
+- **Collapse-to-pill mode.** Tap the new `–` button to collapse the strip into a 56×56 round badge anchored top-right. Tap to expand. Persists across refreshes; uses an independent drag position from expanded mode.
+- **iOS sheet-style drag handle.** Top-edge bar makes draggability discoverable on touch (where `cursor: grab` is invisible). One-time onboarding hint appears 1.5s after first show, auto-dismisses after 4s.
+- **Floating state visual polish.** When dragged off the docked default, the widget rounds to `--radius-lg` and gains a `--floodlit-glow` halo so it reads as a card instead of a broken nav strip.
+- **`Waiting for opponent` is now a status pill, not a disabled button.** Semantically correct (it's a status, not an interaction) and includes a subtle blue dot pulse so users know the system is alive.
+- **Position bounds-clamping.** Loaded drag positions outside the viewport reset to the docked default — prevents stuck-off-screen state from cross-device localStorage carry-over.
+
+### Changed — Native app version bumped to 2.0.7 (Android versionCode 25, iOS MARKETING_VERSION 2.0.7)
+
+Pre-existing native build version bump bundled in for upcoming TestFlight / Play Store release.
+
 ## [0.10.0.34] - 2026-04-26
 
 ### Fixed — Push notifications: duplicate services + opaque error logging (UNIMPLEMENTED on TestFlight/Android)
